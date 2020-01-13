@@ -4,12 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
-    using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Mvc;
-    using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Filters;
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.History.Models;
+    using Microsoft.Azure.IIoT.OpcUa.History;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
     using Newtonsoft.Json.Linq;
     using System;
     using System.ComponentModel.DataAnnotations;
@@ -52,7 +53,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
             }
             var readresult = await _client.HistoryReadAsync(
                 endpointId, request.ToServiceModel(d => d));
-            return HistoryReadResponseApiModel<JToken>.Create(readresult, d => d);
+            return readresult.ToApiModel(d => d);
         }
 
         /// <summary>
@@ -74,7 +75,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
             }
             var readresult = await _client.HistoryReadNextAsync(
                 endpointId, request.ToServiceModel());
-            return HistoryReadNextResponseApiModel<JToken>.Create(readresult, d => d);
+            return readresult.ToApiModel(d => d);
         }
 
         /// <summary>
@@ -97,7 +98,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
             }
             var writeResult = await _client.HistoryUpdateAsync(
                 endpointId, request.ToServiceModel(d => d));
-            return new HistoryUpdateResponseApiModel(writeResult);
+            return writeResult.ToApiModel();
         }
 
         private readonly IHistoricAccessServices<string> _client;

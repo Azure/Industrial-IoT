@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
     using System.Threading.Tasks;
     using System.ComponentModel.DataAnnotations;
     using System.Linq;
+    using Microsoft.Azure.IIoT.OpcUa.Api.History.Models;
 
     /// <summary>
     /// Historic access read services
@@ -53,8 +54,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
             }
             var readresult = await _historian.HistoryReadEventsAsync(
                 endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return HistoryReadResponseApiModel<HistoricEventApiModel[]>.Create(readresult,
-                d => d?.Select(v => v == null ? null : new HistoricEventApiModel(v)).ToArray());
+            return readresult.ToApiModel(d => d?.Select(v => v.ToApiModel()).ToArray());
         }
 
         /// <summary>
@@ -77,8 +77,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
             }
             var readresult = await _historian.HistoryReadEventsNextAsync(
                 endpointId, request.ToServiceModel());
-            return HistoryReadNextResponseApiModel<HistoricEventApiModel[]>.Create(readresult,
-                d => d?.Select(v => v == null ? null : new HistoricEventApiModel(v)).ToArray());
+            return readresult.ToApiModel(d => d?.Select(v => v.ToApiModel()).ToArray());
         }
 
         /// <summary>
@@ -101,8 +100,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
             }
             var readresult = await _historian.HistoryReadValuesAsync(
                 endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return HistoryReadResponseApiModel<HistoricValueApiModel[]>.Create(readresult,
-                d => d?.Select(v => v == null ? null : new HistoricValueApiModel(v)).ToArray());
+            return readresult.ToApiModel(d => d?.Select(v => v.ToApiModel()).ToArray());
         }
 
         /// <summary>
@@ -125,8 +123,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
             }
             var readresult = await _historian.HistoryReadValuesAtTimesAsync(
                 endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return HistoryReadResponseApiModel<HistoricValueApiModel[]>.Create(readresult,
-                d => d?.Select(v => v == null ? null : new HistoricValueApiModel(v)).ToArray());
+            return readresult.ToApiModel(d => d?.Select(v => v.ToApiModel()).ToArray());
         }
 
         /// <summary>
@@ -149,8 +146,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
             }
             var readresult = await _historian.HistoryReadProcessedValuesAsync(
                 endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return HistoryReadResponseApiModel<HistoricValueApiModel[]>.Create(readresult,
-                d => d?.Select(v => v == null ? null : new HistoricValueApiModel(v)).ToArray());
+            return readresult.ToApiModel(d => d?.Select(v => v.ToApiModel()).ToArray());
         }
 
         /// <summary>
@@ -173,8 +169,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
             }
             var readresult = await _historian.HistoryReadModifiedValuesAsync(
                 endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return HistoryReadResponseApiModel<HistoricValueApiModel[]>.Create(readresult,
-                d => d?.Select(v => v == null ? null : new HistoricValueApiModel(v)).ToArray());
+            return readresult.ToApiModel(d => d?.Select(v => v.ToApiModel()).ToArray());
         }
 
         /// <summary>
@@ -197,8 +192,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
             }
             var readresult = await _historian.HistoryReadValuesNextAsync(
                 endpointId, request.ToServiceModel());
-            return HistoryReadNextResponseApiModel<HistoricValueApiModel[]>.Create(readresult,
-                d => d?.Select(v => v == null ? null : new HistoricValueApiModel(v)).ToArray());
+            return readresult.ToApiModel(d => d?.Select(v => v.ToApiModel()).ToArray());
         }
 
         private readonly IHistorianServices<string> _historian;

@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Filters;
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -52,7 +53,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
             }
             var writeResult = await _historian.HistoryDeleteValuesAtTimesAsync(
                 endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return new HistoryUpdateResponseApiModel(writeResult);
+            return writeResult.ToApiModel();
         }
 
         /// <summary>
@@ -75,7 +76,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
             }
             var writeResult = await _historian.HistoryDeleteValuesAsync(
                 endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return new HistoryUpdateResponseApiModel(writeResult);
+            return writeResult.ToApiModel();
         }
 
         /// <summary>
@@ -98,7 +99,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
             }
             var writeResult = await _historian.HistoryDeleteModifiedValuesAsync(
                 endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return new HistoryUpdateResponseApiModel(writeResult);
+            return writeResult.ToApiModel();
         }
 
         /// <summary>
@@ -121,7 +122,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
             }
             var writeResult = await _historian.HistoryDeleteEventsAsync(
                 endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return new HistoryUpdateResponseApiModel(writeResult);
+            return writeResult.ToApiModel();
         }
 
         private readonly IHistorianServices<string> _historian;

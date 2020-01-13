@@ -13,69 +13,70 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
     using System;
     using System.Threading.Tasks;
     using System.ComponentModel.DataAnnotations;
+    using Microsoft.Azure.IIoT.OpcUa.Api.History.Models;
 
     /// <summary>
-    /// History insert services
+    /// History replace services
     /// </summary>
-    [ApiVersion("2")][Route("v{version:apiVersion}/insert")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/replace")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanUpdate)]
     [ApiController]
-    public class InsertController : ControllerBase {
+    public class ReplaceController : ControllerBase {
 
         /// <summary>
         /// Create controller with service
         /// </summary>
         /// <param name="historian"></param>
-        public InsertController(IHistorianServices<string> historian) {
+        public ReplaceController(IHistorianServices<string> historian) {
             _historian = historian ?? throw new ArgumentNullException(nameof(historian));
         }
 
         /// <summary>
-        /// Insert historic values
+        /// Replace historic values
         /// </summary>
         /// <remarks>
-        /// Insert historic values using historic access.
+        /// Replace historic values using historic access.
         /// The endpoint must be activated and connected and the module client
         /// and server must trust each other.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
-        /// <param name="request">The history insert request</param>
-        /// <returns>The history insert result</returns>
+        /// <param name="request">The history replace request</param>
+        /// <returns>The history replace result</returns>
         [HttpPost("{endpointId}/values")]
-        public async Task<HistoryUpdateResponseApiModel> HistoryInsertValuesAsync(
+        public async Task<HistoryUpdateResponseApiModel> HistoryReplaceValuesAsync(
             string endpointId,
-            [FromBody] [Required] HistoryUpdateRequestApiModel<InsertValuesDetailsApiModel> request) {
+            [FromBody] [Required] HistoryUpdateRequestApiModel<ReplaceValuesDetailsApiModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _historian.HistoryInsertValuesAsync(
+            var writeResult = await _historian.HistoryReplaceValuesAsync(
                 endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return new HistoryUpdateResponseApiModel(writeResult);
+            return writeResult.ToApiModel();
         }
 
         /// <summary>
-        /// Insert historic events
+        /// Replace historic events
         /// </summary>
         /// <remarks>
-        /// Insert historic events using historic access.
+        /// Replace historic events using historic access.
         /// The endpoint must be activated and connected and the module client
         /// and server must trust each other.
         /// </remarks>
         /// <param name="endpointId">The identifier of the activated endpoint.</param>
-        /// <param name="request">The history insert request</param>
-        /// <returns>The history insert result</returns>
+        /// <param name="request">The history replace request</param>
+        /// <returns>The history replace result</returns>
         [HttpPost("{endpointId}/events")]
-        public async Task<HistoryUpdateResponseApiModel> HistoryInsertEventsAsync(
+        public async Task<HistoryUpdateResponseApiModel> HistoryReplaceEventsAsync(
             string endpointId,
-            [FromBody] [Required] HistoryUpdateRequestApiModel<InsertEventsDetailsApiModel> request) {
+            [FromBody] [Required] HistoryUpdateRequestApiModel<ReplaceEventsDetailsApiModel> request) {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var writeResult = await _historian.HistoryInsertEventsAsync(
+            var writeResult = await _historian.HistoryReplaceEventsAsync(
                 endpointId, request.ToServiceModel(d => d.ToServiceModel()));
-            return new HistoryUpdateResponseApiModel(writeResult);
+            return writeResult.ToApiModel();
         }
 
         private readonly IHistorianServices<string> _historian;
