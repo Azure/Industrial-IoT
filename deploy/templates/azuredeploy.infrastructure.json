@@ -818,7 +818,7 @@
         {
             "comments": "CDM Telemetry Consumer Group of Event Hub for Device Telemetry",
             "apiVersion": "2017-04-01",
-            "name": "[concat(parameters('eventHubNamespaceName'), parameters('eventHubName'), '/', variables('eventHubConsumerGroup1'))]",
+            "name": "[concat(parameters('eventHubName'), '/', variables('eventHubConsumerGroup1'))]",
             "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
             "dependsOn": [
                 "[variables('eventHubResourceId')]"
@@ -827,7 +827,7 @@
         {
             "comments": "UX Telemetry Consumer Group of Event Hub for Device Telemetry",
             "apiVersion": "2017-04-01",
-            "name": "[concat(parameters('eventHubNamespaceName'), parameters('eventHubName'), '/', variables('eventHubConsumerGroup2'))]",
+            "name": "[concat(parameters('eventHubName'), '/', variables('eventHubConsumerGroup2'))]",
             "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
             "dependsOn": [
                 "[variables('eventHubResourceId')]"
