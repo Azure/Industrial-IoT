@@ -23,6 +23,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
         /// <summary>
         /// A randomly generated ID used to identify the process in the logs
         /// </summary>
-        public static string ProcessId { get; } = "TelemetryProcessor." + Guid.NewGuid();
+        public static string ProcessId { get; } = "EventsProcessor." + Guid.NewGuid();
     }
 }
