@@ -5,6 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
+    using System.ComponentModel.DataAnnotations;
+    using System;
 
     /// <summary>
     /// Endpoint Activation status model
@@ -14,8 +16,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Identifier of the endoint
         /// </summary>
-        [JsonProperty(PropertyName = "id",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty(PropertyName = "id")]
+        [Required]
         public string Id { get; set; }
 
         /// <summary>

@@ -6,6 +6,8 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
     using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Endpoint model
@@ -16,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// Endpoint url to use to connect with
         /// </summary>
         [JsonProperty(PropertyName = "url")]
+        [Required]
         public string Url { get; set; }
 
         /// <summary>
@@ -27,19 +30,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         public HashSet<string> AlternativeUrls { get; set; }
 
         /// <summary>
-        /// Security Mode to use for communication.
+        /// Security Mode to use for communication
         /// default to best.
         /// </summary>
         [JsonProperty(PropertyName = "securityMode",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(Models.SecurityMode.Best)]
         public SecurityMode? SecurityMode { get; set; }
 
         /// <summary>
-        /// Security policy uri to use for communication.
+        /// Security policy uri to use for communication
         /// default to best.
         /// </summary>
         [JsonProperty(PropertyName = "securityPolicy",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string SecurityPolicy { get; set; }
 
         /// <summary>

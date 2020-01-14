@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
     using Xunit;
 
     public class StatusControllerTest : IClassFixture<WebAppFixture> {

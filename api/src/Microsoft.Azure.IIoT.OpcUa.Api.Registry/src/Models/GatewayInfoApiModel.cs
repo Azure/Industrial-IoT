@@ -5,6 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
+    using System.ComponentModel;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Gateway info model
@@ -15,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// Gateway
         /// </summary>
         [JsonProperty(PropertyName = "gateway")]
+        [Required]
         public GatewayApiModel Gateway { get; set; }
 
         /// <summary>
@@ -22,6 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "supervisor",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public SupervisorApiModel Supervisor { get; set; }
 
         /// <summary>
@@ -29,6 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "publisher",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public PublisherApiModel Publisher { get; set; }
 
         /// <summary>
@@ -36,6 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "discoverer",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public DiscovererApiModel Discoverer { get; set; }
     }
 }

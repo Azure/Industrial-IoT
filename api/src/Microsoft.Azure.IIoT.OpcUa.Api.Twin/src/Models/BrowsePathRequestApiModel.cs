@@ -6,6 +6,8 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
     using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Browse nodes by path
@@ -13,10 +15,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     public class BrowsePathRequestApiModel {
 
         /// <summary>
-        /// Node to browse.
+        /// Node to browse from.
         /// (default: RootFolder).
         /// </summary>
-        [JsonProperty(PropertyName = "nodeId")]
+        [JsonProperty(PropertyName = "nodeId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string NodeId { get; set; }
 
         /// <summary>
@@ -24,6 +28,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// (mandatory)
         /// </summary>
         [JsonProperty(PropertyName = "browsePaths")]
+        [Required]
         public List<string[]> BrowsePaths { get; set; }
 
         /// <summary>
@@ -32,6 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "readVariableValues",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(false)]
         public bool? ReadVariableValues { get; set; }
 
         /// <summary>
@@ -39,6 +45,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "header",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public RequestHeaderApiModel Header { get; set; }
     }
 }

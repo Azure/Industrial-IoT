@@ -6,6 +6,8 @@
 namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
     using Newtonsoft.Json;
     using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.Linq;
 
     /// <summary>
     /// Job info list model
@@ -17,6 +19,7 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
         /// </summary>
         [JsonProperty(PropertyName = "continuationToken",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string ContinuationToken { get; set; }
 
         /// <summary>

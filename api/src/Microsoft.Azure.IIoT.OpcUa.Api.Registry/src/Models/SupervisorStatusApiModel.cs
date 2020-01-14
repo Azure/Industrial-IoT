@@ -6,6 +6,9 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
     using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.ComponentModel.DataAnnotations;
+    using System.Linq;
 
     /// <summary>
     /// Supervisor runtime status
@@ -15,8 +18,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Edge device id
         /// </summary>
-        [JsonProperty(PropertyName = "deviceId",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [JsonProperty(PropertyName = "deviceId")]
+        [Required]
         public string DeviceId { get; set; }
 
         /// <summary>
@@ -31,6 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "siteId",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string SiteId { get; set; }
 
         /// <summary>
@@ -38,6 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "endpoints",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public List<EndpointActivationStatusApiModel> Endpoints { get; set; }
     }
 }

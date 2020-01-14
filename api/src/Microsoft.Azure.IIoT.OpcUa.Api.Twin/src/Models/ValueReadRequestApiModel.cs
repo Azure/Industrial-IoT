@@ -5,6 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
+    using System;
+    using System.ComponentModel;
 
     /// <summary>
     /// Node value read request webservice api model
@@ -14,7 +16,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// Node to read from (mandatory)
         /// </summary>
-        [JsonProperty(PropertyName = "nodeId")]
+        [JsonProperty(PropertyName = "nodeId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string NodeId { get; set; }
 
         /// <summary>
@@ -23,6 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "browsePath",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string[] BrowsePath { get; set; }
 
         /// <summary>
@@ -30,10 +35,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// out of a matrix or 0:1 for the first item in
         /// an array, string or bytestring.
         /// See 7.22 of part 4: NumericRange.
-        /// (default: null)
         /// </summary>
         [JsonProperty(PropertyName = "indexRange",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string IndexRange { get; set; }
 
         /// <summary>
@@ -41,6 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "header",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public RequestHeaderApiModel Header { get; set; }
     }
 }

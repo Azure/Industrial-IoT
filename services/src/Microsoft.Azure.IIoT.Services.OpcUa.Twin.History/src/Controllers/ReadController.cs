@@ -3,10 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Auth;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Filters;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models;
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Controllers {
+    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Auth;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Filters;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;

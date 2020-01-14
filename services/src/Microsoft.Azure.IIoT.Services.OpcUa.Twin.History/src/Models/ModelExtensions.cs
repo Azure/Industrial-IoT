@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Models {
     using Microsoft.Azure.IIoT.OpcUa.Api.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.History.Models;
@@ -15,24 +15,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
     /// Aggregate configuration
     /// </summary>
     public static class ModelExtensions {
-
-        /// <summary>
-        /// Create from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static AggregateConfigurationApiModel ToApiModel(
-            this AggregateConfigurationModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new AggregateConfigurationApiModel {
-                UseServerCapabilitiesDefaults = model.UseServerCapabilitiesDefaults,
-                TreatUncertainAsBad = model.TreatUncertainAsBad,
-                PercentDataBad = model.PercentDataBad,
-                PercentDataGood = model.PercentDataGood,
-                UseSlopedExtrapolation = model.UseSlopedExtrapolation
-            };
-        }
 
         /// <summary>
         /// Create service model from api model
@@ -52,22 +34,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
         }
 
         /// <summary>
-        /// Create api model from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static ContentFilterApiModel ToApiModel(
-            this ContentFilterModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new ContentFilterApiModel {
-                Elements = model.Elements?
-                    .Select(e => e.ToApiModel())
-                    .ToList()
-            };
-        }
-
-        /// <summary>
         /// Create service model from api model
         /// </summary>
         public static ContentFilterModel ToServiceModel(
@@ -79,23 +45,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
                 Elements = model.Elements?
                     .Select(e => e.ToServiceModel())
                     .ToList()
-            };
-        }
-
-        /// <summary>
-        /// Create api model from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static ContentFilterElementApiModel ToApiModel(
-            this ContentFilterElementModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new ContentFilterElementApiModel {
-                FilterOperands = model.FilterOperands?
-                    .Select(f => f.ToApiModel())
-                    .ToList(),
-                FilterOperator = (IIoT.OpcUa.Api.History.Models.FilterOperatorType)model.FilterOperator
             };
         }
 
@@ -116,20 +65,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
         }
 
         /// <summary>
-        /// Create api model from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static CredentialApiModel ToApiModel(this CredentialModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new CredentialApiModel {
-                Value = model.Value,
-                Type = (IIoT.OpcUa.Api.History.Models.CredentialType?)model.Type
-            };
-        }
-
-        /// <summary>
         /// Create service model from api model
         /// </summary>
         public static CredentialModel ToServiceModel(
@@ -144,20 +79,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
         }
 
         /// <summary>
-        /// Create from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static DeleteEventsDetailsApiModel ToApiModel(
-            this DeleteEventsDetailsModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new DeleteEventsDetailsApiModel {
-                EventIds = model.EventIds
-            };
-        }
-
-        /// <summary>
         /// Create service model from api model
         /// </summary>
         public static DeleteEventsDetailsModel ToServiceModel(
@@ -167,21 +88,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
             }
             return new DeleteEventsDetailsModel {
                 EventIds = model.EventIds
-            };
-        }
-
-        /// <summary>
-        /// Create from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static DeleteModifiedValuesDetailsApiModel ToApiModel(
-            this DeleteModifiedValuesDetailsModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new DeleteModifiedValuesDetailsApiModel {
-                EndTime = model.EndTime,
-                StartTime = model.StartTime
             };
         }
 
@@ -200,20 +106,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
         }
 
         /// <summary>
-        /// Create from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static DeleteValuesAtTimesDetailsApiModel ToApiModel(
-            this DeleteValuesAtTimesDetailsModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new DeleteValuesAtTimesDetailsApiModel {
-                ReqTimes = model.ReqTimes
-            };
-        }
-
-        /// <summary>
         /// Create service model from api model
         /// </summary>
         public static DeleteValuesAtTimesDetailsModel ToServiceModel(
@@ -223,21 +115,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
             }
             return new DeleteValuesAtTimesDetailsModel {
                 ReqTimes = model.ReqTimes
-            };
-        }
-
-        /// <summary>
-        /// Create from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static DeleteValuesDetailsApiModel ToApiModel(
-            this DeleteValuesDetailsModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new DeleteValuesDetailsApiModel {
-                EndTime = model.EndTime,
-                StartTime = model.StartTime
             };
         }
 
@@ -252,22 +129,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
             return new DeleteValuesDetailsModel {
                 EndTime = model.EndTime,
                 StartTime = model.StartTime
-            };
-        }
-
-        /// <summary>
-        /// Create from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static DiagnosticsApiModel ToApiModel(
-            this DiagnosticsModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new DiagnosticsApiModel {
-                AuditId = model.AuditId,
-                Level = (IIoT.OpcUa.Api.History.Models.DiagnosticsLevel)model.Level,
-                TimeStamp = model.TimeStamp
             };
         }
 
@@ -287,23 +148,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
         }
 
         /// <summary>
-        /// Create api model from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static EventFilterApiModel ToApiModel(
-            this EventFilterModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new EventFilterApiModel {
-                SelectClauses = model.SelectClauses?
-                    .Select(e => e.ToApiModel())
-                    .ToList(),
-                WhereClause = model.WhereClause.ToApiModel()
-            };
-        }
-
-        /// <summary>
         /// Create service model from api model
         /// </summary>
         public static EventFilterModel ToServiceModel(
@@ -316,26 +160,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
                     .Select(e => e.ToServiceModel())
                     .ToList(),
                 WhereClause = model.WhereClause.ToServiceModel()
-            };
-        }
-
-        /// <summary>
-        /// Create api model from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static FilterOperandApiModel ToApiModel(
-            this FilterOperandModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new FilterOperandApiModel {
-                Index = model.Index,
-                Alias = model.Alias,
-                Value = model.Value,
-                NodeId = model.NodeId,
-                AttributeId = (IIoT.OpcUa.Api.History.Models.NodeAttribute?)model.AttributeId,
-                BrowsePath = model.BrowsePath,
-                IndexRange = model.IndexRange
             };
         }
 
@@ -421,22 +245,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
                 ServerTimestamp = model.ServerTimestamp,
                 ServerPicoseconds = model.ServerPicoseconds,
                 ModificationInfo = model.ModificationInfo.ToServiceModel()
-            };
-        }
-
-        /// <summary>
-        /// Create from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static HistoryReadNextRequestApiModel ToApiModel(
-            this HistoryReadNextRequestModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new HistoryReadNextRequestApiModel {
-                ContinuationToken = model.ContinuationToken,
-                Abort = model.Abort,
-                Header = model.Header.ToApiModel()
             };
         }
 
@@ -555,23 +363,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
         }
 
         /// <summary>
-        /// Create from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static InsertEventsDetailsApiModel ToApiModel(
-            this InsertEventsDetailsModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new InsertEventsDetailsApiModel {
-                Filter = model.Filter.ToApiModel(),
-                Events = model.Events?
-                    .Select(v => v.ToApiModel())
-                    .ToList()
-            };
-        }
-
-        /// <summary>
         /// Create service model from api model
         /// </summary>
         public static InsertEventsDetailsModel ToServiceModel(
@@ -583,22 +374,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
                 Filter = model.Filter.ToServiceModel(),
                 Events = model.Events?
                     .Select(v => v.ToServiceModel())
-                    .ToList()
-            };
-        }
-
-        /// <summary>
-        /// Create from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static InsertValuesDetailsApiModel ToApiModel(
-            this InsertValuesDetailsModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new InsertValuesDetailsApiModel {
-                Values = model.Values?
-                    .Select(v => v.ToApiModel())
                     .ToList()
             };
         }
@@ -650,23 +425,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
         }
 
         /// <summary>
-        /// Create from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static ReadEventsDetailsApiModel ToApiModel(
-            this ReadEventsDetailsModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new ReadEventsDetailsApiModel {
-                EndTime = model.EndTime,
-                StartTime = model.StartTime,
-                NumEvents = model.NumEvents,
-                Filter = model.Filter.ToApiModel()
-            };
-        }
-
-        /// <summary>
         /// Create service model from api model
         /// </summary>
         public static ReadEventsDetailsModel ToServiceModel(
@@ -683,22 +441,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
         }
 
         /// <summary>
-        /// Create from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static ReadModifiedValuesDetailsApiModel ToApiModel(
-            this ReadModifiedValuesDetailsModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new ReadModifiedValuesDetailsApiModel {
-                EndTime = model.EndTime,
-                StartTime = model.StartTime,
-                NumValues = model.NumValues
-            };
-        }
-
-        /// <summary>
         /// Create service model from api model
         /// </summary>
         public static ReadModifiedValuesDetailsModel ToServiceModel(
@@ -710,24 +452,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
                 EndTime = model.EndTime,
                 StartTime = model.StartTime,
                 NumValues = model.NumValues
-            };
-        }
-
-        /// <summary>
-        /// Create from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static ReadProcessedValuesDetailsApiModel ToApiModel(
-            this ReadProcessedValuesDetailsModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new ReadProcessedValuesDetailsApiModel {
-                EndTime = model.EndTime,
-                StartTime = model.StartTime,
-                ProcessingInterval = model.ProcessingInterval,
-                AggregateConfiguration = model.AggregateConfiguration.ToApiModel(),
-                AggregateTypeId = model.AggregateTypeId
             };
         }
 
@@ -749,21 +473,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
         }
 
         /// <summary>
-        /// Create from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static ReadValuesAtTimesDetailsApiModel ToApiModel(
-            this ReadValuesAtTimesDetailsModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new ReadValuesAtTimesDetailsApiModel {
-                ReqTimes = model.ReqTimes,
-                UseSimpleBounds = model.UseSimpleBounds
-            };
-        }
-
-        /// <summary>
         /// Create service model from api model
         /// </summary>
         public static ReadValuesAtTimesDetailsModel ToServiceModel(
@@ -774,23 +483,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
             return new ReadValuesAtTimesDetailsModel {
                 ReqTimes = model.ReqTimes,
                 UseSimpleBounds = model.UseSimpleBounds
-            };
-        }
-
-        /// <summary>
-        /// Create from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static ReadValuesDetailsApiModel ToApiModel(
-            this ReadValuesDetailsModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new ReadValuesDetailsApiModel {
-                EndTime = model.EndTime,
-                StartTime = model.StartTime,
-                NumValues = model.NumValues,
-                ReturnBounds = model.ReturnBounds
             };
         }
 
@@ -811,23 +503,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
         }
 
         /// <summary>
-        /// Create from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static ReplaceEventsDetailsApiModel ToApiModel(
-            this ReplaceEventsDetailsModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new ReplaceEventsDetailsApiModel {
-                Filter = model.Filter.ToApiModel(),
-                Events = model.Events?
-                    .Select(v => v.ToApiModel())
-                    .ToList()
-            };
-        }
-
-        /// <summary>
         /// Create service model from api model
         /// </summary>
         public static ReplaceEventsDetailsModel ToServiceModel(
@@ -839,22 +514,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
                 Filter = model.Filter.ToServiceModel(),
                 Events = model.Events?
                     .Select(v => v.ToServiceModel())
-                    .ToList()
-            };
-        }
-
-        /// <summary>
-        /// Create from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static ReplaceValuesDetailsApiModel ToApiModel(
-            this ReplaceValuesDetailsModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new ReplaceValuesDetailsApiModel {
-                Values = model.Values?
-                    .Select(v => v.ToApiModel())
                     .ToList()
             };
         }
@@ -875,25 +534,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
         }
 
         /// <summary>
-        /// Create from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static RequestHeaderApiModel ToApiModel(this RequestHeaderModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new RequestHeaderApiModel {
-                Diagnostics = model.Diagnostics.ToApiModel(),
-                Elevation = model.Elevation.ToApiModel(),
-                Locales = model.Locales?.ToList()
-            };
-        }
-
-        /// <summary>
         /// Convert back to service model
         /// </summary>
         /// <returns></returns>
-        public static RequestHeaderModel ToServiceModel(this RequestHeaderApiModel model) {
+        public static RequestHeaderModel ToServiceModel(
+            this RequestHeaderApiModel model) {
             if (model == null) {
                 return null;
             }
@@ -908,7 +553,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
         /// Create node api model from service model
         /// </summary>
         /// <param name="model"></param>
-        public static ServiceResultApiModel ToApiModel(this ServiceResultModel model) {
+        public static ServiceResultApiModel ToApiModel(
+            this ServiceResultModel model) {
             if (model == null) {
                 return null;
             }
@@ -916,38 +562,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Models {
                 Diagnostics = model.Diagnostics,
                 StatusCode = model.StatusCode,
                 ErrorMessage = model.ErrorMessage
-            };
-        }
-
-        /// <summary>
-        /// Convert back to service model
-        /// </summary>
-        /// <returns></returns>
-        public static ServiceResultModel ToServiceModel(this ServiceResultApiModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new ServiceResultModel {
-                Diagnostics = model.Diagnostics,
-                StatusCode = model.StatusCode,
-                ErrorMessage = model.ErrorMessage
-            };
-        }
-
-        /// <summary>
-        /// Create api model from service model
-        /// </summary>
-        /// <param name="model"></param>
-        public static SimpleAttributeOperandApiModel ToApiModel(
-            this SimpleAttributeOperandModel model) {
-            if (model == null) {
-                return null;
-            }
-            return new SimpleAttributeOperandApiModel {
-                NodeId = model.NodeId,
-                AttributeId = (IIoT.OpcUa.Api.History.Models.NodeAttribute?)model.AttributeId,
-                BrowsePath = model.BrowsePath,
-                IndexRange = model.IndexRange
             };
         }
 

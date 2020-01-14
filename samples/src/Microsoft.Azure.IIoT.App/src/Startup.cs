@@ -75,7 +75,6 @@ namespace Microsoft.Azure.IIoT.App {
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
             IHostApplicationLifetime appLifetime) {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
-            app.UseForwardedHeaders();
 
             if (env.IsDevelopment()) {
                 app.UseDeveloperExceptionPage();
@@ -112,26 +111,9 @@ namespace Microsoft.Azure.IIoT.App {
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services) {
 
-            if (string.Equals(
-                Environment.GetEnvironmentVariable("ASPNETCORE_FORWARDEDHEADERS_ENABLED"),
-                    "true", StringComparison.OrdinalIgnoreCase)) {
-
-                services.Configure<ForwardedHeadersOptions>(options => {
-                    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
-                        ForwardedHeaders.XForwardedProto;
-                    // Only loopback proxies are allowed by default.
-                    // Clear that restriction because forwarders are enabled by explicit
-                    // configuration.
-                    options.KnownNetworks.Clear();
-                    options.KnownProxies.Clear();
-                });
-            }
-
             services.Configure<CookiePolicyOptions>(options => {
-                // This lambda determines whether user consent for non-essential cookies
-                // is needed for a given request.
                 options.CheckConsentNeeded = context => true;
-                options.MinimumSameSitePolicy = SameSiteMode.Strict;
+                options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
             services.AddAntiforgery(options => {

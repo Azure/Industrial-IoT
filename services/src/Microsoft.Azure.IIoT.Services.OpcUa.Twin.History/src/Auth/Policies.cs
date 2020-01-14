@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Auth {
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Auth {
     using System.Collections.Generic;
 
     /// <summary>

@@ -5,6 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
+    using System.ComponentModel;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Gateway registration model
@@ -15,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// Gateway id
         /// </summary>
         [JsonProperty(PropertyName = "id")]
+        [Required]
         public string Id { get; set; }
 
         /// <summary>
@@ -22,6 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "siteId",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string SiteId { get; set; }
 
         /// <summary>
@@ -29,6 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "connected",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public bool? Connected { get; set; }
     }
 }

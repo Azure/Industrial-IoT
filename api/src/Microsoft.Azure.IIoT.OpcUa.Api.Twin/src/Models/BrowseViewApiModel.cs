@@ -6,6 +6,8 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
     using System;
+    using System.ComponentModel;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Browse view model
@@ -16,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// Node of the view to browse
         /// </summary>
         [JsonProperty(PropertyName = "viewId")]
+        [Required]
         public string ViewId { get; set; }
 
         /// <summary>
@@ -23,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "version",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public uint? Version { get; set; }
 
         /// <summary>
@@ -30,6 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "timestamp",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public DateTime? Timestamp { get; set; }
     }
 }

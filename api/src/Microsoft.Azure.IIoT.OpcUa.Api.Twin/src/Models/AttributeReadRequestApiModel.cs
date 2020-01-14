@@ -5,6 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
+    using System;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Attribute to read
@@ -15,12 +17,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// Node to read from or write to (mandatory)
         /// </summary>
         [JsonProperty(PropertyName = "nodeId")]
+        [Required]
         public string NodeId { get; set; }
 
         /// <summary>
         /// Attribute to read or write
         /// </summary>
         [JsonProperty(PropertyName = "attribute")]
+        [Required]
         public NodeAttribute Attribute { get; set; }
     }
 }

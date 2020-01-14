@@ -5,6 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
+    using System;
+    using System.ComponentModel;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Request node browsing continuation
@@ -16,6 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// (mandatory)
         /// </summary>
         [JsonProperty(PropertyName = "continuationToken")]
+        [Required]
         public string ContinuationToken { get; set; }
 
         /// <summary>
@@ -24,6 +28,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "abort",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(false)]
         public bool? Abort { get; set; }
 
         /// <summary>
@@ -34,6 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "targetNodesOnly",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(false)]
         public bool? TargetNodesOnly { get; set; }
 
         /// <summary>
@@ -42,6 +48,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "readVariableValues",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(false)]
         public bool? ReadVariableValues { get; set; }
 
         /// <summary>

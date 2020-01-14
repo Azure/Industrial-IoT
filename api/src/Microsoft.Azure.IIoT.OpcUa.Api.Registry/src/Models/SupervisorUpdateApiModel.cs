@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
+    using System.ComponentModel;
 
     /// <summary>
     /// Supervisor update request
@@ -16,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "siteId",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string SiteId { get; set; }
 
         /// <summary>
@@ -23,6 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "logLevel",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public TraceLogLevel? LogLevel { get; set; }
     }
 }
