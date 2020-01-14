@@ -1,6 +1,7 @@
 ﻿@page "/endpoints"
-@page "/endpoints/{discovererId}"
-@page "/endpoints/{discovererId}/{page}"
+@page "/endpoints/{page}"
+@page "/endpoints/{discovererId}/{applicationId}"
+@page "/endpoints/{discovererId}/{applicationId}/{page}"
 
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Services
@@ -26,9 +27,16 @@
             <th>SecurityLevel</th>
             <th>EndpointActivation</th>
             <th>
-                <a href="/discoverers/">
-                    <span class="oi oi-arrow-left"></span>
-                </a>
+                @if ((DiscovererId != null) && (DiscovererId != "null")) {
+                    <a href="/discoverers/">
+                        <span class="oi oi-arrow-left"></span>
+                    </a>
+                }
+                else if ((ApplicationId != null) && (ApplicationId != "null")) {
+                    <a href="/applications/">
+                        <span class="oi oi-arrow-left"></span>
+                    </a>
+                }
             </th>
         </tr>
     </thead>
@@ -36,12 +44,14 @@
         @foreach (var endpoint in pagedendpointList.Results) {
             <tr>
                 @if (endpoint.ActivationState == EndpointActivationState.ActivatedAndConnected ||
-                   endpoint.ActivationState == EndpointActivationState.Activated) {
-                    <td>
-                        <a href='browser/@DiscovererId/@endpoint.Registration.Id'>
-                            @endpoint.Registration.Endpoint.Url
-                        </a>
-                    </td>
+                     endpoint.ActivationState == EndpointActivationState.Activated) {
+                <td>
+                    @{ string discover = DiscovererId == null ? "null" : DiscovererId; } 
+                    @{ string application = ApplicationId == null ? "null" : ApplicationId; }
+                    <a href='browser/@discover/@application/@endpoint.Registration.Id'>
+                        @endpoint.Registration.Endpoint.Url
+                    </a>
+                </td>
                 }
                 else {
                     <td>@endpoint.Registration.Endpoint.Url</td>
@@ -52,7 +62,7 @@
 
                 <td>
                     @if (endpoint.ActivationState == EndpointActivationState.ActivatedAndConnected ||
-                       endpoint.ActivationState == EndpointActivationState.Activated) {
+                      endpoint.ActivationState == EndpointActivationState.Activated) {
                         <input type="checkbox" checked
                                @onchange="async eventArgs => { await SetActivation(endpoint.Registration.Id, eventArgs.Value); }" />
                         @endpoint.ActivationState.ToString()
@@ -78,7 +88,10 @@
     public string Page { get; set; } = "1";
 
     [Parameter]
-    public string DiscovererId { get; set; } = string.Empty;
+    public string DiscovererId { get; set; } = "null";
+
+    [Parameter]
+    public string ApplicationId { get; set; } = "null";
 
     public const int PageLength = 10;
 
@@ -88,12 +101,12 @@
     /// <param name="page"></param>
     public void PagerPageChanged(int page) {
         pagedendpointList = endpointList.GetPaged(page, PageLength);
-        NavigationManager.NavigateTo("/endpoints/" + DiscovererId + "/" + page);
+        NavigationManager.NavigateTo("/endpoints/" + page);
     }
 
     /// <inheritdoc/>
     protected override async Task OnInitializedAsync() {
-        endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId);
+        endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId);
         Page = "1";
         pagedendpointList = endpointList.GetPaged(Int32.Parse(Page), PageLength);
     }
@@ -113,7 +126,7 @@
             await RegistryService.DeactivateEndpointAsync(endpointId);
         }
 
-        endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId);
+        endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId);
         pagedendpointList = endpointList.GetPaged(Int32.Parse(Page), PageLength);
         await Task.CompletedTask;
         this.StateHasChanged();
