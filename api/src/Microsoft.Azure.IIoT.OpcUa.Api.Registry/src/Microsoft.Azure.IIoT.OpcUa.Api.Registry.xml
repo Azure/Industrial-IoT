@@ -1,0 +1,2761 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Microsoft.Azure.IIoT.OpcUa.Api.Registry</name>
+    </assembly>
+    <members>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient">
+            <summary>
+            Implementation of registry service api.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.#ctor(Microsoft.Azure.IIoT.Http.IHttpClient,Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryConfig)">
+            <summary>
+            Create service client
+            </summary>
+            <param name="httpClient"></param>
+            <param name="config"></param>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.#ctor(Microsoft.Azure.IIoT.Http.IHttpClient,System.String,System.String)">
+            <summary>
+            Create service client
+            </summary>
+            <param name="httpClient"></param>
+            <param name="serviceUri"></param>
+            <param name="resourceId"></param>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.GetServiceStatusAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.UpdateDiscovererAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererUpdateApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.ListDiscoverersAsync(System.String,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.QueryDiscoverersAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererQueryApiModel,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.GetDiscovererAsync(System.String,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.SubscribeDiscovererEventsAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.UnsubscribeDiscovererEventsAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.SubscribeDiscoveryProgressByDiscovererIdAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.SubscribeDiscoveryProgressByRequestIdAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.SetDiscoveryModeAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryMode,Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryConfigApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.UnsubscribeDiscoveryProgressByDiscovererIdAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.UnsubscribeDiscoveryProgressByRequestIdAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.GetSupervisorStatusAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.ResetSupervisorAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.UpdateSupervisorAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorUpdateApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.ListSupervisorsAsync(System.String,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.QuerySupervisorsAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorQueryApiModel,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.GetSupervisorAsync(System.String,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.SubscribeSupervisorEventsAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.UnsubscribeSupervisorEventsAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.RegisterAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ServerRegistrationRequestApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.DiscoverAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryRequestApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.CancelAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryCancelApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.RegisterAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationRequestApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.EnableApplicationAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.DisableApplicationAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.UpdateApplicationAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationUpdateApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.GetApplicationAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.QueryApplicationsAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationQueryApiModel,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.ListApplicationsAsync(System.String,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.ListSitesAsync(System.String,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.UnregisterApplicationAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.PurgeDisabledApplicationsAsync(System.TimeSpan,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.SubscribeApplicationEventsAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.UnsubscribeApplicationEventsAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.ListEndpointsAsync(System.String,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.QueryEndpointsAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationQueryApiModel,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.GetEndpointAsync(System.String,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.ActivateEndpointAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.DeactivateEndpointAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.SubscribeEndpointEventsAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.UnsubscribeEndpointEventsAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.ListPublishersAsync(System.String,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.UpdatePublisherAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherUpdateApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.QueryPublishersAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherQueryApiModel,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.GetPublisherAsync(System.String,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.SubscribePublisherEventsAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.UnsubscribePublisherEventsAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.ListGatewaysAsync(System.String,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.UpdateGatewayAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayUpdateApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.QueryGatewaysAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayQueryApiModel,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients.RegistryServiceClient.GetGatewayAsync(System.String,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceEvents">
+            <summary>
+            Registry service event client
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceEvents.#ctor(Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi,Microsoft.Azure.IIoT.Messaging.ICallbackClient)">
+            <summary>
+            Event client
+            </summary>
+            <param name="api"></param>
+            <param name="client"></param>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceEvents.SubscribeApplicationEventsAsync(System.String,System.Func{Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationEventApiModel,System.Threading.Tasks.Task})">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceEvents.SubscribeEndpointEventsAsync(System.String,System.Func{Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointEventApiModel,System.Threading.Tasks.Task})">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceEvents.SubscribeSupervisorEventsAsync(System.String,System.Func{Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorEventApiModel,System.Threading.Tasks.Task})">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceEvents.SubscribeDiscovererEventsAsync(System.String,System.Func{Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererEventApiModel,System.Threading.Tasks.Task})">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceEvents.SubscribePublisherEventsAsync(System.String,System.Func{Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherEventApiModel,System.Threading.Tasks.Task})">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceEvents.SubscribeDiscoveryProgressByDiscovererIdAsync(System.String,System.String,System.Func{Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressApiModel,System.Threading.Tasks.Task})">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceEvents.SubscribeDiscoveryProgressByRequestIdAsync(System.String,System.String,System.Func{Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressApiModel,System.Threading.Tasks.Task})">
+            <inheritdoc/>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.EventTargets">
+            <summary>
+            Event target constants
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.EventTargets.ApplicationEventTarget">
+            <summary>
+            Application event type
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.EventTargets.Applications">
+            <summary>
+            Application group
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.EventTargets.EndpointEventTarget">
+            <summary>
+            Endpoint event type
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.EventTargets.Endpoints">
+            <summary>
+            Endpoint group
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.EventTargets.SupervisorEventTarget">
+            <summary>
+            Supervisor event type
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.EventTargets.Supervisors">
+            <summary>
+            Supervisors group
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.EventTargets.DiscovererEventTarget">
+            <summary>
+            Discoverer event type
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.EventTargets.Discoverers">
+            <summary>
+            Discoverers group
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.EventTargets.PublisherEventTarget">
+            <summary>
+            Publisher event type
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.EventTargets.Publishers">
+            <summary>
+            Publishers group
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.EventTargets.DiscoveryProgressTarget">
+            <summary>
+            Discovery progress event targets
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceApiEx">
+            <summary>
+            Registry api extensions
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceApiEx.QueryAllEndpointsAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi,Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationQueryApiModel,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            Find endpoints
+            </summary>
+            <param name="service"></param>
+            <param name="query"></param>
+            <param name="onlyServerState"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceApiEx.ListAllEndpointsAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            List all endpoints
+            </summary>
+            <param name="service"></param>
+            <param name="onlyServerState"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceApiEx.QueryAllApplicationsAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi,Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationQueryApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Find applications
+            </summary>
+            <param name="service"></param>
+            <param name="query"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceApiEx.ListAllApplicationsAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi,System.Threading.CancellationToken)">
+            <summary>
+            List all applications
+            </summary>
+            <param name="service"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceApiEx.ListAllSitesAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi,System.Threading.CancellationToken)">
+            <summary>
+            List all sites
+            </summary>
+            <param name="service"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceApiEx.ListAllDiscoverersAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            List all discoverers
+            </summary>
+            <param name="service"></param>
+            <param name="onlyServerState"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceApiEx.QueryAllDiscoverersAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi,Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererQueryApiModel,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            Find discoverers
+            </summary>
+            <param name="service"></param>
+            <param name="onlyServerState"></param>
+            <param name="query"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceApiEx.ListAllSupervisorsAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            List all supervisors
+            </summary>
+            <param name="service"></param>
+            <param name="onlyServerState"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceApiEx.QueryAllSupervisorsAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi,Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorQueryApiModel,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            Find supervisors
+            </summary>
+            <param name="service"></param>
+            <param name="onlyServerState"></param>
+            <param name="query"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceApiEx.ListAllPublishersAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            List all publishers
+            </summary>
+            <param name="service"></param>
+            <param name="onlyServerState"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceApiEx.QueryAllPublishersAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi,Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherQueryApiModel,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            Find publishers
+            </summary>
+            <param name="service"></param>
+            <param name="onlyServerState"></param>
+            <param name="query"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceApiEx.ListAllGatewaysAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi,System.Threading.CancellationToken)">
+            <summary>
+            List all gateways
+            </summary>
+            <param name="service"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.RegistryServiceApiEx.QueryAllGatewaysAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi,Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayQueryApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Find publishers
+            </summary>
+            <param name="service"></param>
+            <param name="query"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryConfig">
+            <summary>
+            Configuration for service
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryConfig.OpcUaRegistryServiceUrl">
+            <summary>
+            Opc registry service url
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryConfig.OpcUaRegistryServiceResourceId">
+            <summary>
+            Resource id of registry service
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi">
+            <summary>
+            Registry api calls
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.GetServiceStatusAsync(System.Threading.CancellationToken)">
+            <summary>
+            Returns status of the service
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.RegisterAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ServerRegistrationRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Kick off onboarding of new server
+            </summary>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.DiscoverAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Kick off a one time discovery on all supervisors
+            </summary>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.CancelAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryCancelApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Cancel a discovery request with a particular id
+            </summary>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.RegisterAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Register new application.
+            </summary>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.GetApplicationAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Get application for specified unique application id
+            </summary>
+            <param name="applicationId"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.UpdateApplicationAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationUpdateApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Update an application' properties.
+            </summary>
+            <param name="applicationId"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.ListSitesAsync(System.String,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <summary>
+            List all Application sites to visually group applications.
+            </summary>
+            <param name="continuation"></param>
+            <param name="pageSize"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.ListApplicationsAsync(System.String,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <summary>
+            List all applications or continue a QueryApplications
+            call.
+            </summary>
+            <param name="continuation"></param>
+            <param name="pageSize"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.QueryApplicationsAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationQueryApiModel,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <summary>
+            Find applications based on specified criteria. Pass
+            continuation token if any returned to ListApplications to
+            retrieve remaining items.
+            </summary>
+            <param name="query"></param>
+            <param name="pageSize"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.EnableApplicationAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Enable the application
+            </summary>
+            <param name="applicationId"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.DisableApplicationAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Disable the application
+            </summary>
+            <param name="applicationId"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.UnregisterApplicationAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Unregister and delete application and all endpoints.
+            </summary>
+            <param name="applicationId"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.PurgeDisabledApplicationsAsync(System.TimeSpan,System.Threading.CancellationToken)">
+            <summary>
+            Unregister disabled applications not seen since specified
+            amount of time.
+            </summary>
+            <param name="notSeenSince"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.SubscribeApplicationEventsAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Subscribe client to application events
+            </summary>
+            <param name="userId"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.UnsubscribeApplicationEventsAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Unsubscribe client from application events
+            </summary>
+            <param name="userId"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.GetEndpointAsync(System.String,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            Get endpoint
+            </summary>
+            <param name="endpointId"></param>
+            <param name="onlyServerState"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.ActivateEndpointAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Set endpoint activation state to activated
+            </summary>
+            <param name="endpointId"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.DeactivateEndpointAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Set endpoint activation state to deactivated
+            </summary>
+            <param name="endpointId"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.ListEndpointsAsync(System.String,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <summary>
+            List all endpoints
+            </summary>
+            <param name="continuation"></param>
+            <param name="onlyServerState"></param>
+            <param name="pageSize"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.QueryEndpointsAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationQueryApiModel,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <summary>
+            Find endpoint based on specified critiria. Pass continuation
+            token if any is returned to ListTwins to retrieve
+            the remaining items
+            </summary>
+            <param name="query"></param>
+            <param name="onlyServerState"></param>
+            <param name="pageSize"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.SubscribeEndpointEventsAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Subscribe client to endpoint events
+            </summary>
+            <param name="userId"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.UnsubscribeEndpointEventsAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Unsubscribe client from endpoint events
+            </summary>
+            <param name="userId"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.GetSupervisorStatusAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Get supervisor runtime status
+            </summary>
+            <param name="supervisorId"></param>
+            <param name="ct"></param>
+            <returns>Supervisor diagnostics</returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.ResetSupervisorAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Reset and restart supervisor
+            </summary>
+            <param name="supervisorId"></param>
+            <param name="ct"></param>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.GetSupervisorAsync(System.String,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            Get supervisor
+            </summary>
+            <param name="supervisorId"></param>
+            <param name="onlyServerState"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.UpdateSupervisorAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorUpdateApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Update supervisor including config updates.
+            </summary>
+            <param name="supervisorId"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.ListSupervisorsAsync(System.String,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <summary>
+            List all supervisors
+            </summary>
+            <param name="continuation"></param>
+            <param name="onlyServerState"></param>
+            <param name="pageSize"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.QuerySupervisorsAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorQueryApiModel,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <summary>
+            Find supervisors based on specified criteria. Pass
+            continuation token if any returned to ListSupervisors to
+            retrieve remaining items.
+            </summary>
+            <param name="query"></param>
+            <param name="onlyServerState"></param>
+            <param name="pageSize"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.SubscribeSupervisorEventsAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Subscribe client to supervisor events
+            </summary>
+            <param name="userId"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.UnsubscribeSupervisorEventsAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Unsubscribe client from supervisor events
+            </summary>
+            <param name="userId"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.GetDiscovererAsync(System.String,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            Get discoverer
+            </summary>
+            <param name="discovererId"></param>
+            <param name="onlyServerState"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.UpdateDiscovererAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererUpdateApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Update discoverer including config updates.
+            </summary>
+            <param name="discovererId"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.ListDiscoverersAsync(System.String,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <summary>
+            List all discoverers
+            </summary>
+            <param name="continuation"></param>
+            <param name="onlyServerState"></param>
+            <param name="pageSize"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.QueryDiscoverersAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererQueryApiModel,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <summary>
+            Find discoverers based on specified criteria. Pass
+            continuation token if any returned to ListDiscoverers to
+            retrieve remaining items.
+            </summary>
+            <param name="query"></param>
+            <param name="onlyServerState"></param>
+            <param name="pageSize"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.SubscribeDiscovererEventsAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Subscribe client to discoverer events
+            </summary>
+            <param name="userId"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.UnsubscribeDiscovererEventsAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Unsubscribe client from discoverer events
+            </summary>
+            <param name="userId"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.SubscribeDiscoveryProgressByDiscovererIdAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Subscribe client to discovery progress from discoverer
+            </summary>
+            <param name="discovererId"></param>
+            <param name="userId"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.UnsubscribeDiscoveryProgressByRequestIdAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Unsubscribe client from discovery progress for specified request
+            </summary>
+            <param name="requestId"></param>
+            <param name="userId"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.UnsubscribeDiscoveryProgressByDiscovererIdAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Unsubscribe client from discovery events
+            </summary>
+            <param name="discovererId"></param>
+            <param name="userId"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.SubscribeDiscoveryProgressByRequestIdAsync(System.String,System.String,System.Threading.CancellationToken)">
+            <summary>
+            Subscribe client to progress on specifiy request
+            </summary>
+            <param name="requestId"></param>
+            <param name="userId"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.SetDiscoveryModeAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryMode,Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryConfigApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Enable or disable discovery with optional configuration
+            </summary>
+            <param name="discovererId"></param>
+            <param name="mode"></param>
+            <param name="config"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.GetPublisherAsync(System.String,System.Nullable{System.Boolean},System.Threading.CancellationToken)">
+            <summary>
+            Get gateway
+            </summary>
+            <param name="gatewayId"></param>
+            <param name="onlyServerState"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.UpdatePublisherAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherUpdateApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Update Publisher including config updates.
+            </summary>
+            <param name="gatewayId"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.ListPublishersAsync(System.String,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <summary>
+            List all gateways
+            </summary>
+            <param name="continuation"></param>
+            <param name="onlyServerState"></param>
+            <param name="pageSize"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.QueryPublishersAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherQueryApiModel,System.Nullable{System.Boolean},System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <summary>
+            Find gateways based on specified criteria. Pass
+            continuation token if any returned to ListPublishers to
+            retrieve remaining items.
+            </summary>
+            <param name="query"></param>
+            <param name="onlyServerState"></param>
+            <param name="pageSize"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.SubscribePublisherEventsAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Subscribe client to publisher events
+            </summary>
+            <param name="userId"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.UnsubscribePublisherEventsAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Unsubscribe client from publisher events
+            </summary>
+            <param name="userId"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.GetGatewayAsync(System.String,System.Threading.CancellationToken)">
+            <summary>
+            Get gateway
+            </summary>
+            <param name="gatewayId"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.UpdateGatewayAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayUpdateApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Update Gateway including config updates.
+            </summary>
+            <param name="gatewayId"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.ListGatewaysAsync(System.String,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <summary>
+            List all gateways
+            </summary>
+            <param name="continuation"></param>
+            <param name="pageSize"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceApi.QueryGatewaysAsync(Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayQueryApiModel,System.Nullable{System.Int32},System.Threading.CancellationToken)">
+            <summary>
+            Find gateways based on specified criteria. Pass
+            continuation token if any returned to ListGateways to
+            retrieve remaining items.
+            </summary>
+            <param name="query"></param>
+            <param name="pageSize"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceEvents">
+            <summary>
+            Registry service events
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceEvents.SubscribeApplicationEventsAsync(System.String,System.Func{Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationEventApiModel,System.Threading.Tasks.Task})">
+            <summary>
+            Subscribe to application events
+            </summary>
+            <param name="userId"></param>
+            <param name="callback"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceEvents.SubscribeEndpointEventsAsync(System.String,System.Func{Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointEventApiModel,System.Threading.Tasks.Task})">
+            <summary>
+            Subscribe to endpoint events
+            </summary>
+            <param name="userId"></param>
+            <param name="callback"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceEvents.SubscribeSupervisorEventsAsync(System.String,System.Func{Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorEventApiModel,System.Threading.Tasks.Task})">
+            <summary>
+            Subscribe to supervisor events
+            </summary>
+            <param name="userId"></param>
+            <param name="callback"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceEvents.SubscribeDiscovererEventsAsync(System.String,System.Func{Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererEventApiModel,System.Threading.Tasks.Task})">
+            <summary>
+            Subscribe to discoverer events
+            </summary>
+            <param name="userId"></param>
+            <param name="callback"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceEvents.SubscribePublisherEventsAsync(System.String,System.Func{Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherEventApiModel,System.Threading.Tasks.Task})">
+            <summary>
+            Subscribe to publisher events
+            </summary>
+            <param name="userId"></param>
+            <param name="callback"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceEvents.SubscribeDiscoveryProgressByDiscovererIdAsync(System.String,System.String,System.Func{Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressApiModel,System.Threading.Tasks.Task})">
+            <summary>
+            Subscribe to supervisor discovery events
+            </summary>
+            <param name="discovererId"></param>
+            <param name="userId"></param>
+            <param name="callback"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Registry.IRegistryServiceEvents.SubscribeDiscoveryProgressByRequestIdAsync(System.String,System.String,System.Func{Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressApiModel,System.Threading.Tasks.Task})">
+            <summary>
+            Subscribe to discovery events for a particular request
+            </summary>
+            <param name="requestId"></param>
+            <param name="userId"></param>
+            <param name="callback"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationEventApiModel">
+            <summary>
+            Application event
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationEventApiModel.EventType">
+            <summary>
+            Event type
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationEventApiModel.Application">
+            <summary>
+            Application
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationEventType">
+            <summary>
+            Application event type
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationEventType.New">
+            <summary>
+            New
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationEventType.Enabled">
+            <summary>
+            Enabled
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationEventType.Disabled">
+            <summary>
+            Disabled
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationEventType.Updated">
+            <summary>
+            Updated
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationEventType.Deleted">
+            <summary>
+            Deleted
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoApiModel">
+            <summary>
+            Application info model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoApiModel.ApplicationId">
+            <summary>
+            Unique application id
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoApiModel.ApplicationType">
+            <summary>
+            Type of application
+            </summary>
+            <example>Server</example>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoApiModel.ApplicationUri">
+            <summary>
+            Unique application uri
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoApiModel.ProductUri">
+            <summary>
+            Product uri
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoApiModel.ApplicationName">
+            <summary>
+            Default name of application
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoApiModel.Locale">
+            <summary>
+            Locale of default name - defaults to "en"
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoApiModel.LocalizedNames">
+            <summary>
+            Localized Names of application keyed on locale
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoApiModel.Certificate">
+            <summary>
+            Application public cert
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoApiModel.Capabilities">
+            <summary>
+            The capabilities advertised by the server.
+            </summary>
+            <example>LDS</example>
+            <example>DA</example>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoApiModel.DiscoveryUrls">
+            <summary>
+            Discovery urls of the server
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoApiModel.DiscoveryProfileUri">
+            <summary>
+            Discovery profile uri
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoApiModel.GatewayServerUri">
+            <summary>
+            Gateway server uri
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoApiModel.HostAddresses">
+            <summary>
+            Host addresses of server application or null
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoApiModel.SiteId">
+            <summary>
+            Site of the application
+            </summary>
+            <example>productionlineA</example>
+            <example>cellB</example>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoApiModel.DiscovererId">
+            <summary>
+            Discoverer that registered the application
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoApiModel.NotSeenSince">
+            <summary>
+            Last time application was seen
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoApiModel.Created">
+            <summary>
+            Created
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoApiModel.Updated">
+            <summary>
+            Updated
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoListApiModel">
+            <summary>
+            List of registered applications
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoListApiModel.Items">
+            <summary>
+            Application infos
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationInfoListApiModel.ContinuationToken">
+            <summary>
+            Continuation or null if final
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationApiModel">
+            <summary>
+            Application with optional list of endpoints
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationApiModel.Application">
+            <summary>
+            Server information
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationApiModel.Endpoints">
+            <summary>
+            List of endpoint twins
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationApiModel.SecurityAssessment">
+            <summary>
+            Application security assessment
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationQueryApiModel">
+            <summary>
+            Application information
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationQueryApiModel.ApplicationType">
+            <summary>
+            Type of application
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationQueryApiModel.ApplicationUri">
+            <summary>
+            Application uri
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationQueryApiModel.ProductUri">
+            <summary>
+            Product uri
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationQueryApiModel.ApplicationName">
+            <summary>
+            Name of application
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationQueryApiModel.Locale">
+            <summary>
+            Locale of application name - default is "en"
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationQueryApiModel.Capability">
+            <summary>
+            Application capability to query with
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationQueryApiModel.DiscoveryProfileUri">
+            <summary>
+            Discovery profile uri
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationQueryApiModel.GatewayServerUri">
+            <summary>
+            Gateway server uri
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationQueryApiModel.SiteOrGatewayId">
+            <summary>
+            Supervisor or site the application belongs to.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationQueryApiModel.IncludeNotSeenSince">
+            <summary>
+            Whether to include apps that were soft deleted
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationQueryApiModel.DiscovererId">
+            <summary>
+            Discoverer id to filter with
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationRequestApiModel">
+            <summary>
+            Application information
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationRequestApiModel.ApplicationUri">
+            <summary>
+            Unique application uri
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationRequestApiModel.ApplicationType">
+            <summary>
+            Type of application
+            </summary>
+            <example>Server</example>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationRequestApiModel.ProductUri">
+            <summary>
+            Product uri of the application.
+            </summary>
+            <example>http://contoso.com/fridge/1.0</example>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationRequestApiModel.ApplicationName">
+            <summary>
+            Default name of the server or client.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationRequestApiModel.Locale">
+            <summary>
+            Locale of default name
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationRequestApiModel.SiteId">
+            <summary>
+            Site of the application
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationRequestApiModel.LocalizedNames">
+            <summary>
+            Localized names key off locale id.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationRequestApiModel.Capabilities">
+            <summary>
+            The OPC UA defined capabilities of the server.
+            </summary>
+            <example>LDS</example>
+            <example>DA</example>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationRequestApiModel.DiscoveryUrls">
+            <summary>
+            Discovery urls of the server.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationRequestApiModel.DiscoveryProfileUri">
+            <summary>
+            The discovery profile uri of the server.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationRequestApiModel.GatewayServerUri">
+            <summary>
+            Gateway server uri
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationResponseApiModel">
+            <summary>
+            Result of an application registration
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationResponseApiModel.Id">
+            <summary>
+            New id application was registered under
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationUpdateApiModel">
+            <summary>
+            Application registration update request
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationUpdateApiModel.ProductUri">
+            <summary>
+            Product uri
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationUpdateApiModel.ApplicationName">
+            <summary>
+            Default name of the server or client.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationUpdateApiModel.Locale">
+            <summary>
+            Locale of default name - defaults to "en"
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationUpdateApiModel.LocalizedNames">
+            <summary>
+            Localized names keyed off locale id.
+            To remove entry, set value for locale id to null.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationUpdateApiModel.Certificate">
+            <summary>
+            Application public cert
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationUpdateApiModel.Capabilities">
+            <summary>
+            Capabilities of the application
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationUpdateApiModel.DiscoveryUrls">
+            <summary>
+            Discovery urls of the application
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationUpdateApiModel.DiscoveryProfileUri">
+            <summary>
+            Discovery profile uri
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationRegistrationUpdateApiModel.GatewayServerUri">
+            <summary>
+            Gateway server uri
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationSiteListApiModel">
+            <summary>
+            List of application sites
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationSiteListApiModel.Sites">
+            <summary>
+            Sites
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationSiteListApiModel.ContinuationToken">
+            <summary>
+            Continuation or null if final
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationType">
+            <summary>
+            Application type
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationType.Server">
+            <summary>
+            Server
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationType.Client">
+            <summary>
+            Client
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationType.ClientAndServer">
+            <summary>
+            Client and server
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ApplicationType.DiscoveryServer">
+            <summary>
+            Discovery server
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.AuthenticationMethodApiModel">
+            <summary>
+            Authentication Method model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.AuthenticationMethodApiModel.Id">
+            <summary>
+            Method id
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.AuthenticationMethodApiModel.CredentialType">
+            <summary>
+            Type of credential
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.AuthenticationMethodApiModel.SecurityPolicy">
+            <summary>
+            Security policy to use when passing credential.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.AuthenticationMethodApiModel.Configuration">
+            <summary>
+            Method specific configuration
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.CredentialApiModel">
+            <summary>
+            Credential model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.CredentialApiModel.Type">
+            <summary>
+            Type of credential
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.CredentialApiModel.Value">
+            <summary>
+            Value to pass to server
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.CredentialType">
+            <summary>
+            Type of credential to use for serverauth
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.CredentialType.None">
+            <summary>
+            No credentials
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.CredentialType.UserName">
+            <summary>
+            User name with secret
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.CredentialType.X509Certificate">
+            <summary>
+            Certificate
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.CredentialType.JwtToken">
+            <summary>
+            Token is a jwt token
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiagnosticsApiModel">
+            <summary>
+            Diagnostics configuration
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiagnosticsApiModel.Level">
+            <summary>
+            Requested level of response diagnostics.
+            (default: None)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiagnosticsApiModel.AuditId">
+            <summary>
+            Client audit log entry.
+            (default: client generated)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiagnosticsApiModel.TimeStamp">
+            <summary>
+            Timestamp of request.
+            (default: client generated)
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiagnosticsLevel">
+            <summary>
+            Level of diagnostics requested in responses
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiagnosticsLevel.None">
+            <summary>
+            Include no diagnostics in response
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiagnosticsLevel.Status">
+            <summary>
+            Include only status text as array (default)
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiagnosticsLevel.Operations">
+            <summary>
+            Include status and operations trace.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiagnosticsLevel.Diagnostics">
+            <summary>
+            Include diagnostics
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiagnosticsLevel.Verbose">
+            <summary>
+            Include full diagnostics trace.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererApiModel">
+            <summary>
+            Discoverer registration model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererApiModel.Id">
+            <summary>
+            Discoverer id
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererApiModel.SiteId">
+            <summary>
+            Site of the discoverer
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererApiModel.Discovery">
+            <summary>
+            Whether the discoverer is in discovery mode
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererApiModel.DiscoveryConfig">
+            <summary>
+            Discoverer configuration
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererApiModel.LogLevel">
+            <summary>
+            Current log level
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererApiModel.OutOfSync">
+            <summary>
+            Whether the registration is out of sync between
+            client (module) and server (service) (default: false).
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererApiModel.Connected">
+            <summary>
+            Whether discoverer is connected on this registration
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererEventApiModel">
+            <summary>
+            Discoverer event
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererEventApiModel.EventType">
+            <summary>
+            Event type
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererEventApiModel.Discoverer">
+            <summary>
+            Discoverer
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererEventType">
+            <summary>
+            Discoverer event type
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererEventType.New">
+            <summary>
+            New
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererEventType.Updated">
+            <summary>
+            Updated
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererEventType.Connected">
+            <summary>
+            Connected
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererEventType.Disconnected">
+            <summary>
+            Disconnected
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererEventType.Deleted">
+            <summary>
+            Deleted
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererListApiModel">
+            <summary>
+            Discoverer registration list
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererListApiModel.Items">
+            <summary>
+            Registrations
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererListApiModel.ContinuationToken">
+            <summary>
+            Continuation or null if final
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererQueryApiModel">
+            <summary>
+            Discoverer registration query
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererQueryApiModel.SiteId">
+            <summary>
+            Site of the discoverer
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererQueryApiModel.Discovery">
+            <summary>
+            Discovery mode of discoverer
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererQueryApiModel.Connected">
+            <summary>
+            Included connected or disconnected
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererUpdateApiModel">
+            <summary>
+            Discoverer update request
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererUpdateApiModel.SiteId">
+            <summary>
+            Site the discoverer is part of
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererUpdateApiModel.Discovery">
+            <summary>
+            Discovery mode of discoverer
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererUpdateApiModel.DiscoveryConfig">
+            <summary>
+            Discoverer discovery config
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscovererUpdateApiModel.LogLevel">
+            <summary>
+            Current log level
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryCancelApiModel">
+            <summary>
+            Discovery cancel request
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryCancelApiModel.Id">
+            <summary>
+            Id of discovery request
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryConfigApiModel">
+            <summary>
+            Discovery configuration api model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryConfigApiModel.AddressRangesToScan">
+            <summary>
+            Address ranges to scan (null == all wired nics)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryConfigApiModel.NetworkProbeTimeoutMs">
+            <summary>
+            Network probe timeout
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryConfigApiModel.MaxNetworkProbes">
+            <summary>
+            Max network probes that should ever run.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryConfigApiModel.PortRangesToScan">
+            <summary>
+            Port ranges to scan (null == all unassigned)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryConfigApiModel.PortProbeTimeoutMs">
+            <summary>
+            Port probe timeout
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryConfigApiModel.MaxPortProbes">
+            <summary>
+            Max port probes that should ever run.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryConfigApiModel.MinPortProbesPercent">
+            <summary>
+            Probes that must always be there as percent of max.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryConfigApiModel.IdleTimeBetweenScansSec">
+            <summary>
+            Delay time between discovery sweeps in seconds
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryConfigApiModel.DiscoveryUrls">
+            <summary>
+            List of preset discovery urls to use
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryConfigApiModel.Locales">
+            <summary>
+            List of locales to filter with during discovery
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryConfigApiModel.ActivationFilter">
+            <summary>
+            Activate all twins with this filter during onboarding.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryMode">
+            <summary>
+            Discovery mode to use
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryMode.Off">
+            <summary>
+            No discovery
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryMode.Local">
+            <summary>
+            Find and use local discovery server on edge device
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryMode.Network">
+            <summary>
+            Find and use all LDS in all connected networks
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryMode.Fast">
+            <summary>
+            Fast network scan of */24 and known list of ports
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryMode.Scan">
+            <summary>
+            Perform a deep scan of all networks.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressApiModel">
+            <summary>
+            Discovery progress
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressApiModel.RequestId">
+            <summary>
+            Id of discovery request
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressApiModel.EventType">
+            <summary>
+            Event type
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressApiModel.DiscovererId">
+            <summary>
+            Discoverer that registered the application
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressApiModel.RequestDetails">
+            <summary>
+            Additional request information as per event
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressApiModel.TimeStamp">
+            <summary>
+            Timestamp of the message
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressApiModel.Workers">
+            <summary>
+            Number of workers running
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressApiModel.Progress">
+            <summary>
+            Progress
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressApiModel.Total">
+            <summary>
+            Total
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressApiModel.Discovered">
+            <summary>
+            Number of items discovered
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressApiModel.Result">
+            <summary>
+            Discovery result
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressApiModel.ResultDetails">
+            <summary>
+            Discovery result details
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressType">
+            <summary>
+            Discovery progress event type
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressType.Pending">
+            <summary>
+            Discovery Pending
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressType.Started">
+            <summary>
+            Discovery run started
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressType.Cancelled">
+            <summary>
+            Discovery was cancelled
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressType.Error">
+            <summary>
+            Discovery resulted in error
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressType.Finished">
+            <summary>
+            Discovery finished
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressType.NetworkScanStarted">
+            <summary>
+            Network scanning started
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressType.NetworkScanResult">
+            <summary>
+            Network scanning result
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressType.NetworkScanProgress">
+            <summary>
+            Network scan progress
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressType.NetworkScanFinished">
+            <summary>
+            Network scan finished
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressType.PortScanStarted">
+            <summary>
+            Port scan started
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressType.PortScanResult">
+            <summary>
+            Port scan result
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressType.PortScanProgress">
+            <summary>
+            Port scan progress
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressType.PortScanFinished">
+            <summary>
+            Port scan finished
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressType.ServerDiscoveryStarted">
+            <summary>
+            Server discovery started
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressType.EndpointsDiscoveryStarted">
+            <summary>
+            Endpoint discovery started
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressType.EndpointsDiscoveryFinished">
+            <summary>
+            Endpoint discovery finished
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryProgressType.ServerDiscoveryFinished">
+            <summary>
+            Server discovery finished
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryRequestApiModel">
+            <summary>
+            Discovery request
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryRequestApiModel.Id">
+            <summary>
+            Id of discovery request
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryRequestApiModel.Discovery">
+            <summary>
+            Discovery mode to use
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.DiscoveryRequestApiModel.Configuration">
+            <summary>
+            Scan configuration to use
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointActivationFilterApiModel">
+            <summary>
+            Endpoint Activation Filter model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointActivationFilterApiModel.TrustLists">
+            <summary>
+            Certificate trust list identifiers to use for
+            activation, if null, all certificates are
+            trusted.  If empty list, no certificates are
+            trusted which is equal to no filter.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointActivationFilterApiModel.SecurityPolicies">
+            <summary>
+            Endpoint security policies to filter against.
+            If set to null, all policies are in scope.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointActivationFilterApiModel.SecurityMode">
+            <summary>
+            Security mode level to activate. If null,
+            then <see cref="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SecurityMode.Best"/> is assumed.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointActivationState">
+            <summary>
+            Activation state of the endpoint twin
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointActivationState.Deactivated">
+            <summary>
+            Endpoint twin is deactivated (default)
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointActivationState.Activated">
+            <summary>
+            Endpoint twin is activated but not connected
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointActivationState.ActivatedAndConnected">
+            <summary>
+            Endoint twin is activated and connected to hub
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointActivationStatusApiModel">
+            <summary>
+            Endpoint Activation status model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointActivationStatusApiModel.Id">
+            <summary>
+            Identifier of the endoint
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointActivationStatusApiModel.ActivationState">
+            <summary>
+            Activation state
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointApiModel">
+            <summary>
+            Endpoint model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointApiModel.Url">
+            <summary>
+            Endpoint url to use to connect with
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointApiModel.AlternativeUrls">
+            <summary>
+            Alternative endpoint urls that can be used for
+            accessing and validating the server
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointApiModel.SecurityMode">
+            <summary>
+            Security Mode to use for communication
+            default to best.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointApiModel.SecurityPolicy">
+            <summary>
+            Security policy uri to use for communication
+            default to best.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointApiModel.Certificate">
+            <summary>
+            Endpoint certificate that was registered.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointConnectivityState">
+            <summary>
+            State of the endpoint after activation
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointConnectivityState.Connecting">
+            <summary>
+            Client connecting to endpoint
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointConnectivityState.NotReachable">
+            <summary>
+            Server not reachable
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointConnectivityState.Busy">
+            <summary>
+            Server busy - try later
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointConnectivityState.NoTrust">
+            <summary>
+            Client is not trusted - update client cert
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointConnectivityState.CertificateInvalid">
+            <summary>
+            Server certificate is invalid - update server certificate
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointConnectivityState.Ready">
+            <summary>
+            Connected and ready
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointConnectivityState.Error">
+            <summary>
+            Any other connection error
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointEventApiModel">
+            <summary>
+            Endpoint Event model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointEventApiModel.EventType">
+            <summary>
+            Type of event
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointEventApiModel.Endpoint">
+            <summary>
+            Endpoint info
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointEventType">
+            <summary>
+            Activation state of the endpoint twin
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointEventType.New">
+            <summary>
+            New
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointEventType.Enabled">
+            <summary>
+            Enabled
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointEventType.Disabled">
+            <summary>
+            Disabled
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointEventType.Deactivated">
+            <summary>
+            Deactivated
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointEventType.Activated">
+            <summary>
+            Activated
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointEventType.Updated">
+            <summary>
+            Updated
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointEventType.Deleted">
+            <summary>
+            Deleted
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointInfoApiModel">
+            <summary>
+            Endpoint registration model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointInfoApiModel.Registration">
+            <summary>
+            Endpoint registration
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointInfoApiModel.ApplicationId">
+            <summary>
+            Application id endpoint is registered under.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointInfoApiModel.ActivationState">
+            <summary>
+            Activation state of endpoint
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointInfoApiModel.EndpointState">
+            <summary>
+            Last state of the activated endpoint
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointInfoApiModel.OutOfSync">
+            <summary>
+            Whether the registration is out of sync
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointInfoApiModel.NotSeenSince">
+            <summary>
+            Last time endpoint was seen
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointInfoApiModel.Activated">
+            <summary>
+            Legacy activation state
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointInfoApiModel.Connected">
+            <summary>
+            Legacy connectivity state
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointInfoListApiModel">
+            <summary>
+            Endpoint registration list
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointInfoListApiModel.Items">
+            <summary>
+            Endpoint registrations
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointInfoListApiModel.ContinuationToken">
+            <summary>
+            Continuation or null if final
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationApiModel">
+            <summary>
+            Endpoint registration model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationApiModel.Id">
+            <summary>
+            Registered identifier of the endpoint
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationApiModel.EndpointUrl">
+            <summary>
+            Original endpoint url of the endpoint
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationApiModel.SiteId">
+            <summary>
+            Registered site of the endpoint
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationApiModel.SupervisorId">
+            <summary>
+            Supervisor that manages the endpoint.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationApiModel.DiscovererId">
+            <summary>
+            Discoverer that registered the endpoint
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationApiModel.Endpoint">
+            <summary>
+            Endpoint information of the registration
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationApiModel.SecurityLevel">
+            <summary>
+            Security level of the endpoint
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationApiModel.AuthenticationMethods">
+            <summary>
+            Supported authentication methods that can be selected to
+            obtain a credential and used to interact with the endpoint.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationQueryApiModel">
+            <summary>
+            Endpoint query
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationQueryApiModel.Url">
+            <summary>
+            Endoint url for direct server access
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationQueryApiModel.Certificate">
+            <summary>
+            Certificate of the endpoint
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationQueryApiModel.SecurityMode">
+            <summary>
+            Security Mode
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationQueryApiModel.SecurityPolicy">
+            <summary>
+            Security policy uri
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationQueryApiModel.Activated">
+            <summary>
+            Whether the endpoint was activated
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationQueryApiModel.Connected">
+            <summary>
+            Whether the endpoint is connected on supervisor.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationQueryApiModel.EndpointState">
+            <summary>
+            The last state of the the activated endpoint
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationQueryApiModel.IncludeNotSeenSince">
+            <summary>
+            Whether to include endpoints that were soft deleted
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationQueryApiModel.DiscovererId">
+            <summary>
+            Discoverer id to filter with
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationQueryApiModel.ApplicationId">
+            <summary>
+            Application id to filter
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationQueryApiModel.SupervisorId">
+            <summary>
+            Supervisor id to filter with
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.EndpointRegistrationQueryApiModel.SiteOrGatewayId">
+            <summary>
+            Site or gateway id to filter with
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayApiModel">
+            <summary>
+            Gateway registration model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayApiModel.Id">
+            <summary>
+            Gateway id
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayApiModel.SiteId">
+            <summary>
+            Site of the Gateway
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayApiModel.Connected">
+            <summary>
+            Whether Gateway is connected on this registration
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayInfoApiModel">
+            <summary>
+            Gateway info model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayInfoApiModel.Gateway">
+            <summary>
+            Gateway identity
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayInfoApiModel.Modules">
+            <summary>
+            Gateway modules
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayListApiModel">
+            <summary>
+            Gateway registration list
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayListApiModel.Items">
+            <summary>
+            Registrations
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayListApiModel.ContinuationToken">
+            <summary>
+            Continuation or null if final
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayModulesApiModel">
+            <summary>
+            Gateway modules model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayModulesApiModel.Supervisor">
+            <summary>
+            Supervisor identity if deployed
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayModulesApiModel.Publisher">
+            <summary>
+            Publisher identity if deployed
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayModulesApiModel.Discoverer">
+            <summary>
+            Discoverer identity if deployed
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayQueryApiModel">
+            <summary>
+            Gateway registration query
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayQueryApiModel.SiteId">
+            <summary>
+            Site of the Gateway
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayQueryApiModel.Connected">
+            <summary>
+            Included connected or disconnected
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayUpdateApiModel">
+            <summary>
+            Gateway registration update request
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.GatewayUpdateApiModel.SiteId">
+            <summary>
+            Site of the Gateway
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherApiModel">
+            <summary>
+            Publisher registration model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherApiModel.Id">
+            <summary>
+            Publisher id
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherApiModel.SiteId">
+            <summary>
+            Site of the publisher
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherApiModel.Certificate">
+            <summary>
+            Publisher public client cert
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherApiModel.LogLevel">
+            <summary>
+            Current log level
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherApiModel.Configuration">
+            <summary>
+            Publisher agent configuration
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherApiModel.OutOfSync">
+            <summary>
+            Whether the registration is out of sync between
+            client (module) and server (service) (default: false).
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherApiModel.Connected">
+            <summary>
+            Whether publisher is connected on this registration
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherConfigApiModel">
+            <summary>
+            Default publisher agent configuration
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherConfigApiModel.Capabilities">
+            <summary>
+            Capabilities
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherConfigApiModel.JobCheckInterval">
+            <summary>
+            Interval to check job
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherConfigApiModel.HeartbeatInterval">
+            <summary>
+            Heartbeat interval
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherConfigApiModel.MaxWorkers">
+            <summary>
+            Parallel jobs
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherConfigApiModel.JobOrchestratorUrl">
+            <summary>
+            Job orchestrator endpoint url
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherEventApiModel">
+            <summary>
+            Publisher event
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherEventApiModel.EventType">
+            <summary>
+            Event type
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherEventApiModel.Publisher">
+            <summary>
+            Application
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherEventType">
+            <summary>
+            Publisher event type
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherEventType.New">
+            <summary>
+            New
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherEventType.Updated">
+            <summary>
+            Updated
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherEventType.Connected">
+            <summary>
+            Connected
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherEventType.Disconnected">
+            <summary>
+            Disconnected
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherEventType.Deleted">
+            <summary>
+            Deleted
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherListApiModel">
+            <summary>
+            Publisher registration list
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherListApiModel.Items">
+            <summary>
+            Registrations
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherListApiModel.ContinuationToken">
+            <summary>
+            Continuation or null if final
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherQueryApiModel">
+            <summary>
+            Publisher registration query
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherQueryApiModel.SiteId">
+            <summary>
+            Site for the publishers
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherQueryApiModel.Connected">
+            <summary>
+            Included connected or disconnected
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherUpdateApiModel">
+            <summary>
+            Publisher registration update request
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherUpdateApiModel.SiteId">
+            <summary>
+            Site of the publisher
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherUpdateApiModel.Configuration">
+            <summary>
+            Publisher discovery configuration
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.PublisherUpdateApiModel.LogLevel">
+            <summary>
+            Current log level
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.RegistryOperationApiModel">
+            <summary>
+            Registry operation log model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.RegistryOperationApiModel.AuthorityId">
+            <summary>
+            Operation User
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.RegistryOperationApiModel.Time">
+            <summary>
+            Operation time
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SecurityAssessment">
+            <summary>
+            Security assessment of the endpoint or application
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SecurityAssessment.Low">
+            <summary>
+            Low
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SecurityAssessment.Medium">
+            <summary>
+            Medium
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SecurityAssessment.High">
+            <summary>
+            High
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SecurityMode">
+            <summary>
+            Security mode of endpoint
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SecurityMode.Best">
+            <summary>
+            Best
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SecurityMode.Sign">
+            <summary>
+            Sign
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SecurityMode.SignAndEncrypt">
+            <summary>
+            Sign and Encrypt
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SecurityMode.None">
+            <summary>
+            No security
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ServerRegistrationRequestApiModel">
+            <summary>
+            Server registration request
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ServerRegistrationRequestApiModel.DiscoveryUrl">
+            <summary>
+            Discovery url to use for registration
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ServerRegistrationRequestApiModel.Id">
+            <summary>
+            Registration id
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.ServerRegistrationRequestApiModel.ActivationFilter">
+            <summary>
+            Upon discovery, activate all endpoints with this filter.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorApiModel">
+            <summary>
+            Supervisor registration model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorApiModel.Id">
+            <summary>
+            Supervisor id
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorApiModel.SiteId">
+            <summary>
+            Site of the supervisor
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorApiModel.Certificate">
+            <summary>
+            Supervisor public client cert
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorApiModel.LogLevel">
+            <summary>
+            Current log level
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorApiModel.OutOfSync">
+            <summary>
+            Whether the registration is out of sync between
+            client (module) and server (service) (default: false).
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorApiModel.Connected">
+            <summary>
+            Whether supervisor is connected on this registration
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorEventApiModel">
+            <summary>
+            Supervisor event
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorEventApiModel.EventType">
+            <summary>
+            Event type
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorEventApiModel.Supervisor">
+            <summary>
+            Application
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorEventType">
+            <summary>
+            Supervisor event type
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorEventType.New">
+            <summary>
+            New
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorEventType.Updated">
+            <summary>
+            Updated
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorEventType.Connected">
+            <summary>
+            Connected
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorEventType.Disconnected">
+            <summary>
+            Disconnected
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorEventType.Deleted">
+            <summary>
+            Deleted
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorListApiModel">
+            <summary>
+            Supervisor registration list
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorListApiModel.Items">
+            <summary>
+            Registrations
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorListApiModel.ContinuationToken">
+            <summary>
+            Continuation or null if final
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorQueryApiModel">
+            <summary>
+            Supervisor registration query
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorQueryApiModel.SiteId">
+            <summary>
+            Site for the supervisors
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorQueryApiModel.Connected">
+            <summary>
+            Included connected or disconnected
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorStatusApiModel">
+            <summary>
+            Supervisor runtime status
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorStatusApiModel.DeviceId">
+            <summary>
+            Edge device id
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorStatusApiModel.ModuleId">
+            <summary>
+            Module id
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorStatusApiModel.SiteId">
+            <summary>
+            Site id
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorStatusApiModel.Endpoints">
+            <summary>
+            Endpoint activation status
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorUpdateApiModel">
+            <summary>
+            Supervisor update request
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorUpdateApiModel.SiteId">
+            <summary>
+            Site the supervisor is part of
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.SupervisorUpdateApiModel.LogLevel">
+            <summary>
+            Current log level
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.TraceLogLevel">
+            <summary>
+            Log level
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.TraceLogLevel.Error">
+            <summary>
+            Error only
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.TraceLogLevel.Information">
+            <summary>
+            Default
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.TraceLogLevel.Debug">
+            <summary>
+            Debug log
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models.TraceLogLevel.Verbose">
+            <summary>
+            Verbose
+            </summary>
+        </member>
+    </members>
+</doc>

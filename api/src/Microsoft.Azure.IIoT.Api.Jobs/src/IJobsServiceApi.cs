@@ -46,6 +46,7 @@ namespace Microsoft.Azure.IIoT.Api.Jobs {
         /// Return job by id
         /// </summary>
         /// <param name="jobId"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<JobInfoApiModel> GetJobAsync(string jobId,
             CancellationToken ct = default);
@@ -54,6 +55,7 @@ namespace Microsoft.Azure.IIoT.Api.Jobs {
         /// Restart a job
         /// </summary>
         /// <param name="jobId"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task RestartJobAsync(string jobId, CancellationToken ct = default);
 
@@ -61,6 +63,7 @@ namespace Microsoft.Azure.IIoT.Api.Jobs {
         /// Cancel a job
         /// </summary>
         /// <param name="jobId"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task CancelJobAsync(string jobId, CancellationToken ct = default);
 
@@ -68,6 +71,7 @@ namespace Microsoft.Azure.IIoT.Api.Jobs {
         /// Delete a job
         /// </summary>
         /// <param name="jobId"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task DeleteJobAsync(string jobId, CancellationToken ct = default);
 
@@ -86,6 +90,7 @@ namespace Microsoft.Azure.IIoT.Api.Jobs {
         /// Delete worker
         /// </summary>
         /// <param name="workerId"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task DeleteWorkerAsync(
             string workerId, CancellationToken ct = default);
@@ -94,6 +99,7 @@ namespace Microsoft.Azure.IIoT.Api.Jobs {
         /// Get worker by id
         /// </summary>
         /// <param name="workerId"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         Task<WorkerInfoApiModel> GetWorkerAsync(
             string workerId, CancellationToken ct = default);

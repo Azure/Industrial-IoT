@@ -1,0 +1,1926 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Microsoft.Azure.IIoT.OpcUa.Api.Twin</name>
+    </assembly>
+    <members>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinModuleClient">
+            <summary>
+            Implementation of supervisor module api.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinModuleClient.#ctor(Microsoft.Azure.IIoT.Module.IMethodClient,System.String,System.String)">
+            <summary>
+            Create module client
+            </summary>
+            <param name="methodClient"></param>
+            <param name="deviceId"></param>
+            <param name="moduleId"></param>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinModuleClient.#ctor(Microsoft.Azure.IIoT.Module.IMethodClient,Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleConfig)">
+            <summary>
+            Create module client
+            </summary>
+            <param name="methodClient"></param>
+            <param name="config"></param>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinModuleClient.NodeBrowseFirstAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseRequestApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinModuleClient.NodeBrowseNextAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseNextRequestApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinModuleClient.NodeBrowsePathAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowsePathRequestApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinModuleClient.NodeReadAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ReadRequestApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinModuleClient.NodeWriteAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.WriteRequestApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinModuleClient.NodeValueReadAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueReadRequestApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinModuleClient.NodeValueWriteAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueWriteRequestApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinModuleClient.NodeMethodGetMetadataAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodMetadataRequestApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinModuleClient.NodeMethodCallAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodCallRequestApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinServiceClient">
+            <summary>
+            Implementation of twin service api.
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinServiceClient.#ctor(Microsoft.Azure.IIoT.Http.IHttpClient,Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinConfig)">
+            <summary>
+            Create service client
+            </summary>
+            <param name="httpClient"></param>
+            <param name="config"></param>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinServiceClient.#ctor(Microsoft.Azure.IIoT.Http.IHttpClient,System.String,System.String)">
+            <summary>
+            Create service client
+            </summary>
+            <param name="httpClient"></param>
+            <param name="serviceUri"></param>
+            <param name="resourceId"></param>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinServiceClient.GetServiceStatusAsync(System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinServiceClient.NodeBrowseFirstAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseRequestApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinServiceClient.NodeBrowseNextAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseNextRequestApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinServiceClient.NodeBrowsePathAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowsePathRequestApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinServiceClient.NodeReadAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ReadRequestApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinServiceClient.NodeWriteAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.WriteRequestApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinServiceClient.NodeValueReadAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueReadRequestApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinServiceClient.NodeValueWriteAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueWriteRequestApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinServiceClient.NodeMethodGetMetadataAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodMetadataRequestApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients.TwinServiceClient.NodeMethodCallAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodCallRequestApiModel,System.Threading.CancellationToken)">
+            <inheritdoc/>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.TwinServiceApiEx">
+            <summary>
+            Twin service api extensions
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.TwinServiceApiEx.NodeBrowseAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinServiceApi,System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Browse all references if max references is null and user
+            wants all. If user has requested maximum to return uses
+            <see cref="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinServiceApi.NodeBrowseFirstAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseRequestApiModel,System.Threading.CancellationToken)"/>
+            </summary>
+            <param name="service"></param>
+            <param name="endpoint"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.TwinSupervisorApiEx">
+            <summary>
+            Api extensions
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.TwinSupervisorApiEx.NodeBrowseAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi,System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Browse node on endpoint
+            </summary>
+            <param name="api"></param>
+            <param name="endpointUrl"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.TwinSupervisorApiEx.NodeBrowseFirstAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi,System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Browse node on endpoint
+            </summary>
+            <param name="api"></param>
+            <param name="endpointUrl"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.TwinSupervisorApiEx.NodeBrowseNextAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi,System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseNextRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Browse next references on endpoint
+            </summary>
+            <param name="api"></param>
+            <param name="endpointUrl"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.TwinSupervisorApiEx.NodeBrowsePathAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi,System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowsePathRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Browse by path on endpoint
+            </summary>
+            <param name="api"></param>
+            <param name="endpointUrl"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.TwinSupervisorApiEx.NodeMethodCallAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi,System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodCallRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Call method on endpoint
+            </summary>
+            <param name="api"></param>
+            <param name="endpointUrl"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.TwinSupervisorApiEx.NodeMethodGetMetadataAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi,System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodMetadataRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Get meta data for method call on endpoint
+            </summary>
+            <param name="api"></param>
+            <param name="endpointUrl"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.TwinSupervisorApiEx.NodeValueReadAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi,System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueReadRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Read node value on endpoint
+            </summary>
+            <param name="api"></param>
+            <param name="endpointUrl"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.TwinSupervisorApiEx.NodeValueWriteAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi,System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueWriteRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Write node value on endpoint
+            </summary>
+            <param name="api"></param>
+            <param name="endpointUrl"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.TwinSupervisorApiEx.NodeReadAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi,System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ReadRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Read node attributes on endpoint
+            </summary>
+            <param name="api"></param>
+            <param name="endpointUrl"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.TwinSupervisorApiEx.NodeWriteAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi,System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.WriteRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Write node attributes on endpoint
+            </summary>
+            <param name="api"></param>
+            <param name="endpointUrl"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.TwinSupervisorApiEx.NodeBrowseAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Browse all references if max references is null and user
+            wants all. If user has requested maximum to return uses
+            <see cref="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi.NodeBrowseFirstAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseRequestApiModel,System.Threading.CancellationToken)"/>
+            </summary>
+            <param name="service"></param>
+            <param name="endpoint"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.TwinSupervisorApiEx.NewEndpoint(System.String)">
+            <summary>
+            New endpoint
+            </summary>
+            <param name="endpointUrl"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinConfig">
+            <summary>
+            Configuration for service
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinConfig.OpcUaTwinServiceUrl">
+            <summary>
+            Opc twin service url
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinConfig.OpcUaTwinServiceResourceId">
+            <summary>
+            The twin service resource id
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi">
+            <summary>
+            Represents OPC twin module api
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi.NodeBrowseFirstAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Browse node on endpoint
+            </summary>
+            <param name="endpoint"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi.NodeBrowseNextAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseNextRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Browse next references on endpoint
+            </summary>
+            <param name="endpoint"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi.NodeBrowsePathAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowsePathRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Browse by path on endpoint
+            </summary>
+            <param name="endpoint"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi.NodeMethodCallAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodCallRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Call method on endpoint
+            </summary>
+            <param name="endpoint"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi.NodeMethodGetMetadataAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodMetadataRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Get meta data for method call on endpoint
+            </summary>
+            <param name="endpoint"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi.NodeValueReadAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueReadRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Read node value on endpoint
+            </summary>
+            <param name="endpoint"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi.NodeValueWriteAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueWriteRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Write node value on endpoint
+            </summary>
+            <param name="endpoint"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi.NodeReadAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ReadRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Read node attributes on endpoint
+            </summary>
+            <param name="endpoint"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleApi.NodeWriteAsync(Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.WriteRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Write node attributes on endpoint
+            </summary>
+            <param name="endpoint"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleConfig">
+            <summary>
+            Configuration for client
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleConfig.DeviceId">
+            <summary>
+            Edge device id
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinModuleConfig.ModuleId">
+            <summary>
+            Module id
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinServiceApi">
+            <summary>
+            Represents OPC twin service api functions
+            </summary>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinServiceApi.GetServiceStatusAsync(System.Threading.CancellationToken)">
+            <summary>
+            Returns status of the service
+            </summary>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinServiceApi.NodeBrowseFirstAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Browse node on endpoint
+            </summary>
+            <param name="endpointId"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinServiceApi.NodeBrowseNextAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseNextRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Browse next references on endpoint
+            </summary>
+            <param name="endpointId"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinServiceApi.NodeBrowsePathAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowsePathRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Browse by path on endpoint
+            </summary>
+            <param name="endpointId"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinServiceApi.NodeMethodCallAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodCallRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Call method on endpoint
+            </summary>
+            <param name="endpointId"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinServiceApi.NodeMethodGetMetadataAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodMetadataRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Get meta data for method call on endpoint
+            </summary>
+            <param name="endpointId"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinServiceApi.NodeValueReadAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueReadRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Read node value on endpoint
+            </summary>
+            <param name="endpointId"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinServiceApi.NodeValueWriteAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueWriteRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Write node value on endpoint
+            </summary>
+            <param name="endpointId"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinServiceApi.NodeReadAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ReadRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Read node attributes on endpoint
+            </summary>
+            <param name="endpointId"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Microsoft.Azure.IIoT.OpcUa.Api.Twin.ITwinServiceApi.NodeWriteAsync(System.String,Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.WriteRequestApiModel,System.Threading.CancellationToken)">
+            <summary>
+            Write node attributes on endpoint
+            </summary>
+            <param name="endpointId"></param>
+            <param name="request"></param>
+            <param name="ct"></param>
+            <returns></returns>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.AttributeReadRequestApiModel">
+            <summary>
+            Attribute to read
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.AttributeReadRequestApiModel.NodeId">
+            <summary>
+            Node to read from or write to (mandatory)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.AttributeReadRequestApiModel.Attribute">
+            <summary>
+            Attribute to read or write
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.AttributeReadResponseApiModel">
+            <summary>
+            Attribute value read
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.AttributeReadResponseApiModel.Value">
+            <summary>
+            Attribute value
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.AttributeReadResponseApiModel.ErrorInfo">
+            <summary>
+            Service result in case of error
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.AttributeWriteRequestApiModel">
+            <summary>
+            Attribute and value to write to it
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.AttributeWriteRequestApiModel.NodeId">
+            <summary>
+            Node to write to (mandatory)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.AttributeWriteRequestApiModel.Attribute">
+            <summary>
+            Attribute to write (mandatory)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.AttributeWriteRequestApiModel.Value">
+            <summary>
+            Value to write (mandatory)
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.AttributeWriteResponseApiModel">
+            <summary>
+            Attribute write result
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.AttributeWriteResponseApiModel.ErrorInfo">
+            <summary>
+            Service result in case of error
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseDirection">
+            <summary>
+            Direction to browse
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseDirection.Forward">
+            <summary>
+            Forward
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseDirection.Backward">
+            <summary>
+            Backward
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseDirection.Both">
+            <summary>
+            Both directions
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseNextRequestApiModel">
+            <summary>
+            Request node browsing continuation
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseNextRequestApiModel.ContinuationToken">
+            <summary>
+            Continuation token from previews browse request.
+            (mandatory)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseNextRequestApiModel.Abort">
+            <summary>
+            Whether to abort browse and release.
+            (default: false)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseNextRequestApiModel.TargetNodesOnly">
+            <summary>
+            Whether to collapse all references into a set of
+            unique target nodes and not show reference
+            information.
+            (default is false)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseNextRequestApiModel.ReadVariableValues">
+            <summary>
+            Whether to read variable values on target nodes.
+            (default is false)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseNextRequestApiModel.Header">
+            <summary>
+            Optional request header
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseNextResponseApiModel">
+            <summary>
+            Result of node browse continuation
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseNextResponseApiModel.References">
+            <summary>
+            References, if included, otherwise null.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseNextResponseApiModel.ContinuationToken">
+            <summary>
+            Continuation token if more results pending.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseNextResponseApiModel.ErrorInfo">
+            <summary>
+            Service result in case of error
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowsePathRequestApiModel">
+            <summary>
+            Browse nodes by path
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowsePathRequestApiModel.NodeId">
+            <summary>
+            Node to browse from.
+            (default: RootFolder).
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowsePathRequestApiModel.BrowsePaths">
+            <summary>
+            The paths to browse from node.
+            (mandatory)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowsePathRequestApiModel.ReadVariableValues">
+            <summary>
+            Whether to read variable values on target nodes.
+            (default is false)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowsePathRequestApiModel.Header">
+            <summary>
+            Optional request header
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowsePathResponseApiModel">
+            <summary>
+            Result of node browse continuation
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowsePathResponseApiModel.Targets">
+            <summary>
+            Targets
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowsePathResponseApiModel.ErrorInfo">
+            <summary>
+            Service result in case of error
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseRequestApiModel">
+            <summary>
+            Browse request model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseRequestApiModel.NodeId">
+            <summary>
+            Node to browse.
+            (default: RootFolder).
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseRequestApiModel.Direction">
+            <summary>
+            Direction to browse in
+            (default: forward)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseRequestApiModel.View">
+            <summary>
+            View to browse
+            (default: null = new view = All nodes).
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseRequestApiModel.ReferenceTypeId">
+            <summary>
+            Reference types to browse.
+            (default: hierarchical).
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseRequestApiModel.NoSubtypes">
+            <summary>
+            Whether to include subtypes of the reference type.
+            (default is false)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseRequestApiModel.MaxReferencesToReturn">
+            <summary>
+            Max number of references to return. There might
+            be less returned as this is up to the client
+            restrictions.  Set to 0 to return no references
+            or target nodes.
+            (default is decided by client e.g. 60)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseRequestApiModel.TargetNodesOnly">
+            <summary>
+            Whether to collapse all references into a set of
+            unique target nodes and not show reference
+            information.
+            (default is false)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseRequestApiModel.ReadVariableValues">
+            <summary>
+            Whether to read variable values on target nodes.
+            (default is false)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseRequestApiModel.Header">
+            <summary>
+            Optional request header
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseResponseApiModel">
+            <summary>
+            browse response model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseResponseApiModel.Node">
+            <summary>
+            Node info for the currently browsed node
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseResponseApiModel.References">
+            <summary>
+            References, if included, otherwise null.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseResponseApiModel.ContinuationToken">
+            <summary>
+            Continuation token if more results pending.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseResponseApiModel.ErrorInfo">
+            <summary>
+            Service result in case of error
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseViewApiModel">
+            <summary>
+            Browse view model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseViewApiModel.ViewId">
+            <summary>
+            Node of the view to browse
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseViewApiModel.Version">
+            <summary>
+            Browses specific version of the view.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.BrowseViewApiModel.Timestamp">
+            <summary>
+            Browses at or before this timestamp.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.CredentialApiModel">
+            <summary>
+            Credential model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.CredentialApiModel.Type">
+            <summary>
+            Type of credential
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.CredentialApiModel.Value">
+            <summary>
+            Value to pass to server
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.CredentialType">
+            <summary>
+            Type of credentials to use for authentication
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.CredentialType.None">
+            <summary>
+            No credentials for anonymous access
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.CredentialType.UserName">
+            <summary>
+            User name and password as credential
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.CredentialType.X509Certificate">
+            <summary>
+            Credential is a x509 certificate
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.CredentialType.JwtToken">
+            <summary>
+            Jwt token as credential
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.DiagnosticsApiModel">
+            <summary>
+            Diagnostics configuration
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.DiagnosticsApiModel.Level">
+            <summary>
+            Requested level of response diagnostics.
+            (default: None)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.DiagnosticsApiModel.AuditId">
+            <summary>
+            Client audit log entry.
+            (default: client generated)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.DiagnosticsApiModel.TimeStamp">
+            <summary>
+            Timestamp of request.
+            (default: client generated)
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.DiagnosticsLevel">
+            <summary>
+            Level of diagnostics requested in responses
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.DiagnosticsLevel.None">
+            <summary>
+            Include no diagnostics in response
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.DiagnosticsLevel.Status">
+            <summary>
+            Include only status text as array (default)
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.DiagnosticsLevel.Operations">
+            <summary>
+            Include status and operations trace.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.DiagnosticsLevel.Diagnostics">
+            <summary>
+            Include diagnostics
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.DiagnosticsLevel.Verbose">
+            <summary>
+            Include full diagnostics trace.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel">
+            <summary>
+            Endpoint model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel.Url">
+            <summary>
+            Endpoint url to use to connect with
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel.AlternativeUrls">
+            <summary>
+            Alternative endpoint urls that can be used for
+            accessing and validating the server
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel.SecurityMode">
+            <summary>
+            Security Mode to use for communication
+            default to best.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel.SecurityPolicy">
+            <summary>
+            Security policy uri to use for communication
+            default to best.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.EndpointApiModel.Certificate">
+            <summary>
+            Endpoint certificate that was registered.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodCallArgumentApiModel">
+            <summary>
+            method arg model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodCallArgumentApiModel.Value">
+            <summary>
+            Initial value or value to use
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodCallArgumentApiModel.DataType">
+            <summary>
+            Data type Id of the value (from meta data)
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodCallRequestApiModel">
+            <summary>
+            Call request model
+            </summary>
+            <remarks>
+            A method call request can specify the targets in several ways:
+            <ul>
+            <li>Specify methodId and objectId node ids and leave the browse
+            paths null.</li>
+            <li>Specify an objectBrowsePath to a real object node from
+            the node specified with objectId.  If objectId is null, the
+            root node (i=84) is used. </li>
+            <li>Specify a methodBrowsePath from the above object node
+            to the actual method node to call on the object.  methodId
+            remains null.</li>
+            <li>Like previously, but specify methodId and method browse
+            path from it to a real method node.</li>
+            </ul>
+            </remarks>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodCallRequestApiModel.MethodId">
+            <summary>
+            Method id of method to call. 
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodCallRequestApiModel.ObjectId">
+            <summary>
+            Context of the method, i.e. an object or object type
+            node.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodCallRequestApiModel.Arguments">
+            <summary>
+            Arguments for the method - null means no args
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodCallRequestApiModel.MethodBrowsePath">
+            <summary>
+            An optional component path from the node identified by
+            MethodId or from a resolved objectId to the actual
+            method node.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodCallRequestApiModel.ObjectBrowsePath">
+            <summary>
+            An optional component path from the node identified by
+            ObjectId to the actual object or objectType node.
+            If ObjectId is null, the root node (i=84) is used.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodCallRequestApiModel.Header">
+            <summary>
+            Optional request header
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodCallResponseApiModel">
+            <summary>
+            Method call response model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodCallResponseApiModel.Results">
+            <summary>
+            Output results
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodCallResponseApiModel.ErrorInfo">
+            <summary>
+            Service result in case of error
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodMetadataArgumentApiModel">
+            <summary>
+            Method argument metadata model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodMetadataArgumentApiModel.Name">
+            <summary>
+            Argument name
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodMetadataArgumentApiModel.Description">
+            <summary>
+            Optional description
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodMetadataArgumentApiModel.Type">
+            <summary>
+            Data type node of the argument
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodMetadataArgumentApiModel.DefaultValue">
+            <summary>
+            Default value
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodMetadataArgumentApiModel.ValueRank">
+            <summary>
+            Optional, scalar if not set
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodMetadataArgumentApiModel.ArrayDimensions">
+            <summary>
+            Optional, array dimension
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodMetadataRequestApiModel">
+            <summary>
+            Method metadata request model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodMetadataRequestApiModel.MethodId">
+            <summary>
+            Method id of method to call.
+            (Required)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodMetadataRequestApiModel.MethodBrowsePath">
+            <summary>
+            An optional component path from the node identified by
+            MethodId to the actual method node.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodMetadataRequestApiModel.Header">
+            <summary>
+            Optional request header
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodMetadataResponseApiModel">
+            <summary>
+            Method metadata query model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodMetadataResponseApiModel.ObjectId">
+            <summary>
+            Id of object that the method is a component of
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodMetadataResponseApiModel.InputArguments">
+            <summary>
+            Input argument meta data
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodMetadataResponseApiModel.OutputArguments">
+            <summary>
+            output argument meta data
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.MethodMetadataResponseApiModel.ErrorInfo">
+            <summary>
+            Service result in case of error
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAccessLevel">
+            <summary>
+            Flags that can be set for the AccessLevel attribute.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAccessLevel.CurrentRead">
+            <summary>
+            The current value of the Variable may be read.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAccessLevel.CurrentWrite">
+            <summary>
+            The current value of the Variable may be written.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAccessLevel.HistoryRead">
+            <summary>
+            The history for the Variable may be read.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAccessLevel.HistoryWrite">
+            <summary>
+            The history for the Variable may be updated.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAccessLevel.SemanticChange">
+            <summary>
+            Indicates if the Variable generates SemanticChangeEvents
+            when its value changes.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAccessLevel.StatusWrite">
+            <summary>
+            Indicates if the current StatusCode of the value
+            is writable.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAccessLevel.TimestampWrite">
+            <summary>
+            Indicates if the current SourceTimestamp is
+            writable.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAccessLevel.NonatomicRead">
+            <summary>
+            Reads are not atomic.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAccessLevel.NonatomicWrite">
+            <summary>
+            Writes are not atomic
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAccessLevel.WriteFullArrayOnly">
+            <summary>
+            Writes cannot be performed with IndexRange.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAccessRestrictions">
+            <summary>
+            Flags for use with the AccessRestrictions attribute.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAccessRestrictions.SigningRequired">
+            <summary>
+            Requires SecureChannel which digitally signs all messages.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAccessRestrictions.EncryptionRequired">
+            <summary>
+            Requires SecureChannel which encrypts all messages.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAccessRestrictions.SessionRequired">
+            <summary>
+            No SessionlessInvoke invocation.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel">
+            <summary>
+            Node model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.NodeClass">
+            <summary>
+            Type of node
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.DisplayName">
+            <summary>
+            Display name
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.NodeId">
+            <summary>
+            Id of node.
+            (Mandatory).
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.Description">
+            <summary>
+            Description if any
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.BrowseName">
+            <summary>
+            Browse name
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.AccessRestrictions">
+            <summary>
+            Node access restrictions if any.
+            (default: none)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.WriteMask">
+            <summary>
+            Default write mask for the node
+            (default: 0)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.UserWriteMask">
+            <summary>
+            User write mask for the node
+            (default: 0)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.IsAbstract">
+            <summary>
+            Whether type is abstract, if type can
+            be abstract.  Null if not type node.
+            (default: false)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.ContainsNoLoops">
+            <summary>
+            Whether a view contains loops. Null if
+            not a view.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.EventNotifier">
+            <summary>
+            If object or view and eventing, event notifier
+            to subscribe to.
+            (default: no events supported)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.Executable">
+            <summary>
+            If method node class, whether method can
+            be called.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.UserExecutable">
+            <summary>
+            If method node class, whether method can
+            be called by current user.
+            (default: false if not executable)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.DataTypeDefinition">
+            <summary>
+            Data type definition in case node is a
+            data type node and definition is available,
+            otherwise null.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.AccessLevel">
+            <summary>
+            Default access level for variable node.
+            (default: 0)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.UserAccessLevel">
+            <summary>
+            User access level for variable node or null.
+            (default: 0)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.DataType">
+            <summary>
+            If variable the datatype of the variable.
+            (default: null)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.ValueRank">
+            <summary>
+            Value rank of the variable data of a variable
+            or variable type, otherwise null.
+            (default: scalar = -1)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.ArrayDimensions">
+            <summary>
+            Array dimensions of variable or variable type.
+            (default: empty array)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.Historizing">
+            <summary>
+            Whether the value of a variable is historizing.
+            (default: false)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.MinimumSamplingInterval">
+            <summary>
+            Minimum sampling interval for the variable
+            value, otherwise null if not a variable node.
+            (default: null)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.Value">
+            <summary>
+            Value of variable or default value of the
+            subtyped variable in case node is a variable
+            type, otherwise null.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.InverseName">
+            <summary>
+            Inverse name of the reference if the node is
+            a reference type, otherwise null.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.Symmetric">
+            <summary>
+            Whether the reference is symmetric in case
+            the node is a reference type, otherwise
+            null.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.RolePermissions">
+            <summary>
+            Role permissions
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.UserRolePermissions">
+            <summary>
+            User Role permissions
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.TypeDefinitionId">
+            <summary>
+            Optional type definition of the node
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.Children">
+            <summary>
+            Whether node has children which are defined as
+            any forward hierarchical references.
+            (default: unknown)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.Id">
+            <ignore/>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.HasChildren">
+            <ignore/>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeApiModel.Name">
+            <ignore/>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute">
+            <summary>
+            Node attribute identifiers
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.NodeClass">
+            <summary>
+            Node class
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.BrowseName">
+            <summary>
+            Browse name
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.DisplayName">
+            <summary>
+            Display name
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.Description">
+            <summary>
+            Description
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.WriteMask">
+            <summary>
+            Node write mask
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.UserWriteMask">
+            <summary>
+            User write mask
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.IsAbstract">
+            <summary>
+            Is abstract
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.Symmetric">
+            <summary>
+            Symmetric
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.InverseName">
+            <summary>
+            Inverse name
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.ContainsNoLoops">
+            <summary>
+            Contains no loop
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.EventNotifier">
+            <summary>
+            Event notifier
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.Value">
+            <summary>
+            Value for variable
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.DataType">
+            <summary>
+            Datatype
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.ValueRank">
+            <summary>
+            Value rank
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.ArrayDimensions">
+            <summary>
+            Array dimension
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.AccessLevel">
+            <summary>
+            Accesslevel
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.UserAccessLevel">
+            <summary>
+            User access level
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.MinimumSamplingInterval">
+            <summary>
+            Minimum sampling interval
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.Historizing">
+            <summary>
+            Whether node is historizing
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.Executable">
+            <summary>
+            Method can be called
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.UserExecutable">
+            <summary>
+            User can call method
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.DataTypeDefinition">
+            <summary>
+            Data type definition
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.RolePermissions">
+            <summary>
+            Role permissions
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.UserRolePermissions">
+            <summary>
+            User role permissions
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeAttribute.AccessRestrictions">
+            <summary>
+            Access restrictions on node
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeClass">
+            <summary>
+            Node class
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeClass.Object">
+            <summary>
+            Object class
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeClass.Variable">
+            <summary>
+            Variable
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeClass.Method">
+            <summary>
+            Method class
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeClass.ObjectType">
+            <summary>
+            Object type
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeClass.VariableType">
+            <summary>
+            Variable type
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeClass.ReferenceType">
+            <summary>
+            Reference type
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeClass.DataType">
+            <summary>
+            Data type
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeClass.View">
+            <summary>
+            View class
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeEventNotifier">
+            <summary>
+            Flags that can be set for the EventNotifier attribute.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeEventNotifier.SubscribeToEvents">
+            <summary>
+            The Object or View produces event notifications.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeEventNotifier.HistoryRead">
+            <summary>
+            The Object has an event history which may
+            be read.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeEventNotifier.HistoryWrite">
+            <summary>
+            The Object has an event history which may
+            be updated.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodePathTargetApiModel">
+            <summary>
+            Node path target
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodePathTargetApiModel.BrowsePath">
+            <summary>
+            The target browse path
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodePathTargetApiModel.Target">
+            <summary>
+            Target node
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodePathTargetApiModel.RemainingPathIndex">
+            <summary>
+            Remaining index in path
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeReferenceApiModel">
+            <summary>
+            reference model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeReferenceApiModel.ReferenceTypeId">
+            <summary>
+            Reference Type id
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeReferenceApiModel.Direction">
+            <summary>
+            Browse direction of reference
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeReferenceApiModel.Target">
+            <summary>
+            Target node
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeReferenceApiModel.TypeId">
+            <ignore/>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeReferenceApiModel.BrowseName">
+            <ignore/>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeReferenceApiModel.DisplayName">
+            <ignore/>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeReferenceApiModel.TypeDefinition">
+            <ignore/>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeValueRank">
+            <summary>
+            Constants defined for the ValueRank attribute.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeValueRank.ScalarOrOneDimension">
+            <summary>
+            The variable may be a scalar or a one
+            dimensional array.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeValueRank.Any">
+            <summary>
+            The variable may be a scalar or an array of
+            any dimension.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeValueRank.Scalar">
+            <summary>
+            The variable is always a scalar.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeValueRank.OneOrMoreDimensions">
+            <summary>
+            The variable is always an array with one or
+            more dimensions.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeValueRank.OneDimension">
+            <summary>
+            The variable is always one dimensional array.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeValueRank.TwoDimensions">
+            <summary>
+            The variable is always an array with two or
+            more dimensions.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ReadRequestApiModel">
+            <summary>
+            Request node attribute read
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ReadRequestApiModel.Attributes">
+            <summary>
+            Attributes to read
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ReadRequestApiModel.Header">
+            <summary>
+            Optional request header
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ReadResponseApiModel">
+            <summary>
+            Result of attribute reads
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ReadResponseApiModel.Results">
+            <summary>
+            All results of attribute reads
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RequestHeaderApiModel">
+            <summary>
+            Request header model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RequestHeaderApiModel.Elevation">
+            <summary>
+            Optional User elevation
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RequestHeaderApiModel.Locales">
+            <summary>
+            Optional list of locales in preference order.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RequestHeaderApiModel.Diagnostics">
+            <summary>
+            Optional diagnostics configuration
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RolePermissionApiModel">
+            <summary>
+            Role permission model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RolePermissionApiModel.RoleId">
+            <summary>
+            Identifier of the role object.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RolePermissionApiModel.Permissions">
+            <summary>
+            Permissions assigned for the role.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RolePermissions">
+            <summary>
+            Individual permissions assigned to a role
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RolePermissions.Browse">
+            <summary>
+            Gives role the Browse permissions.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RolePermissions.ReadRolePermissions">
+            <summary>
+            Gives role the ReadRolePermissions permissions.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RolePermissions.WriteAttribute">
+            <summary>
+            Gives role the WriteAttribute permissions.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RolePermissions.WriteRolePermissions">
+            <summary>
+            Gives role the WriteRolePermissions permissions.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RolePermissions.WriteHistorizing">
+            <summary>
+            Gives role the WriteHistorizing permissions.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RolePermissions.Read">
+            <summary>
+            Gives role the Read permissions.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RolePermissions.Write">
+            <summary>
+            Gives role the Write value permissions.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RolePermissions.ReadHistory">
+            <summary>
+            Gives role the ReadHistory permissions.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RolePermissions.InsertHistory">
+            <summary>
+            Gives role the InsertHistory permissions.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RolePermissions.ModifyHistory">
+            <summary>
+            Gives role the ModifyHistory permissions.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RolePermissions.DeleteHistory">
+            <summary>
+            Gives role the DeleteHistory permissions.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RolePermissions.ReceiveEvents">
+            <summary>
+            Gives role the ReceiveEvents permissions.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RolePermissions.Call">
+            <summary>
+            Gives role the Call permissions.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RolePermissions.AddReference">
+            <summary>
+            Gives role the AddReference permissions.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RolePermissions.RemoveReference">
+            <summary>
+            Gives role the RemoveReference permissions.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RolePermissions.DeleteNode">
+            <summary>
+            Gives role the DeleteNode permissions.
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.RolePermissions.AddNode">
+            <summary>
+            Gives role the AddNode permissions.
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.SecurityMode">
+            <summary>
+            Security mode of endpoint
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.SecurityMode.Best">
+            <summary>
+            Best
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.SecurityMode.Sign">
+            <summary>
+            Sign
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.SecurityMode.SignAndEncrypt">
+            <summary>
+            Sign and Encrypt
+            </summary>
+        </member>
+        <member name="F:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.SecurityMode.None">
+            <summary>
+            No security
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ServiceResultApiModel">
+            <summary>
+            Service result
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ServiceResultApiModel.StatusCode">
+            <summary>
+            Error code - if null operation succeeded.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ServiceResultApiModel.ErrorMessage">
+            <summary>
+            Error message in case of error or null.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ServiceResultApiModel.Diagnostics">
+            <summary>
+            Additional diagnostics information
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueReadRequestApiModel">
+            <summary>
+            Node value read request webservice api model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueReadRequestApiModel.NodeId">
+            <summary>
+            Node to read from (mandatory)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueReadRequestApiModel.BrowsePath">
+            <summary>
+            An optional path from NodeId instance to
+            the actual node.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueReadRequestApiModel.IndexRange">
+            <summary>
+            Index range to read, e.g. 1:2,0:1 for 2 slices
+            out of a matrix or 0:1 for the first item in
+            an array, string or bytestring.
+            See 7.22 of part 4: NumericRange.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueReadRequestApiModel.Header">
+            <summary>
+            Optional request header
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueReadResponseApiModel">
+            <summary>
+            Value read response model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueReadResponseApiModel.Value">
+            <summary>
+            Value read
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueReadResponseApiModel.DataType">
+            <summary>
+            Built in data type of the value read.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueReadResponseApiModel.SourcePicoseconds">
+            <summary>
+            Pico seconds part of when value was read at source.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueReadResponseApiModel.SourceTimestamp">
+            <summary>
+            Timestamp of when value was read at source.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueReadResponseApiModel.ServerPicoseconds">
+            <summary>
+            Pico seconds part of when value was read at server.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueReadResponseApiModel.ServerTimestamp">
+            <summary>
+            Timestamp of when value was read at server.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueReadResponseApiModel.ErrorInfo">
+            <summary>
+            Service result in case of error
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueWriteRequestApiModel">
+            <summary>
+            Value write request model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueWriteRequestApiModel.NodeId">
+            <summary>
+            Node id to to write value to.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueWriteRequestApiModel.BrowsePath">
+            <summary>
+            An optional path from NodeId instance to
+            the actual node.
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueWriteRequestApiModel.Value">
+            <summary>
+            Value to write. The system tries to convert
+            the value according to the data type value,
+            e.g. convert comma seperated value strings
+            into arrays.  (Mandatory)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueWriteRequestApiModel.DataType">
+            <summary>
+            A built in datatype for the value. This can
+            be a data type from browse, or a built in
+            type.
+            (default: best effort)
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueWriteRequestApiModel.IndexRange">
+            <summary>
+            Index range to write
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueWriteRequestApiModel.Header">
+            <summary>
+            Optional request header
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueWriteResponseApiModel">
+            <summary>
+            Value write response model
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.ValueWriteResponseApiModel.ErrorInfo">
+            <summary>
+            Service result in case of error
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.WriteRequestApiModel">
+            <summary>
+            Request node attribute write
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.WriteRequestApiModel.Attributes">
+            <summary>
+            Attributes to update
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.WriteRequestApiModel.Header">
+            <summary>
+            Optional request header
+            </summary>
+        </member>
+        <member name="T:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.WriteResponseApiModel">
+            <summary>
+            Result of attribute write
+            </summary>
+        </member>
+        <member name="P:Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.WriteResponseApiModel.Results">
+            <summary>
+            All results of attribute writes
+            </summary>
+        </member>
+    </members>
+</doc>

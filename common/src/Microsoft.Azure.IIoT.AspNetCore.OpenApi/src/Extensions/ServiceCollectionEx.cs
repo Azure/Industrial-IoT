@@ -69,10 +69,11 @@ namespace Microsoft.OpenApi.Models {
                 foreach (var info in infos) {
                     // Generate doc for version
                     options.SwaggerDoc(info.Version, info);
+                }
 
-                    // Add help
-                    options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory,
-                        config.GetType().Assembly.GetName().Name + ".xml"), true);
+                // Add help
+                foreach (var file in Directory.GetFiles(AppContext.BaseDirectory, "*.xml")) {
+                    options.IncludeXmlComments(file, true);
                 }
 
                 // If auth enabled, need to have bearer token to access any api

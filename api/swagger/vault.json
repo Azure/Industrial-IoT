@@ -572,26 +572,6 @@
         }
       }
     },
-    "/v2/status": {
-      "get": {
-        "tags": [
-          "Status"
-        ],
-        "summary": "Return the service status in the form of the service status\r\napi model.",
-        "operationId": "GetStatus",
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/StatusResponseApiModel"
-            }
-          }
-        }
-      }
-    },
     "/v2/groups": {
       "get": {
         "tags": [
@@ -999,9 +979,6 @@
   "definitions": {
     "X509CertificateApiModel": {
       "description": "Certificate model",
-      "required": [
-        "certificate"
-      ],
       "type": "object",
       "properties": {
         "subject": {
@@ -1047,9 +1024,6 @@
     },
     "X509CrlApiModel": {
       "description": "A X509 certificate revocation list.",
-      "required": [
-        "crl"
-      ],
       "type": "object",
       "properties": {
         "issuer": {
@@ -1063,7 +1037,7 @@
       }
     },
     "X509CrlChainApiModel": {
-      "description": "Crl collection model",
+      "description": "Crl chain model",
       "type": "object",
       "properties": {
         "chain": {
@@ -1087,11 +1061,6 @@
     },
     "StartSigningRequestApiModel": {
       "description": "Signing request",
-      "required": [
-        "certificateRequest",
-        "entityId",
-        "groupId"
-      ],
       "type": "object",
       "properties": {
         "entityId": {
@@ -1110,9 +1079,6 @@
     },
     "StartSigningRequestResponseApiModel": {
       "description": "Signing request response",
-      "required": [
-        "requestId"
-      ],
       "type": "object",
       "properties": {
         "requestId": {
@@ -1122,6 +1088,7 @@
       }
     },
     "CertificateRequestState": {
+      "description": "The certificate request states.",
       "enum": [
         "New",
         "Approved",
@@ -1137,6 +1104,7 @@
       }
     },
     "CertificateRequestType": {
+      "description": "The certificate request type.",
       "enum": [
         "SigningRequest",
         "KeyPairRequest"
@@ -1149,9 +1117,6 @@
     },
     "VaultOperationContextApiModel": {
       "description": "Vault operation log model",
-      "required": [
-        "time"
-      ],
       "type": "object",
       "properties": {
         "authorityId": {
@@ -1215,6 +1180,7 @@
       }
     },
     "TrustGroupType": {
+      "description": "Trust group types",
       "enum": [
         "ApplicationInstanceCertificate",
         "HttpsCertificate",
@@ -1228,12 +1194,6 @@
     },
     "StartNewKeyPairRequestApiModel": {
       "description": "New key pair request",
-      "required": [
-        "certificateType",
-        "entityId",
-        "groupId",
-        "subjectName"
-      ],
       "type": "object",
       "properties": {
         "entityId": {
@@ -1262,9 +1222,6 @@
     },
     "StartNewKeyPairRequestResponseApiModel": {
       "description": "New key pair response",
-      "required": [
-        "requestId"
-      ],
       "type": "object",
       "properties": {
         "requestId": {
@@ -1274,6 +1231,7 @@
       }
     },
     "PrivateKeyType": {
+      "description": "Key type",
       "enum": [
         "RSA",
         "ECC",
@@ -1416,65 +1374,8 @@
         }
       }
     },
-    "StatusResponseApiModel": {
-      "description": "Status model",
-      "type": "object",
-      "properties": {
-        "name": {
-          "description": "Name of this service",
-          "type": "string"
-        },
-        "status": {
-          "description": "Operational status",
-          "type": "string"
-        },
-        "currentTime": {
-          "description": "Current time",
-          "type": "string",
-          "readOnly": true
-        },
-        "startTime": {
-          "description": "Start time of service",
-          "type": "string",
-          "readOnly": true
-        },
-        "upTime": {
-          "format": "int64",
-          "description": "Up time of service",
-          "type": "integer",
-          "readOnly": true
-        },
-        "uid": {
-          "description": "Value generated at bootstrap by each instance of the service and\r\nused to correlate logs coming from the same instance. The value\r\nchanges every time the service starts.",
-          "type": "string",
-          "readOnly": true
-        },
-        "properties": {
-          "description": "A property bag with details about the service",
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          },
-          "readOnly": true
-        },
-        "dependencies": {
-          "description": "A property bag with details about the internal dependencies",
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          },
-          "readOnly": true
-        },
-        "$metadata": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          },
-          "readOnly": true
-        }
-      }
-    },
     "SignatureAlgorithm": {
+      "description": "Signature algorithm",
       "enum": [
         "Rsa256",
         "Rsa384",
@@ -1491,10 +1392,6 @@
     },
     "TrustGroupApiModel": {
       "description": "Trust group model",
-      "required": [
-        "name",
-        "subjectName"
-      ],
       "type": "object",
       "properties": {
         "name": {
@@ -1542,10 +1439,6 @@
     },
     "TrustGroupRegistrationApiModel": {
       "description": "Trust group registration model",
-      "required": [
-        "group",
-        "id"
-      ],
       "type": "object",
       "properties": {
         "id": {
@@ -1591,11 +1484,6 @@
     },
     "TrustGroupRegistrationRequestApiModel": {
       "description": "Trust group registration request model",
-      "required": [
-        "name",
-        "parentId",
-        "subjectName"
-      ],
       "type": "object",
       "properties": {
         "name": {
@@ -1627,9 +1515,6 @@
     },
     "TrustGroupRegistrationResponseApiModel": {
       "description": "Trust group registration response model",
-      "required": [
-        "id"
-      ],
       "type": "object",
       "properties": {
         "id": {
@@ -1663,11 +1548,6 @@
     },
     "TrustGroupRootCreateRequestApiModel": {
       "description": "Trust group root registration model",
-      "required": [
-        "lifetime",
-        "name",
-        "subjectName"
-      ],
       "type": "object",
       "properties": {
         "name": {
@@ -1750,10 +1630,6 @@
     {
       "name": "Requests",
       "description": "Certificate request services."
-    },
-    {
-      "name": "Status",
-      "description": "Status checks"
     },
     {
       "name": "TrustGroups",

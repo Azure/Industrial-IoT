@@ -10,6 +10,9 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Job service client
+    /// </summary>
     public class JobsServiceClient : IJobsServiceApi {
 
         /// <summary>
