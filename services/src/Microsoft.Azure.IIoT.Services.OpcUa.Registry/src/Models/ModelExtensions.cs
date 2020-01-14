@@ -535,6 +535,21 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models {
             }
             return new GatewayInfoApiModel {
                 Gateway = model.Gateway.ToApiModel(),
+                Modules = model.Modules.ToApiModel()
+            };
+        }
+
+        /// <summary>
+        /// Create api model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static GatewayModulesApiModel ToApiModel(
+            this GatewayModulesModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new GatewayModulesApiModel {
                 Publisher = model.Publisher.ToApiModel(),
                 Supervisor = model.Supervisor.ToApiModel(),
                 Discoverer = model.Discoverer.ToApiModel()

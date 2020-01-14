@@ -57,19 +57,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             //
             if (result.DiscoveryConfig == null) {
                 // Use global discovery configuration
-                result.DiscoveryConfig = gateway.Discoverer?.DiscoveryConfig;
+                result.DiscoveryConfig = gateway.Modules?.Discoverer?.DiscoveryConfig;
             }
             else {
                 if (result.DiscoveryConfig.ActivationFilter == null) {
                     // Use global activation filter
                     result.DiscoveryConfig.ActivationFilter =
-                        gateway.Discoverer?.DiscoveryConfig?.ActivationFilter;
+                        gateway.Modules?.Discoverer?.DiscoveryConfig?.ActivationFilter;
                 }
             }
 
             // Process discovery events
             await _applications.ProcessDiscoveryEventsAsync(siteId, discovererId,
-                gateway.Supervisor?.Id, result, events);
+                gateway.Modules?.Supervisor?.Id, result, events);
         }
 
         private readonly IGatewayRegistry _gateways;

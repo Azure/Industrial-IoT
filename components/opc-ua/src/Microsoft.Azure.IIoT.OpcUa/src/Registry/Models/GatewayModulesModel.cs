@@ -6,18 +6,23 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
     /// <summary>
-    /// Edge Gateway info
+    /// Edge Gateway modules
     /// </summary>
-    public class GatewayInfoModel {
+    public class GatewayModulesModel {
 
         /// <summary>
-        /// Identifier of the gateway
+        /// Supervisor identity if deployed
         /// </summary>
-        public GatewayModel Gateway { get; set; }
+        public SupervisorModel Supervisor { get; set; }
 
         /// <summary>
-        /// Gateway modules
+        /// Publisher identity if deployed
         /// </summary>
-        public GatewayModulesModel Modules { get; set; }
+        public PublisherModel Publisher { get; set; }
+
+        /// <summary>
+        /// Discoverer identity if deployed
+        /// </summary>
+        public DiscovererModel Discoverer { get; set; }
     }
 }
