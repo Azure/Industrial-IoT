@@ -17,21 +17,20 @@
 class PrivateKeyApiModel {
   /**
    * Create a PrivateKeyApiModel.
-   * @property {string} [kty] Key type. Possible values include: 'RSA', 'ECC',
-   * 'AES'
+   * @property {string} [kty] Possible values include: 'RSA', 'ECC', 'AES'
    * @property {buffer} [n] RSA modulus.
    * @property {buffer} [e] RSA public exponent, in Base64.
    * @property {buffer} [dp] RSA Private Key Parameter
    * @property {buffer} [dq] RSA Private Key Parameter
    * @property {buffer} [qi] RSA Private Key Parameter
    * @property {buffer} [p] RSA secret prime
-   * @property {buffer} [q] RSA secret prime, with p &lt; q
-   * @property {string} [crv] The curve for ECC algorithms
+   * @property {buffer} [q] RSA secret prime, with p < q
+   * @property {string} [crv]
    * @property {buffer} [x] X coordinate for the Elliptic Curve point.
    * @property {buffer} [y] Y coordinate for the Elliptic Curve point.
    * @property {buffer} [d] RSA private exponent or ECC private key.
    * @property {buffer} [k] Symmetric key
-   * @property {buffer} [keyHsm] HSM Token, used with "Bring Your Own Key"
+   * @property {buffer} [keyHsm]
    */
   constructor() {
   }

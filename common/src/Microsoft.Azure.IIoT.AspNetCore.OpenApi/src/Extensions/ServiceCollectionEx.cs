@@ -8,7 +8,6 @@ namespace Microsoft.OpenApi.Models {
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.AspNetCore.Authorization;
-    using Microsoft.AspNetCore.Mvc.Controllers;
     using Microsoft.AspNetCore.Mvc.Infrastructure;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Options;
@@ -16,6 +15,8 @@ namespace Microsoft.OpenApi.Models {
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.AspNetCore.Mvc.Controllers;
 
     /// <summary>
     /// Configure OpenApi
@@ -23,37 +24,28 @@ namespace Microsoft.OpenApi.Models {
     public static class ServiceCollectionEx {
 
         /// <summary>
-        /// Collect configured scopes from all controllers registered as services
-        /// </summary>
-        /// <param name="services"></param>
-        /// <returns></returns>
-        public static IEnumerable<string> GetRequiredScopes(
-            this IServiceCollection services) {
-            var provider = services.BuildServiceProvider();
-            var options = provider.GetRequiredService<IOptions<AuthorizationOptions>>();
-            return provider.GetRequiredService<IActionDescriptorCollectionProvider>()
-                .ActionDescriptors.Items
-                .OfType<ControllerActionDescriptor>()
-                .Cast<ControllerActionDescriptor>()
-                .SelectMany(d => d.GetRequiredPolicyGlaims(options.Value))
-                .Distinct();
-        }
-
-        /// <summary>
         /// Configure OpenApi
         /// </summary>
         /// <param name="services"></param>
         /// <param name="config"></param>
-        /// <param name="infos"></param>
+        /// <param name="title"></param>
+        /// <param name="description"></param>
         public static void AddSwagger(this IServiceCollection services,
-            IOpenApiConfig config, params OpenApiInfo[] infos) {
+            IOpenApiConfig config, string title, string description) {
 
-            if (infos == null) {
-                throw new ArgumentNullException(nameof(infos));
-            }
             if (config == null) {
                 throw new ArgumentNullException(nameof(config));
             }
+
+            services.AddApiVersioning(o => {
+                o.AssumeDefaultVersionWhenUnspecified = true;
+                o.DefaultApiVersion = new ApiVersion(1, 0);
+            });
+
+            // Controllers must be added first
+            var provider = services.BuildServiceProvider();
+            var api = provider.GetRequiredService<IActionDescriptorCollectionProvider>();
+            var infos = api.GetOpenApiInfos(title, description);
 
             // Generate swagger documentation
             services.AddSwaggerGen(options => {
@@ -63,9 +55,18 @@ namespace Microsoft.OpenApi.Models {
 
                 // Add autorest extensions
                 options.SchemaFilter<AutoRestSchemaExtensions>();
+                options.ParameterFilter<AutoRestSchemaExtensions>();
+                options.DocumentFilter<ApiVersionExtensions>();
+
+                // Ensure the routes are added to the right Swagger doc
+                options.DocInclusionPredicate((version, descriptor) => {
+                    if (descriptor.ActionDescriptor is ControllerActionDescriptor desc) {
+                        return desc.MatchesVersion(version);
+                    }
+                    return true;
+                });
 
                 foreach (var info in infos) {
-
                     // Generate doc for version
                     options.SwaggerDoc(info.Version, info);
 
@@ -87,14 +88,16 @@ namespace Microsoft.OpenApi.Models {
                         options.OperationFilter<AutoRestOperationExtensions>();
                     }
                     else {
+                        var authOptions = provider.GetRequiredService<IOptions<AuthorizationOptions>>();
                         options.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme {
                             Type = SecuritySchemeType.OAuth2,
                             Description = "Implicit oauth2 token flow.",
                             Flows = new OpenApiOAuthFlows {
                                 Implicit = new OpenApiOAuthFlow {
-                                    AuthorizationUrl = new Uri(resource.GetAuthorityUrl() + "/oauth2/authorize"),
-                                    Scopes = services.GetRequiredScopes()
-                                    .ToDictionary(k => k, k => $"Access {k} operations")
+                                    AuthorizationUrl =
+                                        new Uri(resource.GetAuthorityUrl() + "/oauth2/authorize"),
+                                    Scopes = api.GetRequiredScopes(authOptions)
+                                        .ToDictionary(k => k, k => $"Access {k} operations")
                                 }
                             }
                         });

@@ -17,8 +17,8 @@
 class CredentialApiModel {
   /**
    * Create a CredentialApiModel.
-   * @property {string} [type] Type of credential. Possible values include:
-   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @property {string} [type] Possible values include: 'None', 'UserName',
+   * 'X509Certificate', 'JwtToken'
    * @property {object} [value] Value to pass to server
    */
   constructor() {

@@ -54,9 +54,8 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
         /// <param name='endpointId'>
         /// The endpoint to subscribe to
         /// </param>
-        /// <param name='userId'>
-        /// The user id that will receive publisher
-        /// samples.
+        /// <param name='body'>
+        /// The user id that will receive publisher samples.
         /// </param>
         /// <param name='customHeaders'>
         /// The headers that will be added to request.
@@ -64,7 +63,7 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse> SubscribeWithHttpMessagesAsync(string endpointId, string userId = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse> SubscribeWithHttpMessagesAsync(string endpointId, string body = default(string), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Unsubscribe from receiving samples.
@@ -76,8 +75,7 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
         /// The endpoint to unsubscribe from
         /// </param>
         /// <param name='userId'>
-        /// The user id that will not receive
-        /// any more published samples
+        /// The user id that will not receive any more published samples
         /// </param>
         /// <param name='customHeaders'>
         /// The headers that will be added to request.
@@ -91,14 +89,14 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
         /// Start publishing node values
         /// </summary>
         /// <remarks>
-        /// Start publishing variable node values to IoT Hub.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Start publishing variable node values to IoT Hub. The endpoint must
+        /// be activated and connected and the module client and server must
+        /// trust each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The publish request
         /// </param>
         /// <param name='customHeaders'>
@@ -107,20 +105,20 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<PublishStartResponseApiModel>> StartPublishingValuesWithHttpMessagesAsync(string endpointId, PublishStartRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<PublishStartResponseApiModel>> StartPublishingValuesWithHttpMessagesAsync(string endpointId, PublishStartRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Stop publishing node values
         /// </summary>
         /// <remarks>
-        /// Stop publishing variable node values to IoT Hub.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Stop publishing variable node values to IoT Hub. The endpoint must
+        /// be activated and connected and the module client and server must
+        /// trust each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The unpublish request
         /// </param>
         /// <param name='customHeaders'>
@@ -129,7 +127,29 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<PublishStopResponseApiModel>> StopPublishingValuesWithHttpMessagesAsync(string endpointId, PublishStopRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<PublishStopResponseApiModel>> StopPublishingValuesWithHttpMessagesAsync(string endpointId, PublishStopRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Get currently published nodes
+        /// </summary>
+        /// <remarks>
+        /// Returns currently published node ids for an endpoint. The endpoint
+        /// must be activated and connected and the module client and server
+        /// must trust each other.
+        /// </remarks>
+        /// <param name='endpointId'>
+        /// The identifier of the activated endpoint.
+        /// </param>
+        /// <param name='body'>
+        /// The list request
+        /// </param>
+        /// <param name='customHeaders'>
+        /// The headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        Task<HttpOperationResponse<PublishedItemListResponseApiModel>> GetFirstListOfPublishedNodesWithHttpMessagesAsync(string endpointId, PublishedItemListRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Get next set of published nodes
@@ -152,28 +172,6 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
         /// The cancellation token.
         /// </param>
         Task<HttpOperationResponse<PublishedItemListResponseApiModel>> GetNextListOfPublishedNodesWithHttpMessagesAsync(string endpointId, string continuationToken, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Get currently published nodes
-        /// </summary>
-        /// <remarks>
-        /// Returns currently published node ids for an endpoint.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
-        /// </remarks>
-        /// <param name='endpointId'>
-        /// The identifier of the activated endpoint.
-        /// </param>
-        /// <param name='request'>
-        /// The list request
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<PublishedItemListResponseApiModel>> GetFirstListOfPublishedNodesWithHttpMessagesAsync(string endpointId, PublishedItemListRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Return the service status in the form of the service status

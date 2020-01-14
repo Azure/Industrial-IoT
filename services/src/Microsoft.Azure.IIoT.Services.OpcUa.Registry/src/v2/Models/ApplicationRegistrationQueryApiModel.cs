@@ -30,9 +30,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             ApplicationName = model.ApplicationName;
             Locale = model.Locale;
             Capability = model.Capability;
-            SiteOrSupervisorId = model.SiteOrSupervisorId;
+            SiteOrGatewayId = model.SiteOrGatewayId;
             IncludeNotSeenSince = model.IncludeNotSeenSince;
             DiscoveryProfileUri = model.DiscoveryProfileUri;
+            DiscovererId = model.DiscovererId;
             GatewayServerUri = model.GatewayServerUri;
         }
 
@@ -48,9 +49,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
                 ApplicationName = ApplicationName,
                 Locale = Locale,
                 Capability = Capability,
-                SiteOrSupervisorId = SiteOrSupervisorId,
+                SiteOrGatewayId = SiteOrGatewayId,
                 IncludeNotSeenSince = IncludeNotSeenSince,
                 GatewayServerUri = GatewayServerUri,
+                DiscovererId = DiscovererId,
                 DiscoveryProfileUri = DiscoveryProfileUri
             };
         }
@@ -122,10 +124,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         /// <summary>
         /// Supervisor or site the application belongs to.
         /// </summary>
-        [JsonProperty(PropertyName = "siteOrSupervisorId",
+        [JsonProperty(PropertyName = "siteOrGatewayId",
            NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
-        public string SiteOrSupervisorId { get; set; }
+        public string SiteOrGatewayId { get; set; }
 
         /// <summary>
         /// Whether to include apps that were soft deleted
@@ -134,6 +136,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public bool? IncludeNotSeenSince { get; set; }
+
+        /// <summary>
+        /// Discoverer id to filter with
+        /// </summary>
+        [JsonProperty(PropertyName = "discovererId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string DiscovererId { get; set; }
     }
 }
 

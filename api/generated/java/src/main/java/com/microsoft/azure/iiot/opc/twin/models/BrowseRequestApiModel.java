@@ -24,16 +24,13 @@ public class BrowseRequestApiModel {
     private String nodeId;
 
     /**
-     * Direction to browse in
-     * (default: forward). Possible values include: 'Forward', 'Backward',
-     * 'Both'.
+     * Possible values include: 'Forward', 'Backward', 'Both'.
      */
     @JsonProperty(value = "direction")
     private BrowseDirection direction;
 
     /**
-     * View to browse
-     * (default: null = new view = All nodes).
+     * The view property.
      */
     @JsonProperty(value = "view")
     private BrowseViewApiModel view;
@@ -79,7 +76,7 @@ public class BrowseRequestApiModel {
     private Boolean readVariableValues;
 
     /**
-     * Optional request header.
+     * The headerProperty property.
      */
     @JsonProperty(value = "header")
     private RequestHeaderApiModel headerProperty;
@@ -107,8 +104,7 @@ public class BrowseRequestApiModel {
     }
 
     /**
-     * Get direction to browse in
-     (default: forward). Possible values include: 'Forward', 'Backward', 'Both'.
+     * Get possible values include: 'Forward', 'Backward', 'Both'.
      *
      * @return the direction value
      */
@@ -117,8 +113,7 @@ public class BrowseRequestApiModel {
     }
 
     /**
-     * Set direction to browse in
-     (default: forward). Possible values include: 'Forward', 'Backward', 'Both'.
+     * Set possible values include: 'Forward', 'Backward', 'Both'.
      *
      * @param direction the direction value to set
      * @return the BrowseRequestApiModel object itself.
@@ -129,8 +124,7 @@ public class BrowseRequestApiModel {
     }
 
     /**
-     * Get view to browse
-     (default: null = new view = All nodes).
+     * Get the view value.
      *
      * @return the view value
      */
@@ -139,8 +133,7 @@ public class BrowseRequestApiModel {
     }
 
     /**
-     * Set view to browse
-     (default: null = new view = All nodes).
+     * Set the view value.
      *
      * @param view the view value to set
      * @return the BrowseRequestApiModel object itself.
@@ -271,7 +264,7 @@ public class BrowseRequestApiModel {
     }
 
     /**
-     * Get optional request header.
+     * Get the headerProperty value.
      *
      * @return the headerProperty value
      */
@@ -280,7 +273,7 @@ public class BrowseRequestApiModel {
     }
 
     /**
-     * Set optional request header.
+     * Set the headerProperty value.
      *
      * @param headerProperty the headerProperty value to set
      * @return the BrowseRequestApiModel object itself.

@@ -30,10 +30,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// Initializes a new instance of the PublisherUpdateApiModel class.
         /// </summary>
         /// <param name="siteId">Site of the publisher</param>
-        /// <param name="configuration">Publisher discovery
-        /// configuration</param>
-        /// <param name="logLevel">Current log level. Possible values include:
-        /// 'Error', 'Information', 'Debug', 'Verbose'</param>
+        /// <param name="logLevel">Possible values include: 'Error',
+        /// 'Information', 'Debug', 'Verbose'</param>
         public PublisherUpdateApiModel(string siteId = default(string), PublisherConfigApiModel configuration = default(PublisherConfigApiModel), TraceLogLevel? logLevel = default(TraceLogLevel?))
         {
             SiteId = siteId;
@@ -54,14 +52,13 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Gets or sets publisher discovery configuration
         /// </summary>
         [JsonProperty(PropertyName = "configuration")]
         public PublisherConfigApiModel Configuration { get; set; }
 
         /// <summary>
-        /// Gets or sets current log level. Possible values include: 'Error',
-        /// 'Information', 'Debug', 'Verbose'
+        /// Gets or sets possible values include: 'Error', 'Information',
+        /// 'Debug', 'Verbose'
         /// </summary>
         [JsonProperty(PropertyName = "logLevel")]
         public TraceLogLevel? LogLevel { get; set; }

@@ -30,9 +30,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Supervisor that registered the endpoint.
+        /// Supervisor that manages the endpoint.
         /// </summary>
         public string SupervisorId { get; set; }
+
+        /// <summary>
+        /// Discoverer that registered the endpoint
+        /// </summary>
+        public string DiscovererId { get; set; }
 
         /// <summary>
         /// Endpoint information in the registration

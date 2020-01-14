@@ -15,18 +15,16 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using Microsoft.OpenApi.Models;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using Swashbuckle.AspNetCore.Swagger;
+    using Newtonsoft.Json;
     using System;
     using ILogger = Serilog.ILogger;
-    using Microsoft.OpenApi.Models;
-    using Microsoft.Extensions.Hosting;
-    using Newtonsoft.Json;
 
     /// <summary>
     /// Webservice Startup
@@ -108,15 +106,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
                         Environment.IsDevelopment()));
                     options.SerializerSettings.MaxDepth = 10;
                 });
-
-            services.AddHttpContextAccessor();
-            services.AddDistributedMemoryCache();
-
-            services.AddSwagger(Config, new OpenApiInfo {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
+            services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 
         /// <summary>
@@ -142,11 +132,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
             }
 
             app.UseCorrelation();
-            app.UseSwagger(new OpenApiInfo {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
+            app.UseSwagger();
 
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();

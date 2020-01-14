@@ -17,7 +17,7 @@ class ApplicationRecordApiModel(Model):
 
     :param record_id: Record id
     :type record_id: int
-    :param application: Application information
+    :param application:
     :type application: ~azure-iiot-opc-registry.models.ApplicationInfoApiModel
     """
 

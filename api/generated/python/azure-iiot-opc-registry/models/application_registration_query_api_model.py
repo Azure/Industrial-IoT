@@ -15,8 +15,8 @@ from msrest.serialization import Model
 class ApplicationRegistrationQueryApiModel(Model):
     """Application information.
 
-    :param application_type: Type of application. Possible values include:
-     'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+    :param application_type: Possible values include: 'Server', 'Client',
+     'ClientAndServer', 'DiscoveryServer'
     :type application_type: str or
      ~azure-iiot-opc-registry.models.ApplicationType
     :param application_uri: Application uri
@@ -33,9 +33,8 @@ class ApplicationRegistrationQueryApiModel(Model):
     :type discovery_profile_uri: str
     :param gateway_server_uri: Gateway server uri
     :type gateway_server_uri: str
-    :param site_or_supervisor_id: Supervisor or site the application belongs
-     to.
-    :type site_or_supervisor_id: str
+    :param site_or_gateway_id: Supervisor or site the application belongs to.
+    :type site_or_gateway_id: str
     :param include_not_seen_since: Whether to include apps that were soft
      deleted
     :type include_not_seen_since: bool
@@ -50,11 +49,11 @@ class ApplicationRegistrationQueryApiModel(Model):
         'capability': {'key': 'capability', 'type': 'str'},
         'discovery_profile_uri': {'key': 'discoveryProfileUri', 'type': 'str'},
         'gateway_server_uri': {'key': 'gatewayServerUri', 'type': 'str'},
-        'site_or_supervisor_id': {'key': 'siteOrSupervisorId', 'type': 'str'},
+        'site_or_gateway_id': {'key': 'siteOrGatewayId', 'type': 'str'},
         'include_not_seen_since': {'key': 'includeNotSeenSince', 'type': 'bool'},
     }
 
-    def __init__(self, application_type=None, application_uri=None, product_uri=None, application_name=None, locale=None, capability=None, discovery_profile_uri=None, gateway_server_uri=None, site_or_supervisor_id=None, include_not_seen_since=None):
+    def __init__(self, application_type=None, application_uri=None, product_uri=None, application_name=None, locale=None, capability=None, discovery_profile_uri=None, gateway_server_uri=None, site_or_gateway_id=None, include_not_seen_since=None):
         super(ApplicationRegistrationQueryApiModel, self).__init__()
         self.application_type = application_type
         self.application_uri = application_uri
@@ -64,5 +63,5 @@ class ApplicationRegistrationQueryApiModel(Model):
         self.capability = capability
         self.discovery_profile_uri = discovery_profile_uri
         self.gateway_server_uri = gateway_server_uri
-        self.site_or_supervisor_id = site_or_supervisor_id
+        self.site_or_gateway_id = site_or_gateway_id
         self.include_not_seen_since = include_not_seen_since

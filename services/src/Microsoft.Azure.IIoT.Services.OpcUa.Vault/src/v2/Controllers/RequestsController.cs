@@ -22,7 +22,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
     /// Certificate request services.
     /// </summary>
     [ExceptionsFilter]
-    [Route(VersionInfo.PATH + "/requests")]
+    [ApiVersion("2")]
+    [Route("v{version:apiVersion}/requests")]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]

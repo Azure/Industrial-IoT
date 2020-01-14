@@ -30,7 +30,7 @@ public class BrowseNextResponseApiModel {
     private String continuationToken;
 
     /**
-     * Service result in case of error.
+     * The errorInfo property.
      */
     @JsonProperty(value = "errorInfo")
     private ServiceResultApiModel errorInfo;
@@ -76,7 +76,7 @@ public class BrowseNextResponseApiModel {
     }
 
     /**
-     * Get service result in case of error.
+     * Get the errorInfo value.
      *
      * @return the errorInfo value
      */
@@ -85,7 +85,7 @@ public class BrowseNextResponseApiModel {
     }
 
     /**
-     * Set service result in case of error.
+     * Set the errorInfo value.
      *
      * @param errorInfo the errorInfo value to set
      * @return the BrowseNextResponseApiModel object itself.

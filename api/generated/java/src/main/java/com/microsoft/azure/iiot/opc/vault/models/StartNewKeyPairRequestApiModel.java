@@ -30,7 +30,7 @@ public class StartNewKeyPairRequestApiModel {
     private String groupId;
 
     /**
-     * Type. Possible values include: 'ApplicationInstanceCertificate',
+     * Possible values include: 'ApplicationInstanceCertificate',
      * 'HttpsCertificate', 'UserCredentialCertificate'.
      */
     @JsonProperty(value = "certificateType", required = true)
@@ -89,7 +89,7 @@ public class StartNewKeyPairRequestApiModel {
     }
 
     /**
-     * Get type. Possible values include: 'ApplicationInstanceCertificate', 'HttpsCertificate', 'UserCredentialCertificate'.
+     * Get possible values include: 'ApplicationInstanceCertificate', 'HttpsCertificate', 'UserCredentialCertificate'.
      *
      * @return the certificateType value
      */
@@ -98,7 +98,7 @@ public class StartNewKeyPairRequestApiModel {
     }
 
     /**
-     * Set type. Possible values include: 'ApplicationInstanceCertificate', 'HttpsCertificate', 'UserCredentialCertificate'.
+     * Set possible values include: 'ApplicationInstanceCertificate', 'HttpsCertificate', 'UserCredentialCertificate'.
      *
      * @param certificateType the certificateType value to set
      * @return the StartNewKeyPairRequestApiModel object itself.

@@ -25,8 +25,8 @@ module azure.iiot.opc.registry
       # @return [String] Application uri
       attr_accessor :application_uri
 
-      # @return [ApplicationType] Application type. Possible values include:
-      # 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+      # @return [ApplicationType] Possible values include: 'Server', 'Client',
+      # 'ClientAndServer', 'DiscoveryServer'
       attr_accessor :application_type
 
       # @return [String] Product uri

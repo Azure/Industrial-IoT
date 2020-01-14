@@ -19,10 +19,8 @@ class TrustGroupApiModel(Model):
     :type name: str
     :param parent_id: The identifer of the parent trust group.
     :type parent_id: str
-    :param type: The trust group type. Possible values include:
-     'ApplicationInstanceCertificate', 'HttpsCertificate',
-     'UserCredentialCertificate'. Default value:
-     "ApplicationInstanceCertificate" .
+    :param type: Possible values include: 'ApplicationInstanceCertificate',
+     'HttpsCertificate', 'UserCredentialCertificate'
     :type type: str or ~azure-iiot-opc-vault.models.TrustGroupType
     :param subject_name: The subject name of the group as distinguished name.
     :type subject_name: str
@@ -30,18 +28,16 @@ class TrustGroupApiModel(Model):
     :type lifetime: str
     :param key_size: The trust group certificate key size in bits.
     :type key_size: int
-    :param signature_algorithm: The certificate signature algorithm. Possible
-     values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss',
-     'Rsa512Pss'
+    :param signature_algorithm: Possible values include: 'Rsa256', 'Rsa384',
+     'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
     :type signature_algorithm: str or
      ~azure-iiot-opc-vault.models.SignatureAlgorithm
     :param issued_lifetime: The issued certificate lifetime in months.
     :type issued_lifetime: str
     :param issued_key_size: The issued certificate key size in bits.
     :type issued_key_size: int
-    :param issued_signature_algorithm: The Signature algorithm for issued
-     certificates. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-     'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+    :param issued_signature_algorithm: Possible values include: 'Rsa256',
+     'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
     :type issued_signature_algorithm: str or
      ~azure-iiot-opc-vault.models.SignatureAlgorithm
     """
@@ -64,7 +60,7 @@ class TrustGroupApiModel(Model):
         'issued_signature_algorithm': {'key': 'issuedSignatureAlgorithm', 'type': 'SignatureAlgorithm'},
     }
 
-    def __init__(self, name, subject_name, parent_id=None, type="ApplicationInstanceCertificate", lifetime=None, key_size=None, signature_algorithm=None, issued_lifetime=None, issued_key_size=None, issued_signature_algorithm=None):
+    def __init__(self, name, subject_name, parent_id=None, type=None, lifetime=None, key_size=None, signature_algorithm=None, issued_lifetime=None, issued_key_size=None, issued_signature_algorithm=None):
         super(TrustGroupApiModel, self).__init__()
         self.name = name
         self.parent_id = parent_id

@@ -27,16 +27,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.OpenApi.Models;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using Newtonsoft.Json;
-    using Swashbuckle.AspNetCore.Swagger;
     using System;
     using ILogger = Serilog.ILogger;
-    using Microsoft.OpenApi.Models;
-    using Microsoft.Extensions.Hosting;
 
     /// <summary>
     /// Webservice startup
@@ -120,12 +119,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
                         Environment.IsDevelopment()));
                     options.SerializerSettings.MaxDepth = 10;
                 });
-
-            services.AddSwagger(Config, new OpenApiInfo {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
+            services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 
         /// <summary>
@@ -151,11 +145,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
             }
 
             app.UseCorrelation();
-            app.UseSwagger(new OpenApiInfo {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
+            app.UseSwagger();
 
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();

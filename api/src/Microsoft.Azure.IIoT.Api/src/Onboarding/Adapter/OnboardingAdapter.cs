@@ -25,9 +25,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding {
         }
 
         /// <inheritdoc/>
-        public async Task ProcessDiscoveryResultsAsync(string supervisorId,
+        public async Task ProcessDiscoveryResultsAsync(string discovererId,
             DiscoveryResultModel result, IEnumerable<DiscoveryEventModel> events) {
-            await _client.ProcessDiscoveryResultsAsync(supervisorId,
+            await _client.ProcessDiscoveryResultsAsync(discovererId,
                 new DiscoveryResultListApiModel {
                     Result = result.Map<DiscoveryResultApiModel>(),
                     Events = events.Map<List<DiscoveryEventApiModel>>()

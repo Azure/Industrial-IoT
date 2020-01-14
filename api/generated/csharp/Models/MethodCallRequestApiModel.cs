@@ -45,7 +45,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// node identified by
         /// ObjectId to the actual object or objectType node.
         /// If ObjectId is null, the root node (i=84) is used.</param>
-        /// <param name="header">Optional request header</param>
         public MethodCallRequestApiModel(string methodId = default(string), string objectId = default(string), IList<MethodCallArgumentApiModel> arguments = default(IList<MethodCallArgumentApiModel>), IList<string> methodBrowsePath = default(IList<string>), IList<string> objectBrowsePath = default(IList<string>), RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             MethodId = methodId;
@@ -98,7 +97,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public IList<string> ObjectBrowsePath { get; set; }
 
         /// <summary>
-        /// Gets or sets optional request header
         /// </summary>
         [JsonProperty(PropertyName = "header")]
         public RequestHeaderApiModel Header { get; set; }

@@ -68,7 +68,7 @@ public class StatusResponseApiModel {
     private Map<String, String> dependencies;
 
     /**
-     * Optional meta data.
+     * The metadata property.
      */
     @JsonProperty(value = "$metadata", access = JsonProperty.Access.WRITE_ONLY)
     private Map<String, String> metadata;
@@ -170,7 +170,7 @@ public class StatusResponseApiModel {
     }
 
     /**
-     * Get optional meta data.
+     * Get the metadata value.
      *
      * @return the metadata value
      */

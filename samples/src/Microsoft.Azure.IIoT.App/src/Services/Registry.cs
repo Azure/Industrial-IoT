@@ -24,10 +24,10 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <summary>
         /// GetEndpointListAsync
         /// </summary>
-        /// <param name="supervisorId"></param>
+        /// <param name="discovererId"></param>
         /// <returns>EndpointInfoApiModel</returns>
         public async Task<PagedResult<EndpointInfoApiModel>> GetEndpointListAsync(
-            string supervisorId) {
+            string discovererId) {
 
             // TODO Use query
             var pageResult = new PagedResult<EndpointInfoApiModel>();
@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var allApplications = await _registryService.ListAllApplicationsAsync();
                 if (allApplications != null) {
                     foreach (var application in allApplications) {
-                        if (application.SupervisorId == supervisorId) {
+                        if (application.DiscovererId == discovererId) {
                             foreach (var endpoint in endpoints) {
                                 if (endpoint.ApplicationId == application.ApplicationId) {
                                     pageResult.Results.Add(endpoint);
@@ -61,38 +61,38 @@ namespace Microsoft.Azure.IIoT.App.Services {
         }
 
         /// <summary>
-        /// GetSupervisorListAsync
+        /// GetDiscovererListAsync
         /// </summary>
-        /// <returns>SupervisorInfo</returns>
-        public async Task<PagedResult<SupervisorInfo>> GetSupervisorListAsync() {
-            var pageResult = new PagedResult<SupervisorInfo>();
+        /// <returns>DiscovererInfo</returns>
+        public async Task<PagedResult<DiscovererInfo>> GetDiscovererListAsync() {
+            var pageResult = new PagedResult<DiscovererInfo>();
 
             try {
-                var supervisors = await _registryService.ListAllSupervisorsAsync();
+                var discoverers = await _registryService.ListAllDiscoverersAsync();
                 var applications = await _registryService.ListAllApplicationsAsync();
 
-                if (supervisors != null) {
-                    foreach (var supervisor in supervisors) {
-                        var supervisorInfo = new SupervisorInfo {
-                            SupervisorModel = supervisor,
+                if (discoverers != null) {
+                    foreach (var discoverer in discoverers) {
+                        var info = new DiscovererInfo {
+                            DiscovererModel = discoverer,
                             HasApplication = false,
-                            ScanStatus = (supervisor.Discovery == DiscoveryMode.Off) || (supervisor.Discovery == null) ? false : true
+                            ScanStatus = (discoverer.Discovery == DiscoveryMode.Off) || (discoverer.Discovery == null) ? false : true
                         };
                         foreach (var application in applications) {
-                            if (application.SupervisorId == supervisor.Id) {
-                                supervisorInfo.HasApplication = true;
+                            if (application.DiscovererId == discoverer.Id) {
+                                info.HasApplication = true;
                             }
                         }
-                        pageResult.Results.Add(supervisorInfo);
+                        pageResult.Results.Add(info);
                     }
                 }
             }
             catch (Exception e) {
-                Trace.TraceWarning("Can not get supervisors list");
+                Trace.TraceWarning("Can not get discoverers as list");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceWarning(errorMessage);
-                pageResult.Results.Add(new SupervisorInfo {
-                    SupervisorModel = new SupervisorApiModel { Id = e.Message }
+                pageResult.Results.Add(new DiscovererInfo {
+                    DiscovererModel = new DiscovererApiModel { Id = e.Message }
                 });
             }
 
@@ -136,27 +136,27 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <summary>
         /// SetScanAsync
         /// </summary>
-        /// <param name="supervisor"></param>
+        /// <param name="discoverer"></param>
         /// <param name="ipMask"></param>
         /// <param name="portRange"></param>
         /// <param name="forceScan"></param>
         /// <returns></returns>
-        public async Task SetScanAsync(SupervisorInfo supervisor, string ipMask, string portRange, bool forceScan) {
+        public async Task SetScanAsync(DiscovererInfo discoverer, string ipMask, string portRange, bool forceScan) {
             var model = new DiscoveryConfigApiModel();
 
-            DiscoveryMode discoveryMode; 
+            DiscoveryMode discoveryMode;
 
             if (forceScan == true) {
                 model.AddressRangesToScan = string.Empty;
                 model.PortRangesToScan = string.Empty;
             }
             else {
-                if (supervisor.SupervisorModel.DiscoveryConfig != null) {
-                    model = supervisor.SupervisorModel.DiscoveryConfig;
+                if (discoverer.DiscovererModel.DiscoveryConfig != null) {
+                    model = discoverer.DiscovererModel.DiscoveryConfig;
                 }
             }
 
-            if (supervisor.ScanStatus == true && forceScan == true) {
+            if (discoverer.ScanStatus == true && forceScan == true) {
                 discoveryMode = DiscoveryMode.Fast;
 
                 if (ipMask != null) {
@@ -173,12 +173,12 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
             try {
                 if (discoveryMode == DiscoveryMode.Off) {
-                    await _registryService.SetDiscoveryModeAsync(supervisor.SupervisorModel.Id, discoveryMode, new DiscoveryConfigApiModel());
+                    await _registryService.SetDiscoveryModeAsync(discoverer.DiscovererModel.Id, discoveryMode, new DiscoveryConfigApiModel());
                 }
                 else {
-                    await _registryService.SetDiscoveryModeAsync(supervisor.SupervisorModel.Id, discoveryMode, model);
+                    await _registryService.SetDiscoveryModeAsync(discoverer.DiscovererModel.Id, discoveryMode, model);
                 }
-                
+
             }
             catch (Exception exception) {
                 var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");

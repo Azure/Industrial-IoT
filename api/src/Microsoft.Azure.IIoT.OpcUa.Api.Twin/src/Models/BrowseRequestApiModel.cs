@@ -5,29 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
-    /// <summary>
-    /// Direction to browse
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum BrowseDirection {
-
-        /// <summary>
-        /// Forward
-        /// </summary>
-        Forward,
-
-        /// <summary>
-        /// Backward
-        /// </summary>
-        Backward,
-
-        /// <summary>
-        /// Both directions
-        /// </summary>
-        Both
-    }
 
     /// <summary>
     /// Browse request model

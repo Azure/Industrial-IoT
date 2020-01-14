@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Newtonsoft.Json.Linq;
@@ -50,42 +49,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     DateTime.UtcNow : (DateTime?)null);
             }
 
-            if (update?.SiteOrSupervisorId != existing?.SiteOrSupervisorId) {
-                twin.Tags.Add(nameof(SupervisorRegistration.SiteOrSupervisorId),
-                    update?.SiteOrSupervisorId);
-            }
-
-            var policiesUpdate = update?.SecurityPoliciesFilter.DecodeAsList().SequenceEqualsSafe(
-                existing?.SecurityPoliciesFilter?.DecodeAsList());
-            if (!(policiesUpdate ?? true)) {
-                twin.Tags.Add(nameof(SupervisorRegistration.SecurityPoliciesFilter),
-                    update?.SecurityPoliciesFilter == null ?
-                    null : JToken.FromObject(update.SecurityPoliciesFilter));
-            }
-
-            var trustListUpdate = update?.TrustListsFilter.DecodeAsList().SequenceEqualsSafe(
-                existing?.TrustListsFilter?.DecodeAsList());
-            if (!(trustListUpdate ?? true)) {
-                twin.Tags.Add(nameof(SupervisorRegistration.TrustListsFilter),
-                    update?.TrustListsFilter == null ?
-                    null : JToken.FromObject(update.TrustListsFilter));
-            }
-
-            if (update?.SecurityModeFilter != existing?.SecurityModeFilter) {
-                twin.Tags.Add(nameof(SupervisorRegistration.SecurityModeFilter),
-                    update?.SecurityModeFilter == null ?
-                    null : JToken.FromObject(update?.SecurityModeFilter));
+            if (update?.SiteOrGatewayId != existing?.SiteOrGatewayId) {
+                twin.Tags.Add(nameof(SupervisorRegistration.SiteOrGatewayId),
+                    update?.SiteOrGatewayId);
             }
 
             // Settings
-
-            var urlUpdate = update?.DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
-                existing?.DiscoveryUrls?.DecodeAsList());
-            if (!(urlUpdate ?? true)) {
-                twin.Properties.Desired.Add(nameof(SupervisorRegistration.DiscoveryUrls),
-                    update?.DiscoveryUrls == null ?
-                    null : JToken.FromObject(update.DiscoveryUrls));
-            }
 
             var certUpdate = update?.Certificate?.DecodeAsByteArray()?.SequenceEqualsSafe(
                 existing?.Certificate.DecodeAsByteArray());
@@ -97,63 +66,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     update?.Certificate?.DecodeAsByteArray()?.ToSha1Hash());
             }
 
-            var localesUpdate = update?.Locales?.DecodeAsList()?.SequenceEqualsSafe(
-                existing?.Locales?.DecodeAsList());
-            if (!(localesUpdate ?? true)) {
-                twin.Properties.Desired.Add(nameof(SupervisorRegistration.Locales),
-                    update?.Locales == null ?
-                    null : JToken.FromObject(update.Locales));
-            }
-
-            if (update?.Discovery != existing?.Discovery) {
-                twin.Properties.Desired.Add(nameof(SupervisorRegistration.Discovery),
-                    JToken.FromObject(update?.Discovery));
-            }
-
-            if (update?.AddressRangesToScan != existing?.AddressRangesToScan) {
-                twin.Properties.Desired.Add(nameof(SupervisorRegistration.AddressRangesToScan),
-                    update?.AddressRangesToScan);
-            }
-
-            if (update?.NetworkProbeTimeout != existing?.NetworkProbeTimeout) {
-                twin.Properties.Desired.Add(nameof(SupervisorRegistration.NetworkProbeTimeout),
-                    update?.NetworkProbeTimeout);
-            }
-
             if (update?.LogLevel != existing?.LogLevel) {
                 twin.Properties.Desired.Add(nameof(SupervisorRegistration.LogLevel),
                     update?.LogLevel == null ?
                     null : JToken.FromObject(update.LogLevel));
-            }
-
-            if (update?.MaxNetworkProbes != existing?.MaxNetworkProbes) {
-                twin.Properties.Desired.Add(nameof(SupervisorRegistration.MaxNetworkProbes),
-                    update?.MaxNetworkProbes);
-            }
-
-            if (update?.PortRangesToScan != existing?.PortRangesToScan) {
-                twin.Properties.Desired.Add(nameof(SupervisorRegistration.PortRangesToScan),
-                    update?.PortRangesToScan);
-            }
-
-            if (update?.PortProbeTimeout != existing?.PortProbeTimeout) {
-                twin.Properties.Desired.Add(nameof(SupervisorRegistration.PortProbeTimeout),
-                    update?.PortProbeTimeout);
-            }
-
-            if (update?.MaxPortProbes != existing?.MaxPortProbes) {
-                twin.Properties.Desired.Add(nameof(SupervisorRegistration.MaxPortProbes),
-                    update?.MaxPortProbes);
-            }
-
-            if (update?.IdleTimeBetweenScans != existing?.IdleTimeBetweenScans) {
-                twin.Properties.Desired.Add(nameof(SupervisorRegistration.IdleTimeBetweenScans),
-                    update?.IdleTimeBetweenScans);
-            }
-
-            if (update?.MinPortProbesPercent != existing?.MinPortProbesPercent) {
-                twin.Properties.Desired.Add(nameof(SupervisorRegistration.MinPortProbesPercent),
-                    update?.MinPortProbesPercent);
             }
 
             if (update?.SiteId != existing?.SiteId) {
@@ -196,12 +112,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     tags.GetValueOrDefault<DateTime>(nameof(SupervisorRegistration.NotSeenSince), null),
                 Thumbprint =
                     tags.GetValueOrDefault<string>(nameof(SupervisorRegistration.Thumbprint), null),
-                SecurityModeFilter =
-                    tags.GetValueOrDefault<SecurityMode>(nameof(SupervisorRegistration.SecurityModeFilter), null),
-                SecurityPoliciesFilter =
-                    tags.GetValueOrDefault<Dictionary<string, string>>(nameof(SupervisorRegistration.SecurityPoliciesFilter), null),
-                TrustListsFilter =
-                    tags.GetValueOrDefault<Dictionary<string, string>>(nameof(SupervisorRegistration.TrustListsFilter), null),
 
                 // Properties
 
@@ -209,28 +119,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     properties.GetValueOrDefault<Dictionary<string, string>>(nameof(SupervisorRegistration.Certificate), null),
                 LogLevel =
                     properties.GetValueOrDefault<TraceLogLevel>(nameof(SupervisorRegistration.LogLevel), null),
-                Discovery =
-                    properties.GetValueOrDefault(nameof(SupervisorRegistration.Discovery), DiscoveryMode.Off),
-                AddressRangesToScan =
-                    properties.GetValueOrDefault<string>(nameof(SupervisorRegistration.AddressRangesToScan), null),
-                NetworkProbeTimeout =
-                    properties.GetValueOrDefault<TimeSpan>(nameof(SupervisorRegistration.NetworkProbeTimeout), null),
-                MaxNetworkProbes =
-                    properties.GetValueOrDefault<int>(nameof(SupervisorRegistration.MaxNetworkProbes), null),
-                PortRangesToScan =
-                    properties.GetValueOrDefault<string>(nameof(SupervisorRegistration.PortRangesToScan), null),
-                PortProbeTimeout =
-                    properties.GetValueOrDefault<TimeSpan>(nameof(SupervisorRegistration.PortProbeTimeout), null),
-                MaxPortProbes =
-                    properties.GetValueOrDefault<int>(nameof(SupervisorRegistration.MaxPortProbes), null),
-                MinPortProbesPercent =
-                    properties.GetValueOrDefault<int>(nameof(SupervisorRegistration.MinPortProbesPercent), null),
-                IdleTimeBetweenScans =
-                    properties.GetValueOrDefault<TimeSpan>(nameof(SupervisorRegistration.IdleTimeBetweenScans), null),
-                DiscoveryUrls =
-                    properties.GetValueOrDefault<Dictionary<string, string>>(nameof(SupervisorRegistration.DiscoveryUrls), null),
-                Locales =
-                    properties.GetValueOrDefault<Dictionary<string, string>>(nameof(SupervisorRegistration.Locales), null),
 
                 SiteId =
                     properties.GetValueOrDefault<string>(TwinProperty.SiteId, null),
@@ -318,30 +206,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 out var moduleId);
             return new SupervisorRegistration {
                 IsDisabled = disabled,
-                SupervisorId = model.Id,
                 DeviceId = deviceId,
                 ModuleId = moduleId,
                 LogLevel = model.LogLevel,
-                Discovery = model.Discovery ?? DiscoveryMode.Off,
-                AddressRangesToScan = model.DiscoveryConfig?.AddressRangesToScan,
-                NetworkProbeTimeout = model.DiscoveryConfig?.NetworkProbeTimeout,
-                MaxNetworkProbes = model.DiscoveryConfig?.MaxNetworkProbes,
-                PortRangesToScan = model.DiscoveryConfig?.PortRangesToScan,
-                PortProbeTimeout = model.DiscoveryConfig?.PortProbeTimeout,
-                MaxPortProbes = model.DiscoveryConfig?.MaxPortProbes,
-                IdleTimeBetweenScans = model.DiscoveryConfig?.IdleTimeBetweenScans,
-                MinPortProbesPercent = model.DiscoveryConfig?.MinPortProbesPercent,
                 Certificate = model.Certificate?.EncodeAsDictionary(),
-                SecurityModeFilter = model.DiscoveryConfig?.ActivationFilter?.
-                    SecurityMode,
-                TrustListsFilter = model.DiscoveryConfig?.ActivationFilter?.
-                    TrustLists.EncodeAsDictionary(),
-                SecurityPoliciesFilter = model.DiscoveryConfig?.ActivationFilter?.
-                    SecurityPolicies.EncodeAsDictionary(),
-                DiscoveryUrls = model.DiscoveryConfig?.DiscoveryUrls?.
-                    EncodeAsDictionary(),
-                Locales = model.DiscoveryConfig?.Locales?.
-                    EncodeAsDictionary(),
                 Connected = model.Connected ?? false,
                 Thumbprint = model.Certificate?.ToSha1Hash(),
                 SiteId = model.SiteId,
@@ -355,88 +223,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <returns></returns>
         public static SupervisorModel ToServiceModel(this SupervisorRegistration registration) {
             return new SupervisorModel {
-                Discovery = registration.Discovery != DiscoveryMode.Off ?
-                    registration.Discovery : (DiscoveryMode?)null,
-                Id = registration.SupervisorId,
+                Id = SupervisorModelEx.CreateSupervisorId(registration.DeviceId, registration.ModuleId),
                 SiteId = registration.SiteId,
                 Certificate = registration.Certificate?.DecodeAsByteArray(),
                 LogLevel = registration.LogLevel,
-                DiscoveryConfig = registration.ToConfigModel(),
                 Connected = registration.IsConnected() ? true : (bool?)null,
                 OutOfSync = registration.IsConnected() && !registration._isInSync ? true : (bool?)null
             };
         }
-
-
-        /// <summary>
-        /// Returns if no discovery config specified
-        /// </summary>
-        /// <param name="registration"></param>
-        /// <returns></returns>
-        private static bool IsNullConfig(this SupervisorRegistration registration) {
-            if (string.IsNullOrEmpty(registration.AddressRangesToScan) &&
-                string.IsNullOrEmpty(registration.PortRangesToScan) &&
-                registration.MaxNetworkProbes == null &&
-                registration.NetworkProbeTimeout == null &&
-                registration.MaxPortProbes == null &&
-                registration.MinPortProbesPercent == null &&
-                registration.PortProbeTimeout == null &&
-                (registration.DiscoveryUrls == null || registration.DiscoveryUrls.Count == 0) &&
-                (registration.Locales == null || registration.Locales.Count == 0) &&
-                registration.IdleTimeBetweenScans == null) {
-                return true;
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Returns config model
-        /// </summary>
-        /// <param name="registration"></param>
-        /// <returns></returns>
-        private static DiscoveryConfigModel ToConfigModel(this SupervisorRegistration registration) {
-            return registration.IsNullConfig() ? null : new DiscoveryConfigModel {
-                AddressRangesToScan = registration.AddressRangesToScan,
-                PortRangesToScan = registration.PortRangesToScan,
-                MaxNetworkProbes = registration.MaxNetworkProbes,
-                NetworkProbeTimeout = registration.NetworkProbeTimeout,
-                MaxPortProbes = registration.MaxPortProbes,
-                MinPortProbesPercent = registration.MinPortProbesPercent,
-                PortProbeTimeout = registration.PortProbeTimeout,
-                IdleTimeBetweenScans = registration.IdleTimeBetweenScans,
-                DiscoveryUrls = registration.DiscoveryUrls?.DecodeAsList(),
-                Locales = registration.Locales?.DecodeAsList(),
-                ActivationFilter = registration.ToFilterModel()
-            };
-        }
-
-        /// <summary>
-        /// Returns if no activation filter specified
-        /// </summary>
-        /// <param name="registration"></param>
-        /// <returns></returns>
-        private static bool IsNullFilter(this SupervisorRegistration registration) {
-            if (registration.SecurityModeFilter == null &&
-                (registration.TrustListsFilter == null || registration.TrustListsFilter.Count == 0) &&
-                (registration.SecurityPoliciesFilter == null || registration.SecurityPoliciesFilter.Count == 0)) {
-                return true;
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Returns activation filter model
-        /// </summary>
-        /// <param name="registration"></param>
-        /// <returns></returns>
-        private static EndpointActivationFilterModel ToFilterModel(this SupervisorRegistration registration) {
-            return registration.IsNullFilter() ? null : new EndpointActivationFilterModel {
-                SecurityMode = registration.SecurityModeFilter,
-                SecurityPolicies = registration.SecurityPoliciesFilter.DecodeAsList(),
-                TrustLists = registration.TrustListsFilter.DecodeAsList()
-            };
-        }
-
 
         /// <summary>
         /// Flag twin as synchronized - i.e. it matches the other.
@@ -448,20 +242,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             return
                 other != null &&
                 registration.SiteId == other.SiteId &&
-                registration.LogLevel == other.LogLevel &&
-                registration.Discovery == other.Discovery &&
-                registration.AddressRangesToScan == other.AddressRangesToScan &&
-                registration.PortRangesToScan == other.PortRangesToScan &&
-                registration.MaxNetworkProbes == other.MaxNetworkProbes &&
-                registration.NetworkProbeTimeout == other.NetworkProbeTimeout &&
-                registration.MaxPortProbes == other.MaxPortProbes &&
-                registration.MinPortProbesPercent == other.MinPortProbesPercent &&
-                registration.PortProbeTimeout == other.PortProbeTimeout &&
-                registration.IdleTimeBetweenScans == other.IdleTimeBetweenScans &&
-                registration.DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
-                    other.DiscoveryUrls.DecodeAsList()) &&
-                registration.Locales.DecodeAsList().SequenceEqualsSafe(
-                    other.Locales.DecodeAsList());
+                registration.LogLevel == other.LogLevel;
         }
     }
 }

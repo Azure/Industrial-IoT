@@ -31,9 +31,6 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// Initializes a new instance of the
         /// FinishNewKeyPairRequestResponseApiModel class.
         /// </summary>
-        /// <param name="request">Request</param>
-        /// <param name="certificate">Signed certificate</param>
-        /// <param name="privateKey">Private key</param>
         public FinishNewKeyPairRequestResponseApiModel(CertificateRequestRecordApiModel request = default(CertificateRequestRecordApiModel), X509CertificateApiModel certificate = default(X509CertificateApiModel), PrivateKeyApiModel privateKey = default(PrivateKeyApiModel))
         {
             Request = request;
@@ -48,19 +45,16 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets request
         /// </summary>
         [JsonProperty(PropertyName = "request")]
         public CertificateRequestRecordApiModel Request { get; set; }
 
         /// <summary>
-        /// Gets or sets signed certificate
         /// </summary>
         [JsonProperty(PropertyName = "certificate")]
         public X509CertificateApiModel Certificate { get; set; }
 
         /// <summary>
-        /// Gets or sets private key
         /// </summary>
         [JsonProperty(PropertyName = "privateKey")]
         public PrivateKeyApiModel PrivateKey { get; set; }

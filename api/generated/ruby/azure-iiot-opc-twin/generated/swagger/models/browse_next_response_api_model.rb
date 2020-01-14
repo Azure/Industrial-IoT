@@ -20,7 +20,7 @@ module azure.iiot.opc.twin
       # @return [String] Continuation token if more results pending.
       attr_accessor :continuation_token
 
-      # @return [ServiceResultApiModel] Service result in case of error
+      # @return [ServiceResultApiModel]
       attr_accessor :error_info
 
 

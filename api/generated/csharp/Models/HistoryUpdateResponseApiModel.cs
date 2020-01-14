@@ -35,8 +35,6 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// </summary>
         /// <param name="results">List of results from the update
         /// operation</param>
-        /// <param name="errorInfo">Service result in case of service call
-        /// error</param>
         public HistoryUpdateResponseApiModel(IList<ServiceResultApiModel> results = default(IList<ServiceResultApiModel>), ServiceResultApiModel errorInfo = default(ServiceResultApiModel))
         {
             Results = results;
@@ -56,7 +54,6 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         public IList<ServiceResultApiModel> Results { get; set; }
 
         /// <summary>
-        /// Gets or sets service result in case of service call error
         /// </summary>
         [JsonProperty(PropertyName = "errorInfo")]
         public ServiceResultApiModel ErrorInfo { get; set; }

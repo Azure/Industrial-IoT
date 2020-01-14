@@ -16,16 +16,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Supervisor discovery mode
-        /// </summary>
-        public DiscoveryMode? Discovery { get; set; }
-
-        /// <summary>
-        /// Supervisor discovery config
-        /// </summary>
-        public DiscoveryConfigModel DiscoveryConfig { get; set; }
-
-        /// <summary>
         /// Current log level
         /// </summary>
         public TraceLogLevel? LogLevel { get; set; }

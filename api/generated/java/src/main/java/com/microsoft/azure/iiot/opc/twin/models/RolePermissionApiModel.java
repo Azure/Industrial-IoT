@@ -23,11 +23,11 @@ public class RolePermissionApiModel {
     private String roleId;
 
     /**
-     * Permissions assigned for the role. Possible values include: 'Browse',
-     * 'ReadRolePermissions', 'WriteAttribute', 'WriteRolePermissions',
-     * 'WriteHistorizing', 'Read', 'Write', 'ReadHistory', 'InsertHistory',
-     * 'ModifyHistory', 'DeleteHistory', 'ReceiveEvents', 'Call',
-     * 'AddReference', 'RemoveReference', 'DeleteNode', 'AddNode'.
+     * Possible values include: 'Browse', 'ReadRolePermissions',
+     * 'WriteAttribute', 'WriteRolePermissions', 'WriteHistorizing', 'Read',
+     * 'Write', 'ReadHistory', 'InsertHistory', 'ModifyHistory',
+     * 'DeleteHistory', 'ReceiveEvents', 'Call', 'AddReference',
+     * 'RemoveReference', 'DeleteNode', 'AddNode'.
      */
     @JsonProperty(value = "permissions")
     private RolePermissions permissions;
@@ -53,7 +53,7 @@ public class RolePermissionApiModel {
     }
 
     /**
-     * Get permissions assigned for the role. Possible values include: 'Browse', 'ReadRolePermissions', 'WriteAttribute', 'WriteRolePermissions', 'WriteHistorizing', 'Read', 'Write', 'ReadHistory', 'InsertHistory', 'ModifyHistory', 'DeleteHistory', 'ReceiveEvents', 'Call', 'AddReference', 'RemoveReference', 'DeleteNode', 'AddNode'.
+     * Get possible values include: 'Browse', 'ReadRolePermissions', 'WriteAttribute', 'WriteRolePermissions', 'WriteHistorizing', 'Read', 'Write', 'ReadHistory', 'InsertHistory', 'ModifyHistory', 'DeleteHistory', 'ReceiveEvents', 'Call', 'AddReference', 'RemoveReference', 'DeleteNode', 'AddNode'.
      *
      * @return the permissions value
      */
@@ -62,7 +62,7 @@ public class RolePermissionApiModel {
     }
 
     /**
-     * Set permissions assigned for the role. Possible values include: 'Browse', 'ReadRolePermissions', 'WriteAttribute', 'WriteRolePermissions', 'WriteHistorizing', 'Read', 'Write', 'ReadHistory', 'InsertHistory', 'ModifyHistory', 'DeleteHistory', 'ReceiveEvents', 'Call', 'AddReference', 'RemoveReference', 'DeleteNode', 'AddNode'.
+     * Set possible values include: 'Browse', 'ReadRolePermissions', 'WriteAttribute', 'WriteRolePermissions', 'WriteHistorizing', 'Read', 'Write', 'ReadHistory', 'InsertHistory', 'ModifyHistory', 'DeleteHistory', 'ReceiveEvents', 'Call', 'AddReference', 'RemoveReference', 'DeleteNode', 'AddNode'.
      *
      * @param permissions the permissions value to set
      * @return the RolePermissionApiModel object itself.

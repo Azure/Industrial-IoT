@@ -51,16 +51,109 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task SubscribeDiscoveryProgressBySupervisorsIdAsync(string supervisorId,
+        public async Task UpdateDiscovererAsync(string discovererId,
+            DiscovererUpdateApiModel content, CancellationToken ct) {
+            if (content == null) {
+                throw new ArgumentNullException(nameof(content));
+            }
+            if (string.IsNullOrEmpty(discovererId)) {
+                throw new ArgumentNullException(nameof(discovererId));
+            }
+            var request = _httpClient.NewRequest($"{_serviceUri}/v2/discovery/{discovererId}",
+                _resourceId);
+            request.SetContent(content);
+            var response = await _httpClient.PatchAsync(request, ct).ConfigureAwait(false);
+            response.Validate();
+        }
+
+        /// <inheritdoc/>
+        public async Task<DiscovererListApiModel> ListDiscoverersAsync(
+            string continuation, bool? onlyServerState, int? pageSize, CancellationToken ct) {
+            var uri = new UriBuilder($"{_serviceUri}/v2/discovery");
+            if (onlyServerState ?? false) {
+                uri.Query = "onlyServerState=true";
+            }
+            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            if (continuation != null) {
+                request.AddHeader(HttpHeader.ContinuationToken, continuation);
+            }
+            if (pageSize != null) {
+                request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+            }
+            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
+            response.Validate();
+            return response.GetContent<DiscovererListApiModel>();
+        }
+
+        /// <inheritdoc/>
+        public async Task<DiscovererListApiModel> QueryDiscoverersAsync(
+            DiscovererQueryApiModel query, bool? onlyServerState, int? pageSize,
+            CancellationToken ct) {
+            var uri = new UriBuilder($"{_serviceUri}/v2/discovery/query");
+            if (onlyServerState ?? false) {
+                uri.Query = "onlyServerState=true";
+            }
+            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            if (pageSize != null) {
+                request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
+            }
+            request.SetContent(query);
+            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
+            response.Validate();
+            return response.GetContent<DiscovererListApiModel>();
+        }
+
+        /// <inheritdoc/>
+        public async Task<DiscovererApiModel> GetDiscovererAsync(
+            string discovererId, bool? onlyServerState, CancellationToken ct) {
+            if (string.IsNullOrEmpty(discovererId)) {
+                throw new ArgumentNullException(nameof(discovererId));
+            }
+            var uri = new UriBuilder($"{_serviceUri}/v2/discovery/{discovererId}");
+            if (onlyServerState ?? false) {
+                uri.Query = "onlyServerState=true";
+            }
+            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
+            response.Validate();
+            return response.GetContent<DiscovererApiModel>();
+        }
+
+        /// <inheritdoc/>
+        public async Task SubscribeDiscovererEventsAsync(string userId, CancellationToken ct) {
+            if (string.IsNullOrEmpty(userId)) {
+                throw new ArgumentNullException(nameof(userId));
+            }
+            var request = _httpClient.NewRequest(
+                $"{_serviceUri}/v2/discovery/events", _resourceId);
+            request.SetContent<string>(userId);
+            var response = await _httpClient.PutAsync(request, ct).ConfigureAwait(false);
+            response.Validate();
+        }
+
+        /// <inheritdoc/>
+        public async Task UnsubscribeDiscovererEventsAsync(string userId,
+            CancellationToken ct) {
+            if (string.IsNullOrEmpty(userId)) {
+                throw new ArgumentNullException(nameof(userId));
+            }
+            var request = _httpClient.NewRequest(
+                $"{_serviceUri}/v2/discovery/events/{userId}", _resourceId);
+            var response = await _httpClient.DeleteAsync(request, ct).ConfigureAwait(false);
+            response.Validate();
+        }
+
+        /// <inheritdoc/>
+        public async Task SubscribeDiscoveryProgressByDiscovererIdAsync(string discovererId,
             string userId, CancellationToken ct) {
-            if (string.IsNullOrEmpty(supervisorId)) {
-                throw new ArgumentNullException(nameof(supervisorId));
+            if (string.IsNullOrEmpty(discovererId)) {
+                throw new ArgumentNullException(nameof(discovererId));
             }
             if (string.IsNullOrEmpty(userId)) {
                 throw new ArgumentNullException(nameof(userId));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/discovery/{supervisorId}/events", _resourceId);
+                $"{_serviceUri}/v2/discovery/{discovererId}/events", _resourceId);
             request.SetContent<string>(userId);
             var response = await _httpClient.PutAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -83,12 +176,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task SetDiscoveryModeAsync(string supervisorId,
+        public async Task SetDiscoveryModeAsync(string discovererId,
             DiscoveryMode mode, DiscoveryConfigApiModel config, CancellationToken ct) {
-            if (string.IsNullOrEmpty(supervisorId)) {
-                throw new ArgumentNullException(nameof(supervisorId));
+            if (string.IsNullOrEmpty(discovererId)) {
+                throw new ArgumentNullException(nameof(discovererId));
             }
-            var uri = new UriBuilder($"{_serviceUri}/v2/discovery/{supervisorId}") {
+            var uri = new UriBuilder($"{_serviceUri}/v2/discovery/{discovererId}") {
                 Query = $"mode={mode}"
             };
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
@@ -98,16 +191,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task UnsubscribeDiscoveryProgressBySupervisorsIdAsync(string supervisorId,
+        public async Task UnsubscribeDiscoveryProgressByDiscovererIdAsync(string discovererId,
             string userId, CancellationToken ct) {
-            if (string.IsNullOrEmpty(supervisorId)) {
-                throw new ArgumentNullException(nameof(supervisorId));
+            if (string.IsNullOrEmpty(discovererId)) {
+                throw new ArgumentNullException(nameof(discovererId));
             }
             if (string.IsNullOrEmpty(userId)) {
                 throw new ArgumentNullException(nameof(userId));
             }
             var request = _httpClient.NewRequest(
-                $"{_serviceUri}/v2/discovery/{supervisorId}/events/{userId}",
+                $"{_serviceUri}/v2/discovery/{discovererId}/events/{userId}",
                 _resourceId);
             var response = await _httpClient.DeleteAsync(request, ct).ConfigureAwait(false);
             response.Validate();
@@ -682,7 +775,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<GatewayApiModel> GetGatewayAsync(string gatewayId,
+        public async Task<GatewayInfoApiModel> GetGatewayAsync(string gatewayId,
             CancellationToken ct) {
             if (string.IsNullOrEmpty(gatewayId)) {
                 throw new ArgumentNullException(nameof(gatewayId));
@@ -691,7 +784,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
-            return response.GetContent<GatewayApiModel>();
+            return response.GetContent<GatewayInfoApiModel>();
         }
 
         private readonly IHttpClient _httpClient;

@@ -23,7 +23,7 @@ import (
 
 const (
 // DefaultBaseURI is the default URI used for the service Azureiiotopctwin
-DefaultBaseURI = "/twin")
+DefaultBaseURI = "http://localhost:9080")
 
 // BaseClient is the base client for Azureiiotopctwin.
 type BaseClient struct {
@@ -36,7 +36,9 @@ func New()BaseClient {
     return NewWithBaseURI(DefaultBaseURI, )
 }
 
-// NewWithBaseURI creates an instance of the BaseClient client.
+// NewWithBaseURI creates an instance of the BaseClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a
+// non-standard base URI (sovereign clouds, Azure stack).
 func NewWithBaseURI(baseURI string, ) BaseClient {
     return BaseClient{
         Client: autorest.NewClientWithUserAgent(UserAgent()),
@@ -44,13 +46,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
     }
 }
 
-    // Browse browse a node on the specified endpoint.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // Browse browse a node on the specified endpoint. The endpoint must be
+    // activated and connected and the module client and server must trust each
+    // other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the browse request
-    func (client BaseClient) Browse(ctx context.Context, endpointID string, request BrowseRequestAPIModel) (result BrowseResponseAPIModel, err error) {
+            // body - the browse request
+    func (client BaseClient) Browse(ctx context.Context, endpointID string, body BrowseRequestAPIModel) (result BrowseResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.Browse")
             defer func() {
@@ -62,14 +64,14 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }()
         }
                 if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.View", Name: validation.Null, Rule: false ,
-                Chain: []validation.Constraint{	{Target: "request.View.ViewID", Name: validation.Null, Rule: true, Chain: nil },
+                { TargetValue: body,
+                 Constraints: []validation.Constraint{	{Target: "body.View", Name: validation.Null, Rule: false ,
+                Chain: []validation.Constraint{	{Target: "body.View.ViewID", Name: validation.Null, Rule: true, Chain: nil },
                 }}}}}); err != nil {
                 return result, validation.NewError("azureiiotopctwin.BaseClient", "Browse", err.Error())
                 }
 
-                    req, err := client.BrowsePreparer(ctx, endpointID, request)
+                    req, err := client.BrowsePreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "Browse", nil , "Failure preparing request")
         return
@@ -91,7 +93,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // BrowsePreparer prepares the Browse request.
-        func (client BaseClient) BrowsePreparer(ctx context.Context, endpointID string, request BrowseRequestAPIModel) (*http.Request, error) {
+        func (client BaseClient) BrowsePreparer(ctx context.Context, endpointID string, body BrowseRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -101,7 +103,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/browse/{endpointId}",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -125,13 +127,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // BrowseNext browse next set of references on the endpoint.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // BrowseNext browse next set of references on the endpoint. The endpoint must
+    // be activated and connected and the module client and server must trust each
+    // other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the request body with continuation token.
-    func (client BaseClient) BrowseNext(ctx context.Context, endpointID string, request BrowseNextRequestAPIModel) (result BrowseNextResponseAPIModel, err error) {
+            // body - the request body with continuation token.
+    func (client BaseClient) BrowseNext(ctx context.Context, endpointID string, body BrowseNextRequestAPIModel) (result BrowseNextResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.BrowseNext")
             defer func() {
@@ -143,12 +145,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }()
         }
                 if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.ContinuationToken", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
+                { TargetValue: body,
+                 Constraints: []validation.Constraint{	{Target: "body.ContinuationToken", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
                 return result, validation.NewError("azureiiotopctwin.BaseClient", "BrowseNext", err.Error())
                 }
 
-                    req, err := client.BrowseNextPreparer(ctx, endpointID, request)
+                    req, err := client.BrowseNextPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "BrowseNext", nil , "Failure preparing request")
         return
@@ -170,7 +172,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // BrowseNextPreparer prepares the BrowseNext request.
-        func (client BaseClient) BrowseNextPreparer(ctx context.Context, endpointID string, request BrowseNextRequestAPIModel) (*http.Request, error) {
+        func (client BaseClient) BrowseNextPreparer(ctx context.Context, endpointID string, body BrowseNextRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -180,7 +182,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/browse/{endpointId}/next",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -204,14 +206,14 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // BrowseUsingPath browse using a path from the specified node id.
-    // This call uses TranslateBrowsePathsToNodeIds service under the hood.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // BrowseUsingPath browse using a path from the specified node id. This call
+    // uses TranslateBrowsePathsToNodeIds service under the hood. The endpoint must
+    // be activated and connected and the module client and server must trust each
+    // other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the browse path request
-    func (client BaseClient) BrowseUsingPath(ctx context.Context, endpointID string, request BrowsePathRequestAPIModel) (result BrowsePathResponseAPIModel, err error) {
+            // body - the browse path request
+    func (client BaseClient) BrowseUsingPath(ctx context.Context, endpointID string, body BrowsePathRequestAPIModel) (result BrowsePathResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.BrowseUsingPath")
             defer func() {
@@ -223,12 +225,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }()
         }
                 if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.BrowsePaths", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
+                { TargetValue: body,
+                 Constraints: []validation.Constraint{	{Target: "body.BrowsePaths", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
                 return result, validation.NewError("azureiiotopctwin.BaseClient", "BrowseUsingPath", err.Error())
                 }
 
-                    req, err := client.BrowseUsingPathPreparer(ctx, endpointID, request)
+                    req, err := client.BrowseUsingPathPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "BrowseUsingPath", nil , "Failure preparing request")
         return
@@ -250,7 +252,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // BrowseUsingPathPreparer prepares the BrowseUsingPath request.
-        func (client BaseClient) BrowseUsingPathPreparer(ctx context.Context, endpointID string, request BrowsePathRequestAPIModel) (*http.Request, error) {
+        func (client BaseClient) BrowseUsingPathPreparer(ctx context.Context, endpointID string, body BrowsePathRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -260,7 +262,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/browse/{endpointId}/path",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -284,13 +286,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // CallMethod invoke method node with specified input arguments.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // CallMethod invoke method node with specified input arguments. The endpoint
+    // must be activated and connected and the module client and server must trust
+    // each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the method call request
-    func (client BaseClient) CallMethod(ctx context.Context, endpointID string, request MethodCallRequestAPIModel) (result MethodCallResponseAPIModel, err error) {
+            // body - the method call request
+    func (client BaseClient) CallMethod(ctx context.Context, endpointID string, body MethodCallRequestAPIModel) (result MethodCallResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.CallMethod")
             defer func() {
@@ -301,7 +303,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-            req, err := client.CallMethodPreparer(ctx, endpointID, request)
+            req, err := client.CallMethodPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "CallMethod", nil , "Failure preparing request")
         return
@@ -323,7 +325,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // CallMethodPreparer prepares the CallMethod request.
-        func (client BaseClient) CallMethodPreparer(ctx context.Context, endpointID string, request MethodCallRequestAPIModel) (*http.Request, error) {
+        func (client BaseClient) CallMethodPreparer(ctx context.Context, endpointID string, body MethodCallRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -333,7 +335,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/call/{endpointId}",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -358,14 +360,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
     // GetCallMetadata return method meta data to support a user interface
-    // displaying forms to
-    // input and output arguments.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // displaying forms to input and output arguments. The endpoint must be
+    // activated and connected and the module client and server must trust each
+    // other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the method metadata request
-    func (client BaseClient) GetCallMetadata(ctx context.Context, endpointID string, request MethodMetadataRequestAPIModel) (result MethodMetadataResponseAPIModel, err error) {
+            // body - the method metadata request
+    func (client BaseClient) GetCallMetadata(ctx context.Context, endpointID string, body MethodMetadataRequestAPIModel) (result MethodMetadataResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetCallMetadata")
             defer func() {
@@ -376,7 +377,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-            req, err := client.GetCallMetadataPreparer(ctx, endpointID, request)
+            req, err := client.GetCallMetadataPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "GetCallMetadata", nil , "Failure preparing request")
         return
@@ -398,7 +399,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // GetCallMetadataPreparer prepares the GetCallMetadata request.
-        func (client BaseClient) GetCallMetadataPreparer(ctx context.Context, endpointID string, request MethodMetadataRequestAPIModel) (*http.Request, error) {
+        func (client BaseClient) GetCallMetadataPreparer(ctx context.Context, endpointID string, body MethodMetadataRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -408,7 +409,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/call/{endpointId}/metadata",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -433,12 +434,10 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
     // GetNextSetOfUniqueNodes browse the next set of unique hierarchically
-    // referenced target nodes on the
-    // endpoint.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
-    // Note that this is the same as the POST method with the model containing
-    // the continuation token and the targetNodesOnly flag set to true.
+    // referenced target nodes on the endpoint. The endpoint must be activated and
+    // connected and the module client and server must trust each other. Note that
+    // this is the same as the POST method with the model containing the
+    // continuation token and the targetNodesOnly flag set to true.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
             // continuationToken - continuation token from GetSetOfUniqueNodes
@@ -552,14 +551,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }
 
     // GetSetOfUniqueNodes browse the set of unique hierarchically referenced
-    // target nodes on the endpoint.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
-    // The root node id to browse from can be provided as part of the query
-    // parameters.
-    // If it is not provided, the RootFolder node is browsed. Note that this
-    // is the same as the POST method with the model containing the node id
-    // and the targetNodesOnly flag set to true.
+    // target nodes on the endpoint. The endpoint must be activated and connected
+    // and the module client and server must trust each other. The root node id to
+    // browse from can be provided as part of the query parameters. If it is not
+    // provided, the RootFolder node is browsed. Note that this is the same as the
+    // POST method with the model containing the node id and the targetNodesOnly
+    // flag set to true.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
             // nodeID - the node to browse or omit to browse the root node (i=84)
@@ -697,9 +694,9 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // GetValue get a variable node's value using its node id.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // GetValue get a variable node's value using its node id. The endpoint must be
+    // activated and connected and the module client and server must trust each
+    // other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
             // nodeID - the node to read
@@ -773,13 +770,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // ReadAttributes read attributes of a node.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // ReadAttributes read attributes of a node. The endpoint must be activated and
+    // connected and the module client and server must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the read request
-    func (client BaseClient) ReadAttributes(ctx context.Context, endpointID string, request ReadRequestAPIModel) (result ReadResponseAPIModel, err error) {
+            // body - the read request
+    func (client BaseClient) ReadAttributes(ctx context.Context, endpointID string, body ReadRequestAPIModel) (result ReadResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.ReadAttributes")
             defer func() {
@@ -791,12 +787,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }()
         }
                 if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.Attributes", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
+                { TargetValue: body,
+                 Constraints: []validation.Constraint{	{Target: "body.Attributes", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
                 return result, validation.NewError("azureiiotopctwin.BaseClient", "ReadAttributes", err.Error())
                 }
 
-                    req, err := client.ReadAttributesPreparer(ctx, endpointID, request)
+                    req, err := client.ReadAttributesPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "ReadAttributes", nil , "Failure preparing request")
         return
@@ -818,7 +814,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // ReadAttributesPreparer prepares the ReadAttributes request.
-        func (client BaseClient) ReadAttributesPreparer(ctx context.Context, endpointID string, request ReadRequestAPIModel) (*http.Request, error) {
+        func (client BaseClient) ReadAttributesPreparer(ctx context.Context, endpointID string, body ReadRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -828,7 +824,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/read/{endpointId}/attributes",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -852,13 +848,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // ReadValue read a variable node's value.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // ReadValue read a variable node's value. The endpoint must be activated and
+    // connected and the module client and server must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the read value request
-    func (client BaseClient) ReadValue(ctx context.Context, endpointID string, request ValueReadRequestAPIModel) (result ValueReadResponseAPIModel, err error) {
+            // body - the read value request
+    func (client BaseClient) ReadValue(ctx context.Context, endpointID string, body ValueReadRequestAPIModel) (result ValueReadResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.ReadValue")
             defer func() {
@@ -869,7 +864,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-            req, err := client.ReadValuePreparer(ctx, endpointID, request)
+            req, err := client.ReadValuePreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "ReadValue", nil , "Failure preparing request")
         return
@@ -891,7 +886,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // ReadValuePreparer prepares the ReadValue request.
-        func (client BaseClient) ReadValuePreparer(ctx context.Context, endpointID string, request ValueReadRequestAPIModel) (*http.Request, error) {
+        func (client BaseClient) ReadValuePreparer(ctx context.Context, endpointID string, body ValueReadRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -901,7 +896,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/read/{endpointId}",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -925,13 +920,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // WriteAttributes write any attribute of a node.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // WriteAttributes write any attribute of a node. The endpoint must be
+    // activated and connected and the module client and server must trust each
+    // other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the batch write request
-    func (client BaseClient) WriteAttributes(ctx context.Context, endpointID string, request WriteRequestAPIModel) (result WriteResponseAPIModel, err error) {
+            // body - the batch write request
+    func (client BaseClient) WriteAttributes(ctx context.Context, endpointID string, body WriteRequestAPIModel) (result WriteResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.WriteAttributes")
             defer func() {
@@ -943,12 +938,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }()
         }
                 if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.Attributes", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
+                { TargetValue: body,
+                 Constraints: []validation.Constraint{	{Target: "body.Attributes", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
                 return result, validation.NewError("azureiiotopctwin.BaseClient", "WriteAttributes", err.Error())
                 }
 
-                    req, err := client.WriteAttributesPreparer(ctx, endpointID, request)
+                    req, err := client.WriteAttributesPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "WriteAttributes", nil , "Failure preparing request")
         return
@@ -970,7 +965,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // WriteAttributesPreparer prepares the WriteAttributes request.
-        func (client BaseClient) WriteAttributesPreparer(ctx context.Context, endpointID string, request WriteRequestAPIModel) (*http.Request, error) {
+        func (client BaseClient) WriteAttributesPreparer(ctx context.Context, endpointID string, body WriteRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -980,7 +975,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/write/{endpointId}/attributes",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -1004,13 +999,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // WriteValue write variable node's value.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // WriteValue write variable node's value. The endpoint must be activated and
+    // connected and the module client and server must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the write value request
-    func (client BaseClient) WriteValue(ctx context.Context, endpointID string, request ValueWriteRequestAPIModel) (result ValueWriteResponseAPIModel, err error) {
+            // body - the write value request
+    func (client BaseClient) WriteValue(ctx context.Context, endpointID string, body ValueWriteRequestAPIModel) (result ValueWriteResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.WriteValue")
             defer func() {
@@ -1022,12 +1016,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }()
         }
                 if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.Value", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
+                { TargetValue: body,
+                 Constraints: []validation.Constraint{	{Target: "body.Value", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
                 return result, validation.NewError("azureiiotopctwin.BaseClient", "WriteValue", err.Error())
                 }
 
-                    req, err := client.WriteValuePreparer(ctx, endpointID, request)
+                    req, err := client.WriteValuePreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopctwin.BaseClient", "WriteValue", nil , "Failure preparing request")
         return
@@ -1049,7 +1043,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // WriteValuePreparer prepares the WriteValue request.
-        func (client BaseClient) WriteValuePreparer(ctx context.Context, endpointID string, request ValueWriteRequestAPIModel) (*http.Request, error) {
+        func (client BaseClient) WriteValuePreparer(ctx context.Context, endpointID string, body ValueWriteRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -1059,7 +1053,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/write/{endpointId}",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 

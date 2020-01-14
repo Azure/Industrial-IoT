@@ -17,8 +17,8 @@ class CertificateRequestQueryRequestApiModel(Model):
 
     :param entity_id: The entity id to filter with
     :type entity_id: str
-    :param state: The certificate request state. Possible values include:
-     'New', 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'
+    :param state: Possible values include: 'New', 'Approved', 'Rejected',
+     'Failure', 'Completed', 'Accepted'
     :type state: str or ~azure-iiot-opc-vault.models.CertificateRequestState
     """
 

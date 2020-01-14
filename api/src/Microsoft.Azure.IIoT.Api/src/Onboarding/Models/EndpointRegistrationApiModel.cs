@@ -33,11 +33,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Supervisor that registered the endpoint.
+        /// Supervisor that can manage the endpoint.
         /// </summary>
         [JsonProperty(PropertyName = "supervisorId",
             NullValueHandling = NullValueHandling.Ignore)]
         public string SupervisorId { get; set; }
+
+        /// <summary>
+        /// Discoverer that registered the endpoint
+        /// </summary>
+        [JsonProperty(PropertyName = "discovererId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string DiscovererId { get; set; }
 
         /// <summary>
         /// Endpoint information of the registration

@@ -39,11 +39,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="endpointId"></param>
         /// <param name="id"></param>
         /// <param name="parentId"></param>
-        /// <param name="supervisorId"></param>
+        /// <param name="discovererId"></param>
         /// <param name="direction"></param>
         /// <returns>ListNode</returns>
         public async Task<PagedResult<ListNode>> GetTreeAsync(string endpointId,
-            string id, List<string> parentId, string supervisorId, BrowseDirection direction) {
+            string id, List<string> parentId, string discovererId, BrowseDirection direction) {
             var pageResult = new PagedResult<ListNode>();
             var model = new BrowseRequestApiModel {
                 TargetNodesOnly = true
@@ -85,7 +85,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                                 NodeName = nodeReference.Target.DisplayName.ToString(),
                                 Children = (bool)nodeReference.Target.Children,
                                 ParentIdList = parentId,
-                                SupervisorId = supervisorId,
+                                DiscovererId = discovererId,
                                 AccessLevel = nodeReference.Target.AccessLevel ?? 0,
                                 ParentName = browseData.Node.DisplayName,
                                 DataType = nodeReference.Target.DataType,
@@ -118,7 +118,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 Trace.TraceError(errorMessage);
                 pageResult.Results.Add(new ListNode {
                     NodeName = e.Message,
-                    SupervisorId = supervisorId,
+                    DiscovererId = discovererId,
                     ParentName = "Root"
                 });
             }

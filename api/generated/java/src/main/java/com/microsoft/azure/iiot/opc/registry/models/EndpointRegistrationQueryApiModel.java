@@ -29,8 +29,7 @@ public class EndpointRegistrationQueryApiModel {
     private byte[] certificate;
 
     /**
-     * Security Mode. Possible values include: 'Best', 'Sign',
-     * 'SignAndEncrypt', 'None'.
+     * Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'.
      */
     @JsonProperty(value = "securityMode")
     private SecurityMode securityMode;
@@ -54,9 +53,8 @@ public class EndpointRegistrationQueryApiModel {
     private Boolean connected;
 
     /**
-     * The last state of the the activated endpoint. Possible values include:
-     * 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid',
-     * 'Ready', 'Error'.
+     * Possible values include: 'Connecting', 'NotReachable', 'Busy',
+     * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'.
      */
     @JsonProperty(value = "endpointState")
     private EndpointConnectivityState endpointState;
@@ -66,6 +64,30 @@ public class EndpointRegistrationQueryApiModel {
      */
     @JsonProperty(value = "includeNotSeenSince")
     private Boolean includeNotSeenSince;
+
+    /**
+     * Discoverer id to filter with.
+     */
+    @JsonProperty(value = "discovererId")
+    private String discovererId;
+
+    /**
+     * Application id to filter.
+     */
+    @JsonProperty(value = "applicationId")
+    private String applicationId;
+
+    /**
+     * Supervisor id to filter with.
+     */
+    @JsonProperty(value = "supervisorId")
+    private String supervisorId;
+
+    /**
+     * Site or gateway id to filter with.
+     */
+    @JsonProperty(value = "siteOrGatewayId")
+    private String siteOrGatewayId;
 
     /**
      * Get endoint url for direct server access.
@@ -108,7 +130,7 @@ public class EndpointRegistrationQueryApiModel {
     }
 
     /**
-     * Get security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'.
+     * Get possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'.
      *
      * @return the securityMode value
      */
@@ -117,7 +139,7 @@ public class EndpointRegistrationQueryApiModel {
     }
 
     /**
-     * Set security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'.
+     * Set possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'.
      *
      * @param securityMode the securityMode value to set
      * @return the EndpointRegistrationQueryApiModel object itself.
@@ -188,7 +210,7 @@ public class EndpointRegistrationQueryApiModel {
     }
 
     /**
-     * Get the last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'.
+     * Get possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'.
      *
      * @return the endpointState value
      */
@@ -197,7 +219,7 @@ public class EndpointRegistrationQueryApiModel {
     }
 
     /**
-     * Set the last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'.
+     * Set possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'.
      *
      * @param endpointState the endpointState value to set
      * @return the EndpointRegistrationQueryApiModel object itself.
@@ -224,6 +246,86 @@ public class EndpointRegistrationQueryApiModel {
      */
     public EndpointRegistrationQueryApiModel withIncludeNotSeenSince(Boolean includeNotSeenSince) {
         this.includeNotSeenSince = includeNotSeenSince;
+        return this;
+    }
+
+    /**
+     * Get discoverer id to filter with.
+     *
+     * @return the discovererId value
+     */
+    public String discovererId() {
+        return this.discovererId;
+    }
+
+    /**
+     * Set discoverer id to filter with.
+     *
+     * @param discovererId the discovererId value to set
+     * @return the EndpointRegistrationQueryApiModel object itself.
+     */
+    public EndpointRegistrationQueryApiModel withDiscovererId(String discovererId) {
+        this.discovererId = discovererId;
+        return this;
+    }
+
+    /**
+     * Get application id to filter.
+     *
+     * @return the applicationId value
+     */
+    public String applicationId() {
+        return this.applicationId;
+    }
+
+    /**
+     * Set application id to filter.
+     *
+     * @param applicationId the applicationId value to set
+     * @return the EndpointRegistrationQueryApiModel object itself.
+     */
+    public EndpointRegistrationQueryApiModel withApplicationId(String applicationId) {
+        this.applicationId = applicationId;
+        return this;
+    }
+
+    /**
+     * Get supervisor id to filter with.
+     *
+     * @return the supervisorId value
+     */
+    public String supervisorId() {
+        return this.supervisorId;
+    }
+
+    /**
+     * Set supervisor id to filter with.
+     *
+     * @param supervisorId the supervisorId value to set
+     * @return the EndpointRegistrationQueryApiModel object itself.
+     */
+    public EndpointRegistrationQueryApiModel withSupervisorId(String supervisorId) {
+        this.supervisorId = supervisorId;
+        return this;
+    }
+
+    /**
+     * Get site or gateway id to filter with.
+     *
+     * @return the siteOrGatewayId value
+     */
+    public String siteOrGatewayId() {
+        return this.siteOrGatewayId;
+    }
+
+    /**
+     * Set site or gateway id to filter with.
+     *
+     * @param siteOrGatewayId the siteOrGatewayId value to set
+     * @return the EndpointRegistrationQueryApiModel object itself.
+     */
+    public EndpointRegistrationQueryApiModel withSiteOrGatewayId(String siteOrGatewayId) {
+        this.siteOrGatewayId = siteOrGatewayId;
         return this;
     }
 

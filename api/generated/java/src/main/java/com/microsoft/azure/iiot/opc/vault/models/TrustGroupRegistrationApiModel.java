@@ -23,7 +23,7 @@ public class TrustGroupRegistrationApiModel {
     private String id;
 
     /**
-     * Trust group.
+     * The group property.
      */
     @JsonProperty(value = "group", required = true)
     private TrustGroupApiModel group;
@@ -49,7 +49,7 @@ public class TrustGroupRegistrationApiModel {
     }
 
     /**
-     * Get trust group.
+     * Get the group value.
      *
      * @return the group value
      */
@@ -58,7 +58,7 @@ public class TrustGroupRegistrationApiModel {
     }
 
     /**
-     * Set trust group.
+     * Set the group value.
      *
      * @param group the group value to set
      * @return the TrustGroupRegistrationApiModel object itself.

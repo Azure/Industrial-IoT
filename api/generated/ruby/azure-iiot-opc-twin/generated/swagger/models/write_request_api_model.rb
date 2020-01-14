@@ -16,7 +16,7 @@ module azure.iiot.opc.twin
       # @return [Array<AttributeWriteRequestApiModel>] Attributes to update
       attr_accessor :attributes
 
-      # @return [RequestHeaderApiModel] Optional request header
+      # @return [RequestHeaderApiModel]
       attr_accessor :header
 
 

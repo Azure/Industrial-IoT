@@ -16,7 +16,7 @@ module azure.iiot.opc.registry
       # @return [Integer] Record id
       attr_accessor :record_id
 
-      # @return [ApplicationInfoApiModel] Application information
+      # @return [ApplicationInfoApiModel]
       attr_accessor :application
 
 

@@ -211,9 +211,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
         /// <returns></returns>
         private Task SendEndpointAlertAsync(EndpointInfoModel endpoint,
             string message, string usedConfiguration) {
-#if USE_SUPERVISOR_IDENTITY
-            var deviceId = SupervisorModelEx.ParseDeviceId(
-                endpoint.Registration.SupervisorId, out var moduleId);
+#if USE_DISCOVERER_IDENTITY
+            var deviceId = DiscovererModelEx.ParseDeviceId(
+                endpoint.Registration.DiscovererId, out var moduleId);
 #else
             var deviceId = endpoint.Registration.Id;
             var moduleId = (string)null;
@@ -232,8 +232,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
         private Task SendApplicationAlertAsync(ApplicationInfoModel application,
             string message, string usedConfiguration) {
 #if !USE_APPLICATION_IDENTITY
-            var deviceId = SupervisorModelEx.ParseDeviceId(
-                application.SupervisorId, out var moduleId);
+            var deviceId = DiscovererModelEx.ParseDeviceId(
+                application.DiscovererId, out var moduleId);
 #else
             var deviceId = application.ApplicationId;
             var moduleId = (string)null;

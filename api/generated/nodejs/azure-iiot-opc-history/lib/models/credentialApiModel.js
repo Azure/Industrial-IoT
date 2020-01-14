@@ -17,8 +17,8 @@
 class CredentialApiModel {
   /**
    * Create a CredentialApiModel.
-   * @property {string} [type] Type of credential. Possible values include:
-   * 'None', 'UserName', 'X509Certificate', 'JwtToken'. Default value: 'None' .
+   * @property {string} [type] Possible values include: 'None', 'UserName',
+   * 'X509Certificate', 'JwtToken'
    * @property {object} [value] Value to pass to server
    */
   constructor() {
@@ -41,7 +41,6 @@ class CredentialApiModel {
           type: {
             required: false,
             serializedName: 'type',
-            defaultValue: 'None',
             type: {
               name: 'Enum',
               allowedValues: [ 'None', 'UserName', 'X509Certificate', 'JwtToken' ]

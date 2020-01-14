@@ -15,7 +15,7 @@ from msrest.serialization import Model
 class AttributeWriteResponseApiModel(Model):
     """Attribute write result.
 
-    :param error_info: Service result in case of error
+    :param error_info:
     :type error_info: ~azure-iiot-opc-twin.models.ServiceResultApiModel
     """
 

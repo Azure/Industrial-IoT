@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Cli {
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -15,7 +14,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Cli {
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Runtime;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Services;
     using Microsoft.Azure.IIoT.Module;
-    using Microsoft.Azure.IIoT.Module.Models;
     using Microsoft.Azure.IIoT.Net;
     using Microsoft.Azure.IIoT.Net.Models;
     using Microsoft.Azure.IIoT.Net.Scanner;
@@ -273,7 +271,7 @@ Operations (Mutually exclusive):
                 config, logger);
 
             var query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{TwinProperty.Type} = 'supervisor'";
+                $"properties.reported.{TwinProperty.Type} = '{IdentityType.Supervisor}'";
             var supers = await registry.QueryAllDeviceTwinsAsync(query);
             foreach (var item in supers) {
                 foreach (var tag in item.Tags.Keys.ToList()) {

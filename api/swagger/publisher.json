@@ -1,14 +1,21 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "v2",
     "title": "Opc-Publisher-Service",
-    "description": "Azure Industrial IoT OPC UA Publisher Service"
+    "description": "Azure Industrial IoT OPC UA Publisher Service",
+    "contact": {
+      "url": "https://www.github.com/Azure/Industrial-IoT"
+    },
+    "license": {
+      "name": "MIT LICENSE",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "v2"
   },
-  "basePath": "/publisher",
+  "host": "localhost:9080",
   "schemes": [
-    "https",
-    "http"
+    "http",
+    "https"
   ],
   "paths": {
     "/v2/monitor/{endpointId}/samples": {
@@ -25,22 +32,18 @@
           "text/json",
           "application/*+json"
         ],
-        "produces": [
-          "application/json"
-        ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The endpoint to subscribe to",
             "required": true,
             "type": "string"
           },
           {
-            "name": "userId",
             "in": "body",
-            "description": "The user id that will receive publisher\r\n            samples.",
-            "required": false,
+            "name": "body",
+            "description": "The user id that will receive publisher samples.",
             "schema": {
               "type": "string"
             }
@@ -68,22 +71,18 @@
         "summary": "Unsubscribe from receiving samples.",
         "description": "Unregister a client and stop it from receiving samples.",
         "operationId": "Unsubscribe",
-        "consumes": [],
-        "produces": [
-          "application/json"
-        ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The endpoint to unsubscribe from",
             "required": true,
             "type": "string"
           },
           {
-            "name": "userId",
             "in": "path",
-            "description": "The user id that will not receive\r\n            any more published samples",
+            "name": "userId",
+            "description": "The user id that will not receive any more published samples",
             "required": true,
             "type": "string"
           }
@@ -108,7 +107,7 @@
           "Publish"
         ],
         "summary": "Start publishing node values",
-        "description": "Start publishing variable node values to IoT Hub.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Start publishing variable node values to IoT Hub. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "StartPublishingValues",
         "consumes": [
           "application/json-patch+json",
@@ -121,15 +120,15 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The publish request",
             "required": true,
             "schema": {
@@ -160,7 +159,7 @@
           "Publish"
         ],
         "summary": "Stop publishing node values",
-        "description": "Stop publishing variable node values to IoT Hub.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Stop publishing variable node values to IoT Hub. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "StopPublishingValues",
         "consumes": [
           "application/json-patch+json",
@@ -173,15 +172,15 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The unpublish request",
             "required": true,
             "schema": {
@@ -207,28 +206,77 @@
       }
     },
     "/v2/publish/{endpointId}": {
-      "get": {
+      "post": {
         "tags": [
           "Publish"
         ],
-        "summary": "Get next set of published nodes",
-        "description": "Returns next set of currently published node ids for an endpoint.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
-        "operationId": "GetNextListOfPublishedNodes",
-        "consumes": [],
+        "summary": "Get currently published nodes",
+        "description": "Returns currently published node ids for an endpoint. The endpoint must be activated and connected and the module client and server must trust each other.",
+        "operationId": "GetFirstListOfPublishedNodes",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "continuationToken",
+            "in": "body",
+            "name": "body",
+            "description": "The list request",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PublishedItemListRequestApiModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/PublishedItemListResponseApiModel"
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Publish"
+        ],
+        "summary": "Get next set of published nodes",
+        "description": "Returns next set of currently published node ids for an endpoint. The endpoint must be activated and connected and the module client and server must trust each other.",
+        "operationId": "GetNextListOfPublishedNodes",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endpointId",
+            "description": "The identifier of the activated endpoint.",
+            "required": true,
+            "type": "string"
+          },
+          {
             "in": "query",
+            "name": "continuationToken",
             "description": "The continuation token to continue with",
             "required": true,
             "type": "string"
@@ -252,56 +300,6 @@
         "x-ms-pageable": {
           "nextLinkName": "continuationToken"
         }
-      },
-      "post": {
-        "tags": [
-          "Publish"
-        ],
-        "summary": "Get currently published nodes",
-        "description": "Returns currently published node ids for an endpoint.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
-        "operationId": "GetFirstListOfPublishedNodes",
-        "consumes": [
-          "application/json-patch+json",
-          "application/json",
-          "text/json",
-          "application/*+json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "endpointId",
-            "in": "path",
-            "description": "The identifier of the activated endpoint.",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "request",
-            "in": "body",
-            "description": "The list request",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/PublishedItemListRequestApiModel"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/PublishedItemListResponseApiModel"
-            }
-          }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
       }
     },
     "/v2/status": {
@@ -311,11 +309,9 @@
         ],
         "summary": "Return the service status in the form of the service status\r\napi model.",
         "operationId": "GetStatus",
-        "consumes": [],
         "produces": [
           "application/json"
         ],
-        "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
@@ -328,23 +324,6 @@
     }
   },
   "definitions": {
-    "PublishStartRequestApiModel": {
-      "description": "Publish request",
-      "required": [
-        "item"
-      ],
-      "type": "object",
-      "properties": {
-        "item": {
-          "$ref": "#/definitions/PublishedItemApiModel",
-          "description": "Item to publish"
-        },
-        "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
-        }
-      }
-    },
     "PublishedItemApiModel": {
       "description": "A monitored and published item",
       "required": [
@@ -357,35 +336,28 @@
           "type": "string"
         },
         "publishingInterval": {
+          "format": "date-span",
           "description": "Publishing interval to use",
           "type": "string"
         },
         "samplingInterval": {
+          "format": "date-span",
           "description": "Sampling interval to use",
           "type": "string"
         }
       }
     },
-    "RequestHeaderApiModel": {
-      "description": "Request header model",
-      "type": "object",
-      "properties": {
-        "elevation": {
-          "$ref": "#/definitions/CredentialApiModel",
-          "description": "Optional User elevation"
-        },
-        "locales": {
-          "description": "Optional list of locales in preference order.",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "diagnostics": {
-          "$ref": "#/definitions/DiagnosticsApiModel",
-          "description": "Optional diagnostics configuration"
-        }
+    "CredentialTypeNullable": {
+      "enum": [
+        "None",
+        "UserName",
+        "X509Certificate",
+        "JwtToken"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "CredentialType",
+        "modelAsString": false
       }
     },
     "CredentialApiModel": {
@@ -393,18 +365,7 @@
       "type": "object",
       "properties": {
         "type": {
-          "description": "Type of credential",
-          "enum": [
-            "None",
-            "UserName",
-            "X509Certificate",
-            "JwtToken"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "CredentialType",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/CredentialTypeNullable"
         },
         "value": {
           "description": "Value to pass to server",
@@ -412,24 +373,26 @@
         }
       }
     },
+    "DiagnosticsLevelNullable": {
+      "enum": [
+        "None",
+        "Status",
+        "Operations",
+        "Diagnostics",
+        "Verbose"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "DiagnosticsLevel",
+        "modelAsString": false
+      }
+    },
     "DiagnosticsApiModel": {
       "description": "Diagnostics configuration",
       "type": "object",
       "properties": {
         "level": {
-          "description": "Requested level of response diagnostics.\r\n(default: Status)",
-          "enum": [
-            "None",
-            "Status",
-            "Operations",
-            "Diagnostics",
-            "Verbose"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "DiagnosticsLevel",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/DiagnosticsLevelNullable"
         },
         "auditId": {
           "description": "Client audit log entry.\r\n(default: client generated)",
@@ -442,13 +405,37 @@
         }
       }
     },
-    "PublishStartResponseApiModel": {
-      "description": "Result of publish request",
+    "RequestHeaderApiModel": {
+      "description": "Request header model",
       "type": "object",
       "properties": {
-        "errorInfo": {
-          "$ref": "#/definitions/ServiceResultApiModel",
-          "description": "Service result in case of error"
+        "elevation": {
+          "$ref": "#/definitions/CredentialApiModel"
+        },
+        "locales": {
+          "description": "Optional list of locales in preference order.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "diagnostics": {
+          "$ref": "#/definitions/DiagnosticsApiModel"
+        }
+      }
+    },
+    "PublishStartRequestApiModel": {
+      "description": "Publish request",
+      "required": [
+        "item"
+      ],
+      "type": "object",
+      "properties": {
+        "item": {
+          "$ref": "#/definitions/PublishedItemApiModel"
+        },
+        "header": {
+          "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
@@ -471,6 +458,15 @@
         }
       }
     },
+    "PublishStartResponseApiModel": {
+      "description": "Result of publish request",
+      "type": "object",
+      "properties": {
+        "errorInfo": {
+          "$ref": "#/definitions/ServiceResultApiModel"
+        }
+      }
+    },
     "PublishStopRequestApiModel": {
       "description": "Unpublish request",
       "required": [
@@ -483,8 +479,7 @@
           "type": "string"
         },
         "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
+          "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
@@ -493,8 +488,7 @@
       "type": "object",
       "properties": {
         "errorInfo": {
-          "$ref": "#/definitions/ServiceResultApiModel",
-          "description": "Service result in case of error"
+          "$ref": "#/definitions/ServiceResultApiModel"
         }
       }
     },
@@ -514,7 +508,6 @@
       "properties": {
         "items": {
           "description": "Monitored items",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/PublishedItemApiModel"
@@ -576,7 +569,6 @@
           "readOnly": true
         },
         "$metadata": {
-          "description": "Optional meta data.",
           "type": "object",
           "additionalProperties": {
             "type": "string"
@@ -588,12 +580,12 @@
   },
   "securityDefinitions": {
     "oauth2": {
+      "type": "oauth2",
       "flow": "implicit",
       "authorizationUrl": "https://login.microsoftonline.com/6e660ce4-d51a-4585-80c6-58035e212354/oauth2/authorize",
       "scopes": {
         "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication": "Access http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication operations"
       },
-      "type": "oauth2",
       "description": "Implicit oauth2 token flow."
     }
   },

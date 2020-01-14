@@ -36,8 +36,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// <param name="alternativeUrls">Alternative endpoint urls that can be
         /// used for
         /// accessing and validating the server</param>
-        /// <param name="securityMode">Security Mode to use for communication
-        /// default to best. Possible values include: 'Best', 'Sign',
+        /// <param name="securityMode">Possible values include: 'Best', 'Sign',
         /// 'SignAndEncrypt', 'None'</param>
         /// <param name="securityPolicy">Security policy uri to use for
         /// communication
@@ -73,8 +72,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public IList<string> AlternativeUrls { get; set; }
 
         /// <summary>
-        /// Gets or sets security Mode to use for communication
-        /// default to best. Possible values include: 'Best', 'Sign',
+        /// Gets or sets possible values include: 'Best', 'Sign',
         /// 'SignAndEncrypt', 'None'
         /// </summary>
         [JsonProperty(PropertyName = "securityMode")]

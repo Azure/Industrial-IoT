@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.v2.Controllers {
     /// <summary>
     /// Agent controller
     /// </summary>
-    [Route(VersionInfo.PATH + "/workers")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/workers")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [ApiController]

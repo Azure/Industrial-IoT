@@ -3,18 +3,28 @@
     See https://bitbucket.org/thirteen/switchstartupproject/src/tip/Configuration.md
 */
 {
-  "Version": 3,
+    "Version": 3,
 
-  "ListAllProjects": false,
-  "MultiProjectConfigurations": {
-    "Full Scenario": {
-      "Projects": {
-        "Microsoft.Azure.IIoT.App": {},
-        "Microsoft.Azure.IIoT.Cli": {},
-        "Microsoft.Azure.IIoT.Services.All": {},
-        "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli": {},
-        "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli": {}
-      }
+    "ListAllProjects": false,
+    "MultiProjectConfigurations": {
+        "Local development": {
+            "Projects": {
+                "Microsoft.Azure.IIoT.App": {},
+                "Microsoft.Azure.IIoT.Cli": {},
+                "Microsoft.Azure.IIoT.Services.All": {},
+                "Microsoft.Azure.IIoT.Modules.Discovery.Cli": {},
+                "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli": {},
+                "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli": {}
+            }
+        },
+        "No services": {
+            "Projects": {
+                "Microsoft.Azure.IIoT.App": {},
+                "Microsoft.Azure.IIoT.Cli": {},
+                "Microsoft.Azure.IIoT.Modules.Discovery.Cli": {},
+                "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli": {},
+                "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli": {}
+            }
+        }
     }
-  }
 }

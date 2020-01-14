@@ -15,12 +15,12 @@ from msrest.serialization import Model
 class FinishNewKeyPairRequestResponseApiModel(Model):
     """Finish request results.
 
-    :param request: Request
+    :param request:
     :type request:
      ~azure-iiot-opc-vault.models.CertificateRequestRecordApiModel
-    :param certificate: Signed certificate
+    :param certificate:
     :type certificate: ~azure-iiot-opc-vault.models.X509CertificateApiModel
-    :param private_key: Private key
+    :param private_key:
     :type private_key: ~azure-iiot-opc-vault.models.PrivateKeyApiModel
     """
 

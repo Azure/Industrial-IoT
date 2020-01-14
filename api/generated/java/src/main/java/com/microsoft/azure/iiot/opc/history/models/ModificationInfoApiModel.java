@@ -24,8 +24,7 @@ public class ModificationInfoApiModel {
     private DateTime modificationTime;
 
     /**
-     * Operation. Possible values include: 'Insert', 'Replace', 'Update',
-     * 'Delete'.
+     * Possible values include: 'Insert', 'Replace', 'Update', 'Delete'.
      */
     @JsonProperty(value = "updateType")
     private HistoryUpdateOperation updateType;
@@ -57,7 +56,7 @@ public class ModificationInfoApiModel {
     }
 
     /**
-     * Get operation. Possible values include: 'Insert', 'Replace', 'Update', 'Delete'.
+     * Get possible values include: 'Insert', 'Replace', 'Update', 'Delete'.
      *
      * @return the updateType value
      */
@@ -66,7 +65,7 @@ public class ModificationInfoApiModel {
     }
 
     /**
-     * Set operation. Possible values include: 'Insert', 'Replace', 'Update', 'Delete'.
+     * Set possible values include: 'Insert', 'Replace', 'Update', 'Delete'.
      *
      * @param updateType the updateType value to set
      * @return the ModificationInfoApiModel object itself.

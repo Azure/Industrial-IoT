@@ -17,13 +17,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class PublishStartResponseApiModel {
     /**
-     * Service result in case of error.
+     * The errorInfo property.
      */
     @JsonProperty(value = "errorInfo")
     private ServiceResultApiModel errorInfo;
 
     /**
-     * Get service result in case of error.
+     * Get the errorInfo value.
      *
      * @return the errorInfo value
      */
@@ -32,7 +32,7 @@ public class PublishStartResponseApiModel {
     }
 
     /**
-     * Set service result in case of error.
+     * Set the errorInfo value.
      *
      * @param errorInfo the errorInfo value to set
      * @return the PublishStartResponseApiModel object itself.

@@ -28,11 +28,10 @@ class HistoricValueApiModel {
    * the value.
    * @property {number} [serverPicoseconds] Additional resolution for the
    * server timestamp.
-   * @property {object} [modificationInfo] modification information when
-   * reading modifications.
+   * @property {object} [modificationInfo]
    * @property {date} [modificationInfo.modificationTime] Modification time
-   * @property {string} [modificationInfo.updateType] Operation. Possible
-   * values include: 'Insert', 'Replace', 'Update', 'Delete'
+   * @property {string} [modificationInfo.updateType] Possible values include:
+   * 'Insert', 'Replace', 'Update', 'Delete'
    * @property {string} [modificationInfo.userName] User who made the change
    */
   constructor() {

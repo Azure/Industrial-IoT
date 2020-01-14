@@ -53,6 +53,14 @@ class SecurityAssessment(Enum):
     high = "High"
 
 
+class TraceLogLevel(Enum):
+
+    error = "Error"
+    information = "Information"
+    debug = "Debug"
+    verbose = "Verbose"
+
+
 class EndpointActivationState(Enum):
 
     deactivated = "Deactivated"
@@ -69,11 +77,3 @@ class EndpointConnectivityState(Enum):
     certificate_invalid = "CertificateInvalid"
     ready = "Ready"
     error = "Error"
-
-
-class TraceLogLevel(Enum):
-
-    error = "Error"
-    information = "Information"
-    debug = "Debug"
-    verbose = "Verbose"

@@ -1,66 +1,30 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "v2",
     "title": "Opc-Twin-Service",
-    "description": "Azure Industrial IoT OPC UA Twin Service"
+    "description": "Azure Industrial IoT OPC UA Twin Service",
+    "contact": {
+      "url": "https://www.github.com/Azure/Industrial-IoT"
+    },
+    "license": {
+      "name": "MIT LICENSE",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "v2"
   },
-  "basePath": "/twin",
+  "host": "localhost:9080",
   "schemes": [
-    "https",
-    "http"
+    "http",
+    "https"
   ],
   "paths": {
     "/v2/browse/{endpointId}": {
-      "get": {
-        "tags": [
-          "Browse"
-        ],
-        "summary": "Browse set of unique target nodes",
-        "description": "Browse the set of unique hierarchically referenced target nodes on the endpoint.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.\r\nThe root node id to browse from can be provided as part of the query\r\nparameters.\r\nIf it is not provided, the RootFolder node is browsed. Note that this\r\nis the same as the POST method with the model containing the node id\r\nand the targetNodesOnly flag set to true.",
-        "operationId": "GetSetOfUniqueNodes",
-        "consumes": [],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "endpointId",
-            "in": "path",
-            "description": "The identifier of the activated endpoint.",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "nodeId",
-            "in": "query",
-            "description": "The node to browse or omit to browse the root node (i=84)",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/BrowseResponseApiModel"
-            }
-          }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
-      },
       "post": {
         "tags": [
           "Browse"
         ],
         "summary": "Browse node references",
-        "description": "Browse a node on the specified endpoint.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Browse a node on the specified endpoint. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "Browse",
         "consumes": [
           "application/json-patch+json",
@@ -73,15 +37,15 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The browse request",
             "required": true,
             "schema": {
@@ -104,31 +68,121 @@
             ]
           }
         ]
-      }
-    },
-    "/v2/browse/{endpointId}/next": {
+      },
       "get": {
         "tags": [
           "Browse"
         ],
-        "summary": "Browse next set of unique target nodes",
-        "description": "Browse the next set of unique hierarchically referenced target nodes on the\r\nendpoint.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.\r\nNote that this is the same as the POST method with the model containing\r\nthe continuation token and the targetNodesOnly flag set to true.",
-        "operationId": "GetNextSetOfUniqueNodes",
-        "consumes": [],
+        "summary": "Browse set of unique target nodes",
+        "description": "Browse the set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. The root node id to browse from can be provided as part of the query parameters. If it is not provided, the RootFolder node is browsed. Note that this is the same as the POST method with the model containing the node id and the targetNodesOnly flag set to true.",
+        "operationId": "GetSetOfUniqueNodes",
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "continuationToken",
             "in": "query",
+            "name": "nodeId",
+            "description": "The node to browse or omit to browse the root node (i=84)",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/BrowseResponseApiModel"
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
+      }
+    },
+    "/v2/browse/{endpointId}/next": {
+      "post": {
+        "tags": [
+          "Browse"
+        ],
+        "summary": "Browse next set of references",
+        "description": "Browse next set of references on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other.",
+        "operationId": "BrowseNext",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endpointId",
+            "description": "The identifier of the activated endpoint.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "The request body with continuation token.",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/BrowseNextRequestApiModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/BrowseNextResponseApiModel"
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
+      },
+      "get": {
+        "tags": [
+          "Browse"
+        ],
+        "summary": "Browse next set of unique target nodes",
+        "description": "Browse the next set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. Note that this is the same as the POST method with the model containing the continuation token and the targetNodesOnly flag set to true.",
+        "operationId": "GetNextSetOfUniqueNodes",
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endpointId",
+            "description": "The identifier of the activated endpoint.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "query",
+            "name": "continuationToken",
             "description": "Continuation token from GetSetOfUniqueNodes operation",
             "required": true,
             "type": "string"
@@ -152,56 +206,6 @@
         "x-ms-pageable": {
           "nextLinkName": "continuationToken"
         }
-      },
-      "post": {
-        "tags": [
-          "Browse"
-        ],
-        "summary": "Browse next set of references",
-        "description": "Browse next set of references on the endpoint.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
-        "operationId": "BrowseNext",
-        "consumes": [
-          "application/json-patch+json",
-          "application/json",
-          "text/json",
-          "application/*+json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "endpointId",
-            "in": "path",
-            "description": "The identifier of the activated endpoint.",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "request",
-            "in": "body",
-            "description": "The request body with continuation token.",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/BrowseNextRequestApiModel"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/BrowseNextResponseApiModel"
-            }
-          }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
       }
     },
     "/v2/browse/{endpointId}/path": {
@@ -210,7 +214,7 @@
           "Browse"
         ],
         "summary": "Browse using a browse path",
-        "description": "Browse using a path from the specified node id.\r\nThis call uses TranslateBrowsePathsToNodeIds service under the hood.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Browse using a path from the specified node id. This call uses TranslateBrowsePathsToNodeIds service under the hood. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "BrowseUsingPath",
         "consumes": [
           "application/json-patch+json",
@@ -223,15 +227,15 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The browse path request",
             "required": true,
             "schema": {
@@ -262,7 +266,7 @@
           "Call"
         ],
         "summary": "Get method meta data",
-        "description": "Return method meta data to support a user interface displaying forms to\r\ninput and output arguments.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Return method meta data to support a user interface displaying forms to input and output arguments. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "GetCallMetadata",
         "consumes": [
           "application/json-patch+json",
@@ -275,15 +279,15 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The method metadata request",
             "required": true,
             "schema": {
@@ -314,7 +318,7 @@
           "Call"
         ],
         "summary": "Call a method",
-        "description": "Invoke method node with specified input arguments.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Invoke method node with specified input arguments. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "CallMethod",
         "consumes": [
           "application/json-patch+json",
@@ -327,15 +331,15 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The method call request",
             "required": true,
             "schema": {
@@ -361,31 +365,38 @@
       }
     },
     "/v2/read/{endpointId}": {
-      "get": {
+      "post": {
         "tags": [
           "Read"
         ],
-        "summary": "Get variable value",
-        "description": "Get a variable node's value using its node id.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
-        "operationId": "GetValue",
-        "consumes": [],
+        "summary": "Read variable value",
+        "description": "Read a variable node's value. The endpoint must be activated and connected and the module client and server must trust each other.",
+        "operationId": "ReadValue",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "nodeId",
-            "in": "query",
-            "description": "The node to read",
+            "in": "body",
+            "name": "body",
+            "description": "The read value request",
             "required": true,
-            "type": "string"
+            "schema": {
+              "$ref": "#/definitions/ValueReadRequestApiModel"
+            }
           }
         ],
         "responses": {
@@ -404,38 +415,30 @@
           }
         ]
       },
-      "post": {
+      "get": {
         "tags": [
           "Read"
         ],
-        "summary": "Read variable value",
-        "description": "Read a variable node's value.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
-        "operationId": "ReadValue",
-        "consumes": [
-          "application/json-patch+json",
-          "application/json",
-          "text/json",
-          "application/*+json"
-        ],
+        "summary": "Get variable value",
+        "description": "Get a variable node's value using its node id. The endpoint must be activated and connected and the module client and server must trust each other.",
+        "operationId": "GetValue",
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
-            "in": "body",
-            "description": "The read value request",
+            "in": "query",
+            "name": "nodeId",
+            "description": "The node to read",
             "required": true,
-            "schema": {
-              "$ref": "#/definitions/ValueReadRequestApiModel"
-            }
+            "type": "string"
           }
         ],
         "responses": {
@@ -461,7 +464,7 @@
           "Read"
         ],
         "summary": "Read node attributes",
-        "description": "Read attributes of a node.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Read attributes of a node. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "ReadAttributes",
         "consumes": [
           "application/json-patch+json",
@@ -474,15 +477,15 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The read request",
             "required": true,
             "schema": {
@@ -514,11 +517,9 @@
         ],
         "summary": "Return the service status in the form of the service status\r\napi model.",
         "operationId": "GetStatus",
-        "consumes": [],
         "produces": [
           "application/json"
         ],
-        "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
@@ -535,7 +536,7 @@
           "Write"
         ],
         "summary": "Write variable value",
-        "description": "Write variable node's value.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Write variable node's value. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "WriteValue",
         "consumes": [
           "application/json-patch+json",
@@ -548,15 +549,15 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The write value request",
             "required": true,
             "schema": {
@@ -587,7 +588,7 @@
           "Write"
         ],
         "summary": "Write node attributes",
-        "description": "Write any attribute of a node.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Write any attribute of a node. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "WriteAttributes",
         "consumes": [
           "application/json-patch+json",
@@ -600,15 +601,15 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The batch write request",
             "required": true,
             "schema": {
@@ -635,6 +636,118 @@
     }
   },
   "definitions": {
+    "BrowseDirectionNullable": {
+      "enum": [
+        "Forward",
+        "Backward",
+        "Both"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "BrowseDirection",
+        "modelAsString": false
+      }
+    },
+    "BrowseViewApiModel": {
+      "description": "browse view model",
+      "required": [
+        "viewId"
+      ],
+      "type": "object",
+      "properties": {
+        "viewId": {
+          "description": "Node of the view to browse",
+          "type": "string"
+        },
+        "version": {
+          "format": "int32",
+          "description": "Browses specific version of the view.",
+          "type": "integer"
+        },
+        "timestamp": {
+          "format": "date-time",
+          "description": "Browses at or before this timestamp.",
+          "type": "string"
+        }
+      }
+    },
+    "CredentialTypeNullable": {
+      "enum": [
+        "None",
+        "UserName",
+        "X509Certificate",
+        "JwtToken"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "CredentialType",
+        "modelAsString": false
+      }
+    },
+    "CredentialApiModel": {
+      "description": "Credential model",
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/CredentialTypeNullable"
+        },
+        "value": {
+          "description": "Value to pass to server",
+          "type": "object"
+        }
+      }
+    },
+    "DiagnosticsLevelNullable": {
+      "enum": [
+        "None",
+        "Status",
+        "Operations",
+        "Diagnostics",
+        "Verbose"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "DiagnosticsLevel",
+        "modelAsString": false
+      }
+    },
+    "DiagnosticsApiModel": {
+      "description": "Diagnostics configuration",
+      "type": "object",
+      "properties": {
+        "level": {
+          "$ref": "#/definitions/DiagnosticsLevelNullable"
+        },
+        "auditId": {
+          "description": "Client audit log entry.\r\n(default: client generated)",
+          "type": "string"
+        },
+        "timeStamp": {
+          "format": "date-time",
+          "description": "Timestamp of request.\r\n(default: client generated)",
+          "type": "string"
+        }
+      }
+    },
+    "RequestHeaderApiModel": {
+      "description": "Request header model",
+      "type": "object",
+      "properties": {
+        "elevation": {
+          "$ref": "#/definitions/CredentialApiModel"
+        },
+        "locales": {
+          "description": "Optional list of locales in preference order.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "diagnostics": {
+          "$ref": "#/definitions/DiagnosticsApiModel"
+        }
+      }
+    },
     "BrowseRequestApiModel": {
       "description": "Browse request model",
       "type": "object",
@@ -644,21 +757,10 @@
           "type": "string"
         },
         "direction": {
-          "description": "Direction to browse in\r\n(default: forward)",
-          "enum": [
-            "Forward",
-            "Backward",
-            "Both"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "BrowseDirection",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/BrowseDirectionNullable"
         },
         "view": {
-          "$ref": "#/definitions/BrowseViewApiModel",
-          "description": "View to browse\r\n(default: null = new view = All nodes)."
+          "$ref": "#/definitions/BrowseViewApiModel"
         },
         "referenceTypeId": {
           "description": "Reference types to browse.\r\n(default: hierarchical).",
@@ -685,134 +787,124 @@
           "type": "boolean"
         },
         "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
+          "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
-    "BrowseViewApiModel": {
-      "description": "browse view model",
+    "NodeClassNullable": {
+      "enum": [
+        "Object",
+        "Variable",
+        "Method",
+        "ObjectType",
+        "VariableType",
+        "ReferenceType",
+        "DataType",
+        "View"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "NodeClass",
+        "modelAsString": false
+      }
+    },
+    "NodeAccessRestrictionsNullable": {
+      "enum": [
+        "SigningRequired",
+        "EncryptionRequired",
+        "SessionRequired"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "NodeAccessRestrictions",
+        "modelAsString": false
+      }
+    },
+    "NodeEventNotifierNullable": {
+      "enum": [
+        "SubscribeToEvents",
+        "HistoryRead",
+        "HistoryWrite"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "NodeEventNotifier",
+        "modelAsString": false
+      }
+    },
+    "NodeAccessLevelNullable": {
+      "enum": [
+        "CurrentRead",
+        "CurrentWrite",
+        "HistoryRead",
+        "HistoryWrite",
+        "SemanticChange",
+        "StatusWrite",
+        "TimestampWrite",
+        "NonatomicRead",
+        "NonatomicWrite",
+        "WriteFullArrayOnly"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "NodeAccessLevel",
+        "modelAsString": false
+      }
+    },
+    "NodeValueRankNullable": {
+      "enum": [
+        "OneOrMoreDimensions",
+        "OneDimension",
+        "TwoDimensions",
+        "ScalarOrOneDimension",
+        "Any",
+        "Scalar"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "NodeValueRank",
+        "modelAsString": false
+      }
+    },
+    "RolePermissionsNullable": {
+      "enum": [
+        "Browse",
+        "ReadRolePermissions",
+        "WriteAttribute",
+        "WriteRolePermissions",
+        "WriteHistorizing",
+        "Read",
+        "Write",
+        "ReadHistory",
+        "InsertHistory",
+        "ModifyHistory",
+        "DeleteHistory",
+        "ReceiveEvents",
+        "Call",
+        "AddReference",
+        "RemoveReference",
+        "DeleteNode",
+        "AddNode"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "RolePermissions",
+        "modelAsString": false
+      }
+    },
+    "RolePermissionApiModel": {
+      "description": "Role permission model",
       "required": [
-        "viewId"
+        "roleId"
       ],
       "type": "object",
       "properties": {
-        "viewId": {
-          "description": "Node of the view to browse",
+        "roleId": {
+          "description": "Identifier of the role object.",
           "type": "string"
         },
-        "version": {
-          "format": "int32",
-          "description": "Browses specific version of the view.",
-          "type": "integer"
-        },
-        "timestamp": {
-          "format": "date-time",
-          "description": "Browses at or before this timestamp.",
-          "type": "string"
-        }
-      }
-    },
-    "RequestHeaderApiModel": {
-      "description": "Request header model",
-      "type": "object",
-      "properties": {
-        "elevation": {
-          "$ref": "#/definitions/CredentialApiModel",
-          "description": "Optional User elevation"
-        },
-        "locales": {
-          "description": "Optional list of locales in preference order.",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "diagnostics": {
-          "$ref": "#/definitions/DiagnosticsApiModel",
-          "description": "Optional diagnostics configuration"
-        }
-      }
-    },
-    "CredentialApiModel": {
-      "description": "Credential model",
-      "type": "object",
-      "properties": {
-        "type": {
-          "description": "Type of credential",
-          "default": "None",
-          "enum": [
-            "None",
-            "UserName",
-            "X509Certificate",
-            "JwtToken"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "CredentialType",
-            "modelAsString": false
-          }
-        },
-        "value": {
-          "description": "Value to pass to server",
-          "type": "object"
-        }
-      }
-    },
-    "DiagnosticsApiModel": {
-      "description": "Diagnostics configuration",
-      "type": "object",
-      "properties": {
-        "level": {
-          "description": "Requested level of response diagnostics.\r\n(default: Status)",
-          "enum": [
-            "None",
-            "Status",
-            "Operations",
-            "Diagnostics",
-            "Verbose"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "DiagnosticsLevel",
-            "modelAsString": false
-          }
-        },
-        "auditId": {
-          "description": "Client audit log entry.\r\n(default: client generated)",
-          "type": "string"
-        },
-        "timeStamp": {
-          "format": "date-time",
-          "description": "Timestamp of request.\r\n(default: client generated)",
-          "type": "string"
-        }
-      }
-    },
-    "BrowseResponseApiModel": {
-      "description": "browse response model",
-      "type": "object",
-      "properties": {
-        "node": {
-          "$ref": "#/definitions/NodeApiModel",
-          "description": "Node info for the currently browsed node"
-        },
-        "references": {
-          "description": "References, if included, otherwise null.",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/NodeReferenceApiModel"
-          }
-        },
-        "continuationToken": {
-          "description": "Continuation token if more results pending.",
-          "type": "string"
-        },
-        "errorInfo": {
-          "$ref": "#/definitions/ServiceResultApiModel",
-          "description": "Service result in case of error"
+        "permissions": {
+          "$ref": "#/definitions/RolePermissionsNullable"
         }
       }
     },
@@ -824,22 +916,7 @@
       "type": "object",
       "properties": {
         "nodeClass": {
-          "description": "Type of node",
-          "enum": [
-            "Object",
-            "Variable",
-            "Method",
-            "ObjectType",
-            "VariableType",
-            "ReferenceType",
-            "DataType",
-            "View"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "NodeClass",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/NodeClassNullable"
         },
         "displayName": {
           "description": "Display name",
@@ -858,17 +935,7 @@
           "type": "string"
         },
         "accessRestrictions": {
-          "description": "Node access restrictions if any.\r\n(default: none)",
-          "enum": [
-            "SigningRequired",
-            "EncryptionRequired",
-            "SessionRequired"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "NodeAccessRestrictions",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/NodeAccessRestrictionsNullable"
         },
         "writeMask": {
           "format": "int32",
@@ -889,17 +956,7 @@
           "type": "boolean"
         },
         "eventNotifier": {
-          "description": "If object or view and eventing, event notifier\r\nto subscribe to.\r\n(default: no events supported)",
-          "enum": [
-            "SubscribeToEvents",
-            "HistoryRead",
-            "HistoryWrite"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "NodeEventNotifier",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/NodeEventNotifierNullable"
         },
         "executable": {
           "description": "If method node class, whether method can\r\nbe called.",
@@ -914,68 +971,20 @@
           "type": "object"
         },
         "accessLevel": {
-          "description": "Default access level for variable node.\r\n(default: 0)",
-          "enum": [
-            "CurrentRead",
-            "CurrentWrite",
-            "HistoryRead",
-            "HistoryWrite",
-            "SemanticChange",
-            "StatusWrite",
-            "TimestampWrite",
-            "NonatomicRead",
-            "NonatomicWrite",
-            "WriteFullArrayOnly"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "NodeAccessLevel",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/NodeAccessLevelNullable"
         },
         "userAccessLevel": {
-          "description": "User access level for variable node or null.\r\n(default: 0)",
-          "enum": [
-            "CurrentRead",
-            "CurrentWrite",
-            "HistoryRead",
-            "HistoryWrite",
-            "SemanticChange",
-            "StatusWrite",
-            "TimestampWrite",
-            "NonatomicRead",
-            "NonatomicWrite",
-            "WriteFullArrayOnly"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "NodeAccessLevel",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/NodeAccessLevelNullable"
         },
         "dataType": {
           "description": "If variable the datatype of the variable.\r\n(default: null)",
           "type": "string"
         },
         "valueRank": {
-          "description": "Value rank of the variable data of a variable\r\nor variable type, otherwise null.\r\n(default: scalar = -1)",
-          "enum": [
-            "ScalarOrOneDimension",
-            "Any",
-            "Scalar",
-            "OneOrMoreDimensions",
-            "OneDimension",
-            "TwoDimensions"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "NodeValueRank",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/NodeValueRankNullable"
         },
         "arrayDimensions": {
           "description": "Array dimensions of variable or variable type.\r\n(default: empty array)",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "format": "int32",
@@ -1005,7 +1014,6 @@
         },
         "rolePermissions": {
           "description": "Role permissions",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/RolePermissionApiModel"
@@ -1013,7 +1021,6 @@
         },
         "userRolePermissions": {
           "description": "User Role permissions",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/RolePermissionApiModel"
@@ -1041,21 +1048,10 @@
           "type": "string"
         },
         "direction": {
-          "description": "Browse direction of reference",
-          "enum": [
-            "Forward",
-            "Backward",
-            "Both"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "BrowseDirection",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/BrowseDirectionNullable"
         },
         "target": {
-          "$ref": "#/definitions/NodeApiModel",
-          "description": "Target node"
+          "$ref": "#/definitions/NodeApiModel"
         }
       }
     },
@@ -1078,43 +1074,26 @@
         }
       }
     },
-    "RolePermissionApiModel": {
-      "description": "Role permission model",
-      "required": [
-        "roleId"
-      ],
+    "BrowseResponseApiModel": {
+      "description": "browse response model",
       "type": "object",
       "properties": {
-        "roleId": {
-          "description": "Identifier of the role object.",
+        "node": {
+          "$ref": "#/definitions/NodeApiModel"
+        },
+        "references": {
+          "description": "References, if included, otherwise null.",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/NodeReferenceApiModel"
+          }
+        },
+        "continuationToken": {
+          "description": "Continuation token if more results pending.",
           "type": "string"
         },
-        "permissions": {
-          "description": "Permissions assigned for the role.",
-          "enum": [
-            "Browse",
-            "ReadRolePermissions",
-            "WriteAttribute",
-            "WriteRolePermissions",
-            "WriteHistorizing",
-            "Read",
-            "Write",
-            "ReadHistory",
-            "InsertHistory",
-            "ModifyHistory",
-            "DeleteHistory",
-            "ReceiveEvents",
-            "Call",
-            "AddReference",
-            "RemoveReference",
-            "DeleteNode",
-            "AddNode"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "RolePermissions",
-            "modelAsString": false
-          }
+        "errorInfo": {
+          "$ref": "#/definitions/ServiceResultApiModel"
         }
       }
     },
@@ -1145,8 +1124,7 @@
           "type": "boolean"
         },
         "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
+          "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
@@ -1156,7 +1134,6 @@
       "properties": {
         "references": {
           "description": "References, if included, otherwise null.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/NodeReferenceApiModel"
@@ -1167,8 +1144,7 @@
           "type": "string"
         },
         "errorInfo": {
-          "$ref": "#/definitions/ServiceResultApiModel",
-          "description": "Service result in case of error"
+          "$ref": "#/definitions/ServiceResultApiModel"
         }
       }
     },
@@ -1185,10 +1161,8 @@
         },
         "browsePaths": {
           "description": "The paths to browse from node.\r\n(mandatory)",
-          "uniqueItems": false,
           "type": "array",
           "items": {
-            "uniqueItems": false,
             "type": "array",
             "items": {
               "type": "string"
@@ -1201,26 +1175,7 @@
           "type": "boolean"
         },
         "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
-        }
-      }
-    },
-    "BrowsePathResponseApiModel": {
-      "description": "Result of node browse continuation",
-      "type": "object",
-      "properties": {
-        "targets": {
-          "description": "Targets",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/NodePathTargetApiModel"
-          }
-        },
-        "errorInfo": {
-          "$ref": "#/definitions/ServiceResultApiModel",
-          "description": "Service result in case of error"
+          "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
@@ -1230,20 +1185,34 @@
       "properties": {
         "browsePath": {
           "description": "The target browse path",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "target": {
-          "$ref": "#/definitions/NodeApiModel",
-          "description": "Target node"
+          "$ref": "#/definitions/NodeApiModel"
         },
         "remainingPathIndex": {
           "format": "int32",
           "description": "Remaining index in path",
           "type": "integer"
+        }
+      }
+    },
+    "BrowsePathResponseApiModel": {
+      "description": "Result of node browse continuation",
+      "type": "object",
+      "properties": {
+        "targets": {
+          "description": "Targets",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/NodePathTargetApiModel"
+          }
+        },
+        "errorInfo": {
+          "$ref": "#/definitions/ServiceResultApiModel"
         }
       }
     },
@@ -1257,45 +1226,13 @@
         },
         "methodBrowsePath": {
           "description": "An optional component path from the node identified by\r\nMethodId to the actual method node.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
-        }
-      }
-    },
-    "MethodMetadataResponseApiModel": {
-      "description": "Method metadata query model",
-      "type": "object",
-      "properties": {
-        "objectId": {
-          "description": "Id of object that the method is a component of",
-          "type": "string"
-        },
-        "inputArguments": {
-          "description": "Input argument meta data",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/MethodMetadataArgumentApiModel"
-          }
-        },
-        "outputArguments": {
-          "description": "output argument meta data",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/MethodMetadataArgumentApiModel"
-          }
-        },
-        "errorInfo": {
-          "$ref": "#/definitions/ServiceResultApiModel",
-          "description": "Service result in case of error"
+          "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
@@ -1312,32 +1249,17 @@
           "type": "string"
         },
         "type": {
-          "$ref": "#/definitions/NodeApiModel",
-          "description": "Data type node of the argument"
+          "$ref": "#/definitions/NodeApiModel"
         },
         "defaultValue": {
           "description": "Default value",
           "type": "object"
         },
         "valueRank": {
-          "description": "Optional, scalar if not set",
-          "enum": [
-            "ScalarOrOneDimension",
-            "Any",
-            "Scalar",
-            "OneOrMoreDimensions",
-            "OneDimension",
-            "TwoDimensions"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "NodeValueRank",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/NodeValueRankNullable"
         },
         "arrayDimensions": {
           "description": "Optional, array dimension",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "format": "int32",
@@ -1346,45 +1268,30 @@
         }
       }
     },
-    "MethodCallRequestApiModel": {
-      "description": "Call request model",
+    "MethodMetadataResponseApiModel": {
+      "description": "Method metadata query model",
       "type": "object",
       "properties": {
-        "methodId": {
-          "description": "Method id of method to call.",
-          "type": "string"
-        },
         "objectId": {
-          "description": "Context of the method, i.e. an object or object type\r\nnode.",
+          "description": "Id of object that the method is a component of",
           "type": "string"
         },
-        "arguments": {
-          "description": "Arguments for the method - null means no args",
-          "uniqueItems": false,
+        "inputArguments": {
+          "description": "Input argument meta data",
           "type": "array",
           "items": {
-            "$ref": "#/definitions/MethodCallArgumentApiModel"
+            "$ref": "#/definitions/MethodMetadataArgumentApiModel"
           }
         },
-        "methodBrowsePath": {
-          "description": "An optional component path from the node identified by\r\nMethodId or from a resolved objectId to the actual\r\nmethod node.",
-          "uniqueItems": false,
+        "outputArguments": {
+          "description": "output argument meta data",
           "type": "array",
           "items": {
-            "type": "string"
+            "$ref": "#/definitions/MethodMetadataArgumentApiModel"
           }
         },
-        "objectBrowsePath": {
-          "description": "An optional component path from the node identified by\r\nObjectId to the actual object or objectType node.\r\nIf ObjectId is null, the root node (i=84) is used.",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
+        "errorInfo": {
+          "$ref": "#/definitions/ServiceResultApiModel"
         }
       }
     },
@@ -1402,21 +1309,57 @@
         }
       }
     },
+    "MethodCallRequestApiModel": {
+      "description": "Call request model",
+      "type": "object",
+      "properties": {
+        "methodId": {
+          "description": "Method id of method to call.",
+          "type": "string"
+        },
+        "objectId": {
+          "description": "Context of the method, i.e. an object or object type\r\nnode.",
+          "type": "string"
+        },
+        "arguments": {
+          "description": "Arguments for the method - null means no args",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/MethodCallArgumentApiModel"
+          }
+        },
+        "methodBrowsePath": {
+          "description": "An optional component path from the node identified by\r\nMethodId or from a resolved objectId to the actual\r\nmethod node.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "objectBrowsePath": {
+          "description": "An optional component path from the node identified by\r\nObjectId to the actual object or objectType node.\r\nIf ObjectId is null, the root node (i=84) is used.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "header": {
+          "$ref": "#/definitions/RequestHeaderApiModel"
+        }
+      }
+    },
     "MethodCallResponseApiModel": {
       "description": "Method call response model",
       "type": "object",
       "properties": {
         "results": {
           "description": "Output results",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/MethodCallArgumentApiModel"
           }
         },
         "errorInfo": {
-          "$ref": "#/definitions/ServiceResultApiModel",
-          "description": "Service result in case of error"
+          "$ref": "#/definitions/ServiceResultApiModel"
         }
       }
     },
@@ -1430,7 +1373,6 @@
         },
         "browsePath": {
           "description": "An optional path from NodeId instance to\r\nthe actual node.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "type": "string"
@@ -1441,8 +1383,7 @@
           "type": "string"
         },
         "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
+          "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
@@ -1479,8 +1420,58 @@
           "type": "string"
         },
         "errorInfo": {
-          "$ref": "#/definitions/ServiceResultApiModel",
-          "description": "Service result in case of error"
+          "$ref": "#/definitions/ServiceResultApiModel"
+        }
+      }
+    },
+    "NodeAttribute": {
+      "enum": [
+        "NodeClass",
+        "BrowseName",
+        "DisplayName",
+        "Description",
+        "WriteMask",
+        "UserWriteMask",
+        "IsAbstract",
+        "Symmetric",
+        "InverseName",
+        "ContainsNoLoops",
+        "EventNotifier",
+        "Value",
+        "DataType",
+        "ValueRank",
+        "ArrayDimensions",
+        "AccessLevel",
+        "UserAccessLevel",
+        "MinimumSamplingInterval",
+        "Historizing",
+        "Executable",
+        "UserExecutable",
+        "DataTypeDefinition",
+        "RolePermissions",
+        "UserRolePermissions",
+        "AccessRestrictions"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "NodeAttribute",
+        "modelAsString": false
+      }
+    },
+    "AttributeReadRequestApiModel": {
+      "description": "Attribute to read",
+      "required": [
+        "attribute",
+        "nodeId"
+      ],
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "description": "Node to read from or write to (mandatory)",
+          "type": "string"
+        },
+        "attribute": {
+          "$ref": "#/definitions/NodeAttribute"
         }
       }
     },
@@ -1493,78 +1484,13 @@
       "properties": {
         "attributes": {
           "description": "Attributes to read",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/AttributeReadRequestApiModel"
           }
         },
         "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
-        }
-      }
-    },
-    "AttributeReadRequestApiModel": {
-      "description": "Attribute to read",
-      "required": [
-        "nodeId",
-        "attribute"
-      ],
-      "type": "object",
-      "properties": {
-        "nodeId": {
-          "description": "Node to read from or write to (mandatory)",
-          "type": "string"
-        },
-        "attribute": {
-          "description": "Attribute to read or write",
-          "enum": [
-            "NodeClass",
-            "BrowseName",
-            "DisplayName",
-            "Description",
-            "WriteMask",
-            "UserWriteMask",
-            "IsAbstract",
-            "Symmetric",
-            "InverseName",
-            "ContainsNoLoops",
-            "EventNotifier",
-            "Value",
-            "DataType",
-            "ValueRank",
-            "ArrayDimensions",
-            "AccessLevel",
-            "UserAccessLevel",
-            "MinimumSamplingInterval",
-            "Historizing",
-            "Executable",
-            "UserExecutable",
-            "DataTypeDefinition",
-            "RolePermissions",
-            "UserRolePermissions",
-            "AccessRestrictions"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "NodeAttribute",
-            "modelAsString": false
-          }
-        }
-      }
-    },
-    "ReadResponseApiModel": {
-      "description": "Result of attribute reads",
-      "type": "object",
-      "properties": {
-        "results": {
-          "description": "All results of attribute reads",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/AttributeReadResponseApiModel"
-          }
+          "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
@@ -1577,8 +1503,20 @@
           "type": "object"
         },
         "errorInfo": {
-          "$ref": "#/definitions/ServiceResultApiModel",
-          "description": "Service result in case of error"
+          "$ref": "#/definitions/ServiceResultApiModel"
+        }
+      }
+    },
+    "ReadResponseApiModel": {
+      "description": "Result of attribute reads",
+      "type": "object",
+      "properties": {
+        "results": {
+          "description": "All results of attribute reads",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/AttributeReadResponseApiModel"
+          }
         }
       }
     },
@@ -1632,7 +1570,6 @@
           "readOnly": true
         },
         "$metadata": {
-          "description": "Optional meta data.",
           "type": "object",
           "additionalProperties": {
             "type": "string"
@@ -1654,7 +1591,6 @@
         },
         "browsePath": {
           "description": "An optional path from NodeId instance to\r\nthe actual node.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "type": "string"
@@ -1673,8 +1609,7 @@
           "type": "string"
         },
         "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
+          "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
@@ -1683,8 +1618,29 @@
       "type": "object",
       "properties": {
         "errorInfo": {
-          "$ref": "#/definitions/ServiceResultApiModel",
-          "description": "Service result in case of error"
+          "$ref": "#/definitions/ServiceResultApiModel"
+        }
+      }
+    },
+    "AttributeWriteRequestApiModel": {
+      "description": "Attribute and value to write to it",
+      "required": [
+        "attribute",
+        "nodeId",
+        "value"
+      ],
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "description": "Node to write to (mandatory)",
+          "type": "string"
+        },
+        "attribute": {
+          "$ref": "#/definitions/NodeAttribute"
+        },
+        "value": {
+          "description": "Value to write (mandatory)",
+          "type": "object"
         }
       }
     },
@@ -1697,69 +1653,22 @@
       "properties": {
         "attributes": {
           "description": "Attributes to update",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/AttributeWriteRequestApiModel"
           }
         },
         "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
+          "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
-    "AttributeWriteRequestApiModel": {
-      "description": "Attribute and value to write to it",
-      "required": [
-        "nodeId",
-        "attribute",
-        "value"
-      ],
+    "AttributeWriteResponseApiModel": {
+      "description": "Attribute write result",
       "type": "object",
       "properties": {
-        "nodeId": {
-          "description": "Node to write to (mandatory)",
-          "type": "string"
-        },
-        "attribute": {
-          "description": "Attribute to write (mandatory)",
-          "enum": [
-            "NodeClass",
-            "BrowseName",
-            "DisplayName",
-            "Description",
-            "WriteMask",
-            "UserWriteMask",
-            "IsAbstract",
-            "Symmetric",
-            "InverseName",
-            "ContainsNoLoops",
-            "EventNotifier",
-            "Value",
-            "DataType",
-            "ValueRank",
-            "ArrayDimensions",
-            "AccessLevel",
-            "UserAccessLevel",
-            "MinimumSamplingInterval",
-            "Historizing",
-            "Executable",
-            "UserExecutable",
-            "DataTypeDefinition",
-            "RolePermissions",
-            "UserRolePermissions",
-            "AccessRestrictions"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "NodeAttribute",
-            "modelAsString": false
-          }
-        },
-        "value": {
-          "description": "Value to write (mandatory)",
-          "type": "object"
+        "errorInfo": {
+          "$ref": "#/definitions/ServiceResultApiModel"
         }
       }
     },
@@ -1769,33 +1678,22 @@
       "properties": {
         "results": {
           "description": "All results of attribute writes",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/AttributeWriteResponseApiModel"
           }
         }
       }
-    },
-    "AttributeWriteResponseApiModel": {
-      "description": "Attribute write result",
-      "type": "object",
-      "properties": {
-        "errorInfo": {
-          "$ref": "#/definitions/ServiceResultApiModel",
-          "description": "Service result in case of error"
-        }
-      }
     }
   },
   "securityDefinitions": {
     "oauth2": {
+      "type": "oauth2",
       "flow": "implicit",
       "authorizationUrl": "https://login.microsoftonline.com/6e660ce4-d51a-4585-80c6-58035e212354/oauth2/authorize",
       "scopes": {
         "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication": "Access http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication operations"
       },
-      "type": "oauth2",
       "description": "Implicit oauth2 token flow."
     }
   },

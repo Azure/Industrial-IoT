@@ -327,13 +327,99 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
             CancellationToken ct = default);
 
         /// <summary>
-        /// Subscribe client to discovery progress from supervisor
+        /// Get discoverer
         /// </summary>
-        /// <param name="supervisorId"></param>
+        /// <param name="discovererId"></param>
+        /// <param name="onlyServerState"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<DiscovererApiModel> GetDiscovererAsync(
+            string discovererId, bool? onlyServerState = null,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Update discoverer including config updates.
+        /// </summary>
+        /// <param name="discovererId"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task UpdateDiscovererAsync(string discovererId,
+            DiscovererUpdateApiModel request,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// List all discoverers
+        /// </summary>
+        /// <param name="continuation"></param>
+        /// <param name="onlyServerState"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<DiscovererListApiModel> ListDiscoverersAsync(
+            string continuation = null, bool? onlyServerState = null,
+            int? pageSize = null, CancellationToken ct = default);
+
+        /// <summary>
+        /// Find discoverers based on specified criteria. Pass
+        /// continuation token if any returned to ListDiscoverers to
+        /// retrieve remaining items.
+        /// </summary>
+        /// <param name="query"></param>
+        /// <param name="onlyServerState"></param>
+        /// <param name="pageSize"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<DiscovererListApiModel> QueryDiscoverersAsync(
+            DiscovererQueryApiModel query, bool? onlyServerState = null,
+            int? pageSize = null, CancellationToken ct = default);
+
+        /// <summary>
+        /// Subscribe client to discoverer events
+        /// </summary>
         /// <param name="userId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task SubscribeDiscoveryProgressBySupervisorsIdAsync(string supervisorId,
+        Task SubscribeDiscovererEventsAsync(string userId,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Unsubscribe client from discoverer events
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task UnsubscribeDiscovererEventsAsync(string userId,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Subscribe client to discovery progress from discoverer
+        /// </summary>
+        /// <param name="discovererId"></param>
+        /// <param name="userId"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task SubscribeDiscoveryProgressByDiscovererIdAsync(string discovererId,
+            string userId, CancellationToken ct = default);
+
+        /// <summary>
+        /// Unsubscribe client from discovery progress for specified request
+        /// </summary>
+        /// <param name="requestId"></param>
+        /// <param name="userId"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task UnsubscribeDiscoveryProgressByRequestIdAsync(string requestId,
+            string userId, CancellationToken ct = default);
+
+        /// <summary>
+        /// Unsubscribe client from discovery events
+        /// </summary>
+        /// <param name="discovererId"></param>
+        /// <param name="userId"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task UnsubscribeDiscoveryProgressByDiscovererIdAsync(string discovererId,
             string userId, CancellationToken ct = default);
 
         /// <summary>
@@ -349,34 +435,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// <summary>
         /// Enable or disable discovery with optional configuration
         /// </summary>
-        /// <param name="supervisorId"></param>
+        /// <param name="discovererId"></param>
         /// <param name="mode"></param>
         /// <param name="config"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task SetDiscoveryModeAsync(string supervisorId,
+        Task SetDiscoveryModeAsync(string discovererId,
             DiscoveryMode mode, DiscoveryConfigApiModel config = null,
             CancellationToken ct = default);
-
-        /// <summary>
-        /// Unsubscribe client from discovery progress for specified request
-        /// </summary>
-        /// <param name="requestId"></param>
-        /// <param name="userId"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task UnsubscribeDiscoveryProgressByRequestIdAsync(string requestId,
-            string userId, CancellationToken ct = default);
-
-        /// <summary>
-        /// Unsubscribe client from discovery events
-        /// </summary>
-        /// <param name="supervisorId"></param>
-        /// <param name="userId"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task UnsubscribeDiscoveryProgressBySupervisorsIdAsync(string supervisorId,
-            string userId, CancellationToken ct = default);
 
         /// <summary>
         /// Get gateway
@@ -450,7 +516,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// <param name="gatewayId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<GatewayApiModel> GetGatewayAsync(
+        Task<GatewayInfoApiModel> GetGatewayAsync(
             string gatewayId, CancellationToken ct = default);
 
         /// <summary>

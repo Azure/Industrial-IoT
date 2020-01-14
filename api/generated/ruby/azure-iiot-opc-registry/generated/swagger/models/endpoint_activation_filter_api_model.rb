@@ -23,10 +23,8 @@ module azure.iiot.opc.registry
       # If set to null, all policies are in scope.
       attr_accessor :security_policies
 
-      # @return [SecurityMode] Security mode level to activate. If null,
-      # then Microsoft.Azure.IIoT.OpcUa.Core.Models.SecurityMode.Best is
-      # assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt',
-      # 'None'
+      # @return [SecurityMode] Possible values include: 'Best', 'Sign',
+      # 'SignAndEncrypt', 'None'
       attr_accessor :security_mode
 
 

@@ -35,7 +35,7 @@ module azure.iiot.opc.twin
       # @return [String] Index range to write
       attr_accessor :index_range
 
-      # @return [RequestHeaderApiModel] Optional request header
+      # @return [RequestHeaderApiModel]
       attr_accessor :header
 
 

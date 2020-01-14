@@ -17,21 +17,16 @@ class SupervisorQueryApiModel(Model):
 
     :param site_id: Site of the supervisor
     :type site_id: str
-    :param discovery: Discovery mode of supervisor. Possible values include:
-     'Off', 'Local', 'Network', 'Fast', 'Scan'
-    :type discovery: str or ~azure-iiot-opc-registry.models.DiscoveryMode
     :param connected: Included connected or disconnected
     :type connected: bool
     """
 
     _attribute_map = {
         'site_id': {'key': 'siteId', 'type': 'str'},
-        'discovery': {'key': 'discovery', 'type': 'DiscoveryMode'},
         'connected': {'key': 'connected', 'type': 'bool'},
     }
 
-    def __init__(self, site_id=None, discovery=None, connected=None):
+    def __init__(self, site_id=None, connected=None):
         super(SupervisorQueryApiModel, self).__init__()
         self.site_id = site_id
-        self.discovery = discovery
         self.connected = connected

@@ -70,9 +70,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Supervisor or site the application belongs to.
         /// </summary>
-        [JsonProperty(PropertyName = "siteOrSupervisorId",
+        [JsonProperty(PropertyName = "siteOrGatewayId",
            NullValueHandling = NullValueHandling.Ignore)]
-        public string SiteOrSupervisorId { get; set; }
+        public string SiteOrGatewayId { get; set; }
 
         /// <summary>
         /// Whether to include applications that were soft deleted
@@ -80,6 +80,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         [JsonProperty(PropertyName = "includeNotSeenSince",
             NullValueHandling = NullValueHandling.Ignore)]
         public bool? IncludeNotSeenSince { get; set; }
+
+        /// <summary>
+        /// Discoverer id to filter with
+        /// </summary>
+        [JsonProperty(PropertyName = "discovererId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string DiscovererId { get; set; }
     }
 }
 

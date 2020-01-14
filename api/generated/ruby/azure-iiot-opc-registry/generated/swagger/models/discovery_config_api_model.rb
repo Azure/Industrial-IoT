@@ -43,8 +43,7 @@ module azure.iiot.opc.registry
       # @return [Array<String>] List of locales to filter with during discovery
       attr_accessor :locales
 
-      # @return [EndpointActivationFilterApiModel] Activate all twins with this
-      # filter during onboarding.
+      # @return [EndpointActivationFilterApiModel]
       attr_accessor :activation_filter
 
 

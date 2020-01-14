@@ -24,51 +24,43 @@ const models = require('./models');
 /**
  * @summary Delete value history at specified times
  *
- * Delete value history using historic access.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Delete value history using historic access. The endpoint must be activated
+ * and connected and the module client and server must trust each other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The history update request
+ * @param {object} body The history update request
  *
- * @param {string} [request.nodeId] Node to update
+ * @param {string} [body.nodeId] Node to update
  *
- * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * @param {array} [body.browsePath] An optional path from NodeId instance to
  * the actual node.
  *
- * @param {object} request.details The HistoryUpdateDetailsType extension
- * object
- * encoded as json Variant and containing the tunneled
- * update request for the Historian server. The value
- * is updated at edge using above node address.
+ * @param {object} body.details
  *
- * @param {array} request.details.reqTimes The timestamps to delete
+ * @param {array} body.details.reqTimes The timestamps to delete
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -90,7 +82,7 @@ const models = require('./models');
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _historyDeleteValuesAtTimes(endpointId, request, options, callback) {
+function _historyDeleteValuesAtTimes(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -105,8 +97,8 @@ function _historyDeleteValuesAtTimes(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -135,14 +127,14 @@ function _historyDeleteValuesAtTimes(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['DeleteValuesAtTimesDetailsApiModelHistoryUpdateRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -202,53 +194,45 @@ function _historyDeleteValuesAtTimes(endpointId, request, options, callback) {
 /**
  * @summary Delete historic values
  *
- * Delete historic values using historic access.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Delete historic values using historic access. The endpoint must be activated
+ * and connected and the module client and server must trust each other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The history update request
+ * @param {object} body The history update request
  *
- * @param {string} [request.nodeId] Node to update
+ * @param {string} [body.nodeId] Node to update
  *
- * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * @param {array} [body.browsePath] An optional path from NodeId instance to
  * the actual node.
  *
- * @param {object} request.details The HistoryUpdateDetailsType extension
- * object
- * encoded as json Variant and containing the tunneled
- * update request for the Historian server. The value
- * is updated at edge using above node address.
+ * @param {object} body.details
  *
- * @param {date} [request.details.startTime] Start time
+ * @param {date} [body.details.startTime] Start time
  *
- * @param {date} [request.details.endTime] End time to delete until
+ * @param {date} [body.details.endTime] End time to delete until
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -270,7 +254,7 @@ function _historyDeleteValuesAtTimes(endpointId, request, options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _historyDeleteValues(endpointId, request, options, callback) {
+function _historyDeleteValues(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -285,8 +269,8 @@ function _historyDeleteValues(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -315,14 +299,14 @@ function _historyDeleteValues(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['DeleteValuesDetailsApiModelHistoryUpdateRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -382,53 +366,45 @@ function _historyDeleteValues(endpointId, request, options, callback) {
 /**
  * @summary Delete historic values
  *
- * Delete historic values using historic access.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Delete historic values using historic access. The endpoint must be activated
+ * and connected and the module client and server must trust each other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The history update request
+ * @param {object} body The history update request
  *
- * @param {string} [request.nodeId] Node to update
+ * @param {string} [body.nodeId] Node to update
  *
- * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * @param {array} [body.browsePath] An optional path from NodeId instance to
  * the actual node.
  *
- * @param {object} request.details The HistoryUpdateDetailsType extension
- * object
- * encoded as json Variant and containing the tunneled
- * update request for the Historian server. The value
- * is updated at edge using above node address.
+ * @param {object} body.details
  *
- * @param {date} [request.details.startTime] Start time
+ * @param {date} [body.details.startTime] Start time
  *
- * @param {date} [request.details.endTime] End time to delete until
+ * @param {date} [body.details.endTime] End time to delete until
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -450,7 +426,7 @@ function _historyDeleteValues(endpointId, request, options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _historyDeleteModifiedValues(endpointId, request, options, callback) {
+function _historyDeleteModifiedValues(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -465,8 +441,8 @@ function _historyDeleteModifiedValues(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -495,14 +471,14 @@ function _historyDeleteModifiedValues(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['DeleteModifiedValuesDetailsApiModelHistoryUpdateRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -562,51 +538,43 @@ function _historyDeleteModifiedValues(endpointId, request, options, callback) {
 /**
  * @summary Delete historic events
  *
- * Delete historic events using historic access.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Delete historic events using historic access. The endpoint must be activated
+ * and connected and the module client and server must trust each other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The history update request
+ * @param {object} body The history update request
  *
- * @param {string} [request.nodeId] Node to update
+ * @param {string} [body.nodeId] Node to update
  *
- * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * @param {array} [body.browsePath] An optional path from NodeId instance to
  * the actual node.
  *
- * @param {object} request.details The HistoryUpdateDetailsType extension
- * object
- * encoded as json Variant and containing the tunneled
- * update request for the Historian server. The value
- * is updated at edge using above node address.
+ * @param {object} body.details
  *
- * @param {array} request.details.eventIds Events to delete
+ * @param {array} body.details.eventIds Events to delete
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -628,7 +596,7 @@ function _historyDeleteModifiedValues(endpointId, request, options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _historyDeleteEvents(endpointId, request, options, callback) {
+function _historyDeleteEvents(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -643,8 +611,8 @@ function _historyDeleteEvents(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -673,14 +641,14 @@ function _historyDeleteEvents(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['DeleteEventsDetailsApiModelHistoryUpdateRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -740,54 +708,50 @@ function _historyDeleteEvents(endpointId, request, options, callback) {
 /**
  * @summary Read history using json details
  *
- * Read node history if available using historic access.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Read node history if available using historic access. The endpoint must be
+ * activated and connected and the module client and server must trust each
+ * other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The history read request
+ * @param {object} body The history read request
  *
- * @param {string} [request.nodeId] Node to read from (mandatory)
+ * @param {string} [body.nodeId] Node to read from (mandatory)
  *
- * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * @param {array} [body.browsePath] An optional path from NodeId instance to
  * the actual node.
  *
- * @param {object} [request.details] The HistoryReadDetailsType extension
- * object
+ * @param {object} [body.details] The HistoryReadDetailsType extension object
  * encoded in json and containing the tunneled
  * Historian reader request.
  *
- * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+ * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
  * slices
  * out of a matrix or 0:1 for the first item in
  * an array, string or bytestring.
  * See 7.22 of part 4: NumericRange.
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -802,14 +766,14 @@ function _historyDeleteEvents(endpointId, request, options, callback) {
  *                      {Error}  err        - The Error object if an error occurred, null otherwise.
  *
  *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link HistoryReadResponseApiModelJToken} for more
+ *                      See {@link JTokenHistoryReadResponseApiModel} for more
  *                      information.
  *
  *                      {object} [request]  - The HTTP Request object if an error did not occur.
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _historyReadRaw(endpointId, request, options, callback) {
+function _historyReadRaw(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -824,8 +788,8 @@ function _historyReadRaw(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -854,14 +818,14 @@ function _historyReadRaw(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['HistoryReadRequestApiModelJToken']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['JTokenHistoryReadRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -903,7 +867,7 @@ function _historyReadRaw(endpointId, request, options, callback) {
         parsedResponse = JSON.parse(responseBody);
         result = JSON.parse(responseBody);
         if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['HistoryReadResponseApiModelJToken']().mapper();
+          let resultMapper = new client.models['JTokenHistoryReadResponseApiModel']().mapper();
           result = client.deserialize(resultMapper, parsedResponse, 'result');
         }
       } catch (error) {
@@ -921,44 +885,41 @@ function _historyReadRaw(endpointId, request, options, callback) {
 /**
  * @summary Read next batch of history as json
  *
- * Read next batch of node history values using historic access.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Read next batch of node history values using historic access. The endpoint
+ * must be activated and connected and the module client and server must trust
+ * each other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The history read next request
+ * @param {object} body The history read next request
  *
- * @param {string} request.continuationToken Continuation token to continue
+ * @param {string} body.continuationToken Continuation token to continue
  * reading more
  * results.
  *
- * @param {boolean} [request.abort] Abort reading after this read
+ * @param {boolean} [body.abort] Abort reading after this read
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -973,14 +934,14 @@ function _historyReadRaw(endpointId, request, options, callback) {
  *                      {Error}  err        - The Error object if an error occurred, null otherwise.
  *
  *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link HistoryReadNextResponseApiModelJToken} for
+ *                      See {@link JTokenHistoryReadNextResponseApiModel} for
  *                      more information.
  *
  *                      {object} [request]  - The HTTP Request object if an error did not occur.
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _historyReadRawNext(endpointId, request, options, callback) {
+function _historyReadRawNext(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -995,8 +956,8 @@ function _historyReadRawNext(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -1025,14 +986,14 @@ function _historyReadRawNext(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
+    if (body !== null && body !== undefined) {
       let requestModelMapper = new client.models['HistoryReadNextRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -1074,7 +1035,7 @@ function _historyReadRawNext(endpointId, request, options, callback) {
         parsedResponse = JSON.parse(responseBody);
         result = JSON.parse(responseBody);
         if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['HistoryReadNextResponseApiModelJToken']().mapper();
+          let resultMapper = new client.models['JTokenHistoryReadNextResponseApiModel']().mapper();
           result = client.deserialize(resultMapper, parsedResponse, 'result');
         }
       } catch (error) {
@@ -1092,49 +1053,44 @@ function _historyReadRawNext(endpointId, request, options, callback) {
 /**
  * @summary Update node history using raw json
  *
- * Update node history using historic access.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Update node history using historic access. The endpoint must be activated
+ * and connected and the module client and server must trust each other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The history update request
+ * @param {object} body The history update request
  *
- * @param {string} [request.nodeId] Node to update
+ * @param {string} [body.nodeId] Node to update
  *
- * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * @param {array} [body.browsePath] An optional path from NodeId instance to
  * the actual node.
  *
- * @param {object} request.details The HistoryUpdateDetailsType extension
- * object
+ * @param {object} body.details The HistoryUpdateDetailsType extension object
  * encoded as json Variant and containing the tunneled
  * update request for the Historian server. The value
  * is updated at edge using above node address.
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -1156,7 +1112,7 @@ function _historyReadRawNext(endpointId, request, options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _historyUpdateRaw(endpointId, request, options, callback) {
+function _historyUpdateRaw(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -1171,8 +1127,8 @@ function _historyUpdateRaw(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -1201,14 +1157,14 @@ function _historyUpdateRaw(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['HistoryUpdateRequestApiModelJToken']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['JTokenHistoryUpdateRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -1268,51 +1224,43 @@ function _historyUpdateRaw(endpointId, request, options, callback) {
 /**
  * @summary Insert historic values
  *
- * Insert historic values using historic access.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Insert historic values using historic access. The endpoint must be activated
+ * and connected and the module client and server must trust each other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The history insert request
+ * @param {object} body The history insert request
  *
- * @param {string} [request.nodeId] Node to update
+ * @param {string} [body.nodeId] Node to update
  *
- * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * @param {array} [body.browsePath] An optional path from NodeId instance to
  * the actual node.
  *
- * @param {object} request.details The HistoryUpdateDetailsType extension
- * object
- * encoded as json Variant and containing the tunneled
- * update request for the Historian server. The value
- * is updated at edge using above node address.
+ * @param {object} body.details
  *
- * @param {array} request.details.values Values to insert
+ * @param {array} body.details.values Values to insert
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -1334,7 +1282,7 @@ function _historyUpdateRaw(endpointId, request, options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _historyInsertValues(endpointId, request, options, callback) {
+function _historyInsertValues(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -1349,8 +1297,8 @@ function _historyInsertValues(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -1379,14 +1327,14 @@ function _historyInsertValues(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['HistoryUpdateRequestApiModelInsertValuesDetailsApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['InsertValuesDetailsApiModelHistoryUpdateRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -1446,54 +1394,52 @@ function _historyInsertValues(endpointId, request, options, callback) {
 /**
  * @summary Insert historic events
  *
- * Insert historic events using historic access.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Insert historic events using historic access. The endpoint must be activated
+ * and connected and the module client and server must trust each other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The history insert request
+ * @param {object} body The history insert request
  *
- * @param {string} [request.nodeId] Node to update
+ * @param {string} [body.nodeId] Node to update
  *
- * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * @param {array} [body.browsePath] An optional path from NodeId instance to
  * the actual node.
  *
- * @param {object} request.details The HistoryUpdateDetailsType extension
- * object
- * encoded as json Variant and containing the tunneled
- * update request for the Historian server. The value
- * is updated at edge using above node address.
+ * @param {object} body.details
  *
- * @param {object} [request.details.filter] The filter to use to select the
- * events
+ * @param {object} [body.details.filter]
  *
- * @param {array} request.details.events The new events to insert
+ * @param {array} [body.details.filter.selectClauses] Select statements
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.details.filter.whereClause]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {array} [body.details.filter.whereClause.elements] The flat list of
+ * elements in the filter AST
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {array} body.details.events The new events to insert
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header]
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {object} [body.header.elevation]
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
+ *
+ * @param {object} [body.header.diagnostics]
+ *
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
+ *
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -1515,7 +1461,7 @@ function _historyInsertValues(endpointId, request, options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _historyInsertEvents(endpointId, request, options, callback) {
+function _historyInsertEvents(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -1530,8 +1476,8 @@ function _historyInsertEvents(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -1560,14 +1506,14 @@ function _historyInsertEvents(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['HistoryUpdateRequestApiModelInsertEventsDetailsApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['InsertEventsDetailsApiModelHistoryUpdateRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -1627,63 +1573,63 @@ function _historyInsertEvents(endpointId, request, options, callback) {
 /**
  * @summary Read historic events
  *
- * Read historic events of a node if available using historic access.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Read historic events of a node if available using historic access. The
+ * endpoint must be activated and connected and the module client and server
+ * must trust each other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The history read request
+ * @param {object} body The history read request
  *
- * @param {string} [request.nodeId] Node to read from (mandatory)
+ * @param {string} [body.nodeId] Node to read from (mandatory)
  *
- * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * @param {array} [body.browsePath] An optional path from NodeId instance to
  * the actual node.
  *
- * @param {object} [request.details] The HistoryReadDetailsType extension
- * object
- * encoded in json and containing the tunneled
- * Historian reader request.
+ * @param {object} [body.details]
  *
- * @param {date} [request.details.startTime] Start time to read from
+ * @param {date} [body.details.startTime] Start time to read from
  *
- * @param {date} [request.details.endTime] End time to read to
+ * @param {date} [body.details.endTime] End time to read to
  *
- * @param {number} [request.details.numEvents] Number of events to read
+ * @param {number} [body.details.numEvents] Number of events to read
  *
- * @param {object} [request.details.filter] The filter to use to select the
- * event fields
+ * @param {object} [body.details.filter]
  *
- * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+ * @param {array} [body.details.filter.selectClauses] Select statements
+ *
+ * @param {object} [body.details.filter.whereClause]
+ *
+ * @param {array} [body.details.filter.whereClause.elements] The flat list of
+ * elements in the filter AST
+ *
+ * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
  * slices
  * out of a matrix or 0:1 for the first item in
  * an array, string or bytestring.
  * See 7.22 of part 4: NumericRange.
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -1699,14 +1645,14 @@ function _historyInsertEvents(endpointId, request, options, callback) {
  *
  *                      {object} [result]   - The deserialized result object if an error did not occur.
  *                      See {@link
- *                      HistoryReadResponseApiModelHistoricEventApiModel} for
+ *                      HistoricEventApiModelHistoryReadResponseApiModel} for
  *                      more information.
  *
  *                      {object} [request]  - The HTTP Request object if an error did not occur.
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _historyReadEvents(endpointId, request, options, callback) {
+function _historyReadEvents(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -1721,8 +1667,8 @@ function _historyReadEvents(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -1751,14 +1697,14 @@ function _historyReadEvents(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['HistoryReadRequestApiModelReadEventsDetailsApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['ReadEventsDetailsApiModelHistoryReadRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -1800,7 +1746,7 @@ function _historyReadEvents(endpointId, request, options, callback) {
         parsedResponse = JSON.parse(responseBody);
         result = JSON.parse(responseBody);
         if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['HistoryReadResponseApiModelHistoricEventApiModel']().mapper();
+          let resultMapper = new client.models['HistoricEventApiModelHistoryReadResponseApiModel']().mapper();
           result = client.deserialize(resultMapper, parsedResponse, 'result');
         }
       } catch (error) {
@@ -1818,44 +1764,41 @@ function _historyReadEvents(endpointId, request, options, callback) {
 /**
  * @summary Read next batch of historic events
  *
- * Read next batch of historic events of a node using historic access.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Read next batch of historic events of a node using historic access. The
+ * endpoint must be activated and connected and the module client and server
+ * must trust each other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The history read next request
+ * @param {object} body The history read next request
  *
- * @param {string} request.continuationToken Continuation token to continue
+ * @param {string} body.continuationToken Continuation token to continue
  * reading more
  * results.
  *
- * @param {boolean} [request.abort] Abort reading after this read
+ * @param {boolean} [body.abort] Abort reading after this read
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -1871,14 +1814,14 @@ function _historyReadEvents(endpointId, request, options, callback) {
  *
  *                      {object} [result]   - The deserialized result object if an error did not occur.
  *                      See {@link
- *                      HistoryReadNextResponseApiModelHistoricEventApiModel}
+ *                      HistoricEventApiModelHistoryReadNextResponseApiModel}
  *                      for more information.
  *
  *                      {object} [request]  - The HTTP Request object if an error did not occur.
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _historyReadEventsNext(endpointId, request, options, callback) {
+function _historyReadEventsNext(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -1893,8 +1836,8 @@ function _historyReadEventsNext(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -1923,14 +1866,14 @@ function _historyReadEventsNext(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
+    if (body !== null && body !== undefined) {
       let requestModelMapper = new client.models['HistoryReadNextRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -1972,7 +1915,7 @@ function _historyReadEventsNext(endpointId, request, options, callback) {
         parsedResponse = JSON.parse(responseBody);
         result = JSON.parse(responseBody);
         if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['HistoryReadNextResponseApiModelHistoricEventApiModel']().mapper();
+          let resultMapper = new client.models['HistoricEventApiModelHistoryReadNextResponseApiModel']().mapper();
           result = client.deserialize(resultMapper, parsedResponse, 'result');
         }
       } catch (error) {
@@ -1991,71 +1934,65 @@ function _historyReadEventsNext(endpointId, request, options, callback) {
  * @summary Read historic processed values at specified times
  *
  * Read processed history values of a node if available using historic access.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * The endpoint must be activated and connected and the module client and
+ * server must trust each other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The history read request
+ * @param {object} body The history read request
  *
- * @param {string} [request.nodeId] Node to read from (mandatory)
+ * @param {string} [body.nodeId] Node to read from (mandatory)
  *
- * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * @param {array} [body.browsePath] An optional path from NodeId instance to
  * the actual node.
  *
- * @param {object} [request.details] The HistoryReadDetailsType extension
- * object
- * encoded in json and containing the tunneled
- * Historian reader request.
+ * @param {object} [body.details]
  *
- * @param {date} [request.details.startTime] Beginning of period to read. Set
- * to null
+ * @param {date} [body.details.startTime] Beginning of period to read. Set to
+ * null
  * if no specific start time is specified.
  *
- * @param {date} [request.details.endTime] End of period to read. Set to null
- * if no
+ * @param {date} [body.details.endTime] End of period to read. Set to null if
+ * no
  * specific end time is specified.
  *
- * @param {number} [request.details.numValues] The maximum number of values
+ * @param {number} [body.details.numValues] The maximum number of values
  * returned for any Node
  * over the time range. If only one time is specified,
  * the time range shall extend to return this number
  * of values. 0 or null indicates that there is no
  * maximum.
  *
- * @param {boolean} [request.details.returnBounds] Whether to return the
- * bounding values or not.
+ * @param {boolean} [body.details.returnBounds] Whether to return the bounding
+ * values or not.
  *
- * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+ * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
  * slices
  * out of a matrix or 0:1 for the first item in
  * an array, string or bytestring.
  * See 7.22 of part 4: NumericRange.
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -2071,14 +2008,14 @@ function _historyReadEventsNext(endpointId, request, options, callback) {
  *
  *                      {object} [result]   - The deserialized result object if an error did not occur.
  *                      See {@link
- *                      HistoryReadResponseApiModelHistoricValueApiModel} for
+ *                      HistoricValueApiModelHistoryReadResponseApiModel} for
  *                      more information.
  *
  *                      {object} [request]  - The HTTP Request object if an error did not occur.
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _historyReadValues(endpointId, request, options, callback) {
+function _historyReadValues(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -2093,8 +2030,8 @@ function _historyReadValues(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -2123,14 +2060,14 @@ function _historyReadValues(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['HistoryReadRequestApiModelReadValuesDetailsApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['ReadValuesDetailsApiModelHistoryReadRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -2172,7 +2109,7 @@ function _historyReadValues(endpointId, request, options, callback) {
         parsedResponse = JSON.parse(responseBody);
         result = JSON.parse(responseBody);
         if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['HistoryReadResponseApiModelHistoricValueApiModel']().mapper();
+          let resultMapper = new client.models['HistoricValueApiModelHistoryReadResponseApiModel']().mapper();
           result = client.deserialize(resultMapper, parsedResponse, 'result');
         }
       } catch (error) {
@@ -2190,59 +2127,52 @@ function _historyReadValues(endpointId, request, options, callback) {
 /**
  * @summary Read historic values at specified times
  *
- * Read historic values of a node if available using historic access.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Read historic values of a node if available using historic access. The
+ * endpoint must be activated and connected and the module client and server
+ * must trust each other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The history read request
+ * @param {object} body The history read request
  *
- * @param {string} [request.nodeId] Node to read from (mandatory)
+ * @param {string} [body.nodeId] Node to read from (mandatory)
  *
- * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * @param {array} [body.browsePath] An optional path from NodeId instance to
  * the actual node.
  *
- * @param {object} [request.details] The HistoryReadDetailsType extension
- * object
- * encoded in json and containing the tunneled
- * Historian reader request.
+ * @param {object} [body.details]
  *
- * @param {array} request.details.reqTimes Requested datums
+ * @param {array} body.details.reqTimes Requested datums
  *
- * @param {boolean} [request.details.useSimpleBounds] Whether to use simple
- * bounds
+ * @param {boolean} [body.details.useSimpleBounds] Whether to use simple bounds
  *
- * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+ * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
  * slices
  * out of a matrix or 0:1 for the first item in
  * an array, string or bytestring.
  * See 7.22 of part 4: NumericRange.
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -2258,14 +2188,14 @@ function _historyReadValues(endpointId, request, options, callback) {
  *
  *                      {object} [result]   - The deserialized result object if an error did not occur.
  *                      See {@link
- *                      HistoryReadResponseApiModelHistoricValueApiModel} for
+ *                      HistoricValueApiModelHistoryReadResponseApiModel} for
  *                      more information.
  *
  *                      {object} [request]  - The HTTP Request object if an error did not occur.
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _historyReadValuesAtTimes(endpointId, request, options, callback) {
+function _historyReadValuesAtTimes(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -2280,8 +2210,8 @@ function _historyReadValuesAtTimes(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -2310,14 +2240,14 @@ function _historyReadValuesAtTimes(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['ReadValuesAtTimesDetailsApiModelHistoryReadRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -2359,7 +2289,7 @@ function _historyReadValuesAtTimes(endpointId, request, options, callback) {
         parsedResponse = JSON.parse(responseBody);
         result = JSON.parse(responseBody);
         if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['HistoryReadResponseApiModelHistoricValueApiModel']().mapper();
+          let resultMapper = new client.models['HistoricValueApiModelHistoryReadResponseApiModel']().mapper();
           result = client.deserialize(resultMapper, parsedResponse, 'result');
         }
       } catch (error) {
@@ -2378,83 +2308,74 @@ function _historyReadValuesAtTimes(endpointId, request, options, callback) {
  * @summary Read historic processed values at specified times
  *
  * Read processed history values of a node if available using historic access.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * The endpoint must be activated and connected and the module client and
+ * server must trust each other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The history read request
+ * @param {object} body The history read request
  *
- * @param {string} [request.nodeId] Node to read from (mandatory)
+ * @param {string} [body.nodeId] Node to read from (mandatory)
  *
- * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * @param {array} [body.browsePath] An optional path from NodeId instance to
  * the actual node.
  *
- * @param {object} [request.details] The HistoryReadDetailsType extension
- * object
- * encoded in json and containing the tunneled
- * Historian reader request.
+ * @param {object} [body.details]
  *
- * @param {date} [request.details.startTime] Start time to read from.
+ * @param {date} [body.details.startTime] Start time to read from.
  *
- * @param {date} [request.details.endTime] End time to read until
+ * @param {date} [body.details.endTime] End time to read until
  *
- * @param {number} [request.details.processingInterval] Interval to process
+ * @param {number} [body.details.processingInterval] Interval to process
  *
- * @param {string} [request.details.aggregateTypeId] The aggregate type node
- * ids
+ * @param {string} [body.details.aggregateTypeId] The aggregate type node ids
  *
- * @param {object} [request.details.aggregateConfiguration] A configuration for
- * the aggregate
+ * @param {object} [body.details.aggregateConfiguration]
  *
  * @param {boolean}
- * [request.details.aggregateConfiguration.useServerCapabilitiesDefaults]
- * Whether to use the default server caps
+ * [body.details.aggregateConfiguration.useServerCapabilitiesDefaults] Whether
+ * to use the default server caps
  *
- * @param {boolean}
- * [request.details.aggregateConfiguration.treatUncertainAsBad] Whether to
- * treat uncertain as bad
+ * @param {boolean} [body.details.aggregateConfiguration.treatUncertainAsBad]
+ * Whether to treat uncertain as bad
  *
- * @param {number} [request.details.aggregateConfiguration.percentDataBad]
- * Percent of data that is bad
+ * @param {number} [body.details.aggregateConfiguration.percentDataBad] Percent
+ * of data that is bad
  *
- * @param {number} [request.details.aggregateConfiguration.percentDataGood]
+ * @param {number} [body.details.aggregateConfiguration.percentDataGood]
  * Percent of data that is good
  *
  * @param {boolean}
- * [request.details.aggregateConfiguration.useSlopedExtrapolation] Whether to
- * use sloped extrapolation.
+ * [body.details.aggregateConfiguration.useSlopedExtrapolation] Whether to use
+ * sloped extrapolation.
  *
- * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+ * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
  * slices
  * out of a matrix or 0:1 for the first item in
  * an array, string or bytestring.
  * See 7.22 of part 4: NumericRange.
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -2470,14 +2391,14 @@ function _historyReadValuesAtTimes(endpointId, request, options, callback) {
  *
  *                      {object} [result]   - The deserialized result object if an error did not occur.
  *                      See {@link
- *                      HistoryReadResponseApiModelHistoricValueApiModel} for
+ *                      HistoricValueApiModelHistoryReadResponseApiModel} for
  *                      more information.
  *
  *                      {object} [request]  - The HTTP Request object if an error did not occur.
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _historyReadProcessedValues(endpointId, request, options, callback) {
+function _historyReadProcessedValues(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -2492,8 +2413,8 @@ function _historyReadProcessedValues(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -2522,14 +2443,14 @@ function _historyReadProcessedValues(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['ReadProcessedValuesDetailsApiModelHistoryReadRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -2571,7 +2492,7 @@ function _historyReadProcessedValues(endpointId, request, options, callback) {
         parsedResponse = JSON.parse(responseBody);
         result = JSON.parse(responseBody);
         if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['HistoryReadResponseApiModelHistoricValueApiModel']().mapper();
+          let resultMapper = new client.models['HistoricValueApiModelHistoryReadResponseApiModel']().mapper();
           result = client.deserialize(resultMapper, parsedResponse, 'result');
         }
       } catch (error) {
@@ -2590,59 +2511,53 @@ function _historyReadProcessedValues(endpointId, request, options, callback) {
  * @summary Read historic modified values at specified times
  *
  * Read processed history values of a node if available using historic access.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * The endpoint must be activated and connected and the module client and
+ * server must trust each other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The history read request
+ * @param {object} body The history read request
  *
- * @param {string} [request.nodeId] Node to read from (mandatory)
+ * @param {string} [body.nodeId] Node to read from (mandatory)
  *
- * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * @param {array} [body.browsePath] An optional path from NodeId instance to
  * the actual node.
  *
- * @param {object} [request.details] The HistoryReadDetailsType extension
- * object
- * encoded in json and containing the tunneled
- * Historian reader request.
+ * @param {object} [body.details]
  *
- * @param {date} [request.details.startTime] The start time to read from
+ * @param {date} [body.details.startTime] The start time to read from
  *
- * @param {date} [request.details.endTime] The end time to read to
+ * @param {date} [body.details.endTime] The end time to read to
  *
- * @param {number} [request.details.numValues] The number of values to read
+ * @param {number} [body.details.numValues] The number of values to read
  *
- * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+ * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
  * slices
  * out of a matrix or 0:1 for the first item in
  * an array, string or bytestring.
  * See 7.22 of part 4: NumericRange.
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -2658,14 +2573,14 @@ function _historyReadProcessedValues(endpointId, request, options, callback) {
  *
  *                      {object} [result]   - The deserialized result object if an error did not occur.
  *                      See {@link
- *                      HistoryReadResponseApiModelHistoricValueApiModel} for
+ *                      HistoricValueApiModelHistoryReadResponseApiModel} for
  *                      more information.
  *
  *                      {object} [request]  - The HTTP Request object if an error did not occur.
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _historyReadModifiedValues(endpointId, request, options, callback) {
+function _historyReadModifiedValues(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -2680,8 +2595,8 @@ function _historyReadModifiedValues(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -2710,14 +2625,14 @@ function _historyReadModifiedValues(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['ReadModifiedValuesDetailsApiModelHistoryReadRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -2759,7 +2674,7 @@ function _historyReadModifiedValues(endpointId, request, options, callback) {
         parsedResponse = JSON.parse(responseBody);
         result = JSON.parse(responseBody);
         if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['HistoryReadResponseApiModelHistoricValueApiModel']().mapper();
+          let resultMapper = new client.models['HistoricValueApiModelHistoryReadResponseApiModel']().mapper();
           result = client.deserialize(resultMapper, parsedResponse, 'result');
         }
       } catch (error) {
@@ -2777,44 +2692,41 @@ function _historyReadModifiedValues(endpointId, request, options, callback) {
 /**
  * @summary Read next batch of historic values
  *
- * Read next batch of historic values of a node using historic access.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Read next batch of historic values of a node using historic access. The
+ * endpoint must be activated and connected and the module client and server
+ * must trust each other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The history read next request
+ * @param {object} body The history read next request
  *
- * @param {string} request.continuationToken Continuation token to continue
+ * @param {string} body.continuationToken Continuation token to continue
  * reading more
  * results.
  *
- * @param {boolean} [request.abort] Abort reading after this read
+ * @param {boolean} [body.abort] Abort reading after this read
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -2830,14 +2742,14 @@ function _historyReadModifiedValues(endpointId, request, options, callback) {
  *
  *                      {object} [result]   - The deserialized result object if an error did not occur.
  *                      See {@link
- *                      HistoryReadNextResponseApiModelHistoricValueApiModel}
+ *                      HistoricValueApiModelHistoryReadNextResponseApiModel}
  *                      for more information.
  *
  *                      {object} [request]  - The HTTP Request object if an error did not occur.
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _historyReadValueNext(endpointId, request, options, callback) {
+function _historyReadValueNext(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -2852,8 +2764,8 @@ function _historyReadValueNext(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -2882,14 +2794,14 @@ function _historyReadValueNext(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
+    if (body !== null && body !== undefined) {
       let requestModelMapper = new client.models['HistoryReadNextRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -2931,7 +2843,7 @@ function _historyReadValueNext(endpointId, request, options, callback) {
         parsedResponse = JSON.parse(responseBody);
         result = JSON.parse(responseBody);
         if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['HistoryReadNextResponseApiModelHistoricValueApiModel']().mapper();
+          let resultMapper = new client.models['HistoricValueApiModelHistoryReadNextResponseApiModel']().mapper();
           result = client.deserialize(resultMapper, parsedResponse, 'result');
         }
       } catch (error) {
@@ -2949,51 +2861,44 @@ function _historyReadValueNext(endpointId, request, options, callback) {
 /**
  * @summary Replace historic values
  *
- * Replace historic values using historic access.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Replace historic values using historic access. The endpoint must be
+ * activated and connected and the module client and server must trust each
+ * other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The history replace request
+ * @param {object} body The history replace request
  *
- * @param {string} [request.nodeId] Node to update
+ * @param {string} [body.nodeId] Node to update
  *
- * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * @param {array} [body.browsePath] An optional path from NodeId instance to
  * the actual node.
  *
- * @param {object} request.details The HistoryUpdateDetailsType extension
- * object
- * encoded as json Variant and containing the tunneled
- * update request for the Historian server. The value
- * is updated at edge using above node address.
+ * @param {object} body.details
  *
- * @param {array} request.details.values Values to replace
+ * @param {array} body.details.values Values to replace
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -3015,7 +2920,7 @@ function _historyReadValueNext(endpointId, request, options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _historyReplaceValues(endpointId, request, options, callback) {
+function _historyReplaceValues(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -3030,8 +2935,8 @@ function _historyReplaceValues(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -3060,14 +2965,14 @@ function _historyReplaceValues(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['ReplaceValuesDetailsApiModelHistoryUpdateRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -3127,54 +3032,53 @@ function _historyReplaceValues(endpointId, request, options, callback) {
 /**
  * @summary Replace historic events
  *
- * Replace historic events using historic access.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Replace historic events using historic access. The endpoint must be
+ * activated and connected and the module client and server must trust each
+ * other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The history replace request
+ * @param {object} body The history replace request
  *
- * @param {string} [request.nodeId] Node to update
+ * @param {string} [body.nodeId] Node to update
  *
- * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * @param {array} [body.browsePath] An optional path from NodeId instance to
  * the actual node.
  *
- * @param {object} request.details The HistoryUpdateDetailsType extension
- * object
- * encoded as json Variant and containing the tunneled
- * update request for the Historian server. The value
- * is updated at edge using above node address.
+ * @param {object} body.details
  *
- * @param {object} [request.details.filter] The filter to use to select the
- * events
+ * @param {object} [body.details.filter]
  *
- * @param {array} request.details.events The events to replace
+ * @param {array} [body.details.filter.selectClauses] Select statements
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.details.filter.whereClause]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {array} [body.details.filter.whereClause.elements] The flat list of
+ * elements in the filter AST
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {array} body.details.events The events to replace
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header]
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {object} [body.header.elevation]
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
+ *
+ * @param {object} [body.header.diagnostics]
+ *
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
+ *
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -3196,7 +3100,7 @@ function _historyReplaceValues(endpointId, request, options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _historyReplaceEvents(endpointId, request, options, callback) {
+function _historyReplaceEvents(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -3211,8 +3115,8 @@ function _historyReplaceEvents(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -3241,14 +3145,14 @@ function _historyReplaceEvents(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -3434,7 +3338,7 @@ class AzureOpcHistoryClient extends ServiceClient {
 
     this.baseUri = baseUri;
     if (!this.baseUri) {
-      this.baseUri = '/history';
+      this.baseUri = 'http://localhost:9080';
     }
     this.credentials = credentials;
 
@@ -3466,51 +3370,43 @@ class AzureOpcHistoryClient extends ServiceClient {
   /**
    * @summary Delete value history at specified times
    *
-   * Delete value history using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Delete value history using historic access. The endpoint must be activated
+   * and connected and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history update request
+   * @param {object} body The history update request
    *
-   * @param {string} [request.nodeId] Node to update
+   * @param {string} [body.nodeId] Node to update
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.details The HistoryUpdateDetailsType extension
-   * object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
+   * @param {object} body.details
    *
-   * @param {array} request.details.reqTimes The timestamps to delete
+   * @param {array} body.details.reqTimes The timestamps to delete
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -3524,11 +3420,11 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  historyDeleteValuesAtTimesWithHttpOperationResponse(endpointId, request, options) {
+  historyDeleteValuesAtTimesWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._historyDeleteValuesAtTimes(endpointId, request, options, (err, result, request, response) => {
+      self._historyDeleteValuesAtTimes(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -3541,51 +3437,43 @@ class AzureOpcHistoryClient extends ServiceClient {
   /**
    * @summary Delete value history at specified times
    *
-   * Delete value history using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Delete value history using historic access. The endpoint must be activated
+   * and connected and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history update request
+   * @param {object} body The history update request
    *
-   * @param {string} [request.nodeId] Node to update
+   * @param {string} [body.nodeId] Node to update
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.details The HistoryUpdateDetailsType extension
-   * object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
+   * @param {object} body.details
    *
-   * @param {array} request.details.reqTimes The timestamps to delete
+   * @param {array} body.details.reqTimes The timestamps to delete
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -3616,7 +3504,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  historyDeleteValuesAtTimes(endpointId, request, options, optionalCallback) {
+  historyDeleteValuesAtTimes(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -3625,67 +3513,59 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._historyDeleteValuesAtTimes(endpointId, request, options, (err, result, request, response) => {
+        self._historyDeleteValuesAtTimes(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._historyDeleteValuesAtTimes(endpointId, request, options, optionalCallback);
+      return self._historyDeleteValuesAtTimes(endpointId, body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Delete historic values
    *
-   * Delete historic values using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Delete historic values using historic access. The endpoint must be activated
+   * and connected and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history update request
+   * @param {object} body The history update request
    *
-   * @param {string} [request.nodeId] Node to update
+   * @param {string} [body.nodeId] Node to update
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.details The HistoryUpdateDetailsType extension
-   * object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
+   * @param {object} body.details
    *
-   * @param {date} [request.details.startTime] Start time
+   * @param {date} [body.details.startTime] Start time
    *
-   * @param {date} [request.details.endTime] End time to delete until
+   * @param {date} [body.details.endTime] End time to delete until
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -3699,11 +3579,11 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  historyDeleteValuesWithHttpOperationResponse(endpointId, request, options) {
+  historyDeleteValuesWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._historyDeleteValues(endpointId, request, options, (err, result, request, response) => {
+      self._historyDeleteValues(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -3716,53 +3596,45 @@ class AzureOpcHistoryClient extends ServiceClient {
   /**
    * @summary Delete historic values
    *
-   * Delete historic values using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Delete historic values using historic access. The endpoint must be activated
+   * and connected and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history update request
+   * @param {object} body The history update request
    *
-   * @param {string} [request.nodeId] Node to update
+   * @param {string} [body.nodeId] Node to update
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.details The HistoryUpdateDetailsType extension
-   * object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
+   * @param {object} body.details
    *
-   * @param {date} [request.details.startTime] Start time
+   * @param {date} [body.details.startTime] Start time
    *
-   * @param {date} [request.details.endTime] End time to delete until
+   * @param {date} [body.details.endTime] End time to delete until
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -3793,7 +3665,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  historyDeleteValues(endpointId, request, options, optionalCallback) {
+  historyDeleteValues(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -3802,67 +3674,59 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._historyDeleteValues(endpointId, request, options, (err, result, request, response) => {
+        self._historyDeleteValues(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._historyDeleteValues(endpointId, request, options, optionalCallback);
+      return self._historyDeleteValues(endpointId, body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Delete historic values
    *
-   * Delete historic values using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Delete historic values using historic access. The endpoint must be activated
+   * and connected and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history update request
+   * @param {object} body The history update request
    *
-   * @param {string} [request.nodeId] Node to update
+   * @param {string} [body.nodeId] Node to update
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.details The HistoryUpdateDetailsType extension
-   * object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
+   * @param {object} body.details
    *
-   * @param {date} [request.details.startTime] Start time
+   * @param {date} [body.details.startTime] Start time
    *
-   * @param {date} [request.details.endTime] End time to delete until
+   * @param {date} [body.details.endTime] End time to delete until
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -3876,11 +3740,11 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  historyDeleteModifiedValuesWithHttpOperationResponse(endpointId, request, options) {
+  historyDeleteModifiedValuesWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._historyDeleteModifiedValues(endpointId, request, options, (err, result, request, response) => {
+      self._historyDeleteModifiedValues(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -3893,53 +3757,45 @@ class AzureOpcHistoryClient extends ServiceClient {
   /**
    * @summary Delete historic values
    *
-   * Delete historic values using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Delete historic values using historic access. The endpoint must be activated
+   * and connected and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history update request
+   * @param {object} body The history update request
    *
-   * @param {string} [request.nodeId] Node to update
+   * @param {string} [body.nodeId] Node to update
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.details The HistoryUpdateDetailsType extension
-   * object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
+   * @param {object} body.details
    *
-   * @param {date} [request.details.startTime] Start time
+   * @param {date} [body.details.startTime] Start time
    *
-   * @param {date} [request.details.endTime] End time to delete until
+   * @param {date} [body.details.endTime] End time to delete until
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -3970,7 +3826,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  historyDeleteModifiedValues(endpointId, request, options, optionalCallback) {
+  historyDeleteModifiedValues(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -3979,65 +3835,57 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._historyDeleteModifiedValues(endpointId, request, options, (err, result, request, response) => {
+        self._historyDeleteModifiedValues(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._historyDeleteModifiedValues(endpointId, request, options, optionalCallback);
+      return self._historyDeleteModifiedValues(endpointId, body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Delete historic events
    *
-   * Delete historic events using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Delete historic events using historic access. The endpoint must be activated
+   * and connected and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history update request
+   * @param {object} body The history update request
    *
-   * @param {string} [request.nodeId] Node to update
+   * @param {string} [body.nodeId] Node to update
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.details The HistoryUpdateDetailsType extension
-   * object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
+   * @param {object} body.details
    *
-   * @param {array} request.details.eventIds Events to delete
+   * @param {array} body.details.eventIds Events to delete
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4051,11 +3899,11 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  historyDeleteEventsWithHttpOperationResponse(endpointId, request, options) {
+  historyDeleteEventsWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._historyDeleteEvents(endpointId, request, options, (err, result, request, response) => {
+      self._historyDeleteEvents(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -4068,51 +3916,43 @@ class AzureOpcHistoryClient extends ServiceClient {
   /**
    * @summary Delete historic events
    *
-   * Delete historic events using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Delete historic events using historic access. The endpoint must be activated
+   * and connected and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history update request
+   * @param {object} body The history update request
    *
-   * @param {string} [request.nodeId] Node to update
+   * @param {string} [body.nodeId] Node to update
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.details The HistoryUpdateDetailsType extension
-   * object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
+   * @param {object} body.details
    *
-   * @param {array} request.details.eventIds Events to delete
+   * @param {array} body.details.eventIds Events to delete
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4143,7 +3983,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  historyDeleteEvents(endpointId, request, options, optionalCallback) {
+  historyDeleteEvents(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -4152,68 +3992,64 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._historyDeleteEvents(endpointId, request, options, (err, result, request, response) => {
+        self._historyDeleteEvents(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._historyDeleteEvents(endpointId, request, options, optionalCallback);
+      return self._historyDeleteEvents(endpointId, body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Read history using json details
    *
-   * Read node history if available using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Read node history if available using historic access. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history read request
+   * @param {object} body The history read request
    *
-   * @param {string} [request.nodeId] Node to read from (mandatory)
+   * @param {string} [body.nodeId] Node to read from (mandatory)
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} [request.details] The HistoryReadDetailsType extension
-   * object
+   * @param {object} [body.details] The HistoryReadDetailsType extension object
    * encoded in json and containing the tunneled
    * Historian reader request.
    *
-   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
    * slices
    * out of a matrix or 0:1 for the first item in
    * an array, string or bytestring.
    * See 7.22 of part 4: NumericRange.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4223,15 +4059,15 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<HistoryReadResponseApiModelJToken>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<JTokenHistoryReadResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  historyReadRawWithHttpOperationResponse(endpointId, request, options) {
+  historyReadRawWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._historyReadRaw(endpointId, request, options, (err, result, request, response) => {
+      self._historyReadRaw(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -4244,54 +4080,50 @@ class AzureOpcHistoryClient extends ServiceClient {
   /**
    * @summary Read history using json details
    *
-   * Read node history if available using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Read node history if available using historic access. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history read request
+   * @param {object} body The history read request
    *
-   * @param {string} [request.nodeId] Node to read from (mandatory)
+   * @param {string} [body.nodeId] Node to read from (mandatory)
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} [request.details] The HistoryReadDetailsType extension
-   * object
+   * @param {object} [body.details] The HistoryReadDetailsType extension object
    * encoded in json and containing the tunneled
    * Historian reader request.
    *
-   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
    * slices
    * out of a matrix or 0:1 for the first item in
    * an array, string or bytestring.
    * See 7.22 of part 4: NumericRange.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4306,7 +4138,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {HistoryReadResponseApiModelJToken} - The deserialized result object.
+   *                      @resolve {JTokenHistoryReadResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -4315,14 +4147,14 @@ class AzureOpcHistoryClient extends ServiceClient {
    *                      {Error}  err        - The Error object if an error occurred, null otherwise.
    *
    *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link HistoryReadResponseApiModelJToken} for more
+   *                      See {@link JTokenHistoryReadResponseApiModel} for more
    *                      information.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  historyReadRaw(endpointId, request, options, optionalCallback) {
+  historyReadRaw(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -4331,58 +4163,55 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._historyReadRaw(endpointId, request, options, (err, result, request, response) => {
+        self._historyReadRaw(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._historyReadRaw(endpointId, request, options, optionalCallback);
+      return self._historyReadRaw(endpointId, body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Read next batch of history as json
    *
-   * Read next batch of node history values using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Read next batch of node history values using historic access. The endpoint
+   * must be activated and connected and the module client and server must trust
+   * each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history read next request
+   * @param {object} body The history read next request
    *
-   * @param {string} request.continuationToken Continuation token to continue
+   * @param {string} body.continuationToken Continuation token to continue
    * reading more
    * results.
    *
-   * @param {boolean} [request.abort] Abort reading after this read
+   * @param {boolean} [body.abort] Abort reading after this read
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4392,15 +4221,15 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<HistoryReadNextResponseApiModelJToken>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<JTokenHistoryReadNextResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  historyReadRawNextWithHttpOperationResponse(endpointId, request, options) {
+  historyReadRawNextWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._historyReadRawNext(endpointId, request, options, (err, result, request, response) => {
+      self._historyReadRawNext(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -4413,44 +4242,41 @@ class AzureOpcHistoryClient extends ServiceClient {
   /**
    * @summary Read next batch of history as json
    *
-   * Read next batch of node history values using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Read next batch of node history values using historic access. The endpoint
+   * must be activated and connected and the module client and server must trust
+   * each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history read next request
+   * @param {object} body The history read next request
    *
-   * @param {string} request.continuationToken Continuation token to continue
+   * @param {string} body.continuationToken Continuation token to continue
    * reading more
    * results.
    *
-   * @param {boolean} [request.abort] Abort reading after this read
+   * @param {boolean} [body.abort] Abort reading after this read
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4465,7 +4291,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {HistoryReadNextResponseApiModelJToken} - The deserialized result object.
+   *                      @resolve {JTokenHistoryReadNextResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -4474,14 +4300,14 @@ class AzureOpcHistoryClient extends ServiceClient {
    *                      {Error}  err        - The Error object if an error occurred, null otherwise.
    *
    *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link HistoryReadNextResponseApiModelJToken} for
+   *                      See {@link JTokenHistoryReadNextResponseApiModel} for
    *                      more information.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  historyReadRawNext(endpointId, request, options, optionalCallback) {
+  historyReadRawNext(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -4490,63 +4316,58 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._historyReadRawNext(endpointId, request, options, (err, result, request, response) => {
+        self._historyReadRawNext(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._historyReadRawNext(endpointId, request, options, optionalCallback);
+      return self._historyReadRawNext(endpointId, body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Update node history using raw json
    *
-   * Update node history using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Update node history using historic access. The endpoint must be activated
+   * and connected and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history update request
+   * @param {object} body The history update request
    *
-   * @param {string} [request.nodeId] Node to update
+   * @param {string} [body.nodeId] Node to update
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.details The HistoryUpdateDetailsType extension
-   * object
+   * @param {object} body.details The HistoryUpdateDetailsType extension object
    * encoded as json Variant and containing the tunneled
    * update request for the Historian server. The value
    * is updated at edge using above node address.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4560,11 +4381,11 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  historyUpdateRawWithHttpOperationResponse(endpointId, request, options) {
+  historyUpdateRawWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._historyUpdateRaw(endpointId, request, options, (err, result, request, response) => {
+      self._historyUpdateRaw(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -4577,49 +4398,44 @@ class AzureOpcHistoryClient extends ServiceClient {
   /**
    * @summary Update node history using raw json
    *
-   * Update node history using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Update node history using historic access. The endpoint must be activated
+   * and connected and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history update request
+   * @param {object} body The history update request
    *
-   * @param {string} [request.nodeId] Node to update
+   * @param {string} [body.nodeId] Node to update
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.details The HistoryUpdateDetailsType extension
-   * object
+   * @param {object} body.details The HistoryUpdateDetailsType extension object
    * encoded as json Variant and containing the tunneled
    * update request for the Historian server. The value
    * is updated at edge using above node address.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4650,7 +4466,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  historyUpdateRaw(endpointId, request, options, optionalCallback) {
+  historyUpdateRaw(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -4659,65 +4475,57 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._historyUpdateRaw(endpointId, request, options, (err, result, request, response) => {
+        self._historyUpdateRaw(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._historyUpdateRaw(endpointId, request, options, optionalCallback);
+      return self._historyUpdateRaw(endpointId, body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Insert historic values
    *
-   * Insert historic values using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Insert historic values using historic access. The endpoint must be activated
+   * and connected and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history insert request
+   * @param {object} body The history insert request
    *
-   * @param {string} [request.nodeId] Node to update
+   * @param {string} [body.nodeId] Node to update
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.details The HistoryUpdateDetailsType extension
-   * object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
+   * @param {object} body.details
    *
-   * @param {array} request.details.values Values to insert
+   * @param {array} body.details.values Values to insert
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4731,11 +4539,11 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  historyInsertValuesWithHttpOperationResponse(endpointId, request, options) {
+  historyInsertValuesWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._historyInsertValues(endpointId, request, options, (err, result, request, response) => {
+      self._historyInsertValues(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -4748,51 +4556,43 @@ class AzureOpcHistoryClient extends ServiceClient {
   /**
    * @summary Insert historic values
    *
-   * Insert historic values using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Insert historic values using historic access. The endpoint must be activated
+   * and connected and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history insert request
+   * @param {object} body The history insert request
    *
-   * @param {string} [request.nodeId] Node to update
+   * @param {string} [body.nodeId] Node to update
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.details The HistoryUpdateDetailsType extension
-   * object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
+   * @param {object} body.details
    *
-   * @param {array} request.details.values Values to insert
+   * @param {array} body.details.values Values to insert
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4823,7 +4623,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  historyInsertValues(endpointId, request, options, optionalCallback) {
+  historyInsertValues(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -4832,68 +4632,66 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._historyInsertValues(endpointId, request, options, (err, result, request, response) => {
+        self._historyInsertValues(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._historyInsertValues(endpointId, request, options, optionalCallback);
+      return self._historyInsertValues(endpointId, body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Insert historic events
    *
-   * Insert historic events using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Insert historic events using historic access. The endpoint must be activated
+   * and connected and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history insert request
+   * @param {object} body The history insert request
    *
-   * @param {string} [request.nodeId] Node to update
+   * @param {string} [body.nodeId] Node to update
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.details The HistoryUpdateDetailsType extension
-   * object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
+   * @param {object} body.details
    *
-   * @param {object} [request.details.filter] The filter to use to select the
-   * events
+   * @param {object} [body.details.filter]
    *
-   * @param {array} request.details.events The new events to insert
+   * @param {array} [body.details.filter.selectClauses] Select statements
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.details.filter.whereClause]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {array} [body.details.filter.whereClause.elements] The flat list of
+   * elements in the filter AST
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {array} body.details.events The new events to insert
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header]
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {object} [body.header.elevation]
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
+   *
+   * @param {object} [body.header.diagnostics]
+   *
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4907,11 +4705,11 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  historyInsertEventsWithHttpOperationResponse(endpointId, request, options) {
+  historyInsertEventsWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._historyInsertEvents(endpointId, request, options, (err, result, request, response) => {
+      self._historyInsertEvents(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -4924,54 +4722,52 @@ class AzureOpcHistoryClient extends ServiceClient {
   /**
    * @summary Insert historic events
    *
-   * Insert historic events using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Insert historic events using historic access. The endpoint must be activated
+   * and connected and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history insert request
+   * @param {object} body The history insert request
    *
-   * @param {string} [request.nodeId] Node to update
+   * @param {string} [body.nodeId] Node to update
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.details The HistoryUpdateDetailsType extension
-   * object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
+   * @param {object} body.details
    *
-   * @param {object} [request.details.filter] The filter to use to select the
-   * events
+   * @param {object} [body.details.filter]
    *
-   * @param {array} request.details.events The new events to insert
+   * @param {array} [body.details.filter.selectClauses] Select statements
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.details.filter.whereClause]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {array} [body.details.filter.whereClause.elements] The flat list of
+   * elements in the filter AST
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {array} body.details.events The new events to insert
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header]
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {object} [body.header.elevation]
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
+   *
+   * @param {object} [body.header.diagnostics]
+   *
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5002,7 +4798,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  historyInsertEvents(endpointId, request, options, optionalCallback) {
+  historyInsertEvents(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -5011,77 +4807,77 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._historyInsertEvents(endpointId, request, options, (err, result, request, response) => {
+        self._historyInsertEvents(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._historyInsertEvents(endpointId, request, options, optionalCallback);
+      return self._historyInsertEvents(endpointId, body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Read historic events
    *
-   * Read historic events of a node if available using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Read historic events of a node if available using historic access. The
+   * endpoint must be activated and connected and the module client and server
+   * must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history read request
+   * @param {object} body The history read request
    *
-   * @param {string} [request.nodeId] Node to read from (mandatory)
+   * @param {string} [body.nodeId] Node to read from (mandatory)
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} [request.details] The HistoryReadDetailsType extension
-   * object
-   * encoded in json and containing the tunneled
-   * Historian reader request.
+   * @param {object} [body.details]
    *
-   * @param {date} [request.details.startTime] Start time to read from
+   * @param {date} [body.details.startTime] Start time to read from
    *
-   * @param {date} [request.details.endTime] End time to read to
+   * @param {date} [body.details.endTime] End time to read to
    *
-   * @param {number} [request.details.numEvents] Number of events to read
+   * @param {number} [body.details.numEvents] Number of events to read
    *
-   * @param {object} [request.details.filter] The filter to use to select the
-   * event fields
+   * @param {object} [body.details.filter]
    *
-   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * @param {array} [body.details.filter.selectClauses] Select statements
+   *
+   * @param {object} [body.details.filter.whereClause]
+   *
+   * @param {array} [body.details.filter.whereClause.elements] The flat list of
+   * elements in the filter AST
+   *
+   * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
    * slices
    * out of a matrix or 0:1 for the first item in
    * an array, string or bytestring.
    * See 7.22 of part 4: NumericRange.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5091,15 +4887,15 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<HistoryReadResponseApiModelHistoricEventApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<HistoricEventApiModelHistoryReadResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  historyReadEventsWithHttpOperationResponse(endpointId, request, options) {
+  historyReadEventsWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._historyReadEvents(endpointId, request, options, (err, result, request, response) => {
+      self._historyReadEvents(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -5112,63 +4908,63 @@ class AzureOpcHistoryClient extends ServiceClient {
   /**
    * @summary Read historic events
    *
-   * Read historic events of a node if available using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Read historic events of a node if available using historic access. The
+   * endpoint must be activated and connected and the module client and server
+   * must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history read request
+   * @param {object} body The history read request
    *
-   * @param {string} [request.nodeId] Node to read from (mandatory)
+   * @param {string} [body.nodeId] Node to read from (mandatory)
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} [request.details] The HistoryReadDetailsType extension
-   * object
-   * encoded in json and containing the tunneled
-   * Historian reader request.
+   * @param {object} [body.details]
    *
-   * @param {date} [request.details.startTime] Start time to read from
+   * @param {date} [body.details.startTime] Start time to read from
    *
-   * @param {date} [request.details.endTime] End time to read to
+   * @param {date} [body.details.endTime] End time to read to
    *
-   * @param {number} [request.details.numEvents] Number of events to read
+   * @param {number} [body.details.numEvents] Number of events to read
    *
-   * @param {object} [request.details.filter] The filter to use to select the
-   * event fields
+   * @param {object} [body.details.filter]
    *
-   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * @param {array} [body.details.filter.selectClauses] Select statements
+   *
+   * @param {object} [body.details.filter.whereClause]
+   *
+   * @param {array} [body.details.filter.whereClause.elements] The flat list of
+   * elements in the filter AST
+   *
+   * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
    * slices
    * out of a matrix or 0:1 for the first item in
    * an array, string or bytestring.
    * See 7.22 of part 4: NumericRange.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5183,7 +4979,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {HistoryReadResponseApiModelHistoricEventApiModel} - The deserialized result object.
+   *                      @resolve {HistoricEventApiModelHistoryReadResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -5193,14 +4989,14 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {object} [result]   - The deserialized result object if an error did not occur.
    *                      See {@link
-   *                      HistoryReadResponseApiModelHistoricEventApiModel} for
+   *                      HistoricEventApiModelHistoryReadResponseApiModel} for
    *                      more information.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  historyReadEvents(endpointId, request, options, optionalCallback) {
+  historyReadEvents(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -5209,58 +5005,55 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._historyReadEvents(endpointId, request, options, (err, result, request, response) => {
+        self._historyReadEvents(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._historyReadEvents(endpointId, request, options, optionalCallback);
+      return self._historyReadEvents(endpointId, body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Read next batch of historic events
    *
-   * Read next batch of historic events of a node using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Read next batch of historic events of a node using historic access. The
+   * endpoint must be activated and connected and the module client and server
+   * must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history read next request
+   * @param {object} body The history read next request
    *
-   * @param {string} request.continuationToken Continuation token to continue
+   * @param {string} body.continuationToken Continuation token to continue
    * reading more
    * results.
    *
-   * @param {boolean} [request.abort] Abort reading after this read
+   * @param {boolean} [body.abort] Abort reading after this read
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5270,15 +5063,15 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<HistoryReadNextResponseApiModelHistoricEventApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<HistoricEventApiModelHistoryReadNextResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  historyReadEventsNextWithHttpOperationResponse(endpointId, request, options) {
+  historyReadEventsNextWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._historyReadEventsNext(endpointId, request, options, (err, result, request, response) => {
+      self._historyReadEventsNext(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -5291,44 +5084,41 @@ class AzureOpcHistoryClient extends ServiceClient {
   /**
    * @summary Read next batch of historic events
    *
-   * Read next batch of historic events of a node using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Read next batch of historic events of a node using historic access. The
+   * endpoint must be activated and connected and the module client and server
+   * must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history read next request
+   * @param {object} body The history read next request
    *
-   * @param {string} request.continuationToken Continuation token to continue
+   * @param {string} body.continuationToken Continuation token to continue
    * reading more
    * results.
    *
-   * @param {boolean} [request.abort] Abort reading after this read
+   * @param {boolean} [body.abort] Abort reading after this read
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5343,7 +5133,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {HistoryReadNextResponseApiModelHistoricEventApiModel} - The deserialized result object.
+   *                      @resolve {HistoricEventApiModelHistoryReadNextResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -5353,14 +5143,14 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {object} [result]   - The deserialized result object if an error did not occur.
    *                      See {@link
-   *                      HistoryReadNextResponseApiModelHistoricEventApiModel}
+   *                      HistoricEventApiModelHistoryReadNextResponseApiModel}
    *                      for more information.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  historyReadEventsNext(endpointId, request, options, optionalCallback) {
+  historyReadEventsNext(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -5369,14 +5159,14 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._historyReadEventsNext(endpointId, request, options, (err, result, request, response) => {
+        self._historyReadEventsNext(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._historyReadEventsNext(endpointId, request, options, optionalCallback);
+      return self._historyReadEventsNext(endpointId, body, options, optionalCallback);
     }
   }
 
@@ -5384,71 +5174,65 @@ class AzureOpcHistoryClient extends ServiceClient {
    * @summary Read historic processed values at specified times
    *
    * Read processed history values of a node if available using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * The endpoint must be activated and connected and the module client and
+   * server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history read request
+   * @param {object} body The history read request
    *
-   * @param {string} [request.nodeId] Node to read from (mandatory)
+   * @param {string} [body.nodeId] Node to read from (mandatory)
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} [request.details] The HistoryReadDetailsType extension
-   * object
-   * encoded in json and containing the tunneled
-   * Historian reader request.
+   * @param {object} [body.details]
    *
-   * @param {date} [request.details.startTime] Beginning of period to read. Set
-   * to null
+   * @param {date} [body.details.startTime] Beginning of period to read. Set to
+   * null
    * if no specific start time is specified.
    *
-   * @param {date} [request.details.endTime] End of period to read. Set to null
-   * if no
+   * @param {date} [body.details.endTime] End of period to read. Set to null if
+   * no
    * specific end time is specified.
    *
-   * @param {number} [request.details.numValues] The maximum number of values
+   * @param {number} [body.details.numValues] The maximum number of values
    * returned for any Node
    * over the time range. If only one time is specified,
    * the time range shall extend to return this number
    * of values. 0 or null indicates that there is no
    * maximum.
    *
-   * @param {boolean} [request.details.returnBounds] Whether to return the
-   * bounding values or not.
+   * @param {boolean} [body.details.returnBounds] Whether to return the bounding
+   * values or not.
    *
-   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
    * slices
    * out of a matrix or 0:1 for the first item in
    * an array, string or bytestring.
    * See 7.22 of part 4: NumericRange.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5458,15 +5242,15 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<HistoricValueApiModelHistoryReadResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  historyReadValuesWithHttpOperationResponse(endpointId, request, options) {
+  historyReadValuesWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._historyReadValues(endpointId, request, options, (err, result, request, response) => {
+      self._historyReadValues(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -5480,71 +5264,65 @@ class AzureOpcHistoryClient extends ServiceClient {
    * @summary Read historic processed values at specified times
    *
    * Read processed history values of a node if available using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * The endpoint must be activated and connected and the module client and
+   * server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history read request
+   * @param {object} body The history read request
    *
-   * @param {string} [request.nodeId] Node to read from (mandatory)
+   * @param {string} [body.nodeId] Node to read from (mandatory)
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} [request.details] The HistoryReadDetailsType extension
-   * object
-   * encoded in json and containing the tunneled
-   * Historian reader request.
+   * @param {object} [body.details]
    *
-   * @param {date} [request.details.startTime] Beginning of period to read. Set
-   * to null
+   * @param {date} [body.details.startTime] Beginning of period to read. Set to
+   * null
    * if no specific start time is specified.
    *
-   * @param {date} [request.details.endTime] End of period to read. Set to null
-   * if no
+   * @param {date} [body.details.endTime] End of period to read. Set to null if
+   * no
    * specific end time is specified.
    *
-   * @param {number} [request.details.numValues] The maximum number of values
+   * @param {number} [body.details.numValues] The maximum number of values
    * returned for any Node
    * over the time range. If only one time is specified,
    * the time range shall extend to return this number
    * of values. 0 or null indicates that there is no
    * maximum.
    *
-   * @param {boolean} [request.details.returnBounds] Whether to return the
-   * bounding values or not.
+   * @param {boolean} [body.details.returnBounds] Whether to return the bounding
+   * values or not.
    *
-   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
    * slices
    * out of a matrix or 0:1 for the first item in
    * an array, string or bytestring.
    * See 7.22 of part 4: NumericRange.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5559,7 +5337,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {HistoryReadResponseApiModelHistoricValueApiModel} - The deserialized result object.
+   *                      @resolve {HistoricValueApiModelHistoryReadResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -5569,14 +5347,14 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {object} [result]   - The deserialized result object if an error did not occur.
    *                      See {@link
-   *                      HistoryReadResponseApiModelHistoricValueApiModel} for
+   *                      HistoricValueApiModelHistoryReadResponseApiModel} for
    *                      more information.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  historyReadValues(endpointId, request, options, optionalCallback) {
+  historyReadValues(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -5585,73 +5363,66 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._historyReadValues(endpointId, request, options, (err, result, request, response) => {
+        self._historyReadValues(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._historyReadValues(endpointId, request, options, optionalCallback);
+      return self._historyReadValues(endpointId, body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Read historic values at specified times
    *
-   * Read historic values of a node if available using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Read historic values of a node if available using historic access. The
+   * endpoint must be activated and connected and the module client and server
+   * must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history read request
+   * @param {object} body The history read request
    *
-   * @param {string} [request.nodeId] Node to read from (mandatory)
+   * @param {string} [body.nodeId] Node to read from (mandatory)
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} [request.details] The HistoryReadDetailsType extension
-   * object
-   * encoded in json and containing the tunneled
-   * Historian reader request.
+   * @param {object} [body.details]
    *
-   * @param {array} request.details.reqTimes Requested datums
+   * @param {array} body.details.reqTimes Requested datums
    *
-   * @param {boolean} [request.details.useSimpleBounds] Whether to use simple
-   * bounds
+   * @param {boolean} [body.details.useSimpleBounds] Whether to use simple bounds
    *
-   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
    * slices
    * out of a matrix or 0:1 for the first item in
    * an array, string or bytestring.
    * See 7.22 of part 4: NumericRange.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5661,15 +5432,15 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<HistoricValueApiModelHistoryReadResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  historyReadValuesAtTimesWithHttpOperationResponse(endpointId, request, options) {
+  historyReadValuesAtTimesWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._historyReadValuesAtTimes(endpointId, request, options, (err, result, request, response) => {
+      self._historyReadValuesAtTimes(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -5682,59 +5453,52 @@ class AzureOpcHistoryClient extends ServiceClient {
   /**
    * @summary Read historic values at specified times
    *
-   * Read historic values of a node if available using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Read historic values of a node if available using historic access. The
+   * endpoint must be activated and connected and the module client and server
+   * must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history read request
+   * @param {object} body The history read request
    *
-   * @param {string} [request.nodeId] Node to read from (mandatory)
+   * @param {string} [body.nodeId] Node to read from (mandatory)
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} [request.details] The HistoryReadDetailsType extension
-   * object
-   * encoded in json and containing the tunneled
-   * Historian reader request.
+   * @param {object} [body.details]
    *
-   * @param {array} request.details.reqTimes Requested datums
+   * @param {array} body.details.reqTimes Requested datums
    *
-   * @param {boolean} [request.details.useSimpleBounds] Whether to use simple
-   * bounds
+   * @param {boolean} [body.details.useSimpleBounds] Whether to use simple bounds
    *
-   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
    * slices
    * out of a matrix or 0:1 for the first item in
    * an array, string or bytestring.
    * See 7.22 of part 4: NumericRange.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5749,7 +5513,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {HistoryReadResponseApiModelHistoricValueApiModel} - The deserialized result object.
+   *                      @resolve {HistoricValueApiModelHistoryReadResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -5759,14 +5523,14 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {object} [result]   - The deserialized result object if an error did not occur.
    *                      See {@link
-   *                      HistoryReadResponseApiModelHistoricValueApiModel} for
+   *                      HistoricValueApiModelHistoryReadResponseApiModel} for
    *                      more information.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  historyReadValuesAtTimes(endpointId, request, options, optionalCallback) {
+  historyReadValuesAtTimes(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -5775,14 +5539,14 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._historyReadValuesAtTimes(endpointId, request, options, (err, result, request, response) => {
+        self._historyReadValuesAtTimes(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._historyReadValuesAtTimes(endpointId, request, options, optionalCallback);
+      return self._historyReadValuesAtTimes(endpointId, body, options, optionalCallback);
     }
   }
 
@@ -5790,83 +5554,74 @@ class AzureOpcHistoryClient extends ServiceClient {
    * @summary Read historic processed values at specified times
    *
    * Read processed history values of a node if available using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * The endpoint must be activated and connected and the module client and
+   * server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history read request
+   * @param {object} body The history read request
    *
-   * @param {string} [request.nodeId] Node to read from (mandatory)
+   * @param {string} [body.nodeId] Node to read from (mandatory)
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} [request.details] The HistoryReadDetailsType extension
-   * object
-   * encoded in json and containing the tunneled
-   * Historian reader request.
+   * @param {object} [body.details]
    *
-   * @param {date} [request.details.startTime] Start time to read from.
+   * @param {date} [body.details.startTime] Start time to read from.
    *
-   * @param {date} [request.details.endTime] End time to read until
+   * @param {date} [body.details.endTime] End time to read until
    *
-   * @param {number} [request.details.processingInterval] Interval to process
+   * @param {number} [body.details.processingInterval] Interval to process
    *
-   * @param {string} [request.details.aggregateTypeId] The aggregate type node
-   * ids
+   * @param {string} [body.details.aggregateTypeId] The aggregate type node ids
    *
-   * @param {object} [request.details.aggregateConfiguration] A configuration for
-   * the aggregate
+   * @param {object} [body.details.aggregateConfiguration]
    *
    * @param {boolean}
-   * [request.details.aggregateConfiguration.useServerCapabilitiesDefaults]
-   * Whether to use the default server caps
+   * [body.details.aggregateConfiguration.useServerCapabilitiesDefaults] Whether
+   * to use the default server caps
    *
-   * @param {boolean}
-   * [request.details.aggregateConfiguration.treatUncertainAsBad] Whether to
-   * treat uncertain as bad
+   * @param {boolean} [body.details.aggregateConfiguration.treatUncertainAsBad]
+   * Whether to treat uncertain as bad
    *
-   * @param {number} [request.details.aggregateConfiguration.percentDataBad]
-   * Percent of data that is bad
+   * @param {number} [body.details.aggregateConfiguration.percentDataBad] Percent
+   * of data that is bad
    *
-   * @param {number} [request.details.aggregateConfiguration.percentDataGood]
+   * @param {number} [body.details.aggregateConfiguration.percentDataGood]
    * Percent of data that is good
    *
    * @param {boolean}
-   * [request.details.aggregateConfiguration.useSlopedExtrapolation] Whether to
-   * use sloped extrapolation.
+   * [body.details.aggregateConfiguration.useSlopedExtrapolation] Whether to use
+   * sloped extrapolation.
    *
-   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
    * slices
    * out of a matrix or 0:1 for the first item in
    * an array, string or bytestring.
    * See 7.22 of part 4: NumericRange.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5876,15 +5631,15 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<HistoricValueApiModelHistoryReadResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  historyReadProcessedValuesWithHttpOperationResponse(endpointId, request, options) {
+  historyReadProcessedValuesWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._historyReadProcessedValues(endpointId, request, options, (err, result, request, response) => {
+      self._historyReadProcessedValues(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -5898,83 +5653,74 @@ class AzureOpcHistoryClient extends ServiceClient {
    * @summary Read historic processed values at specified times
    *
    * Read processed history values of a node if available using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * The endpoint must be activated and connected and the module client and
+   * server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history read request
+   * @param {object} body The history read request
    *
-   * @param {string} [request.nodeId] Node to read from (mandatory)
+   * @param {string} [body.nodeId] Node to read from (mandatory)
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} [request.details] The HistoryReadDetailsType extension
-   * object
-   * encoded in json and containing the tunneled
-   * Historian reader request.
+   * @param {object} [body.details]
    *
-   * @param {date} [request.details.startTime] Start time to read from.
+   * @param {date} [body.details.startTime] Start time to read from.
    *
-   * @param {date} [request.details.endTime] End time to read until
+   * @param {date} [body.details.endTime] End time to read until
    *
-   * @param {number} [request.details.processingInterval] Interval to process
+   * @param {number} [body.details.processingInterval] Interval to process
    *
-   * @param {string} [request.details.aggregateTypeId] The aggregate type node
-   * ids
+   * @param {string} [body.details.aggregateTypeId] The aggregate type node ids
    *
-   * @param {object} [request.details.aggregateConfiguration] A configuration for
-   * the aggregate
+   * @param {object} [body.details.aggregateConfiguration]
    *
    * @param {boolean}
-   * [request.details.aggregateConfiguration.useServerCapabilitiesDefaults]
-   * Whether to use the default server caps
+   * [body.details.aggregateConfiguration.useServerCapabilitiesDefaults] Whether
+   * to use the default server caps
    *
-   * @param {boolean}
-   * [request.details.aggregateConfiguration.treatUncertainAsBad] Whether to
-   * treat uncertain as bad
+   * @param {boolean} [body.details.aggregateConfiguration.treatUncertainAsBad]
+   * Whether to treat uncertain as bad
    *
-   * @param {number} [request.details.aggregateConfiguration.percentDataBad]
-   * Percent of data that is bad
+   * @param {number} [body.details.aggregateConfiguration.percentDataBad] Percent
+   * of data that is bad
    *
-   * @param {number} [request.details.aggregateConfiguration.percentDataGood]
+   * @param {number} [body.details.aggregateConfiguration.percentDataGood]
    * Percent of data that is good
    *
    * @param {boolean}
-   * [request.details.aggregateConfiguration.useSlopedExtrapolation] Whether to
-   * use sloped extrapolation.
+   * [body.details.aggregateConfiguration.useSlopedExtrapolation] Whether to use
+   * sloped extrapolation.
    *
-   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
    * slices
    * out of a matrix or 0:1 for the first item in
    * an array, string or bytestring.
    * See 7.22 of part 4: NumericRange.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5989,7 +5735,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {HistoryReadResponseApiModelHistoricValueApiModel} - The deserialized result object.
+   *                      @resolve {HistoricValueApiModelHistoryReadResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -5999,14 +5745,14 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {object} [result]   - The deserialized result object if an error did not occur.
    *                      See {@link
-   *                      HistoryReadResponseApiModelHistoricValueApiModel} for
+   *                      HistoricValueApiModelHistoryReadResponseApiModel} for
    *                      more information.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  historyReadProcessedValues(endpointId, request, options, optionalCallback) {
+  historyReadProcessedValues(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -6015,14 +5761,14 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._historyReadProcessedValues(endpointId, request, options, (err, result, request, response) => {
+        self._historyReadProcessedValues(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._historyReadProcessedValues(endpointId, request, options, optionalCallback);
+      return self._historyReadProcessedValues(endpointId, body, options, optionalCallback);
     }
   }
 
@@ -6030,59 +5776,53 @@ class AzureOpcHistoryClient extends ServiceClient {
    * @summary Read historic modified values at specified times
    *
    * Read processed history values of a node if available using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * The endpoint must be activated and connected and the module client and
+   * server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history read request
+   * @param {object} body The history read request
    *
-   * @param {string} [request.nodeId] Node to read from (mandatory)
+   * @param {string} [body.nodeId] Node to read from (mandatory)
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} [request.details] The HistoryReadDetailsType extension
-   * object
-   * encoded in json and containing the tunneled
-   * Historian reader request.
+   * @param {object} [body.details]
    *
-   * @param {date} [request.details.startTime] The start time to read from
+   * @param {date} [body.details.startTime] The start time to read from
    *
-   * @param {date} [request.details.endTime] The end time to read to
+   * @param {date} [body.details.endTime] The end time to read to
    *
-   * @param {number} [request.details.numValues] The number of values to read
+   * @param {number} [body.details.numValues] The number of values to read
    *
-   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
    * slices
    * out of a matrix or 0:1 for the first item in
    * an array, string or bytestring.
    * See 7.22 of part 4: NumericRange.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -6092,15 +5832,15 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<HistoricValueApiModelHistoryReadResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  historyReadModifiedValuesWithHttpOperationResponse(endpointId, request, options) {
+  historyReadModifiedValuesWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._historyReadModifiedValues(endpointId, request, options, (err, result, request, response) => {
+      self._historyReadModifiedValues(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -6114,59 +5854,53 @@ class AzureOpcHistoryClient extends ServiceClient {
    * @summary Read historic modified values at specified times
    *
    * Read processed history values of a node if available using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * The endpoint must be activated and connected and the module client and
+   * server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history read request
+   * @param {object} body The history read request
    *
-   * @param {string} [request.nodeId] Node to read from (mandatory)
+   * @param {string} [body.nodeId] Node to read from (mandatory)
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} [request.details] The HistoryReadDetailsType extension
-   * object
-   * encoded in json and containing the tunneled
-   * Historian reader request.
+   * @param {object} [body.details]
    *
-   * @param {date} [request.details.startTime] The start time to read from
+   * @param {date} [body.details.startTime] The start time to read from
    *
-   * @param {date} [request.details.endTime] The end time to read to
+   * @param {date} [body.details.endTime] The end time to read to
    *
-   * @param {number} [request.details.numValues] The number of values to read
+   * @param {number} [body.details.numValues] The number of values to read
    *
-   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
    * slices
    * out of a matrix or 0:1 for the first item in
    * an array, string or bytestring.
    * See 7.22 of part 4: NumericRange.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -6181,7 +5915,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {HistoryReadResponseApiModelHistoricValueApiModel} - The deserialized result object.
+   *                      @resolve {HistoricValueApiModelHistoryReadResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -6191,14 +5925,14 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {object} [result]   - The deserialized result object if an error did not occur.
    *                      See {@link
-   *                      HistoryReadResponseApiModelHistoricValueApiModel} for
+   *                      HistoricValueApiModelHistoryReadResponseApiModel} for
    *                      more information.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  historyReadModifiedValues(endpointId, request, options, optionalCallback) {
+  historyReadModifiedValues(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -6207,58 +5941,55 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._historyReadModifiedValues(endpointId, request, options, (err, result, request, response) => {
+        self._historyReadModifiedValues(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._historyReadModifiedValues(endpointId, request, options, optionalCallback);
+      return self._historyReadModifiedValues(endpointId, body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Read next batch of historic values
    *
-   * Read next batch of historic values of a node using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Read next batch of historic values of a node using historic access. The
+   * endpoint must be activated and connected and the module client and server
+   * must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history read next request
+   * @param {object} body The history read next request
    *
-   * @param {string} request.continuationToken Continuation token to continue
+   * @param {string} body.continuationToken Continuation token to continue
    * reading more
    * results.
    *
-   * @param {boolean} [request.abort] Abort reading after this read
+   * @param {boolean} [body.abort] Abort reading after this read
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -6268,15 +5999,15 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<HistoryReadNextResponseApiModelHistoricValueApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<HistoricValueApiModelHistoryReadNextResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  historyReadValueNextWithHttpOperationResponse(endpointId, request, options) {
+  historyReadValueNextWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._historyReadValueNext(endpointId, request, options, (err, result, request, response) => {
+      self._historyReadValueNext(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -6289,44 +6020,41 @@ class AzureOpcHistoryClient extends ServiceClient {
   /**
    * @summary Read next batch of historic values
    *
-   * Read next batch of historic values of a node using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Read next batch of historic values of a node using historic access. The
+   * endpoint must be activated and connected and the module client and server
+   * must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history read next request
+   * @param {object} body The history read next request
    *
-   * @param {string} request.continuationToken Continuation token to continue
+   * @param {string} body.continuationToken Continuation token to continue
    * reading more
    * results.
    *
-   * @param {boolean} [request.abort] Abort reading after this read
+   * @param {boolean} [body.abort] Abort reading after this read
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -6341,7 +6069,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {HistoryReadNextResponseApiModelHistoricValueApiModel} - The deserialized result object.
+   *                      @resolve {HistoricValueApiModelHistoryReadNextResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -6351,14 +6079,14 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {object} [result]   - The deserialized result object if an error did not occur.
    *                      See {@link
-   *                      HistoryReadNextResponseApiModelHistoricValueApiModel}
+   *                      HistoricValueApiModelHistoryReadNextResponseApiModel}
    *                      for more information.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  historyReadValueNext(endpointId, request, options, optionalCallback) {
+  historyReadValueNext(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -6367,65 +6095,58 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._historyReadValueNext(endpointId, request, options, (err, result, request, response) => {
+        self._historyReadValueNext(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._historyReadValueNext(endpointId, request, options, optionalCallback);
+      return self._historyReadValueNext(endpointId, body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Replace historic values
    *
-   * Replace historic values using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Replace historic values using historic access. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history replace request
+   * @param {object} body The history replace request
    *
-   * @param {string} [request.nodeId] Node to update
+   * @param {string} [body.nodeId] Node to update
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.details The HistoryUpdateDetailsType extension
-   * object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
+   * @param {object} body.details
    *
-   * @param {array} request.details.values Values to replace
+   * @param {array} body.details.values Values to replace
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -6439,11 +6160,11 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  historyReplaceValuesWithHttpOperationResponse(endpointId, request, options) {
+  historyReplaceValuesWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._historyReplaceValues(endpointId, request, options, (err, result, request, response) => {
+      self._historyReplaceValues(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -6456,51 +6177,44 @@ class AzureOpcHistoryClient extends ServiceClient {
   /**
    * @summary Replace historic values
    *
-   * Replace historic values using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Replace historic values using historic access. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history replace request
+   * @param {object} body The history replace request
    *
-   * @param {string} [request.nodeId] Node to update
+   * @param {string} [body.nodeId] Node to update
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.details The HistoryUpdateDetailsType extension
-   * object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
+   * @param {object} body.details
    *
-   * @param {array} request.details.values Values to replace
+   * @param {array} body.details.values Values to replace
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -6531,7 +6245,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  historyReplaceValues(endpointId, request, options, optionalCallback) {
+  historyReplaceValues(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -6540,68 +6254,67 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._historyReplaceValues(endpointId, request, options, (err, result, request, response) => {
+        self._historyReplaceValues(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._historyReplaceValues(endpointId, request, options, optionalCallback);
+      return self._historyReplaceValues(endpointId, body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Replace historic events
    *
-   * Replace historic events using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Replace historic events using historic access. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history replace request
+   * @param {object} body The history replace request
    *
-   * @param {string} [request.nodeId] Node to update
+   * @param {string} [body.nodeId] Node to update
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.details The HistoryUpdateDetailsType extension
-   * object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
+   * @param {object} body.details
    *
-   * @param {object} [request.details.filter] The filter to use to select the
-   * events
+   * @param {object} [body.details.filter]
    *
-   * @param {array} request.details.events The events to replace
+   * @param {array} [body.details.filter.selectClauses] Select statements
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.details.filter.whereClause]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {array} [body.details.filter.whereClause.elements] The flat list of
+   * elements in the filter AST
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {array} body.details.events The events to replace
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header]
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {object} [body.header.elevation]
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
+   *
+   * @param {object} [body.header.diagnostics]
+   *
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -6615,11 +6328,11 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  historyReplaceEventsWithHttpOperationResponse(endpointId, request, options) {
+  historyReplaceEventsWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._historyReplaceEvents(endpointId, request, options, (err, result, request, response) => {
+      self._historyReplaceEvents(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -6632,54 +6345,53 @@ class AzureOpcHistoryClient extends ServiceClient {
   /**
    * @summary Replace historic events
    *
-   * Replace historic events using historic access.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Replace historic events using historic access. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The history replace request
+   * @param {object} body The history replace request
    *
-   * @param {string} [request.nodeId] Node to update
+   * @param {string} [body.nodeId] Node to update
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.details The HistoryUpdateDetailsType extension
-   * object
-   * encoded as json Variant and containing the tunneled
-   * update request for the Historian server. The value
-   * is updated at edge using above node address.
+   * @param {object} body.details
    *
-   * @param {object} [request.details.filter] The filter to use to select the
-   * events
+   * @param {object} [body.details.filter]
    *
-   * @param {array} request.details.events The events to replace
+   * @param {array} [body.details.filter.selectClauses] Select statements
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.details.filter.whereClause]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {array} [body.details.filter.whereClause.elements] The flat list of
+   * elements in the filter AST
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {array} body.details.events The events to replace
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header]
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {object} [body.header.elevation]
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
+   *
+   * @param {object} [body.header.diagnostics]
+   *
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -6710,7 +6422,7 @@ class AzureOpcHistoryClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  historyReplaceEvents(endpointId, request, options, optionalCallback) {
+  historyReplaceEvents(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -6719,14 +6431,14 @@ class AzureOpcHistoryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._historyReplaceEvents(endpointId, request, options, (err, result, request, response) => {
+        self._historyReplaceEvents(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._historyReplaceEvents(endpointId, request, options, optionalCallback);
+      return self._historyReplaceEvents(endpointId, body, options, optionalCallback);
     }
   }
 

@@ -31,7 +31,6 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher.Models
         /// Initializes a new instance of the PublishStartResponseApiModel
         /// class.
         /// </summary>
-        /// <param name="errorInfo">Service result in case of error</param>
         public PublishStartResponseApiModel(ServiceResultApiModel errorInfo = default(ServiceResultApiModel))
         {
             ErrorInfo = errorInfo;
@@ -44,7 +43,6 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets service result in case of error
         /// </summary>
         [JsonProperty(PropertyName = "errorInfo")]
         public ServiceResultApiModel ErrorInfo { get; set; }

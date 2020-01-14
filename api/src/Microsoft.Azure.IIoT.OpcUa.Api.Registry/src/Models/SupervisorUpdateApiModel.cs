@@ -19,20 +19,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Discovery mode of supervisor
-        /// </summary>
-        [JsonProperty(PropertyName = "discovery",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public DiscoveryMode? Discovery { get; set; }
-
-        /// <summary>
-        /// Supervisor discovery config
-        /// </summary>
-        [JsonProperty(PropertyName = "discoveryConfig",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public DiscoveryConfigApiModel DiscoveryConfig { get; set; }
-
-        /// <summary>
         /// Current log level
         /// </summary>
         [JsonProperty(PropertyName = "logLevel",

@@ -113,13 +113,13 @@
                 "description": "Number of OPC UA Windows simulation gateways to deploy."
             }
         },
-        "numberOfServers": {
+        "numberOfSimulations": {
             "type": "int",
             "defaultValue": 1,
             "maxValue": 255,
             "minValue": 0,
             "metadata": {
-                "description": "Number of OPC UA simulation servers to deploy into each simulation gateway networks."
+                "description": "Number of simulations to deploy into each gateway network."
             }
         },
         "edgeUserName": {
@@ -307,8 +307,8 @@
                     "numberOfLinuxGateways": {
                         "value": "[parameters('numberOfLinuxGateways')]"
                     },
-                    "numberOfServers": {
-                        "value": "[parameters('numberOfServers')]"
+                    "numberOfSimulations": {
+                        "value": "[parameters('numberOfSimulations')]"
                     },
                     "numberOfWindowsGateways": {
                         "value": "[parameters('numberOfWindowsGateways')]"

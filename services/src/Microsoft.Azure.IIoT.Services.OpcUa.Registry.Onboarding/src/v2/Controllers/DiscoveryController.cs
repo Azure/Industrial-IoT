@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.v2.Controllers
     /// <summary>
     /// Handle discovery events and onboard applications
     /// </summary>
-    [Route(VersionInfo.PATH + "/discovery")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/discovery")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanOnboard)]
@@ -40,15 +40,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.v2.Controllers
         /// Bulk processes discovery events and onboards new entities
         /// to the application registry
         /// </remarks>
-        /// <param name="supervisorId"></param>
+        /// <param name="discovererId"></param>
         /// <param name="model">Discovery event list model</param>
         /// <returns></returns>
         [HttpPost]
         public async Task ProcessDiscoveryResultsAsync(
-            [FromQuery] [Required] string supervisorId,
+            [FromQuery] [Required] string discovererId,
             [FromBody] [Required] DiscoveryResultListApiModel model) {
-            if (string.IsNullOrEmpty(supervisorId)) {
-                throw new ArgumentNullException(nameof(supervisorId));
+            if (string.IsNullOrEmpty(discovererId)) {
+                throw new ArgumentNullException(nameof(discovererId));
             }
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
@@ -60,7 +60,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.v2.Controllers
                 throw new ArgumentNullException(nameof(model.Events));
             }
             await _onboarding.ProcessDiscoveryResultsAsync(
-                supervisorId, model.Result.ToServiceModel(),
+                discovererId, model.Result.ToServiceModel(),
                 model.Events.Select(e => e.ToServiceModel()));
         }
 

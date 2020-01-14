@@ -15,59 +15,95 @@ final class AzureOpcRegistryClient
             self::_SWAGGER_OBJECT_DATA,
             ['subscriptionId' => $subscriptionId]
         );
-        $this->_GetListOfApplications_operation = $_client->createOperation('GetListOfApplications');
-        $this->_CreateApplication_operation = $_client->createOperation('CreateApplication');
         $this->_RegisterServer_operation = $_client->createOperation('RegisterServer');
+        $this->_CreateApplication_operation = $_client->createOperation('CreateApplication');
         $this->_DeleteAllDisabledApplications_operation = $_client->createOperation('DeleteAllDisabledApplications');
+        $this->_GetListOfApplications_operation = $_client->createOperation('GetListOfApplications');
         $this->_DisableApplication_operation = $_client->createOperation('DisableApplication');
         $this->_EnableApplication_operation = $_client->createOperation('EnableApplication');
         $this->_DiscoverServer_operation = $_client->createOperation('DiscoverServer');
         $this->_Cancel_operation = $_client->createOperation('Cancel');
         $this->_GetApplicationRegistration_operation = $_client->createOperation('GetApplicationRegistration');
-        $this->_DeleteApplication_operation = $_client->createOperation('DeleteApplication');
         $this->_UpdateApplicationRegistration_operation = $_client->createOperation('UpdateApplicationRegistration');
+        $this->_DeleteApplication_operation = $_client->createOperation('DeleteApplication');
         $this->_GetListOfSites_operation = $_client->createOperation('GetListOfSites');
-        $this->_GetFilteredListOfApplications_operation = $_client->createOperation('GetFilteredListOfApplications');
         $this->_QueryApplications_operation = $_client->createOperation('QueryApplications');
+        $this->_GetFilteredListOfApplications_operation = $_client->createOperation('GetFilteredListOfApplications');
         $this->_QueryApplicationsById_operation = $_client->createOperation('QueryApplicationsById');
         $this->_Subscribe_operation = $_client->createOperation('Subscribe');
         $this->_Unsubscribe_operation = $_client->createOperation('Unsubscribe');
-        $this->_SubscribeBySupervisorId_operation = $_client->createOperation('SubscribeBySupervisorId');
-        $this->_SubscribeByRequestId_operation = $_client->createOperation('SubscribeByRequestId');
+        $this->_GetDiscoverer_operation = $_client->createOperation('GetDiscoverer');
+        $this->_UpdateDiscoverer_operation = $_client->createOperation('UpdateDiscoverer');
         $this->_SetDiscoveryMode_operation = $_client->createOperation('SetDiscoveryMode');
+        $this->_GetListOfDiscoverers_operation = $_client->createOperation('GetListOfDiscoverers');
+        $this->_QueryDiscoverers_operation = $_client->createOperation('QueryDiscoverers');
+        $this->_GetFilteredListOfDiscoverers_operation = $_client->createOperation('GetFilteredListOfDiscoverers');
+        $this->_Subscribe1_operation = $_client->createOperation('Subscribe');
+        $this->_Unsubscribe1_operation = $_client->createOperation('Unsubscribe');
+        $this->_SubscribeByDiscovererId_operation = $_client->createOperation('SubscribeByDiscovererId');
+        $this->_SubscribeByRequestId_operation = $_client->createOperation('SubscribeByRequestId');
         $this->_UnsubscribeByRequestId_operation = $_client->createOperation('UnsubscribeByRequestId');
-        $this->_UnsubscribeBySupervisorId_operation = $_client->createOperation('UnsubscribeBySupervisorId');
+        $this->_UnsubscribeByDiscovererId_operation = $_client->createOperation('UnsubscribeByDiscovererId');
         $this->_ActivateEndpoint_operation = $_client->createOperation('ActivateEndpoint');
         $this->_GetEndpoint_operation = $_client->createOperation('GetEndpoint');
         $this->_GetListOfEndpoints_operation = $_client->createOperation('GetListOfEndpoints');
-        $this->_GetFilteredListOfEndpoints_operation = $_client->createOperation('GetFilteredListOfEndpoints');
         $this->_QueryEndpoints_operation = $_client->createOperation('QueryEndpoints');
+        $this->_GetFilteredListOfEndpoints_operation = $_client->createOperation('GetFilteredListOfEndpoints');
         $this->_DeactivateEndpoint_operation = $_client->createOperation('DeactivateEndpoint');
-        $this->_Subscribe1_operation = $_client->createOperation('Subscribe');
-        $this->_Unsubscribe1_operation = $_client->createOperation('Unsubscribe');
+        $this->_Subscribe2_operation = $_client->createOperation('Subscribe');
+        $this->_Unsubscribe2_operation = $_client->createOperation('Unsubscribe');
+        $this->_GetGateway_operation = $_client->createOperation('GetGateway');
+        $this->_UpdateGateway_operation = $_client->createOperation('UpdateGateway');
+        $this->_GetListOfGateway_operation = $_client->createOperation('GetListOfGateway');
+        $this->_QueryGateway_operation = $_client->createOperation('QueryGateway');
+        $this->_GetFilteredListOfGateway_operation = $_client->createOperation('GetFilteredListOfGateway');
+        $this->_Subscribe3_operation = $_client->createOperation('Subscribe');
+        $this->_Unsubscribe3_operation = $_client->createOperation('Unsubscribe');
         $this->_GetPublisher_operation = $_client->createOperation('GetPublisher');
         $this->_UpdatePublisher_operation = $_client->createOperation('UpdatePublisher');
         $this->_GetListOfPublisher_operation = $_client->createOperation('GetListOfPublisher');
-        $this->_GetFilteredListOfPublisher_operation = $_client->createOperation('GetFilteredListOfPublisher');
         $this->_QueryPublisher_operation = $_client->createOperation('QueryPublisher');
-        $this->_Subscribe2_operation = $_client->createOperation('Subscribe');
-        $this->_Unsubscribe2_operation = $_client->createOperation('Unsubscribe');
+        $this->_GetFilteredListOfPublisher_operation = $_client->createOperation('GetFilteredListOfPublisher');
+        $this->_Subscribe4_operation = $_client->createOperation('Subscribe');
+        $this->_Unsubscribe4_operation = $_client->createOperation('Unsubscribe');
         $this->_GetStatus_operation = $_client->createOperation('GetStatus');
         $this->_GetSupervisor_operation = $_client->createOperation('GetSupervisor');
         $this->_UpdateSupervisor_operation = $_client->createOperation('UpdateSupervisor');
         $this->_GetSupervisorStatus_operation = $_client->createOperation('GetSupervisorStatus');
         $this->_ResetSupervisor_operation = $_client->createOperation('ResetSupervisor');
         $this->_GetListOfSupervisors_operation = $_client->createOperation('GetListOfSupervisors');
-        $this->_GetFilteredListOfSupervisors_operation = $_client->createOperation('GetFilteredListOfSupervisors');
         $this->_QuerySupervisors_operation = $_client->createOperation('QuerySupervisors');
-        $this->_Subscribe3_operation = $_client->createOperation('Subscribe');
-        $this->_Unsubscribe3_operation = $_client->createOperation('Unsubscribe');
+        $this->_GetFilteredListOfSupervisors_operation = $_client->createOperation('GetFilteredListOfSupervisors');
+        $this->_Subscribe5_operation = $_client->createOperation('Subscribe');
+        $this->_Unsubscribe5_operation = $_client->createOperation('Unsubscribe');
     }
     /**
-     * Get all registered applications in paged form.
-The returned model can contain a continuation token if more results are
-available.
-Call this operation again using the token to retrieve more results.
+     * Registers a server solely using a discovery url. Requires that the onboarding agent service is running and the server can be located by a supervisor in its network using the discovery url.
+     * @param array $body
+     */
+    public function registerServer(array $body)
+    {
+        return $this->_RegisterServer_operation->call(['body' => $body]);
+    }
+    /**
+     * The application is registered using the provided information, but it is not associated with a supervisor. This is useful for when you need to register clients or you want to register a server that is located in a network not reachable through a Twin module.
+     * @param array $body
+     * @return array
+     */
+    public function createApplication(array $body)
+    {
+        return $this->_CreateApplication_operation->call(['body' => $body]);
+    }
+    /**
+     * Purges all applications that have not been seen for a specified amount of time.
+     * @param string|null $notSeenFor
+     */
+    public function deleteAllDisabledApplications($notSeenFor = null)
+    {
+        return $this->_DeleteAllDisabledApplications_operation->call(['notSeenFor' => $notSeenFor]);
+    }
+    /**
+     * Get all registered applications in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      * @param string|null $continuationToken
      * @param integer|null $pageSize
      * @return array
@@ -81,36 +117,6 @@ Call this operation again using the token to retrieve more results.
             'continuationToken' => $continuationToken,
             'pageSize' => $pageSize
         ]);
-    }
-    /**
-     * The application is registered using the provided information, but it
-is not associated with a supervisor.  This is useful for when you need
-to register clients or you want to register a server that is located
-in a network not reachable through a Twin module.
-     * @param array $request
-     * @return array
-     */
-    public function createApplication(array $request)
-    {
-        return $this->_CreateApplication_operation->call(['request' => $request]);
-    }
-    /**
-     * Registers a server solely using a discovery url. Requires that
-the onboarding agent service is running and the server can be
-located by a supervisor in its network using the discovery url.
-     * @param array $request
-     */
-    public function registerServer(array $request)
-    {
-        return $this->_RegisterServer_operation->call(['request' => $request]);
-    }
-    /**
-     * Purges all applications that have not been seen for a specified amount of time.
-     * @param string|null $notSeenFor
-     */
-    public function deleteAllDisabledApplications($notSeenFor = null)
-    {
-        return $this->_DeleteAllDisabledApplications_operation->call(['notSeenFor' => $notSeenFor]);
     }
     /**
      * A manager can disable an application.
@@ -129,13 +135,12 @@ located by a supervisor in its network using the discovery url.
         return $this->_EnableApplication_operation->call(['applicationId' => $applicationId]);
     }
     /**
-     * Registers servers by running a discovery scan in a supervisor's
-network. Requires that the onboarding agent service is running.
-     * @param array $request
+     * Registers servers by running a discovery scan in a supervisor's network. Requires that the onboarding agent service is running.
+     * @param array $body
      */
-    public function discoverServer(array $request)
+    public function discoverServer(array $body)
     {
-        return $this->_DiscoverServer_operation->call(['request' => $request]);
+        return $this->_DiscoverServer_operation->call(['body' => $body]);
     }
     /**
      * Cancels a discovery request using the request identifier.
@@ -154,29 +159,27 @@ network. Requires that the onboarding agent service is running.
         return $this->_GetApplicationRegistration_operation->call(['applicationId' => $applicationId]);
     }
     /**
+     * The application information is updated with new properties. Note that this information might be overridden if the application is re-discovered during a discovery run (recurring or one-time).
+     * @param string $applicationId
+     * @param array $body
+     */
+    public function updateApplicationRegistration(
+        $applicationId,
+        array $body
+    )
+    {
+        return $this->_UpdateApplicationRegistration_operation->call([
+            'applicationId' => $applicationId,
+            'body' => $body
+        ]);
+    }
+    /**
      * Unregisters and deletes application and all its associated endpoints.
      * @param string $applicationId
      */
     public function deleteApplication($applicationId)
     {
         return $this->_DeleteApplication_operation->call(['applicationId' => $applicationId]);
-    }
-    /**
-     * The application information is updated with new properties.  Note that
-this information might be overridden if the application is re-discovered
-during a discovery run (recurring or one-time).
-     * @param string $applicationId
-     * @param array $request
-     */
-    public function updateApplicationRegistration(
-        $applicationId,
-        array $request
-    )
-    {
-        return $this->_UpdateApplicationRegistration_operation->call([
-            'applicationId' => $applicationId,
-            'request' => $request
-        ]);
     }
     /**
      * List all sites applications are registered in.
@@ -195,61 +198,53 @@ during a discovery run (recurring or one-time).
         ]);
     }
     /**
-     * Get a list of applications filtered using the specified query parameters.
-The returned model can contain a continuation token if more results are
-available.
-Call the GetListOfApplications operation using the token to retrieve
-more results.
-     * @param array $query
+     * List applications that match a query model. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.
      * @param integer|null $pageSize
-     * @return array
-     */
-    public function getFilteredListOfApplications(
-        array $query,
-        $pageSize = null
-    )
-    {
-        return $this->_GetFilteredListOfApplications_operation->call([
-            'query' => $query,
-            'pageSize' => $pageSize
-        ]);
-    }
-    /**
-     * List applications that match a query model.
-The returned model can contain a continuation token if more results are
-available.
-Call the GetListOfApplications operation using the token to retrieve
-more results.
-     * @param array $query
-     * @param integer|null $pageSize
+     * @param array $body
      * @return array
      */
     public function queryApplications(
-        array $query,
-        $pageSize = null
+        $pageSize = null,
+        array $body
     )
     {
         return $this->_QueryApplications_operation->call([
-            'query' => $query,
-            'pageSize' => $pageSize
+            'pageSize' => $pageSize,
+            'body' => $body
+        ]);
+    }
+    /**
+     * Get a list of applications filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfApplications operation using the token to retrieve more results.
+     * @param integer|null $pageSize
+     * @param array $body
+     * @return array
+     */
+    public function getFilteredListOfApplications(
+        $pageSize = null,
+        array $body
+    )
+    {
+        return $this->_GetFilteredListOfApplications_operation->call([
+            'pageSize' => $pageSize,
+            'body' => $body
         ]);
     }
     /**
      * A query model which supports the OPC UA Global Discovery Server query.
-     * @param array|null $query
+     * @param array|null $body
      * @return array
      */
-    public function queryApplicationsById(array $query = null)
+    public function queryApplicationsById(array $body = null)
     {
-        return $this->_QueryApplicationsById_operation->call(['query' => $query]);
+        return $this->_QueryApplicationsById_operation->call(['body' => $body]);
     }
     /**
      * Register a client to receive application events through SignalR.
-     * @param string|null $userId
+     * @param string|null $body
      */
-    public function subscribe($userId = null)
+    public function subscribe($body = null)
     {
-        return $this->_Subscribe_operation->call(['userId' => $userId]);
+        return $this->_Subscribe_operation->call(['body' => $body]);
     }
     /**
      * Unregister a user and stop it from receiving events.
@@ -260,59 +255,165 @@ more results.
         return $this->_Unsubscribe_operation->call(['userId' => $userId]);
     }
     /**
-     * Register a client to receive discovery progress events
-through SignalR from a particular supervisor.
-     * @param string $supervisorId
-     * @param string|null $userId
+     * Returns a discoverer's registration and connectivity information. A discoverer id corresponds to the twin modules module identity.
+     * @param string $discovererId
+     * @param boolean|null $onlyServerState
+     * @return array
      */
-    public function subscribeBySupervisorId(
-        $supervisorId,
-        $userId = null
+    public function getDiscoverer(
+        $discovererId,
+        $onlyServerState = null
     )
     {
-        return $this->_SubscribeBySupervisorId_operation->call([
-            'supervisorId' => $supervisorId,
-            'userId' => $userId
+        return $this->_GetDiscoverer_operation->call([
+            'discovererId' => $discovererId,
+            'onlyServerState' => $onlyServerState
         ]);
     }
     /**
-     * Register a client to receive discovery progress events
-through SignalR for a particular request.
+     * Allows a caller to configure recurring discovery runs on the twin module identified by the discoverer id or update site information.
+     * @param string $discovererId
+     * @param array $body
+     */
+    public function updateDiscoverer(
+        $discovererId,
+        array $body
+    )
+    {
+        return $this->_UpdateDiscoverer_operation->call([
+            'discovererId' => $discovererId,
+            'body' => $body
+        ]);
+    }
+    /**
+     * Allows a caller to configure recurring discovery runs on the discovery module identified by the module id.
+     * @param string $discovererId
+     * @param string $mode
+     * @param array|null $body
+     */
+    public function setDiscoveryMode(
+        $discovererId,
+        $mode,
+        array $body = null
+    )
+    {
+        return $this->_SetDiscoveryMode_operation->call([
+            'discovererId' => $discovererId,
+            'mode' => $mode,
+            'body' => $body
+        ]);
+    }
+    /**
+     * Get all registered discoverers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     * @param boolean|null $onlyServerState
+     * @param string|null $continuationToken
+     * @param integer|null $pageSize
+     * @return array
+     */
+    public function getListOfDiscoverers(
+        $onlyServerState = null,
+        $continuationToken = null,
+        $pageSize = null
+    )
+    {
+        return $this->_GetListOfDiscoverers_operation->call([
+            'onlyServerState' => $onlyServerState,
+            'continuationToken' => $continuationToken,
+            'pageSize' => $pageSize
+        ]);
+    }
+    /**
+     * Get all discoverers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.
+     * @param boolean|null $onlyServerState
+     * @param integer|null $pageSize
+     * @param array $body
+     * @return array
+     */
+    public function queryDiscoverers(
+        $onlyServerState = null,
+        $pageSize = null,
+        array $body
+    )
+    {
+        return $this->_QueryDiscoverers_operation->call([
+            'onlyServerState' => $onlyServerState,
+            'pageSize' => $pageSize,
+            'body' => $body
+        ]);
+    }
+    /**
+     * Get a list of discoverers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfDiscoverers operation using the token to retrieve more results.
+     * @param string|null $siteId
+     * @param string|null $discovery
+     * @param boolean|null $connected
+     * @param boolean|null $onlyServerState
+     * @param integer|null $pageSize
+     * @return array
+     */
+    public function getFilteredListOfDiscoverers(
+        $siteId = null,
+        $discovery = null,
+        $connected = null,
+        $onlyServerState = null,
+        $pageSize = null
+    )
+    {
+        return $this->_GetFilteredListOfDiscoverers_operation->call([
+            'siteId' => $siteId,
+            'discovery' => $discovery,
+            'connected' => $connected,
+            'onlyServerState' => $onlyServerState,
+            'pageSize' => $pageSize
+        ]);
+    }
+    /**
+     * Register a user to receive discoverer events through SignalR.
+     * @param string|null $body
+     */
+    public function subscribe1($body = null)
+    {
+        return $this->_Subscribe1_operation->call(['body' => $body]);
+    }
+    /**
+     * Unregister a user and stop it from receiving discoverer events.
+     * @param string $userId
+     */
+    public function unsubscribe1($userId)
+    {
+        return $this->_Unsubscribe1_operation->call(['userId' => $userId]);
+    }
+    /**
+     * Register a client to receive discovery progress events through SignalR from a particular discoverer.
+     * @param string $discovererId
+     * @param string|null $body
+     */
+    public function subscribeByDiscovererId(
+        $discovererId,
+        $body = null
+    )
+    {
+        return $this->_SubscribeByDiscovererId_operation->call([
+            'discovererId' => $discovererId,
+            'body' => $body
+        ]);
+    }
+    /**
+     * Register a client to receive discovery progress events through SignalR for a particular request.
      * @param string $requestId
-     * @param string|null $userId
+     * @param string|null $body
      */
     public function subscribeByRequestId(
         $requestId,
-        $userId = null
+        $body = null
     )
     {
         return $this->_SubscribeByRequestId_operation->call([
             'requestId' => $requestId,
-            'userId' => $userId
+            'body' => $body
         ]);
     }
     /**
-     * Allows a caller to configure recurring discovery runs on the
-discovery module identified by the module id.
-     * @param string $supervisorId
-     * @param string $mode
-     * @param array|null $config
-     */
-    public function setDiscoveryMode(
-        $supervisorId,
-        $mode,
-        array $config = null
-    )
-    {
-        return $this->_SetDiscoveryMode_operation->call([
-            'supervisorId' => $supervisorId,
-            'mode' => $mode,
-            'config' => $config
-        ]);
-    }
-    /**
-     * Unregister a client and stop it from receiving discovery
-events for a particular request.
+     * Unregister a client and stop it from receiving discovery events for a particular request.
      * @param string $requestId
      * @param string $userId
      */
@@ -328,23 +429,21 @@ events for a particular request.
     }
     /**
      * Unregister a client and stop it from receiving discovery events.
-     * @param string $supervisorId
+     * @param string $discovererId
      * @param string $userId
      */
-    public function unsubscribeBySupervisorId(
-        $supervisorId,
+    public function unsubscribeByDiscovererId(
+        $discovererId,
         $userId
     )
     {
-        return $this->_UnsubscribeBySupervisorId_operation->call([
-            'supervisorId' => $supervisorId,
+        return $this->_UnsubscribeByDiscovererId_operation->call([
+            'discovererId' => $discovererId,
             'userId' => $userId
         ]);
     }
     /**
-     * Activates an endpoint for subsequent use in twin service.
-All endpoints must be activated using this API or through a
-activation filter during application registration or discovery.
+     * Activates an endpoint for subsequent use in twin service. All endpoints must be activated using this API or through a activation filter during application registration or discovery.
      * @param string $endpointId
      */
     public function activateEndpoint($endpointId)
@@ -368,10 +467,7 @@ activation filter during application registration or discovery.
         ]);
     }
     /**
-     * Get all registered endpoints in paged form.
-The returned model can contain a continuation token if more results are
-available.
-Call this operation again using the token to retrieve more results.
+     * Get all registered endpoints in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      * @param boolean|null $onlyServerState
      * @param string|null $continuationToken
      * @param integer|null $pageSize
@@ -390,11 +486,26 @@ Call this operation again using the token to retrieve more results.
         ]);
     }
     /**
-     * Get a list of endpoints filtered using the specified query parameters.
-The returned model can contain a continuation token if more results are
-available.
-Call the GetListOfEndpoints operation using the token to retrieve
-more results.
+     * Return endpoints that match the specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.
+     * @param boolean|null $onlyServerState
+     * @param integer|null $pageSize
+     * @param array $body
+     * @return array
+     */
+    public function queryEndpoints(
+        $onlyServerState = null,
+        $pageSize = null,
+        array $body
+    )
+    {
+        return $this->_QueryEndpoints_operation->call([
+            'onlyServerState' => $onlyServerState,
+            'pageSize' => $pageSize,
+            'body' => $body
+        ]);
+    }
+    /**
+     * Get a list of endpoints filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfEndpoints operation using the token to retrieve more results.
      * @param string|null $url
      * @param string|null $certificate
      * @param string|null $securityMode
@@ -403,6 +514,10 @@ more results.
      * @param boolean|null $connected
      * @param string|null $endpointState
      * @param boolean|null $includeNotSeenSince
+     * @param string|null $discovererId
+     * @param string|null $applicationId
+     * @param string|null $supervisorId
+     * @param string|null $siteOrGatewayId
      * @param boolean|null $onlyServerState
      * @param integer|null $pageSize
      * @return array
@@ -416,42 +531,27 @@ more results.
         $connected = null,
         $endpointState = null,
         $includeNotSeenSince = null,
+        $discovererId = null,
+        $applicationId = null,
+        $supervisorId = null,
+        $siteOrGatewayId = null,
         $onlyServerState = null,
         $pageSize = null
     )
     {
         return $this->_GetFilteredListOfEndpoints_operation->call([
-            'Url' => $url,
-            'Certificate' => $certificate,
-            'SecurityMode' => $securityMode,
-            'SecurityPolicy' => $securityPolicy,
-            'Activated' => $activated,
-            'Connected' => $connected,
-            'EndpointState' => $endpointState,
-            'IncludeNotSeenSince' => $includeNotSeenSince,
-            'onlyServerState' => $onlyServerState,
-            'pageSize' => $pageSize
-        ]);
-    }
-    /**
-     * Return endpoints that match the specified query.
-The returned model can contain a continuation token if more results are
-available.
-Call the GetListOfEndpoints operation using the token to retrieve
-more results.
-     * @param array $query
-     * @param boolean|null $onlyServerState
-     * @param integer|null $pageSize
-     * @return array
-     */
-    public function queryEndpoints(
-        array $query,
-        $onlyServerState = null,
-        $pageSize = null
-    )
-    {
-        return $this->_QueryEndpoints_operation->call([
-            'query' => $query,
+            'url' => $url,
+            'certificate' => $certificate,
+            'securityMode' => $securityMode,
+            'securityPolicy' => $securityPolicy,
+            'activated' => $activated,
+            'connected' => $connected,
+            'endpointState' => $endpointState,
+            'includeNotSeenSince' => $includeNotSeenSince,
+            'discovererId' => $discovererId,
+            'applicationId' => $applicationId,
+            'supervisorId' => $supervisorId,
+            'siteOrGatewayId' => $siteOrGatewayId,
             'onlyServerState' => $onlyServerState,
             'pageSize' => $pageSize
         ]);
@@ -466,23 +566,113 @@ more results.
     }
     /**
      * Register a user to receive endpoint events through SignalR.
-     * @param string|null $userId
+     * @param string|null $body
      */
-    public function subscribe1($userId = null)
+    public function subscribe2($body = null)
     {
-        return $this->_Subscribe1_operation->call(['userId' => $userId]);
+        return $this->_Subscribe2_operation->call(['body' => $body]);
     }
     /**
      * Unregister a user and stop it from receiving endpoint events.
      * @param string $userId
      */
-    public function unsubscribe1($userId)
+    public function unsubscribe2($userId)
     {
-        return $this->_Unsubscribe1_operation->call(['userId' => $userId]);
+        return $this->_Unsubscribe2_operation->call(['userId' => $userId]);
     }
     /**
-     * Returns a publisher's registration and connectivity information.
-A publisher id corresponds to the twin modules module identity.
+     * Returns a Gateway's registration and connectivity information. A Gateway id corresponds to the twin modules module identity.
+     * @param string $gatewayId
+     * @return array
+     */
+    public function getGateway($gatewayId)
+    {
+        return $this->_GetGateway_operation->call(['GatewayId' => $gatewayId]);
+    }
+    /**
+     * Allows a caller to configure operations on the Gateway module identified by the Gateway id.
+     * @param string $gatewayId
+     * @param array $body
+     */
+    public function updateGateway(
+        $gatewayId,
+        array $body
+    )
+    {
+        return $this->_UpdateGateway_operation->call([
+            'GatewayId' => $gatewayId,
+            'body' => $body
+        ]);
+    }
+    /**
+     * Get all registered Gateways and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
+     * @param string|null $continuationToken
+     * @param integer|null $pageSize
+     * @return array
+     */
+    public function getListOfGateway(
+        $continuationToken = null,
+        $pageSize = null
+    )
+    {
+        return $this->_GetListOfGateway_operation->call([
+            'continuationToken' => $continuationToken,
+            'pageSize' => $pageSize
+        ]);
+    }
+    /**
+     * Get all Gateways that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.
+     * @param integer|null $pageSize
+     * @param array $body
+     * @return array
+     */
+    public function queryGateway(
+        $pageSize = null,
+        array $body
+    )
+    {
+        return $this->_QueryGateway_operation->call([
+            'pageSize' => $pageSize,
+            'body' => $body
+        ]);
+    }
+    /**
+     * Get a list of Gateways filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfGateway operation using the token to retrieve more results.
+     * @param string|null $siteId
+     * @param boolean|null $connected
+     * @param integer|null $pageSize
+     * @return array
+     */
+    public function getFilteredListOfGateway(
+        $siteId = null,
+        $connected = null,
+        $pageSize = null
+    )
+    {
+        return $this->_GetFilteredListOfGateway_operation->call([
+            'siteId' => $siteId,
+            'connected' => $connected,
+            'pageSize' => $pageSize
+        ]);
+    }
+    /**
+     * Register a user to receive Gateway events through SignalR.
+     * @param string|null $body
+     */
+    public function subscribe3($body = null)
+    {
+        return $this->_Subscribe3_operation->call(['body' => $body]);
+    }
+    /**
+     * Unregister a user and stop it from receiving Gateway events.
+     * @param string $userId
+     */
+    public function unsubscribe3($userId)
+    {
+        return $this->_Unsubscribe3_operation->call(['userId' => $userId]);
+    }
+    /**
+     * Returns a publisher's registration and connectivity information. A publisher id corresponds to the twin modules module identity.
      * @param string $publisherId
      * @param boolean|null $onlyServerState
      * @return array
@@ -498,26 +688,22 @@ A publisher id corresponds to the twin modules module identity.
         ]);
     }
     /**
-     * Allows a caller to configure operations on the publisher module
-identified by the publisher id.
+     * Allows a caller to configure operations on the publisher module identified by the publisher id.
      * @param string $publisherId
-     * @param array $request
+     * @param array $body
      */
     public function updatePublisher(
         $publisherId,
-        array $request
+        array $body
     )
     {
         return $this->_UpdatePublisher_operation->call([
             'publisherId' => $publisherId,
-            'request' => $request
+            'body' => $body
         ]);
     }
     /**
-     * Get all registered publishers and therefore twin modules in paged form.
-The returned model can contain a continuation token if more results are
-available.
-Call this operation again using the token to retrieve more results.
+     * Get all registered publishers and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      * @param boolean|null $onlyServerState
      * @param string|null $continuationToken
      * @param integer|null $pageSize
@@ -536,11 +722,26 @@ Call this operation again using the token to retrieve more results.
         ]);
     }
     /**
-     * Get a list of publishers filtered using the specified query parameters.
-The returned model can contain a continuation token if more results are
-available.
-Call the GetListOfPublisher operation using the token to retrieve
-more results.
+     * Get all publishers that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
+     * @param boolean|null $onlyServerState
+     * @param integer|null $pageSize
+     * @param array $body
+     * @return array
+     */
+    public function queryPublisher(
+        $onlyServerState = null,
+        $pageSize = null,
+        array $body
+    )
+    {
+        return $this->_QueryPublisher_operation->call([
+            'onlyServerState' => $onlyServerState,
+            'pageSize' => $pageSize,
+            'body' => $body
+        ]);
+    }
+    /**
+     * Get a list of publishers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
      * @param string|null $siteId
      * @param boolean|null $connected
      * @param boolean|null $onlyServerState
@@ -555,50 +756,27 @@ more results.
     )
     {
         return $this->_GetFilteredListOfPublisher_operation->call([
-            'SiteId' => $siteId,
-            'Connected' => $connected,
-            'onlyServerState' => $onlyServerState,
-            'pageSize' => $pageSize
-        ]);
-    }
-    /**
-     * Get all publishers that match a specified query.
-The returned model can contain a continuation token if more results are
-available.
-Call the GetListOfPublisher operation using the token to retrieve
-more results.
-     * @param array $query
-     * @param boolean|null $onlyServerState
-     * @param integer|null $pageSize
-     * @return array
-     */
-    public function queryPublisher(
-        array $query,
-        $onlyServerState = null,
-        $pageSize = null
-    )
-    {
-        return $this->_QueryPublisher_operation->call([
-            'query' => $query,
+            'siteId' => $siteId,
+            'connected' => $connected,
             'onlyServerState' => $onlyServerState,
             'pageSize' => $pageSize
         ]);
     }
     /**
      * Register a user to receive publisher events through SignalR.
-     * @param string|null $userId
+     * @param string|null $body
      */
-    public function subscribe2($userId = null)
+    public function subscribe4($body = null)
     {
-        return $this->_Subscribe2_operation->call(['userId' => $userId]);
+        return $this->_Subscribe4_operation->call(['body' => $body]);
     }
     /**
      * Unregister a user and stop it from receiving publisher events.
      * @param string $userId
      */
-    public function unsubscribe2($userId)
+    public function unsubscribe4($userId)
     {
-        return $this->_Unsubscribe2_operation->call(['userId' => $userId]);
+        return $this->_Unsubscribe4_operation->call(['userId' => $userId]);
     }
     /**
      * @return array
@@ -608,8 +786,7 @@ more results.
         return $this->_GetStatus_operation->call([]);
     }
     /**
-     * Returns a supervisor's registration and connectivity information.
-A supervisor id corresponds to the twin modules module identity.
+     * Returns a supervisor's registration and connectivity information. A supervisor id corresponds to the twin modules module identity.
      * @param string $supervisorId
      * @param boolean|null $onlyServerState
      * @return array
@@ -625,19 +802,18 @@ A supervisor id corresponds to the twin modules module identity.
         ]);
     }
     /**
-     * Allows a caller to configure recurring discovery runs on the twin module
-identified by the supervisor id or update site information.
+     * Allows a caller to configure recurring discovery runs on the twin module identified by the supervisor id or update site information.
      * @param string $supervisorId
-     * @param array $request
+     * @param array $body
      */
     public function updateSupervisor(
         $supervisorId,
-        array $request
+        array $body
     )
     {
         return $this->_UpdateSupervisor_operation->call([
             'supervisorId' => $supervisorId,
-            'request' => $request
+            'body' => $body
         ]);
     }
     /**
@@ -650,8 +826,7 @@ identified by the supervisor id or update site information.
         return $this->_GetSupervisorStatus_operation->call(['supervisorId' => $supervisorId]);
     }
     /**
-     * Allows a caller to reset the twin module using its supervisor
-identity identifier.
+     * Allows a caller to reset the twin module using its supervisor identity identifier.
      * @param string $supervisorId
      */
     public function resetSupervisor($supervisorId)
@@ -659,10 +834,7 @@ identity identifier.
         return $this->_ResetSupervisor_operation->call(['supervisorId' => $supervisorId]);
     }
     /**
-     * Get all registered supervisors and therefore twin modules in paged form.
-The returned model can contain a continuation token if more results are
-available.
-Call this operation again using the token to retrieve more results.
+     * Get all registered supervisors and therefore twin modules in paged form. The returned model can contain a continuation token if more results are available. Call this operation again using the token to retrieve more results.
      * @param boolean|null $onlyServerState
      * @param string|null $continuationToken
      * @param integer|null $pageSize
@@ -681,13 +853,27 @@ Call this operation again using the token to retrieve more results.
         ]);
     }
     /**
-     * Get a list of supervisors filtered using the specified query parameters.
-The returned model can contain a continuation token if more results are
-available.
-Call the GetListOfSupervisors operation using the token to retrieve
-more results.
+     * Get all supervisors that match a specified query. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
+     * @param boolean|null $onlyServerState
+     * @param integer|null $pageSize
+     * @param array $body
+     * @return array
+     */
+    public function querySupervisors(
+        $onlyServerState = null,
+        $pageSize = null,
+        array $body
+    )
+    {
+        return $this->_QuerySupervisors_operation->call([
+            'onlyServerState' => $onlyServerState,
+            'pageSize' => $pageSize,
+            'body' => $body
+        ]);
+    }
+    /**
+     * Get a list of supervisors filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
      * @param string|null $siteId
-     * @param string|null $discovery
      * @param boolean|null $connected
      * @param boolean|null $onlyServerState
      * @param integer|null $pageSize
@@ -695,67 +881,34 @@ more results.
      */
     public function getFilteredListOfSupervisors(
         $siteId = null,
-        $discovery = null,
         $connected = null,
         $onlyServerState = null,
         $pageSize = null
     )
     {
         return $this->_GetFilteredListOfSupervisors_operation->call([
-            'SiteId' => $siteId,
-            'Discovery' => $discovery,
-            'Connected' => $connected,
-            'onlyServerState' => $onlyServerState,
-            'pageSize' => $pageSize
-        ]);
-    }
-    /**
-     * Get all supervisors that match a specified query.
-The returned model can contain a continuation token if more results are
-available.
-Call the GetListOfSupervisors operation using the token to retrieve
-more results.
-     * @param array $query
-     * @param boolean|null $onlyServerState
-     * @param integer|null $pageSize
-     * @return array
-     */
-    public function querySupervisors(
-        array $query,
-        $onlyServerState = null,
-        $pageSize = null
-    )
-    {
-        return $this->_QuerySupervisors_operation->call([
-            'query' => $query,
+            'siteId' => $siteId,
+            'connected' => $connected,
             'onlyServerState' => $onlyServerState,
             'pageSize' => $pageSize
         ]);
     }
     /**
      * Register a user to receive supervisor events through SignalR.
-     * @param string|null $userId
+     * @param string|null $body
      */
-    public function subscribe3($userId = null)
+    public function subscribe5($body = null)
     {
-        return $this->_Subscribe3_operation->call(['userId' => $userId]);
+        return $this->_Subscribe5_operation->call(['body' => $body]);
     }
     /**
      * Unregister a user and stop it from receiving supervisor events.
      * @param string $userId
      */
-    public function unsubscribe3($userId)
+    public function unsubscribe5($userId)
     {
-        return $this->_Unsubscribe3_operation->call(['userId' => $userId]);
+        return $this->_Unsubscribe5_operation->call(['userId' => $userId]);
     }
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_GetListOfApplications_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_CreateApplication_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
@@ -763,7 +916,15 @@ more results.
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
+    private $_CreateApplication_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
     private $_DeleteAllDisabledApplications_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_GetListOfApplications_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
@@ -787,11 +948,11 @@ more results.
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_DeleteApplication_operation;
+    private $_UpdateApplicationRegistration_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_UpdateApplicationRegistration_operation;
+    private $_DeleteApplication_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
@@ -799,11 +960,11 @@ more results.
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_GetFilteredListOfApplications_operation;
+    private $_QueryApplications_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_QueryApplications_operation;
+    private $_GetFilteredListOfApplications_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
@@ -819,11 +980,11 @@ more results.
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_SubscribeBySupervisorId_operation;
+    private $_GetDiscoverer_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_SubscribeByRequestId_operation;
+    private $_UpdateDiscoverer_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
@@ -831,11 +992,39 @@ more results.
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
+    private $_GetListOfDiscoverers_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_QueryDiscoverers_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_GetFilteredListOfDiscoverers_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_Subscribe1_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_Unsubscribe1_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_SubscribeByDiscovererId_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_SubscribeByRequestId_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
     private $_UnsubscribeByRequestId_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_UnsubscribeBySupervisorId_operation;
+    private $_UnsubscribeByDiscovererId_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
@@ -851,11 +1040,11 @@ more results.
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_GetFilteredListOfEndpoints_operation;
+    private $_QueryEndpoints_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_QueryEndpoints_operation;
+    private $_GetFilteredListOfEndpoints_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
@@ -863,11 +1052,39 @@ more results.
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_Subscribe1_operation;
+    private $_Subscribe2_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_Unsubscribe1_operation;
+    private $_Unsubscribe2_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_GetGateway_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_UpdateGateway_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_GetListOfGateway_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_QueryGateway_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_GetFilteredListOfGateway_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_Subscribe3_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_Unsubscribe3_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
@@ -883,19 +1100,19 @@ more results.
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_GetFilteredListOfPublisher_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
     private $_QueryPublisher_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_Subscribe2_operation;
+    private $_GetFilteredListOfPublisher_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_Unsubscribe2_operation;
+    private $_Subscribe4_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_Unsubscribe4_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
@@ -923,23 +1140,53 @@ more results.
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_GetFilteredListOfSupervisors_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
     private $_QuerySupervisors_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_Subscribe3_operation;
+    private $_GetFilteredListOfSupervisors_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_Unsubscribe3_operation;
+    private $_Subscribe5_operation;
+    /**
+     * @var \Microsoft\Rest\OperationInterface
+     */
+    private $_Unsubscribe5_operation;
     const _SWAGGER_OBJECT_DATA = [
         'host' => 'localhost',
         'paths' => [
             '/v2/applications' => [
+                'post' => [
+                    'operationId' => 'RegisterServer',
+                    'parameters' => [[
+                        'name' => 'body',
+                        'in' => 'body',
+                        'required' => TRUE,
+                        'schema' => ['$ref' => '#/definitions/ServerRegistrationRequestApiModel']
+                    ]],
+                    'responses' => ['200' => []]
+                ],
+                'put' => [
+                    'operationId' => 'CreateApplication',
+                    'parameters' => [[
+                        'name' => 'body',
+                        'in' => 'body',
+                        'required' => TRUE,
+                        'schema' => ['$ref' => '#/definitions/ApplicationRegistrationRequestApiModel']
+                    ]],
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationRegistrationResponseApiModel']]]
+                ],
+                'delete' => [
+                    'operationId' => 'DeleteAllDisabledApplications',
+                    'parameters' => [[
+                        'name' => 'notSeenFor',
+                        'in' => 'query',
+                        'required' => FALSE,
+                        'type' => 'string'
+                    ]],
+                    'responses' => ['200' => []]
+                ],
                 'get' => [
                     'operationId' => 'GetListOfApplications',
                     'parameters' => [
@@ -958,36 +1205,6 @@ more results.
                         ]
                     ],
                     'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationInfoListApiModel']]]
-                ],
-                'put' => [
-                    'operationId' => 'CreateApplication',
-                    'parameters' => [[
-                        'name' => 'request',
-                        'in' => 'body',
-                        'required' => TRUE,
-                        'schema' => ['$ref' => '#/definitions/ApplicationRegistrationRequestApiModel']
-                    ]],
-                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationRegistrationResponseApiModel']]]
-                ],
-                'post' => [
-                    'operationId' => 'RegisterServer',
-                    'parameters' => [[
-                        'name' => 'request',
-                        'in' => 'body',
-                        'required' => TRUE,
-                        'schema' => ['$ref' => '#/definitions/ServerRegistrationRequestApiModel']
-                    ]],
-                    'responses' => ['200' => []]
-                ],
-                'delete' => [
-                    'operationId' => 'DeleteAllDisabledApplications',
-                    'parameters' => [[
-                        'name' => 'notSeenFor',
-                        'in' => 'query',
-                        'required' => FALSE,
-                        'type' => 'string'
-                    ]],
-                    'responses' => ['200' => []]
                 ]
             ],
             '/v2/applications/{applicationId}/disable' => ['post' => [
@@ -1013,7 +1230,7 @@ more results.
             '/v2/applications/discover' => ['post' => [
                 'operationId' => 'DiscoverServer',
                 'parameters' => [[
-                    'name' => 'request',
+                    'name' => 'body',
                     'in' => 'body',
                     'required' => TRUE,
                     'schema' => ['$ref' => '#/definitions/DiscoveryRequestApiModel']
@@ -1041,16 +1258,6 @@ more results.
                     ]],
                     'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationRegistrationApiModel']]]
                 ],
-                'delete' => [
-                    'operationId' => 'DeleteApplication',
-                    'parameters' => [[
-                        'name' => 'applicationId',
-                        'in' => 'path',
-                        'required' => TRUE,
-                        'type' => 'string'
-                    ]],
-                    'responses' => ['200' => []]
-                ],
                 'patch' => [
                     'operationId' => 'UpdateApplicationRegistration',
                     'parameters' => [
@@ -1061,12 +1268,22 @@ more results.
                             'type' => 'string'
                         ],
                         [
-                            'name' => 'request',
+                            'name' => 'body',
                             'in' => 'body',
                             'required' => TRUE,
                             'schema' => ['$ref' => '#/definitions/ApplicationRegistrationUpdateApiModel']
                         ]
                     ],
+                    'responses' => ['200' => []]
+                ],
+                'delete' => [
+                    'operationId' => 'DeleteApplication',
+                    'parameters' => [[
+                        'name' => 'applicationId',
+                        'in' => 'path',
+                        'required' => TRUE,
+                        'type' => 'string'
+                    ]],
                     'responses' => ['200' => []]
                 ]
             ],
@@ -1090,40 +1307,40 @@ more results.
                 'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationSiteListApiModel']]]
             ]],
             '/v2/applications/query' => [
-                'get' => [
-                    'operationId' => 'GetFilteredListOfApplications',
-                    'parameters' => [
-                        [
-                            'name' => 'query',
-                            'in' => 'body',
-                            'required' => TRUE,
-                            'schema' => ['$ref' => '#/definitions/ApplicationRegistrationQueryApiModel']
-                        ],
-                        [
-                            'name' => 'pageSize',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'integer',
-                            'format' => 'int32'
-                        ]
-                    ],
-                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationInfoListApiModel']]]
-                ],
                 'post' => [
                     'operationId' => 'QueryApplications',
                     'parameters' => [
                         [
-                            'name' => 'query',
+                            'name' => 'pageSize',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'integer',
+                            'format' => 'int32'
+                        ],
+                        [
+                            'name' => 'body',
                             'in' => 'body',
                             'required' => TRUE,
                             'schema' => ['$ref' => '#/definitions/ApplicationRegistrationQueryApiModel']
-                        ],
+                        ]
+                    ],
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationInfoListApiModel']]]
+                ],
+                'get' => [
+                    'operationId' => 'GetFilteredListOfApplications',
+                    'parameters' => [
                         [
                             'name' => 'pageSize',
                             'in' => 'query',
                             'required' => FALSE,
                             'type' => 'integer',
                             'format' => 'int32'
+                        ],
+                        [
+                            'name' => 'body',
+                            'in' => 'body',
+                            'required' => TRUE,
+                            'schema' => ['$ref' => '#/definitions/ApplicationRegistrationQueryApiModel']
                         ]
                     ],
                     'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationInfoListApiModel']]]
@@ -1132,7 +1349,7 @@ more results.
             '/v2/applications/querybyid' => ['post' => [
                 'operationId' => 'QueryApplicationsById',
                 'parameters' => [[
-                    'name' => 'query',
+                    'name' => 'body',
                     'in' => 'body',
                     'required' => FALSE,
                     'schema' => ['$ref' => '#/definitions/ApplicationRecordQueryApiModel']
@@ -1142,7 +1359,7 @@ more results.
             '/v2/applications/events' => ['put' => [
                 'operationId' => 'Subscribe',
                 'parameters' => [[
-                    'name' => 'userId',
+                    'name' => 'body',
                     'in' => 'body',
                     'required' => FALSE,
                     'schema' => ['type' => 'string']
@@ -1159,17 +1376,202 @@ more results.
                 ]],
                 'responses' => ['200' => []]
             ]],
-            '/v2/discovery/{supervisorId}/events' => ['put' => [
-                'operationId' => 'SubscribeBySupervisorId',
+            '/v2/discovery/{discovererId}' => [
+                'get' => [
+                    'operationId' => 'GetDiscoverer',
+                    'parameters' => [
+                        [
+                            'name' => 'discovererId',
+                            'in' => 'path',
+                            'required' => TRUE,
+                            'type' => 'string'
+                        ],
+                        [
+                            'name' => 'onlyServerState',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'boolean'
+                        ]
+                    ],
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/DiscovererApiModel']]]
+                ],
+                'patch' => [
+                    'operationId' => 'UpdateDiscoverer',
+                    'parameters' => [
+                        [
+                            'name' => 'discovererId',
+                            'in' => 'path',
+                            'required' => TRUE,
+                            'type' => 'string'
+                        ],
+                        [
+                            'name' => 'body',
+                            'in' => 'body',
+                            'required' => TRUE,
+                            'schema' => ['$ref' => '#/definitions/DiscovererUpdateApiModel']
+                        ]
+                    ],
+                    'responses' => ['200' => []]
+                ],
+                'post' => [
+                    'operationId' => 'SetDiscoveryMode',
+                    'parameters' => [
+                        [
+                            'name' => 'discovererId',
+                            'in' => 'path',
+                            'required' => TRUE,
+                            'type' => 'string'
+                        ],
+                        [
+                            'name' => 'mode',
+                            'in' => 'query',
+                            'required' => TRUE,
+                            'type' => 'string',
+                            'enum' => [
+                                'Off',
+                                'Local',
+                                'Network',
+                                'Fast',
+                                'Scan'
+                            ]
+                        ],
+                        [
+                            'name' => 'body',
+                            'in' => 'body',
+                            'required' => FALSE,
+                            'schema' => ['$ref' => '#/definitions/DiscoveryConfigApiModel']
+                        ]
+                    ],
+                    'responses' => ['200' => []]
+                ]
+            ],
+            '/v2/discovery' => ['get' => [
+                'operationId' => 'GetListOfDiscoverers',
                 'parameters' => [
                     [
-                        'name' => 'supervisorId',
+                        'name' => 'onlyServerState',
+                        'in' => 'query',
+                        'required' => FALSE,
+                        'type' => 'boolean'
+                    ],
+                    [
+                        'name' => 'continuationToken',
+                        'in' => 'query',
+                        'required' => FALSE,
+                        'type' => 'string'
+                    ],
+                    [
+                        'name' => 'pageSize',
+                        'in' => 'query',
+                        'required' => FALSE,
+                        'type' => 'integer',
+                        'format' => 'int32'
+                    ]
+                ],
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/DiscovererListApiModel']]]
+            ]],
+            '/v2/discovery/query' => [
+                'post' => [
+                    'operationId' => 'QueryDiscoverers',
+                    'parameters' => [
+                        [
+                            'name' => 'onlyServerState',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'boolean'
+                        ],
+                        [
+                            'name' => 'pageSize',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'integer',
+                            'format' => 'int32'
+                        ],
+                        [
+                            'name' => 'body',
+                            'in' => 'body',
+                            'required' => TRUE,
+                            'schema' => ['$ref' => '#/definitions/DiscovererQueryApiModel']
+                        ]
+                    ],
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/DiscovererListApiModel']]]
+                ],
+                'get' => [
+                    'operationId' => 'GetFilteredListOfDiscoverers',
+                    'parameters' => [
+                        [
+                            'name' => 'siteId',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'string'
+                        ],
+                        [
+                            'name' => 'discovery',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'string',
+                            'enum' => [
+                                'Off',
+                                'Local',
+                                'Network',
+                                'Fast',
+                                'Scan'
+                            ]
+                        ],
+                        [
+                            'name' => 'connected',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'boolean'
+                        ],
+                        [
+                            'name' => 'onlyServerState',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'boolean'
+                        ],
+                        [
+                            'name' => 'pageSize',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'integer',
+                            'format' => 'int32'
+                        ]
+                    ],
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/DiscovererListApiModel']]]
+                ]
+            ],
+            '/v2/discovery/events' => ['put' => [
+                'operationId' => 'Subscribe',
+                'parameters' => [[
+                    'name' => 'body',
+                    'in' => 'body',
+                    'required' => FALSE,
+                    'schema' => ['type' => 'string']
+                ]],
+                'responses' => ['200' => []]
+            ]],
+            '/v2/discovery/events/{userId}' => ['delete' => [
+                'operationId' => 'Unsubscribe',
+                'parameters' => [[
+                    'name' => 'userId',
+                    'in' => 'path',
+                    'required' => TRUE,
+                    'type' => 'string'
+                ]],
+                'responses' => ['200' => []]
+            ]],
+            '/v2/discovery/{discovererId}/events' => ['put' => [
+                'operationId' => 'SubscribeByDiscovererId',
+                'parameters' => [
+                    [
+                        'name' => 'discovererId',
                         'in' => 'path',
                         'required' => TRUE,
                         'type' => 'string'
                     ],
                     [
-                        'name' => 'userId',
+                        'name' => 'body',
                         'in' => 'body',
                         'required' => FALSE,
                         'schema' => ['type' => 'string']
@@ -1187,41 +1589,10 @@ more results.
                         'type' => 'string'
                     ],
                     [
-                        'name' => 'userId',
+                        'name' => 'body',
                         'in' => 'body',
                         'required' => FALSE,
                         'schema' => ['type' => 'string']
-                    ]
-                ],
-                'responses' => ['200' => []]
-            ]],
-            '/v2/discovery/{supervisorId}' => ['post' => [
-                'operationId' => 'SetDiscoveryMode',
-                'parameters' => [
-                    [
-                        'name' => 'supervisorId',
-                        'in' => 'path',
-                        'required' => TRUE,
-                        'type' => 'string'
-                    ],
-                    [
-                        'name' => 'mode',
-                        'in' => 'query',
-                        'required' => TRUE,
-                        'type' => 'string',
-                        'enum' => [
-                            'Off',
-                            'Local',
-                            'Network',
-                            'Fast',
-                            'Scan'
-                        ]
-                    ],
-                    [
-                        'name' => 'config',
-                        'in' => 'body',
-                        'required' => FALSE,
-                        'schema' => ['$ref' => '#/definitions/DiscoveryConfigApiModel']
                     ]
                 ],
                 'responses' => ['200' => []]
@@ -1244,11 +1615,11 @@ more results.
                 ],
                 'responses' => ['200' => []]
             ]],
-            '/v2/discovery/{supervisorId}/events/{userId}' => ['delete' => [
-                'operationId' => 'UnsubscribeBySupervisorId',
+            '/v2/discovery/{discovererId}/events/{userId}' => ['delete' => [
+                'operationId' => 'UnsubscribeByDiscovererId',
                 'parameters' => [
                     [
-                        'name' => 'supervisorId',
+                        'name' => 'discovererId',
                         'in' => 'path',
                         'required' => TRUE,
                         'type' => 'string'
@@ -1316,24 +1687,49 @@ more results.
                 'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoListApiModel']]]
             ]],
             '/v2/endpoints/query' => [
+                'post' => [
+                    'operationId' => 'QueryEndpoints',
+                    'parameters' => [
+                        [
+                            'name' => 'onlyServerState',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'boolean'
+                        ],
+                        [
+                            'name' => 'pageSize',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'integer',
+                            'format' => 'int32'
+                        ],
+                        [
+                            'name' => 'body',
+                            'in' => 'body',
+                            'required' => TRUE,
+                            'schema' => ['$ref' => '#/definitions/EndpointRegistrationQueryApiModel']
+                        ]
+                    ],
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoListApiModel']]]
+                ],
                 'get' => [
                     'operationId' => 'GetFilteredListOfEndpoints',
                     'parameters' => [
                         [
-                            'name' => 'Url',
+                            'name' => 'url',
                             'in' => 'query',
                             'required' => FALSE,
                             'type' => 'string'
                         ],
                         [
-                            'name' => 'Certificate',
+                            'name' => 'certificate',
                             'in' => 'query',
                             'required' => FALSE,
                             'type' => 'string',
                             'format' => 'byte'
                         ],
                         [
-                            'name' => 'SecurityMode',
+                            'name' => 'securityMode',
                             'in' => 'query',
                             'required' => FALSE,
                             'type' => 'string',
@@ -1345,25 +1741,25 @@ more results.
                             ]
                         ],
                         [
-                            'name' => 'SecurityPolicy',
+                            'name' => 'securityPolicy',
                             'in' => 'query',
                             'required' => FALSE,
                             'type' => 'string'
                         ],
                         [
-                            'name' => 'Activated',
+                            'name' => 'activated',
                             'in' => 'query',
                             'required' => FALSE,
                             'type' => 'boolean'
                         ],
                         [
-                            'name' => 'Connected',
+                            'name' => 'connected',
                             'in' => 'query',
                             'required' => FALSE,
                             'type' => 'boolean'
                         ],
                         [
-                            'name' => 'EndpointState',
+                            'name' => 'endpointState',
                             'in' => 'query',
                             'required' => FALSE,
                             'type' => 'string',
@@ -1378,35 +1774,34 @@ more results.
                             ]
                         ],
                         [
-                            'name' => 'IncludeNotSeenSince',
+                            'name' => 'includeNotSeenSince',
                             'in' => 'query',
                             'required' => FALSE,
                             'type' => 'boolean'
                         ],
                         [
-                            'name' => 'onlyServerState',
+                            'name' => 'discovererId',
                             'in' => 'query',
                             'required' => FALSE,
-                            'type' => 'boolean'
+                            'type' => 'string'
                         ],
                         [
-                            'name' => 'pageSize',
+                            'name' => 'applicationId',
                             'in' => 'query',
                             'required' => FALSE,
-                            'type' => 'integer',
-                            'format' => 'int32'
-                        ]
-                    ],
-                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/EndpointInfoListApiModel']]]
-                ],
-                'post' => [
-                    'operationId' => 'QueryEndpoints',
-                    'parameters' => [
+                            'type' => 'string'
+                        ],
                         [
-                            'name' => 'query',
-                            'in' => 'body',
-                            'required' => TRUE,
-                            'schema' => ['$ref' => '#/definitions/EndpointRegistrationQueryApiModel']
+                            'name' => 'supervisorId',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'string'
+                        ],
+                        [
+                            'name' => 'siteOrGatewayId',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'string'
                         ],
                         [
                             'name' => 'onlyServerState',
@@ -1438,7 +1833,7 @@ more results.
             '/v2/endpoints/events' => ['put' => [
                 'operationId' => 'Subscribe',
                 'parameters' => [[
-                    'name' => 'userId',
+                    'name' => 'body',
                     'in' => 'body',
                     'required' => FALSE,
                     'schema' => ['type' => 'string']
@@ -1446,6 +1841,121 @@ more results.
                 'responses' => ['200' => []]
             ]],
             '/v2/endpoints/events/{userId}' => ['delete' => [
+                'operationId' => 'Unsubscribe',
+                'parameters' => [[
+                    'name' => 'userId',
+                    'in' => 'path',
+                    'required' => TRUE,
+                    'type' => 'string'
+                ]],
+                'responses' => ['200' => []]
+            ]],
+            '/v2/gateways/{GatewayId}' => [
+                'get' => [
+                    'operationId' => 'GetGateway',
+                    'parameters' => [[
+                        'name' => 'GatewayId',
+                        'in' => 'path',
+                        'required' => TRUE,
+                        'type' => 'string'
+                    ]],
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/GatewayInfoApiModel']]]
+                ],
+                'patch' => [
+                    'operationId' => 'UpdateGateway',
+                    'parameters' => [
+                        [
+                            'name' => 'GatewayId',
+                            'in' => 'path',
+                            'required' => TRUE,
+                            'type' => 'string'
+                        ],
+                        [
+                            'name' => 'body',
+                            'in' => 'body',
+                            'required' => TRUE,
+                            'schema' => ['$ref' => '#/definitions/GatewayUpdateApiModel']
+                        ]
+                    ],
+                    'responses' => ['200' => []]
+                ]
+            ],
+            '/v2/gateways' => ['get' => [
+                'operationId' => 'GetListOfGateway',
+                'parameters' => [
+                    [
+                        'name' => 'continuationToken',
+                        'in' => 'query',
+                        'required' => FALSE,
+                        'type' => 'string'
+                    ],
+                    [
+                        'name' => 'pageSize',
+                        'in' => 'query',
+                        'required' => FALSE,
+                        'type' => 'integer',
+                        'format' => 'int32'
+                    ]
+                ],
+                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/GatewayListApiModel']]]
+            ]],
+            '/v2/gateways/query' => [
+                'post' => [
+                    'operationId' => 'QueryGateway',
+                    'parameters' => [
+                        [
+                            'name' => 'pageSize',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'integer',
+                            'format' => 'int32'
+                        ],
+                        [
+                            'name' => 'body',
+                            'in' => 'body',
+                            'required' => TRUE,
+                            'schema' => ['$ref' => '#/definitions/GatewayQueryApiModel']
+                        ]
+                    ],
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/GatewayListApiModel']]]
+                ],
+                'get' => [
+                    'operationId' => 'GetFilteredListOfGateway',
+                    'parameters' => [
+                        [
+                            'name' => 'siteId',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'string'
+                        ],
+                        [
+                            'name' => 'connected',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'boolean'
+                        ],
+                        [
+                            'name' => 'pageSize',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'integer',
+                            'format' => 'int32'
+                        ]
+                    ],
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/GatewayListApiModel']]]
+                ]
+            ],
+            '/v2/gateways/events' => ['put' => [
+                'operationId' => 'Subscribe',
+                'parameters' => [[
+                    'name' => 'body',
+                    'in' => 'body',
+                    'required' => FALSE,
+                    'schema' => ['type' => 'string']
+                ]],
+                'responses' => ['200' => []]
+            ]],
+            '/v2/gateways/events/{userId}' => ['delete' => [
                 'operationId' => 'Unsubscribe',
                 'parameters' => [[
                     'name' => 'userId',
@@ -1484,7 +1994,7 @@ more results.
                             'type' => 'string'
                         ],
                         [
-                            'name' => 'request',
+                            'name' => 'body',
                             'in' => 'body',
                             'required' => TRUE,
                             'schema' => ['$ref' => '#/definitions/PublisherUpdateApiModel']
@@ -1519,21 +2029,9 @@ more results.
                 'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/PublisherListApiModel']]]
             ]],
             '/v2/publishers/query' => [
-                'get' => [
-                    'operationId' => 'GetFilteredListOfPublisher',
+                'post' => [
+                    'operationId' => 'QueryPublisher',
                     'parameters' => [
-                        [
-                            'name' => 'SiteId',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'string'
-                        ],
-                        [
-                            'name' => 'Connected',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'boolean'
-                        ],
                         [
                             'name' => 'onlyServerState',
                             'in' => 'query',
@@ -1546,18 +2044,30 @@ more results.
                             'required' => FALSE,
                             'type' => 'integer',
                             'format' => 'int32'
+                        ],
+                        [
+                            'name' => 'body',
+                            'in' => 'body',
+                            'required' => TRUE,
+                            'schema' => ['$ref' => '#/definitions/PublisherQueryApiModel']
                         ]
                     ],
                     'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/PublisherListApiModel']]]
                 ],
-                'post' => [
-                    'operationId' => 'QueryPublisher',
+                'get' => [
+                    'operationId' => 'GetFilteredListOfPublisher',
                     'parameters' => [
                         [
-                            'name' => 'query',
-                            'in' => 'body',
-                            'required' => TRUE,
-                            'schema' => ['$ref' => '#/definitions/PublisherQueryApiModel']
+                            'name' => 'siteId',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'string'
+                        ],
+                        [
+                            'name' => 'connected',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'boolean'
                         ],
                         [
                             'name' => 'onlyServerState',
@@ -1579,7 +2089,7 @@ more results.
             '/v2/publishers/events' => ['put' => [
                 'operationId' => 'Subscribe',
                 'parameters' => [[
-                    'name' => 'userId',
+                    'name' => 'body',
                     'in' => 'body',
                     'required' => FALSE,
                     'schema' => ['type' => 'string']
@@ -1630,7 +2140,7 @@ more results.
                             'type' => 'string'
                         ],
                         [
-                            'name' => 'request',
+                            'name' => 'body',
                             'in' => 'body',
                             'required' => TRUE,
                             'schema' => ['$ref' => '#/definitions/SupervisorUpdateApiModel']
@@ -1685,34 +2195,9 @@ more results.
                 'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/SupervisorListApiModel']]]
             ]],
             '/v2/supervisors/query' => [
-                'get' => [
-                    'operationId' => 'GetFilteredListOfSupervisors',
+                'post' => [
+                    'operationId' => 'QuerySupervisors',
                     'parameters' => [
-                        [
-                            'name' => 'SiteId',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'string'
-                        ],
-                        [
-                            'name' => 'Discovery',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'string',
-                            'enum' => [
-                                'Off',
-                                'Local',
-                                'Network',
-                                'Fast',
-                                'Scan'
-                            ]
-                        ],
-                        [
-                            'name' => 'Connected',
-                            'in' => 'query',
-                            'required' => FALSE,
-                            'type' => 'boolean'
-                        ],
                         [
                             'name' => 'onlyServerState',
                             'in' => 'query',
@@ -1725,18 +2210,30 @@ more results.
                             'required' => FALSE,
                             'type' => 'integer',
                             'format' => 'int32'
+                        ],
+                        [
+                            'name' => 'body',
+                            'in' => 'body',
+                            'required' => TRUE,
+                            'schema' => ['$ref' => '#/definitions/SupervisorQueryApiModel']
                         ]
                     ],
                     'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/SupervisorListApiModel']]]
                 ],
-                'post' => [
-                    'operationId' => 'QuerySupervisors',
+                'get' => [
+                    'operationId' => 'GetFilteredListOfSupervisors',
                     'parameters' => [
                         [
-                            'name' => 'query',
-                            'in' => 'body',
-                            'required' => TRUE,
-                            'schema' => ['$ref' => '#/definitions/SupervisorQueryApiModel']
+                            'name' => 'siteId',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'string'
+                        ],
+                        [
+                            'name' => 'connected',
+                            'in' => 'query',
+                            'required' => FALSE,
+                            'type' => 'boolean'
                         ],
                         [
                             'name' => 'onlyServerState',
@@ -1758,7 +2255,7 @@ more results.
             '/v2/supervisors/events' => ['put' => [
                 'operationId' => 'Subscribe',
                 'parameters' => [[
-                    'name' => 'userId',
+                    'name' => 'body',
                     'in' => 'body',
                     'required' => FALSE,
                     'schema' => ['type' => 'string']
@@ -1901,7 +2398,7 @@ more results.
                         'items' => ['type' => 'string']
                     ],
                     'siteId' => ['type' => 'string'],
-                    'supervisorId' => ['type' => 'string'],
+                    'discovererId' => ['type' => 'string'],
                     'notSeenSince' => [
                         'type' => 'string',
                         'format' => 'date-time'
@@ -2031,6 +2528,7 @@ more results.
                     'endpointUrl' => ['type' => 'string'],
                     'siteId' => ['type' => 'string'],
                     'supervisorId' => ['type' => 'string'],
+                    'discovererId' => ['type' => 'string'],
                     'endpoint' => ['$ref' => '#/definitions/EndpointApiModel'],
                     'securityLevel' => [
                         'type' => 'integer',
@@ -2123,7 +2621,7 @@ more results.
                     'capability' => ['type' => 'string'],
                     'discoveryProfileUri' => ['type' => 'string'],
                     'gatewayServerUri' => ['type' => 'string'],
-                    'siteOrSupervisorId' => ['type' => 'string'],
+                    'siteOrGatewayId' => ['type' => 'string'],
                     'includeNotSeenSince' => ['type' => 'boolean']
                 ],
                 'additionalProperties' => FALSE,
@@ -2193,6 +2691,92 @@ more results.
                     'lastCounterResetTime',
                     'nextRecordId'
                 ]
+            ],
+            'DiscovererApiModel' => [
+                'properties' => [
+                    'id' => ['type' => 'string'],
+                    'siteId' => ['type' => 'string'],
+                    'discovery' => [
+                        'type' => 'string',
+                        'enum' => [
+                            'Off',
+                            'Local',
+                            'Network',
+                            'Fast',
+                            'Scan'
+                        ]
+                    ],
+                    'discoveryConfig' => ['$ref' => '#/definitions/DiscoveryConfigApiModel'],
+                    'logLevel' => [
+                        'type' => 'string',
+                        'enum' => [
+                            'Error',
+                            'Information',
+                            'Debug',
+                            'Verbose'
+                        ]
+                    ],
+                    'outOfSync' => ['type' => 'boolean'],
+                    'connected' => ['type' => 'boolean']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => ['id']
+            ],
+            'DiscovererUpdateApiModel' => [
+                'properties' => [
+                    'siteId' => ['type' => 'string'],
+                    'discovery' => [
+                        'type' => 'string',
+                        'enum' => [
+                            'Off',
+                            'Local',
+                            'Network',
+                            'Fast',
+                            'Scan'
+                        ]
+                    ],
+                    'discoveryConfig' => ['$ref' => '#/definitions/DiscoveryConfigApiModel'],
+                    'logLevel' => [
+                        'type' => 'string',
+                        'enum' => [
+                            'Error',
+                            'Information',
+                            'Debug',
+                            'Verbose'
+                        ]
+                    ]
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'DiscovererListApiModel' => [
+                'properties' => [
+                    'items' => [
+                        'type' => 'array',
+                        'items' => ['$ref' => '#/definitions/DiscovererApiModel']
+                    ],
+                    'continuationToken' => ['type' => 'string']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'DiscovererQueryApiModel' => [
+                'properties' => [
+                    'siteId' => ['type' => 'string'],
+                    'discovery' => [
+                        'type' => 'string',
+                        'enum' => [
+                            'Off',
+                            'Local',
+                            'Network',
+                            'Fast',
+                            'Scan'
+                        ]
+                    ],
+                    'connected' => ['type' => 'boolean']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
             ],
             'EndpointInfoApiModel' => [
                 'properties' => [
@@ -2272,10 +2856,46 @@ more results.
                             'Error'
                         ]
                     ],
-                    'includeNotSeenSince' => ['type' => 'boolean']
+                    'includeNotSeenSince' => ['type' => 'boolean'],
+                    'discovererId' => ['type' => 'string'],
+                    'applicationId' => ['type' => 'string'],
+                    'supervisorId' => ['type' => 'string'],
+                    'siteOrGatewayId' => ['type' => 'string']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => []
+            ],
+            'GatewayApiModel' => [
+                'properties' => [
+                    'id' => ['type' => 'string'],
+                    'siteId' => ['type' => 'string'],
+                    'connected' => ['type' => 'boolean']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => ['id']
+            ],
+            'SupervisorApiModel' => [
+                'properties' => [
+                    'id' => ['type' => 'string'],
+                    'siteId' => ['type' => 'string'],
+                    'certificate' => [
+                        'type' => 'string',
+                        'format' => 'byte'
+                    ],
+                    'logLevel' => [
+                        'type' => 'string',
+                        'enum' => [
+                            'Error',
+                            'Information',
+                            'Debug',
+                            'Verbose'
+                        ]
+                    ],
+                    'outOfSync' => ['type' => 'boolean'],
+                    'connected' => ['type' => 'boolean']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => ['id']
             ],
             'PublisherConfigApiModel' => [
                 'properties' => [
@@ -2317,6 +2937,40 @@ more results.
                 ],
                 'additionalProperties' => FALSE,
                 'required' => ['id']
+            ],
+            'GatewayInfoApiModel' => [
+                'properties' => [
+                    'gateway' => ['$ref' => '#/definitions/GatewayApiModel'],
+                    'supervisor' => ['$ref' => '#/definitions/SupervisorApiModel'],
+                    'publisher' => ['$ref' => '#/definitions/PublisherApiModel'],
+                    'discoverer' => ['$ref' => '#/definitions/DiscovererApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => ['gateway']
+            ],
+            'GatewayUpdateApiModel' => [
+                'properties' => ['siteId' => ['type' => 'string']],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'GatewayListApiModel' => [
+                'properties' => [
+                    'items' => [
+                        'type' => 'array',
+                        'items' => ['$ref' => '#/definitions/GatewayApiModel']
+                    ],
+                    'continuationToken' => ['type' => 'string']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'GatewayQueryApiModel' => [
+                'properties' => [
+                    'siteId' => ['type' => 'string'],
+                    'connected' => ['type' => 'boolean']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
             ],
             'PublisherUpdateApiModel' => [
                 'properties' => [
@@ -2381,54 +3035,9 @@ more results.
                 'additionalProperties' => FALSE,
                 'required' => []
             ],
-            'SupervisorApiModel' => [
-                'properties' => [
-                    'id' => ['type' => 'string'],
-                    'siteId' => ['type' => 'string'],
-                    'discovery' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Off',
-                            'Local',
-                            'Network',
-                            'Fast',
-                            'Scan'
-                        ]
-                    ],
-                    'discoveryConfig' => ['$ref' => '#/definitions/DiscoveryConfigApiModel'],
-                    'certificate' => [
-                        'type' => 'string',
-                        'format' => 'byte'
-                    ],
-                    'logLevel' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Error',
-                            'Information',
-                            'Debug',
-                            'Verbose'
-                        ]
-                    ],
-                    'outOfSync' => ['type' => 'boolean'],
-                    'connected' => ['type' => 'boolean']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => ['id']
-            ],
             'SupervisorUpdateApiModel' => [
                 'properties' => [
                     'siteId' => ['type' => 'string'],
-                    'discovery' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Off',
-                            'Local',
-                            'Network',
-                            'Fast',
-                            'Scan'
-                        ]
-                    ],
-                    'discoveryConfig' => ['$ref' => '#/definitions/DiscoveryConfigApiModel'],
                     'logLevel' => [
                         'type' => 'string',
                         'enum' => [
@@ -2484,16 +3093,6 @@ more results.
             'SupervisorQueryApiModel' => [
                 'properties' => [
                     'siteId' => ['type' => 'string'],
-                    'discovery' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Off',
-                            'Local',
-                            'Network',
-                            'Fast',
-                            'Scan'
-                        ]
-                    ],
                     'connected' => ['type' => 'boolean']
                 ],
                 'additionalProperties' => FALSE,

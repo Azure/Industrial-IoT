@@ -25,9 +25,8 @@ class TrustGroupRegistrationRequestApiModel {
    * the group.
    * @property {number} [issuedKeySize] The issued certificate key size in
    * bits.
-   * @property {string} [issuedSignatureAlgorithm] The issued certificate
-   * signature algorithm. Possible values include: 'Rsa256', 'Rsa384',
-   * 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @property {string} [issuedSignatureAlgorithm] Possible values include:
+   * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    */
   constructor() {
   }

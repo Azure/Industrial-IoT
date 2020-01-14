@@ -16,10 +16,9 @@ module azure.iiot.opc.vault
       # @return [String] The new name of the trust group root
       attr_accessor :name
 
-      # @return [TrustGroupType] The trust group type. Possible values include:
+      # @return [TrustGroupType] Possible values include:
       # 'ApplicationInstanceCertificate', 'HttpsCertificate',
-      # 'UserCredentialCertificate'. Default value:
-      # 'ApplicationInstanceCertificate' .
+      # 'UserCredentialCertificate'
       attr_accessor :type
 
       # @return [String] The subject name of the group as distinguished name.
@@ -31,9 +30,8 @@ module azure.iiot.opc.vault
       # @return [Integer] The certificate key size in bits.
       attr_accessor :key_size
 
-      # @return [SignatureAlgorithm] The certificate signature algorithm.
-      # Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss',
-      # 'Rsa384Pss', 'Rsa512Pss'
+      # @return [SignatureAlgorithm] Possible values include: 'Rsa256',
+      # 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
       attr_accessor :signature_algorithm
 
       # @return [String] The issued certificate lifetime.
@@ -42,9 +40,8 @@ module azure.iiot.opc.vault
       # @return [Integer] The issued certificate key size in bits.
       attr_accessor :issued_key_size
 
-      # @return [SignatureAlgorithm] The issued certificate signature
-      # algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-      # 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+      # @return [SignatureAlgorithm] Possible values include: 'Rsa256',
+      # 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
       attr_accessor :issued_signature_algorithm
 
 
@@ -73,7 +70,6 @@ module azure.iiot.opc.vault
                 client_side_validation: true,
                 required: false,
                 serialized_name: 'type',
-                default_value: 'ApplicationInstanceCertificate',
                 type: {
                   name: 'Enum',
                   module: 'TrustGroupType'

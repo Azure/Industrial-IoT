@@ -7,12 +7,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
 
     /// <summary>
-    /// Publisher registration query
+    /// Supervisor registration query
     /// </summary>
-    public class PublisherQueryApiModel {
+    public class SupervisorQueryApiModel {
 
         /// <summary>
-        /// Site for the publishers
+        /// Site for the supervisors
         /// </summary>
         [JsonProperty(PropertyName = "siteId",
             NullValueHandling = NullValueHandling.Ignore)]

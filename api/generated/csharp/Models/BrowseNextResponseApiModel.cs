@@ -35,7 +35,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// null.</param>
         /// <param name="continuationToken">Continuation token if more results
         /// pending.</param>
-        /// <param name="errorInfo">Service result in case of error</param>
         public BrowseNextResponseApiModel(IList<NodeReferenceApiModel> references = default(IList<NodeReferenceApiModel>), string continuationToken = default(string), ServiceResultApiModel errorInfo = default(ServiceResultApiModel))
         {
             References = references;
@@ -62,7 +61,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public string ContinuationToken { get; set; }
 
         /// <summary>
-        /// Gets or sets service result in case of error
         /// </summary>
         [JsonProperty(PropertyName = "errorInfo")]
         public ServiceResultApiModel ErrorInfo { get; set; }

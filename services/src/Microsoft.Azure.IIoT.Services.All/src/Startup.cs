@@ -68,6 +68,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
             services.AddHttpContextAccessor();
             services.AddHealthChecks();
             services.AddDistributedMemoryCache();
+            services.AddApiVersioning();
         }
 
         /// <summary>

@@ -17,12 +17,11 @@ class RolePermissionApiModel(Model):
 
     :param role_id: Identifier of the role object.
     :type role_id: str
-    :param permissions: Permissions assigned for the role. Possible values
-     include: 'Browse', 'ReadRolePermissions', 'WriteAttribute',
-     'WriteRolePermissions', 'WriteHistorizing', 'Read', 'Write',
-     'ReadHistory', 'InsertHistory', 'ModifyHistory', 'DeleteHistory',
-     'ReceiveEvents', 'Call', 'AddReference', 'RemoveReference', 'DeleteNode',
-     'AddNode'
+    :param permissions: Possible values include: 'Browse',
+     'ReadRolePermissions', 'WriteAttribute', 'WriteRolePermissions',
+     'WriteHistorizing', 'Read', 'Write', 'ReadHistory', 'InsertHistory',
+     'ModifyHistory', 'DeleteHistory', 'ReceiveEvents', 'Call', 'AddReference',
+     'RemoveReference', 'DeleteNode', 'AddNode'
     :type permissions: str or ~azure-iiot-opc-twin.models.RolePermissions
     """
 

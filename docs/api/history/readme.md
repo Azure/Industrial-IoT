@@ -10,9 +10,15 @@ Azure Industrial IoT OPC UA Historic Access Service
 *Version* : v2
 
 
+### License information
+*License* : MIT LICENSE  
+*License URL* : https://opensource.org/licenses/MIT  
+*Terms of service* : null
+
+
 ### URI scheme
-*BasePath* : /history  
-*Schemes* : HTTPS, HTTP
+*Host* : localhost:9080  
+*Schemes* : HTTP, HTTPS
 
 
 ### Tags
@@ -43,9 +49,7 @@ POST /v2/delete/{endpointId}/events
 
 
 ##### Description
-Delete historic events using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Delete historic events using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -53,7 +57,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history update request|[HistoryUpdateRequestApiModel[DeleteEventsDetailsApiModel]](definitions.md#historyupdaterequestapimodel-deleteeventsdetailsapimodel)|
+|**Body**|**body**  <br>*required*|The history update request|[DeleteEventsDetailsApiModelHistoryUpdateRequestApiModel](definitions.md#deleteeventsdetailsapimodelhistoryupdaterequestapimodel)|
 
 
 ##### Responses
@@ -91,9 +95,7 @@ POST /v2/delete/{endpointId}/values
 
 
 ##### Description
-Delete historic values using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Delete historic values using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -101,7 +103,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history update request|[HistoryUpdateRequestApiModel[DeleteValuesDetailsApiModel]](definitions.md#historyupdaterequestapimodel-deletevaluesdetailsapimodel)|
+|**Body**|**body**  <br>*required*|The history update request|[DeleteValuesDetailsApiModelHistoryUpdateRequestApiModel](definitions.md#deletevaluesdetailsapimodelhistoryupdaterequestapimodel)|
 
 
 ##### Responses
@@ -139,9 +141,7 @@ POST /v2/delete/{endpointId}/values/modified
 
 
 ##### Description
-Delete historic values using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Delete historic values using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -149,7 +149,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history update request|[HistoryUpdateRequestApiModel[DeleteModifiedValuesDetailsApiModel]](definitions.md#historyupdaterequestapimodel-deletemodifiedvaluesdetailsapimodel)|
+|**Body**|**body**  <br>*required*|The history update request|[DeleteModifiedValuesDetailsApiModelHistoryUpdateRequestApiModel](definitions.md#deletemodifiedvaluesdetailsapimodelhistoryupdaterequestapimodel)|
 
 
 ##### Responses
@@ -187,9 +187,7 @@ POST /v2/delete/{endpointId}/values/pick
 
 
 ##### Description
-Delete value history using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Delete value history using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -197,7 +195,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history update request|[HistoryUpdateRequestApiModel[DeleteValuesAtTimesDetailsApiModel]](definitions.md#historyupdaterequestapimodel-deletevaluesattimesdetailsapimodel)|
+|**Body**|**body**  <br>*required*|The history update request|[DeleteValuesAtTimesDetailsApiModelHistoryUpdateRequestApiModel](definitions.md#deletevaluesattimesdetailsapimodelhistoryupdaterequestapimodel)|
 
 
 ##### Responses
@@ -240,9 +238,7 @@ POST /v2/history/read/{endpointId}
 
 
 ##### Description
-Read node history if available using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Read node history if available using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -250,14 +246,14 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history read request|[HistoryReadRequestApiModel[JToken]](definitions.md#historyreadrequestapimodel-jtoken)|
+|**Body**|**body**  <br>*required*|The history read request|[JTokenHistoryReadRequestApiModel](definitions.md#jtokenhistoryreadrequestapimodel)|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryReadResponseApiModel[JToken]](definitions.md#historyreadresponseapimodel-jtoken)|
+|**200**|Success|[JTokenHistoryReadResponseApiModel](definitions.md#jtokenhistoryreadresponseapimodel)|
 
 
 ##### Consumes
@@ -288,9 +284,7 @@ POST /v2/history/read/{endpointId}/next
 
 
 ##### Description
-Read next batch of node history values using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Read next batch of node history values using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -298,14 +292,14 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history read next request|[HistoryReadNextRequestApiModel](definitions.md#historyreadnextrequestapimodel)|
+|**Body**|**body**  <br>*required*|The history read next request|[HistoryReadNextRequestApiModel](definitions.md#historyreadnextrequestapimodel)|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryReadNextResponseApiModel[JToken]](definitions.md#historyreadnextresponseapimodel-jtoken)|
+|**200**|Success|[JTokenHistoryReadNextResponseApiModel](definitions.md#jtokenhistoryreadnextresponseapimodel)|
 
 
 ##### Consumes
@@ -336,9 +330,7 @@ POST /v2/history/update/{endpointId}
 
 
 ##### Description
-Update node history using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Update node history using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -346,7 +338,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history update request|[HistoryUpdateRequestApiModel[JToken]](definitions.md#historyupdaterequestapimodel-jtoken)|
+|**Body**|**body**  <br>*required*|The history update request|[JTokenHistoryUpdateRequestApiModel](definitions.md#jtokenhistoryupdaterequestapimodel)|
 
 
 ##### Responses
@@ -389,9 +381,7 @@ POST /v2/insert/{endpointId}/events
 
 
 ##### Description
-Insert historic events using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Insert historic events using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -399,7 +389,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history insert request|[HistoryUpdateRequestApiModel[InsertEventsDetailsApiModel]](definitions.md#historyupdaterequestapimodel-inserteventsdetailsapimodel)|
+|**Body**|**body**  <br>*required*|The history insert request|[InsertEventsDetailsApiModelHistoryUpdateRequestApiModel](definitions.md#inserteventsdetailsapimodelhistoryupdaterequestapimodel)|
 
 
 ##### Responses
@@ -437,9 +427,7 @@ POST /v2/insert/{endpointId}/values
 
 
 ##### Description
-Insert historic values using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Insert historic values using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -447,7 +435,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history insert request|[HistoryUpdateRequestApiModel[InsertValuesDetailsApiModel]](definitions.md#historyupdaterequestapimodel-insertvaluesdetailsapimodel)|
+|**Body**|**body**  <br>*required*|The history insert request|[InsertValuesDetailsApiModelHistoryUpdateRequestApiModel](definitions.md#insertvaluesdetailsapimodelhistoryupdaterequestapimodel)|
 
 
 ##### Responses
@@ -490,9 +478,7 @@ POST /v2/read/{endpointId}/events
 
 
 ##### Description
-Read historic events of a node if available using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Read historic events of a node if available using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -500,14 +486,14 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history read request|[HistoryReadRequestApiModel[ReadEventsDetailsApiModel]](definitions.md#historyreadrequestapimodel-readeventsdetailsapimodel)|
+|**Body**|**body**  <br>*required*|The history read request|[ReadEventsDetailsApiModelHistoryReadRequestApiModel](definitions.md#readeventsdetailsapimodelhistoryreadrequestapimodel)|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryReadResponseApiModel[HistoricEventApiModel[]]](definitions.md#historyreadresponseapimodel-historiceventapimodel)|
+|**200**|Success|[HistoricEventApiModel[]HistoryReadResponseApiModel](definitions.md#historiceventapimodel-historyreadresponseapimodel)|
 
 
 ##### Consumes
@@ -538,9 +524,7 @@ POST /v2/read/{endpointId}/events/next
 
 
 ##### Description
-Read next batch of historic events of a node using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Read next batch of historic events of a node using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -548,14 +532,14 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history read next request|[HistoryReadNextRequestApiModel](definitions.md#historyreadnextrequestapimodel)|
+|**Body**|**body**  <br>*required*|The history read next request|[HistoryReadNextRequestApiModel](definitions.md#historyreadnextrequestapimodel)|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryReadNextResponseApiModel[HistoricEventApiModel[]]](definitions.md#historyreadnextresponseapimodel-historiceventapimodel)|
+|**200**|Success|[HistoricEventApiModel[]HistoryReadNextResponseApiModel](definitions.md#historiceventapimodel-historyreadnextresponseapimodel)|
 
 
 ##### Consumes
@@ -586,9 +570,7 @@ POST /v2/read/{endpointId}/values
 
 
 ##### Description
-Read processed history values of a node if available using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Read processed history values of a node if available using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -596,14 +578,14 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history read request|[HistoryReadRequestApiModel[ReadValuesDetailsApiModel]](definitions.md#historyreadrequestapimodel-readvaluesdetailsapimodel)|
+|**Body**|**body**  <br>*required*|The history read request|[ReadValuesDetailsApiModelHistoryReadRequestApiModel](definitions.md#readvaluesdetailsapimodelhistoryreadrequestapimodel)|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryReadResponseApiModel[HistoricValueApiModel[]]](definitions.md#historyreadresponseapimodel-historicvalueapimodel)|
+|**200**|Success|[HistoricValueApiModel[]HistoryReadResponseApiModel](definitions.md#historicvalueapimodel-historyreadresponseapimodel)|
 
 
 ##### Consumes
@@ -634,9 +616,7 @@ POST /v2/read/{endpointId}/values/modified
 
 
 ##### Description
-Read processed history values of a node if available using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Read processed history values of a node if available using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -644,14 +624,14 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history read request|[HistoryReadRequestApiModel[ReadModifiedValuesDetailsApiModel]](definitions.md#historyreadrequestapimodel-readmodifiedvaluesdetailsapimodel)|
+|**Body**|**body**  <br>*required*|The history read request|[ReadModifiedValuesDetailsApiModelHistoryReadRequestApiModel](definitions.md#readmodifiedvaluesdetailsapimodelhistoryreadrequestapimodel)|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryReadResponseApiModel[HistoricValueApiModel[]]](definitions.md#historyreadresponseapimodel-historicvalueapimodel)|
+|**200**|Success|[HistoricValueApiModel[]HistoryReadResponseApiModel](definitions.md#historicvalueapimodel-historyreadresponseapimodel)|
 
 
 ##### Consumes
@@ -682,9 +662,7 @@ POST /v2/read/{endpointId}/values/next
 
 
 ##### Description
-Read next batch of historic values of a node using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Read next batch of historic values of a node using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -692,14 +670,14 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history read next request|[HistoryReadNextRequestApiModel](definitions.md#historyreadnextrequestapimodel)|
+|**Body**|**body**  <br>*required*|The history read next request|[HistoryReadNextRequestApiModel](definitions.md#historyreadnextrequestapimodel)|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryReadNextResponseApiModel[HistoricValueApiModel[]]](definitions.md#historyreadnextresponseapimodel-historicvalueapimodel)|
+|**200**|Success|[HistoricValueApiModel[]HistoryReadNextResponseApiModel](definitions.md#historicvalueapimodel-historyreadnextresponseapimodel)|
 
 
 ##### Consumes
@@ -730,9 +708,7 @@ POST /v2/read/{endpointId}/values/pick
 
 
 ##### Description
-Read historic values of a node if available using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Read historic values of a node if available using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -740,14 +716,14 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history read request|[HistoryReadRequestApiModel[ReadValuesAtTimesDetailsApiModel]](definitions.md#historyreadrequestapimodel-readvaluesattimesdetailsapimodel)|
+|**Body**|**body**  <br>*required*|The history read request|[ReadValuesAtTimesDetailsApiModelHistoryReadRequestApiModel](definitions.md#readvaluesattimesdetailsapimodelhistoryreadrequestapimodel)|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryReadResponseApiModel[HistoricValueApiModel[]]](definitions.md#historyreadresponseapimodel-historicvalueapimodel)|
+|**200**|Success|[HistoricValueApiModel[]HistoryReadResponseApiModel](definitions.md#historicvalueapimodel-historyreadresponseapimodel)|
 
 
 ##### Consumes
@@ -778,9 +754,7 @@ POST /v2/read/{endpointId}/values/processed
 
 
 ##### Description
-Read processed history values of a node if available using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Read processed history values of a node if available using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -788,14 +762,14 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history read request|[HistoryReadRequestApiModel[ReadProcessedValuesDetailsApiModel]](definitions.md#historyreadrequestapimodel-readprocessedvaluesdetailsapimodel)|
+|**Body**|**body**  <br>*required*|The history read request|[ReadProcessedValuesDetailsApiModelHistoryReadRequestApiModel](definitions.md#readprocessedvaluesdetailsapimodelhistoryreadrequestapimodel)|
 
 
 ##### Responses
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|[HistoryReadResponseApiModel[HistoricValueApiModel[]]](definitions.md#historyreadresponseapimodel-historicvalueapimodel)|
+|**200**|Success|[HistoricValueApiModel[]HistoryReadResponseApiModel](definitions.md#historicvalueapimodel-historyreadresponseapimodel)|
 
 
 ##### Consumes
@@ -831,9 +805,7 @@ POST /v2/replace/{endpointId}/events
 
 
 ##### Description
-Replace historic events using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Replace historic events using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -841,7 +813,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history replace request|[HistoryUpdateRequestApiModel[ReplaceEventsDetailsApiModel]](definitions.md#historyupdaterequestapimodel-replaceeventsdetailsapimodel)|
+|**Body**|**body**  <br>*required*|The history replace request|[ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel](definitions.md#replaceeventsdetailsapimodelhistoryupdaterequestapimodel)|
 
 
 ##### Responses
@@ -879,9 +851,7 @@ POST /v2/replace/{endpointId}/values
 
 
 ##### Description
-Replace historic values using historic access.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Replace historic values using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -889,7 +859,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The history replace request|[HistoryUpdateRequestApiModel[ReplaceValuesDetailsApiModel]](definitions.md#historyupdaterequestapimodel-replacevaluesdetailsapimodel)|
+|**Body**|**body**  <br>*required*|The history replace request|[ReplaceValuesDetailsApiModelHistoryUpdateRequestApiModel](definitions.md#replacevaluesdetailsapimodelhistoryupdaterequestapimodel)|
 
 
 ##### Responses

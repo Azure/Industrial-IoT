@@ -19,24 +19,21 @@ class TrustGroupApiModel {
    * Create a TrustGroupApiModel.
    * @property {string} name The name of the trust group.
    * @property {string} [parentId] The identifer of the parent trust group.
-   * @property {string} [type] The trust group type. Possible values include:
+   * @property {string} [type] Possible values include:
    * 'ApplicationInstanceCertificate', 'HttpsCertificate',
-   * 'UserCredentialCertificate'. Default value:
-   * 'ApplicationInstanceCertificate' .
+   * 'UserCredentialCertificate'
    * @property {string} subjectName The subject name of the group as
    * distinguished name.
    * @property {string} [lifetime] The lifetime of the trust group certificate.
    * @property {number} [keySize] The trust group certificate key size in bits.
-   * @property {string} [signatureAlgorithm] The certificate signature
-   * algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-   * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @property {string} [signatureAlgorithm] Possible values include: 'Rsa256',
+   * 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    * @property {string} [issuedLifetime] The issued certificate lifetime in
    * months.
    * @property {number} [issuedKeySize] The issued certificate key size in
    * bits.
-   * @property {string} [issuedSignatureAlgorithm] The Signature algorithm for
-   * issued certificates. Possible values include: 'Rsa256', 'Rsa384',
-   * 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @property {string} [issuedSignatureAlgorithm] Possible values include:
+   * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    */
   constructor() {
   }
@@ -72,7 +69,6 @@ class TrustGroupApiModel {
           type: {
             required: false,
             serializedName: 'type',
-            defaultValue: 'ApplicationInstanceCertificate',
             type: {
               name: 'Enum',
               allowedValues: [ 'ApplicationInstanceCertificate', 'HttpsCertificate', 'UserCredentialCertificate' ]

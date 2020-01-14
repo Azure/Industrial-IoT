@@ -17,8 +17,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class ApplicationRegistrationQueryApiModel {
     /**
-     * Type of application. Possible values include: 'Server', 'Client',
-     * 'ClientAndServer', 'DiscoveryServer'.
+     * Possible values include: 'Server', 'Client', 'ClientAndServer',
+     * 'DiscoveryServer'.
      */
     @JsonProperty(value = "applicationType")
     private ApplicationType applicationType;
@@ -68,8 +68,8 @@ public class ApplicationRegistrationQueryApiModel {
     /**
      * Supervisor or site the application belongs to.
      */
-    @JsonProperty(value = "siteOrSupervisorId")
-    private String siteOrSupervisorId;
+    @JsonProperty(value = "siteOrGatewayId")
+    private String siteOrGatewayId;
 
     /**
      * Whether to include apps that were soft deleted.
@@ -78,7 +78,7 @@ public class ApplicationRegistrationQueryApiModel {
     private Boolean includeNotSeenSince;
 
     /**
-     * Get type of application. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
+     * Get possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
      *
      * @return the applicationType value
      */
@@ -87,7 +87,7 @@ public class ApplicationRegistrationQueryApiModel {
     }
 
     /**
-     * Set type of application. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
+     * Set possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
      *
      * @param applicationType the applicationType value to set
      * @return the ApplicationRegistrationQueryApiModel object itself.
@@ -240,20 +240,20 @@ public class ApplicationRegistrationQueryApiModel {
     /**
      * Get supervisor or site the application belongs to.
      *
-     * @return the siteOrSupervisorId value
+     * @return the siteOrGatewayId value
      */
-    public String siteOrSupervisorId() {
-        return this.siteOrSupervisorId;
+    public String siteOrGatewayId() {
+        return this.siteOrGatewayId;
     }
 
     /**
      * Set supervisor or site the application belongs to.
      *
-     * @param siteOrSupervisorId the siteOrSupervisorId value to set
+     * @param siteOrGatewayId the siteOrGatewayId value to set
      * @return the ApplicationRegistrationQueryApiModel object itself.
      */
-    public ApplicationRegistrationQueryApiModel withSiteOrSupervisorId(String siteOrSupervisorId) {
-        this.siteOrSupervisorId = siteOrSupervisorId;
+    public ApplicationRegistrationQueryApiModel withSiteOrGatewayId(String siteOrGatewayId) {
+        this.siteOrGatewayId = siteOrGatewayId;
         return this;
     }
 

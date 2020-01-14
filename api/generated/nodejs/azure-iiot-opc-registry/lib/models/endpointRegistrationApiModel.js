@@ -20,16 +20,15 @@ class EndpointRegistrationApiModel {
    * @property {string} id Registered identifier of the endpoint
    * @property {string} [endpointUrl] Original endpoint url of the endpoint
    * @property {string} [siteId] Registered site of the endpoint
-   * @property {string} [supervisorId] Supervisor that registered the endpoint.
-   * @property {object} endpoint Endpoint information of the registration
+   * @property {string} [supervisorId] Supervisor that manages the endpoint.
+   * @property {string} [discovererId] Discoverer that registered the endpoint
+   * @property {object} endpoint
    * @property {string} [endpoint.url] Endpoint url to use to connect with
    * @property {array} [endpoint.alternativeUrls] Alternative endpoint urls
    * that can be used for
    * accessing and validating the server
-   * @property {string} [endpoint.securityMode] Security Mode to use for
-   * communication
-   * default to best. Possible values include: 'Best', 'Sign',
-   * 'SignAndEncrypt', 'None'
+   * @property {string} [endpoint.securityMode] Possible values include:
+   * 'Best', 'Sign', 'SignAndEncrypt', 'None'
    * @property {string} [endpoint.securityPolicy] Security policy uri to use
    * for communication
    * default to best.
@@ -81,6 +80,13 @@ class EndpointRegistrationApiModel {
           supervisorId: {
             required: false,
             serializedName: 'supervisorId',
+            type: {
+              name: 'String'
+            }
+          },
+          discovererId: {
+            required: false,
+            serializedName: 'discovererId',
             type: {
               name: 'String'
             }

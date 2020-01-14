@@ -13,8 +13,7 @@ module azure.iiot.opc.publisher
     # Diagnostics configuration
     #
     class DiagnosticsApiModel
-      # @return [DiagnosticsLevel] Requested level of response diagnostics.
-      # (default: Status). Possible values include: 'None', 'Status',
+      # @return [DiagnosticsLevel] Possible values include: 'None', 'Status',
       # 'Operations', 'Diagnostics', 'Verbose'
       attr_accessor :level
 

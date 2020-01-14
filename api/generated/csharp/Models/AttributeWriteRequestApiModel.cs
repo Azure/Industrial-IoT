@@ -33,15 +33,14 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// class.
         /// </summary>
         /// <param name="nodeId">Node to write to (mandatory)</param>
-        /// <param name="attribute">Attribute to write (mandatory). Possible
-        /// values include: 'NodeClass', 'BrowseName', 'DisplayName',
-        /// 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract',
-        /// 'Symmetric', 'InverseName', 'ContainsNoLoops', 'EventNotifier',
-        /// 'Value', 'DataType', 'ValueRank', 'ArrayDimensions', 'AccessLevel',
-        /// 'UserAccessLevel', 'MinimumSamplingInterval', 'Historizing',
-        /// 'Executable', 'UserExecutable', 'DataTypeDefinition',
-        /// 'RolePermissions', 'UserRolePermissions',
-        /// 'AccessRestrictions'</param>
+        /// <param name="attribute">Possible values include: 'NodeClass',
+        /// 'BrowseName', 'DisplayName', 'Description', 'WriteMask',
+        /// 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
+        /// 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType',
+        /// 'ValueRank', 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
+        /// 'MinimumSamplingInterval', 'Historizing', 'Executable',
+        /// 'UserExecutable', 'DataTypeDefinition', 'RolePermissions',
+        /// 'UserRolePermissions', 'AccessRestrictions'</param>
         /// <param name="value">Value to write (mandatory)</param>
         public AttributeWriteRequestApiModel(string nodeId, NodeAttribute attribute, object value)
         {
@@ -63,14 +62,14 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public string NodeId { get; set; }
 
         /// <summary>
-        /// Gets or sets attribute to write (mandatory). Possible values
-        /// include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description',
-        /// 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric',
-        /// 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value',
-        /// 'DataType', 'ValueRank', 'ArrayDimensions', 'AccessLevel',
-        /// 'UserAccessLevel', 'MinimumSamplingInterval', 'Historizing',
-        /// 'Executable', 'UserExecutable', 'DataTypeDefinition',
-        /// 'RolePermissions', 'UserRolePermissions', 'AccessRestrictions'
+        /// Gets or sets possible values include: 'NodeClass', 'BrowseName',
+        /// 'DisplayName', 'Description', 'WriteMask', 'UserWriteMask',
+        /// 'IsAbstract', 'Symmetric', 'InverseName', 'ContainsNoLoops',
+        /// 'EventNotifier', 'Value', 'DataType', 'ValueRank',
+        /// 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
+        /// 'MinimumSamplingInterval', 'Historizing', 'Executable',
+        /// 'UserExecutable', 'DataTypeDefinition', 'RolePermissions',
+        /// 'UserRolePermissions', 'AccessRestrictions'
         /// </summary>
         [JsonProperty(PropertyName = "attribute")]
         public NodeAttribute Attribute { get; set; }

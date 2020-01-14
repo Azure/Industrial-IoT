@@ -18,19 +18,17 @@ class NodePathTargetApiModel {
   /**
    * Create a NodePathTargetApiModel.
    * @property {array} [browsePath] The target browse path
-   * @property {object} [target] Target node
-   * @property {string} [target.nodeClass] Type of node. Possible values
-   * include: 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType',
-   * 'ReferenceType', 'DataType', 'View'
+   * @property {object} [target]
+   * @property {string} [target.nodeClass] Possible values include: 'Object',
+   * 'Variable', 'Method', 'ObjectType', 'VariableType', 'ReferenceType',
+   * 'DataType', 'View'
    * @property {string} [target.displayName] Display name
    * @property {string} [target.nodeId] Id of node.
    * (Mandatory).
    * @property {string} [target.description] Description if any
    * @property {string} [target.browseName] Browse name
-   * @property {string} [target.accessRestrictions] Node access restrictions if
-   * any.
-   * (default: none). Possible values include: 'SigningRequired',
-   * 'EncryptionRequired', 'SessionRequired'
+   * @property {string} [target.accessRestrictions] Possible values include:
+   * 'SigningRequired', 'EncryptionRequired', 'SessionRequired'
    * @property {number} [target.writeMask] Default write mask for the node
    * (default: 0)
    * @property {number} [target.userWriteMask] User write mask for the node
@@ -42,10 +40,7 @@ class NodePathTargetApiModel {
    * @property {boolean} [target.containsNoLoops] Whether a view contains
    * loops. Null if
    * not a view.
-   * @property {string} [target.eventNotifier] If object or view and eventing,
-   * event notifier
-   * to subscribe to.
-   * (default: no events supported). Possible values include:
+   * @property {string} [target.eventNotifier] Possible values include:
    * 'SubscribeToEvents', 'HistoryRead', 'HistoryWrite'
    * @property {boolean} [target.executable] If method node class, whether
    * method can
@@ -58,24 +53,20 @@ class NodePathTargetApiModel {
    * case node is a
    * data type node and definition is available,
    * otherwise null.
-   * @property {string} [target.accessLevel] Default access level for variable
-   * node.
-   * (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite',
-   * 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite',
-   * 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'
-   * @property {string} [target.userAccessLevel] User access level for variable
-   * node or null.
-   * (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite',
-   * 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite',
-   * 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'
+   * @property {string} [target.accessLevel] Possible values include:
+   * 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite',
+   * 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead',
+   * 'NonatomicWrite', 'WriteFullArrayOnly'
+   * @property {string} [target.userAccessLevel] Possible values include:
+   * 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite',
+   * 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead',
+   * 'NonatomicWrite', 'WriteFullArrayOnly'
    * @property {string} [target.dataType] If variable the datatype of the
    * variable.
    * (default: null)
-   * @property {string} [target.valueRank] Value rank of the variable data of a
-   * variable
-   * or variable type, otherwise null.
-   * (default: scalar = -1). Possible values include: 'ScalarOrOneDimension',
-   * 'Any', 'Scalar', 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions'
+   * @property {string} [target.valueRank] Possible values include:
+   * 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions',
+   * 'ScalarOrOneDimension', 'Any', 'Scalar'
    * @property {array} [target.arrayDimensions] Array dimensions of variable or
    * variable type.
    * (default: empty array)

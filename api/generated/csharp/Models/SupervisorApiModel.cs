@@ -32,24 +32,18 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// </summary>
         /// <param name="id">Supervisor id</param>
         /// <param name="siteId">Site of the supervisor</param>
-        /// <param name="discovery">Whether the supervisor is in discovery
-        /// mode. Possible values include: 'Off', 'Local', 'Network', 'Fast',
-        /// 'Scan'</param>
-        /// <param name="discoveryConfig">Supervisor configuration</param>
         /// <param name="certificate">Supervisor public client cert</param>
-        /// <param name="logLevel">Current log level. Possible values include:
-        /// 'Error', 'Information', 'Debug', 'Verbose'</param>
+        /// <param name="logLevel">Possible values include: 'Error',
+        /// 'Information', 'Debug', 'Verbose'</param>
         /// <param name="outOfSync">Whether the registration is out of sync
         /// between
         /// client (module) and server (service) (default: false).</param>
         /// <param name="connected">Whether supervisor is connected on this
         /// registration</param>
-        public SupervisorApiModel(string id, string siteId = default(string), DiscoveryMode? discovery = default(DiscoveryMode?), DiscoveryConfigApiModel discoveryConfig = default(DiscoveryConfigApiModel), byte[] certificate = default(byte[]), TraceLogLevel? logLevel = default(TraceLogLevel?), bool? outOfSync = default(bool?), bool? connected = default(bool?))
+        public SupervisorApiModel(string id, string siteId = default(string), byte[] certificate = default(byte[]), TraceLogLevel? logLevel = default(TraceLogLevel?), bool? outOfSync = default(bool?), bool? connected = default(bool?))
         {
             Id = id;
             SiteId = siteId;
-            Discovery = discovery;
-            DiscoveryConfig = discoveryConfig;
             Certificate = certificate;
             LogLevel = logLevel;
             OutOfSync = outOfSync;
@@ -75,27 +69,14 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Gets or sets whether the supervisor is in discovery mode. Possible
-        /// values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-        /// </summary>
-        [JsonProperty(PropertyName = "discovery")]
-        public DiscoveryMode? Discovery { get; set; }
-
-        /// <summary>
-        /// Gets or sets supervisor configuration
-        /// </summary>
-        [JsonProperty(PropertyName = "discoveryConfig")]
-        public DiscoveryConfigApiModel DiscoveryConfig { get; set; }
-
-        /// <summary>
         /// Gets or sets supervisor public client cert
         /// </summary>
         [JsonProperty(PropertyName = "certificate")]
         public byte[] Certificate { get; set; }
 
         /// <summary>
-        /// Gets or sets current log level. Possible values include: 'Error',
-        /// 'Information', 'Debug', 'Verbose'
+        /// Gets or sets possible values include: 'Error', 'Information',
+        /// 'Debug', 'Verbose'
         /// </summary>
         [JsonProperty(PropertyName = "logLevel")]
         public TraceLogLevel? LogLevel { get; set; }

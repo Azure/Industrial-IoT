@@ -18,7 +18,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
         public bool Children { get; set; }
         public string ImageUrl { get; set; }
         public string NodeName { get; set; }
-        public string SupervisorId { get; set; }
+
+        public string DiscovererId { get; set; }
+
         public string Value { get; set; }
         public string DataType { get; set; }
 

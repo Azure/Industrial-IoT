@@ -1,6 +1,6 @@
 ﻿@page "/browser/{endpointId}"
-@page "/browser/{supervisorId}/{endpointId}"
-@page "/browser/{supervisorId}/{endpointId}/{page}"
+@page "/browser/{discovererId}/{endpointId}"
+@page "/browser/{discovererId}/{endpointId}/{page}"
 
 
 @using Microsoft.Azure.IIoT.App.Services
@@ -21,9 +21,9 @@
 
 @implements IDisposable
 
-<h1>Browser</h1>
+<h1>Endpoint Control</h1>
 
-<div>@supervisorId/@endpointId/@BrowseManager.Path</div>
+<div>@discovererId/@endpointId/@BrowseManager.Path</div>
 
 <table class="table">
     <thead>
@@ -44,9 +44,9 @@
                     }
                     else
                     {
-                        if (PagedNodeList.Results[0].SupervisorId != null)
+                        if (PagedNodeList.Results[0].DiscovererId != null)
                         {
-                            <a href='endpoints/@PagedNodeList.Results[0].SupervisorId'>
+                            <a href='endpoints/@PagedNodeList.Results[0].DiscovererId'>
                                 <span class="oi oi-arrow-left"></span>
                             </a>
                         }
@@ -125,7 +125,7 @@
 @code {
 
     [Parameter]
-    public string supervisorId { get; set; } = string.Empty;
+    public string discovererId { get; set; } = string.Empty;
 
     [Parameter]
     public string endpointId { get; set; }
@@ -156,7 +156,7 @@
                 node.Value = await BrowseManager.ReadValueAsync(endpointId, node.Id);
             }
         }
-        NavigationManager.NavigateTo("/browser/" + supervisorId + "/" + endpointId + "/" + page);
+        NavigationManager.NavigateTo("/browser/" + discovererId + "/" + endpointId + "/" + page);
     }
 
     /// <summary>
@@ -194,7 +194,7 @@
     private async Task GetTreeBackAsync(string id, List<string> parentId)
     {
         await BrowseTreeAsync(id, parentId, BrowseDirection.Backward);
-        NavigationManager.NavigateTo("/browser/" + supervisorId + "/" + endpointId);
+        NavigationManager.NavigateTo("/browser/" + discovererId + "/" + endpointId);
     }
 
     /// <summary>
@@ -205,7 +205,7 @@
     /// <param name="direction"></param>
     private async Task BrowseTreeAsync(String id, List<string> parentId, BrowseDirection direction)
     {
-        NodeList = await BrowseManager.GetTreeAsync(endpointId, id, parentId, supervisorId, direction);
+        NodeList = await BrowseManager.GetTreeAsync(endpointId, id, parentId, discovererId, direction);
         var publishedNodes = await Publisher.PublishedAsync(endpointId);
 
         foreach (var node in NodeList.Results)

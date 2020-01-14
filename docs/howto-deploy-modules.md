@@ -1,4 +1,4 @@
-# Deploy OPC Twin and OPC Publisher Edge Modules
+# Deploy Industrial IoT Edge Modules
 
 [Home](readme.md)
 
@@ -15,7 +15,7 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
 
 ### Prerequisites
 
-1. Deploy the OPC Twin [dependencies](services/dependencies.md) and obtained the resulting `.env` file. Note the resource group name in the .env file to find the IoT Hub resource in the portal view.  
+1. [Deploy](howto-deploy-microservices.md) the Industrial IoT platform or at a minimum the required [dependencies](services/dependencies.md) and obtained the resulting `.env` file. Note the resource group name in the .env file to find the IoT Hub resource in the portal view.  
 
 2. For a windows Windows IoT Edge runtime deoplyment:
     - Hyper-V must be active  
@@ -75,10 +75,10 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
 
 5. In the **Deployment modules** section of the page, select **Add** and **IoT Edge Module.**
 
-6. In the **IoT Edge Custom Module** dialog use `opctwin` as name for the module, then specify the container *image URI* as
+6. In the **IoT Edge Custom Module** dialog use `discovery` as name for the module, then specify the container *image URI* as
 
    ```bash
-   mcr.microsoft.com/iotedge/opc-twin:latest
+   mcr.microsoft.com/iotedge/discovery:latest
    ```
 
    As *create options* use the following JSON:
@@ -91,7 +91,17 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
 
 7. Select **Save** and repeat step **5**.  
 
-8. In the IoT Edge Custom Module dialog, use `opcpublisher` as name for the module and the container *image URI* as
+8. In the **IoT Edge Custom Module** dialog use `opctwin` as name for the module, then specify the container *image URI* as
+
+   ```bash
+   mcr.microsoft.com/iotedge/opc-twin:latest
+   ```
+
+   Leave the *create options* empty.
+
+9. Select **Save** and repeat step **5**.  
+
+10. In the IoT Edge Custom Module dialog, use `opcpublisher` as name for the module and the container *image URI* as
 
    ```bash
    mcr.microsoft.com/iotedge/opc-publisher:latest
@@ -99,24 +109,25 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
 
    Leave the *create options* empty.
 
-9. Select **Save** and then **Next** to continue to the routes section.
+11. Select **Save** and then **Next** to continue to the routes section.
 
-10. In the routes tab, paste the following
+12. In the routes tab, paste the following
 
     ```json
     {
       "routes": {
         "opctwinToIoTHub": "FROM /messages/modules/opctwin/* INTO $upstream",
-        "opcpublisherToIoTHub": "FROM /messages/modules/opcpublisher/* INTO $upstream"
+        "opcpublisherToIoTHub": "FROM /messages/modules/opcpublisher/* INTO $upstream",
+        "discoveryToIoTHub": "FROM /messages/modules/discovery/* INTO $upstream"
       }
     }
     ```
 
     and select **Next**
 
-11. Review your deployment information and manifest.  It should look like the above [deployment manifest](#Deployment-manifest).  Select **Submit**.
+13. Review your deployment information and manifest.  It should look like the above [deployment manifest](#Deployment-manifest).  Select **Submit**.
 
-12. Once you've deployed modules to your device, you can view all of them in the **Device details** page of the portal. This page displays the name of each deployed module, as well as useful information like the deployment status and exit code.
+14. Once you've deployed modules to your device, you can view all of them in the **Device details** page of the portal. This page displays the name of each deployed module, as well as useful information like the deployment status and exit code.
 
 ## Deployment manifest
 
@@ -159,14 +170,23 @@ An example manifest to deploy both [OPC Publisher](publisher.md) and [OPC Twin](
           }
         },
         "modules": {
+          "discovery": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "mcr.microsoft.com/iotedge/discovery:latest",
+              "createOptions": "{\"Hostname\":\"opctwin\",\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"NetworkMode\":\"host\",\"CapAdd\":[\"NET_ADMIN\"]}}"
+            }
+          },
           "opctwin": {
             "version": "1.0",
             "type": "docker",
             "status": "running",
             "restartPolicy": "always",
             "settings": {
-              "image": "mcr.microsoft.com/iotedge/opc-twin:latest",
-              "createOptions": "{\"Hostname\":\"opctwin\",\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{}}},\"HostConfig\":{\"NetworkMode\":\"host\",\"CapAdd\":[\"NET_ADMIN\"]}}"
+              "image": "mcr.microsoft.com/iotedge/opc-twin:latest"
             }
           },
           "opcpublisher": {
@@ -186,6 +206,7 @@ An example manifest to deploy both [OPC Publisher](publisher.md) and [OPC Twin](
         "schemaVersion": "1.0",
         "routes": {
           "opctwinToIoTHub": "FROM /messages/modules/opctwin/* INTO $upstream",
+          "discoveryToIoTHub": "FROM /messages/modules/discovery/* INTO $upstream",
           "opcpublisherToIoTHub": "FROM /messages/modules/opcpublisher/* INTO $upstream"
         },
         "storeAndForwardConfiguration": {
@@ -234,7 +255,7 @@ An example manifest to deploy to Windows IoT Edge gateway is shown below.
           }
         },
         "modules": {
-          "opctwin": {
+          "discovery": {
             "version": "1.0",
             "type": "docker",
             "status": "running",
@@ -242,6 +263,15 @@ An example manifest to deploy to Windows IoT Edge gateway is shown below.
             "settings": {
               "image": "mcr.microsoft.com/iotedge/opc-twin:latest",
               "createOptions": "{\"Hostname\":\"opctwin\",\"HostConfig\":{\"CapAdd\":[\"NET_ADMIN\"]}}"
+            }
+          },
+          "opctwin": {
+            "version": "1.0",
+            "type": "docker",
+            "status": "running",
+            "restartPolicy": "always",
+            "settings": {
+              "image": "mcr.microsoft.com/iotedge/opc-twin:latest"
             }
           },
           "opcpublisher": {
@@ -261,6 +291,7 @@ An example manifest to deploy to Windows IoT Edge gateway is shown below.
         "schemaVersion": "1.0",
         "routes": {
           "opctwinToIoTHub": "FROM /messages/modules/opctwin/* INTO $upstream",
+          "discoveryToIoTHub": "FROM /messages/modules/discovery/* INTO $upstream",
           "opcpublisherToIoTHub": "FROM /messages/modules/opcpublisher/* INTO $upstream"
         },
         "storeAndForwardConfiguration": {

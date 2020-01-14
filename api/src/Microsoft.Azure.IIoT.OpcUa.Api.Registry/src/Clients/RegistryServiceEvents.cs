@@ -101,6 +101,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         }
 
         /// <inheritdoc/>
+        public async Task<IAsyncDisposable> SubscribeDiscovererEventsAsync(
+            string userId, Func<DiscovererEventApiModel, Task> callback) {
+            if (callback == null) {
+                throw new ArgumentNullException(nameof(callback));
+            }
+            var registrar = await _client.GetRegistrarAsync(userId);
+            try {
+                var registration = registrar.Register(EventTargets.DiscovererEventTarget, callback);
+                try {
+                    await _api.SubscribeDiscovererEventsAsync(registrar.UserId);
+                    return new AsyncDisposable(registration,
+                        () => _api.UnsubscribeDiscovererEventsAsync(registrar.UserId));
+                }
+                catch {
+                    registration.Dispose();
+                    throw;
+                }
+            }
+            catch {
+                registrar.Dispose();
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribePublisherEventsAsync(
             string userId, Func<PublisherEventApiModel, Task> callback) {
             if (callback == null) {
@@ -126,8 +151,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         }
 
         /// <inheritdoc/>
-        public async Task<IAsyncDisposable> SubscribeDiscoveryProgressBySupervisorsIdAsync(
-            string supervisorId, string userId, Func<DiscoveryProgressApiModel, Task> callback) {
+        public async Task<IAsyncDisposable> SubscribeDiscoveryProgressByDiscovererIdAsync(
+            string discovererId, string userId, Func<DiscoveryProgressApiModel, Task> callback) {
             if (callback == null) {
                 throw new ArgumentNullException(nameof(callback));
             }
@@ -135,10 +160,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
             try {
                 var registration = registrar.Register(EventTargets.DiscoveryProgressTarget, callback);
                 try {
-                    await _api.SubscribeDiscoveryProgressBySupervisorsIdAsync(supervisorId,
+                    await _api.SubscribeDiscoveryProgressByDiscovererIdAsync(discovererId,
                         registrar.UserId);
                     return new AsyncDisposable(registration,
-                        () => _api.UnsubscribeDiscoveryProgressBySupervisorsIdAsync(supervisorId,
+                        () => _api.UnsubscribeDiscoveryProgressByDiscovererIdAsync(discovererId,
                             registrar.UserId));
                 }
                 catch {

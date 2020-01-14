@@ -38,7 +38,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// <param name="methodBrowsePath">An optional component path from the
         /// node identified by
         /// MethodId to the actual method node.</param>
-        /// <param name="header">Optional request header</param>
         public MethodMetadataRequestApiModel(string methodId = default(string), IList<string> methodBrowsePath = default(IList<string>), RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             MethodId = methodId;
@@ -67,7 +66,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public IList<string> MethodBrowsePath { get; set; }
 
         /// <summary>
-        /// Gets or sets optional request header
         /// </summary>
         [JsonProperty(PropertyName = "header")]
         public RequestHeaderApiModel Header { get; set; }

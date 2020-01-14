@@ -19,23 +19,23 @@ final class AzureOpcPublisherClient
         $this->_Unsubscribe_operation = $_client->createOperation('Unsubscribe');
         $this->_StartPublishingValues_operation = $_client->createOperation('StartPublishingValues');
         $this->_StopPublishingValues_operation = $_client->createOperation('StopPublishingValues');
-        $this->_GetNextListOfPublishedNodes_operation = $_client->createOperation('GetNextListOfPublishedNodes');
         $this->_GetFirstListOfPublishedNodes_operation = $_client->createOperation('GetFirstListOfPublishedNodes');
+        $this->_GetNextListOfPublishedNodes_operation = $_client->createOperation('GetNextListOfPublishedNodes');
         $this->_GetStatus_operation = $_client->createOperation('GetStatus');
     }
     /**
      * Register a client to receive publisher samples through SignalR.
      * @param string $endpointId
-     * @param string|null $userId
+     * @param string|null $body
      */
     public function subscribe(
         $endpointId,
-        $userId = null
+        $body = null
     )
     {
         return $this->_Subscribe_operation->call([
             'endpointId' => $endpointId,
-            'userId' => $userId
+            'body' => $body
         ]);
     }
     /**
@@ -54,45 +54,55 @@ final class AzureOpcPublisherClient
         ]);
     }
     /**
-     * Start publishing variable node values to IoT Hub.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+     * Start publishing variable node values to IoT Hub. The endpoint must be activated and connected and the module client and server must trust each other.
      * @param string $endpointId
-     * @param array $request
+     * @param array $body
      * @return array
      */
     public function startPublishingValues(
         $endpointId,
-        array $request
+        array $body
     )
     {
         return $this->_StartPublishingValues_operation->call([
             'endpointId' => $endpointId,
-            'request' => $request
+            'body' => $body
         ]);
     }
     /**
-     * Stop publishing variable node values to IoT Hub.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+     * Stop publishing variable node values to IoT Hub. The endpoint must be activated and connected and the module client and server must trust each other.
      * @param string $endpointId
-     * @param array $request
+     * @param array $body
      * @return array
      */
     public function stopPublishingValues(
         $endpointId,
-        array $request
+        array $body
     )
     {
         return $this->_StopPublishingValues_operation->call([
             'endpointId' => $endpointId,
-            'request' => $request
+            'body' => $body
         ]);
     }
     /**
-     * Returns next set of currently published node ids for an endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+     * Returns currently published node ids for an endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
+     * @param string $endpointId
+     * @param array $body
+     * @return array
+     */
+    public function getFirstListOfPublishedNodes(
+        $endpointId,
+        array $body
+    )
+    {
+        return $this->_GetFirstListOfPublishedNodes_operation->call([
+            'endpointId' => $endpointId,
+            'body' => $body
+        ]);
+    }
+    /**
+     * Returns next set of currently published node ids for an endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
      * @param string $endpointId
      * @param string $continuationToken
      * @return array
@@ -105,24 +115,6 @@ and server must trust each other.
         return $this->_GetNextListOfPublishedNodes_operation->call([
             'endpointId' => $endpointId,
             'continuationToken' => $continuationToken
-        ]);
-    }
-    /**
-     * Returns currently published node ids for an endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-     * @param string $endpointId
-     * @param array $request
-     * @return array
-     */
-    public function getFirstListOfPublishedNodes(
-        $endpointId,
-        array $request
-    )
-    {
-        return $this->_GetFirstListOfPublishedNodes_operation->call([
-            'endpointId' => $endpointId,
-            'request' => $request
         ]);
     }
     /**
@@ -151,11 +143,11 @@ and server must trust each other.
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_GetNextListOfPublishedNodes_operation;
+    private $_GetFirstListOfPublishedNodes_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_GetFirstListOfPublishedNodes_operation;
+    private $_GetNextListOfPublishedNodes_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
@@ -173,7 +165,7 @@ and server must trust each other.
                         'type' => 'string'
                     ],
                     [
-                        'name' => 'userId',
+                        'name' => 'body',
                         'in' => 'body',
                         'required' => FALSE,
                         'schema' => ['type' => 'string']
@@ -209,7 +201,7 @@ and server must trust each other.
                         'type' => 'string'
                     ],
                     [
-                        'name' => 'request',
+                        'name' => 'body',
                         'in' => 'body',
                         'required' => TRUE,
                         'schema' => ['$ref' => '#/definitions/PublishStartRequestApiModel']
@@ -227,7 +219,7 @@ and server must trust each other.
                         'type' => 'string'
                     ],
                     [
-                        'name' => 'request',
+                        'name' => 'body',
                         'in' => 'body',
                         'required' => TRUE,
                         'schema' => ['$ref' => '#/definitions/PublishStopRequestApiModel']
@@ -236,6 +228,24 @@ and server must trust each other.
                 'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/PublishStopResponseApiModel']]]
             ]],
             '/v2/publish/{endpointId}' => [
+                'post' => [
+                    'operationId' => 'GetFirstListOfPublishedNodes',
+                    'parameters' => [
+                        [
+                            'name' => 'endpointId',
+                            'in' => 'path',
+                            'required' => TRUE,
+                            'type' => 'string'
+                        ],
+                        [
+                            'name' => 'body',
+                            'in' => 'body',
+                            'required' => TRUE,
+                            'schema' => ['$ref' => '#/definitions/PublishedItemListRequestApiModel']
+                        ]
+                    ],
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/PublishedItemListResponseApiModel']]]
+                ],
                 'get' => [
                     'operationId' => 'GetNextListOfPublishedNodes',
                     'parameters' => [
@@ -250,24 +260,6 @@ and server must trust each other.
                             'in' => 'query',
                             'required' => TRUE,
                             'type' => 'string'
-                        ]
-                    ],
-                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/PublishedItemListResponseApiModel']]]
-                ],
-                'post' => [
-                    'operationId' => 'GetFirstListOfPublishedNodes',
-                    'parameters' => [
-                        [
-                            'name' => 'endpointId',
-                            'in' => 'path',
-                            'required' => TRUE,
-                            'type' => 'string'
-                        ],
-                        [
-                            'name' => 'request',
-                            'in' => 'body',
-                            'required' => TRUE,
-                            'schema' => ['$ref' => '#/definitions/PublishedItemListRequestApiModel']
                         ]
                     ],
                     'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/PublishedItemListResponseApiModel']]]

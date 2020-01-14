@@ -35,15 +35,14 @@ public class CertificateRequestRecordApiModel {
     private String groupId;
 
     /**
-     * Request state. Possible values include: 'New', 'Approved', 'Rejected',
-     * 'Failure', 'Completed', 'Accepted'.
+     * Possible values include: 'New', 'Approved', 'Rejected', 'Failure',
+     * 'Completed', 'Accepted'.
      */
     @JsonProperty(value = "state")
     private CertificateRequestState state;
 
     /**
-     * Request type. Possible values include: 'SigningRequest',
-     * 'KeyPairRequest'.
+     * Possible values include: 'SigningRequest', 'KeyPairRequest'.
      */
     @JsonProperty(value = "type")
     private CertificateRequestType type;
@@ -55,19 +54,19 @@ public class CertificateRequestRecordApiModel {
     private Object errorInfo;
 
     /**
-     * Request time.
+     * The submitted property.
      */
     @JsonProperty(value = "submitted")
     private VaultOperationContextApiModel submitted;
 
     /**
-     * Approved or rejected.
+     * The approved property.
      */
     @JsonProperty(value = "approved")
     private VaultOperationContextApiModel approved;
 
     /**
-     * Finished.
+     * The accepted property.
      */
     @JsonProperty(value = "accepted")
     private VaultOperationContextApiModel accepted;
@@ -133,7 +132,7 @@ public class CertificateRequestRecordApiModel {
     }
 
     /**
-     * Get request state. Possible values include: 'New', 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'.
+     * Get possible values include: 'New', 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'.
      *
      * @return the state value
      */
@@ -142,7 +141,7 @@ public class CertificateRequestRecordApiModel {
     }
 
     /**
-     * Set request state. Possible values include: 'New', 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'.
+     * Set possible values include: 'New', 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'.
      *
      * @param state the state value to set
      * @return the CertificateRequestRecordApiModel object itself.
@@ -153,7 +152,7 @@ public class CertificateRequestRecordApiModel {
     }
 
     /**
-     * Get request type. Possible values include: 'SigningRequest', 'KeyPairRequest'.
+     * Get possible values include: 'SigningRequest', 'KeyPairRequest'.
      *
      * @return the type value
      */
@@ -162,7 +161,7 @@ public class CertificateRequestRecordApiModel {
     }
 
     /**
-     * Set request type. Possible values include: 'SigningRequest', 'KeyPairRequest'.
+     * Set possible values include: 'SigningRequest', 'KeyPairRequest'.
      *
      * @param type the type value to set
      * @return the CertificateRequestRecordApiModel object itself.
@@ -193,7 +192,7 @@ public class CertificateRequestRecordApiModel {
     }
 
     /**
-     * Get request time.
+     * Get the submitted value.
      *
      * @return the submitted value
      */
@@ -202,7 +201,7 @@ public class CertificateRequestRecordApiModel {
     }
 
     /**
-     * Set request time.
+     * Set the submitted value.
      *
      * @param submitted the submitted value to set
      * @return the CertificateRequestRecordApiModel object itself.
@@ -213,7 +212,7 @@ public class CertificateRequestRecordApiModel {
     }
 
     /**
-     * Get approved or rejected.
+     * Get the approved value.
      *
      * @return the approved value
      */
@@ -222,7 +221,7 @@ public class CertificateRequestRecordApiModel {
     }
 
     /**
-     * Set approved or rejected.
+     * Set the approved value.
      *
      * @param approved the approved value to set
      * @return the CertificateRequestRecordApiModel object itself.
@@ -233,7 +232,7 @@ public class CertificateRequestRecordApiModel {
     }
 
     /**
-     * Get finished.
+     * Get the accepted value.
      *
      * @return the accepted value
      */
@@ -242,7 +241,7 @@ public class CertificateRequestRecordApiModel {
     }
 
     /**
-     * Set finished.
+     * Set the accepted value.
      *
      * @param accepted the accepted value to set
      * @return the CertificateRequestRecordApiModel object itself.

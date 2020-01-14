@@ -21,20 +21,19 @@ class CertificateRequestRecordApiModel(Model):
     :type entity_id: str
     :param group_id: Trust group
     :type group_id: str
-    :param state: Request state. Possible values include: 'New', 'Approved',
-     'Rejected', 'Failure', 'Completed', 'Accepted'
+    :param state: Possible values include: 'New', 'Approved', 'Rejected',
+     'Failure', 'Completed', 'Accepted'
     :type state: str or ~azure-iiot-opc-vault.models.CertificateRequestState
-    :param type: Request type. Possible values include: 'SigningRequest',
-     'KeyPairRequest'
+    :param type: Possible values include: 'SigningRequest', 'KeyPairRequest'
     :type type: str or ~azure-iiot-opc-vault.models.CertificateRequestType
     :param error_info: Error diagnostics
     :type error_info: object
-    :param submitted: Request time
+    :param submitted:
     :type submitted:
      ~azure-iiot-opc-vault.models.VaultOperationContextApiModel
-    :param approved: Approved or rejected
+    :param approved:
     :type approved: ~azure-iiot-opc-vault.models.VaultOperationContextApiModel
-    :param accepted: Finished
+    :param accepted:
     :type accepted: ~azure-iiot-opc-vault.models.VaultOperationContextApiModel
     """
 

@@ -23,8 +23,8 @@ public class CertificateRequestQueryRequestApiModel {
     private String entityId;
 
     /**
-     * The certificate request state. Possible values include: 'New',
-     * 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'.
+     * Possible values include: 'New', 'Approved', 'Rejected', 'Failure',
+     * 'Completed', 'Accepted'.
      */
     @JsonProperty(value = "state")
     private CertificateRequestState state;
@@ -50,7 +50,7 @@ public class CertificateRequestQueryRequestApiModel {
     }
 
     /**
-     * Get the certificate request state. Possible values include: 'New', 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'.
+     * Get possible values include: 'New', 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'.
      *
      * @return the state value
      */
@@ -59,7 +59,7 @@ public class CertificateRequestQueryRequestApiModel {
     }
 
     /**
-     * Set the certificate request state. Possible values include: 'New', 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'.
+     * Set possible values include: 'New', 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'.
      *
      * @param state the state value to set
      * @return the CertificateRequestQueryRequestApiModel object itself.

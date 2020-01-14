@@ -41,9 +41,8 @@ export interface BrowseViewApiModel {
  */
 export interface CredentialApiModel {
   /**
-   * @member {CredentialType} [type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'. Default value:
-   * 'None' .
+   * @member {CredentialType} [type] Possible values include: 'None',
+   * 'UserName', 'X509Certificate', 'JwtToken'
    */
   type?: CredentialType;
   /**
@@ -60,10 +59,8 @@ export interface CredentialApiModel {
  */
 export interface DiagnosticsApiModel {
   /**
-   * @member {DiagnosticsLevel} [level] Requested level of response
-   * diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status',
-   * 'Operations', 'Diagnostics', 'Verbose'
+   * @member {DiagnosticsLevel} [level] Possible values include: 'None',
+   * 'Status', 'Operations', 'Diagnostics', 'Verbose'
    */
   level?: DiagnosticsLevel;
   /**
@@ -86,7 +83,7 @@ export interface DiagnosticsApiModel {
  */
 export interface RequestHeaderApiModel {
   /**
-   * @member {CredentialApiModel} [elevation] Optional User elevation
+   * @member {CredentialApiModel} [elevation]
    */
   elevation?: CredentialApiModel;
   /**
@@ -94,8 +91,7 @@ export interface RequestHeaderApiModel {
    */
   locales?: string[];
   /**
-   * @member {DiagnosticsApiModel} [diagnostics] Optional diagnostics
-   * configuration
+   * @member {DiagnosticsApiModel} [diagnostics]
    */
   diagnostics?: DiagnosticsApiModel;
 }
@@ -113,13 +109,12 @@ export interface BrowseRequestApiModel {
    */
   nodeId?: string;
   /**
-   * @member {BrowseDirection} [direction] Direction to browse in
-   * (default: forward). Possible values include: 'Forward', 'Backward', 'Both'
+   * @member {BrowseDirection} [direction] Possible values include: 'Forward',
+   * 'Backward', 'Both'
    */
   direction?: BrowseDirection;
   /**
-   * @member {BrowseViewApiModel} [view] View to browse
-   * (default: null = new view = All nodes).
+   * @member {BrowseViewApiModel} [view]
    */
   view?: BrowseViewApiModel;
   /**
@@ -157,7 +152,7 @@ export interface BrowseRequestApiModel {
    */
   readVariableValues?: boolean;
   /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
+   * @member {RequestHeaderApiModel} [header]
    */
   header?: RequestHeaderApiModel;
 }
@@ -174,12 +169,11 @@ export interface RolePermissionApiModel {
    */
   roleId: string;
   /**
-   * @member {RolePermissions} [permissions] Permissions assigned for the role.
-   * Possible values include: 'Browse', 'ReadRolePermissions',
-   * 'WriteAttribute', 'WriteRolePermissions', 'WriteHistorizing', 'Read',
-   * 'Write', 'ReadHistory', 'InsertHistory', 'ModifyHistory', 'DeleteHistory',
-   * 'ReceiveEvents', 'Call', 'AddReference', 'RemoveReference', 'DeleteNode',
-   * 'AddNode'
+   * @member {RolePermissions} [permissions] Possible values include: 'Browse',
+   * 'ReadRolePermissions', 'WriteAttribute', 'WriteRolePermissions',
+   * 'WriteHistorizing', 'Read', 'Write', 'ReadHistory', 'InsertHistory',
+   * 'ModifyHistory', 'DeleteHistory', 'ReceiveEvents', 'Call', 'AddReference',
+   * 'RemoveReference', 'DeleteNode', 'AddNode'
    */
   permissions?: RolePermissions;
 }
@@ -192,9 +186,9 @@ export interface RolePermissionApiModel {
  */
 export interface NodeApiModel {
   /**
-   * @member {NodeClass} [nodeClass] Type of node. Possible values include:
-   * 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType',
-   * 'ReferenceType', 'DataType', 'View'
+   * @member {NodeClass} [nodeClass] Possible values include: 'Object',
+   * 'Variable', 'Method', 'ObjectType', 'VariableType', 'ReferenceType',
+   * 'DataType', 'View'
    */
   nodeClass?: NodeClass;
   /**
@@ -215,10 +209,8 @@ export interface NodeApiModel {
    */
   browseName?: string;
   /**
-   * @member {NodeAccessRestrictions} [accessRestrictions] Node access
-   * restrictions if any.
-   * (default: none). Possible values include: 'SigningRequired',
-   * 'EncryptionRequired', 'SessionRequired'
+   * @member {NodeAccessRestrictions} [accessRestrictions] Possible values
+   * include: 'SigningRequired', 'EncryptionRequired', 'SessionRequired'
    */
   accessRestrictions?: NodeAccessRestrictions;
   /**
@@ -243,10 +235,7 @@ export interface NodeApiModel {
    */
   containsNoLoops?: boolean;
   /**
-   * @member {NodeEventNotifier} [eventNotifier] If object or view and
-   * eventing, event notifier
-   * to subscribe to.
-   * (default: no events supported). Possible values include:
+   * @member {NodeEventNotifier} [eventNotifier] Possible values include:
    * 'SubscribeToEvents', 'HistoryRead', 'HistoryWrite'
    */
   eventNotifier?: NodeEventNotifier;
@@ -269,19 +258,17 @@ export interface NodeApiModel {
    */
   dataTypeDefinition?: any;
   /**
-   * @member {NodeAccessLevel} [accessLevel] Default access level for variable
-   * node.
-   * (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite',
-   * 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite',
-   * 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'
+   * @member {NodeAccessLevel} [accessLevel] Possible values include:
+   * 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite',
+   * 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead',
+   * 'NonatomicWrite', 'WriteFullArrayOnly'
    */
   accessLevel?: NodeAccessLevel;
   /**
-   * @member {NodeAccessLevel} [userAccessLevel] User access level for variable
-   * node or null.
-   * (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite',
-   * 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite',
-   * 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'
+   * @member {NodeAccessLevel} [userAccessLevel] Possible values include:
+   * 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite',
+   * 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead',
+   * 'NonatomicWrite', 'WriteFullArrayOnly'
    */
   userAccessLevel?: NodeAccessLevel;
   /**
@@ -290,11 +277,9 @@ export interface NodeApiModel {
    */
   dataType?: string;
   /**
-   * @member {NodeValueRank} [valueRank] Value rank of the variable data of a
-   * variable
-   * or variable type, otherwise null.
-   * (default: scalar = -1). Possible values include: 'ScalarOrOneDimension',
-   * 'Any', 'Scalar', 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions'
+   * @member {NodeValueRank} [valueRank] Possible values include:
+   * 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions',
+   * 'ScalarOrOneDimension', 'Any', 'Scalar'
    */
   valueRank?: NodeValueRank;
   /**
@@ -368,12 +353,12 @@ export interface NodeReferenceApiModel {
    */
   referenceTypeId?: string;
   /**
-   * @member {BrowseDirection} [direction] Browse direction of reference.
-   * Possible values include: 'Forward', 'Backward', 'Both'
+   * @member {BrowseDirection} [direction] Possible values include: 'Forward',
+   * 'Backward', 'Both'
    */
   direction?: BrowseDirection;
   /**
-   * @member {NodeApiModel} target Target node
+   * @member {NodeApiModel} target
    */
   target: NodeApiModel;
 }
@@ -407,7 +392,7 @@ export interface ServiceResultApiModel {
  */
 export interface BrowseResponseApiModel {
   /**
-   * @member {NodeApiModel} [node] Node info for the currently browsed node
+   * @member {NodeApiModel} [node]
    */
   node?: NodeApiModel;
   /**
@@ -421,8 +406,7 @@ export interface BrowseResponseApiModel {
    */
   continuationToken?: string;
   /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * error
+   * @member {ServiceResultApiModel} [errorInfo]
    */
   errorInfo?: ServiceResultApiModel;
 }
@@ -460,7 +444,7 @@ export interface BrowseNextRequestApiModel {
    */
   readVariableValues?: boolean;
   /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
+   * @member {RequestHeaderApiModel} [header]
    */
   header?: RequestHeaderApiModel;
 }
@@ -483,8 +467,7 @@ export interface BrowseNextResponseApiModel {
    */
   continuationToken?: string;
   /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * error
+   * @member {ServiceResultApiModel} [errorInfo]
    */
   errorInfo?: ServiceResultApiModel;
 }
@@ -513,7 +496,7 @@ export interface BrowsePathRequestApiModel {
    */
   readVariableValues?: boolean;
   /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
+   * @member {RequestHeaderApiModel} [header]
    */
   header?: RequestHeaderApiModel;
 }
@@ -530,7 +513,7 @@ export interface NodePathTargetApiModel {
    */
   browsePath?: string[];
   /**
-   * @member {NodeApiModel} [target] Target node
+   * @member {NodeApiModel} [target]
    */
   target?: NodeApiModel;
   /**
@@ -551,8 +534,7 @@ export interface BrowsePathResponseApiModel {
    */
   targets?: NodePathTargetApiModel[];
   /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * error
+   * @member {ServiceResultApiModel} [errorInfo]
    */
   errorInfo?: ServiceResultApiModel;
 }
@@ -576,7 +558,7 @@ export interface MethodMetadataRequestApiModel {
    */
   methodBrowsePath?: string[];
   /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
+   * @member {RequestHeaderApiModel} [header]
    */
   header?: RequestHeaderApiModel;
 }
@@ -597,7 +579,7 @@ export interface MethodMetadataArgumentApiModel {
    */
   description?: string;
   /**
-   * @member {NodeApiModel} [type] Data type node of the argument
+   * @member {NodeApiModel} [type]
    */
   type?: NodeApiModel;
   /**
@@ -605,9 +587,9 @@ export interface MethodMetadataArgumentApiModel {
    */
   defaultValue?: any;
   /**
-   * @member {NodeValueRank} [valueRank] Optional, scalar if not set. Possible
-   * values include: 'ScalarOrOneDimension', 'Any', 'Scalar',
-   * 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions'
+   * @member {NodeValueRank} [valueRank] Possible values include:
+   * 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions',
+   * 'ScalarOrOneDimension', 'Any', 'Scalar'
    */
   valueRank?: NodeValueRank;
   /**
@@ -638,8 +620,7 @@ export interface MethodMetadataResponseApiModel {
    */
   outputArguments?: MethodMetadataArgumentApiModel[];
   /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * error
+   * @member {ServiceResultApiModel} [errorInfo]
    */
   errorInfo?: ServiceResultApiModel;
 }
@@ -698,7 +679,7 @@ export interface MethodCallRequestApiModel {
    */
   objectBrowsePath?: string[];
   /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
+   * @member {RequestHeaderApiModel} [header]
    */
   header?: RequestHeaderApiModel;
 }
@@ -715,8 +696,7 @@ export interface MethodCallResponseApiModel {
    */
   results?: MethodCallArgumentApiModel[];
   /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * error
+   * @member {ServiceResultApiModel} [errorInfo]
    */
   errorInfo?: ServiceResultApiModel;
 }
@@ -746,7 +726,7 @@ export interface ValueReadRequestApiModel {
    */
   indexRange?: string;
   /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
+   * @member {RequestHeaderApiModel} [header]
    */
   header?: RequestHeaderApiModel;
 }
@@ -787,8 +767,7 @@ export interface ValueReadResponseApiModel {
    */
   serverTimestamp?: Date;
   /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * error
+   * @member {ServiceResultApiModel} [errorInfo]
    */
   errorInfo?: ServiceResultApiModel;
 }
@@ -805,14 +784,13 @@ export interface AttributeReadRequestApiModel {
    */
   nodeId: string;
   /**
-   * @member {NodeAttribute} attribute Attribute to read or write. Possible
-   * values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description',
-   * 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
-   * 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank',
-   * 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
-   * 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable',
-   * 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions',
-   * 'AccessRestrictions'
+   * @member {NodeAttribute} attribute Possible values include: 'NodeClass',
+   * 'BrowseName', 'DisplayName', 'Description', 'WriteMask', 'UserWriteMask',
+   * 'IsAbstract', 'Symmetric', 'InverseName', 'ContainsNoLoops',
+   * 'EventNotifier', 'Value', 'DataType', 'ValueRank', 'ArrayDimensions',
+   * 'AccessLevel', 'UserAccessLevel', 'MinimumSamplingInterval',
+   * 'Historizing', 'Executable', 'UserExecutable', 'DataTypeDefinition',
+   * 'RolePermissions', 'UserRolePermissions', 'AccessRestrictions'
    */
   attribute: NodeAttribute;
 }
@@ -829,7 +807,7 @@ export interface ReadRequestApiModel {
    */
   attributes: AttributeReadRequestApiModel[];
   /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
+   * @member {RequestHeaderApiModel} [header]
    */
   header?: RequestHeaderApiModel;
 }
@@ -846,8 +824,7 @@ export interface AttributeReadResponseApiModel {
    */
   value?: any;
   /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * error
+   * @member {ServiceResultApiModel} [errorInfo]
    */
   errorInfo?: ServiceResultApiModel;
 }
@@ -923,10 +900,8 @@ export interface StatusResponseApiModel {
    */
   readonly dependencies?: { [propertyName: string]: string };
   /**
-   * @member {{ [propertyName: string]: string }} [metadata] Optional meta
-   * data.
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
+   * @member {{ [propertyName: string]: string }} [metadata] **NOTE: This
+   * property will not be serialized. It can only be populated by the server.**
    */
   readonly metadata?: { [propertyName: string]: string };
 }
@@ -966,7 +941,7 @@ export interface ValueWriteRequestApiModel {
    */
   indexRange?: string;
   /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
+   * @member {RequestHeaderApiModel} [header]
    */
   header?: RequestHeaderApiModel;
 }
@@ -979,8 +954,7 @@ export interface ValueWriteRequestApiModel {
  */
 export interface ValueWriteResponseApiModel {
   /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * error
+   * @member {ServiceResultApiModel} [errorInfo]
    */
   errorInfo?: ServiceResultApiModel;
 }
@@ -997,14 +971,13 @@ export interface AttributeWriteRequestApiModel {
    */
   nodeId: string;
   /**
-   * @member {NodeAttribute} attribute Attribute to write (mandatory). Possible
-   * values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description',
-   * 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
-   * 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank',
-   * 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
-   * 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable',
-   * 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions',
-   * 'AccessRestrictions'
+   * @member {NodeAttribute} attribute Possible values include: 'NodeClass',
+   * 'BrowseName', 'DisplayName', 'Description', 'WriteMask', 'UserWriteMask',
+   * 'IsAbstract', 'Symmetric', 'InverseName', 'ContainsNoLoops',
+   * 'EventNotifier', 'Value', 'DataType', 'ValueRank', 'ArrayDimensions',
+   * 'AccessLevel', 'UserAccessLevel', 'MinimumSamplingInterval',
+   * 'Historizing', 'Executable', 'UserExecutable', 'DataTypeDefinition',
+   * 'RolePermissions', 'UserRolePermissions', 'AccessRestrictions'
    */
   attribute: NodeAttribute;
   /**
@@ -1025,7 +998,7 @@ export interface WriteRequestApiModel {
    */
   attributes: AttributeWriteRequestApiModel[];
   /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
+   * @member {RequestHeaderApiModel} [header]
    */
   header?: RequestHeaderApiModel;
 }
@@ -1038,8 +1011,7 @@ export interface WriteRequestApiModel {
  */
 export interface AttributeWriteResponseApiModel {
   /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * error
+   * @member {ServiceResultApiModel} [errorInfo]
    */
   errorInfo?: ServiceResultApiModel;
 }
@@ -1146,12 +1118,12 @@ export type NodeAccessLevel = 'CurrentRead' | 'CurrentWrite' | 'HistoryRead' | '
 
 /**
  * Defines values for NodeValueRank.
- * Possible values include: 'ScalarOrOneDimension', 'Any', 'Scalar', 'OneOrMoreDimensions',
- * 'OneDimension', 'TwoDimensions'
+ * Possible values include: 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions',
+ * 'ScalarOrOneDimension', 'Any', 'Scalar'
  * @readonly
  * @enum {string}
  */
-export type NodeValueRank = 'ScalarOrOneDimension' | 'Any' | 'Scalar' | 'OneOrMoreDimensions' | 'OneDimension' | 'TwoDimensions';
+export type NodeValueRank = 'OneOrMoreDimensions' | 'OneDimension' | 'TwoDimensions' | 'ScalarOrOneDimension' | 'Any' | 'Scalar';
 
 /**
  * Defines values for RolePermissions.
@@ -1177,25 +1149,6 @@ export type RolePermissions = 'Browse' | 'ReadRolePermissions' | 'WriteAttribute
 export type NodeAttribute = 'NodeClass' | 'BrowseName' | 'DisplayName' | 'Description' | 'WriteMask' | 'UserWriteMask' | 'IsAbstract' | 'Symmetric' | 'InverseName' | 'ContainsNoLoops' | 'EventNotifier' | 'Value' | 'DataType' | 'ValueRank' | 'ArrayDimensions' | 'AccessLevel' | 'UserAccessLevel' | 'MinimumSamplingInterval' | 'Historizing' | 'Executable' | 'UserExecutable' | 'DataTypeDefinition' | 'RolePermissions' | 'UserRolePermissions' | 'AccessRestrictions';
 
 /**
- * Contains response data for the getSetOfUniqueNodes operation.
- */
-export type GetSetOfUniqueNodesResponse = BrowseResponseApiModel & {
-  /**
-   * The underlying HTTP response.
-   */
-  _response: msRest.HttpResponse & {
-      /**
-       * The response body as text (string format)
-       */
-      bodyAsText: string;
-      /**
-       * The response body as parsed JSON or XML
-       */
-      parsedBody: BrowseResponseApiModel;
-    };
-};
-
-/**
  * Contains response data for the browse operation.
  */
 export type BrowseResponse = BrowseResponseApiModel & {
@@ -1215,9 +1168,28 @@ export type BrowseResponse = BrowseResponseApiModel & {
 };
 
 /**
- * Contains response data for the getNextSetOfUniqueNodes operation.
+ * Contains response data for the getSetOfUniqueNodes operation.
  */
-export type GetNextSetOfUniqueNodesResponse = BrowseNextResponseApiModel & {
+export type GetSetOfUniqueNodesResponse = BrowseResponseApiModel & {
+  /**
+   * The underlying HTTP response.
+   */
+  _response: msRest.HttpResponse & {
+      /**
+       * The response body as text (string format)
+       */
+      bodyAsText: string;
+      /**
+       * The response body as parsed JSON or XML
+       */
+      parsedBody: BrowseResponseApiModel;
+    };
+};
+
+/**
+ * Contains response data for the browseNext operation.
+ */
+export type BrowseNextResponse = BrowseNextResponseApiModel & {
   /**
    * The underlying HTTP response.
    */
@@ -1234,9 +1206,9 @@ export type GetNextSetOfUniqueNodesResponse = BrowseNextResponseApiModel & {
 };
 
 /**
- * Contains response data for the browseNext operation.
+ * Contains response data for the getNextSetOfUniqueNodes operation.
  */
-export type BrowseNextResponse = BrowseNextResponseApiModel & {
+export type GetNextSetOfUniqueNodesResponse = BrowseNextResponseApiModel & {
   /**
    * The underlying HTTP response.
    */
@@ -1310,9 +1282,9 @@ export type CallMethodResponse = MethodCallResponseApiModel & {
 };
 
 /**
- * Contains response data for the getValue operation.
+ * Contains response data for the readValue operation.
  */
-export type GetValueResponse = ValueReadResponseApiModel & {
+export type ReadValueResponse = ValueReadResponseApiModel & {
   /**
    * The underlying HTTP response.
    */
@@ -1329,9 +1301,9 @@ export type GetValueResponse = ValueReadResponseApiModel & {
 };
 
 /**
- * Contains response data for the readValue operation.
+ * Contains response data for the getValue operation.
  */
-export type ReadValueResponse = ValueReadResponseApiModel & {
+export type GetValueResponse = ValueReadResponseApiModel & {
   /**
    * The underlying HTTP response.
    */

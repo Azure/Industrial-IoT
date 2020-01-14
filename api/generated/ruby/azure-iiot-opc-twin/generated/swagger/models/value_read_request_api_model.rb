@@ -26,7 +26,7 @@ module azure.iiot.opc.twin
       # See 7.22 of part 4: NumericRange.
       attr_accessor :index_range
 
-      # @return [RequestHeaderApiModel] Optional request header
+      # @return [RequestHeaderApiModel]
       attr_accessor :header
 
 

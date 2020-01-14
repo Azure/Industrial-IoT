@@ -26,8 +26,8 @@ final class AzureOpcVaultClient
         $this->_ApproveRequest_operation = $_client->createOperation('ApproveRequest');
         $this->_RejectRequest_operation = $_client->createOperation('RejectRequest');
         $this->_AcceptRequest_operation = $_client->createOperation('AcceptRequest');
-        $this->_GetRequest_operation = $_client->createOperation('GetRequest');
         $this->_DeleteRequest_operation = $_client->createOperation('DeleteRequest');
+        $this->_GetRequest_operation = $_client->createOperation('GetRequest');
         $this->_QueryRequests_operation = $_client->createOperation('QueryRequests');
         $this->_ListRequests_operation = $_client->createOperation('ListRequests');
         $this->_GetStatus_operation = $_client->createOperation('GetStatus');
@@ -60,6 +60,7 @@ final class AzureOpcVaultClient
     }
     /**
      * @param string $serialNumber
+     * @return string
      */
     public function getIssuerCertificateChain1($serialNumber)
     {
@@ -67,26 +68,23 @@ final class AzureOpcVaultClient
     }
     /**
      * @param string $serialNumber
+     * @return string
      */
     public function getIssuerCrlChain1($serialNumber)
     {
         return $this->_GetIssuerCrlChain1_operation->call(['serialNumber' => $serialNumber]);
     }
     /**
-     * The request is in the 'New' state after this call.
-Requires Writer or Manager role.
-     * @param array $signingRequest
+     * The request is in the 'New' state after this call. Requires Writer or Manager role.
+     * @param array $body
      * @return array
      */
-    public function startSigningRequest(array $signingRequest)
+    public function startSigningRequest(array $body)
     {
-        return $this->_StartSigningRequest_operation->call(['signingRequest' => $signingRequest]);
+        return $this->_StartSigningRequest_operation->call(['body' => $body]);
     }
     /**
-     * Can be called in any state.
-After a successful fetch in 'Completed' state, the request is
-moved into 'Accepted' state.
-Requires Writer role.
+     * Can be called in any state. After a successful fetch in 'Completed' state, the request is moved into 'Accepted' state. Requires Writer role.
      * @param string $requestId
      * @return array
      */
@@ -95,21 +93,16 @@ Requires Writer role.
         return $this->_FinishSigningRequest_operation->call(['requestId' => $requestId]);
     }
     /**
-     * The request is in the 'New' state after this call.
-Requires Writer or Manager role.
-     * @param array $newKeyPairRequest
+     * The request is in the 'New' state after this call. Requires Writer or Manager role.
+     * @param array $body
      * @return array
      */
-    public function startNewKeyPairRequest(array $newKeyPairRequest)
+    public function startNewKeyPairRequest(array $body)
     {
-        return $this->_StartNewKeyPairRequest_operation->call(['newKeyPairRequest' => $newKeyPairRequest]);
+        return $this->_StartNewKeyPairRequest_operation->call(['body' => $body]);
     }
     /**
-     * Can be called in any state.
-Fetches private key in 'Completed' state.
-After a successful fetch in 'Completed' state, the request is
-moved into 'Accepted' state.
-Requires Writer role.
+     * Can be called in any state. Fetches private key in 'Completed' state. After a successful fetch in 'Completed' state, the request is moved into 'Accepted' state. Requires Writer role.
      * @param string $requestId
      * @return array
      */
@@ -118,17 +111,7 @@ Requires Writer role.
         return $this->_FinishNewKeyPairRequest_operation->call(['requestId' => $requestId]);
     }
     /**
-     *  Validates the request with the application database.
-- If Approved:
-  - New Key Pair request: Creates the new key pair
-        in the requested format, signs the certificate and stores the
-        private key for later securely in KeyVault.
-  - Cert Signing Request: Creates and signs the certificate.
-        Deletes the CSR from the database.
- Stores the signed certificate for later use in the Database.
- The request is in the 'Approved' or 'Rejected' state after this call.
- Requires Approver role.
- Approver needs signing rights in KeyVault.
+     *  Validates the request with the application database. - If Approved: - New Key Pair request: Creates the new key pair in the requested format, signs the certificate and stores the private key for later securely in KeyVault. - Cert Signing Request: Creates and signs the certificate. Deletes the CSR from the database. Stores the signed certificate for later use in the Database. The request is in the 'Approved' or 'Rejected' state after this call. Requires Approver role. Approver needs signing rights in KeyVault.
      * @param string $requestId
      */
     public function approveRequest($requestId)
@@ -136,9 +119,7 @@ Requires Writer role.
         return $this->_ApproveRequest_operation->call(['requestId' => $requestId]);
     }
     /**
-     * The request is in the 'Rejected' state after this call.
-Requires Approver role.
-Approver needs signing rights in KeyVault.
+     * The request is in the 'Rejected' state after this call. Requires Approver role. Approver needs signing rights in KeyVault.
      * @param string $requestId
      */
     public function rejectRequest($requestId)
@@ -146,13 +127,20 @@ Approver needs signing rights in KeyVault.
         return $this->_RejectRequest_operation->call(['requestId' => $requestId]);
     }
     /**
-     * The request is in the 'Accepted' state after this call.
-Requires Writer role.
+     * The request is in the 'Accepted' state after this call. Requires Writer role.
      * @param string $requestId
      */
     public function acceptRequest($requestId)
     {
         return $this->_AcceptRequest_operation->call(['requestId' => $requestId]);
+    }
+    /**
+     * By purging the request it is actually physically deleted from the database, including the public key and other information. Requires Manager role.
+     * @param string $requestId
+     */
+    public function deleteRequest($requestId)
+    {
+        return $this->_DeleteRequest_operation->call(['requestId' => $requestId]);
     }
     /**
      * @param string $requestId
@@ -163,38 +151,23 @@ Requires Writer role.
         return $this->_GetRequest_operation->call(['requestId' => $requestId]);
     }
     /**
-     * By purging the request it is actually physically deleted from the
-database, including the public key and other information.
-Requires Manager role.
-     * @param string $requestId
-     */
-    public function deleteRequest($requestId)
-    {
-        return $this->_DeleteRequest_operation->call(['requestId' => $requestId]);
-    }
-    /**
-     * Get all certificate requests in paged form.
-The returned model can contain a link to the next page if more results are
-available.  Use ListRequests to continue.
-     * @param array|null $query
+     * Get all certificate requests in paged form. The returned model can contain a link to the next page if more results are available. Use ListRequests to continue.
      * @param integer|null $pageSize
+     * @param array|null $body
      * @return array
      */
     public function queryRequests(
-        array $query = null,
-        $pageSize = null
+        $pageSize = null,
+        array $body = null
     )
     {
         return $this->_QueryRequests_operation->call([
-            'query' => $query,
-            'pageSize' => $pageSize
+            'pageSize' => $pageSize,
+            'body' => $body
         ]);
     }
     /**
-     * Get all certificate requests in paged form or continue a current listing or
-query.
-The returned model can contain a link to the next page if more results are
-available.
+     * Get all certificate requests in paged form or continue a current listing or query. The returned model can contain a link to the next page if more results are available.
      * @param string|null $nextPageLink
      * @param integer|null $pageSize
      * @return array
@@ -217,10 +190,7 @@ available.
         return $this->_GetStatus_operation->call([]);
     }
     /**
-     * A trust group has a root certificate which issues certificates
-to entities.  Entities can be part of a trust group and thus
-trust the root certificate and all entities that the root has
-issued certificates for.
+     * A trust group has a root certificate which issues certificates to entities. Entities can be part of a trust group and thus trust the root certificate and all entities that the root has issued certificates for.
      * @param string|null $nextPageLink
      * @param integer|null $pageSize
      * @return array
@@ -237,18 +207,15 @@ issued certificates for.
     }
     /**
      * Requires manager role.
-     * @param array $request
+     * @param array $body
      * @return array
      */
-    public function createGroup(array $request)
+    public function createGroup(array $body)
     {
-        return $this->_CreateGroup_operation->call(['request' => $request]);
+        return $this->_CreateGroup_operation->call(['body' => $body]);
     }
     /**
-     * A trust group has a root certificate which issues certificates
-to entities.  Entities can be part of a trust group and thus
-trust the root certificate and all entities that the root has
-issued certificates for.
+     * A trust group has a root certificate which issues certificates to entities. Entities can be part of a trust group and thus trust the root certificate and all entities that the root has issued certificates for.
      * @param string $groupId
      * @return array
      */
@@ -257,26 +224,22 @@ issued certificates for.
         return $this->_GetGroup_operation->call(['groupId' => $groupId]);
     }
     /**
-     * Use this function with care and only if you are aware of
-the security implications.
-Requires manager role.
+     * Use this function with care and only if you are aware of the security implications. Requires manager role.
      * @param string $groupId
-     * @param array $request
+     * @param array $body
      */
     public function updateGroup(
         $groupId,
-        array $request
+        array $body
     )
     {
         return $this->_UpdateGroup_operation->call([
             'groupId' => $groupId,
-            'request' => $request
+            'body' => $body
         ]);
     }
     /**
-     * After this operation the Issuer CA, CRLs and keys become inaccessible.
-Use this function with extreme caution.
-Requires manager role.
+     * After this operation the Issuer CA, CRLs and keys become inaccessible. Use this function with extreme caution. Requires manager role.
      * @param string $groupId
      */
     public function deleteGroup($groupId)
@@ -285,12 +248,12 @@ Requires manager role.
     }
     /**
      * Requires manager role.
-     * @param array $request
+     * @param array $body
      * @return array
      */
-    public function createRoot(array $request)
+    public function createRoot(array $body)
     {
-        return $this->_CreateRoot_operation->call(['request' => $request]);
+        return $this->_CreateRoot_operation->call(['body' => $body]);
     }
     /**
      * @param string $groupId
@@ -300,8 +263,7 @@ Requires manager role.
         return $this->_RenewIssuerCertificate_operation->call(['groupId' => $groupId]);
     }
     /**
-     * Define trust between two entities.  The entities are identifiers
-of application, groups, or endpoints.
+     * Define trust between two entities. The entities are identifiers of application, groups, or endpoints.
      * @param string $entityId
      * @param string $trustedEntityId
      */
@@ -316,8 +278,7 @@ of application, groups, or endpoints.
         ]);
     }
     /**
-     * Returns all certificates the entity should trust based on the
-applied trust configuration.
+     * Returns all certificates the entity should trust based on the applied trust configuration.
      * @param string $entityId
      * @param string|null $nextPageLink
      * @param integer|null $pageSize
@@ -336,8 +297,7 @@ applied trust configuration.
         ]);
     }
     /**
-     * Removes trust between two entities.  The entities are identifiers
-of application, groups, or endpoints.
+     * Removes trust between two entities. The entities are identifiers of application, groups, or endpoints.
      * @param string $entityId
      * @param string $untrustedEntityId
      */
@@ -398,11 +358,11 @@ of application, groups, or endpoints.
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_GetRequest_operation;
+    private $_DeleteRequest_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_DeleteRequest_operation;
+    private $_GetRequest_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
@@ -486,7 +446,7 @@ of application, groups, or endpoints.
                     'required' => TRUE,
                     'type' => 'string'
                 ]],
-                'responses' => ['200' => []]
+                'responses' => ['200' => ['schema' => ['type' => 'string']]]
             ]],
             '/v2/crl/{serialNumber}' => ['get' => [
                 'operationId' => 'GetIssuerCrlChain',
@@ -496,12 +456,12 @@ of application, groups, or endpoints.
                     'required' => TRUE,
                     'type' => 'string'
                 ]],
-                'responses' => ['200' => []]
+                'responses' => ['200' => ['schema' => ['type' => 'string']]]
             ]],
             '/v2/requests/sign' => ['put' => [
                 'operationId' => 'StartSigningRequest',
                 'parameters' => [[
-                    'name' => 'signingRequest',
+                    'name' => 'body',
                     'in' => 'body',
                     'required' => TRUE,
                     'schema' => ['$ref' => '#/definitions/StartSigningRequestApiModel']
@@ -521,7 +481,7 @@ of application, groups, or endpoints.
             '/v2/requests/keypair' => ['put' => [
                 'operationId' => 'StartNewKeyPairRequest',
                 'parameters' => [[
-                    'name' => 'newKeyPairRequest',
+                    'name' => 'body',
                     'in' => 'body',
                     'required' => TRUE,
                     'schema' => ['$ref' => '#/definitions/StartNewKeyPairRequestApiModel']
@@ -569,16 +529,6 @@ of application, groups, or endpoints.
                 'responses' => ['200' => []]
             ]],
             '/v2/requests/{requestId}' => [
-                'get' => [
-                    'operationId' => 'GetRequest',
-                    'parameters' => [[
-                        'name' => 'requestId',
-                        'in' => 'path',
-                        'required' => TRUE,
-                        'type' => 'string'
-                    ]],
-                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/CertificateRequestRecordApiModel']]]
-                ],
                 'delete' => [
                     'operationId' => 'DeleteRequest',
                     'parameters' => [[
@@ -588,23 +538,33 @@ of application, groups, or endpoints.
                         'type' => 'string'
                     ]],
                     'responses' => ['200' => []]
+                ],
+                'get' => [
+                    'operationId' => 'GetRequest',
+                    'parameters' => [[
+                        'name' => 'requestId',
+                        'in' => 'path',
+                        'required' => TRUE,
+                        'type' => 'string'
+                    ]],
+                    'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/CertificateRequestRecordApiModel']]]
                 ]
             ],
             '/v2/requests/query' => ['post' => [
                 'operationId' => 'QueryRequests',
                 'parameters' => [
                     [
-                        'name' => 'query',
-                        'in' => 'body',
-                        'required' => FALSE,
-                        'schema' => ['$ref' => '#/definitions/CertificateRequestQueryRequestApiModel']
-                    ],
-                    [
                         'name' => 'pageSize',
                         'in' => 'query',
                         'required' => FALSE,
                         'type' => 'integer',
                         'format' => 'int32'
+                    ],
+                    [
+                        'name' => 'body',
+                        'in' => 'body',
+                        'required' => FALSE,
+                        'schema' => ['$ref' => '#/definitions/CertificateRequestQueryRequestApiModel']
                     ]
                 ],
                 'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/CertificateRequestQueryResponseApiModel']]]
@@ -656,7 +616,7 @@ of application, groups, or endpoints.
                 'put' => [
                     'operationId' => 'CreateGroup',
                     'parameters' => [[
-                        'name' => 'request',
+                        'name' => 'body',
                         'in' => 'body',
                         'required' => TRUE,
                         'schema' => ['$ref' => '#/definitions/TrustGroupRegistrationRequestApiModel']
@@ -685,7 +645,7 @@ of application, groups, or endpoints.
                             'type' => 'string'
                         ],
                         [
-                            'name' => 'request',
+                            'name' => 'body',
                             'in' => 'body',
                             'required' => TRUE,
                             'schema' => ['$ref' => '#/definitions/TrustGroupUpdateRequestApiModel']
@@ -707,7 +667,7 @@ of application, groups, or endpoints.
             '/v2/groups/root' => ['put' => [
                 'operationId' => 'CreateRoot',
                 'parameters' => [[
-                    'name' => 'request',
+                    'name' => 'body',
                     'in' => 'body',
                     'required' => TRUE,
                     'schema' => ['$ref' => '#/definitions/TrustGroupRootCreateRequestApiModel']
@@ -825,6 +785,14 @@ of application, groups, or endpoints.
                 'properties' => ['chain' => [
                     'type' => 'array',
                     'items' => ['$ref' => '#/definitions/X509CrlApiModel']
+                ]],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'NotFoundResult' => [
+                'properties' => ['statusCode' => [
+                    'type' => 'integer',
+                    'format' => 'int32'
                 ]],
                 'additionalProperties' => FALSE,
                 'required' => []

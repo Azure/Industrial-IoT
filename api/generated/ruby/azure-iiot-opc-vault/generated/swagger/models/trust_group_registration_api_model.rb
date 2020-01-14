@@ -16,7 +16,7 @@ module azure.iiot.opc.vault
       # @return [String] The registered id of the trust group
       attr_accessor :id
 
-      # @return [TrustGroupApiModel] Trust group
+      # @return [TrustGroupApiModel]
       attr_accessor :group
 
 

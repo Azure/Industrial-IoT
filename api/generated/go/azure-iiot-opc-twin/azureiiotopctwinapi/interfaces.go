@@ -15,19 +15,20 @@ import (
 
         // BaseClientAPI contains the set of methods on the BaseClient type.
         type BaseClientAPI interface {
-            Browse(ctx context.Context, endpointID string, request azureiiotopctwin.BrowseRequestAPIModel) (result azureiiotopctwin.BrowseResponseAPIModel, err error)
-            BrowseNext(ctx context.Context, endpointID string, request azureiiotopctwin.BrowseNextRequestAPIModel) (result azureiiotopctwin.BrowseNextResponseAPIModel, err error)
-            BrowseUsingPath(ctx context.Context, endpointID string, request azureiiotopctwin.BrowsePathRequestAPIModel) (result azureiiotopctwin.BrowsePathResponseAPIModel, err error)
-            CallMethod(ctx context.Context, endpointID string, request azureiiotopctwin.MethodCallRequestAPIModel) (result azureiiotopctwin.MethodCallResponseAPIModel, err error)
-            GetCallMetadata(ctx context.Context, endpointID string, request azureiiotopctwin.MethodMetadataRequestAPIModel) (result azureiiotopctwin.MethodMetadataResponseAPIModel, err error)
+            Browse(ctx context.Context, endpointID string, body azureiiotopctwin.BrowseRequestAPIModel) (result azureiiotopctwin.BrowseResponseAPIModel, err error)
+            BrowseNext(ctx context.Context, endpointID string, body azureiiotopctwin.BrowseNextRequestAPIModel) (result azureiiotopctwin.BrowseNextResponseAPIModel, err error)
+            BrowseUsingPath(ctx context.Context, endpointID string, body azureiiotopctwin.BrowsePathRequestAPIModel) (result azureiiotopctwin.BrowsePathResponseAPIModel, err error)
+            CallMethod(ctx context.Context, endpointID string, body azureiiotopctwin.MethodCallRequestAPIModel) (result azureiiotopctwin.MethodCallResponseAPIModel, err error)
+            GetCallMetadata(ctx context.Context, endpointID string, body azureiiotopctwin.MethodMetadataRequestAPIModel) (result azureiiotopctwin.MethodMetadataResponseAPIModel, err error)
             GetNextSetOfUniqueNodes(ctx context.Context, endpointID string, continuationToken string) (result azureiiotopctwin.BrowseNextResponseAPIModelPage, err error)
+                GetNextSetOfUniqueNodesComplete(ctx context.Context, endpointID string, continuationToken string) (result azureiiotopctwin.BrowseNextResponseAPIModelIterator, err error)
             GetSetOfUniqueNodes(ctx context.Context, endpointID string, nodeID string) (result azureiiotopctwin.BrowseResponseAPIModel, err error)
             GetStatus(ctx context.Context) (result azureiiotopctwin.StatusResponseAPIModel, err error)
             GetValue(ctx context.Context, endpointID string, nodeID string) (result azureiiotopctwin.ValueReadResponseAPIModel, err error)
-            ReadAttributes(ctx context.Context, endpointID string, request azureiiotopctwin.ReadRequestAPIModel) (result azureiiotopctwin.ReadResponseAPIModel, err error)
-            ReadValue(ctx context.Context, endpointID string, request azureiiotopctwin.ValueReadRequestAPIModel) (result azureiiotopctwin.ValueReadResponseAPIModel, err error)
-            WriteAttributes(ctx context.Context, endpointID string, request azureiiotopctwin.WriteRequestAPIModel) (result azureiiotopctwin.WriteResponseAPIModel, err error)
-            WriteValue(ctx context.Context, endpointID string, request azureiiotopctwin.ValueWriteRequestAPIModel) (result azureiiotopctwin.ValueWriteResponseAPIModel, err error)
+            ReadAttributes(ctx context.Context, endpointID string, body azureiiotopctwin.ReadRequestAPIModel) (result azureiiotopctwin.ReadResponseAPIModel, err error)
+            ReadValue(ctx context.Context, endpointID string, body azureiiotopctwin.ValueReadRequestAPIModel) (result azureiiotopctwin.ValueReadResponseAPIModel, err error)
+            WriteAttributes(ctx context.Context, endpointID string, body azureiiotopctwin.WriteRequestAPIModel) (result azureiiotopctwin.WriteResponseAPIModel, err error)
+            WriteValue(ctx context.Context, endpointID string, body azureiiotopctwin.ValueWriteRequestAPIModel) (result azureiiotopctwin.ValueWriteResponseAPIModel, err error)
         }
 
         var _ BaseClientAPI = (*azureiiotopctwin.BaseClient)(nil)

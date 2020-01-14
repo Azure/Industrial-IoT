@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     /// <summary>
     /// Mock device registry
     /// </summary>
-    public class IoTHubServices : IIoTHubTwinServices, IIoTHubJobServices,
+    public class IoTHubServices : IIoTHubTwinServices,
         IIoTHubTelemetryServices, IIoTHub, IEventProcessorHost, IHostProcess {
 
         /// <inheritdoc/>
@@ -36,10 +36,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// <inheritdoc/>
         public IEnumerable<IIoTHubDevice> Modules =>
             _devices.Where(d => d.Device.ModuleId != null);
-
-        /// <inheritdoc/>
-        public IEnumerable<DeviceJobModel> Jobs =>
-            _jobs;
 
         /// <inheritdoc/>
         public BlockingCollection<EventMessage> Events { get; } =
@@ -101,21 +97,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             }
             model.Connect(callback);
             return model;
-        }
-
-        /// <inheritdoc/>
-        public Task<JobModel> CreateAsync(JobModel job, CancellationToken ct) {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public Task<JobModel> RefreshAsync(string jobId, CancellationToken ct) {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc/>
-        public Task CancelAsync(string jobId, CancellationToken ct) {
-            throw new NotImplementedException();
         }
 
         /// <inheritdoc/>
@@ -535,7 +516,5 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             new BlockingCollection<FileNotification>();
         private readonly List<IoTHubDeviceModel> _devices =
             new List<IoTHubDeviceModel>();
-        private readonly List<DeviceJobModel> _jobs =
-            new List<DeviceJobModel>();
     }
 }

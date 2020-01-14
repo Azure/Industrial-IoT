@@ -17,50 +17,49 @@
 class FinishNewKeyPairRequestResponseApiModel {
   /**
    * Create a FinishNewKeyPairRequestResponseApiModel.
-   * @property {object} [request] Request
+   * @property {object} [request]
    * @property {string} [request.requestId] Request id
    * @property {string} [request.entityId] Application id
    * @property {string} [request.groupId] Trust group
-   * @property {string} [request.state] Request state. Possible values include:
-   * 'New', 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'
-   * @property {string} [request.type] Request type. Possible values include:
+   * @property {string} [request.state] Possible values include: 'New',
+   * 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'
+   * @property {string} [request.type] Possible values include:
    * 'SigningRequest', 'KeyPairRequest'
    * @property {object} [request.errorInfo] Error diagnostics
-   * @property {object} [request.submitted] Request time
+   * @property {object} [request.submitted]
    * @property {string} [request.submitted.authorityId] User
    * @property {date} [request.submitted.time] Operation time
-   * @property {object} [request.approved] Approved or rejected
+   * @property {object} [request.approved]
    * @property {string} [request.approved.authorityId] User
    * @property {date} [request.approved.time] Operation time
-   * @property {object} [request.accepted] Finished
+   * @property {object} [request.accepted]
    * @property {string} [request.accepted.authorityId] User
    * @property {date} [request.accepted.time] Operation time
-   * @property {object} [certificate] Signed certificate
+   * @property {object} [certificate]
    * @property {string} [certificate.subject] Subject
    * @property {string} [certificate.thumbprint] Thumbprint
    * @property {string} [certificate.serialNumber] Serial number
    * @property {date} [certificate.notBeforeUtc] Not before validity
    * @property {date} [certificate.notAfterUtc] Not after validity
    * @property {object} [certificate.certificate] Raw data
-   * @property {object} [privateKey] Private key
-   * @property {string} [privateKey.kty] Key type. Possible values include:
-   * 'RSA', 'ECC', 'AES'
+   * @property {object} [privateKey]
+   * @property {string} [privateKey.kty] Possible values include: 'RSA', 'ECC',
+   * 'AES'
    * @property {buffer} [privateKey.n] RSA modulus.
    * @property {buffer} [privateKey.e] RSA public exponent, in Base64.
    * @property {buffer} [privateKey.dp] RSA Private Key Parameter
    * @property {buffer} [privateKey.dq] RSA Private Key Parameter
    * @property {buffer} [privateKey.qi] RSA Private Key Parameter
    * @property {buffer} [privateKey.p] RSA secret prime
-   * @property {buffer} [privateKey.q] RSA secret prime, with p &lt; q
-   * @property {string} [privateKey.crv] The curve for ECC algorithms
+   * @property {buffer} [privateKey.q] RSA secret prime, with p < q
+   * @property {string} [privateKey.crv]
    * @property {buffer} [privateKey.x] X coordinate for the Elliptic Curve
    * point.
    * @property {buffer} [privateKey.y] Y coordinate for the Elliptic Curve
    * point.
    * @property {buffer} [privateKey.d] RSA private exponent or ECC private key.
    * @property {buffer} [privateKey.k] Symmetric key
-   * @property {buffer} [privateKey.keyHsm] HSM Token, used with "Bring Your
-   * Own Key"
+   * @property {buffer} [privateKey.keyHsm]
    */
   constructor() {
   }

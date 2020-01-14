@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     /// in the Hub.Client nuget package that can also be used.
     /// </summary>
     public sealed class IoTHubServiceHttpClient : IoTHubHttpClientBase,
-        IIoTHubTwinServices, IIoTHubJobServices, IHealthCheck {
+        IIoTHubTwinServices, IHealthCheck {
 
         /// <summary>
         /// The host name the client is talking to
@@ -304,191 +304,6 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             }, kMaxRetryCount);
         }
 
-        /// <inheritdoc/>
-        public async Task<JobModel> CreateAsync(JobModel job, CancellationToken ct) {
-            if (job == null) {
-                throw new ArgumentNullException(nameof(job));
-            }
-            if (string.IsNullOrEmpty(job.JobId)) {
-                throw new ArgumentNullException(nameof(job.JobId));
-            }
-            if (string.IsNullOrEmpty(job.QueryCondition)) {
-                throw new ArgumentNullException(nameof(job.QueryCondition));
-            }
-            var model = await Retry.WithExponentialBackoff(_logger, ct, async () => {
-                var request = NewRequest($"/jobs/v2/{job.JobId}");
-                switch (job.Type) {
-                    case JobType.ScheduleUpdateTwin:
-                        request.SetContent(new {
-                            jobId = job.JobId,
-                            type = "scheduleUpdateTwin",
-                            queryCondition = job.QueryCondition,
-                            updateTwin = new {
-                                desiredProperties = new {
-                                    tags = job.UpdateTwin?.Tags,
-                                    properties = job.UpdateTwin?.Properties?.Desired
-                                }
-                            },
-                            startTime = ToIso8601String(job.StartTimeUtc),
-                            maxExecutionTimeInSeconds = job.MaxExecutionTimeInSeconds ??
-                                long.MaxValue
-                        });
-                        break;
-                    case JobType.ScheduleDeviceMethod:
-                        request.SetContent(new {
-                            jobId = job.JobId,
-                            type = "scheduleDeviceMethod",
-                            queryCondition = job.QueryCondition,
-                            cloudToDeviceMethod = new {
-                                methodName = job.MethodParameter.Name,
-                                // responseTimeoutInSeconds = ...
-                                payload = JToken.Parse(job.MethodParameter.JsonPayload)
-                            },
-                            startTime = ToIso8601String(job.StartTimeUtc),
-                            maxExecutionTimeInSeconds = job.MaxExecutionTimeInSeconds ??
-                                long.MaxValue
-                        });
-                        break;
-                    default:
-                        throw new ArgumentException(nameof(job.Type));
-                }
-                var response = await _httpClient.PutAsync(request, ct);
-                response.Validate();
-                return ToJobModel(JToken.Parse(response.GetContentAsString()));
-            }, kMaxRetryCount);
-            // Get device infos
-            return await QueryDevicesInfoAsync(model, ct);
-        }
-
-        /// <inheritdoc/>
-        public async Task<JobModel> RefreshAsync(string jobId, CancellationToken ct) {
-            if (string.IsNullOrEmpty(jobId)) {
-                throw new ArgumentNullException(nameof(jobId));
-            }
-            var model = await Retry.WithExponentialBackoff(_logger, ct, async () => {
-                var request = NewRequest($"/jobs/v2/{jobId}");
-                var response = await _httpClient.GetAsync(request, ct);
-                response.Validate();
-                return ToJobModel(JToken.Parse(response.GetContentAsString()));
-            }, kMaxRetryCount);
-            // Get device infos
-            return await QueryDevicesInfoAsync(model, ct);
-        }
-
-        /// <inheritdoc/>
-        public Task CancelAsync(string jobId, CancellationToken ct) {
-            if (string.IsNullOrEmpty(jobId)) {
-                throw new ArgumentNullException(nameof(jobId));
-            }
-            return Retry.WithExponentialBackoff(_logger, ct, async () => {
-                var request = NewRequest($"/jobs/v2/{jobId}/cancel");
-                var response = await _httpClient.PostAsync(request, ct);
-                response.Validate();
-            }, kMaxRetryCount);
-        }
-
-        /// <summary>
-        /// Fill in individual device responses
-        /// </summary>
-        /// <param name="job"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private async Task<JobModel> QueryDevicesInfoAsync(JobModel job, CancellationToken ct) {
-            var devices = new List<DeviceJobModel>();
-            string continuation = null;
-            do {
-                continuation = await QueryDevicesInfoAsync(job, devices, continuation, ct);
-            }
-            while (!string.IsNullOrEmpty(continuation));
-            job.Devices = devices;
-            return job;
-        }
-
-        /// <summary>
-        /// Query one page of responses
-        /// </summary>
-        /// <param name="job"></param>
-        /// <param name="devices"></param>
-        /// <param name="continuation"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private async Task<string> QueryDevicesInfoAsync(JobModel job,
-            List<DeviceJobModel> devices, string continuation, CancellationToken ct) {
-            await Retry.WithExponentialBackoff(_logger, ct, async () => {
-                var request = NewRequest("/devices/query");
-                if (continuation != null) {
-                    request.Headers.Add(HttpHeader.ContinuationToken, continuation);
-                    continuation = null;
-                }
-                request.SetContent(new {
-                    query = $"SELECT * FROM devices.jobs WHERE devices.jobs.jobId = '{job.JobId}'"
-                });
-                var response = await _httpClient.PostAsync(request, ct);
-                response.Validate();
-                if (response.Headers.TryGetValues(HttpHeader.ContinuationToken, out var values)) {
-                    continuation = values.First();
-                }
-                var result = (JArray)JToken.Parse(response.GetContentAsString());
-                devices.AddRange(result.Select(ToDeviceJobModel));
-            }, kMaxRetryCount);
-            return continuation;
-        }
-
-        /// <summary>
-        /// Convert json to twin
-        /// </summary>
-        /// <param name="result"></param>
-        /// <returns></returns>
-        private static JobModel ToJobModel(dynamic result) {
-            Enum.TryParse<JobStatus>((string)result.status, true, out var status);
-            Enum.TryParse<JobType>((string)result.type, true, out var type);
-            return new JobModel {
-                JobId = result.jobId,
-                QueryCondition = result.queryCondition,
-                MaxExecutionTimeInSeconds = result.maxExecutionTimeInSeconds,
-                EndTimeUtc = result.endTime,
-                StartTimeUtc = result.startTime,
-                FailureReason = result.failureReason,
-                StatusMessage = result.statusMessage,
-                Status = status,
-                Type = type
-            };
-        }
-
-        /// <summary>
-        /// Convert json to twin
-        /// </summary>
-        /// <param name="result"></param>
-        /// <returns></returns>
-        private static DeviceJobModel ToDeviceJobModel(dynamic result) {
-            Enum.TryParse<JobType>((string)result.jobType, true, out var type);
-            Enum.TryParse<DeviceJobStatus>((string)result.status, true, out var status);
-            var model = new DeviceJobModel {
-                DeviceId = result.deviceId,
-                ModuleId = result.moduleId,
-                CreatedDateTimeUtc = result.createdDateTimeUtc,
-                LastUpdatedDateTimeUtc = result.lastUpdatedDateTimeUtc,
-                StartTimeUtc = result.startTimeUtc,
-                EndTimeUtc = result.endTimeUtc,
-                Status = status
-            };
-            if (result.Error != null) {
-                model.Error = new DeviceJobErrorModel {
-                    Code = result.error.code,
-                    Description = result.error.description
-                };
-            }
-            else if (status == DeviceJobStatus.Completed &&
-                type == JobType.ScheduleDeviceMethod) {
-                model.Outcome = new MethodResultModel {
-                    JsonPayload = ((JObject)result.outcome.deviceMethodResponse.payload)
-                        .ToString(),
-                    Status = result.outcome.deviceMethodResponse.status
-                };
-            }
-            return model;
-        }
-
         /// <summary>
         /// Convert json to registration
         /// </summary>
@@ -504,16 +319,6 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                     SecondaryKey = result.authentication.symmetricKey.secondaryKey
                 }
             };
-        }
-
-        /// <summary>
-        /// Convert time to iso string
-        /// </summary>
-        /// <param name="datetime"></param>
-        /// <returns></returns>
-        public static string ToIso8601String(DateTime? datetime) {
-            return (datetime ?? DateTime.MinValue)
-                .ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss.FFFFFFFK");
         }
     }
 }

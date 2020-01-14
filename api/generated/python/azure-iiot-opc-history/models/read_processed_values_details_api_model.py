@@ -23,7 +23,7 @@ class ReadProcessedValuesDetailsApiModel(Model):
     :type processing_interval: float
     :param aggregate_type_id: The aggregate type node ids
     :type aggregate_type_id: str
-    :param aggregate_configuration: A configuration for the aggregate
+    :param aggregate_configuration:
     :type aggregate_configuration:
      ~azure-iiot-opc-history.models.AggregateConfigurationApiModel
     """

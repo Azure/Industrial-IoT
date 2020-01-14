@@ -32,7 +32,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// Initializes a new instance of the BrowsePathResponseApiModel class.
         /// </summary>
         /// <param name="targets">Targets</param>
-        /// <param name="errorInfo">Service result in case of error</param>
         public BrowsePathResponseApiModel(IList<NodePathTargetApiModel> targets = default(IList<NodePathTargetApiModel>), ServiceResultApiModel errorInfo = default(ServiceResultApiModel))
         {
             Targets = targets;
@@ -52,7 +51,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public IList<NodePathTargetApiModel> Targets { get; set; }
 
         /// <summary>
-        /// Gets or sets service result in case of error
         /// </summary>
         [JsonProperty(PropertyName = "errorInfo")]
         public ServiceResultApiModel ErrorInfo { get; set; }

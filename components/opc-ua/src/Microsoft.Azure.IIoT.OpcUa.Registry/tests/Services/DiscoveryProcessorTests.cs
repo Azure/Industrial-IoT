@@ -24,50 +24,76 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var found = new List<DiscoveryEventModel>();
             var fix = new Fixture();
 
-            var device = fix.Create<string>();
+            var gateway = fix.Create<string>();
+            var Gateway = (new GatewayModel {
+                Id = gateway
+            }.ToGatewayRegistration().ToDeviceTwin(),
+                    new DeviceModel { Id = gateway });
             var module = fix.Create<string>();
-            var super = SupervisorModelEx.CreateSupervisorId(device, module);
-            var deviceModel = new DeviceModel {
-                Id = device,
-                ModuleId = module
-            };
-            var twinModel = new SupervisorModel {
-                Id = super
-            }.ToSupervisorRegistration().ToDeviceTwin();
+            var discoverer = DiscovererModelEx.CreateDiscovererId(gateway, module);
+            var Discoverer = (new DiscovererModel {
+                Id = discoverer
+            }.ToDiscovererRegistration().ToDeviceTwin(),
+                    new DeviceModel { Id = gateway, ModuleId = module });
+            module = fix.Create<string>();
+            var supervisor = SupervisorModelEx.CreateSupervisorId(gateway, module);
+            var Supervisor = (new SupervisorModel {
+                Id = supervisor
+            }.ToSupervisorRegistration().ToDeviceTwin(),
+                    new DeviceModel { Id = gateway, ModuleId = module });
+            module = fix.Create<string>();
+            var publisher = PublisherModelEx.CreatePublisherId(gateway, module);
+            var Publisher = (new PublisherModel {
+                Id = publisher
+            }.ToPublisherRegistration().ToDeviceTwin(),
+                    new DeviceModel { Id = gateway, ModuleId = module });
 
-            var registry = IoTHubServices.Create((twinModel, deviceModel).YieldReturn());
+            var registry = IoTHubServices.Create(Gateway.YieldReturn() // Single device
+                .Append(Discoverer)
+                .Append(Supervisor)
+                .Append(Publisher));
 
             using (var mock = AutoMock.GetLoose()) {
                 // Setup
                 mock.Provide<IIoTHubTwinServices>(registry);
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                mock.Provide<IDiscovererRegistry, DiscovererRegistry>();
                 mock.Provide<ISupervisorRegistry, SupervisorRegistry>();
+                mock.Provide<IPublisherRegistry, PublisherRegistry>();
+                mock.Provide<IGatewayRegistry, GatewayRegistry>();
                 mock.Provide<IApplicationBulkProcessor, ApplicationRegistry>();
                 mock.Provide<IEndpointBulkProcessor, EndpointRegistry>();
                 var service = mock.Create<DiscoveryProcessor>();
 
                 // Run
-                service.ProcessDiscoveryResultsAsync(super, new DiscoveryResultModel(), found).Wait();
+                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
 
                 // Assert
-                Assert.Empty(registry.Devices);
+                Assert.Single(registry.Devices);
+                Assert.Equal(gateway, registry.Devices.First().Device.Id);
             }
         }
 
         [Fact]
         public void ProcessDiscoveryWithAlreadyExistingApplications() {
-            CreateFixtures(out var site, out var super, out var existing,
+            CreateFixtures(out var site, out var discoverer, out var supervisor,
+                out var publisher, out var gateway, out var existing,
                 out var found, out var registry);
 
             using (var mock = AutoMock.GetLoose()) {
                 // Setup
                 mock.Provide<IIoTHubTwinServices>(registry);
+                mock.Provide<IApplicationRepository, ApplicationTwins>();
+                mock.Provide<IDiscovererRegistry, DiscovererRegistry>();
                 mock.Provide<ISupervisorRegistry, SupervisorRegistry>();
+                mock.Provide<IPublisherRegistry, PublisherRegistry>();
+                mock.Provide<IGatewayRegistry, GatewayRegistry>();
                 mock.Provide<IApplicationBulkProcessor, ApplicationRegistry>();
                 mock.Provide<IEndpointBulkProcessor, EndpointRegistry>();
                 var service = mock.Create<DiscoveryProcessor>();
 
                 // Run
-                service.ProcessDiscoveryResultsAsync(super, new DiscoveryResultModel(), found).Wait();
+                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
 
                 // Assert
                 Assert.True(ApplicationsIn(registry).IsSameAs(existing));
@@ -76,7 +102,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         [Fact]
         public void ProcessDiscoveryWithNoExistingApplications() {
-            CreateFixtures(out var site, out var super, out var created,
+            CreateFixtures(out var site, out var discoverer, out var supervisor,
+                out var publisher, out var gateway, out var created,
                 out var found, out var registry, 0);
 
             using (var mock = AutoMock.GetLoose()) {
@@ -84,7 +111,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = Setup(mock, registry);
 
                 // Run
-                service.ProcessDiscoveryResultsAsync(super, new DiscoveryResultModel(), found).Wait();
+                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
 
                 // Assert
                 Assert.True(ApplicationsIn(registry).IsSameAs(created));
@@ -93,7 +120,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         [Fact]
         public void ProcessDiscoveryThrowsWithMultipleSites() {
-            CreateFixtures(out var site, out var super, out var existing,
+            CreateFixtures(out var site, out var discoverer, out var supervisor,
+                out var publisher, out var gateway, out var existing,
                 out var found, out var registry);
             found[found.Count / 2].Application.SiteId = "aaaaaaaaaaaa";
 
@@ -102,7 +130,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = Setup(mock, registry);
 
                 // Run
-                var t = service.ProcessDiscoveryResultsAsync(super, new DiscoveryResultModel(), found);
+                var t = service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found);
 
                 // Assert
                 Assert.NotNull(t.Exception);
@@ -113,7 +141,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         [Fact]
         public void ProcessDiscoveryWithOneExistingApplication() {
-            CreateFixtures(out var site, out var super, out var created,
+            CreateFixtures(out var site, out var discoverer, out var supervisor,
+                out var publisher, out var gateway, out var created,
                 out var found, out var registry, 1);
 
             using (var mock = AutoMock.GetLoose()) {
@@ -121,7 +150,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = Setup(mock, registry);
 
                 // Run
-                service.ProcessDiscoveryResultsAsync(super, new DiscoveryResultModel(), found).Wait();
+                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
 
                 // Assert
                 Assert.True(ApplicationsIn(registry).IsSameAs(created));
@@ -129,15 +158,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         [Fact]
-        public void ProcessDiscoveryWithDifferentSupervisorsSameSiteApplications() {
+        public void ProcessDiscoveryWithDifferentDiscoverersSameSiteApplications() {
             var fix = new Fixture();
-            var super2 = SupervisorModelEx.CreateSupervisorId(fix.Create<string>(), fix.Create<string>());
+            var discoverer2 = DiscovererModelEx.CreateDiscovererId(fix.Create<string>(), fix.Create<string>());
 
-            // Readjust existing to be reported from different supervisor...
-            CreateFixtures(out var site, out var super, out var existing,
+            // Readjust existing to be reported from different Discoverer...
+            CreateFixtures(out var site, out var discoverer, out var supervisor,
+                out var publisher, out var gateway, out var existing,
                 out var found, out var registry, -1, x => {
-                    x.Application.SupervisorId = super2;
-                    x.Endpoints.ForEach(e => e.SupervisorId = super2);
+                    x.Application.DiscovererId = discoverer2;
+                    x.Endpoints.ForEach(e => e.DiscovererId = discoverer2);
                     return x;
                 });
 
@@ -148,7 +178,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = Setup(mock, registry);
 
                 // Run
-                service.ProcessDiscoveryResultsAsync(super, new DiscoveryResultModel(), found).Wait();
+                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
 
                 // Assert
                 Assert.True(ApplicationsIn(registry).IsSameAs(existing));
@@ -156,15 +186,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         [Fact]
-        public void ProcessOneDiscoveryWithDifferentSupervisorsFromExisting() {
+        public void ProcessOneDiscoveryWithDifferentDiscoverersFromExisting() {
             var fix = new Fixture();
-            var super2 = SupervisorModelEx.CreateSupervisorId(fix.Create<string>(), fix.Create<string>());
+            var discoverer2 = DiscovererModelEx.CreateDiscovererId(fix.Create<string>(), fix.Create<string>());
 
-            // Readjust existing to be reported from different supervisor...
-            CreateFixtures(out var site, out var super, out var existing,
+            // Readjust existing to be reported from different Discoverer...
+            CreateFixtures(out var site, out var discoverer, out var supervisor,
+                out var publisher, out var gateway, out var existing,
                 out var found, out var registry, -1, x => {
-                    x.Application.SupervisorId = super2;
-                    x.Endpoints.ForEach(e => e.SupervisorId = super2);
+                    x.Application.DiscovererId = discoverer2;
+                    x.Endpoints.ForEach(e => e.DiscovererId = discoverer2);
                     return x;
                 });
 
@@ -177,7 +208,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = Setup(mock, registry);
 
                 // Run
-                service.ProcessDiscoveryResultsAsync(super, new DiscoveryResultModel(), found).Wait();
+                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
 
                 // Assert
                 Assert.True(ApplicationsIn(registry).IsSameAs(existing));
@@ -185,15 +216,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         [Fact]
-        public void ProcessDiscoveryWithDifferentSupervisorsFromExistingWhenExistingDisabled() {
+        public void ProcessDiscoveryWithDifferentDiscoverersFromExistingWhenExistingDisabled() {
             var fix = new Fixture();
-            var super2 = SupervisorModelEx.CreateSupervisorId(fix.Create<string>(), fix.Create<string>());
+            var discoverer2 = DiscovererModelEx.CreateDiscovererId(fix.Create<string>(), fix.Create<string>());
 
-            // Readjust existing to be reported from different supervisor...
-            CreateFixtures(out var site, out var super, out var existing,
+            // Readjust existing to be reported from different Discoverer...
+            CreateFixtures(out var site, out var discoverer, out var supervisor,
+                out var publisher, out var gateway, out var existing,
                 out var found, out var registry, -1, x => {
-                    x.Application.SupervisorId = super2;
-                    x.Endpoints.ForEach(e => e.SupervisorId = super2);
+                    x.Application.DiscovererId = discoverer2;
+                    x.Endpoints.ForEach(e => e.DiscovererId = discoverer2);
                     return x;
                 }, true);
 
@@ -205,28 +237,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = Setup(mock, registry);
 
                 // Run
-                service.ProcessDiscoveryResultsAsync(super, new DiscoveryResultModel(), found).Wait();
+                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
 
                 // Assert
                 var inreg = ApplicationsIn(registry);
                 Assert.False(inreg.IsSameAs(existing));
                 Assert.Equal(count, registry.Devices.Count());
-                Assert.All(inreg, a => Assert.Equal(super, a.Application.SupervisorId));
+                Assert.All(inreg, a => Assert.Equal(discoverer, a.Application.DiscovererId));
                 Assert.All(inreg, a => Assert.Null(a.Application.NotSeenSince));
-                Assert.All(inreg, a => Assert.All(a.Endpoints, e => Assert.Equal(super, e.SupervisorId)));
+                Assert.All(inreg, a => Assert.All(a.Endpoints, e => Assert.Equal(discoverer, e.DiscovererId)));
             }
         }
 
         [Fact]
-        public void ProcessOneDiscoveryWithDifferentSupervisorsFromExistingWhenExistingDisabled() {
+        public void ProcessOneDiscoveryWithDifferentDiscoverersFromExistingWhenExistingDisabled() {
             var fix = new Fixture();
-            var super2 = SupervisorModelEx.CreateSupervisorId(fix.Create<string>(), fix.Create<string>());
+            var discoverer2 = DiscovererModelEx.CreateDiscovererId(fix.Create<string>(), fix.Create<string>());
 
-            // Readjust existing to be reported from different supervisor...
-            CreateFixtures(out var site, out var super, out var existing,
+            // Readjust existing to be reported from different Discoverer...
+            CreateFixtures(out var site, out var discoverer, out var supervisor,
+                out var publisher, out var gateway, out var existing,
                 out var found, out var registry, -1, x => {
-                    x.Application.SupervisorId = super2;
-                    x.Endpoints.ForEach(e => e.SupervisorId = super2);
+                    x.Application.DiscovererId = discoverer2;
+                    x.Endpoints.ForEach(e => e.DiscovererId = discoverer2);
                     return x;
                 }, true);
 
@@ -240,28 +273,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = Setup(mock, registry);
 
                 // Run
-                service.ProcessDiscoveryResultsAsync(super, new DiscoveryResultModel(), found).Wait();
+                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
 
                 // Assert
                 var inreg = ApplicationsIn(registry);
                 Assert.Equal(count, registry.Devices.Count());
                 Assert.False(inreg.IsSameAs(existing));
-                Assert.Equal(super, inreg.First().Application.SupervisorId);
+                Assert.Equal(discoverer, inreg.First().Application.DiscovererId);
                 Assert.Null(inreg.First().Application.NotSeenSince);
-                Assert.Equal(super, inreg.First().Endpoints.First().SupervisorId);
+                Assert.Equal(discoverer, inreg.First().Endpoints.First().DiscovererId);
             }
         }
 
         [Fact]
-        public void ProcessDiscoveryWithNoResultsWithDifferentSupervisorsFromExisting() {
+        public void ProcessDiscoveryWithNoResultsWithDifferentDiscoverersFromExisting() {
             var fix = new Fixture();
-            var super2 = SupervisorModelEx.CreateSupervisorId(fix.Create<string>(), fix.Create<string>());
+            var discoverer2 = DiscovererModelEx.CreateDiscovererId(fix.Create<string>(), fix.Create<string>());
 
-            // Readjust existing to be reported from different supervisor...
-            CreateFixtures(out var site, out var super, out var existing,
+            // Readjust existing to be reported from different Discoverer...
+            CreateFixtures(out var site, out var discoverer, out var supervisor,
+                out var publisher, out var gateway, out var existing,
                 out var found, out var registry, -1, x => {
-                    x.Application.SupervisorId = super2;
-                    x.Endpoints.ForEach(e => e.SupervisorId = super2);
+                    x.Application.DiscovererId = discoverer2;
+                    x.Endpoints.ForEach(e => e.DiscovererId = discoverer2);
                     return x;
                 });
 
@@ -274,7 +308,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = Setup(mock, registry);
 
                 // Run
-                service.ProcessDiscoveryResultsAsync(super, new DiscoveryResultModel(), found).Wait();
+                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
 
                 // Assert
 
@@ -284,7 +318,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         [Fact]
         public void ProcessDiscoveryWithNoResultsAndExisting() {
-            CreateFixtures(out var site, out var super, out var existing,
+            CreateFixtures(out var site, out var discoverer, out var supervisor,
+                out var publisher, out var gateway, out var existing,
                 out var found, out var registry);
 
             // Found nothing
@@ -297,7 +332,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = Setup(mock, registry);
 
                 // Run
-                service.ProcessDiscoveryResultsAsync(super, new DiscoveryResultModel(), found).Wait();
+                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
 
                 // Assert
                 var inreg = ApplicationsIn(registry);
@@ -309,7 +344,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         [Fact]
         public void ProcessDiscoveryWithOneEndpointResultsAndExisting() {
-            CreateFixtures(out var site, out var super, out var existing,
+            CreateFixtures(out var site, out var discoverer, out var supervisor,
+                out var publisher, out var gateway, out var existing,
                 out var found, out var registry);
 
             // Found single endpoints
@@ -325,14 +361,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var service = Setup(mock, registry);
 
                 // Run
-                service.ProcessDiscoveryResultsAsync(super, new DiscoveryResultModel(), found).Wait();
+                service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
 
                 // Assert
                 var inreg = ApplicationsIn(registry);
                 Assert.True(inreg.IsSameAs(existing));
                 Assert.Equal(count, registry.Devices.Count());
-                var disabled = registry.Devices.Count(d => (bool?)d.Twin.Tags["IsDisabled"] == true);
-                Assert.Equal(count - (inreg.Count * 2), disabled);
+                var disabled = registry.Devices.Count(d => {
+                    if (!d.Twin.Tags.ContainsKey("IsDisabled")) {
+                        return false;
+                    }
+                    return (bool?)d.Twin.Tags["IsDisabled"] == true;
+                });
+                Assert.Equal(count - (inreg.Count * 2) - 1, disabled);
             }
         }
 
@@ -344,7 +385,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         private static IDiscoveryResultProcessor Setup(AutoMock mock, IoTHubServices registry) {
             mock.Provide<IIoTHubTwinServices>(registry);
             mock.Provide<IApplicationRepository, ApplicationTwins>();
+            mock.Provide<IDiscovererRegistry, DiscovererRegistry>();
             mock.Provide<ISupervisorRegistry, SupervisorRegistry>();
+            mock.Provide<IPublisherRegistry, PublisherRegistry>();
+            mock.Provide<IGatewayRegistry, GatewayRegistry>();
             mock.Provide<IEndpointBulkProcessor, EndpointRegistry>();
             mock.Provide<IApplicationBulkProcessor, ApplicationRegistry>();
             return mock.Create<DiscoveryProcessor>();
@@ -358,7 +402,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         private static List<ApplicationRegistrationModel> ApplicationsIn(IoTHubServices registry) {
             var registrations = registry.Devices
                 .Select(d => d.Twin)
-                .Select(t => t.ToRegistration())
+                .Select(t => t.ToEntityRegistration())
                 .ToList();
             var endpoints = registrations
                 .OfType<EndpointRegistration>()
@@ -380,14 +424,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// Helper to create fixtures
         /// </summary>
         /// <param name="site"></param>
-        /// <param name="super"></param>
+        /// <param name="discoverer"></param>
         /// <param name="existing"></param>
         /// <param name="found"></param>
         /// <param name="registry"></param>
         /// <param name="countDevices"></param>
         /// <param name="fixup"></param>
         /// <param name="disable"></param>
-        private static void CreateFixtures(out string site, out string super,
+        private static void CreateFixtures(out string site, out string discoverer,
+            out string supervisor, out string publisher, out string gateway,
             out List<ApplicationRegistrationModel> existing, out List<DiscoveryEventModel> found,
             out IoTHubServices registry, int countDevices = -1,
             Func<ApplicationRegistrationModel, ApplicationRegistrationModel> fixup = null,
@@ -398,15 +443,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             fix.Customizations.Add(new TypeRelay(typeof(JToken), typeof(JObject)));
             var sitex = site = fix.Create<string>();
 
-            var module = fix.Create<string>();
-            var device = fix.Create<string>();
-            var superx = super = SupervisorModelEx.CreateSupervisorId(device, module);
-
-            var supervisor = (new SupervisorModel {
+            gateway = fix.Create<string>();
+            var Gateway = (new GatewayModel {
                 SiteId = site,
-                Id = superx
+                Id = gateway
+            }.ToGatewayRegistration().ToDeviceTwin(),
+                    new DeviceModel { Id = gateway });
+            var module = fix.Create<string>();
+            var discovererx = discoverer = DiscovererModelEx.CreateDiscovererId(gateway, module);
+            var Discoverer = (new DiscovererModel {
+                SiteId = site,
+                Id = discovererx
+            }.ToDiscovererRegistration().ToDeviceTwin(),
+                    new DeviceModel { Id = gateway, ModuleId = module });
+            module = fix.Create<string>();
+            var supervisorx = supervisor = SupervisorModelEx.CreateSupervisorId(gateway, module);
+            var Supervisor = (new SupervisorModel {
+                SiteId = site,
+                Id = supervisorx
             }.ToSupervisorRegistration().ToDeviceTwin(),
-                    new DeviceModel { Id = device, ModuleId = module });
+                    new DeviceModel { Id = gateway, ModuleId = module });
+            module = fix.Create<string>();
+            var publisherx = publisher = PublisherModelEx.CreatePublisherId(gateway, module);
+            var Publisher = (new PublisherModel {
+                SiteId = site,
+                Id = publisherx
+            }.ToPublisherRegistration().ToDeviceTwin(),
+                    new DeviceModel { Id = gateway, ModuleId = module });
 
             var template = fix
                 .Build<ApplicationRegistrationModel>()
@@ -415,13 +478,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     .Build<ApplicationInfoModel>()
                     .Without(x => x.NotSeenSince)
                     .With(x => x.SiteId, sitex)
-                    .With(x => x.SupervisorId, superx)
+                    .With(x => x.DiscovererId, discovererx)
                     .Create())
                 .Without(x => x.Endpoints)
                 .Do(c => c.Endpoints = fix
                     .Build<EndpointRegistrationModel>()
                     .With(x => x.SiteId, sitex)
-                    .With(x => x.SupervisorId, superx)
+                    .With(x => x.DiscovererId, discovererx)
+                    .With(x => x.SupervisorId, supervisorx)
                     .CreateMany(5)
                     .ToList())
                 .CreateMany(5)
@@ -466,7 +530,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             if (countDevices != -1) {
                 appdevices = appdevices.Take(countDevices);
             }
-            registry = IoTHubServices.Create(appdevices.Concat(supervisor.YieldReturn()));
+            registry = IoTHubServices.Create(appdevices
+                .Concat(Gateway.YieldReturn())
+                .Concat(Discoverer.YieldReturn())
+                .Concat(Supervisor.YieldReturn())
+                .Concat(Publisher.YieldReturn()));
         }
     }
 }

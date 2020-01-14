@@ -34,13 +34,13 @@
                 "description": "Number of OPC UA Windows simulation gateways to deploy."
             }
         },
-        "numberOfServers": {
+        "numberOfSimulations": {
             "type": "int",
             "defaultValue": 1,
             "maxValue": 255,
             "minValue": 0,
             "metadata": {
-                "description": "Number of OPC UA simulation servers to deploy into each simulation gateway networks."
+                "description": "Number of simulations to deploy into each gateway network."
             }
         },
         "edgeUserName": {
@@ -519,8 +519,8 @@
                     "edgePassword": {
                         "value": "[parameters('edgePassword')]"
                     },
-                    "numberOfServers": {
-                        "value": "[parameters('numberOfServers')]"
+                    "numberOfSimulations": {
+                        "value": "[parameters('numberOfSimulations')]"
                     },
                     "dockerServer": {
                         "value": "[parameters('dockerServer')]"
@@ -597,8 +597,8 @@
                     "edgePassword": {
                         "value": "[parameters('edgePassword')]"
                     },
-                    "numberOfServers": {
-                        "value": "[parameters('numberOfServers')]"
+                    "numberOfSimulations": {
+                        "value": "[parameters('numberOfSimulations')]"
                     },
                     "dockerServer": {
                         "value": "[parameters('dockerServer')]"

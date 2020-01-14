@@ -18,14 +18,13 @@ class AttributeWriteRequestApiModel {
   /**
    * Create a AttributeWriteRequestApiModel.
    * @property {string} nodeId Node to write to (mandatory)
-   * @property {string} attribute Attribute to write (mandatory). Possible
-   * values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description',
-   * 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
-   * 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank',
-   * 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
-   * 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable',
-   * 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions',
-   * 'AccessRestrictions'
+   * @property {string} attribute Possible values include: 'NodeClass',
+   * 'BrowseName', 'DisplayName', 'Description', 'WriteMask', 'UserWriteMask',
+   * 'IsAbstract', 'Symmetric', 'InverseName', 'ContainsNoLoops',
+   * 'EventNotifier', 'Value', 'DataType', 'ValueRank', 'ArrayDimensions',
+   * 'AccessLevel', 'UserAccessLevel', 'MinimumSamplingInterval',
+   * 'Historizing', 'Executable', 'UserExecutable', 'DataTypeDefinition',
+   * 'RolePermissions', 'UserRolePermissions', 'AccessRestrictions'
    * @property {object} value Value to write (mandatory)
    */
   constructor() {

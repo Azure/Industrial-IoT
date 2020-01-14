@@ -12,14 +12,13 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration {
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.OpenApi.Models;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using System;
-    using Microsoft.OpenApi.Models;
-    using Microsoft.Extensions.Hosting;
     using Newtonsoft.Json;
 
     /// <summary>
@@ -101,12 +100,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration {
                         Environment.IsDevelopment()));
                     options.SerializerSettings.MaxDepth = 10;
                 });
-
-            services.AddSwagger(Config, new OpenApiInfo {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
+            services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 
         /// <summary>
@@ -130,12 +124,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration {
                 app.UseHttpsRedirection();
             }
 
-            app.UseSwagger(new OpenApiInfo {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
-
+            app.UseSwagger();
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();
                 endpoints.MapHealthChecks("/healthz");

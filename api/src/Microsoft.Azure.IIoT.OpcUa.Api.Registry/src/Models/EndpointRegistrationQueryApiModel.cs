@@ -66,6 +66,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         [JsonProperty(PropertyName = "includeNotSeenSince",
             NullValueHandling = NullValueHandling.Ignore)]
         public bool? IncludeNotSeenSince { get; set; }
+
+        /// <summary>
+        /// Discoverer id to filter with
+        /// </summary>
+        [JsonProperty(PropertyName = "discovererId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string DiscovererId { get; set; }
+
+        /// <summary>
+        /// Application id to filter
+        /// </summary>
+        [JsonProperty(PropertyName = "applicationId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string ApplicationId { get; set; }
+
+        /// <summary>
+        /// Supervisor id to filter with
+        /// </summary>
+        [JsonProperty(PropertyName = "supervisorId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string SupervisorId { get; set; }
+
+        /// <summary>
+        /// Site or gateway id to filter with
+        /// </summary>
+        [JsonProperty(PropertyName = "siteOrGatewayId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string SiteOrGatewayId { get; set; }
     }
 }
 

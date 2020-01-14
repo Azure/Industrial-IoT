@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Controller {
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Newtonsoft.Json.Linq;
@@ -77,8 +78,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Controller {
                 if (config.Capabilities == null) {
                     config.Capabilities = new Dictionary<string, string>();
                 }
-                config.Capabilities.AddOrUpdate("Type",
-                    "Publisher");
+                config.Capabilities.AddOrUpdate("Type", IdentityType.Publisher);
                 config.Capabilities.AddOrUpdate(nameof(_identity.SiteId),
                     _identity.SiteId);
                 config.Capabilities.AddOrUpdate(nameof(_identity.DeviceId),

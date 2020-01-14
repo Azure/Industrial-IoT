@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class EndpointInfoApiModel {
     /**
-     * Endpoint registration.
+     * The registration property.
      */
     @JsonProperty(value = "registration", required = true)
     private EndpointRegistrationApiModel registration;
@@ -30,16 +30,15 @@ public class EndpointInfoApiModel {
     private String applicationId;
 
     /**
-     * Activation state of endpoint. Possible values include: 'Deactivated',
-     * 'Activated', 'ActivatedAndConnected'.
+     * Possible values include: 'Deactivated', 'Activated',
+     * 'ActivatedAndConnected'.
      */
     @JsonProperty(value = "activationState")
     private EndpointActivationState activationState;
 
     /**
-     * Last state of the activated endpoint. Possible values include:
-     * 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid',
-     * 'Ready', 'Error'.
+     * Possible values include: 'Connecting', 'NotReachable', 'Busy',
+     * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'.
      */
     @JsonProperty(value = "endpointState")
     private EndpointConnectivityState endpointState;
@@ -57,7 +56,7 @@ public class EndpointInfoApiModel {
     private DateTime notSeenSince;
 
     /**
-     * Get endpoint registration.
+     * Get the registration value.
      *
      * @return the registration value
      */
@@ -66,7 +65,7 @@ public class EndpointInfoApiModel {
     }
 
     /**
-     * Set endpoint registration.
+     * Set the registration value.
      *
      * @param registration the registration value to set
      * @return the EndpointInfoApiModel object itself.
@@ -97,7 +96,7 @@ public class EndpointInfoApiModel {
     }
 
     /**
-     * Get activation state of endpoint. Possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'.
+     * Get possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'.
      *
      * @return the activationState value
      */
@@ -106,7 +105,7 @@ public class EndpointInfoApiModel {
     }
 
     /**
-     * Set activation state of endpoint. Possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'.
+     * Set possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'.
      *
      * @param activationState the activationState value to set
      * @return the EndpointInfoApiModel object itself.
@@ -117,7 +116,7 @@ public class EndpointInfoApiModel {
     }
 
     /**
-     * Get last state of the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'.
+     * Get possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'.
      *
      * @return the endpointState value
      */
@@ -126,7 +125,7 @@ public class EndpointInfoApiModel {
     }
 
     /**
-     * Set last state of the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'.
+     * Set possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'.
      *
      * @param endpointState the endpointState value to set
      * @return the EndpointInfoApiModel object itself.

@@ -20,12 +20,13 @@ The [REST API](docs/api/readme.md) can be used with any programming language thr
 
 Azure Industrial IoT manages OPC UA Application Certificates and Trust Lists of factory floor machinery and control systems to keep OPC UA client to server communication secure. It restricts which client is allowed to talk to which server.  Storage of private keys and signing of certificates is backed by Azure Key Vault, which supports hardware based security (HSM).
 
-## Architecture
+### Architecture
 
 Check out the Azure Industrial IoT platform [architecture](architecture.md) and [flow](architecture-flow.md).  The Platform includes several [Azure IoT Edge modules](modules/readme.md), which can be [deployed](howto-deploy-modules.md) and used in conjunction with the included cloud services, or standalone with Azure IoT Hub (but with limited functionality).   These include:
 
 - [OPC Publisher](modules/publisher.md)
-- [OPC Twin](modules/twin.md)
+- [OPC Twin](modules/twin.md) and
+- [Discovery module](modules/discovery.md)
 
 ## Deploying Azure Industrial IoT
 

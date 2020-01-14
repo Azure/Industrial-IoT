@@ -8,6 +8,7 @@ The following modules are part of the platform:
 
 * [OPC Publisher Module](publisher.md)
 * [OPC Twin Module](twin.md)
+* [Discovery Module](discovery.md)
 
 ## Next steps
 

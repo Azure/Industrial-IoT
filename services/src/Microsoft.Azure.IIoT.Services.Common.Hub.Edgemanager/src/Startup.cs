@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
     using Microsoft.Azure.IIoT.Services.Cors;
     using Microsoft.Azure.IIoT.Services.Auth;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Deploy;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Deploy;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Services;
@@ -23,10 +24,9 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
     using Microsoft.Extensions.Hosting;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using Swashbuckle.AspNetCore.Swagger;
     using System;
-    using ILogger = Serilog.ILogger;
     using Newtonsoft.Json;
+    using ILogger = Serilog.ILogger;
 
     /// <summary>
     /// Webservice startup
@@ -107,12 +107,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
                         Environment.IsDevelopment()));
                     options.SerializerSettings.MaxDepth = 10;
                 });
-
-            services.AddSwagger(Config, new OpenApiInfo {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
+            services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 
         /// <summary>
@@ -138,11 +133,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
             }
 
             app.UseCorrelation();
-            app.UseSwagger(new OpenApiInfo {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
+            app.UseSwagger();
 
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();
@@ -191,8 +182,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<IoTHubSupervisorDeployment>()
                 .AsImplementedInterfaces().SingleInstance();
-            // builder.RegisterType<IoTHubDiscoveryDeployment>()
-            //     .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<IoTHubDiscovererDeployment>()
+                .AsImplementedInterfaces().SingleInstance();
 
             // ... and auto start
             builder.RegisterType<HostAutoStart>()

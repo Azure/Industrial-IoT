@@ -29,7 +29,7 @@ public class ServerRegistrationRequestApiModel {
     private String id;
 
     /**
-     * Upon discovery, activate all endpoints with this filter.
+     * The activationFilter property.
      */
     @JsonProperty(value = "activationFilter")
     private EndpointActivationFilterApiModel activationFilter;
@@ -75,7 +75,7 @@ public class ServerRegistrationRequestApiModel {
     }
 
     /**
-     * Get upon discovery, activate all endpoints with this filter.
+     * Get the activationFilter value.
      *
      * @return the activationFilter value
      */
@@ -84,7 +84,7 @@ public class ServerRegistrationRequestApiModel {
     }
 
     /**
-     * Set upon discovery, activate all endpoints with this filter.
+     * Set the activationFilter value.
      *
      * @param activationFilter the activationFilter value to set
      * @return the ServerRegistrationRequestApiModel object itself.

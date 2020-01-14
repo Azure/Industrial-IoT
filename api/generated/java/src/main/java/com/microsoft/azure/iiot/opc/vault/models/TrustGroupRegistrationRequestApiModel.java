@@ -47,8 +47,8 @@ public class TrustGroupRegistrationRequestApiModel {
     private Integer issuedKeySize;
 
     /**
-     * The issued certificate signature algorithm. Possible values include:
-     * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'.
+     * Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss',
+     * 'Rsa384Pss', 'Rsa512Pss'.
      */
     @JsonProperty(value = "issuedSignatureAlgorithm")
     private SignatureAlgorithm issuedSignatureAlgorithm;
@@ -154,7 +154,7 @@ public class TrustGroupRegistrationRequestApiModel {
     }
 
     /**
-     * Get the issued certificate signature algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'.
+     * Get possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'.
      *
      * @return the issuedSignatureAlgorithm value
      */
@@ -163,7 +163,7 @@ public class TrustGroupRegistrationRequestApiModel {
     }
 
     /**
-     * Set the issued certificate signature algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'.
+     * Set possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'.
      *
      * @param issuedSignatureAlgorithm the issuedSignatureAlgorithm value to set
      * @return the TrustGroupRegistrationRequestApiModel object itself.

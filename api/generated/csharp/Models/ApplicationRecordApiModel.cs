@@ -31,7 +31,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// Initializes a new instance of the ApplicationRecordApiModel class.
         /// </summary>
         /// <param name="recordId">Record id</param>
-        /// <param name="application">Application information</param>
         public ApplicationRecordApiModel(int recordId, ApplicationInfoApiModel application)
         {
             RecordId = recordId;
@@ -51,7 +50,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public int RecordId { get; set; }
 
         /// <summary>
-        /// Gets or sets application information
         /// </summary>
         [JsonProperty(PropertyName = "application")]
         public ApplicationInfoApiModel Application { get; set; }

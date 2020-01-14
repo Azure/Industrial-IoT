@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
     using Newtonsoft.Json;
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// The events to delete
@@ -16,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// Events to delete
         /// </summary>
         [JsonProperty(PropertyName = "eventIds")]
+        [Required]
         public List<byte[]> EventIds { get; set; }
     }
 }

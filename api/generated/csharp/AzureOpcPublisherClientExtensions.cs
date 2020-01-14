@@ -31,13 +31,12 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
             /// <param name='endpointId'>
             /// The endpoint to subscribe to
             /// </param>
-            /// <param name='userId'>
-            /// The user id that will receive publisher
-            /// samples.
+            /// <param name='body'>
+            /// The user id that will receive publisher samples.
             /// </param>
-            public static void Subscribe(this IAzureOpcPublisherClient operations, string endpointId, string userId = default(string))
+            public static void Subscribe(this IAzureOpcPublisherClient operations, string endpointId, string body = default(string))
             {
-                operations.SubscribeAsync(endpointId, userId).GetAwaiter().GetResult();
+                operations.SubscribeAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -52,16 +51,15 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
             /// <param name='endpointId'>
             /// The endpoint to subscribe to
             /// </param>
-            /// <param name='userId'>
-            /// The user id that will receive publisher
-            /// samples.
+            /// <param name='body'>
+            /// The user id that will receive publisher samples.
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task SubscribeAsync(this IAzureOpcPublisherClient operations, string endpointId, string userId = default(string), CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task SubscribeAsync(this IAzureOpcPublisherClient operations, string endpointId, string body = default(string), CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.SubscribeWithHttpMessagesAsync(endpointId, userId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                (await operations.SubscribeWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false)).Dispose();
             }
 
             /// <summary>
@@ -77,8 +75,7 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
             /// The endpoint to unsubscribe from
             /// </param>
             /// <param name='userId'>
-            /// The user id that will not receive
-            /// any more published samples
+            /// The user id that will not receive any more published samples
             /// </param>
             public static void Unsubscribe(this IAzureOpcPublisherClient operations, string endpointId, string userId)
             {
@@ -98,8 +95,7 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
             /// The endpoint to unsubscribe from
             /// </param>
             /// <param name='userId'>
-            /// The user id that will not receive
-            /// any more published samples
+            /// The user id that will not receive any more published samples
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
@@ -113,9 +109,9 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
             /// Start publishing node values
             /// </summary>
             /// <remarks>
-            /// Start publishing variable node values to IoT Hub.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Start publishing variable node values to IoT Hub. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -123,21 +119,21 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The publish request
             /// </param>
-            public static PublishStartResponseApiModel StartPublishingValues(this IAzureOpcPublisherClient operations, string endpointId, PublishStartRequestApiModel request)
+            public static PublishStartResponseApiModel StartPublishingValues(this IAzureOpcPublisherClient operations, string endpointId, PublishStartRequestApiModel body)
             {
-                return operations.StartPublishingValuesAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.StartPublishingValuesAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Start publishing node values
             /// </summary>
             /// <remarks>
-            /// Start publishing variable node values to IoT Hub.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Start publishing variable node values to IoT Hub. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -145,15 +141,15 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The publish request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<PublishStartResponseApiModel> StartPublishingValuesAsync(this IAzureOpcPublisherClient operations, string endpointId, PublishStartRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<PublishStartResponseApiModel> StartPublishingValuesAsync(this IAzureOpcPublisherClient operations, string endpointId, PublishStartRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.StartPublishingValuesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.StartPublishingValuesWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -163,9 +159,9 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
             /// Stop publishing node values
             /// </summary>
             /// <remarks>
-            /// Stop publishing variable node values to IoT Hub.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Stop publishing variable node values to IoT Hub. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -173,21 +169,21 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The unpublish request
             /// </param>
-            public static PublishStopResponseApiModel StopPublishingValues(this IAzureOpcPublisherClient operations, string endpointId, PublishStopRequestApiModel request)
+            public static PublishStopResponseApiModel StopPublishingValues(this IAzureOpcPublisherClient operations, string endpointId, PublishStopRequestApiModel body)
             {
-                return operations.StopPublishingValuesAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.StopPublishingValuesAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Stop publishing node values
             /// </summary>
             /// <remarks>
-            /// Stop publishing variable node values to IoT Hub.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Stop publishing variable node values to IoT Hub. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -195,15 +191,65 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The unpublish request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<PublishStopResponseApiModel> StopPublishingValuesAsync(this IAzureOpcPublisherClient operations, string endpointId, PublishStopRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<PublishStopResponseApiModel> StopPublishingValuesAsync(this IAzureOpcPublisherClient operations, string endpointId, PublishStopRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.StopPublishingValuesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.StopPublishingValuesWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Get currently published nodes
+            /// </summary>
+            /// <remarks>
+            /// Returns currently published node ids for an endpoint. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='body'>
+            /// The list request
+            /// </param>
+            public static PublishedItemListResponseApiModel GetFirstListOfPublishedNodes(this IAzureOpcPublisherClient operations, string endpointId, PublishedItemListRequestApiModel body)
+            {
+                return operations.GetFirstListOfPublishedNodesAsync(endpointId, body).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Get currently published nodes
+            /// </summary>
+            /// <remarks>
+            /// Returns currently published node ids for an endpoint. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='body'>
+            /// The list request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<PublishedItemListResponseApiModel> GetFirstListOfPublishedNodesAsync(this IAzureOpcPublisherClient operations, string endpointId, PublishedItemListRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.GetFirstListOfPublishedNodesWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -213,9 +259,9 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
             /// Get next set of published nodes
             /// </summary>
             /// <remarks>
-            /// Returns next set of currently published node ids for an endpoint.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Returns next set of currently published node ids for an endpoint. The
+            /// endpoint must be activated and connected and the module client and server
+            /// must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -235,9 +281,9 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
             /// Get next set of published nodes
             /// </summary>
             /// <remarks>
-            /// Returns next set of currently published node ids for an endpoint.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Returns next set of currently published node ids for an endpoint. The
+            /// endpoint must be activated and connected and the module client and server
+            /// must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -254,56 +300,6 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
             public static async Task<PublishedItemListResponseApiModel> GetNextListOfPublishedNodesAsync(this IAzureOpcPublisherClient operations, string endpointId, string continuationToken, CancellationToken cancellationToken = default(CancellationToken))
             {
                 using (var _result = await operations.GetNextListOfPublishedNodesWithHttpMessagesAsync(endpointId, continuationToken, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
-            /// Get currently published nodes
-            /// </summary>
-            /// <remarks>
-            /// Returns currently published node ids for an endpoint.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='endpointId'>
-            /// The identifier of the activated endpoint.
-            /// </param>
-            /// <param name='request'>
-            /// The list request
-            /// </param>
-            public static PublishedItemListResponseApiModel GetFirstListOfPublishedNodes(this IAzureOpcPublisherClient operations, string endpointId, PublishedItemListRequestApiModel request)
-            {
-                return operations.GetFirstListOfPublishedNodesAsync(endpointId, request).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Get currently published nodes
-            /// </summary>
-            /// <remarks>
-            /// Returns currently published node ids for an endpoint.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='endpointId'>
-            /// The identifier of the activated endpoint.
-            /// </param>
-            /// <param name='request'>
-            /// The list request
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<PublishedItemListResponseApiModel> GetFirstListOfPublishedNodesAsync(this IAzureOpcPublisherClient operations, string endpointId, PublishedItemListRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.GetFirstListOfPublishedNodesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }

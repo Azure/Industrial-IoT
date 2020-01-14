@@ -30,8 +30,8 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// Initializes a new instance of the ModificationInfoApiModel class.
         /// </summary>
         /// <param name="modificationTime">Modification time</param>
-        /// <param name="updateType">Operation. Possible values include:
-        /// 'Insert', 'Replace', 'Update', 'Delete'</param>
+        /// <param name="updateType">Possible values include: 'Insert',
+        /// 'Replace', 'Update', 'Delete'</param>
         /// <param name="userName">User who made the change</param>
         public ModificationInfoApiModel(System.DateTime? modificationTime = default(System.DateTime?), HistoryUpdateOperation? updateType = default(HistoryUpdateOperation?), string userName = default(string))
         {
@@ -53,8 +53,8 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         public System.DateTime? ModificationTime { get; set; }
 
         /// <summary>
-        /// Gets or sets operation. Possible values include: 'Insert',
-        /// 'Replace', 'Update', 'Delete'
+        /// Gets or sets possible values include: 'Insert', 'Replace',
+        /// 'Update', 'Delete'
         /// </summary>
         [JsonProperty(PropertyName = "updateType")]
         public HistoryUpdateOperation? UpdateType { get; set; }

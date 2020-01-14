@@ -29,7 +29,7 @@ module azure.iiot.opc.publisher
     #
     def initialize(credentials = nil, base_url = nil, options = nil)
       super(credentials, options)
-      @base_url = base_url || 'http://localhost/publisher'
+      @base_url = base_url || 'http://localhost:9080'
 
       fail ArgumentError, 'invalid type of credentials input parameter' unless credentials.is_a?(MsRest::ServiceClientCredentials) unless credentials.nil?
       @credentials = credentials
@@ -100,14 +100,13 @@ module azure.iiot.opc.publisher
     # Register a client to receive publisher samples through SignalR.
     #
     # @param endpoint_id [String] The endpoint to subscribe to
-    # @param user_id [String] The user id that will receive publisher
-    # samples.
+    # @param body [String] The user id that will receive publisher samples.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     #
-    def subscribe(endpoint_id, user_id:nil, custom_headers:nil)
-      response = subscribe_async(endpoint_id, user_id:user_id, custom_headers:custom_headers).value!
+    def subscribe(endpoint_id, body:nil, custom_headers:nil)
+      response = subscribe_async(endpoint_id, body:body, custom_headers:custom_headers).value!
       nil
     end
 
@@ -117,15 +116,14 @@ module azure.iiot.opc.publisher
     # Register a client to receive publisher samples through SignalR.
     #
     # @param endpoint_id [String] The endpoint to subscribe to
-    # @param user_id [String] The user id that will receive publisher
-    # samples.
+    # @param body [String] The user id that will receive publisher samples.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def subscribe_with_http_info(endpoint_id, user_id:nil, custom_headers:nil)
-      subscribe_async(endpoint_id, user_id:user_id, custom_headers:custom_headers).value!
+    def subscribe_with_http_info(endpoint_id, body:nil, custom_headers:nil)
+      subscribe_async(endpoint_id, body:body, custom_headers:custom_headers).value!
     end
 
     #
@@ -134,14 +132,13 @@ module azure.iiot.opc.publisher
     # Register a client to receive publisher samples through SignalR.
     #
     # @param endpoint_id [String] The endpoint to subscribe to
-    # @param user_id [String] The user id that will receive publisher
-    # samples.
+    # @param body [String] The user id that will receive publisher samples.
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def subscribe_async(endpoint_id, user_id:nil, custom_headers:nil)
+    def subscribe_async(endpoint_id, body:nil, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
 
 
@@ -152,12 +149,12 @@ module azure.iiot.opc.publisher
       request_mapper = {
         client_side_validation: true,
         required: false,
-        serialized_name: 'userId',
+        serialized_name: 'body',
         type: {
           name: 'String'
         }
       }
-      request_content = self.serialize(request_mapper,  user_id)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/monitor/{endpointId}/samples'
@@ -195,8 +192,8 @@ module azure.iiot.opc.publisher
     # Unregister a client and stop it from receiving samples.
     #
     # @param endpoint_id [String] The endpoint to unsubscribe from
-    # @param user_id [String] The user id that will not receive
-    # any more published samples
+    # @param user_id [String] The user id that will not receive any more published
+    # samples
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -212,8 +209,8 @@ module azure.iiot.opc.publisher
     # Unregister a client and stop it from receiving samples.
     #
     # @param endpoint_id [String] The endpoint to unsubscribe from
-    # @param user_id [String] The user id that will not receive
-    # any more published samples
+    # @param user_id [String] The user id that will not receive any more published
+    # samples
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -229,8 +226,8 @@ module azure.iiot.opc.publisher
     # Unregister a client and stop it from receiving samples.
     #
     # @param endpoint_id [String] The endpoint to unsubscribe from
-    # @param user_id [String] The user id that will not receive
-    # any more published samples
+    # @param user_id [String] The user id that will not receive any more published
+    # samples
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
@@ -274,57 +271,57 @@ module azure.iiot.opc.publisher
     #
     # Start publishing node values
     #
-    # Start publishing variable node values to IoT Hub.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Start publishing variable node values to IoT Hub. The endpoint must be
+    # activated and connected and the module client and server must trust each
+    # other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [PublishStartRequestApiModel] The publish request
+    # @param body [PublishStartRequestApiModel] The publish request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [PublishStartResponseApiModel] operation results.
     #
-    def start_publishing_values(endpoint_id, request, custom_headers:nil)
-      response = start_publishing_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def start_publishing_values(endpoint_id, body, custom_headers:nil)
+      response = start_publishing_values_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Start publishing node values
     #
-    # Start publishing variable node values to IoT Hub.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Start publishing variable node values to IoT Hub. The endpoint must be
+    # activated and connected and the module client and server must trust each
+    # other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [PublishStartRequestApiModel] The publish request
+    # @param body [PublishStartRequestApiModel] The publish request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def start_publishing_values_with_http_info(endpoint_id, request, custom_headers:nil)
-      start_publishing_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def start_publishing_values_with_http_info(endpoint_id, body, custom_headers:nil)
+      start_publishing_values_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Start publishing node values
     #
-    # Start publishing variable node values to IoT Hub.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Start publishing variable node values to IoT Hub. The endpoint must be
+    # activated and connected and the module client and server must trust each
+    # other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [PublishStartRequestApiModel] The publish request
+    # @param body [PublishStartRequestApiModel] The publish request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def start_publishing_values_async(endpoint_id, request, custom_headers:nil)
+    def start_publishing_values_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
@@ -332,7 +329,7 @@ module azure.iiot.opc.publisher
 
       # Serialize Request
       request_mapper = azure.iiot.opc.publisher::Models::PublishStartRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/publish/{endpointId}/start'
@@ -377,57 +374,57 @@ module azure.iiot.opc.publisher
     #
     # Stop publishing node values
     #
-    # Stop publishing variable node values to IoT Hub.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Stop publishing variable node values to IoT Hub. The endpoint must be
+    # activated and connected and the module client and server must trust each
+    # other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [PublishStopRequestApiModel] The unpublish request
+    # @param body [PublishStopRequestApiModel] The unpublish request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [PublishStopResponseApiModel] operation results.
     #
-    def stop_publishing_values(endpoint_id, request, custom_headers:nil)
-      response = stop_publishing_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def stop_publishing_values(endpoint_id, body, custom_headers:nil)
+      response = stop_publishing_values_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Stop publishing node values
     #
-    # Stop publishing variable node values to IoT Hub.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Stop publishing variable node values to IoT Hub. The endpoint must be
+    # activated and connected and the module client and server must trust each
+    # other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [PublishStopRequestApiModel] The unpublish request
+    # @param body [PublishStopRequestApiModel] The unpublish request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def stop_publishing_values_with_http_info(endpoint_id, request, custom_headers:nil)
-      stop_publishing_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def stop_publishing_values_with_http_info(endpoint_id, body, custom_headers:nil)
+      stop_publishing_values_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Stop publishing node values
     #
-    # Stop publishing variable node values to IoT Hub.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Stop publishing variable node values to IoT Hub. The endpoint must be
+    # activated and connected and the module client and server must trust each
+    # other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [PublishStopRequestApiModel] The unpublish request
+    # @param body [PublishStopRequestApiModel] The unpublish request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def stop_publishing_values_async(endpoint_id, request, custom_headers:nil)
+    def stop_publishing_values_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
@@ -435,7 +432,7 @@ module azure.iiot.opc.publisher
 
       # Serialize Request
       request_mapper = azure.iiot.opc.publisher::Models::PublishStopRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/publish/{endpointId}/stop'
@@ -478,63 +475,69 @@ module azure.iiot.opc.publisher
     end
 
     #
-    # Get next set of published nodes
+    # Get currently published nodes
     #
-    # Returns next set of currently published node ids for an endpoint.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Returns currently published node ids for an endpoint. The endpoint must be
+    # activated and connected and the module client and server must trust each
+    # other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param continuation_token [String] The continuation token to continue with
+    # @param body [PublishedItemListRequestApiModel] The list request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [PublishedItemListResponseApiModel] operation results.
     #
-    def get_next_list_of_published_nodes(endpoint_id, continuation_token, custom_headers:nil)
-      response = get_next_list_of_published_nodes_async(endpoint_id, continuation_token, custom_headers:custom_headers).value!
+    def get_first_list_of_published_nodes(endpoint_id, body, custom_headers:nil)
+      response = get_first_list_of_published_nodes_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
-    # Get next set of published nodes
+    # Get currently published nodes
     #
-    # Returns next set of currently published node ids for an endpoint.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Returns currently published node ids for an endpoint. The endpoint must be
+    # activated and connected and the module client and server must trust each
+    # other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param continuation_token [String] The continuation token to continue with
+    # @param body [PublishedItemListRequestApiModel] The list request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def get_next_list_of_published_nodes_with_http_info(endpoint_id, continuation_token, custom_headers:nil)
-      get_next_list_of_published_nodes_async(endpoint_id, continuation_token, custom_headers:custom_headers).value!
+    def get_first_list_of_published_nodes_with_http_info(endpoint_id, body, custom_headers:nil)
+      get_first_list_of_published_nodes_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
-    # Get next set of published nodes
+    # Get currently published nodes
     #
-    # Returns next set of currently published node ids for an endpoint.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Returns currently published node ids for an endpoint. The endpoint must be
+    # activated and connected and the module client and server must trust each
+    # other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param continuation_token [String] The continuation token to continue with
+    # @param body [PublishedItemListRequestApiModel] The list request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def get_next_list_of_published_nodes_async(endpoint_id, continuation_token, custom_headers:nil)
+    def get_first_list_of_published_nodes_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'continuation_token is nil' if continuation_token.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.publisher::Models::PublishedItemListRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
       path_template = 'v2/publish/{endpointId}'
 
       request_url = @base_url || self.base_url
@@ -542,11 +545,11 @@ module azure.iiot.opc.publisher
       options = {
           middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
           path_params: {'endpointId' => endpoint_id},
-          query_params: {'continuationToken' => continuation_token},
+          body: request_content,
           headers: request_headers.merge(custom_headers || {}),
           base_url: request_url
       }
-      promise = self.make_request_async(:get, path_template, options)
+      promise = self.make_request_async(:post, path_template, options)
 
       promise = promise.then do |result|
         http_response = result.response
@@ -575,69 +578,63 @@ module azure.iiot.opc.publisher
     end
 
     #
-    # Get currently published nodes
+    # Get next set of published nodes
     #
-    # Returns currently published node ids for an endpoint.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Returns next set of currently published node ids for an endpoint. The
+    # endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [PublishedItemListRequestApiModel] The list request
+    # @param continuation_token [String] The continuation token to continue with
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [PublishedItemListResponseApiModel] operation results.
     #
-    def get_first_list_of_published_nodes(endpoint_id, request, custom_headers:nil)
-      response = get_first_list_of_published_nodes_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def get_next_list_of_published_nodes(endpoint_id, continuation_token, custom_headers:nil)
+      response = get_next_list_of_published_nodes_async(endpoint_id, continuation_token, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
-    # Get currently published nodes
+    # Get next set of published nodes
     #
-    # Returns currently published node ids for an endpoint.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Returns next set of currently published node ids for an endpoint. The
+    # endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [PublishedItemListRequestApiModel] The list request
+    # @param continuation_token [String] The continuation token to continue with
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def get_first_list_of_published_nodes_with_http_info(endpoint_id, request, custom_headers:nil)
-      get_first_list_of_published_nodes_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def get_next_list_of_published_nodes_with_http_info(endpoint_id, continuation_token, custom_headers:nil)
+      get_next_list_of_published_nodes_async(endpoint_id, continuation_token, custom_headers:custom_headers).value!
     end
 
     #
-    # Get currently published nodes
+    # Get next set of published nodes
     #
-    # Returns currently published node ids for an endpoint.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Returns next set of currently published node ids for an endpoint. The
+    # endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [PublishedItemListRequestApiModel] The list request
+    # @param continuation_token [String] The continuation token to continue with
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def get_first_list_of_published_nodes_async(endpoint_id, request, custom_headers:nil)
+    def get_next_list_of_published_nodes_async(endpoint_id, continuation_token, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'continuation_token is nil' if continuation_token.nil?
 
 
       request_headers = {}
-      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-
-      # Serialize Request
-      request_mapper = azure.iiot.opc.publisher::Models::PublishedItemListRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
-      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
-
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
       path_template = 'v2/publish/{endpointId}'
 
       request_url = @base_url || self.base_url
@@ -645,11 +642,11 @@ module azure.iiot.opc.publisher
       options = {
           middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
           path_params: {'endpointId' => endpoint_id},
-          body: request_content,
+          query_params: {'continuationToken' => continuation_token},
           headers: request_headers.merge(custom_headers || {}),
           base_url: request_url
       }
-      promise = self.make_request_async(:post, path_template, options)
+      promise = self.make_request_async(:get, path_template, options)
 
       promise = promise.then do |result|
         http_response = result.response

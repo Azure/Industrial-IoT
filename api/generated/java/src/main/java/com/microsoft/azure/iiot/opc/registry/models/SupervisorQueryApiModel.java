@@ -23,13 +23,6 @@ public class SupervisorQueryApiModel {
     private String siteId;
 
     /**
-     * Discovery mode of supervisor. Possible values include: 'Off', 'Local',
-     * 'Network', 'Fast', 'Scan'.
-     */
-    @JsonProperty(value = "discovery")
-    private DiscoveryMode discovery;
-
-    /**
      * Included connected or disconnected.
      */
     @JsonProperty(value = "connected")
@@ -52,26 +45,6 @@ public class SupervisorQueryApiModel {
      */
     public SupervisorQueryApiModel withSiteId(String siteId) {
         this.siteId = siteId;
-        return this;
-    }
-
-    /**
-     * Get discovery mode of supervisor. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'.
-     *
-     * @return the discovery value
-     */
-    public DiscoveryMode discovery() {
-        return this.discovery;
-    }
-
-    /**
-     * Set discovery mode of supervisor. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'.
-     *
-     * @param discovery the discovery value to set
-     * @return the SupervisorQueryApiModel object itself.
-     */
-    public SupervisorQueryApiModel withDiscovery(DiscoveryMode discovery) {
-        this.discovery = discovery;
         return this;
     }
 

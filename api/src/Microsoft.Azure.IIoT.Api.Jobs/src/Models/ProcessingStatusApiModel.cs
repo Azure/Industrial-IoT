@@ -5,26 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Linq;
     using System;
-
-    /// <summary>
-    /// Processing mode for processing engine
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum ProcessMode {
-
-        /// <summary>
-        /// Active processing
-        /// </summary>
-        Active,
-
-        /// <summary>
-        /// Passive
-        /// </summary>
-        Passive
-    }
 
     /// <summary>
     /// processing status

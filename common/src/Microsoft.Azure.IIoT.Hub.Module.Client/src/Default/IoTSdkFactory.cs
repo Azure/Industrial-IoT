@@ -102,6 +102,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             if (!string.IsNullOrEmpty(ehubHost)) {
                 // Running in edge mode - use mqtt over tcp
                 _transport = TransportOption.MqttOverTcp;
+                _logger.Information("Connecting all clients to {edgeHub} using {transport}.",
+                    ehubHost, _transport);
             }
             else {
                 _transport = config.Transport;

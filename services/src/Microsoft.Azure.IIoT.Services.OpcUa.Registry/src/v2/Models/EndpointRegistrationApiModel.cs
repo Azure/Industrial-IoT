@@ -39,6 +39,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
                 .ToList();
             SiteId = model.SiteId;
             SupervisorId = model.SupervisorId;
+            DiscovererId = model.DiscovererId;
             SecurityLevel = model.SecurityLevel;
         }
 
@@ -55,6 +56,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
                     .Select(p => p?.ToServiceModel()).ToList(),
                 SecurityLevel = SecurityLevel,
                 SiteId = SiteId,
+                DiscovererId = DiscovererId,
                 SupervisorId = SupervisorId
             };
         }
@@ -82,12 +84,20 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Supervisor that registered the endpoint.
+        /// Supervisor that manages the endpoint.
         /// </summary>
         [JsonProperty(PropertyName = "supervisorId",
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public string SupervisorId { get; set; }
+
+        /// <summary>
+        /// Discoverer that registered the endpoint
+        /// </summary>
+        [JsonProperty(PropertyName = "discovererId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public string DiscovererId { get; set; }
 
         /// <summary>
         /// Endpoint information of the registration

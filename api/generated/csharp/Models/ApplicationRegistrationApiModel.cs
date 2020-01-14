@@ -34,10 +34,9 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// Initializes a new instance of the ApplicationRegistrationApiModel
         /// class.
         /// </summary>
-        /// <param name="application">Application information</param>
         /// <param name="endpoints">List of endpoint twins</param>
-        /// <param name="securityAssessment">Application security assessment.
-        /// Possible values include: 'Unknown', 'Low', 'Medium', 'High'</param>
+        /// <param name="securityAssessment">Possible values include:
+        /// 'Unknown', 'Low', 'Medium', 'High'</param>
         public ApplicationRegistrationApiModel(ApplicationInfoApiModel application, IList<EndpointRegistrationApiModel> endpoints = default(IList<EndpointRegistrationApiModel>), SecurityAssessment? securityAssessment = default(SecurityAssessment?))
         {
             Application = application;
@@ -52,7 +51,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets application information
         /// </summary>
         [JsonProperty(PropertyName = "application")]
         public ApplicationInfoApiModel Application { get; set; }
@@ -64,8 +62,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public IList<EndpointRegistrationApiModel> Endpoints { get; set; }
 
         /// <summary>
-        /// Gets or sets application security assessment. Possible values
-        /// include: 'Unknown', 'Low', 'Medium', 'High'
+        /// Gets or sets possible values include: 'Unknown', 'Low', 'Medium',
+        /// 'High'
         /// </summary>
         [JsonProperty(PropertyName = "securityAssessment")]
         public SecurityAssessment? SecurityAssessment { get; set; }

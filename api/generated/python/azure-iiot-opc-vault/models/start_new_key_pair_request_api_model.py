@@ -19,7 +19,7 @@ class StartNewKeyPairRequestApiModel(Model):
     :type entity_id: str
     :param group_id: Certificate group
     :type group_id: str
-    :param certificate_type: Type. Possible values include:
+    :param certificate_type: Possible values include:
      'ApplicationInstanceCertificate', 'HttpsCertificate',
      'UserCredentialCertificate'
     :type certificate_type: str or ~azure-iiot-opc-vault.models.TrustGroupType

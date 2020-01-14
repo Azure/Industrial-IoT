@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Insert historic events
@@ -18,12 +18,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// </summary>
         [JsonProperty(PropertyName = "filter",
             NullValueHandling = NullValueHandling.Ignore)]
-        public JToken Filter { get; set; }
+        public EventFilterApiModel Filter { get; set; }
 
         /// <summary>
         /// The new events to insert
         /// </summary>
         [JsonProperty(PropertyName = "events")]
+        [Required]
         public List<HistoricEventApiModel> Events { get; set; }
     }
 }

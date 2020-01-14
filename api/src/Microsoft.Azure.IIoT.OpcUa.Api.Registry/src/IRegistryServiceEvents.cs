@@ -41,6 +41,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
             string userId, Func<SupervisorEventApiModel, Task> callback);
 
         /// <summary>
+        /// Subscribe to discoverer events
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        Task<IAsyncDisposable> SubscribeDiscovererEventsAsync(
+            string userId, Func<DiscovererEventApiModel, Task> callback);
+
+        /// <summary>
         /// Subscribe to publisher events
         /// </summary>
         /// <param name="userId"></param>
@@ -52,12 +61,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// <summary>
         /// Subscribe to supervisor discovery events
         /// </summary>
-        /// <param name="supervisorId"></param>
+        /// <param name="discovererId"></param>
         /// <param name="userId"></param>
         /// <param name="callback"></param>
         /// <returns></returns>
-        Task<IAsyncDisposable> SubscribeDiscoveryProgressBySupervisorsIdAsync(
-            string supervisorId, string userId, Func<DiscoveryProgressApiModel, Task> callback);
+        Task<IAsyncDisposable> SubscribeDiscoveryProgressByDiscovererIdAsync(
+            string discovererId, string userId, Func<DiscoveryProgressApiModel, Task> callback);
 
         /// <summary>
         /// Subscribe to discovery events for a particular request

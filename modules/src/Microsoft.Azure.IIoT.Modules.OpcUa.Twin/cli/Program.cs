@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli {
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
+    using Newtonsoft.Json.Linq;
     using Serilog;
     using Serilog.Events;
     using System;
@@ -256,16 +257,7 @@ Options:
         }
 
         /// <summary>
-        /// Add supervisor
-        /// </summary>
-        private static async Task AddAsync(IIoTHubConfig config,
-            string deviceId, string moduleId) {
-            var cs = await AddOrGetAsync(config, deviceId, moduleId);
-            Console.WriteLine(cs);
-        }
-
-        /// <summary>
-        /// Host the supervisor module giving it its connection string.
+        /// Host the module giving it its connection string.
         /// </summary>
         private static async Task HostAsync(IIoTHubConfig config,
             string deviceId, string moduleId, bool verbose = false) {
@@ -288,6 +280,15 @@ Options:
                 Twin.Program.Main(arguments.ToArray());
                 Console.WriteLine("Twin module exited.");
             }
+        }
+
+        /// <summary>
+        /// Add supervisor
+        /// </summary>
+        private static async Task AddAsync(IIoTHubConfig config,
+            string deviceId, string moduleId) {
+            var cs = await AddOrGetAsync(config, deviceId, moduleId);
+            Console.WriteLine(cs);
         }
 
         /// <summary>
@@ -334,7 +335,7 @@ Options:
                 config, logger);
 
             var query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{TwinProperty.Type} = 'supervisor'";
+                $"properties.reported.{TwinProperty.Type} = '{IdentityType.Supervisor}'";
             var supers = await registry.QueryAllDeviceTwinsAsync(query);
             foreach (var item in supers) {
                 Console.WriteLine($"{item.Id} {item.ModuleId}");
@@ -350,7 +351,7 @@ Options:
                 config, logger);
 
             var query = "SELECT * FROM devices.modules WHERE " +
-                $"properties.reported.{TwinProperty.Type} = 'supervisor'";
+                $"properties.reported.{TwinProperty.Type} = '{IdentityType.Supervisor}'";
             var supers = await registry.QueryAllDeviceTwinsAsync(query);
             foreach (var item in supers) {
                 Console.WriteLine($"Resetting {item.Id} {item.ModuleId ?? ""}");
@@ -377,7 +378,7 @@ Options:
                 return;
             }
             var query = "SELECT * FROM devices.modules WHERE " +
-             $"properties.reported.{TwinProperty.Type} = 'supervisor'";
+             $"properties.reported.{TwinProperty.Type} = '{IdentityType.Supervisor}'";
             var supers = await registry.QueryAllDeviceTwinsAsync(query);
             foreach (var item in supers) {
                 Console.WriteLine($"Deleting {item.Id} {item.ModuleId ?? ""}");
@@ -418,7 +419,7 @@ Options:
         }
 
         /// <summary>
-        /// Add or get supervisor identity
+        /// Add or get module identity
         /// </summary>
         private static async Task<ConnectionString> AddOrGetAsync(IIoTHubConfig config,
             string deviceId, string moduleId) {
@@ -427,10 +428,16 @@ Options:
                 config, logger);
             await registry.CreateAsync(new DeviceTwinModel {
                 Id = deviceId,
-                ModuleId = moduleId,
+                Tags = new Dictionary<string, JToken> {
+                    [TwinProperty.Type] = IdentityType.Gateway
+                },
                 Capabilities = new DeviceCapabilitiesModel {
                     IotEdge = true
                 }
+            }, true, CancellationToken.None);
+            await registry.CreateAsync(new DeviceTwinModel {
+                Id = deviceId,
+                ModuleId = moduleId
             }, true, CancellationToken.None);
             var cs = await registry.GetConnectionStringAsync(deviceId, moduleId);
             return cs;

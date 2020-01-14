@@ -25,9 +25,8 @@ class TrustGroupRegistrationRequestApiModel(Model):
     :type issued_lifetime: str
     :param issued_key_size: The issued certificate key size in bits.
     :type issued_key_size: int
-    :param issued_signature_algorithm: The issued certificate signature
-     algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-     'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+    :param issued_signature_algorithm: Possible values include: 'Rsa256',
+     'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
     :type issued_signature_algorithm: str or
      ~azure-iiot-opc-vault.models.SignatureAlgorithm
     """

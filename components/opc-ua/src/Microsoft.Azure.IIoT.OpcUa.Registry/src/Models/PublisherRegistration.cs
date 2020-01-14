@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.Hub;
     using System;
     using System.Collections.Generic;
     using System.Threading;
@@ -13,20 +13,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     /// Publisher agent module registration
     /// </summary>
     [Serializable]
-    public sealed class PublisherRegistration : BaseRegistration {
+    public sealed class PublisherRegistration : EntityRegistration {
 
         /// <inheritdoc/>
-        public override string DeviceType => "Publisher";
-
-        /// <inheritdoc/>
-        public override string ApplicationId => null;
+        public override string DeviceType => IdentityType.Publisher;
 
         /// <summary>
-        /// Publisher that owns the twin.
+        /// Device id for registration
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
-        public override string SupervisorId =>
-            SupervisorModelEx.CreateSupervisorId(DeviceId, ModuleId);
+        public string ModuleId { get; set; }
 
         /// <summary>
         /// Current log level

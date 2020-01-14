@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
     using System;
-    using System.Threading;
 
     /// <summary>
     /// Agent config provider
@@ -18,14 +17,14 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// <param name="agentConfigProvider"></param>
         /// <returns></returns>
         public static TimeSpan GetHeartbeatInterval(this IAgentConfigProvider agentConfigProvider) {
-            if (string.IsNullOrEmpty(agentConfigProvider?.Config?.JobOrchestratorUrl)) {
-                return Timeout.InfiniteTimeSpan;
-            }
             var interval = agentConfigProvider?.Config?.HeartbeatInterval;
-            if (interval == null) {
-                return TimeSpan.FromSeconds(15);
+            var heartbeat = string.IsNullOrEmpty(agentConfigProvider?.Config?.JobOrchestratorUrl) ||
+                interval == null ||
+                interval.Value <= TimeSpan.Zero ? TimeSpan.FromSeconds(3) : interval.Value;
+            if (heartbeat > TimeSpan.FromMinutes(1)) {
+                heartbeat = TimeSpan.FromMinutes(1);
             }
-            return interval.Value <= TimeSpan.Zero ? Timeout.InfiniteTimeSpan : interval.Value;
+            return heartbeat;
         }
 
         /// <summary>
@@ -35,13 +34,15 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// <returns></returns>
         public static TimeSpan GetJobCheckInterval(this IAgentConfigProvider agentConfigProvider) {
             if (string.IsNullOrEmpty(agentConfigProvider?.Config?.JobOrchestratorUrl)) {
-                return Timeout.InfiniteTimeSpan;
-            }
-            var interval = agentConfigProvider?.Config?.JobCheckInterval;
-            if (interval == null) {
                 return TimeSpan.FromSeconds(5);
             }
-            return interval.Value <= TimeSpan.Zero ? Timeout.InfiniteTimeSpan : interval.Value;
+            var interval = agentConfigProvider?.Config?.JobCheckInterval;
+            var jobcheck = interval == null || interval.Value <= TimeSpan.Zero ?
+                TimeSpan.FromSeconds(10) : interval.Value;
+            if (jobcheck > TimeSpan.FromMinutes(10)) {
+                jobcheck = TimeSpan.FromMinutes(10);
+            }
+            return jobcheck;
         }
     }
 }

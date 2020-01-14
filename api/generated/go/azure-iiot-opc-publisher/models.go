@@ -61,7 +61,7 @@ const fqdn = "go/azure-iiot-opc-publisher"
 
             // CredentialAPIModel credential model
             type CredentialAPIModel struct {
-            // Type - Type of credential. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+            // Type - Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
             Type CredentialType `json:"type,omitempty"`
             // Value - Value to pass to server
             Value interface{} `json:"value,omitempty"`
@@ -69,8 +69,7 @@ const fqdn = "go/azure-iiot-opc-publisher"
 
             // DiagnosticsAPIModel diagnostics configuration
             type DiagnosticsAPIModel struct {
-            // Level - Requested level of response diagnostics.
-            // (default: Status). Possible values include: 'DiagnosticsLevelNone', 'DiagnosticsLevelStatus', 'DiagnosticsLevelOperations', 'DiagnosticsLevelDiagnostics', 'DiagnosticsLevelVerbose'
+            // Level - Possible values include: 'DiagnosticsLevelNone', 'DiagnosticsLevelStatus', 'DiagnosticsLevelOperations', 'DiagnosticsLevelDiagnostics', 'DiagnosticsLevelVerbose'
             Level DiagnosticsLevel `json:"level,omitempty"`
             // AuditID - Client audit log entry.
             // (default: client generated)
@@ -237,16 +236,13 @@ const fqdn = "go/azure-iiot-opc-publisher"
 
             // PublishStartRequestAPIModel publish request
             type PublishStartRequestAPIModel struct {
-            // Item - Item to publish
             Item *PublishedItemAPIModel `json:"item,omitempty"`
-            // Header - Optional request header
             Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
             // PublishStartResponseAPIModel result of publish request
             type PublishStartResponseAPIModel struct {
             autorest.Response `json:"-"`
-            // ErrorInfo - Service result in case of error
             ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
@@ -254,24 +250,20 @@ const fqdn = "go/azure-iiot-opc-publisher"
             type PublishStopRequestAPIModel struct {
             // NodeID - Node of published item to unpublish
             NodeID *string `json:"nodeId,omitempty"`
-            // Header - Optional request header
             Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
             // PublishStopResponseAPIModel result of unpublish request
             type PublishStopResponseAPIModel struct {
             autorest.Response `json:"-"`
-            // ErrorInfo - Service result in case of error
             ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
             // RequestHeaderAPIModel request header model
             type RequestHeaderAPIModel struct {
-            // Elevation - Optional User elevation
             Elevation *CredentialAPIModel `json:"elevation,omitempty"`
             // Locales - Optional list of locales in preference order.
             Locales *[]string `json:"locales,omitempty"`
-            // Diagnostics - Optional diagnostics configuration
             Diagnostics *DiagnosticsAPIModel `json:"diagnostics,omitempty"`
             }
 
@@ -306,7 +298,7 @@ const fqdn = "go/azure-iiot-opc-publisher"
             Properties map[string]*string `json:"properties"`
             // Dependencies - READ-ONLY; A property bag with details about the internal dependencies
             Dependencies map[string]*string `json:"dependencies"`
-            // Metadata - READ-ONLY; Optional meta data.
+            // Metadata - READ-ONLY
             Metadata map[string]*string `json:"$metadata"`
             }
 

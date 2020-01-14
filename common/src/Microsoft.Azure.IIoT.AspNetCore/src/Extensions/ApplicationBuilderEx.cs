@@ -46,6 +46,7 @@ namespace Microsoft.AspNetCore.Hosting {
                     if (config != null) {
                         s.AddSingleton(config);
                     }
+                    var server = app.ApplicationServices.GetService<IServer>();
                     s.AddSingleton(typeof(IServer), new DummyServer(path,
                         addresses?.Addresses ?? Enumerable.Empty<string>()));
                 }).Build();

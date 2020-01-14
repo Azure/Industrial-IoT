@@ -25,8 +25,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 .AsImplementedInterfaces().SingleInstance();
 
             // Adapters
-            builder.RegisterType<IoTHubModuleDiscoveryClient>()
-                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<IoTHubDeviceEventHandler>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<IoTHubTwinMethodClient>()

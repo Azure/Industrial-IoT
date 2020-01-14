@@ -10,9 +10,15 @@ Azure Industrial IoT OPC UA Twin Service
 *Version* : v2
 
 
+### License information
+*License* : MIT LICENSE  
+*License URL* : https://opensource.org/licenses/MIT  
+*Terms of service* : null
+
+
 ### URI scheme
-*BasePath* : /twin  
-*Schemes* : HTTPS, HTTP
+*Host* : localhost:9080  
+*Schemes* : HTTP, HTTPS
 
 
 ### Tags
@@ -42,9 +48,7 @@ POST /v2/browse/{endpointId}
 
 
 ##### Description
-Browse a node on the specified endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Browse a node on the specified endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -52,7 +56,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The browse request|[BrowseRequestApiModel](definitions.md#browserequestapimodel)|
+|**Body**|**body**  <br>*required*|The browse request|[BrowseRequestApiModel](definitions.md#browserequestapimodel)|
 
 
 ##### Responses
@@ -90,14 +94,7 @@ GET /v2/browse/{endpointId}
 
 
 ##### Description
-Browse the set of unique hierarchically referenced target nodes on the endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-The root node id to browse from can be provided as part of the query
-parameters.
-If it is not provided, the RootFolder node is browsed. Note that this
-is the same as the POST method with the model containing the node id
-and the targetNodesOnly flag set to true.
+Browse the set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. The root node id to browse from can be provided as part of the query parameters. If it is not provided, the RootFolder node is browsed. Note that this is the same as the POST method with the model containing the node id and the targetNodesOnly flag set to true.
 
 
 ##### Parameters
@@ -135,9 +132,7 @@ POST /v2/browse/{endpointId}/next
 
 
 ##### Description
-Browse next set of references on the endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Browse next set of references on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -145,7 +140,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The request body with continuation token.|[BrowseNextRequestApiModel](definitions.md#browsenextrequestapimodel)|
+|**Body**|**body**  <br>*required*|The request body with continuation token.|[BrowseNextRequestApiModel](definitions.md#browsenextrequestapimodel)|
 
 
 ##### Responses
@@ -183,12 +178,7 @@ GET /v2/browse/{endpointId}/next
 
 
 ##### Description
-Browse the next set of unique hierarchically referenced target nodes on the
-endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-Note that this is the same as the POST method with the model containing
-the continuation token and the targetNodesOnly flag set to true.
+Browse the next set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. Note that this is the same as the POST method with the model containing the continuation token and the targetNodesOnly flag set to true.
 
 
 ##### Parameters
@@ -226,10 +216,7 @@ POST /v2/browse/{endpointId}/path
 
 
 ##### Description
-Browse using a path from the specified node id.
-This call uses TranslateBrowsePathsToNodeIds service under the hood.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Browse using a path from the specified node id. This call uses TranslateBrowsePathsToNodeIds service under the hood. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -237,7 +224,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The browse path request|[BrowsePathRequestApiModel](definitions.md#browsepathrequestapimodel)|
+|**Body**|**body**  <br>*required*|The browse path request|[BrowsePathRequestApiModel](definitions.md#browsepathrequestapimodel)|
 
 
 ##### Responses
@@ -280,9 +267,7 @@ POST /v2/call/{endpointId}
 
 
 ##### Description
-Invoke method node with specified input arguments.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Invoke method node with specified input arguments. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -290,7 +275,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The method call request|[MethodCallRequestApiModel](definitions.md#methodcallrequestapimodel)|
+|**Body**|**body**  <br>*required*|The method call request|[MethodCallRequestApiModel](definitions.md#methodcallrequestapimodel)|
 
 
 ##### Responses
@@ -328,10 +313,7 @@ POST /v2/call/{endpointId}/metadata
 
 
 ##### Description
-Return method meta data to support a user interface displaying forms to
-input and output arguments.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Return method meta data to support a user interface displaying forms to input and output arguments. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -339,7 +321,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The method metadata request|[MethodMetadataRequestApiModel](definitions.md#methodmetadatarequestapimodel)|
+|**Body**|**body**  <br>*required*|The method metadata request|[MethodMetadataRequestApiModel](definitions.md#methodmetadatarequestapimodel)|
 
 
 ##### Responses
@@ -382,9 +364,7 @@ POST /v2/read/{endpointId}
 
 
 ##### Description
-Read a variable node's value.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Read a variable node's value. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -392,7 +372,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The read value request|[ValueReadRequestApiModel](definitions.md#valuereadrequestapimodel)|
+|**Body**|**body**  <br>*required*|The read value request|[ValueReadRequestApiModel](definitions.md#valuereadrequestapimodel)|
 
 
 ##### Responses
@@ -430,9 +410,7 @@ GET /v2/read/{endpointId}
 
 
 ##### Description
-Get a variable node's value using its node id.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Get a variable node's value using its node id. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -470,9 +448,7 @@ POST /v2/read/{endpointId}/attributes
 
 
 ##### Description
-Read attributes of a node.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Read attributes of a node. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -480,7 +456,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The read request|[ReadRequestApiModel](definitions.md#readrequestapimodel)|
+|**Body**|**body**  <br>*required*|The read request|[ReadRequestApiModel](definitions.md#readrequestapimodel)|
 
 
 ##### Responses
@@ -547,9 +523,7 @@ POST /v2/write/{endpointId}
 
 
 ##### Description
-Write variable node's value.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Write variable node's value. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -557,7 +531,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The write value request|[ValueWriteRequestApiModel](definitions.md#valuewriterequestapimodel)|
+|**Body**|**body**  <br>*required*|The write value request|[ValueWriteRequestApiModel](definitions.md#valuewriterequestapimodel)|
 
 
 ##### Responses
@@ -595,9 +569,7 @@ POST /v2/write/{endpointId}/attributes
 
 
 ##### Description
-Write any attribute of a node.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Write any attribute of a node. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -605,7 +577,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The batch write request|[WriteRequestApiModel](definitions.md#writerequestapimodel)|
+|**Body**|**body**  <br>*required*|The batch write request|[WriteRequestApiModel](definitions.md#writerequestapimodel)|
 
 
 ##### Responses

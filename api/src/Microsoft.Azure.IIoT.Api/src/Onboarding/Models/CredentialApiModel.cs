@@ -5,35 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Linq;
-
-    /// <summary>
-    /// Type of credential to use for serverauth
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum CredentialType {
-
-        /// <summary>
-        /// No credentials
-        /// </summary>
-        None,
-
-        /// <summary>
-        /// User name with secret
-        /// </summary>
-        UserName,
-
-        /// <summary>
-        /// Certificate
-        /// </summary>
-        X509Certificate,
-
-        /// <summary>
-        /// Token is a jwt token
-        /// </summary>
-        JwtToken
-    }
 
     /// <summary>
     /// Credential model

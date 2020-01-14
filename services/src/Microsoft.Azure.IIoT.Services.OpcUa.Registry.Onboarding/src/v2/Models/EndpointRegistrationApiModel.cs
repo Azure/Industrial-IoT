@@ -34,6 +34,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.v2.Models {
                 new EndpointApiModel(model.Endpoint);
             EndpointUrl = model.EndpointUrl;
             SupervisorId = model.SupervisorId;
+            DiscovererId = model.DiscovererId;
             AuthenticationMethods = model.AuthenticationMethods?
                 .Select(p => p == null ? null : new AuthenticationMethodApiModel(p))
                 .ToList();
@@ -51,6 +52,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.v2.Models {
                 Endpoint = Endpoint?.ToServiceModel(),
                 EndpointUrl = EndpointUrl,
                 SupervisorId = SupervisorId,
+                DiscovererId = DiscovererId,
                 AuthenticationMethods = AuthenticationMethods?
                     .Select(p => p?.ToServiceModel()).ToList(),
                 SecurityLevel = SecurityLevel,
@@ -79,11 +81,18 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.v2.Models {
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Supervisor that registered the endpoint.
+        /// Supervisor that manages the endpoint.
         /// </summary>
         [JsonProperty(PropertyName = "supervisorId",
             NullValueHandling = NullValueHandling.Ignore)]
         public string SupervisorId { get; set; }
+
+        /// <summary>
+        /// Discoverer that discovered the endpoint
+        /// </summary>
+        [JsonProperty(PropertyName = "discovererId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string DiscovererId { get; set; }
 
         /// <summary>
         /// Endpoint information of the registration

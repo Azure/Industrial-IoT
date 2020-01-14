@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Azure.IIoT.Storage.Default;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Hub;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -51,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             string continuation, int? pageSize, CancellationToken ct) {
             var query = $"SELECT DISTINCT VALUE a.{nameof(ApplicationRegistration.SiteId)} " +
                 $"FROM Applications a " +
-                $"WHERE a.{nameof(ApplicationRegistration.DeviceType)} = 'Application' ";
+                $"WHERE a.{nameof(ApplicationRegistration.DeviceType)} = '{IdentityType.Application}' ";
             var client = _applications.OpenSqlClient();
             var compiled = continuation != null ?
                 client.Continue<string>(continuation, pageSize) :
@@ -79,7 +80,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         public async Task<ApplicationInfoListModel> ListAsync(
             string continuation, int? pageSize, bool? disabled, CancellationToken ct) {
             var query = "SELECT * FROM Applications a " +
-                $"WHERE a.{nameof(ApplicationRegistration.DeviceType)} = 'Application' ";
+                $"WHERE a.{nameof(ApplicationRegistration.DeviceType)} = '{IdentityType.Application}' ";
             if (disabled != null) {
                 if (disabled.Value) {
                     query +=

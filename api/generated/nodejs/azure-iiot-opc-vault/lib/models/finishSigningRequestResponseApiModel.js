@@ -17,25 +17,25 @@
 class FinishSigningRequestResponseApiModel {
   /**
    * Create a FinishSigningRequestResponseApiModel.
-   * @property {object} [request] Request
+   * @property {object} [request]
    * @property {string} [request.requestId] Request id
    * @property {string} [request.entityId] Application id
    * @property {string} [request.groupId] Trust group
-   * @property {string} [request.state] Request state. Possible values include:
-   * 'New', 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'
-   * @property {string} [request.type] Request type. Possible values include:
+   * @property {string} [request.state] Possible values include: 'New',
+   * 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'
+   * @property {string} [request.type] Possible values include:
    * 'SigningRequest', 'KeyPairRequest'
    * @property {object} [request.errorInfo] Error diagnostics
-   * @property {object} [request.submitted] Request time
+   * @property {object} [request.submitted]
    * @property {string} [request.submitted.authorityId] User
    * @property {date} [request.submitted.time] Operation time
-   * @property {object} [request.approved] Approved or rejected
+   * @property {object} [request.approved]
    * @property {string} [request.approved.authorityId] User
    * @property {date} [request.approved.time] Operation time
-   * @property {object} [request.accepted] Finished
+   * @property {object} [request.accepted]
    * @property {string} [request.accepted.authorityId] User
    * @property {date} [request.accepted.time] Operation time
-   * @property {object} [certificate] Signed certificate
+   * @property {object} [certificate]
    * @property {string} [certificate.subject] Subject
    * @property {string} [certificate.thumbprint] Thumbprint
    * @property {string} [certificate.serialNumber] Serial number

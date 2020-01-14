@@ -78,12 +78,12 @@ class NodeAccessLevel(Enum):
 
 class NodeValueRank(Enum):
 
-    scalar_or_one_dimension = "ScalarOrOneDimension"
-    any = "Any"
-    scalar = "Scalar"
     one_or_more_dimensions = "OneOrMoreDimensions"
     one_dimension = "OneDimension"
     two_dimensions = "TwoDimensions"
+    scalar_or_one_dimension = "ScalarOrOneDimension"
+    any = "Any"
+    scalar = "Scalar"
 
 
 class RolePermissions(Enum):

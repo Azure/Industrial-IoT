@@ -44,7 +44,6 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// service</param>
         /// <param name="dependencies">A property bag with details about the
         /// internal dependencies</param>
-        /// <param name="metadata">Optional meta data.</param>
         public StatusResponseApiModel(string name = default(string), string status = default(string), string currentTime = default(string), string startTime = default(string), long? upTime = default(long?), string uid = default(string), IDictionary<string, string> properties = default(IDictionary<string, string>), IDictionary<string, string> dependencies = default(IDictionary<string, string>), IDictionary<string, string> metadata = default(IDictionary<string, string>))
         {
             Name = name;
@@ -116,7 +115,6 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         public IDictionary<string, string> Dependencies { get; private set; }
 
         /// <summary>
-        /// Gets optional meta data.
         /// </summary>
         [JsonProperty(PropertyName = "$metadata")]
         public IDictionary<string, string> Metadata { get; private set; }

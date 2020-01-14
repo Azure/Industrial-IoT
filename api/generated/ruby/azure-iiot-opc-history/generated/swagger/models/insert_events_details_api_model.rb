@@ -13,7 +13,7 @@ module azure.iiot.opc.history
     # Insert historic events
     #
     class InsertEventsDetailsApiModel
-      # @return The filter to use to select the events
+      # @return [EventFilterApiModel]
       attr_accessor :filter
 
       # @return [Array<HistoricEventApiModel>] The new events to insert
@@ -38,7 +38,8 @@ module azure.iiot.opc.history
                 required: false,
                 serialized_name: 'filter',
                 type: {
-                  name: 'Object'
+                  name: 'Composite',
+                  class_name: 'EventFilterApiModel'
                 }
               },
               events: {

@@ -20,14 +20,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// Find edge gateway.
         /// </summary>
         /// <param name="service"></param>
-        /// <param name="publisherId"></param>
+        /// <param name="gatewayId"></param>
+        /// <param name="onlyServerState"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task<GatewayModel> FindGatewayAsync(
-            this IGatewayRegistry service, string publisherId,
-            CancellationToken ct = default) {
+        public static async Task<GatewayInfoModel> FindGatewayAsync(
+            this IGatewayRegistry service, string gatewayId,
+            bool onlyServerState = false, CancellationToken ct = default) {
             try {
-                return await service.GetGatewayAsync(publisherId, ct);
+                return await service.GetGatewayAsync(gatewayId, onlyServerState, ct);
             }
             catch (ResourceNotFoundException) {
                 return null;
@@ -41,8 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<List<GatewayModel>> ListAllGatewaysAsync(
-            this IGatewayRegistry service,
-            CancellationToken ct = default) {
+            this IGatewayRegistry service, CancellationToken ct = default) {
             var publishers = new List<GatewayModel>();
             var result = await service.ListGatewaysAsync(null, null, ct);
             publishers.AddRange(result.Items);
@@ -61,8 +61,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<List<string>> ListAllGatewayIdsAsync(
-            this IGatewayRegistry service,
-            CancellationToken ct = default) {
+            this IGatewayRegistry service, CancellationToken ct = default) {
             var publishers = new List<string>();
             var result = await service.ListGatewaysAsync(null, null, ct);
             publishers.AddRange(result.Items.Select(s => s.Id));

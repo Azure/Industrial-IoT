@@ -16,6 +16,6 @@ Get-ChildItem $BuildRoot -Recurse -Include "container.json" `
 
     # Get root
     $folder = $_.DirectoryName.Replace($BuildRoot, "").Substring(1)
-    $metadata = Get-Content -Raw -Path (join-path $_.DirectoryName "container.json")
-    return $metadata
+    $metadata = Get-Content -Raw -Path (join-path $_.DirectoryName "container.json") | ConvertFrom-Json
+    return $metadata.name
 }

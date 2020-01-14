@@ -18,7 +18,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2.Controllers {
     /// Certificate services.
     /// </summary>
     [ExceptionsFilter]
-    [Route(VersionInfo.PATH + "/certificates")]
+    [ApiVersion("2")]
+    [Route("v{version:apiVersion}/certificates")]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]

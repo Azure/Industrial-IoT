@@ -41,8 +41,8 @@ export interface PublishedItemApiModel {
  */
 export interface CredentialApiModel {
   /**
-   * @member {CredentialType} [type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @member {CredentialType} [type] Possible values include: 'None',
+   * 'UserName', 'X509Certificate', 'JwtToken'
    */
   type?: CredentialType;
   /**
@@ -59,10 +59,8 @@ export interface CredentialApiModel {
  */
 export interface DiagnosticsApiModel {
   /**
-   * @member {DiagnosticsLevel} [level] Requested level of response
-   * diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status',
-   * 'Operations', 'Diagnostics', 'Verbose'
+   * @member {DiagnosticsLevel} [level] Possible values include: 'None',
+   * 'Status', 'Operations', 'Diagnostics', 'Verbose'
    */
   level?: DiagnosticsLevel;
   /**
@@ -85,7 +83,7 @@ export interface DiagnosticsApiModel {
  */
 export interface RequestHeaderApiModel {
   /**
-   * @member {CredentialApiModel} [elevation] Optional User elevation
+   * @member {CredentialApiModel} [elevation]
    */
   elevation?: CredentialApiModel;
   /**
@@ -93,8 +91,7 @@ export interface RequestHeaderApiModel {
    */
   locales?: string[];
   /**
-   * @member {DiagnosticsApiModel} [diagnostics] Optional diagnostics
-   * configuration
+   * @member {DiagnosticsApiModel} [diagnostics]
    */
   diagnostics?: DiagnosticsApiModel;
 }
@@ -107,11 +104,11 @@ export interface RequestHeaderApiModel {
  */
 export interface PublishStartRequestApiModel {
   /**
-   * @member {PublishedItemApiModel} item Item to publish
+   * @member {PublishedItemApiModel} item
    */
   item: PublishedItemApiModel;
   /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
+   * @member {RequestHeaderApiModel} [header]
    */
   header?: RequestHeaderApiModel;
 }
@@ -145,8 +142,7 @@ export interface ServiceResultApiModel {
  */
 export interface PublishStartResponseApiModel {
   /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * error
+   * @member {ServiceResultApiModel} [errorInfo]
    */
   errorInfo?: ServiceResultApiModel;
 }
@@ -163,7 +159,7 @@ export interface PublishStopRequestApiModel {
    */
   nodeId: string;
   /**
-   * @member {RequestHeaderApiModel} [header] Optional request header
+   * @member {RequestHeaderApiModel} [header]
    */
   header?: RequestHeaderApiModel;
 }
@@ -176,8 +172,7 @@ export interface PublishStopRequestApiModel {
  */
 export interface PublishStopResponseApiModel {
   /**
-   * @member {ServiceResultApiModel} [errorInfo] Service result in case of
-   * error
+   * @member {ServiceResultApiModel} [errorInfo]
    */
   errorInfo?: ServiceResultApiModel;
 }
@@ -269,10 +264,8 @@ export interface StatusResponseApiModel {
    */
   readonly dependencies?: { [propertyName: string]: string };
   /**
-   * @member {{ [propertyName: string]: string }} [metadata] Optional meta
-   * data.
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
+   * @member {{ [propertyName: string]: string }} [metadata] **NOTE: This
+   * property will not be serialized. It can only be populated by the server.**
    */
   readonly metadata?: { [propertyName: string]: string };
 }
@@ -298,10 +291,9 @@ export interface AzureOpcPublisherClientOptions extends ServiceClientOptions {
  */
 export interface AzureOpcPublisherClientSubscribeOptionalParams extends msRest.RequestOptionsBase {
   /**
-   * @member {string} [userId] The user id that will receive publisher
-   * samples.
+   * @member {string} [body] The user id that will receive publisher samples.
    */
-  userId?: string;
+  body?: string;
 }
 
 /**
@@ -359,9 +351,9 @@ export type StopPublishingValuesResponse = PublishStopResponseApiModel & {
 };
 
 /**
- * Contains response data for the getNextListOfPublishedNodes operation.
+ * Contains response data for the getFirstListOfPublishedNodes operation.
  */
-export type GetNextListOfPublishedNodesResponse = PublishedItemListResponseApiModel & {
+export type GetFirstListOfPublishedNodesResponse = PublishedItemListResponseApiModel & {
   /**
    * The underlying HTTP response.
    */
@@ -378,9 +370,9 @@ export type GetNextListOfPublishedNodesResponse = PublishedItemListResponseApiMo
 };
 
 /**
- * Contains response data for the getFirstListOfPublishedNodes operation.
+ * Contains response data for the getNextListOfPublishedNodes operation.
  */
-export type GetFirstListOfPublishedNodesResponse = PublishedItemListResponseApiModel & {
+export type GetNextListOfPublishedNodesResponse = PublishedItemListResponseApiModel & {
   /**
    * The underlying HTTP response.
    */

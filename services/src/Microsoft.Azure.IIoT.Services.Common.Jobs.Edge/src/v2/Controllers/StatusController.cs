@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.v2.Controllers {
     /// <summary>
     /// Status checks
     /// </summary>
-    [Route(VersionInfo.PATH + "/status")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/status")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [ApiController]

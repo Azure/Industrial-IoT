@@ -22,25 +22,24 @@ module azure.iiot.opc.vault
       # @return [String] Trust group
       attr_accessor :group_id
 
-      # @return [CertificateRequestState] Request state. Possible values
-      # include: 'New', 'Approved', 'Rejected', 'Failure', 'Completed',
-      # 'Accepted'
+      # @return [CertificateRequestState] Possible values include: 'New',
+      # 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'
       attr_accessor :state
 
-      # @return [CertificateRequestType] Request type. Possible values include:
+      # @return [CertificateRequestType] Possible values include:
       # 'SigningRequest', 'KeyPairRequest'
       attr_accessor :type
 
       # @return Error diagnostics
       attr_accessor :error_info
 
-      # @return [VaultOperationContextApiModel] Request time
+      # @return [VaultOperationContextApiModel]
       attr_accessor :submitted
 
-      # @return [VaultOperationContextApiModel] Approved or rejected
+      # @return [VaultOperationContextApiModel]
       attr_accessor :approved
 
-      # @return [VaultOperationContextApiModel] Finished
+      # @return [VaultOperationContextApiModel]
       attr_accessor :accepted
 
 

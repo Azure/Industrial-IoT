@@ -23,7 +23,7 @@ import (
 
 const (
 // DefaultBaseURI is the default URI used for the service Azureiiotopcpublisher
-DefaultBaseURI = "/publisher")
+DefaultBaseURI = "http://localhost:9080")
 
 // BaseClient is the base client for Azureiiotopcpublisher.
 type BaseClient struct {
@@ -36,7 +36,9 @@ func New()BaseClient {
     return NewWithBaseURI(DefaultBaseURI, )
 }
 
-// NewWithBaseURI creates an instance of the BaseClient client.
+// NewWithBaseURI creates an instance of the BaseClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a
+// non-standard base URI (sovereign clouds, Azure stack).
 func NewWithBaseURI(baseURI string, ) BaseClient {
     return BaseClient{
         Client: autorest.NewClientWithUserAgent(UserAgent()),
@@ -45,13 +47,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 }
 
     // GetFirstListOfPublishedNodes returns currently published node ids for an
-    // endpoint.
-    // The endpoint must be activated and connected and the module client
+    // endpoint. The endpoint must be activated and connected and the module client
     // and server must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the list request
-    func (client BaseClient) GetFirstListOfPublishedNodes(ctx context.Context, endpointID string, request PublishedItemListRequestAPIModel) (result PublishedItemListResponseAPIModel, err error) {
+            // body - the list request
+    func (client BaseClient) GetFirstListOfPublishedNodes(ctx context.Context, endpointID string, body PublishedItemListRequestAPIModel) (result PublishedItemListResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetFirstListOfPublishedNodes")
             defer func() {
@@ -62,7 +63,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-            req, err := client.GetFirstListOfPublishedNodesPreparer(ctx, endpointID, request)
+            req, err := client.GetFirstListOfPublishedNodesPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopcpublisher.BaseClient", "GetFirstListOfPublishedNodes", nil , "Failure preparing request")
         return
@@ -84,7 +85,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // GetFirstListOfPublishedNodesPreparer prepares the GetFirstListOfPublishedNodes request.
-        func (client BaseClient) GetFirstListOfPublishedNodesPreparer(ctx context.Context, endpointID string, request PublishedItemListRequestAPIModel) (*http.Request, error) {
+        func (client BaseClient) GetFirstListOfPublishedNodesPreparer(ctx context.Context, endpointID string, body PublishedItemListRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -94,7 +95,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/publish/{endpointId}",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -119,9 +120,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
     // GetNextListOfPublishedNodes returns next set of currently published node ids
-    // for an endpoint.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // for an endpoint. The endpoint must be activated and connected and the module
+    // client and server must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
             // continuationToken - the continuation token to continue with
@@ -295,13 +295,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // StartPublishingValues start publishing variable node values to IoT Hub.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // StartPublishingValues start publishing variable node values to IoT Hub. The
+    // endpoint must be activated and connected and the module client and server
+    // must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the publish request
-    func (client BaseClient) StartPublishingValues(ctx context.Context, endpointID string, request PublishStartRequestAPIModel) (result PublishStartResponseAPIModel, err error) {
+            // body - the publish request
+    func (client BaseClient) StartPublishingValues(ctx context.Context, endpointID string, body PublishStartRequestAPIModel) (result PublishStartResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.StartPublishingValues")
             defer func() {
@@ -313,14 +313,14 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }()
         }
                 if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.Item", Name: validation.Null, Rule: true ,
-                Chain: []validation.Constraint{	{Target: "request.Item.NodeID", Name: validation.Null, Rule: true, Chain: nil },
+                { TargetValue: body,
+                 Constraints: []validation.Constraint{	{Target: "body.Item", Name: validation.Null, Rule: true ,
+                Chain: []validation.Constraint{	{Target: "body.Item.NodeID", Name: validation.Null, Rule: true, Chain: nil },
                 }}}}}); err != nil {
                 return result, validation.NewError("azureiiotopcpublisher.BaseClient", "StartPublishingValues", err.Error())
                 }
 
-                    req, err := client.StartPublishingValuesPreparer(ctx, endpointID, request)
+                    req, err := client.StartPublishingValuesPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopcpublisher.BaseClient", "StartPublishingValues", nil , "Failure preparing request")
         return
@@ -342,7 +342,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // StartPublishingValuesPreparer prepares the StartPublishingValues request.
-        func (client BaseClient) StartPublishingValuesPreparer(ctx context.Context, endpointID string, request PublishStartRequestAPIModel) (*http.Request, error) {
+        func (client BaseClient) StartPublishingValuesPreparer(ctx context.Context, endpointID string, body PublishStartRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -352,7 +352,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/publish/{endpointId}/start",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -376,13 +376,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // StopPublishingValues stop publishing variable node values to IoT Hub.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // StopPublishingValues stop publishing variable node values to IoT Hub. The
+    // endpoint must be activated and connected and the module client and server
+    // must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the unpublish request
-    func (client BaseClient) StopPublishingValues(ctx context.Context, endpointID string, request PublishStopRequestAPIModel) (result PublishStopResponseAPIModel, err error) {
+            // body - the unpublish request
+    func (client BaseClient) StopPublishingValues(ctx context.Context, endpointID string, body PublishStopRequestAPIModel) (result PublishStopResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.StopPublishingValues")
             defer func() {
@@ -394,12 +394,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }()
         }
                 if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.NodeID", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
+                { TargetValue: body,
+                 Constraints: []validation.Constraint{	{Target: "body.NodeID", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
                 return result, validation.NewError("azureiiotopcpublisher.BaseClient", "StopPublishingValues", err.Error())
                 }
 
-                    req, err := client.StopPublishingValuesPreparer(ctx, endpointID, request)
+                    req, err := client.StopPublishingValuesPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopcpublisher.BaseClient", "StopPublishingValues", nil , "Failure preparing request")
         return
@@ -421,7 +421,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // StopPublishingValuesPreparer prepares the StopPublishingValues request.
-        func (client BaseClient) StopPublishingValuesPreparer(ctx context.Context, endpointID string, request PublishStopRequestAPIModel) (*http.Request, error) {
+        func (client BaseClient) StopPublishingValuesPreparer(ctx context.Context, endpointID string, body PublishStopRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -431,7 +431,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/publish/{endpointId}/stop",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -458,9 +458,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
     // Subscribe register a client to receive publisher samples through SignalR.
         // Parameters:
             // endpointID - the endpoint to subscribe to
-            // userID - the user id that will receive publisher
-            // samples.
-    func (client BaseClient) Subscribe(ctx context.Context, endpointID string, userID string) (result autorest.Response, err error) {
+            // body - the user id that will receive publisher samples.
+    func (client BaseClient) Subscribe(ctx context.Context, endpointID string, body string) (result autorest.Response, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.Subscribe")
             defer func() {
@@ -471,7 +470,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-            req, err := client.SubscribePreparer(ctx, endpointID, userID)
+            req, err := client.SubscribePreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopcpublisher.BaseClient", "Subscribe", nil , "Failure preparing request")
         return
@@ -493,7 +492,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // SubscribePreparer prepares the Subscribe request.
-        func (client BaseClient) SubscribePreparer(ctx context.Context, endpointID string, userID string) (*http.Request, error) {
+        func (client BaseClient) SubscribePreparer(ctx context.Context, endpointID string, body string) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -503,9 +502,9 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPut(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/monitor/{endpointId}/samples",pathParameters))
-                if len(userID) > 0 {
+                if len(body) > 0 {
                 preparer = autorest.DecoratePreparer(preparer,
-                autorest.WithJSON(userID))
+                autorest.WithJSON(body))
                 }
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
@@ -532,8 +531,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
     // Unsubscribe unregister a client and stop it from receiving samples.
         // Parameters:
             // endpointID - the endpoint to unsubscribe from
-            // userID - the user id that will not receive
-            // any more published samples
+            // userID - the user id that will not receive any more published
+            // samples
     func (client BaseClient) Unsubscribe(ctx context.Context, endpointID string, userID string) (result autorest.Response, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.Unsubscribe")

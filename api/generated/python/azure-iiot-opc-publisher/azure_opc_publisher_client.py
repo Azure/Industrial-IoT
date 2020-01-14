@@ -34,7 +34,7 @@ class AzureOpcPublisherClientConfiguration(Configuration):
         if credentials is None:
             raise ValueError("Parameter 'credentials' must not be None.")
         if not base_url:
-            base_url = '/publisher'
+            base_url = 'http://localhost:9080'
 
         super(AzureOpcPublisherClientConfiguration, self).__init__(base_url)
 
@@ -68,16 +68,15 @@ class AzureOpcPublisherClient(object):
 
 
     def subscribe(
-            self, endpoint_id, user_id=None, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body=None, custom_headers=None, raw=False, **operation_config):
         """Subscribe to receive samples.
 
         Register a client to receive publisher samples through SignalR.
 
         :param endpoint_id: The endpoint to subscribe to
         :type endpoint_id: str
-        :param user_id: The user id that will receive publisher
-         samples.
-        :type user_id: str
+        :param body: The user id that will receive publisher samples.
+        :type body: str
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
@@ -105,8 +104,8 @@ class AzureOpcPublisherClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        if user_id is not None:
-            body_content = self._serialize.body(user_id, 'str')
+        if body is not None:
+            body_content = self._serialize.body(body, 'str')
         else:
             body_content = None
 
@@ -131,8 +130,8 @@ class AzureOpcPublisherClient(object):
 
         :param endpoint_id: The endpoint to unsubscribe from
         :type endpoint_id: str
-        :param user_id: The user id that will not receive
-         any more published samples
+        :param user_id: The user id that will not receive any more published
+         samples
         :type user_id: str
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
@@ -174,17 +173,17 @@ class AzureOpcPublisherClient(object):
     unsubscribe.metadata = {'url': '/v2/monitor/{endpointId}/samples/{userId}'}
 
     def start_publishing_values(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Start publishing node values.
 
-        Start publishing variable node values to IoT Hub.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Start publishing variable node values to IoT Hub. The endpoint must be
+        activated and connected and the module client and server must trust
+        each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The publish request
-        :type request:
+        :param body: The publish request
+        :type body:
          ~azure-iiot-opc-publisher.models.PublishStartRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
@@ -214,7 +213,7 @@ class AzureOpcPublisherClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'PublishStartRequestApiModel')
+        body_content = self._serialize.body(body, 'PublishStartRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -237,17 +236,17 @@ class AzureOpcPublisherClient(object):
     start_publishing_values.metadata = {'url': '/v2/publish/{endpointId}/start'}
 
     def stop_publishing_values(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Stop publishing node values.
 
-        Stop publishing variable node values to IoT Hub.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Stop publishing variable node values to IoT Hub. The endpoint must be
+        activated and connected and the module client and server must trust
+        each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The unpublish request
-        :type request:
+        :param body: The unpublish request
+        :type body:
          ~azure-iiot-opc-publisher.models.PublishStopRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
@@ -277,7 +276,7 @@ class AzureOpcPublisherClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'PublishStopRequestApiModel')
+        body_content = self._serialize.body(body, 'PublishStopRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -299,13 +298,78 @@ class AzureOpcPublisherClient(object):
         return deserialized
     stop_publishing_values.metadata = {'url': '/v2/publish/{endpointId}/stop'}
 
+    def get_first_list_of_published_nodes(
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
+        """Get currently published nodes.
+
+        Returns currently published node ids for an endpoint. The endpoint must
+        be activated and connected and the module client and server must trust
+        each other.
+
+        :param endpoint_id: The identifier of the activated endpoint.
+        :type endpoint_id: str
+        :param body: The list request
+        :type body:
+         ~azure-iiot-opc-publisher.models.PublishedItemListRequestApiModel
+        :param dict custom_headers: headers that will be added to the request
+        :param bool raw: returns the direct response alongside the
+         deserialized response
+        :param operation_config: :ref:`Operation configuration
+         overrides<msrest:optionsforoperations>`.
+        :return: PublishedItemListResponseApiModel or ClientRawResponse if
+         raw=true
+        :rtype:
+         ~azure-iiot-opc-publisher.models.PublishedItemListResponseApiModel or
+         ~msrest.pipeline.ClientRawResponse
+        :raises:
+         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
+        """
+        # Construct URL
+        url = self.get_first_list_of_published_nodes.metadata['url']
+        path_format_arguments = {
+            'endpointId': self._serialize.url("endpoint_id", endpoint_id, 'str')
+        }
+        url = self._client.format_url(url, **path_format_arguments)
+
+        # Construct parameters
+        query_parameters = {}
+
+        # Construct headers
+        header_parameters = {}
+        header_parameters['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+        if custom_headers:
+            header_parameters.update(custom_headers)
+
+        # Construct body
+        body_content = self._serialize.body(body, 'PublishedItemListRequestApiModel')
+
+        # Construct and send request
+        request = self._client.post(url, query_parameters)
+        response = self._client.send(
+            request, header_parameters, body_content, stream=False, **operation_config)
+
+        if response.status_code not in [200]:
+            raise HttpOperationError(self._deserialize, response)
+
+        deserialized = None
+
+        if response.status_code == 200:
+            deserialized = self._deserialize('PublishedItemListResponseApiModel', response)
+
+        if raw:
+            client_raw_response = ClientRawResponse(deserialized, response)
+            return client_raw_response
+
+        return deserialized
+    get_first_list_of_published_nodes.metadata = {'url': '/v2/publish/{endpointId}'}
+
     def get_next_list_of_published_nodes(
             self, endpoint_id, continuation_token, custom_headers=None, raw=False, **operation_config):
         """Get next set of published nodes.
 
-        Returns next set of currently published node ids for an endpoint.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Returns next set of currently published node ids for an endpoint. The
+        endpoint must be activated and connected and the module client and
+        server must trust each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
@@ -359,71 +423,6 @@ class AzureOpcPublisherClient(object):
 
         return deserialized
     get_next_list_of_published_nodes.metadata = {'url': '/v2/publish/{endpointId}'}
-
-    def get_first_list_of_published_nodes(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
-        """Get currently published nodes.
-
-        Returns currently published node ids for an endpoint.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
-
-        :param endpoint_id: The identifier of the activated endpoint.
-        :type endpoint_id: str
-        :param request: The list request
-        :type request:
-         ~azure-iiot-opc-publisher.models.PublishedItemListRequestApiModel
-        :param dict custom_headers: headers that will be added to the request
-        :param bool raw: returns the direct response alongside the
-         deserialized response
-        :param operation_config: :ref:`Operation configuration
-         overrides<msrest:optionsforoperations>`.
-        :return: PublishedItemListResponseApiModel or ClientRawResponse if
-         raw=true
-        :rtype:
-         ~azure-iiot-opc-publisher.models.PublishedItemListResponseApiModel or
-         ~msrest.pipeline.ClientRawResponse
-        :raises:
-         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
-        """
-        # Construct URL
-        url = self.get_first_list_of_published_nodes.metadata['url']
-        path_format_arguments = {
-            'endpointId': self._serialize.url("endpoint_id", endpoint_id, 'str')
-        }
-        url = self._client.format_url(url, **path_format_arguments)
-
-        # Construct parameters
-        query_parameters = {}
-
-        # Construct headers
-        header_parameters = {}
-        header_parameters['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-        if custom_headers:
-            header_parameters.update(custom_headers)
-
-        # Construct body
-        body_content = self._serialize.body(request, 'PublishedItemListRequestApiModel')
-
-        # Construct and send request
-        request = self._client.post(url, query_parameters)
-        response = self._client.send(
-            request, header_parameters, body_content, stream=False, **operation_config)
-
-        if response.status_code not in [200]:
-            raise HttpOperationError(self._deserialize, response)
-
-        deserialized = None
-
-        if response.status_code == 200:
-            deserialized = self._deserialize('PublishedItemListResponseApiModel', response)
-
-        if raw:
-            client_raw_response = ClientRawResponse(deserialized, response)
-            return client_raw_response
-
-        return deserialized
-    get_first_list_of_published_nodes.metadata = {'url': '/v2/publish/{endpointId}'}
 
     def get_status(
             self, custom_headers=None, raw=False, **operation_config):

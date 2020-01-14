@@ -55,7 +55,7 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
      * Initializes an instance of AzureOpcPublisherClient client.
      */
     public AzureOpcPublisherClientImpl() {
-        this("https:///publisher");
+        this("http://localhost:9080");
     }
 
     /**
@@ -75,7 +75,7 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
      * @param restBuilder the builder for building an Retrofit client, bundled with user configurations
      */
     public AzureOpcPublisherClientImpl(OkHttpClient.Builder clientBuilder, Retrofit.Builder restBuilder) {
-        this("https:///publisher", clientBuilder, restBuilder);
+        this("http://localhost:9080", clientBuilder, restBuilder);
         initialize();
     }
 
@@ -116,7 +116,7 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
     interface AzureOpcPublisherClientService {
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.publisher.AzureOpcPublisherClient subscribe" })
         @PUT("v2/monitor/{endpointId}/samples")
-        Observable<Response<ResponseBody>> subscribe(@Path("endpointId") String endpointId, @Body String userId);
+        Observable<Response<ResponseBody>> subscribe(@Path("endpointId") String endpointId, @Body String body);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.publisher.AzureOpcPublisherClient unsubscribe" })
         @HTTP(path = "v2/monitor/{endpointId}/samples/{userId}", method = "DELETE", hasBody = true)
@@ -124,19 +124,19 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
 
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.publisher.AzureOpcPublisherClient startPublishingValues" })
         @POST("v2/publish/{endpointId}/start")
-        Observable<Response<ResponseBody>> startPublishingValues(@Path("endpointId") String endpointId, @Body PublishStartRequestApiModel request);
+        Observable<Response<ResponseBody>> startPublishingValues(@Path("endpointId") String endpointId, @Body PublishStartRequestApiModel body);
 
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.publisher.AzureOpcPublisherClient stopPublishingValues" })
         @POST("v2/publish/{endpointId}/stop")
-        Observable<Response<ResponseBody>> stopPublishingValues(@Path("endpointId") String endpointId, @Body PublishStopRequestApiModel request);
+        Observable<Response<ResponseBody>> stopPublishingValues(@Path("endpointId") String endpointId, @Body PublishStopRequestApiModel body);
+
+        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.publisher.AzureOpcPublisherClient getFirstListOfPublishedNodes" })
+        @POST("v2/publish/{endpointId}")
+        Observable<Response<ResponseBody>> getFirstListOfPublishedNodes(@Path("endpointId") String endpointId, @Body PublishedItemListRequestApiModel body);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.publisher.AzureOpcPublisherClient getNextListOfPublishedNodes" })
         @GET("v2/publish/{endpointId}")
         Observable<Response<ResponseBody>> getNextListOfPublishedNodes(@Path("endpointId") String endpointId, @Query("continuationToken") String continuationToken);
-
-        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.publisher.AzureOpcPublisherClient getFirstListOfPublishedNodes" })
-        @POST("v2/publish/{endpointId}")
-        Observable<Response<ResponseBody>> getFirstListOfPublishedNodes(@Path("endpointId") String endpointId, @Body PublishedItemListRequestApiModel request);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.publisher.AzureOpcPublisherClient getStatus" })
         @GET("v2/status")
@@ -199,8 +199,8 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
         if (endpointId == null) {
             throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
         }
-        final String userId = null;
-        return service.subscribe(endpointId, userId)
+        final String body = null;
+        return service.subscribe(endpointId, body)
             .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
                 @Override
                 public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
@@ -219,14 +219,13 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
      * Register a client to receive publisher samples through SignalR.
      *
      * @param endpointId The endpoint to subscribe to
-     * @param userId The user id that will receive publisher
-                 samples.
+     * @param body The user id that will receive publisher samples.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      */
-    public void subscribe(String endpointId, String userId) {
-        subscribeWithServiceResponseAsync(endpointId, userId).toBlocking().single().body();
+    public void subscribe(String endpointId, String body) {
+        subscribeWithServiceResponseAsync(endpointId, body).toBlocking().single().body();
     }
 
     /**
@@ -234,14 +233,13 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
      * Register a client to receive publisher samples through SignalR.
      *
      * @param endpointId The endpoint to subscribe to
-     * @param userId The user id that will receive publisher
-                 samples.
+     * @param body The user id that will receive publisher samples.
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    public ServiceFuture<Void> subscribeAsync(String endpointId, String userId, final ServiceCallback<Void> serviceCallback) {
-        return ServiceFuture.fromResponse(subscribeWithServiceResponseAsync(endpointId, userId), serviceCallback);
+    public ServiceFuture<Void> subscribeAsync(String endpointId, String body, final ServiceCallback<Void> serviceCallback) {
+        return ServiceFuture.fromResponse(subscribeWithServiceResponseAsync(endpointId, body), serviceCallback);
     }
 
     /**
@@ -249,13 +247,12 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
      * Register a client to receive publisher samples through SignalR.
      *
      * @param endpointId The endpoint to subscribe to
-     * @param userId The user id that will receive publisher
-                 samples.
+     * @param body The user id that will receive publisher samples.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    public Observable<Void> subscribeAsync(String endpointId, String userId) {
-        return subscribeWithServiceResponseAsync(endpointId, userId).map(new Func1<ServiceResponse<Void>, Void>() {
+    public Observable<Void> subscribeAsync(String endpointId, String body) {
+        return subscribeWithServiceResponseAsync(endpointId, body).map(new Func1<ServiceResponse<Void>, Void>() {
             @Override
             public Void call(ServiceResponse<Void> response) {
                 return response.body();
@@ -268,16 +265,15 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
      * Register a client to receive publisher samples through SignalR.
      *
      * @param endpointId The endpoint to subscribe to
-     * @param userId The user id that will receive publisher
-                 samples.
+     * @param body The user id that will receive publisher samples.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    public Observable<ServiceResponse<Void>> subscribeWithServiceResponseAsync(String endpointId, String userId) {
+    public Observable<ServiceResponse<Void>> subscribeWithServiceResponseAsync(String endpointId, String body) {
         if (endpointId == null) {
             throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
         }
-        return service.subscribe(endpointId, userId)
+        return service.subscribe(endpointId, body)
             .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<Void>>>() {
                 @Override
                 public Observable<ServiceResponse<Void>> call(Response<ResponseBody> response) {
@@ -302,8 +298,7 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
      * Unregister a client and stop it from receiving samples.
      *
      * @param endpointId The endpoint to unsubscribe from
-     * @param userId The user id that will not receive
-                 any more published samples
+     * @param userId The user id that will not receive any more published samples
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
@@ -317,8 +312,7 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
      * Unregister a client and stop it from receiving samples.
      *
      * @param endpointId The endpoint to unsubscribe from
-     * @param userId The user id that will not receive
-                 any more published samples
+     * @param userId The user id that will not receive any more published samples
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
@@ -332,8 +326,7 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
      * Unregister a client and stop it from receiving samples.
      *
      * @param endpointId The endpoint to unsubscribe from
-     * @param userId The user id that will not receive
-                 any more published samples
+     * @param userId The user id that will not receive any more published samples
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
@@ -351,8 +344,7 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
      * Unregister a client and stop it from receiving samples.
      *
      * @param endpointId The endpoint to unsubscribe from
-     * @param userId The user id that will not receive
-                 any more published samples
+     * @param userId The user id that will not receive any more published samples
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
@@ -385,50 +377,44 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
 
     /**
      * Start publishing node values.
-     * Start publishing variable node values to IoT Hub.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Start publishing variable node values to IoT Hub. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The publish request
+     * @param body The publish request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the PublishStartResponseApiModel object if successful.
      */
-    public PublishStartResponseApiModel startPublishingValues(String endpointId, PublishStartRequestApiModel request) {
-        return startPublishingValuesWithServiceResponseAsync(endpointId, request).toBlocking().single().body();
+    public PublishStartResponseApiModel startPublishingValues(String endpointId, PublishStartRequestApiModel body) {
+        return startPublishingValuesWithServiceResponseAsync(endpointId, body).toBlocking().single().body();
     }
 
     /**
      * Start publishing node values.
-     * Start publishing variable node values to IoT Hub.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Start publishing variable node values to IoT Hub. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The publish request
+     * @param body The publish request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    public ServiceFuture<PublishStartResponseApiModel> startPublishingValuesAsync(String endpointId, PublishStartRequestApiModel request, final ServiceCallback<PublishStartResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(startPublishingValuesWithServiceResponseAsync(endpointId, request), serviceCallback);
+    public ServiceFuture<PublishStartResponseApiModel> startPublishingValuesAsync(String endpointId, PublishStartRequestApiModel body, final ServiceCallback<PublishStartResponseApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(startPublishingValuesWithServiceResponseAsync(endpointId, body), serviceCallback);
     }
 
     /**
      * Start publishing node values.
-     * Start publishing variable node values to IoT Hub.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Start publishing variable node values to IoT Hub. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The publish request
+     * @param body The publish request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the PublishStartResponseApiModel object
      */
-    public Observable<PublishStartResponseApiModel> startPublishingValuesAsync(String endpointId, PublishStartRequestApiModel request) {
-        return startPublishingValuesWithServiceResponseAsync(endpointId, request).map(new Func1<ServiceResponse<PublishStartResponseApiModel>, PublishStartResponseApiModel>() {
+    public Observable<PublishStartResponseApiModel> startPublishingValuesAsync(String endpointId, PublishStartRequestApiModel body) {
+        return startPublishingValuesWithServiceResponseAsync(endpointId, body).map(new Func1<ServiceResponse<PublishStartResponseApiModel>, PublishStartResponseApiModel>() {
             @Override
             public PublishStartResponseApiModel call(ServiceResponse<PublishStartResponseApiModel> response) {
                 return response.body();
@@ -438,24 +424,22 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
 
     /**
      * Start publishing node values.
-     * Start publishing variable node values to IoT Hub.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Start publishing variable node values to IoT Hub. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The publish request
+     * @param body The publish request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the PublishStartResponseApiModel object
      */
-    public Observable<ServiceResponse<PublishStartResponseApiModel>> startPublishingValuesWithServiceResponseAsync(String endpointId, PublishStartRequestApiModel request) {
+    public Observable<ServiceResponse<PublishStartResponseApiModel>> startPublishingValuesWithServiceResponseAsync(String endpointId, PublishStartRequestApiModel body) {
         if (endpointId == null) {
             throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
         }
-        if (request == null) {
-            throw new IllegalArgumentException("Parameter request is required and cannot be null.");
+        if (body == null) {
+            throw new IllegalArgumentException("Parameter body is required and cannot be null.");
         }
-        Validator.validate(request);
-        return service.startPublishingValues(endpointId, request)
+        Validator.validate(body);
+        return service.startPublishingValues(endpointId, body)
             .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<PublishStartResponseApiModel>>>() {
                 @Override
                 public Observable<ServiceResponse<PublishStartResponseApiModel>> call(Response<ResponseBody> response) {
@@ -477,50 +461,44 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
 
     /**
      * Stop publishing node values.
-     * Stop publishing variable node values to IoT Hub.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Stop publishing variable node values to IoT Hub. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The unpublish request
+     * @param body The unpublish request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the PublishStopResponseApiModel object if successful.
      */
-    public PublishStopResponseApiModel stopPublishingValues(String endpointId, PublishStopRequestApiModel request) {
-        return stopPublishingValuesWithServiceResponseAsync(endpointId, request).toBlocking().single().body();
+    public PublishStopResponseApiModel stopPublishingValues(String endpointId, PublishStopRequestApiModel body) {
+        return stopPublishingValuesWithServiceResponseAsync(endpointId, body).toBlocking().single().body();
     }
 
     /**
      * Stop publishing node values.
-     * Stop publishing variable node values to IoT Hub.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Stop publishing variable node values to IoT Hub. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The unpublish request
+     * @param body The unpublish request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    public ServiceFuture<PublishStopResponseApiModel> stopPublishingValuesAsync(String endpointId, PublishStopRequestApiModel request, final ServiceCallback<PublishStopResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(stopPublishingValuesWithServiceResponseAsync(endpointId, request), serviceCallback);
+    public ServiceFuture<PublishStopResponseApiModel> stopPublishingValuesAsync(String endpointId, PublishStopRequestApiModel body, final ServiceCallback<PublishStopResponseApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(stopPublishingValuesWithServiceResponseAsync(endpointId, body), serviceCallback);
     }
 
     /**
      * Stop publishing node values.
-     * Stop publishing variable node values to IoT Hub.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Stop publishing variable node values to IoT Hub. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The unpublish request
+     * @param body The unpublish request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the PublishStopResponseApiModel object
      */
-    public Observable<PublishStopResponseApiModel> stopPublishingValuesAsync(String endpointId, PublishStopRequestApiModel request) {
-        return stopPublishingValuesWithServiceResponseAsync(endpointId, request).map(new Func1<ServiceResponse<PublishStopResponseApiModel>, PublishStopResponseApiModel>() {
+    public Observable<PublishStopResponseApiModel> stopPublishingValuesAsync(String endpointId, PublishStopRequestApiModel body) {
+        return stopPublishingValuesWithServiceResponseAsync(endpointId, body).map(new Func1<ServiceResponse<PublishStopResponseApiModel>, PublishStopResponseApiModel>() {
             @Override
             public PublishStopResponseApiModel call(ServiceResponse<PublishStopResponseApiModel> response) {
                 return response.body();
@@ -530,24 +508,22 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
 
     /**
      * Stop publishing node values.
-     * Stop publishing variable node values to IoT Hub.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Stop publishing variable node values to IoT Hub. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The unpublish request
+     * @param body The unpublish request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the PublishStopResponseApiModel object
      */
-    public Observable<ServiceResponse<PublishStopResponseApiModel>> stopPublishingValuesWithServiceResponseAsync(String endpointId, PublishStopRequestApiModel request) {
+    public Observable<ServiceResponse<PublishStopResponseApiModel>> stopPublishingValuesWithServiceResponseAsync(String endpointId, PublishStopRequestApiModel body) {
         if (endpointId == null) {
             throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
         }
-        if (request == null) {
-            throw new IllegalArgumentException("Parameter request is required and cannot be null.");
+        if (body == null) {
+            throw new IllegalArgumentException("Parameter body is required and cannot be null.");
         }
-        Validator.validate(request);
-        return service.stopPublishingValues(endpointId, request)
+        Validator.validate(body);
+        return service.stopPublishingValues(endpointId, body)
             .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<PublishStopResponseApiModel>>>() {
                 @Override
                 public Observable<ServiceResponse<PublishStopResponseApiModel>> call(Response<ResponseBody> response) {
@@ -568,10 +544,92 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
     }
 
     /**
+     * Get currently published nodes.
+     * Returns currently published node ids for an endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
+     *
+     * @param endpointId The identifier of the activated endpoint.
+     * @param body The list request
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the PublishedItemListResponseApiModel object if successful.
+     */
+    public PublishedItemListResponseApiModel getFirstListOfPublishedNodes(String endpointId, PublishedItemListRequestApiModel body) {
+        return getFirstListOfPublishedNodesWithServiceResponseAsync(endpointId, body).toBlocking().single().body();
+    }
+
+    /**
+     * Get currently published nodes.
+     * Returns currently published node ids for an endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
+     *
+     * @param endpointId The identifier of the activated endpoint.
+     * @param body The list request
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<PublishedItemListResponseApiModel> getFirstListOfPublishedNodesAsync(String endpointId, PublishedItemListRequestApiModel body, final ServiceCallback<PublishedItemListResponseApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(getFirstListOfPublishedNodesWithServiceResponseAsync(endpointId, body), serviceCallback);
+    }
+
+    /**
+     * Get currently published nodes.
+     * Returns currently published node ids for an endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
+     *
+     * @param endpointId The identifier of the activated endpoint.
+     * @param body The list request
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublishedItemListResponseApiModel object
+     */
+    public Observable<PublishedItemListResponseApiModel> getFirstListOfPublishedNodesAsync(String endpointId, PublishedItemListRequestApiModel body) {
+        return getFirstListOfPublishedNodesWithServiceResponseAsync(endpointId, body).map(new Func1<ServiceResponse<PublishedItemListResponseApiModel>, PublishedItemListResponseApiModel>() {
+            @Override
+            public PublishedItemListResponseApiModel call(ServiceResponse<PublishedItemListResponseApiModel> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Get currently published nodes.
+     * Returns currently published node ids for an endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
+     *
+     * @param endpointId The identifier of the activated endpoint.
+     * @param body The list request
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the PublishedItemListResponseApiModel object
+     */
+    public Observable<ServiceResponse<PublishedItemListResponseApiModel>> getFirstListOfPublishedNodesWithServiceResponseAsync(String endpointId, PublishedItemListRequestApiModel body) {
+        if (endpointId == null) {
+            throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
+        }
+        if (body == null) {
+            throw new IllegalArgumentException("Parameter body is required and cannot be null.");
+        }
+        Validator.validate(body);
+        return service.getFirstListOfPublishedNodes(endpointId, body)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<PublishedItemListResponseApiModel>>>() {
+                @Override
+                public Observable<ServiceResponse<PublishedItemListResponseApiModel>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<PublishedItemListResponseApiModel> clientResponse = getFirstListOfPublishedNodesDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<PublishedItemListResponseApiModel> getFirstListOfPublishedNodesDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<PublishedItemListResponseApiModel, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<PublishedItemListResponseApiModel>() { }.getType())
+                .build(response);
+    }
+
+    /**
      * Get next set of published nodes.
-     * Returns next set of currently published node ids for an endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Returns next set of currently published node ids for an endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
      * @param continuationToken The continuation token to continue with
@@ -586,9 +644,7 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
 
     /**
      * Get next set of published nodes.
-     * Returns next set of currently published node ids for an endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Returns next set of currently published node ids for an endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
      * @param continuationToken The continuation token to continue with
@@ -602,9 +658,7 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
 
     /**
      * Get next set of published nodes.
-     * Returns next set of currently published node ids for an endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Returns next set of currently published node ids for an endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
      * @param continuationToken The continuation token to continue with
@@ -622,9 +676,7 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
 
     /**
      * Get next set of published nodes.
-     * Returns next set of currently published node ids for an endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Returns next set of currently published node ids for an endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
      * @param continuationToken The continuation token to continue with
@@ -653,98 +705,6 @@ public class AzureOpcPublisherClientImpl extends ServiceClient implements AzureO
     }
 
     private ServiceResponse<PublishedItemListResponseApiModel> getNextListOfPublishedNodesDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
-        return this.restClient().responseBuilderFactory().<PublishedItemListResponseApiModel, RestException>newInstance(this.serializerAdapter())
-                .register(200, new TypeToken<PublishedItemListResponseApiModel>() { }.getType())
-                .build(response);
-    }
-
-    /**
-     * Get currently published nodes.
-     * Returns currently published node ids for an endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The list request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the PublishedItemListResponseApiModel object if successful.
-     */
-    public PublishedItemListResponseApiModel getFirstListOfPublishedNodes(String endpointId, PublishedItemListRequestApiModel request) {
-        return getFirstListOfPublishedNodesWithServiceResponseAsync(endpointId, request).toBlocking().single().body();
-    }
-
-    /**
-     * Get currently published nodes.
-     * Returns currently published node ids for an endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The list request
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    public ServiceFuture<PublishedItemListResponseApiModel> getFirstListOfPublishedNodesAsync(String endpointId, PublishedItemListRequestApiModel request, final ServiceCallback<PublishedItemListResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(getFirstListOfPublishedNodesWithServiceResponseAsync(endpointId, request), serviceCallback);
-    }
-
-    /**
-     * Get currently published nodes.
-     * Returns currently published node ids for an endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The list request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the PublishedItemListResponseApiModel object
-     */
-    public Observable<PublishedItemListResponseApiModel> getFirstListOfPublishedNodesAsync(String endpointId, PublishedItemListRequestApiModel request) {
-        return getFirstListOfPublishedNodesWithServiceResponseAsync(endpointId, request).map(new Func1<ServiceResponse<PublishedItemListResponseApiModel>, PublishedItemListResponseApiModel>() {
-            @Override
-            public PublishedItemListResponseApiModel call(ServiceResponse<PublishedItemListResponseApiModel> response) {
-                return response.body();
-            }
-        });
-    }
-
-    /**
-     * Get currently published nodes.
-     * Returns currently published node ids for an endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The list request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the PublishedItemListResponseApiModel object
-     */
-    public Observable<ServiceResponse<PublishedItemListResponseApiModel>> getFirstListOfPublishedNodesWithServiceResponseAsync(String endpointId, PublishedItemListRequestApiModel request) {
-        if (endpointId == null) {
-            throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
-        }
-        if (request == null) {
-            throw new IllegalArgumentException("Parameter request is required and cannot be null.");
-        }
-        Validator.validate(request);
-        return service.getFirstListOfPublishedNodes(endpointId, request)
-            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<PublishedItemListResponseApiModel>>>() {
-                @Override
-                public Observable<ServiceResponse<PublishedItemListResponseApiModel>> call(Response<ResponseBody> response) {
-                    try {
-                        ServiceResponse<PublishedItemListResponseApiModel> clientResponse = getFirstListOfPublishedNodesDelegate(response);
-                        return Observable.just(clientResponse);
-                    } catch (Throwable t) {
-                        return Observable.error(t);
-                    }
-                }
-            });
-    }
-
-    private ServiceResponse<PublishedItemListResponseApiModel> getFirstListOfPublishedNodesDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<PublishedItemListResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<PublishedItemListResponseApiModel>() { }.getType())
                 .build(response);

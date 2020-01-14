@@ -35,23 +35,22 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// distinguished name.</param>
         /// <param name="parentId">The identifer of the parent trust
         /// group.</param>
-        /// <param name="type">The trust group type. Possible values include:
+        /// <param name="type">Possible values include:
         /// 'ApplicationInstanceCertificate', 'HttpsCertificate',
         /// 'UserCredentialCertificate'</param>
         /// <param name="lifetime">The lifetime of the trust group
         /// certificate.</param>
         /// <param name="keySize">The trust group certificate key size in
         /// bits.</param>
-        /// <param name="signatureAlgorithm">The certificate signature
-        /// algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-        /// 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'</param>
+        /// <param name="signatureAlgorithm">Possible values include: 'Rsa256',
+        /// 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'</param>
         /// <param name="issuedLifetime">The issued certificate lifetime in
         /// months.</param>
         /// <param name="issuedKeySize">The issued certificate key size in
         /// bits.</param>
-        /// <param name="issuedSignatureAlgorithm">The Signature algorithm for
-        /// issued certificates. Possible values include: 'Rsa256', 'Rsa384',
-        /// 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'</param>
+        /// <param name="issuedSignatureAlgorithm">Possible values include:
+        /// 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss',
+        /// 'Rsa512Pss'</param>
         public TrustGroupApiModel(string name, string subjectName, string parentId = default(string), TrustGroupType? type = default(TrustGroupType?), string lifetime = default(string), int? keySize = default(int?), SignatureAlgorithm? signatureAlgorithm = default(SignatureAlgorithm?), string issuedLifetime = default(string), int? issuedKeySize = default(int?), SignatureAlgorithm? issuedSignatureAlgorithm = default(SignatureAlgorithm?))
         {
             Name = name;
@@ -85,7 +84,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         public string ParentId { get; set; }
 
         /// <summary>
-        /// Gets or sets the trust group type. Possible values include:
+        /// Gets or sets possible values include:
         /// 'ApplicationInstanceCertificate', 'HttpsCertificate',
         /// 'UserCredentialCertificate'
         /// </summary>
@@ -111,9 +110,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         public int? KeySize { get; set; }
 
         /// <summary>
-        /// Gets or sets the certificate signature algorithm. Possible values
-        /// include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss',
-        /// 'Rsa512Pss'
+        /// Gets or sets possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
+        /// 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
         /// </summary>
         [JsonProperty(PropertyName = "signatureAlgorithm")]
         public SignatureAlgorithm? SignatureAlgorithm { get; set; }
@@ -131,9 +129,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         public int? IssuedKeySize { get; set; }
 
         /// <summary>
-        /// Gets or sets the Signature algorithm for issued certificates.
-        /// Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss',
-        /// 'Rsa384Pss', 'Rsa512Pss'
+        /// Gets or sets possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
+        /// 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
         /// </summary>
         [JsonProperty(PropertyName = "issuedSignatureAlgorithm")]
         public SignatureAlgorithm? IssuedSignatureAlgorithm { get; set; }

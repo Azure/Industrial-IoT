@@ -19,8 +19,7 @@ class ServerRegistrationRequestApiModel(Model):
     :type discovery_url: str
     :param id: Registration id
     :type id: str
-    :param activation_filter: Upon discovery, activate all endpoints with this
-     filter.
+    :param activation_filter:
     :type activation_filter:
      ~azure-iiot-opc-registry.models.EndpointActivationFilterApiModel
     """

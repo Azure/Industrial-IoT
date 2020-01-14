@@ -1,5 +1,6 @@
-﻿@page "/endpoints/{supervisorId}"
-@page "/endpoints/{supervisorId}/{page}"
+﻿@page "/endpoints"
+@page "/endpoints/{discovererId}"
+@page "/endpoints/{discovererId}/{page}"
 
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Services
@@ -12,9 +13,9 @@
 @inject IRegistryServiceApi RegistryService
 @inject Registry RegistryHelper
 
-<h1>Endpoint</h1>
+<h1>Endpoints</h1>
 
-<div>@SupervisorId</div>
+<div>@DiscovererId</div>
 
 <table class="table">
     <thead>
@@ -25,27 +26,24 @@
             <th>SecurityLevel</th>
             <th>EndpointActivation</th>
             <th>
-                <a href="/supervisors/">
+                <a href="/discoverers/">
                     <span class="oi oi-arrow-left"></span>
                 </a>
             </th>
         </tr>
     </thead>
     <tbody>
-        @foreach (var endpoint in pagedendpointList.Results)
-        {
+        @foreach (var endpoint in pagedendpointList.Results) {
             <tr>
                 @if (endpoint.ActivationState == EndpointActivationState.ActivatedAndConnected ||
-                     endpoint.ActivationState == EndpointActivationState.Activated)
-                {
+                   endpoint.ActivationState == EndpointActivationState.Activated) {
                     <td>
-                        <a href='browser/@SupervisorId/@endpoint.Registration.Id'>
+                        <a href='browser/@DiscovererId/@endpoint.Registration.Id'>
                             @endpoint.Registration.Endpoint.Url
                         </a>
                     </td>
                 }
-                else
-                {
+                else {
                     <td>@endpoint.Registration.Endpoint.Url</td>
                 }
                 <td>@endpoint.Registration.Endpoint.SecurityMode</td>
@@ -54,17 +52,17 @@
 
                 <td>
                     @if (endpoint.ActivationState == EndpointActivationState.ActivatedAndConnected ||
-                         endpoint.ActivationState == EndpointActivationState.Activated) {
+                       endpoint.ActivationState == EndpointActivationState.Activated) {
                         <input type="checkbox" checked
-                            @onchange="async eventArgs => { await SetActivation(endpoint.Registration.Id, eventArgs.Value); }" />
-                            @endpoint.ActivationState.ToString()
+                               @onchange="async eventArgs => { await SetActivation(endpoint.Registration.Id, eventArgs.Value); }" />
+                        @endpoint.ActivationState.ToString()
                     }
                     else {
                         <input type="checkbox"
-                            @onchange="async eventArgs => { await SetActivation(endpoint.Registration.Id, eventArgs.Value); }" />
-                            @endpoint.ActivationState.ToString()
+                               @onchange="async eventArgs => { await SetActivation(endpoint.Registration.Id, eventArgs.Value); }" />
+                        @endpoint.ActivationState.ToString()
                     }
-                    
+
                 </td>
                 <td></td>
             </tr>
@@ -80,7 +78,7 @@
     public string Page { get; set; } = "1";
 
     [Parameter]
-    public string SupervisorId { get; set; } = string.Empty;
+    public string DiscovererId { get; set; } = string.Empty;
 
     public const int PageLength = 10;
 
@@ -90,12 +88,12 @@
     /// <param name="page"></param>
     public void PagerPageChanged(int page) {
         pagedendpointList = endpointList.GetPaged(page, PageLength);
-        NavigationManager.NavigateTo("/endpoints/" + SupervisorId + "/" + page);
+        NavigationManager.NavigateTo("/endpoints/" + DiscovererId + "/" + page);
     }
 
     /// <inheritdoc/>
     protected override async Task OnInitializedAsync() {
-        endpointList = await RegistryHelper.GetEndpointListAsync(SupervisorId);
+        endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId);
         Page = "1";
         pagedendpointList = endpointList.GetPaged(Int32.Parse(Page), PageLength);
     }
@@ -106,8 +104,7 @@
     /// <param name="endpointId"></param>
     /// <param name="checkedValue"></param>
     /// <returns></returns>
-    private async Task SetActivation(string endpointId, object checkedValue)
-    {
+    private async Task SetActivation(string endpointId, object checkedValue) {
         if ((bool)checkedValue) {
 
             await RegistryService.ActivateEndpointAsync(endpointId);
@@ -116,7 +113,7 @@
             await RegistryService.DeactivateEndpointAsync(endpointId);
         }
 
-        endpointList = await RegistryHelper.GetEndpointListAsync(SupervisorId);
+        endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId);
         pagedendpointList = endpointList.GetPaged(Int32.Parse(Page), PageLength);
         await Task.CompletedTask;
         this.StateHasChanged();
@@ -136,7 +133,7 @@
         else {
             await RegistryService.ActivateEndpointAsync(endpointId);
         }
-       
+
     }
 
     public PagedResult<EndpointInfoApiModel> endpointList =

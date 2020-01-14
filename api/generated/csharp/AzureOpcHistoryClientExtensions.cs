@@ -23,9 +23,8 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// Delete value history at specified times
             /// </summary>
             /// <remarks>
-            /// Delete value history using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Delete value history using historic access. The endpoint must be activated
+            /// and connected and the module client and server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -33,21 +32,20 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history update request
             /// </param>
-            public static HistoryUpdateResponseApiModel HistoryDeleteValuesAtTimes(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel request)
+            public static HistoryUpdateResponseApiModel HistoryDeleteValuesAtTimes(this IAzureOpcHistoryClient operations, string endpointId, DeleteValuesAtTimesDetailsApiModelHistoryUpdateRequestApiModel body)
             {
-                return operations.HistoryDeleteValuesAtTimesAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.HistoryDeleteValuesAtTimesAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Delete value history at specified times
             /// </summary>
             /// <remarks>
-            /// Delete value history using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Delete value history using historic access. The endpoint must be activated
+            /// and connected and the module client and server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -55,15 +53,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history update request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<HistoryUpdateResponseApiModel> HistoryDeleteValuesAtTimesAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<HistoryUpdateResponseApiModel> HistoryDeleteValuesAtTimesAsync(this IAzureOpcHistoryClient operations, string endpointId, DeleteValuesAtTimesDetailsApiModelHistoryUpdateRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.HistoryDeleteValuesAtTimesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.HistoryDeleteValuesAtTimesWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -73,9 +71,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// Delete historic values
             /// </summary>
             /// <remarks>
-            /// Delete historic values using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Delete historic values using historic access. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -83,21 +81,21 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history update request
             /// </param>
-            public static HistoryUpdateResponseApiModel HistoryDeleteValues(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel request)
+            public static HistoryUpdateResponseApiModel HistoryDeleteValues(this IAzureOpcHistoryClient operations, string endpointId, DeleteValuesDetailsApiModelHistoryUpdateRequestApiModel body)
             {
-                return operations.HistoryDeleteValuesAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.HistoryDeleteValuesAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Delete historic values
             /// </summary>
             /// <remarks>
-            /// Delete historic values using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Delete historic values using historic access. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -105,15 +103,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history update request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<HistoryUpdateResponseApiModel> HistoryDeleteValuesAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<HistoryUpdateResponseApiModel> HistoryDeleteValuesAsync(this IAzureOpcHistoryClient operations, string endpointId, DeleteValuesDetailsApiModelHistoryUpdateRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.HistoryDeleteValuesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.HistoryDeleteValuesWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -123,9 +121,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// Delete historic values
             /// </summary>
             /// <remarks>
-            /// Delete historic values using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Delete historic values using historic access. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -133,21 +131,21 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history update request
             /// </param>
-            public static HistoryUpdateResponseApiModel HistoryDeleteModifiedValues(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel request)
+            public static HistoryUpdateResponseApiModel HistoryDeleteModifiedValues(this IAzureOpcHistoryClient operations, string endpointId, DeleteModifiedValuesDetailsApiModelHistoryUpdateRequestApiModel body)
             {
-                return operations.HistoryDeleteModifiedValuesAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.HistoryDeleteModifiedValuesAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Delete historic values
             /// </summary>
             /// <remarks>
-            /// Delete historic values using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Delete historic values using historic access. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -155,15 +153,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history update request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<HistoryUpdateResponseApiModel> HistoryDeleteModifiedValuesAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<HistoryUpdateResponseApiModel> HistoryDeleteModifiedValuesAsync(this IAzureOpcHistoryClient operations, string endpointId, DeleteModifiedValuesDetailsApiModelHistoryUpdateRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.HistoryDeleteModifiedValuesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.HistoryDeleteModifiedValuesWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -173,9 +171,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// Delete historic events
             /// </summary>
             /// <remarks>
-            /// Delete historic events using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Delete historic events using historic access. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -183,21 +181,21 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history update request
             /// </param>
-            public static HistoryUpdateResponseApiModel HistoryDeleteEvents(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel request)
+            public static HistoryUpdateResponseApiModel HistoryDeleteEvents(this IAzureOpcHistoryClient operations, string endpointId, DeleteEventsDetailsApiModelHistoryUpdateRequestApiModel body)
             {
-                return operations.HistoryDeleteEventsAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.HistoryDeleteEventsAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Delete historic events
             /// </summary>
             /// <remarks>
-            /// Delete historic events using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Delete historic events using historic access. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -205,15 +203,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history update request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<HistoryUpdateResponseApiModel> HistoryDeleteEventsAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<HistoryUpdateResponseApiModel> HistoryDeleteEventsAsync(this IAzureOpcHistoryClient operations, string endpointId, DeleteEventsDetailsApiModelHistoryUpdateRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.HistoryDeleteEventsWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.HistoryDeleteEventsWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -223,9 +221,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// Read history using json details
             /// </summary>
             /// <remarks>
-            /// Read node history if available using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Read node history if available using historic access. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -233,21 +231,21 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history read request
             /// </param>
-            public static HistoryReadResponseApiModelJToken HistoryReadRaw(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelJToken request)
+            public static JTokenHistoryReadResponseApiModel HistoryReadRaw(this IAzureOpcHistoryClient operations, string endpointId, JTokenHistoryReadRequestApiModel body)
             {
-                return operations.HistoryReadRawAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.HistoryReadRawAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Read history using json details
             /// </summary>
             /// <remarks>
-            /// Read node history if available using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Read node history if available using historic access. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -255,15 +253,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history read request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<HistoryReadResponseApiModelJToken> HistoryReadRawAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelJToken request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<JTokenHistoryReadResponseApiModel> HistoryReadRawAsync(this IAzureOpcHistoryClient operations, string endpointId, JTokenHistoryReadRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.HistoryReadRawWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.HistoryReadRawWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -273,9 +271,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// Read next batch of history as json
             /// </summary>
             /// <remarks>
-            /// Read next batch of node history values using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Read next batch of node history values using historic access. The endpoint
+            /// must be activated and connected and the module client and server must trust
+            /// each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -283,21 +281,21 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history read next request
             /// </param>
-            public static HistoryReadNextResponseApiModelJToken HistoryReadRawNext(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadNextRequestApiModel request)
+            public static JTokenHistoryReadNextResponseApiModel HistoryReadRawNext(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadNextRequestApiModel body)
             {
-                return operations.HistoryReadRawNextAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.HistoryReadRawNextAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Read next batch of history as json
             /// </summary>
             /// <remarks>
-            /// Read next batch of node history values using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Read next batch of node history values using historic access. The endpoint
+            /// must be activated and connected and the module client and server must trust
+            /// each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -305,15 +303,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history read next request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<HistoryReadNextResponseApiModelJToken> HistoryReadRawNextAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadNextRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<JTokenHistoryReadNextResponseApiModel> HistoryReadRawNextAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadNextRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.HistoryReadRawNextWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.HistoryReadRawNextWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -323,9 +321,8 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// Update node history using raw json
             /// </summary>
             /// <remarks>
-            /// Update node history using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Update node history using historic access. The endpoint must be activated
+            /// and connected and the module client and server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -333,21 +330,20 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history update request
             /// </param>
-            public static HistoryUpdateResponseApiModel HistoryUpdateRaw(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelJToken request)
+            public static HistoryUpdateResponseApiModel HistoryUpdateRaw(this IAzureOpcHistoryClient operations, string endpointId, JTokenHistoryUpdateRequestApiModel body)
             {
-                return operations.HistoryUpdateRawAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.HistoryUpdateRawAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Update node history using raw json
             /// </summary>
             /// <remarks>
-            /// Update node history using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Update node history using historic access. The endpoint must be activated
+            /// and connected and the module client and server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -355,15 +351,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history update request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<HistoryUpdateResponseApiModel> HistoryUpdateRawAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelJToken request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<HistoryUpdateResponseApiModel> HistoryUpdateRawAsync(this IAzureOpcHistoryClient operations, string endpointId, JTokenHistoryUpdateRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.HistoryUpdateRawWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.HistoryUpdateRawWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -373,9 +369,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// Insert historic values
             /// </summary>
             /// <remarks>
-            /// Insert historic values using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Insert historic values using historic access. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -383,21 +379,21 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history insert request
             /// </param>
-            public static HistoryUpdateResponseApiModel HistoryInsertValues(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelInsertValuesDetailsApiModel request)
+            public static HistoryUpdateResponseApiModel HistoryInsertValues(this IAzureOpcHistoryClient operations, string endpointId, InsertValuesDetailsApiModelHistoryUpdateRequestApiModel body)
             {
-                return operations.HistoryInsertValuesAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.HistoryInsertValuesAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Insert historic values
             /// </summary>
             /// <remarks>
-            /// Insert historic values using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Insert historic values using historic access. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -405,15 +401,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history insert request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<HistoryUpdateResponseApiModel> HistoryInsertValuesAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelInsertValuesDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<HistoryUpdateResponseApiModel> HistoryInsertValuesAsync(this IAzureOpcHistoryClient operations, string endpointId, InsertValuesDetailsApiModelHistoryUpdateRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.HistoryInsertValuesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.HistoryInsertValuesWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -423,9 +419,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// Insert historic events
             /// </summary>
             /// <remarks>
-            /// Insert historic events using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Insert historic events using historic access. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -433,21 +429,21 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history insert request
             /// </param>
-            public static HistoryUpdateResponseApiModel HistoryInsertEvents(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelInsertEventsDetailsApiModel request)
+            public static HistoryUpdateResponseApiModel HistoryInsertEvents(this IAzureOpcHistoryClient operations, string endpointId, InsertEventsDetailsApiModelHistoryUpdateRequestApiModel body)
             {
-                return operations.HistoryInsertEventsAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.HistoryInsertEventsAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Insert historic events
             /// </summary>
             /// <remarks>
-            /// Insert historic events using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Insert historic events using historic access. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -455,15 +451,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history insert request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<HistoryUpdateResponseApiModel> HistoryInsertEventsAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelInsertEventsDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<HistoryUpdateResponseApiModel> HistoryInsertEventsAsync(this IAzureOpcHistoryClient operations, string endpointId, InsertEventsDetailsApiModelHistoryUpdateRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.HistoryInsertEventsWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.HistoryInsertEventsWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -473,9 +469,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// Read historic events
             /// </summary>
             /// <remarks>
-            /// Read historic events of a node if available using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Read historic events of a node if available using historic access. The
+            /// endpoint must be activated and connected and the module client and server
+            /// must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -483,21 +479,21 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history read request
             /// </param>
-            public static HistoryReadResponseApiModelHistoricEventApiModel HistoryReadEvents(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelReadEventsDetailsApiModel request)
+            public static HistoricEventApiModelHistoryReadResponseApiModel HistoryReadEvents(this IAzureOpcHistoryClient operations, string endpointId, ReadEventsDetailsApiModelHistoryReadRequestApiModel body)
             {
-                return operations.HistoryReadEventsAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.HistoryReadEventsAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Read historic events
             /// </summary>
             /// <remarks>
-            /// Read historic events of a node if available using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Read historic events of a node if available using historic access. The
+            /// endpoint must be activated and connected and the module client and server
+            /// must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -505,15 +501,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history read request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<HistoryReadResponseApiModelHistoricEventApiModel> HistoryReadEventsAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelReadEventsDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<HistoricEventApiModelHistoryReadResponseApiModel> HistoryReadEventsAsync(this IAzureOpcHistoryClient operations, string endpointId, ReadEventsDetailsApiModelHistoryReadRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.HistoryReadEventsWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.HistoryReadEventsWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -523,9 +519,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// Read next batch of historic events
             /// </summary>
             /// <remarks>
-            /// Read next batch of historic events of a node using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Read next batch of historic events of a node using historic access. The
+            /// endpoint must be activated and connected and the module client and server
+            /// must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -533,21 +529,21 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history read next request
             /// </param>
-            public static HistoryReadNextResponseApiModelHistoricEventApiModel HistoryReadEventsNext(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadNextRequestApiModel request)
+            public static HistoricEventApiModelHistoryReadNextResponseApiModel HistoryReadEventsNext(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadNextRequestApiModel body)
             {
-                return operations.HistoryReadEventsNextAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.HistoryReadEventsNextAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Read next batch of historic events
             /// </summary>
             /// <remarks>
-            /// Read next batch of historic events of a node using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Read next batch of historic events of a node using historic access. The
+            /// endpoint must be activated and connected and the module client and server
+            /// must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -555,15 +551,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history read next request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<HistoryReadNextResponseApiModelHistoricEventApiModel> HistoryReadEventsNextAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadNextRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<HistoricEventApiModelHistoryReadNextResponseApiModel> HistoryReadEventsNextAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadNextRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.HistoryReadEventsNextWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.HistoryReadEventsNextWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -574,8 +570,8 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// </summary>
             /// <remarks>
             /// Read processed history values of a node if available using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// The endpoint must be activated and connected and the module client and
+            /// server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -583,12 +579,12 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history read request
             /// </param>
-            public static HistoryReadResponseApiModelHistoricValueApiModel HistoryReadValues(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelReadValuesDetailsApiModel request)
+            public static HistoricValueApiModelHistoryReadResponseApiModel HistoryReadValues(this IAzureOpcHistoryClient operations, string endpointId, ReadValuesDetailsApiModelHistoryReadRequestApiModel body)
             {
-                return operations.HistoryReadValuesAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.HistoryReadValuesAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -596,8 +592,8 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// </summary>
             /// <remarks>
             /// Read processed history values of a node if available using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// The endpoint must be activated and connected and the module client and
+            /// server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -605,15 +601,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history read request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<HistoryReadResponseApiModelHistoricValueApiModel> HistoryReadValuesAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelReadValuesDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<HistoricValueApiModelHistoryReadResponseApiModel> HistoryReadValuesAsync(this IAzureOpcHistoryClient operations, string endpointId, ReadValuesDetailsApiModelHistoryReadRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.HistoryReadValuesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.HistoryReadValuesWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -623,9 +619,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// Read historic values at specified times
             /// </summary>
             /// <remarks>
-            /// Read historic values of a node if available using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Read historic values of a node if available using historic access. The
+            /// endpoint must be activated and connected and the module client and server
+            /// must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -633,21 +629,21 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history read request
             /// </param>
-            public static HistoryReadResponseApiModelHistoricValueApiModel HistoryReadValuesAtTimes(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel request)
+            public static HistoricValueApiModelHistoryReadResponseApiModel HistoryReadValuesAtTimes(this IAzureOpcHistoryClient operations, string endpointId, ReadValuesAtTimesDetailsApiModelHistoryReadRequestApiModel body)
             {
-                return operations.HistoryReadValuesAtTimesAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.HistoryReadValuesAtTimesAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Read historic values at specified times
             /// </summary>
             /// <remarks>
-            /// Read historic values of a node if available using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Read historic values of a node if available using historic access. The
+            /// endpoint must be activated and connected and the module client and server
+            /// must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -655,15 +651,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history read request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<HistoryReadResponseApiModelHistoricValueApiModel> HistoryReadValuesAtTimesAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<HistoricValueApiModelHistoryReadResponseApiModel> HistoryReadValuesAtTimesAsync(this IAzureOpcHistoryClient operations, string endpointId, ReadValuesAtTimesDetailsApiModelHistoryReadRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.HistoryReadValuesAtTimesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.HistoryReadValuesAtTimesWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -674,8 +670,8 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// </summary>
             /// <remarks>
             /// Read processed history values of a node if available using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// The endpoint must be activated and connected and the module client and
+            /// server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -683,12 +679,12 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history read request
             /// </param>
-            public static HistoryReadResponseApiModelHistoricValueApiModel HistoryReadProcessedValues(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel request)
+            public static HistoricValueApiModelHistoryReadResponseApiModel HistoryReadProcessedValues(this IAzureOpcHistoryClient operations, string endpointId, ReadProcessedValuesDetailsApiModelHistoryReadRequestApiModel body)
             {
-                return operations.HistoryReadProcessedValuesAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.HistoryReadProcessedValuesAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -696,8 +692,8 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// </summary>
             /// <remarks>
             /// Read processed history values of a node if available using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// The endpoint must be activated and connected and the module client and
+            /// server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -705,15 +701,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history read request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<HistoryReadResponseApiModelHistoricValueApiModel> HistoryReadProcessedValuesAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<HistoricValueApiModelHistoryReadResponseApiModel> HistoryReadProcessedValuesAsync(this IAzureOpcHistoryClient operations, string endpointId, ReadProcessedValuesDetailsApiModelHistoryReadRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.HistoryReadProcessedValuesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.HistoryReadProcessedValuesWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -724,8 +720,8 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// </summary>
             /// <remarks>
             /// Read processed history values of a node if available using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// The endpoint must be activated and connected and the module client and
+            /// server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -733,12 +729,12 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history read request
             /// </param>
-            public static HistoryReadResponseApiModelHistoricValueApiModel HistoryReadModifiedValues(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel request)
+            public static HistoricValueApiModelHistoryReadResponseApiModel HistoryReadModifiedValues(this IAzureOpcHistoryClient operations, string endpointId, ReadModifiedValuesDetailsApiModelHistoryReadRequestApiModel body)
             {
-                return operations.HistoryReadModifiedValuesAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.HistoryReadModifiedValuesAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -746,8 +742,8 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// </summary>
             /// <remarks>
             /// Read processed history values of a node if available using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// The endpoint must be activated and connected and the module client and
+            /// server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -755,15 +751,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history read request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<HistoryReadResponseApiModelHistoricValueApiModel> HistoryReadModifiedValuesAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<HistoricValueApiModelHistoryReadResponseApiModel> HistoryReadModifiedValuesAsync(this IAzureOpcHistoryClient operations, string endpointId, ReadModifiedValuesDetailsApiModelHistoryReadRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.HistoryReadModifiedValuesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.HistoryReadModifiedValuesWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -773,9 +769,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// Read next batch of historic values
             /// </summary>
             /// <remarks>
-            /// Read next batch of historic values of a node using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Read next batch of historic values of a node using historic access. The
+            /// endpoint must be activated and connected and the module client and server
+            /// must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -783,21 +779,21 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history read next request
             /// </param>
-            public static HistoryReadNextResponseApiModelHistoricValueApiModel HistoryReadValueNext(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadNextRequestApiModel request)
+            public static HistoricValueApiModelHistoryReadNextResponseApiModel HistoryReadValueNext(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadNextRequestApiModel body)
             {
-                return operations.HistoryReadValueNextAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.HistoryReadValueNextAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Read next batch of historic values
             /// </summary>
             /// <remarks>
-            /// Read next batch of historic values of a node using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Read next batch of historic values of a node using historic access. The
+            /// endpoint must be activated and connected and the module client and server
+            /// must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -805,15 +801,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history read next request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<HistoryReadNextResponseApiModelHistoricValueApiModel> HistoryReadValueNextAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadNextRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<HistoricValueApiModelHistoryReadNextResponseApiModel> HistoryReadValueNextAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryReadNextRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.HistoryReadValueNextWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.HistoryReadValueNextWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -823,9 +819,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// Replace historic values
             /// </summary>
             /// <remarks>
-            /// Replace historic values using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Replace historic values using historic access. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -833,21 +829,21 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history replace request
             /// </param>
-            public static HistoryUpdateResponseApiModel HistoryReplaceValues(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel request)
+            public static HistoryUpdateResponseApiModel HistoryReplaceValues(this IAzureOpcHistoryClient operations, string endpointId, ReplaceValuesDetailsApiModelHistoryUpdateRequestApiModel body)
             {
-                return operations.HistoryReplaceValuesAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.HistoryReplaceValuesAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Replace historic values
             /// </summary>
             /// <remarks>
-            /// Replace historic values using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Replace historic values using historic access. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -855,15 +851,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history replace request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<HistoryUpdateResponseApiModel> HistoryReplaceValuesAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<HistoryUpdateResponseApiModel> HistoryReplaceValuesAsync(this IAzureOpcHistoryClient operations, string endpointId, ReplaceValuesDetailsApiModelHistoryUpdateRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.HistoryReplaceValuesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.HistoryReplaceValuesWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -873,9 +869,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// Replace historic events
             /// </summary>
             /// <remarks>
-            /// Replace historic events using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Replace historic events using historic access. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -883,21 +879,21 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history replace request
             /// </param>
-            public static HistoryUpdateResponseApiModel HistoryReplaceEvents(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel request)
+            public static HistoryUpdateResponseApiModel HistoryReplaceEvents(this IAzureOpcHistoryClient operations, string endpointId, ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel body)
             {
-                return operations.HistoryReplaceEventsAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.HistoryReplaceEventsAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Replace historic events
             /// </summary>
             /// <remarks>
-            /// Replace historic events using historic access.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Replace historic events using historic access. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -905,15 +901,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The history replace request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<HistoryUpdateResponseApiModel> HistoryReplaceEventsAsync(this IAzureOpcHistoryClient operations, string endpointId, HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<HistoryUpdateResponseApiModel> HistoryReplaceEventsAsync(this IAzureOpcHistoryClient operations, string endpointId, ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.HistoryReplaceEventsWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.HistoryReplaceEventsWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }

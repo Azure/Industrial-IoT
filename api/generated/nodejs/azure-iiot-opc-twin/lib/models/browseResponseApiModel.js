@@ -17,19 +17,17 @@
 class BrowseResponseApiModel {
   /**
    * Create a BrowseResponseApiModel.
-   * @property {object} [node] Node info for the currently browsed node
-   * @property {string} [node.nodeClass] Type of node. Possible values include:
-   * 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType',
-   * 'ReferenceType', 'DataType', 'View'
+   * @property {object} [node]
+   * @property {string} [node.nodeClass] Possible values include: 'Object',
+   * 'Variable', 'Method', 'ObjectType', 'VariableType', 'ReferenceType',
+   * 'DataType', 'View'
    * @property {string} [node.displayName] Display name
    * @property {string} [node.nodeId] Id of node.
    * (Mandatory).
    * @property {string} [node.description] Description if any
    * @property {string} [node.browseName] Browse name
-   * @property {string} [node.accessRestrictions] Node access restrictions if
-   * any.
-   * (default: none). Possible values include: 'SigningRequired',
-   * 'EncryptionRequired', 'SessionRequired'
+   * @property {string} [node.accessRestrictions] Possible values include:
+   * 'SigningRequired', 'EncryptionRequired', 'SessionRequired'
    * @property {number} [node.writeMask] Default write mask for the node
    * (default: 0)
    * @property {number} [node.userWriteMask] User write mask for the node
@@ -41,10 +39,7 @@ class BrowseResponseApiModel {
    * @property {boolean} [node.containsNoLoops] Whether a view contains loops.
    * Null if
    * not a view.
-   * @property {string} [node.eventNotifier] If object or view and eventing,
-   * event notifier
-   * to subscribe to.
-   * (default: no events supported). Possible values include:
+   * @property {string} [node.eventNotifier] Possible values include:
    * 'SubscribeToEvents', 'HistoryRead', 'HistoryWrite'
    * @property {boolean} [node.executable] If method node class, whether method
    * can
@@ -57,24 +52,20 @@ class BrowseResponseApiModel {
    * node is a
    * data type node and definition is available,
    * otherwise null.
-   * @property {string} [node.accessLevel] Default access level for variable
-   * node.
-   * (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite',
-   * 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite',
-   * 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'
-   * @property {string} [node.userAccessLevel] User access level for variable
-   * node or null.
-   * (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite',
-   * 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite',
-   * 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'
+   * @property {string} [node.accessLevel] Possible values include:
+   * 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite',
+   * 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead',
+   * 'NonatomicWrite', 'WriteFullArrayOnly'
+   * @property {string} [node.userAccessLevel] Possible values include:
+   * 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite',
+   * 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead',
+   * 'NonatomicWrite', 'WriteFullArrayOnly'
    * @property {string} [node.dataType] If variable the datatype of the
    * variable.
    * (default: null)
-   * @property {string} [node.valueRank] Value rank of the variable data of a
-   * variable
-   * or variable type, otherwise null.
-   * (default: scalar = -1). Possible values include: 'ScalarOrOneDimension',
-   * 'Any', 'Scalar', 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions'
+   * @property {string} [node.valueRank] Possible values include:
+   * 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions',
+   * 'ScalarOrOneDimension', 'Any', 'Scalar'
    * @property {array} [node.arrayDimensions] Array dimensions of variable or
    * variable type.
    * (default: empty array)
@@ -106,7 +97,7 @@ class BrowseResponseApiModel {
    * @property {array} [references] References, if included, otherwise null.
    * @property {string} [continuationToken] Continuation token if more results
    * pending.
-   * @property {object} [errorInfo] Service result in case of error
+   * @property {object} [errorInfo]
    * @property {number} [errorInfo.statusCode] Error code - if null operation
    * succeeded.
    * @property {string} [errorInfo.errorMessage] Error message in case of error

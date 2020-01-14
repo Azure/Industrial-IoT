@@ -18,8 +18,8 @@ class CertificateRequestQueryRequestApiModel {
   /**
    * Create a CertificateRequestQueryRequestApiModel.
    * @property {string} [entityId] The entity id to filter with
-   * @property {string} [state] The certificate request state. Possible values
-   * include: 'New', 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'
+   * @property {string} [state] Possible values include: 'New', 'Approved',
+   * 'Rejected', 'Failure', 'Completed', 'Accepted'
    */
   constructor() {
   }

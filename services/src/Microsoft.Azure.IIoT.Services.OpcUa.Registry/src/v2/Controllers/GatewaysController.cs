@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     /// <summary>
     /// Read, Update and Query Gateway resources
     /// </summary>
-    [Route(VersionInfo.PATH + "/Gateways")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/gateways")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanQuery)]
@@ -49,9 +49,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
         /// <param name="GatewayId">Gateway identifier</param>
         /// <returns>Gateway registration</returns>
         [HttpGet("{GatewayId}")]
-        public async Task<GatewayApiModel> GetGatewayAsync(string GatewayId) {
+        public async Task<GatewayInfoApiModel> GetGatewayAsync(string GatewayId) {
             var result = await _Gateways.GetGatewayAsync(GatewayId);
-            return new GatewayApiModel(result);
+            return new GatewayInfoApiModel(result);
         }
 
         /// <summary>
@@ -133,9 +133,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
             }
             var result = await _Gateways.QueryGatewaysAsync(
                 query.ToServiceModel(), pageSize);
-
-            // TODO: Filter results based on RBAC
-
             return new GatewayListApiModel(result);
         }
 
@@ -166,9 +163,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
             }
             var result = await _Gateways.QueryGatewaysAsync(
                 query.ToServiceModel(), pageSize);
-
-            // TODO: Filter results based on RBAC
-
             return new GatewayListApiModel(result);
         }
 

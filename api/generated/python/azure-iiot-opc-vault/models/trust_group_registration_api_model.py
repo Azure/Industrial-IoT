@@ -17,7 +17,7 @@ class TrustGroupRegistrationApiModel(Model):
 
     :param id: The registered id of the trust group
     :type id: str
-    :param group: Trust group
+    :param group:
     :type group: ~azure-iiot-opc-vault.models.TrustGroupApiModel
     """
 

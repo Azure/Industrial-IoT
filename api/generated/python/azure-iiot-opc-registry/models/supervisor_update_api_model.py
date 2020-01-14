@@ -17,28 +17,17 @@ class SupervisorUpdateApiModel(Model):
 
     :param site_id: Site of the supervisor
     :type site_id: str
-    :param discovery: Whether the supervisor is in discovery mode.
-     If null, does not change. Possible values include: 'Off', 'Local',
-     'Network', 'Fast', 'Scan'. Default value: "Off" .
-    :type discovery: str or ~azure-iiot-opc-registry.models.DiscoveryMode
-    :param discovery_config: Supervisor discovery configuration
-    :type discovery_config:
-     ~azure-iiot-opc-registry.models.DiscoveryConfigApiModel
-    :param log_level: Current log level. Possible values include: 'Error',
-     'Information', 'Debug', 'Verbose'
+    :param log_level: Possible values include: 'Error', 'Information',
+     'Debug', 'Verbose'
     :type log_level: str or ~azure-iiot-opc-registry.models.TraceLogLevel
     """
 
     _attribute_map = {
         'site_id': {'key': 'siteId', 'type': 'str'},
-        'discovery': {'key': 'discovery', 'type': 'DiscoveryMode'},
-        'discovery_config': {'key': 'discoveryConfig', 'type': 'DiscoveryConfigApiModel'},
         'log_level': {'key': 'logLevel', 'type': 'TraceLogLevel'},
     }
 
-    def __init__(self, site_id=None, discovery="Off", discovery_config=None, log_level=None):
+    def __init__(self, site_id=None, log_level=None):
         super(SupervisorUpdateApiModel, self).__init__()
         self.site_id = site_id
-        self.discovery = discovery
-        self.discovery_config = discovery_config
         self.log_level = log_level

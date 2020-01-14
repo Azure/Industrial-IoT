@@ -37,7 +37,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// of</param>
         /// <param name="inputArguments">Input argument meta data</param>
         /// <param name="outputArguments">output argument meta data</param>
-        /// <param name="errorInfo">Service result in case of error</param>
         public MethodMetadataResponseApiModel(string objectId = default(string), IList<MethodMetadataArgumentApiModel> inputArguments = default(IList<MethodMetadataArgumentApiModel>), IList<MethodMetadataArgumentApiModel> outputArguments = default(IList<MethodMetadataArgumentApiModel>), ServiceResultApiModel errorInfo = default(ServiceResultApiModel))
         {
             ObjectId = objectId;
@@ -71,7 +70,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public IList<MethodMetadataArgumentApiModel> OutputArguments { get; set; }
 
         /// <summary>
-        /// Gets or sets service result in case of error
         /// </summary>
         [JsonProperty(PropertyName = "errorInfo")]
         public ServiceResultApiModel ErrorInfo { get; set; }

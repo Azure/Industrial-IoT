@@ -5,101 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Linq;
     using System;
-
-    /// <summary>
-    /// Discovery progress event type
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum DiscoveryProgressType {
-
-        /// <summary>
-        /// Discovery Pending
-        /// </summary>
-        Pending,
-
-        /// <summary>
-        /// Discovery run started
-        /// </summary>
-        Started,
-
-        /// <summary>
-        /// Discovery was cancelled
-        /// </summary>
-        Cancelled,
-
-        /// <summary>
-        /// Discovery resulted in error
-        /// </summary>
-        Error,
-
-        /// <summary>
-        /// Discovery finished
-        /// </summary>
-        Finished,
-
-        /// <summary>
-        /// Network scanning started
-        /// </summary>
-        NetworkScanStarted,
-
-        /// <summary>
-        /// Network scanning result
-        /// </summary>
-        NetworkScanResult,
-
-        /// <summary>
-        /// Network scan progress
-        /// </summary>
-        NetworkScanProgress,
-
-        /// <summary>
-        /// Network scan finished
-        /// </summary>
-        NetworkScanFinished,
-
-        /// <summary>
-        /// Port scan started
-        /// </summary>
-        PortScanStarted,
-
-        /// <summary>
-        /// Port scan result
-        /// </summary>
-        PortScanResult,
-
-        /// <summary>
-        /// Port scan progress
-        /// </summary>
-        PortScanProgress,
-
-        /// <summary>
-        /// Port scan finished
-        /// </summary>
-        PortScanFinished,
-
-        /// <summary>
-        /// Server discovery started
-        /// </summary>
-        ServerDiscoveryStarted,
-
-        /// <summary>
-        /// Endpoint discovery started
-        /// </summary>
-        EndpointsDiscoveryStarted,
-
-        /// <summary>
-        /// Endpoint discovery finished
-        /// </summary>
-        EndpointsDiscoveryFinished,
-
-        /// <summary>
-        /// Server discovery finished
-        /// </summary>
-        ServerDiscoveryFinished,
-    }
+    using System.Collections.Generic;
 
     /// <summary>
     /// Discovery progress
@@ -120,18 +28,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public DiscoveryProgressType EventType { get; set; }
 
         /// <summary>
-        /// Source of message
+        /// Discoverer that registered the application
         /// </summary>
-        [JsonProperty(PropertyName = "supervisorId",
+        [JsonProperty(PropertyName = "discovererId",
             NullValueHandling = NullValueHandling.Ignore)]
-        public string SupervisorId { get; set; }
+        public string DiscovererId { get; set; }
 
         /// <summary>
         /// Additional request information as per event
         /// </summary>
         [JsonProperty(PropertyName = "requestDetails",
             NullValueHandling = NullValueHandling.Ignore)]
-        public JToken RequestDetails { get; set; }
+        public Dictionary<string, string> RequestDetails { get; set; }
 
         /// <summary>
         /// Timestamp of the message
@@ -172,6 +80,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "result",
             NullValueHandling = NullValueHandling.Ignore)]
-        public JToken Result { get; set; }
+        public string Result { get; set; }
+
+        /// <summary>
+        /// Discovery result details
+        /// </summary>
+        [JsonProperty(PropertyName = "resultDetails",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public Dictionary<string, string> ResultDetails { get; set; }
     }
 }

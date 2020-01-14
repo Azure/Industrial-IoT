@@ -19,8 +19,7 @@ class ServerRegistrationRequestApiModel {
    * Create a ServerRegistrationRequestApiModel.
    * @property {string} discoveryUrl Discovery url to use for registration
    * @property {string} [id] Registration id
-   * @property {object} [activationFilter] Upon discovery, activate all
-   * endpoints with this filter.
+   * @property {object} [activationFilter]
    * @property {array} [activationFilter.trustLists] Certificate trust list
    * identifiers to use for
    * activation, if null, all certificates are
@@ -29,10 +28,8 @@ class ServerRegistrationRequestApiModel {
    * @property {array} [activationFilter.securityPolicies] Endpoint security
    * policies to filter against.
    * If set to null, all policies are in scope.
-   * @property {string} [activationFilter.securityMode] Security mode level to
-   * activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Core.Models.SecurityMode.Best is assumed.
-   * Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   * @property {string} [activationFilter.securityMode] Possible values
+   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
    */
   constructor() {
   }

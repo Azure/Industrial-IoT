@@ -34,9 +34,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 await _callback.MulticastAsync(requestId,
                     EventTargets.DiscoveryProgressTarget, arguments);
             }
-            if (!string.IsNullOrEmpty(message.SupervisorId)) {
-                // Send to supervisor listeners
-                await _callback.MulticastAsync(message.SupervisorId,
+            if (!string.IsNullOrEmpty(message.DiscovererId)) {
+                // Send to discovery listeners
+                await _callback.MulticastAsync(message.DiscovererId,
                     EventTargets.DiscoveryProgressTarget, arguments);
             }
         }

@@ -17,8 +17,7 @@
 class DiagnosticsApiModel {
   /**
    * Create a DiagnosticsApiModel.
-   * @property {string} [level] Requested level of response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status',
+   * @property {string} [level] Possible values include: 'None', 'Status',
    * 'Operations', 'Diagnostics', 'Verbose'
    * @property {string} [auditId] Client audit log entry.
    * (default: client generated)

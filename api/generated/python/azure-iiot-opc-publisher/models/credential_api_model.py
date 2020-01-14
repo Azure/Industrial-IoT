@@ -15,8 +15,8 @@ from msrest.serialization import Model
 class CredentialApiModel(Model):
     """Credential model.
 
-    :param type: Type of credential. Possible values include: 'None',
-     'UserName', 'X509Certificate', 'JwtToken'
+    :param type: Possible values include: 'None', 'UserName',
+     'X509Certificate', 'JwtToken'
     :type type: str or ~azure-iiot-opc-publisher.models.CredentialType
     :param value: Value to pass to server
     :type value: object

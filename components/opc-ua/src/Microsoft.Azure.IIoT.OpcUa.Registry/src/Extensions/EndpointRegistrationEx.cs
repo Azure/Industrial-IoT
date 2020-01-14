@@ -58,34 +58,38 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
             if (update?.IsDisabled != null &&
                 update.IsDisabled != existing?.IsDisabled) {
-                twin.Tags.Add(nameof(BaseRegistration.IsDisabled), (update?.IsDisabled ?? false) ?
+                twin.Tags.Add(nameof(EntityRegistration.IsDisabled), (update?.IsDisabled ?? false) ?
                     true : (bool?)null);
-                twin.Tags.Add(nameof(BaseRegistration.NotSeenSince), (update?.IsDisabled ?? false) ?
+                twin.Tags.Add(nameof(EntityRegistration.NotSeenSince), (update?.IsDisabled ?? false) ?
                     DateTime.UtcNow : (DateTime?)null);
             }
 
-            if (update?.SiteOrSupervisorId != existing?.SiteOrSupervisorId) {
-                twin.Tags.Add(nameof(BaseRegistration.SiteOrSupervisorId), update?.SiteOrSupervisorId);
+            if (update?.SiteOrGatewayId != existing?.SiteOrGatewayId) {
+                twin.Tags.Add(nameof(EntityRegistration.SiteOrGatewayId), update?.SiteOrGatewayId);
             }
 
             if (update?.SupervisorId != existing?.SupervisorId) {
-                twin.Tags.Add(nameof(BaseRegistration.SupervisorId), update?.SupervisorId);
+                twin.Tags.Add(nameof(EndpointRegistration.SupervisorId), update?.SupervisorId);
+            }
+
+            if (update?.DiscovererId != existing?.DiscovererId) {
+                twin.Tags.Add(nameof(EndpointRegistration.DiscovererId), update?.DiscovererId);
             }
 
             if (update?.SiteId != existing?.SiteId) {
-                twin.Tags.Add(nameof(BaseRegistration.SiteId), update?.SiteId);
+                twin.Tags.Add(nameof(EntityRegistration.SiteId), update?.SiteId);
             }
 
             var certUpdate = update?.Certificate.DecodeAsByteArray().SequenceEqualsSafe(
                 existing?.Certificate.DecodeAsByteArray());
             if (!(certUpdate ?? true)) {
-                twin.Tags.Add(nameof(BaseRegistration.Certificate), update?.Certificate == null ?
+                twin.Tags.Add(nameof(EntityRegistration.Certificate), update?.Certificate == null ?
                     null : JToken.FromObject(update.Certificate));
-                twin.Tags.Add(nameof(BaseRegistration.Thumbprint),
+                twin.Tags.Add(nameof(EntityRegistration.Thumbprint),
                     update?.Certificate?.DecodeAsByteArray()?.ToSha1Hash());
             }
 
-            twin.Tags.Add(nameof(BaseRegistration.DeviceType), update?.DeviceType);
+            twin.Tags.Add(nameof(EntityRegistration.DeviceType), update?.DeviceType);
 
 
             if (update?.EndpointRegistrationUrl != null &&
@@ -216,6 +220,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     tags.GetValueOrDefault<string>(nameof(EndpointRegistration.Thumbprint), null),
                 SupervisorId =
                     tags.GetValueOrDefault<string>(nameof(EndpointRegistration.SupervisorId), null),
+                DiscovererId =
+                    tags.GetValueOrDefault<string>(nameof(EndpointRegistration.DiscovererId),
+                        tags.GetValueOrDefault<string>(nameof(EndpointRegistration.SupervisorId), null)),
                 Activated =
                     tags.GetValueOrDefault<bool>(nameof(EndpointRegistration.Activated), null),
                 ApplicationId =
@@ -302,6 +309,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                         null : registration.SiteId,
                     SupervisorId = string.IsNullOrEmpty(registration.SupervisorId) ?
                         null : registration.SupervisorId,
+                    DiscovererId = string.IsNullOrEmpty(registration.DiscovererId) ?
+                        null : registration.DiscovererId,
                     AuthenticationMethods = registration.AuthenticationMethods?.DecodeAsList(j =>
                         j.ToObject<AuthenticationMethodModel>()),
                     SecurityLevel = registration.SecurityLevel,
@@ -367,9 +376,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <param name="disabled"></param>
+        /// <param name="discoverId"></param>
+        /// <param name="supervisorId"></param>
         /// <returns></returns>
         public static EndpointRegistration ToEndpointRegistration(this EndpointInfoModel model,
-            bool? disabled = null) {
+            bool? disabled = null, string discoverId = null, string supervisorId = null) {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
             }
@@ -378,7 +389,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 NotSeenSince = model.NotSeenSince,
                 ApplicationId = model.ApplicationId,
                 SiteId = model.Registration?.SiteId,
-                SupervisorId = model.Registration?.SupervisorId,
+                SupervisorId = supervisorId ?? model.Registration?.SupervisorId,
+                DiscovererId = discoverId ?? model.Registration?.DiscovererId,
                 SecurityLevel = model.Registration?.SecurityLevel,
                 EndpointRegistrationUrl = model.Registration?.EndpointUrl ??
                     model.Registration?.Endpoint.Url,
@@ -396,6 +408,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     .Certificate?.ToSha1Hash(),
                 ActivationState = model.ActivationState
             };
+        }
+
+        /// <summary>
+        /// Get site or gateway id from registration
+        /// </summary>
+        /// <param name="registration"></param>
+        /// <returns></returns>
+        public static string GetSiteOrGatewayId(this EndpointRegistration registration) {
+            if (registration == null) {
+                return null;
+            }
+            var siteOrGatewayId = registration?.SiteId;
+            if (siteOrGatewayId == null) {
+                var id = registration?.DiscovererId ?? registration?.SupervisorId;
+                if (id != null) {
+                    siteOrGatewayId = DiscovererModelEx.ParseDeviceId(id, out _);
+                }
+            }
+            return siteOrGatewayId;
         }
 
         /// <summary>

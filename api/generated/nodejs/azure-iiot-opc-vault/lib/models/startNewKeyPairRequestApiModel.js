@@ -19,7 +19,7 @@ class StartNewKeyPairRequestApiModel {
    * Create a StartNewKeyPairRequestApiModel.
    * @property {string} entityId Entity id
    * @property {string} groupId Certificate group
-   * @property {string} certificateType Type. Possible values include:
+   * @property {string} certificateType Possible values include:
    * 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
    * @property {string} subjectName Subject name

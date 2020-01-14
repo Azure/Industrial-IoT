@@ -32,8 +32,7 @@ module azure.iiot.opc.history
       # @return [Integer] Additional resolution for the server timestamp.
       attr_accessor :server_picoseconds
 
-      # @return [ModificationInfoApiModel] modification information when
-      # reading modifications.
+      # @return [ModificationInfoApiModel]
       attr_accessor :modification_info
 
 

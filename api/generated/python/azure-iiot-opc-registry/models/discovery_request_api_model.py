@@ -17,10 +17,10 @@ class DiscoveryRequestApiModel(Model):
 
     :param id: Id of discovery request
     :type id: str
-    :param discovery: Discovery mode to use. Possible values include: 'Off',
-     'Local', 'Network', 'Fast', 'Scan'
+    :param discovery: Possible values include: 'Off', 'Local', 'Network',
+     'Fast', 'Scan'
     :type discovery: str or ~azure-iiot-opc-registry.models.DiscoveryMode
-    :param configuration: Scan configuration to use
+    :param configuration:
     :type configuration:
      ~azure-iiot-opc-registry.models.DiscoveryConfigApiModel
     """

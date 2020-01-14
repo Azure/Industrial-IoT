@@ -287,7 +287,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// </summary>
         private void Initialize()
         {
-            BaseUri = new System.Uri("/history");
+            BaseUri = new System.Uri("http://localhost:9080");
             SerializationSettings = new JsonSerializerSettings
             {
                 Formatting = Newtonsoft.Json.Formatting.Indented,
@@ -319,14 +319,13 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// Delete value history at specified times
         /// </summary>
         /// <remarks>
-        /// Delete value history using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Delete value history using historic access. The endpoint must be activated
+        /// and connected and the module client and server must trust each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history update request
         /// </param>
         /// <param name='customHeaders'>
@@ -350,19 +349,19 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryDeleteValuesAtTimesWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryDeleteValuesAtTimesWithHttpMessagesAsync(string endpointId, DeleteValuesAtTimesDetailsApiModelHistoryUpdateRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (request != null)
+            if (body != null)
             {
-                request.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -372,7 +371,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "HistoryDeleteValuesAtTimes", tracingParameters);
             }
@@ -402,9 +401,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -483,14 +482,14 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// Delete historic values
         /// </summary>
         /// <remarks>
-        /// Delete historic values using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Delete historic values using historic access. The endpoint must be
+        /// activated and connected and the module client and server must trust each
+        /// other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history update request
         /// </param>
         /// <param name='customHeaders'>
@@ -514,19 +513,19 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryDeleteValuesWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryDeleteValuesWithHttpMessagesAsync(string endpointId, DeleteValuesDetailsApiModelHistoryUpdateRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (request != null)
+            if (body != null)
             {
-                request.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -536,7 +535,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "HistoryDeleteValues", tracingParameters);
             }
@@ -566,9 +565,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -647,14 +646,14 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// Delete historic values
         /// </summary>
         /// <remarks>
-        /// Delete historic values using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Delete historic values using historic access. The endpoint must be
+        /// activated and connected and the module client and server must trust each
+        /// other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history update request
         /// </param>
         /// <param name='customHeaders'>
@@ -678,19 +677,19 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryDeleteModifiedValuesWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryDeleteModifiedValuesWithHttpMessagesAsync(string endpointId, DeleteModifiedValuesDetailsApiModelHistoryUpdateRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (request != null)
+            if (body != null)
             {
-                request.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -700,7 +699,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "HistoryDeleteModifiedValues", tracingParameters);
             }
@@ -730,9 +729,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -811,14 +810,14 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// Delete historic events
         /// </summary>
         /// <remarks>
-        /// Delete historic events using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Delete historic events using historic access. The endpoint must be
+        /// activated and connected and the module client and server must trust each
+        /// other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history update request
         /// </param>
         /// <param name='customHeaders'>
@@ -842,19 +841,19 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryDeleteEventsWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryDeleteEventsWithHttpMessagesAsync(string endpointId, DeleteEventsDetailsApiModelHistoryUpdateRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (request != null)
+            if (body != null)
             {
-                request.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -864,7 +863,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "HistoryDeleteEvents", tracingParameters);
             }
@@ -894,9 +893,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -975,14 +974,14 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// Read history using json details
         /// </summary>
         /// <remarks>
-        /// Read node history if available using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Read node history if available using historic access. The endpoint must be
+        /// activated and connected and the module client and server must trust each
+        /// other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history read request
         /// </param>
         /// <param name='customHeaders'>
@@ -1006,15 +1005,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<HistoryReadResponseApiModelJToken>> HistoryReadRawWithHttpMessagesAsync(string endpointId, HistoryReadRequestApiModelJToken request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<JTokenHistoryReadResponseApiModel>> HistoryReadRawWithHttpMessagesAsync(string endpointId, JTokenHistoryReadRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -1024,7 +1023,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "HistoryReadRaw", tracingParameters);
             }
@@ -1054,9 +1053,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -1103,7 +1102,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 throw ex;
             }
             // Create Result
-            var _result = new HttpOperationResponse<HistoryReadResponseApiModelJToken>();
+            var _result = new HttpOperationResponse<JTokenHistoryReadResponseApiModel>();
             _result.Request = _httpRequest;
             _result.Response = _httpResponse;
             // Deserialize Response
@@ -1112,7 +1111,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                 try
                 {
-                    _result.Body = SafeJsonConvert.DeserializeObject<HistoryReadResponseApiModelJToken>(_responseContent, DeserializationSettings);
+                    _result.Body = SafeJsonConvert.DeserializeObject<JTokenHistoryReadResponseApiModel>(_responseContent, DeserializationSettings);
                 }
                 catch (JsonException ex)
                 {
@@ -1135,14 +1134,14 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// Read next batch of history as json
         /// </summary>
         /// <remarks>
-        /// Read next batch of node history values using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Read next batch of node history values using historic access. The endpoint
+        /// must be activated and connected and the module client and server must trust
+        /// each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history read next request
         /// </param>
         /// <param name='customHeaders'>
@@ -1166,19 +1165,19 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<HistoryReadNextResponseApiModelJToken>> HistoryReadRawNextWithHttpMessagesAsync(string endpointId, HistoryReadNextRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<JTokenHistoryReadNextResponseApiModel>> HistoryReadRawNextWithHttpMessagesAsync(string endpointId, HistoryReadNextRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (request != null)
+            if (body != null)
             {
-                request.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -1188,7 +1187,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "HistoryReadRawNext", tracingParameters);
             }
@@ -1218,9 +1217,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -1267,7 +1266,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 throw ex;
             }
             // Create Result
-            var _result = new HttpOperationResponse<HistoryReadNextResponseApiModelJToken>();
+            var _result = new HttpOperationResponse<JTokenHistoryReadNextResponseApiModel>();
             _result.Request = _httpRequest;
             _result.Response = _httpResponse;
             // Deserialize Response
@@ -1276,7 +1275,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                 try
                 {
-                    _result.Body = SafeJsonConvert.DeserializeObject<HistoryReadNextResponseApiModelJToken>(_responseContent, DeserializationSettings);
+                    _result.Body = SafeJsonConvert.DeserializeObject<JTokenHistoryReadNextResponseApiModel>(_responseContent, DeserializationSettings);
                 }
                 catch (JsonException ex)
                 {
@@ -1299,14 +1298,13 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// Update node history using raw json
         /// </summary>
         /// <remarks>
-        /// Update node history using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Update node history using historic access. The endpoint must be activated
+        /// and connected and the module client and server must trust each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history update request
         /// </param>
         /// <param name='customHeaders'>
@@ -1330,19 +1328,19 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryUpdateRawWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelJToken request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryUpdateRawWithHttpMessagesAsync(string endpointId, JTokenHistoryUpdateRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (request != null)
+            if (body != null)
             {
-                request.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -1352,7 +1350,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "HistoryUpdateRaw", tracingParameters);
             }
@@ -1382,9 +1380,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -1463,14 +1461,14 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// Insert historic values
         /// </summary>
         /// <remarks>
-        /// Insert historic values using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Insert historic values using historic access. The endpoint must be
+        /// activated and connected and the module client and server must trust each
+        /// other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history insert request
         /// </param>
         /// <param name='customHeaders'>
@@ -1494,19 +1492,19 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryInsertValuesWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelInsertValuesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryInsertValuesWithHttpMessagesAsync(string endpointId, InsertValuesDetailsApiModelHistoryUpdateRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (request != null)
+            if (body != null)
             {
-                request.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -1516,7 +1514,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "HistoryInsertValues", tracingParameters);
             }
@@ -1546,9 +1544,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -1627,14 +1625,14 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// Insert historic events
         /// </summary>
         /// <remarks>
-        /// Insert historic events using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Insert historic events using historic access. The endpoint must be
+        /// activated and connected and the module client and server must trust each
+        /// other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history insert request
         /// </param>
         /// <param name='customHeaders'>
@@ -1658,19 +1656,19 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryInsertEventsWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelInsertEventsDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryInsertEventsWithHttpMessagesAsync(string endpointId, InsertEventsDetailsApiModelHistoryUpdateRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (request != null)
+            if (body != null)
             {
-                request.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -1680,7 +1678,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "HistoryInsertEvents", tracingParameters);
             }
@@ -1710,9 +1708,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -1791,14 +1789,14 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// Read historic events
         /// </summary>
         /// <remarks>
-        /// Read historic events of a node if available using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Read historic events of a node if available using historic access. The
+        /// endpoint must be activated and connected and the module client and server
+        /// must trust each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history read request
         /// </param>
         /// <param name='customHeaders'>
@@ -1822,15 +1820,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<HistoryReadResponseApiModelHistoricEventApiModel>> HistoryReadEventsWithHttpMessagesAsync(string endpointId, HistoryReadRequestApiModelReadEventsDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<HistoricEventApiModelHistoryReadResponseApiModel>> HistoryReadEventsWithHttpMessagesAsync(string endpointId, ReadEventsDetailsApiModelHistoryReadRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -1840,7 +1838,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "HistoryReadEvents", tracingParameters);
             }
@@ -1870,9 +1868,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -1919,7 +1917,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 throw ex;
             }
             // Create Result
-            var _result = new HttpOperationResponse<HistoryReadResponseApiModelHistoricEventApiModel>();
+            var _result = new HttpOperationResponse<HistoricEventApiModelHistoryReadResponseApiModel>();
             _result.Request = _httpRequest;
             _result.Response = _httpResponse;
             // Deserialize Response
@@ -1928,7 +1926,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                 try
                 {
-                    _result.Body = SafeJsonConvert.DeserializeObject<HistoryReadResponseApiModelHistoricEventApiModel>(_responseContent, DeserializationSettings);
+                    _result.Body = SafeJsonConvert.DeserializeObject<HistoricEventApiModelHistoryReadResponseApiModel>(_responseContent, DeserializationSettings);
                 }
                 catch (JsonException ex)
                 {
@@ -1951,14 +1949,14 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// Read next batch of historic events
         /// </summary>
         /// <remarks>
-        /// Read next batch of historic events of a node using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Read next batch of historic events of a node using historic access. The
+        /// endpoint must be activated and connected and the module client and server
+        /// must trust each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history read next request
         /// </param>
         /// <param name='customHeaders'>
@@ -1982,19 +1980,19 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<HistoryReadNextResponseApiModelHistoricEventApiModel>> HistoryReadEventsNextWithHttpMessagesAsync(string endpointId, HistoryReadNextRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<HistoricEventApiModelHistoryReadNextResponseApiModel>> HistoryReadEventsNextWithHttpMessagesAsync(string endpointId, HistoryReadNextRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (request != null)
+            if (body != null)
             {
-                request.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -2004,7 +2002,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "HistoryReadEventsNext", tracingParameters);
             }
@@ -2034,9 +2032,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -2083,7 +2081,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 throw ex;
             }
             // Create Result
-            var _result = new HttpOperationResponse<HistoryReadNextResponseApiModelHistoricEventApiModel>();
+            var _result = new HttpOperationResponse<HistoricEventApiModelHistoryReadNextResponseApiModel>();
             _result.Request = _httpRequest;
             _result.Response = _httpResponse;
             // Deserialize Response
@@ -2092,7 +2090,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                 try
                 {
-                    _result.Body = SafeJsonConvert.DeserializeObject<HistoryReadNextResponseApiModelHistoricEventApiModel>(_responseContent, DeserializationSettings);
+                    _result.Body = SafeJsonConvert.DeserializeObject<HistoricEventApiModelHistoryReadNextResponseApiModel>(_responseContent, DeserializationSettings);
                 }
                 catch (JsonException ex)
                 {
@@ -2116,13 +2114,13 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// </summary>
         /// <remarks>
         /// Read processed history values of a node if available using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// The endpoint must be activated and connected and the module client and
+        /// server must trust each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history read request
         /// </param>
         /// <param name='customHeaders'>
@@ -2146,15 +2144,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>> HistoryReadValuesWithHttpMessagesAsync(string endpointId, HistoryReadRequestApiModelReadValuesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<HistoricValueApiModelHistoryReadResponseApiModel>> HistoryReadValuesWithHttpMessagesAsync(string endpointId, ReadValuesDetailsApiModelHistoryReadRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -2164,7 +2162,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "HistoryReadValues", tracingParameters);
             }
@@ -2194,9 +2192,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -2243,7 +2241,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 throw ex;
             }
             // Create Result
-            var _result = new HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>();
+            var _result = new HttpOperationResponse<HistoricValueApiModelHistoryReadResponseApiModel>();
             _result.Request = _httpRequest;
             _result.Response = _httpResponse;
             // Deserialize Response
@@ -2252,7 +2250,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                 try
                 {
-                    _result.Body = SafeJsonConvert.DeserializeObject<HistoryReadResponseApiModelHistoricValueApiModel>(_responseContent, DeserializationSettings);
+                    _result.Body = SafeJsonConvert.DeserializeObject<HistoricValueApiModelHistoryReadResponseApiModel>(_responseContent, DeserializationSettings);
                 }
                 catch (JsonException ex)
                 {
@@ -2275,14 +2273,14 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// Read historic values at specified times
         /// </summary>
         /// <remarks>
-        /// Read historic values of a node if available using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Read historic values of a node if available using historic access. The
+        /// endpoint must be activated and connected and the module client and server
+        /// must trust each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history read request
         /// </param>
         /// <param name='customHeaders'>
@@ -2306,19 +2304,19 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>> HistoryReadValuesAtTimesWithHttpMessagesAsync(string endpointId, HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<HistoricValueApiModelHistoryReadResponseApiModel>> HistoryReadValuesAtTimesWithHttpMessagesAsync(string endpointId, ReadValuesAtTimesDetailsApiModelHistoryReadRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (request != null)
+            if (body != null)
             {
-                request.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -2328,7 +2326,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "HistoryReadValuesAtTimes", tracingParameters);
             }
@@ -2358,9 +2356,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -2407,7 +2405,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 throw ex;
             }
             // Create Result
-            var _result = new HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>();
+            var _result = new HttpOperationResponse<HistoricValueApiModelHistoryReadResponseApiModel>();
             _result.Request = _httpRequest;
             _result.Response = _httpResponse;
             // Deserialize Response
@@ -2416,7 +2414,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                 try
                 {
-                    _result.Body = SafeJsonConvert.DeserializeObject<HistoryReadResponseApiModelHistoricValueApiModel>(_responseContent, DeserializationSettings);
+                    _result.Body = SafeJsonConvert.DeserializeObject<HistoricValueApiModelHistoryReadResponseApiModel>(_responseContent, DeserializationSettings);
                 }
                 catch (JsonException ex)
                 {
@@ -2440,13 +2438,13 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// </summary>
         /// <remarks>
         /// Read processed history values of a node if available using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// The endpoint must be activated and connected and the module client and
+        /// server must trust each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history read request
         /// </param>
         /// <param name='customHeaders'>
@@ -2470,15 +2468,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>> HistoryReadProcessedValuesWithHttpMessagesAsync(string endpointId, HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<HistoricValueApiModelHistoryReadResponseApiModel>> HistoryReadProcessedValuesWithHttpMessagesAsync(string endpointId, ReadProcessedValuesDetailsApiModelHistoryReadRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -2488,7 +2486,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "HistoryReadProcessedValues", tracingParameters);
             }
@@ -2518,9 +2516,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -2567,7 +2565,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 throw ex;
             }
             // Create Result
-            var _result = new HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>();
+            var _result = new HttpOperationResponse<HistoricValueApiModelHistoryReadResponseApiModel>();
             _result.Request = _httpRequest;
             _result.Response = _httpResponse;
             // Deserialize Response
@@ -2576,7 +2574,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                 try
                 {
-                    _result.Body = SafeJsonConvert.DeserializeObject<HistoryReadResponseApiModelHistoricValueApiModel>(_responseContent, DeserializationSettings);
+                    _result.Body = SafeJsonConvert.DeserializeObject<HistoricValueApiModelHistoryReadResponseApiModel>(_responseContent, DeserializationSettings);
                 }
                 catch (JsonException ex)
                 {
@@ -2600,13 +2598,13 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// </summary>
         /// <remarks>
         /// Read processed history values of a node if available using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// The endpoint must be activated and connected and the module client and
+        /// server must trust each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history read request
         /// </param>
         /// <param name='customHeaders'>
@@ -2630,15 +2628,15 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>> HistoryReadModifiedValuesWithHttpMessagesAsync(string endpointId, HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<HistoricValueApiModelHistoryReadResponseApiModel>> HistoryReadModifiedValuesWithHttpMessagesAsync(string endpointId, ReadModifiedValuesDetailsApiModelHistoryReadRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -2648,7 +2646,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "HistoryReadModifiedValues", tracingParameters);
             }
@@ -2678,9 +2676,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -2727,7 +2725,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 throw ex;
             }
             // Create Result
-            var _result = new HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>();
+            var _result = new HttpOperationResponse<HistoricValueApiModelHistoryReadResponseApiModel>();
             _result.Request = _httpRequest;
             _result.Response = _httpResponse;
             // Deserialize Response
@@ -2736,7 +2734,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                 try
                 {
-                    _result.Body = SafeJsonConvert.DeserializeObject<HistoryReadResponseApiModelHistoricValueApiModel>(_responseContent, DeserializationSettings);
+                    _result.Body = SafeJsonConvert.DeserializeObject<HistoricValueApiModelHistoryReadResponseApiModel>(_responseContent, DeserializationSettings);
                 }
                 catch (JsonException ex)
                 {
@@ -2759,14 +2757,14 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// Read next batch of historic values
         /// </summary>
         /// <remarks>
-        /// Read next batch of historic values of a node using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Read next batch of historic values of a node using historic access. The
+        /// endpoint must be activated and connected and the module client and server
+        /// must trust each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history read next request
         /// </param>
         /// <param name='customHeaders'>
@@ -2790,19 +2788,19 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<HistoryReadNextResponseApiModelHistoricValueApiModel>> HistoryReadValueNextWithHttpMessagesAsync(string endpointId, HistoryReadNextRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<HistoricValueApiModelHistoryReadNextResponseApiModel>> HistoryReadValueNextWithHttpMessagesAsync(string endpointId, HistoryReadNextRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (request != null)
+            if (body != null)
             {
-                request.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -2812,7 +2810,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "HistoryReadValueNext", tracingParameters);
             }
@@ -2842,9 +2840,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -2891,7 +2889,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 throw ex;
             }
             // Create Result
-            var _result = new HttpOperationResponse<HistoryReadNextResponseApiModelHistoricValueApiModel>();
+            var _result = new HttpOperationResponse<HistoricValueApiModelHistoryReadNextResponseApiModel>();
             _result.Request = _httpRequest;
             _result.Response = _httpResponse;
             // Deserialize Response
@@ -2900,7 +2898,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                 try
                 {
-                    _result.Body = SafeJsonConvert.DeserializeObject<HistoryReadNextResponseApiModelHistoricValueApiModel>(_responseContent, DeserializationSettings);
+                    _result.Body = SafeJsonConvert.DeserializeObject<HistoricValueApiModelHistoryReadNextResponseApiModel>(_responseContent, DeserializationSettings);
                 }
                 catch (JsonException ex)
                 {
@@ -2923,14 +2921,14 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// Replace historic values
         /// </summary>
         /// <remarks>
-        /// Replace historic values using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Replace historic values using historic access. The endpoint must be
+        /// activated and connected and the module client and server must trust each
+        /// other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history replace request
         /// </param>
         /// <param name='customHeaders'>
@@ -2954,19 +2952,19 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryReplaceValuesWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryReplaceValuesWithHttpMessagesAsync(string endpointId, ReplaceValuesDetailsApiModelHistoryUpdateRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (request != null)
+            if (body != null)
             {
-                request.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -2976,7 +2974,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "HistoryReplaceValues", tracingParameters);
             }
@@ -3006,9 +3004,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -3087,14 +3085,14 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// Replace historic events
         /// </summary>
         /// <remarks>
-        /// Replace historic events using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Replace historic events using historic access. The endpoint must be
+        /// activated and connected and the module client and server must trust each
+        /// other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history replace request
         /// </param>
         /// <param name='customHeaders'>
@@ -3118,19 +3116,19 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryReplaceEventsWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryReplaceEventsWithHttpMessagesAsync(string endpointId, ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (request != null)
+            if (body != null)
             {
-                request.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -3140,7 +3138,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "HistoryReplaceEvents", tracingParameters);
             }
@@ -3170,9 +3168,9 @@ namespace Microsoft.Azure.IIoT.Opc.History
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }

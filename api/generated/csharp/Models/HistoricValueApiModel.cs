@@ -41,8 +41,6 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// the value.</param>
         /// <param name="serverPicoseconds">Additional resolution for the
         /// server timestamp.</param>
-        /// <param name="modificationInfo">modification information when
-        /// reading modifications.</param>
         public HistoricValueApiModel(object value = default(object), int? statusCode = default(int?), System.DateTime? sourceTimestamp = default(System.DateTime?), int? sourcePicoseconds = default(int?), System.DateTime? serverTimestamp = default(System.DateTime?), int? serverPicoseconds = default(int?), ModificationInfoApiModel modificationInfo = default(ModificationInfoApiModel))
         {
             Value = value;
@@ -98,7 +96,6 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         public int? ServerPicoseconds { get; set; }
 
         /// <summary>
-        /// Gets or sets modification information when reading modifications.
         /// </summary>
         [JsonProperty(PropertyName = "modificationInfo")]
         public ModificationInfoApiModel ModificationInfo { get; set; }

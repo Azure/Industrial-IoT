@@ -18,6 +18,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Cli {
     using Serilog.Core;
     using Serilog.Events;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using System.Threading;
@@ -309,10 +310,16 @@ Arguments:
             var registry = CreateClient(config, logger);
             await registry.CreateAsync(new DeviceTwinModel {
                 Id = deviceId,
-                ModuleId = moduleId,
+                Tags = new Dictionary<string, JToken> {
+                    [TwinProperty.Type] = IdentityType.Gateway
+                },
                 Capabilities = new DeviceCapabilitiesModel {
                     IotEdge = true
                 }
+            }, true, CancellationToken.None);
+            await registry.CreateAsync(new DeviceTwinModel {
+                Id = deviceId,
+                ModuleId = moduleId
             }, true, CancellationToken.None);
             var cs = await registry.GetConnectionStringAsync(deviceId, moduleId);
             LogControl.Level.MinimumLevel = level;

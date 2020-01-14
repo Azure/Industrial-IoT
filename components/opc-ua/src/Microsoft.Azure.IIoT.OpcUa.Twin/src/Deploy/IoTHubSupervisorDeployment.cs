@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
                     ModulesContent = CreateLayeredDeployment(true)
                 },
                 SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = "tags.__type__ = 'gateway' AND tags.os = 'Linux'",
+                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}' AND tags.os = 'Linux'",
                 Priority = 1
             }, true);
 
@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
                     ModulesContent = CreateLayeredDeployment(false)
                 },
                 SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = "tags.__type__ = 'gateway' AND tags.os = 'Windows'",
+                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}' AND tags.os = 'Windows'",
                 Priority = 1
             }, true);
         }
@@ -79,38 +79,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
                     },
                 ";
             }
-
-            // Configure create options per os specified
-            string createOptions;
-            if (isLinux) {
-                // Linux
-                createOptions = @"
-                {
-                    ""Hostname"": ""opctwin"",
-                    ""NetworkingConfig"":{
-                        ""EndpointsConfig"": {
-                            ""host"": {
-                            }
-                        }
-                    },
-                    ""HostConfig"": {
-                        ""NetworkMode"": ""host"",
-                        ""CapAdd"": [ ""NET_ADMIN"" ]
-                    }
-                }";
-            }
-            else {
-                // Windows
-                createOptions = @"
-                {
-                    ""Hostname"":""opctwin"",
-                    ""HostConfig"": {
-                        ""CapAdd"": [ ""NET_ADMIN"" ]
-                    }
-                }";
-            }
-            createOptions = JObject.Parse(createOptions).ToString(Formatting.None).Replace("\"", "\\\"");
-
             var server = string.IsNullOrEmpty(_config.DockerServer) ?
                 "mcr.microsoft.com" : _config.DockerServer;
             var ns = string.IsNullOrEmpty(_config.ImageNamespace) ? "" :
@@ -124,8 +92,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
                     " + registryCredentials + @"
                     ""properties.desired.modules.twin"": {
                         ""settings"": {
-                            ""image"": """ + image + @""",
-                            ""createOptions"": """ + createOptions + @"""
+                            ""image"": """ + image + @"""
                         },
                         ""type"": ""docker"",
                         ""status"": ""running"",

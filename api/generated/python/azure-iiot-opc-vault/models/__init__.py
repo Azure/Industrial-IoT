@@ -13,6 +13,7 @@ from .x509_certificate_api_model import X509CertificateApiModel
 from .x509_certificate_chain_api_model import X509CertificateChainApiModel
 from .x509_crl_api_model import X509CrlApiModel
 from .x509_crl_chain_api_model import X509CrlChainApiModel
+from .not_found_result import NotFoundResult
 from .start_signing_request_api_model import StartSigningRequestApiModel
 from .start_signing_request_response_api_model import StartSigningRequestResponseApiModel
 from .vault_operation_context_api_model import VaultOperationContextApiModel
@@ -46,6 +47,7 @@ __all__ = [
     'X509CertificateChainApiModel',
     'X509CrlApiModel',
     'X509CrlChainApiModel',
+    'NotFoundResult',
     'StartSigningRequestApiModel',
     'StartSigningRequestResponseApiModel',
     'VaultOperationContextApiModel',

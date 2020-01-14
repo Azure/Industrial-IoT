@@ -287,7 +287,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// </summary>
         private void Initialize()
         {
-            BaseUri = new System.Uri("/vault");
+            BaseUri = new System.Uri("http://localhost:9080");
             SerializationSettings = new JsonSerializerSettings
             {
                 Formatting = Newtonsoft.Json.Formatting.Indented,
@@ -319,8 +319,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// Get Issuer CA Certificate chain.
         /// </summary>
         /// <param name='serialNumber'>
-        /// the serial number of the
-        /// Issuer CA Certificate
+        /// the serial number of the Issuer CA Certificate
         /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
@@ -461,8 +460,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// Get Issuer CA CRL chain.
         /// </summary>
         /// <param name='serialNumber'>
-        /// the serial number of the Issuer
-        /// CA Certificate
+        /// the serial number of the Issuer CA Certificate
         /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
@@ -614,6 +612,9 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// <exception cref="HttpOperationException">
         /// Thrown when the operation returned an invalid status code
         /// </exception>
+        /// <exception cref="SerializationException">
+        /// Thrown when unable to deserialize the response
+        /// </exception>
         /// <exception cref="ValidationException">
         /// Thrown when a required parameter is null
         /// </exception>
@@ -623,7 +624,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse> GetIssuerCertificateChain1WithHttpMessagesAsync(string serialNumber, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<string>> GetIssuerCertificateChain1WithHttpMessagesAsync(string serialNumber, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (serialNumber == null)
             {
@@ -709,9 +710,27 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
                 throw ex;
             }
             // Create Result
-            var _result = new HttpOperationResponse();
+            var _result = new HttpOperationResponse<string>();
             _result.Request = _httpRequest;
             _result.Response = _httpResponse;
+            // Deserialize Response
+            if ((int)_statusCode == 200)
+            {
+                _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                try
+                {
+                    _result.Body = SafeJsonConvert.DeserializeObject<string>(_responseContent, DeserializationSettings);
+                }
+                catch (JsonException ex)
+                {
+                    _httpRequest.Dispose();
+                    if (_httpResponse != null)
+                    {
+                        _httpResponse.Dispose();
+                    }
+                    throw new SerializationException("Unable to deserialize the response.", _responseContent, ex);
+                }
+            }
             if (_shouldTrace)
             {
                 ServiceClientTracing.Exit(_invocationId, _result);
@@ -733,6 +752,9 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// <exception cref="HttpOperationException">
         /// Thrown when the operation returned an invalid status code
         /// </exception>
+        /// <exception cref="SerializationException">
+        /// Thrown when unable to deserialize the response
+        /// </exception>
         /// <exception cref="ValidationException">
         /// Thrown when a required parameter is null
         /// </exception>
@@ -742,7 +764,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse> GetIssuerCrlChain1WithHttpMessagesAsync(string serialNumber, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<string>> GetIssuerCrlChain1WithHttpMessagesAsync(string serialNumber, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (serialNumber == null)
             {
@@ -828,9 +850,27 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
                 throw ex;
             }
             // Create Result
-            var _result = new HttpOperationResponse();
+            var _result = new HttpOperationResponse<string>();
             _result.Request = _httpRequest;
             _result.Response = _httpResponse;
+            // Deserialize Response
+            if ((int)_statusCode == 200)
+            {
+                _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                try
+                {
+                    _result.Body = SafeJsonConvert.DeserializeObject<string>(_responseContent, DeserializationSettings);
+                }
+                catch (JsonException ex)
+                {
+                    _httpRequest.Dispose();
+                    if (_httpResponse != null)
+                    {
+                        _httpResponse.Dispose();
+                    }
+                    throw new SerializationException("Unable to deserialize the response.", _responseContent, ex);
+                }
+            }
             if (_shouldTrace)
             {
                 ServiceClientTracing.Exit(_invocationId, _result);
@@ -842,10 +882,10 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// Create a certificate request with a certificate signing request (CSR).
         /// </summary>
         /// <remarks>
-        /// The request is in the 'New' state after this call.
-        /// Requires Writer or Manager role.
+        /// The request is in the 'New' state after this call. Requires Writer or
+        /// Manager role.
         /// </remarks>
-        /// <param name='signingRequest'>
+        /// <param name='body'>
         /// The signing request parameters
         /// </param>
         /// <param name='customHeaders'>
@@ -869,15 +909,15 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<StartSigningRequestResponseApiModel>> StartSigningRequestWithHttpMessagesAsync(StartSigningRequestApiModel signingRequest, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<StartSigningRequestResponseApiModel>> StartSigningRequestWithHttpMessagesAsync(StartSigningRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (signingRequest == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "signingRequest");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (signingRequest != null)
+            if (body != null)
             {
-                signingRequest.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -886,7 +926,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             {
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("signingRequest", signingRequest);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "StartSigningRequest", tracingParameters);
             }
@@ -915,9 +955,9 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
 
             // Serialize Request
             string _requestContent = null;
-            if(signingRequest != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(signingRequest, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -996,10 +1036,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// Fetch signing request results.
         /// </summary>
         /// <remarks>
-        /// Can be called in any state.
-        /// After a successful fetch in 'Completed' state, the request is
-        /// moved into 'Accepted' state.
-        /// Requires Writer role.
+        /// Can be called in any state. After a successful fetch in 'Completed' state,
+        /// the request is moved into 'Accepted' state. Requires Writer role.
         /// </remarks>
         /// <param name='requestId'>
         /// </param>
@@ -1142,10 +1180,10 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// Create a certificate request with a new key pair.
         /// </summary>
         /// <remarks>
-        /// The request is in the 'New' state after this call.
-        /// Requires Writer or Manager role.
+        /// The request is in the 'New' state after this call. Requires Writer or
+        /// Manager role.
         /// </remarks>
-        /// <param name='newKeyPairRequest'>
+        /// <param name='body'>
         /// The new key pair request parameters
         /// </param>
         /// <param name='customHeaders'>
@@ -1169,15 +1207,15 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<StartNewKeyPairRequestResponseApiModel>> StartNewKeyPairRequestWithHttpMessagesAsync(StartNewKeyPairRequestApiModel newKeyPairRequest, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<StartNewKeyPairRequestResponseApiModel>> StartNewKeyPairRequestWithHttpMessagesAsync(StartNewKeyPairRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (newKeyPairRequest == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "newKeyPairRequest");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (newKeyPairRequest != null)
+            if (body != null)
             {
-                newKeyPairRequest.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -1186,7 +1224,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             {
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("newKeyPairRequest", newKeyPairRequest);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "StartNewKeyPairRequest", tracingParameters);
             }
@@ -1215,9 +1253,9 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
 
             // Serialize Request
             string _requestContent = null;
-            if(newKeyPairRequest != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(newKeyPairRequest, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -1296,11 +1334,9 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// Fetch certificate request result.
         /// </summary>
         /// <remarks>
-        /// Can be called in any state.
-        /// Fetches private key in 'Completed' state.
-        /// After a successful fetch in 'Completed' state, the request is
-        /// moved into 'Accepted' state.
-        /// Requires Writer role.
+        /// Can be called in any state. Fetches private key in 'Completed' state. After
+        /// a successful fetch in 'Completed' state, the request is moved into
+        /// 'Accepted' state. Requires Writer role.
         /// </remarks>
         /// <param name='requestId'>
         /// </param>
@@ -1443,17 +1479,13 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// Approve the certificate request.
         /// </summary>
         /// <remarks>
-        /// Validates the request with the application database.
-        /// - If Approved:
-        /// - New Key Pair request: Creates the new key pair
-        /// in the requested format, signs the certificate and stores the
-        /// private key for later securely in KeyVault.
-        /// - Cert Signing Request: Creates and signs the certificate.
-        /// Deletes the CSR from the database.
-        /// Stores the signed certificate for later use in the Database.
-        /// The request is in the 'Approved' or 'Rejected' state after this call.
-        /// Requires Approver role.
-        /// Approver needs signing rights in KeyVault.
+        /// Validates the request with the application database. - If Approved: - New
+        /// Key Pair request: Creates the new key pair in the requested format, signs
+        /// the certificate and stores the private key for later securely in KeyVault.
+        /// - Cert Signing Request: Creates and signs the certificate. Deletes the CSR
+        /// from the database. Stores the signed certificate for later use in the
+        /// Database. The request is in the 'Approved' or 'Rejected' state after this
+        /// call. Requires Approver role. Approver needs signing rights in KeyVault.
         /// </remarks>
         /// <param name='requestId'>
         /// The certificate request id
@@ -1576,9 +1608,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// Reject the certificate request.
         /// </summary>
         /// <remarks>
-        /// The request is in the 'Rejected' state after this call.
-        /// Requires Approver role.
-        /// Approver needs signing rights in KeyVault.
+        /// The request is in the 'Rejected' state after this call. Requires Approver
+        /// role. Approver needs signing rights in KeyVault.
         /// </remarks>
         /// <param name='requestId'>
         /// The certificate request id
@@ -1701,8 +1732,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// Cancel request
         /// </summary>
         /// <remarks>
-        /// The request is in the 'Accepted' state after this call.
-        /// Requires Writer role.
+        /// The request is in the 'Accepted' state after this call. Requires Writer
+        /// role.
         /// </remarks>
         /// <param name='requestId'>
         /// The certificate request id
@@ -1750,6 +1781,130 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             var _httpRequest = new HttpRequestMessage();
             HttpResponseMessage _httpResponse = null;
             _httpRequest.Method = new HttpMethod("POST");
+            _httpRequest.RequestUri = new System.Uri(_url);
+            // Set Headers
+
+
+            if (customHeaders != null)
+            {
+                foreach(var _header in customHeaders)
+                {
+                    if (_httpRequest.Headers.Contains(_header.Key))
+                    {
+                        _httpRequest.Headers.Remove(_header.Key);
+                    }
+                    _httpRequest.Headers.TryAddWithoutValidation(_header.Key, _header.Value);
+                }
+            }
+
+            // Serialize Request
+            string _requestContent = null;
+            // Set Credentials
+            if (Credentials != null)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await Credentials.ProcessHttpRequestAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
+            }
+            // Send Request
+            if (_shouldTrace)
+            {
+                ServiceClientTracing.SendRequest(_invocationId, _httpRequest);
+            }
+            cancellationToken.ThrowIfCancellationRequested();
+            _httpResponse = await HttpClient.SendAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
+            if (_shouldTrace)
+            {
+                ServiceClientTracing.ReceiveResponse(_invocationId, _httpResponse);
+            }
+            HttpStatusCode _statusCode = _httpResponse.StatusCode;
+            cancellationToken.ThrowIfCancellationRequested();
+            string _responseContent = null;
+            if ((int)_statusCode != 200)
+            {
+                var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
+                if (_httpResponse.Content != null) {
+                    _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                }
+                else {
+                    _responseContent = string.Empty;
+                }
+                ex.Request = new HttpRequestMessageWrapper(_httpRequest, _requestContent);
+                ex.Response = new HttpResponseMessageWrapper(_httpResponse, _responseContent);
+                if (_shouldTrace)
+                {
+                    ServiceClientTracing.Error(_invocationId, ex);
+                }
+                _httpRequest.Dispose();
+                if (_httpResponse != null)
+                {
+                    _httpResponse.Dispose();
+                }
+                throw ex;
+            }
+            // Create Result
+            var _result = new HttpOperationResponse();
+            _result.Request = _httpRequest;
+            _result.Response = _httpResponse;
+            if (_shouldTrace)
+            {
+                ServiceClientTracing.Exit(_invocationId, _result);
+            }
+            return _result;
+        }
+
+        /// <summary>
+        /// Delete request. Physically delete the request.
+        /// </summary>
+        /// <remarks>
+        /// By purging the request it is actually physically deleted from the database,
+        /// including the public key and other information. Requires Manager role.
+        /// </remarks>
+        /// <param name='requestId'>
+        /// The certificate request id
+        /// </param>
+        /// <param name='customHeaders'>
+        /// Headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        /// <exception cref="HttpOperationException">
+        /// Thrown when the operation returned an invalid status code
+        /// </exception>
+        /// <exception cref="ValidationException">
+        /// Thrown when a required parameter is null
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// Thrown when a required parameter is null
+        /// </exception>
+        /// <return>
+        /// A response object containing the response body and response headers.
+        /// </return>
+        public async Task<HttpOperationResponse> DeleteRequestWithHttpMessagesAsync(string requestId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (requestId == null)
+            {
+                throw new ValidationException(ValidationRules.CannotBeNull, "requestId");
+            }
+            // Tracing
+            bool _shouldTrace = ServiceClientTracing.IsEnabled;
+            string _invocationId = null;
+            if (_shouldTrace)
+            {
+                _invocationId = ServiceClientTracing.NextInvocationId.ToString();
+                Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
+                tracingParameters.Add("requestId", requestId);
+                tracingParameters.Add("cancellationToken", cancellationToken);
+                ServiceClientTracing.Enter(_invocationId, this, "DeleteRequest", tracingParameters);
+            }
+            // Construct URL
+            var _baseUrl = BaseUri.AbsoluteUri;
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/requests/{requestId}").ToString();
+            _url = _url.Replace("{requestId}", System.Uri.EscapeDataString(requestId));
+            // Create HTTP transport objects
+            var _httpRequest = new HttpRequestMessage();
+            HttpResponseMessage _httpResponse = null;
+            _httpRequest.Method = new HttpMethod("DELETE");
             _httpRequest.RequestUri = new System.Uri(_url);
             // Set Headers
 
@@ -1963,143 +2118,18 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         }
 
         /// <summary>
-        /// Delete request. Physically delete the request.
-        /// </summary>
-        /// <remarks>
-        /// By purging the request it is actually physically deleted from the
-        /// database, including the public key and other information.
-        /// Requires Manager role.
-        /// </remarks>
-        /// <param name='requestId'>
-        /// The certificate request id
-        /// </param>
-        /// <param name='customHeaders'>
-        /// Headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        /// <exception cref="HttpOperationException">
-        /// Thrown when the operation returned an invalid status code
-        /// </exception>
-        /// <exception cref="ValidationException">
-        /// Thrown when a required parameter is null
-        /// </exception>
-        /// <exception cref="System.ArgumentNullException">
-        /// Thrown when a required parameter is null
-        /// </exception>
-        /// <return>
-        /// A response object containing the response body and response headers.
-        /// </return>
-        public async Task<HttpOperationResponse> DeleteRequestWithHttpMessagesAsync(string requestId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (requestId == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "requestId");
-            }
-            // Tracing
-            bool _shouldTrace = ServiceClientTracing.IsEnabled;
-            string _invocationId = null;
-            if (_shouldTrace)
-            {
-                _invocationId = ServiceClientTracing.NextInvocationId.ToString();
-                Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("requestId", requestId);
-                tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "DeleteRequest", tracingParameters);
-            }
-            // Construct URL
-            var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/requests/{requestId}").ToString();
-            _url = _url.Replace("{requestId}", System.Uri.EscapeDataString(requestId));
-            // Create HTTP transport objects
-            var _httpRequest = new HttpRequestMessage();
-            HttpResponseMessage _httpResponse = null;
-            _httpRequest.Method = new HttpMethod("DELETE");
-            _httpRequest.RequestUri = new System.Uri(_url);
-            // Set Headers
-
-
-            if (customHeaders != null)
-            {
-                foreach(var _header in customHeaders)
-                {
-                    if (_httpRequest.Headers.Contains(_header.Key))
-                    {
-                        _httpRequest.Headers.Remove(_header.Key);
-                    }
-                    _httpRequest.Headers.TryAddWithoutValidation(_header.Key, _header.Value);
-                }
-            }
-
-            // Serialize Request
-            string _requestContent = null;
-            // Set Credentials
-            if (Credentials != null)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await Credentials.ProcessHttpRequestAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
-            }
-            // Send Request
-            if (_shouldTrace)
-            {
-                ServiceClientTracing.SendRequest(_invocationId, _httpRequest);
-            }
-            cancellationToken.ThrowIfCancellationRequested();
-            _httpResponse = await HttpClient.SendAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
-            if (_shouldTrace)
-            {
-                ServiceClientTracing.ReceiveResponse(_invocationId, _httpResponse);
-            }
-            HttpStatusCode _statusCode = _httpResponse.StatusCode;
-            cancellationToken.ThrowIfCancellationRequested();
-            string _responseContent = null;
-            if ((int)_statusCode != 200)
-            {
-                var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
-                if (_httpResponse.Content != null) {
-                    _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                }
-                else {
-                    _responseContent = string.Empty;
-                }
-                ex.Request = new HttpRequestMessageWrapper(_httpRequest, _requestContent);
-                ex.Response = new HttpResponseMessageWrapper(_httpResponse, _responseContent);
-                if (_shouldTrace)
-                {
-                    ServiceClientTracing.Error(_invocationId, ex);
-                }
-                _httpRequest.Dispose();
-                if (_httpResponse != null)
-                {
-                    _httpResponse.Dispose();
-                }
-                throw ex;
-            }
-            // Create Result
-            var _result = new HttpOperationResponse();
-            _result.Request = _httpRequest;
-            _result.Response = _httpResponse;
-            if (_shouldTrace)
-            {
-                ServiceClientTracing.Exit(_invocationId, _result);
-            }
-            return _result;
-        }
-
-        /// <summary>
         /// Query for certificate requests.
         /// </summary>
         /// <remarks>
-        /// Get all certificate requests in paged form.
-        /// The returned model can contain a link to the next page if more results are
-        /// available.  Use ListRequests to continue.
+        /// Get all certificate requests in paged form. The returned model can contain
+        /// a link to the next page if more results are available. Use ListRequests to
+        /// continue.
         /// </remarks>
-        /// <param name='query'>
-        /// optional, query filter
-        /// </param>
         /// <param name='pageSize'>
         /// optional, the maximum number of result per page
+        /// </param>
+        /// <param name='body'>
+        /// optional, query filter
         /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
@@ -2116,7 +2146,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<CertificateRequestQueryResponseApiModel>> QueryRequestsWithHttpMessagesAsync(CertificateRequestQueryRequestApiModel query = default(CertificateRequestQueryRequestApiModel), int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<CertificateRequestQueryResponseApiModel>> QueryRequestsWithHttpMessagesAsync(int? pageSize = default(int?), CertificateRequestQueryRequestApiModel body = default(CertificateRequestQueryRequestApiModel), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -2125,8 +2155,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             {
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("query", query);
                 tracingParameters.Add("pageSize", pageSize);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "QueryRequests", tracingParameters);
             }
@@ -2164,9 +2194,9 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
 
             // Serialize Request
             string _requestContent = null;
-            if(query != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(query, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -2246,9 +2276,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// </summary>
         /// <remarks>
         /// Get all certificate requests in paged form or continue a current listing or
-        /// query.
-        /// The returned model can contain a link to the next page if more results are
-        /// available.
+        /// query. The returned model can contain a link to the next page if more
+        /// results are available.
         /// </remarks>
         /// <param name='nextPageLink'>
         /// optional, link to next page
@@ -2525,10 +2554,9 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// Get information about all groups.
         /// </summary>
         /// <remarks>
-        /// A trust group has a root certificate which issues certificates
-        /// to entities.  Entities can be part of a trust group and thus
-        /// trust the root certificate and all entities that the root has
-        /// issued certificates for.
+        /// A trust group has a root certificate which issues certificates to entities.
+        /// Entities can be part of a trust group and thus trust the root certificate
+        /// and all entities that the root has issued certificates for.
         /// </remarks>
         /// <param name='nextPageLink'>
         /// optional, link to next page
@@ -2680,7 +2708,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// <remarks>
         /// Requires manager role.
         /// </remarks>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The create request
         /// </param>
         /// <param name='customHeaders'>
@@ -2704,15 +2732,15 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<TrustGroupRegistrationResponseApiModel>> CreateGroupWithHttpMessagesAsync(TrustGroupRegistrationRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<TrustGroupRegistrationResponseApiModel>> CreateGroupWithHttpMessagesAsync(TrustGroupRegistrationRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (request != null)
+            if (body != null)
             {
-                request.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -2721,7 +2749,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             {
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "CreateGroup", tracingParameters);
             }
@@ -2750,9 +2778,9 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -2831,10 +2859,9 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// Get group information.
         /// </summary>
         /// <remarks>
-        /// A trust group has a root certificate which issues certificates
-        /// to entities.  Entities can be part of a trust group and thus
-        /// trust the root certificate and all entities that the root has
-        /// issued certificates for.
+        /// A trust group has a root certificate which issues certificates to entities.
+        /// Entities can be part of a trust group and thus trust the root certificate
+        /// and all entities that the root has issued certificates for.
         /// </remarks>
         /// <param name='groupId'>
         /// The group id
@@ -2978,14 +3005,13 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// Update group registration.
         /// </summary>
         /// <remarks>
-        /// Use this function with care and only if you are aware of
-        /// the security implications.
-        /// Requires manager role.
+        /// Use this function with care and only if you are aware of the security
+        /// implications. Requires manager role.
         /// </remarks>
         /// <param name='groupId'>
         /// The group id
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The group configuration
         /// </param>
         /// <param name='customHeaders'>
@@ -3006,15 +3032,15 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse> UpdateGroupWithHttpMessagesAsync(string groupId, TrustGroupUpdateRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse> UpdateGroupWithHttpMessagesAsync(string groupId, TrustGroupUpdateRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (groupId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "groupId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -3024,7 +3050,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("groupId", groupId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "UpdateGroup", tracingParameters);
             }
@@ -3054,9 +3080,9 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -3117,9 +3143,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// Delete a group.
         /// </summary>
         /// <remarks>
-        /// After this operation the Issuer CA, CRLs and keys become inaccessible.
-        /// Use this function with extreme caution.
-        /// Requires manager role.
+        /// After this operation the Issuer CA, CRLs and keys become inaccessible. Use
+        /// this function with extreme caution. Requires manager role.
         /// </remarks>
         /// <param name='groupId'>
         /// The group id
@@ -3244,7 +3269,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// <remarks>
         /// Requires manager role.
         /// </remarks>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The create request
         /// </param>
         /// <param name='customHeaders'>
@@ -3268,15 +3293,15 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<TrustGroupRegistrationResponseApiModel>> CreateRootWithHttpMessagesAsync(TrustGroupRootCreateRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<TrustGroupRegistrationResponseApiModel>> CreateRootWithHttpMessagesAsync(TrustGroupRootCreateRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (request != null)
+            if (body != null)
             {
-                request.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -3285,7 +3310,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             {
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "CreateRoot", tracingParameters);
             }
@@ -3314,9 +3339,9 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -3514,8 +3539,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// Add trust relationship
         /// </summary>
         /// <remarks>
-        /// Define trust between two entities.  The entities are identifiers
-        /// of application, groups, or endpoints.
+        /// Define trust between two entities. The entities are identifiers of
+        /// application, groups, or endpoints.
         /// </remarks>
         /// <param name='entityId'>
         /// The entity identifier, e.g. group, etc.
@@ -3647,8 +3672,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// List trusted certificates
         /// </summary>
         /// <remarks>
-        /// Returns all certificates the entity should trust based on the
-        /// applied trust configuration.
+        /// Returns all certificates the entity should trust based on the applied trust
+        /// configuration.
         /// </remarks>
         /// <param name='entityId'>
         /// </param>
@@ -3812,8 +3837,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
         /// Remove a trust relationship
         /// </summary>
         /// <remarks>
-        /// Removes trust between two entities.  The entities are identifiers
-        /// of application, groups, or endpoints.
+        /// Removes trust between two entities. The entities are identifiers of
+        /// application, groups, or endpoints.
         /// </remarks>
         /// <param name='entityId'>
         /// The entity identifier, e.g. group, etc.

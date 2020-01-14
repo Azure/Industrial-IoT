@@ -20,146 +20,90 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
     public static partial class AzureOpcRegistryClientExtensions
     {
             /// <summary>
-            /// Get list of applications
+            /// Register new server
             /// </summary>
             /// <remarks>
-            /// Get all registered applications in paged form.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call this operation again using the token to retrieve more results.
+            /// Registers a server solely using a discovery url. Requires that the
+            /// onboarding agent service is running and the server can be located by a
+            /// supervisor in its network using the discovery url.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='continuationToken'>
-            /// Optional Continuation
-            /// token
+            /// <param name='body'>
+            /// Server registration request
             /// </param>
-            /// <param name='pageSize'>
-            /// Optional number of results to
-            /// return
-            /// </param>
-            public static ApplicationInfoListApiModel GetListOfApplications(this IAzureOpcRegistryClient operations, string continuationToken = default(string), int? pageSize = default(int?))
+            public static void RegisterServer(this IAzureOpcRegistryClient operations, ServerRegistrationRequestApiModel body)
             {
-                return operations.GetListOfApplicationsAsync(continuationToken, pageSize).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Get list of applications
-            /// </summary>
-            /// <remarks>
-            /// Get all registered applications in paged form.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call this operation again using the token to retrieve more results.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='continuationToken'>
-            /// Optional Continuation
-            /// token
-            /// </param>
-            /// <param name='pageSize'>
-            /// Optional number of results to
-            /// return
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<ApplicationInfoListApiModel> GetListOfApplicationsAsync(this IAzureOpcRegistryClient operations, string continuationToken = default(string), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.GetListOfApplicationsWithHttpMessagesAsync(continuationToken, pageSize, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
-            /// Create new application
-            /// </summary>
-            /// <remarks>
-            /// The application is registered using the provided information, but it
-            /// is not associated with a supervisor.  This is useful for when you need
-            /// to register clients or you want to register a server that is located
-            /// in a network not reachable through a Twin module.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='request'>
-            /// Application registration request
-            /// </param>
-            public static ApplicationRegistrationResponseApiModel CreateApplication(this IAzureOpcRegistryClient operations, ApplicationRegistrationRequestApiModel request)
-            {
-                return operations.CreateApplicationAsync(request).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Create new application
-            /// </summary>
-            /// <remarks>
-            /// The application is registered using the provided information, but it
-            /// is not associated with a supervisor.  This is useful for when you need
-            /// to register clients or you want to register a server that is located
-            /// in a network not reachable through a Twin module.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='request'>
-            /// Application registration request
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<ApplicationRegistrationResponseApiModel> CreateApplicationAsync(this IAzureOpcRegistryClient operations, ApplicationRegistrationRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.CreateApplicationWithHttpMessagesAsync(request, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
+                operations.RegisterServerAsync(body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Register new server
             /// </summary>
             /// <remarks>
-            /// Registers a server solely using a discovery url. Requires that
-            /// the onboarding agent service is running and the server can be
-            /// located by a supervisor in its network using the discovery url.
+            /// Registers a server solely using a discovery url. Requires that the
+            /// onboarding agent service is running and the server can be located by a
+            /// supervisor in its network using the discovery url.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='request'>
-            /// Server registration request
-            /// </param>
-            public static void RegisterServer(this IAzureOpcRegistryClient operations, ServerRegistrationRequestApiModel request)
-            {
-                operations.RegisterServerAsync(request).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Register new server
-            /// </summary>
-            /// <remarks>
-            /// Registers a server solely using a discovery url. Requires that
-            /// the onboarding agent service is running and the server can be
-            /// located by a supervisor in its network using the discovery url.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// Server registration request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task RegisterServerAsync(this IAzureOpcRegistryClient operations, ServerRegistrationRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task RegisterServerAsync(this IAzureOpcRegistryClient operations, ServerRegistrationRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.RegisterServerWithHttpMessagesAsync(request, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                (await operations.RegisterServerWithHttpMessagesAsync(body, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Create new application
+            /// </summary>
+            /// <remarks>
+            /// The application is registered using the provided information, but it is not
+            /// associated with a supervisor. This is useful for when you need to register
+            /// clients or you want to register a server that is located in a network not
+            /// reachable through a Twin module.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='body'>
+            /// Application registration request
+            /// </param>
+            public static ApplicationRegistrationResponseApiModel CreateApplication(this IAzureOpcRegistryClient operations, ApplicationRegistrationRequestApiModel body)
+            {
+                return operations.CreateApplicationAsync(body).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Create new application
+            /// </summary>
+            /// <remarks>
+            /// The application is registered using the provided information, but it is not
+            /// associated with a supervisor. This is useful for when you need to register
+            /// clients or you want to register a server that is located in a network not
+            /// reachable through a Twin module.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='body'>
+            /// Application registration request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<ApplicationRegistrationResponseApiModel> CreateApplicationAsync(this IAzureOpcRegistryClient operations, ApplicationRegistrationRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.CreateApplicationWithHttpMessagesAsync(body, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
             }
 
             /// <summary>
@@ -199,6 +143,56 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             public static async Task DeleteAllDisabledApplicationsAsync(this IAzureOpcRegistryClient operations, string notSeenFor = default(string), CancellationToken cancellationToken = default(CancellationToken))
             {
                 (await operations.DeleteAllDisabledApplicationsWithHttpMessagesAsync(notSeenFor, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Get list of applications
+            /// </summary>
+            /// <remarks>
+            /// Get all registered applications in paged form. The returned model can
+            /// contain a continuation token if more results are available. Call this
+            /// operation again using the token to retrieve more results.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='continuationToken'>
+            /// Optional Continuation token
+            /// </param>
+            /// <param name='pageSize'>
+            /// Optional number of results to return
+            /// </param>
+            public static ApplicationInfoListApiModel GetListOfApplications(this IAzureOpcRegistryClient operations, string continuationToken = default(string), int? pageSize = default(int?))
+            {
+                return operations.GetListOfApplicationsAsync(continuationToken, pageSize).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Get list of applications
+            /// </summary>
+            /// <remarks>
+            /// Get all registered applications in paged form. The returned model can
+            /// contain a continuation token if more results are available. Call this
+            /// operation again using the token to retrieve more results.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='continuationToken'>
+            /// Optional Continuation token
+            /// </param>
+            /// <param name='pageSize'>
+            /// Optional number of results to return
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<ApplicationInfoListApiModel> GetListOfApplicationsAsync(this IAzureOpcRegistryClient operations, string continuationToken = default(string), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.GetListOfApplicationsWithHttpMessagesAsync(continuationToken, pageSize, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
             }
 
             /// <summary>
@@ -279,39 +273,39 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// Discover servers
             /// </summary>
             /// <remarks>
-            /// Registers servers by running a discovery scan in a supervisor's
-            /// network. Requires that the onboarding agent service is running.
+            /// Registers servers by running a discovery scan in a supervisor's network.
+            /// Requires that the onboarding agent service is running.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// Discovery request
             /// </param>
-            public static void DiscoverServer(this IAzureOpcRegistryClient operations, DiscoveryRequestApiModel request)
+            public static void DiscoverServer(this IAzureOpcRegistryClient operations, DiscoveryRequestApiModel body)
             {
-                operations.DiscoverServerAsync(request).GetAwaiter().GetResult();
+                operations.DiscoverServerAsync(body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Discover servers
             /// </summary>
             /// <remarks>
-            /// Registers servers by running a discovery scan in a supervisor's
-            /// network. Requires that the onboarding agent service is running.
+            /// Registers servers by running a discovery scan in a supervisor's network.
+            /// Requires that the onboarding agent service is running.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// Discovery request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task DiscoverServerAsync(this IAzureOpcRegistryClient operations, DiscoveryRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task DiscoverServerAsync(this IAzureOpcRegistryClient operations, DiscoveryRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.DiscoverServerWithHttpMessagesAsync(request, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                (await operations.DiscoverServerWithHttpMessagesAsync(body, null, cancellationToken).ConfigureAwait(false)).Dispose();
             }
 
             /// <summary>
@@ -386,6 +380,53 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             }
 
             /// <summary>
+            /// Update application registration
+            /// </summary>
+            /// <remarks>
+            /// The application information is updated with new properties. Note that this
+            /// information might be overridden if the application is re-discovered during
+            /// a discovery run (recurring or one-time).
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='applicationId'>
+            /// The identifier of the application
+            /// </param>
+            /// <param name='body'>
+            /// Application update request
+            /// </param>
+            public static void UpdateApplicationRegistration(this IAzureOpcRegistryClient operations, string applicationId, ApplicationRegistrationUpdateApiModel body)
+            {
+                operations.UpdateApplicationRegistrationAsync(applicationId, body).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Update application registration
+            /// </summary>
+            /// <remarks>
+            /// The application information is updated with new properties. Note that this
+            /// information might be overridden if the application is re-discovered during
+            /// a discovery run (recurring or one-time).
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='applicationId'>
+            /// The identifier of the application
+            /// </param>
+            /// <param name='body'>
+            /// Application update request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task UpdateApplicationRegistrationAsync(this IAzureOpcRegistryClient operations, string applicationId, ApplicationRegistrationUpdateApiModel body, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.UpdateApplicationRegistrationWithHttpMessagesAsync(applicationId, body, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
             /// Unregister application
             /// </summary>
             /// <remarks>
@@ -423,53 +464,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             }
 
             /// <summary>
-            /// Update application registration
-            /// </summary>
-            /// <remarks>
-            /// The application information is updated with new properties.  Note that
-            /// this information might be overridden if the application is re-discovered
-            /// during a discovery run (recurring or one-time).
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='applicationId'>
-            /// The identifier of the application
-            /// </param>
-            /// <param name='request'>
-            /// Application update request
-            /// </param>
-            public static void UpdateApplicationRegistration(this IAzureOpcRegistryClient operations, string applicationId, ApplicationRegistrationUpdateApiModel request)
-            {
-                operations.UpdateApplicationRegistrationAsync(applicationId, request).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Update application registration
-            /// </summary>
-            /// <remarks>
-            /// The application information is updated with new properties.  Note that
-            /// this information might be overridden if the application is re-discovered
-            /// during a discovery run (recurring or one-time).
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='applicationId'>
-            /// The identifier of the application
-            /// </param>
-            /// <param name='request'>
-            /// Application update request
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task UpdateApplicationRegistrationAsync(this IAzureOpcRegistryClient operations, string applicationId, ApplicationRegistrationUpdateApiModel request, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                (await operations.UpdateApplicationRegistrationWithHttpMessagesAsync(applicationId, request, null, cancellationToken).ConfigureAwait(false)).Dispose();
-            }
-
-            /// <summary>
             /// Get list of sites
             /// </summary>
             /// <remarks>
@@ -479,12 +473,10 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='continuationToken'>
-            /// Optional Continuation
-            /// token
+            /// Optional Continuation token
             /// </param>
             /// <param name='pageSize'>
-            /// Optional number of results to
-            /// return
+            /// Optional number of results to return
             /// </param>
             public static ApplicationSiteListApiModel GetListOfSites(this IAzureOpcRegistryClient operations, string continuationToken = default(string), int? pageSize = default(int?))
             {
@@ -501,12 +493,10 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='continuationToken'>
-            /// Optional Continuation
-            /// token
+            /// Optional Continuation token
             /// </param>
             /// <param name='pageSize'>
-            /// Optional number of results to
-            /// return
+            /// Optional number of results to return
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
@@ -520,110 +510,102 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             }
 
             /// <summary>
-            /// Get filtered list of applications
+            /// Query applications
             /// </summary>
             /// <remarks>
-            /// Get a list of applications filtered using the specified query parameters.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfApplications operation using the token to retrieve
-            /// more results.
+            /// List applications that match a query model. The returned model can contain
+            /// a continuation token if more results are available. Call the
+            /// GetListOfApplications operation using the token to retrieve more results.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='query'>
-            /// Applications Query model
+            /// <param name='body'>
+            /// Application query
             /// </param>
             /// <param name='pageSize'>
-            /// Number of results to return
+            /// Optional number of results to return
             /// </param>
-            public static ApplicationInfoListApiModel GetFilteredListOfApplications(this IAzureOpcRegistryClient operations, ApplicationRegistrationQueryApiModel query, int? pageSize = default(int?))
+            public static ApplicationInfoListApiModel QueryApplications(this IAzureOpcRegistryClient operations, ApplicationRegistrationQueryApiModel body, int? pageSize = default(int?))
             {
-                return operations.GetFilteredListOfApplicationsAsync(query, pageSize).GetAwaiter().GetResult();
+                return operations.QueryApplicationsAsync(body, pageSize).GetAwaiter().GetResult();
             }
 
             /// <summary>
-            /// Get filtered list of applications
+            /// Query applications
             /// </summary>
             /// <remarks>
-            /// Get a list of applications filtered using the specified query parameters.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfApplications operation using the token to retrieve
-            /// more results.
+            /// List applications that match a query model. The returned model can contain
+            /// a continuation token if more results are available. Call the
+            /// GetListOfApplications operation using the token to retrieve more results.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='query'>
-            /// Applications Query model
+            /// <param name='body'>
+            /// Application query
             /// </param>
             /// <param name='pageSize'>
-            /// Number of results to return
+            /// Optional number of results to return
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<ApplicationInfoListApiModel> GetFilteredListOfApplicationsAsync(this IAzureOpcRegistryClient operations, ApplicationRegistrationQueryApiModel query, int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<ApplicationInfoListApiModel> QueryApplicationsAsync(this IAzureOpcRegistryClient operations, ApplicationRegistrationQueryApiModel body, int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.GetFilteredListOfApplicationsWithHttpMessagesAsync(query, pageSize, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.QueryApplicationsWithHttpMessagesAsync(body, pageSize, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
             }
 
             /// <summary>
-            /// Query applications
+            /// Get filtered list of applications
             /// </summary>
             /// <remarks>
-            /// List applications that match a query model.
+            /// Get a list of applications filtered using the specified query parameters.
             /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfApplications operation using the token to retrieve
-            /// more results.
+            /// available. Call the GetListOfApplications operation using the token to
+            /// retrieve more results.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='query'>
-            /// Application query
+            /// <param name='body'>
+            /// Applications Query model
             /// </param>
             /// <param name='pageSize'>
-            /// Optional number of results to
-            /// return
+            /// Number of results to return
             /// </param>
-            public static ApplicationInfoListApiModel QueryApplications(this IAzureOpcRegistryClient operations, ApplicationRegistrationQueryApiModel query, int? pageSize = default(int?))
+            public static ApplicationInfoListApiModel GetFilteredListOfApplications(this IAzureOpcRegistryClient operations, ApplicationRegistrationQueryApiModel body, int? pageSize = default(int?))
             {
-                return operations.QueryApplicationsAsync(query, pageSize).GetAwaiter().GetResult();
+                return operations.GetFilteredListOfApplicationsAsync(body, pageSize).GetAwaiter().GetResult();
             }
 
             /// <summary>
-            /// Query applications
+            /// Get filtered list of applications
             /// </summary>
             /// <remarks>
-            /// List applications that match a query model.
+            /// Get a list of applications filtered using the specified query parameters.
             /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfApplications operation using the token to retrieve
-            /// more results.
+            /// available. Call the GetListOfApplications operation using the token to
+            /// retrieve more results.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='query'>
-            /// Application query
+            /// <param name='body'>
+            /// Applications Query model
             /// </param>
             /// <param name='pageSize'>
-            /// Optional number of results to
-            /// return
+            /// Number of results to return
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<ApplicationInfoListApiModel> QueryApplicationsAsync(this IAzureOpcRegistryClient operations, ApplicationRegistrationQueryApiModel query, int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<ApplicationInfoListApiModel> GetFilteredListOfApplicationsAsync(this IAzureOpcRegistryClient operations, ApplicationRegistrationQueryApiModel body, int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.QueryApplicationsWithHttpMessagesAsync(query, pageSize, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.GetFilteredListOfApplicationsWithHttpMessagesAsync(body, pageSize, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -638,11 +620,11 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='query'>
+            /// <param name='body'>
             /// </param>
-            public static ApplicationRecordListApiModel QueryApplicationsById(this IAzureOpcRegistryClient operations, ApplicationRecordQueryApiModel query = default(ApplicationRecordQueryApiModel))
+            public static ApplicationRecordListApiModel QueryApplicationsById(this IAzureOpcRegistryClient operations, ApplicationRecordQueryApiModel body = default(ApplicationRecordQueryApiModel))
             {
-                return operations.QueryApplicationsByIdAsync(query).GetAwaiter().GetResult();
+                return operations.QueryApplicationsByIdAsync(body).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -654,14 +636,14 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='query'>
+            /// <param name='body'>
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<ApplicationRecordListApiModel> QueryApplicationsByIdAsync(this IAzureOpcRegistryClient operations, ApplicationRecordQueryApiModel query = default(ApplicationRecordQueryApiModel), CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<ApplicationRecordListApiModel> QueryApplicationsByIdAsync(this IAzureOpcRegistryClient operations, ApplicationRecordQueryApiModel body = default(ApplicationRecordQueryApiModel), CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.QueryApplicationsByIdWithHttpMessagesAsync(query, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.QueryApplicationsByIdWithHttpMessagesAsync(body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -676,13 +658,12 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='userId'>
-            /// The user that will receive application
-            /// events.
+            /// <param name='body'>
+            /// The user that will receive application events.
             /// </param>
-            public static void Subscribe(this IAzureOpcRegistryClient operations, string userId = default(string))
+            public static void Subscribe(this IAzureOpcRegistryClient operations, string body = default(string))
             {
-                operations.SubscribeAsync(userId).GetAwaiter().GetResult();
+                operations.SubscribeAsync(body).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -694,16 +675,15 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='userId'>
-            /// The user that will receive application
-            /// events.
+            /// <param name='body'>
+            /// The user that will receive application events.
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task SubscribeAsync(this IAzureOpcRegistryClient operations, string userId = default(string), CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task SubscribeAsync(this IAzureOpcRegistryClient operations, string body = default(string), CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.SubscribeWithHttpMessagesAsync(userId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                (await operations.SubscribeWithHttpMessagesAsync(body, null, cancellationToken).ConfigureAwait(false)).Dispose();
             }
 
             /// <summary>
@@ -716,8 +696,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='userId'>
-            /// The user id that will not receive
-            /// any more events
+            /// The user id that will not receive any more events
             /// </param>
             public static void Unsubscribe(this IAzureOpcRegistryClient operations, string userId)
             {
@@ -734,8 +713,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='userId'>
-            /// The user id that will not receive
-            /// any more events
+            /// The user id that will not receive any more events
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
@@ -746,58 +724,470 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             }
 
             /// <summary>
-            /// Subscribe to discovery progress from supervisor
+            /// Get discoverer registration information
             /// </summary>
             /// <remarks>
-            /// Register a client to receive discovery progress events
-            /// through SignalR from a particular supervisor.
+            /// Returns a discoverer's registration and connectivity information. A
+            /// discoverer id corresponds to the twin modules module identity.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='supervisorId'>
-            /// The supervisor to subscribe to
+            /// <param name='discovererId'>
+            /// Discoverer identifier
             /// </param>
-            /// <param name='userId'>
-            /// The user id that will receive discovery
-            /// events.
+            /// <param name='onlyServerState'>
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
-            public static void SubscribeBySupervisorId(this IAzureOpcRegistryClient operations, string supervisorId, string userId = default(string))
+            public static DiscovererApiModel GetDiscoverer(this IAzureOpcRegistryClient operations, string discovererId, bool? onlyServerState = default(bool?))
             {
-                operations.SubscribeBySupervisorIdAsync(supervisorId, userId).GetAwaiter().GetResult();
+                return operations.GetDiscovererAsync(discovererId, onlyServerState).GetAwaiter().GetResult();
             }
 
             /// <summary>
-            /// Subscribe to discovery progress from supervisor
+            /// Get discoverer registration information
             /// </summary>
             /// <remarks>
-            /// Register a client to receive discovery progress events
-            /// through SignalR from a particular supervisor.
+            /// Returns a discoverer's registration and connectivity information. A
+            /// discoverer id corresponds to the twin modules module identity.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='supervisorId'>
-            /// The supervisor to subscribe to
+            /// <param name='discovererId'>
+            /// Discoverer identifier
             /// </param>
-            /// <param name='userId'>
-            /// The user id that will receive discovery
-            /// events.
+            /// <param name='onlyServerState'>
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task SubscribeBySupervisorIdAsync(this IAzureOpcRegistryClient operations, string supervisorId, string userId = default(string), CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<DiscovererApiModel> GetDiscovererAsync(this IAzureOpcRegistryClient operations, string discovererId, bool? onlyServerState = default(bool?), CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.SubscribeBySupervisorIdWithHttpMessagesAsync(supervisorId, userId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                using (var _result = await operations.GetDiscovererWithHttpMessagesAsync(discovererId, onlyServerState, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Update discoverer information
+            /// </summary>
+            /// <remarks>
+            /// Allows a caller to configure recurring discovery runs on the twin module
+            /// identified by the discoverer id or update site information.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='discovererId'>
+            /// discoverer identifier
+            /// </param>
+            /// <param name='body'>
+            /// Patch request
+            /// </param>
+            public static void UpdateDiscoverer(this IAzureOpcRegistryClient operations, string discovererId, DiscovererUpdateApiModel body)
+            {
+                operations.UpdateDiscovererAsync(discovererId, body).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Update discoverer information
+            /// </summary>
+            /// <remarks>
+            /// Allows a caller to configure recurring discovery runs on the twin module
+            /// identified by the discoverer id or update site information.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='discovererId'>
+            /// discoverer identifier
+            /// </param>
+            /// <param name='body'>
+            /// Patch request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task UpdateDiscovererAsync(this IAzureOpcRegistryClient operations, string discovererId, DiscovererUpdateApiModel body, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.UpdateDiscovererWithHttpMessagesAsync(discovererId, body, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Enable server discovery
+            /// </summary>
+            /// <remarks>
+            /// Allows a caller to configure recurring discovery runs on the discovery
+            /// module identified by the module id.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='discovererId'>
+            /// discoverer identifier
+            /// </param>
+            /// <param name='mode'>
+            /// Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast',
+            /// 'Scan'
+            /// </param>
+            /// <param name='body'>
+            /// Discovery configuration
+            /// </param>
+            public static void SetDiscoveryMode(this IAzureOpcRegistryClient operations, string discovererId, DiscoveryMode mode, DiscoveryConfigApiModel body = default(DiscoveryConfigApiModel))
+            {
+                operations.SetDiscoveryModeAsync(discovererId, mode, body).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Enable server discovery
+            /// </summary>
+            /// <remarks>
+            /// Allows a caller to configure recurring discovery runs on the discovery
+            /// module identified by the module id.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='discovererId'>
+            /// discoverer identifier
+            /// </param>
+            /// <param name='mode'>
+            /// Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast',
+            /// 'Scan'
+            /// </param>
+            /// <param name='body'>
+            /// Discovery configuration
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task SetDiscoveryModeAsync(this IAzureOpcRegistryClient operations, string discovererId, DiscoveryMode mode, DiscoveryConfigApiModel body = default(DiscoveryConfigApiModel), CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.SetDiscoveryModeWithHttpMessagesAsync(discovererId, mode, body, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Get list of discoverers
+            /// </summary>
+            /// <remarks>
+            /// Get all registered discoverers and therefore twin modules in paged form.
+            /// The returned model can contain a continuation token if more results are
+            /// available. Call this operation again using the token to retrieve more
+            /// results.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='onlyServerState'>
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
+            /// </param>
+            /// <param name='continuationToken'>
+            /// Optional Continuation token
+            /// </param>
+            /// <param name='pageSize'>
+            /// Optional number of results to return
+            /// </param>
+            public static DiscovererListApiModel GetListOfDiscoverers(this IAzureOpcRegistryClient operations, bool? onlyServerState = default(bool?), string continuationToken = default(string), int? pageSize = default(int?))
+            {
+                return operations.GetListOfDiscoverersAsync(onlyServerState, continuationToken, pageSize).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Get list of discoverers
+            /// </summary>
+            /// <remarks>
+            /// Get all registered discoverers and therefore twin modules in paged form.
+            /// The returned model can contain a continuation token if more results are
+            /// available. Call this operation again using the token to retrieve more
+            /// results.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='onlyServerState'>
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
+            /// </param>
+            /// <param name='continuationToken'>
+            /// Optional Continuation token
+            /// </param>
+            /// <param name='pageSize'>
+            /// Optional number of results to return
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<DiscovererListApiModel> GetListOfDiscoverersAsync(this IAzureOpcRegistryClient operations, bool? onlyServerState = default(bool?), string continuationToken = default(string), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.GetListOfDiscoverersWithHttpMessagesAsync(onlyServerState, continuationToken, pageSize, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Query discoverers
+            /// </summary>
+            /// <remarks>
+            /// Get all discoverers that match a specified query. The returned model can
+            /// contain a continuation token if more results are available. Call the
+            /// GetListOfDiscoverers operation using the token to retrieve more results.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='body'>
+            /// Discoverers query model
+            /// </param>
+            /// <param name='onlyServerState'>
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
+            /// </param>
+            /// <param name='pageSize'>
+            /// Number of results to return
+            /// </param>
+            public static DiscovererListApiModel QueryDiscoverers(this IAzureOpcRegistryClient operations, DiscovererQueryApiModel body, bool? onlyServerState = default(bool?), int? pageSize = default(int?))
+            {
+                return operations.QueryDiscoverersAsync(body, onlyServerState, pageSize).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Query discoverers
+            /// </summary>
+            /// <remarks>
+            /// Get all discoverers that match a specified query. The returned model can
+            /// contain a continuation token if more results are available. Call the
+            /// GetListOfDiscoverers operation using the token to retrieve more results.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='body'>
+            /// Discoverers query model
+            /// </param>
+            /// <param name='onlyServerState'>
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
+            /// </param>
+            /// <param name='pageSize'>
+            /// Number of results to return
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<DiscovererListApiModel> QueryDiscoverersAsync(this IAzureOpcRegistryClient operations, DiscovererQueryApiModel body, bool? onlyServerState = default(bool?), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.QueryDiscoverersWithHttpMessagesAsync(body, onlyServerState, pageSize, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Get filtered list of discoverers
+            /// </summary>
+            /// <remarks>
+            /// Get a list of discoverers filtered using the specified query parameters.
+            /// The returned model can contain a continuation token if more results are
+            /// available. Call the GetListOfDiscoverers operation using the token to
+            /// retrieve more results.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='siteId'>
+            /// Site of the discoverer
+            /// </param>
+            /// <param name='discovery'>
+            /// Discovery mode of discoverer. Possible values include: 'Off', 'Local',
+            /// 'Network', 'Fast', 'Scan'
+            /// </param>
+            /// <param name='connected'>
+            /// Included connected or disconnected
+            /// </param>
+            /// <param name='onlyServerState'>
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
+            /// </param>
+            /// <param name='pageSize'>
+            /// Number of results to return
+            /// </param>
+            public static DiscovererListApiModel GetFilteredListOfDiscoverers(this IAzureOpcRegistryClient operations, string siteId = default(string), DiscoveryMode? discovery = default(DiscoveryMode?), bool? connected = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?))
+            {
+                return operations.GetFilteredListOfDiscoverersAsync(siteId, discovery, connected, onlyServerState, pageSize).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Get filtered list of discoverers
+            /// </summary>
+            /// <remarks>
+            /// Get a list of discoverers filtered using the specified query parameters.
+            /// The returned model can contain a continuation token if more results are
+            /// available. Call the GetListOfDiscoverers operation using the token to
+            /// retrieve more results.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='siteId'>
+            /// Site of the discoverer
+            /// </param>
+            /// <param name='discovery'>
+            /// Discovery mode of discoverer. Possible values include: 'Off', 'Local',
+            /// 'Network', 'Fast', 'Scan'
+            /// </param>
+            /// <param name='connected'>
+            /// Included connected or disconnected
+            /// </param>
+            /// <param name='onlyServerState'>
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
+            /// </param>
+            /// <param name='pageSize'>
+            /// Number of results to return
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<DiscovererListApiModel> GetFilteredListOfDiscoverersAsync(this IAzureOpcRegistryClient operations, string siteId = default(string), DiscoveryMode? discovery = default(DiscoveryMode?), bool? connected = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.GetFilteredListOfDiscoverersWithHttpMessagesAsync(siteId, discovery, connected, onlyServerState, pageSize, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Subscribe to discoverer registry events
+            /// </summary>
+            /// <remarks>
+            /// Register a user to receive discoverer events through SignalR.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='body'>
+            /// The user id that will receive discoverer events.
+            /// </param>
+            public static void Subscribe1(this IAzureOpcRegistryClient operations, string body = default(string))
+            {
+                operations.Subscribe1Async(body).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Subscribe to discoverer registry events
+            /// </summary>
+            /// <remarks>
+            /// Register a user to receive discoverer events through SignalR.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='body'>
+            /// The user id that will receive discoverer events.
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task Subscribe1Async(this IAzureOpcRegistryClient operations, string body = default(string), CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.Subscribe1WithHttpMessagesAsync(body, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Unsubscribe registry events
+            /// </summary>
+            /// <remarks>
+            /// Unregister a user and stop it from receiving discoverer events.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='userId'>
+            /// The user id that will not receive any more discoverer events
+            /// </param>
+            public static void Unsubscribe1(this IAzureOpcRegistryClient operations, string userId)
+            {
+                operations.Unsubscribe1Async(userId).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Unsubscribe registry events
+            /// </summary>
+            /// <remarks>
+            /// Unregister a user and stop it from receiving discoverer events.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='userId'>
+            /// The user id that will not receive any more discoverer events
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task Unsubscribe1Async(this IAzureOpcRegistryClient operations, string userId, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.Unsubscribe1WithHttpMessagesAsync(userId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Subscribe to discovery progress from discoverer
+            /// </summary>
+            /// <remarks>
+            /// Register a client to receive discovery progress events through SignalR from
+            /// a particular discoverer.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='discovererId'>
+            /// The discoverer to subscribe to
+            /// </param>
+            /// <param name='body'>
+            /// The user id that will receive discovery events.
+            /// </param>
+            public static void SubscribeByDiscovererId(this IAzureOpcRegistryClient operations, string discovererId, string body = default(string))
+            {
+                operations.SubscribeByDiscovererIdAsync(discovererId, body).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Subscribe to discovery progress from discoverer
+            /// </summary>
+            /// <remarks>
+            /// Register a client to receive discovery progress events through SignalR from
+            /// a particular discoverer.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='discovererId'>
+            /// The discoverer to subscribe to
+            /// </param>
+            /// <param name='body'>
+            /// The user id that will receive discovery events.
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task SubscribeByDiscovererIdAsync(this IAzureOpcRegistryClient operations, string discovererId, string body = default(string), CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.SubscribeByDiscovererIdWithHttpMessagesAsync(discovererId, body, null, cancellationToken).ConfigureAwait(false)).Dispose();
             }
 
             /// <summary>
             /// Subscribe to discovery progress for a request
             /// </summary>
             /// <remarks>
-            /// Register a client to receive discovery progress events
-            /// through SignalR for a particular request.
+            /// Register a client to receive discovery progress events through SignalR for
+            /// a particular request.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -805,21 +1195,20 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='requestId'>
             /// The request to monitor
             /// </param>
-            /// <param name='userId'>
-            /// The user id that will receive discovery
-            /// events.
+            /// <param name='body'>
+            /// The user id that will receive discovery events.
             /// </param>
-            public static void SubscribeByRequestId(this IAzureOpcRegistryClient operations, string requestId, string userId = default(string))
+            public static void SubscribeByRequestId(this IAzureOpcRegistryClient operations, string requestId, string body = default(string))
             {
-                operations.SubscribeByRequestIdAsync(requestId, userId).GetAwaiter().GetResult();
+                operations.SubscribeByRequestIdAsync(requestId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Subscribe to discovery progress for a request
             /// </summary>
             /// <remarks>
-            /// Register a client to receive discovery progress events
-            /// through SignalR for a particular request.
+            /// Register a client to receive discovery progress events through SignalR for
+            /// a particular request.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -827,77 +1216,23 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='requestId'>
             /// The request to monitor
             /// </param>
-            /// <param name='userId'>
-            /// The user id that will receive discovery
-            /// events.
+            /// <param name='body'>
+            /// The user id that will receive discovery events.
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task SubscribeByRequestIdAsync(this IAzureOpcRegistryClient operations, string requestId, string userId = default(string), CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task SubscribeByRequestIdAsync(this IAzureOpcRegistryClient operations, string requestId, string body = default(string), CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.SubscribeByRequestIdWithHttpMessagesAsync(requestId, userId, null, cancellationToken).ConfigureAwait(false)).Dispose();
-            }
-
-            /// <summary>
-            /// Enable server discovery
-            /// </summary>
-            /// <remarks>
-            /// Allows a caller to configure recurring discovery runs on the
-            /// discovery module identified by the module id.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='supervisorId'>
-            /// supervisor identifier
-            /// </param>
-            /// <param name='mode'>
-            /// Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast',
-            /// 'Scan'
-            /// </param>
-            /// <param name='config'>
-            /// Discovery configuration
-            /// </param>
-            public static void SetDiscoveryMode(this IAzureOpcRegistryClient operations, string supervisorId, string mode, DiscoveryConfigApiModel config = default(DiscoveryConfigApiModel))
-            {
-                operations.SetDiscoveryModeAsync(supervisorId, mode, config).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Enable server discovery
-            /// </summary>
-            /// <remarks>
-            /// Allows a caller to configure recurring discovery runs on the
-            /// discovery module identified by the module id.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='supervisorId'>
-            /// supervisor identifier
-            /// </param>
-            /// <param name='mode'>
-            /// Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast',
-            /// 'Scan'
-            /// </param>
-            /// <param name='config'>
-            /// Discovery configuration
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task SetDiscoveryModeAsync(this IAzureOpcRegistryClient operations, string supervisorId, string mode, DiscoveryConfigApiModel config = default(DiscoveryConfigApiModel), CancellationToken cancellationToken = default(CancellationToken))
-            {
-                (await operations.SetDiscoveryModeWithHttpMessagesAsync(supervisorId, mode, config, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                (await operations.SubscribeByRequestIdWithHttpMessagesAsync(requestId, body, null, cancellationToken).ConfigureAwait(false)).Dispose();
             }
 
             /// <summary>
             /// Unsubscribe from discovery progress for a request.
             /// </summary>
             /// <remarks>
-            /// Unregister a client and stop it from receiving discovery
-            /// events for a particular request.
+            /// Unregister a client and stop it from receiving discovery events for a
+            /// particular request.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -906,8 +1241,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The request to unsubscribe from
             /// </param>
             /// <param name='userId'>
-            /// The user id that will not receive
-            /// any more discovery progress
+            /// The user id that will not receive any more discovery progress
             /// </param>
             public static void UnsubscribeByRequestId(this IAzureOpcRegistryClient operations, string requestId, string userId)
             {
@@ -918,8 +1252,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// Unsubscribe from discovery progress for a request.
             /// </summary>
             /// <remarks>
-            /// Unregister a client and stop it from receiving discovery
-            /// events for a particular request.
+            /// Unregister a client and stop it from receiving discovery events for a
+            /// particular request.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -928,8 +1262,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The request to unsubscribe from
             /// </param>
             /// <param name='userId'>
-            /// The user id that will not receive
-            /// any more discovery progress
+            /// The user id that will not receive any more discovery progress
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
@@ -940,7 +1273,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             }
 
             /// <summary>
-            /// Unsubscribe from discovery progress from supervisor.
+            /// Unsubscribe from discovery progress from discoverer.
             /// </summary>
             /// <remarks>
             /// Unregister a client and stop it from receiving discovery events.
@@ -948,20 +1281,19 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='supervisorId'>
-            /// The supervisor to unsubscribe from
+            /// <param name='discovererId'>
+            /// The discoverer to unsubscribe from
             /// </param>
             /// <param name='userId'>
-            /// The user id that will not receive
-            /// any more discovery progress
+            /// The user id that will not receive any more discovery progress
             /// </param>
-            public static void UnsubscribeBySupervisorId(this IAzureOpcRegistryClient operations, string supervisorId, string userId)
+            public static void UnsubscribeByDiscovererId(this IAzureOpcRegistryClient operations, string discovererId, string userId)
             {
-                operations.UnsubscribeBySupervisorIdAsync(supervisorId, userId).GetAwaiter().GetResult();
+                operations.UnsubscribeByDiscovererIdAsync(discovererId, userId).GetAwaiter().GetResult();
             }
 
             /// <summary>
-            /// Unsubscribe from discovery progress from supervisor.
+            /// Unsubscribe from discovery progress from discoverer.
             /// </summary>
             /// <remarks>
             /// Unregister a client and stop it from receiving discovery events.
@@ -969,28 +1301,27 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='supervisorId'>
-            /// The supervisor to unsubscribe from
+            /// <param name='discovererId'>
+            /// The discoverer to unsubscribe from
             /// </param>
             /// <param name='userId'>
-            /// The user id that will not receive
-            /// any more discovery progress
+            /// The user id that will not receive any more discovery progress
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task UnsubscribeBySupervisorIdAsync(this IAzureOpcRegistryClient operations, string supervisorId, string userId, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task UnsubscribeByDiscovererIdAsync(this IAzureOpcRegistryClient operations, string discovererId, string userId, CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.UnsubscribeBySupervisorIdWithHttpMessagesAsync(supervisorId, userId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                (await operations.UnsubscribeByDiscovererIdWithHttpMessagesAsync(discovererId, userId, null, cancellationToken).ConfigureAwait(false)).Dispose();
             }
 
             /// <summary>
             /// Activate endpoint
             /// </summary>
             /// <remarks>
-            /// Activates an endpoint for subsequent use in twin service.
-            /// All endpoints must be activated using this API or through a
-            /// activation filter during application registration or discovery.
+            /// Activates an endpoint for subsequent use in twin service. All endpoints
+            /// must be activated using this API or through a activation filter during
+            /// application registration or discovery.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -1007,9 +1338,9 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// Activate endpoint
             /// </summary>
             /// <remarks>
-            /// Activates an endpoint for subsequent use in twin service.
-            /// All endpoints must be activated using this API or through a
-            /// activation filter during application registration or discovery.
+            /// Activates an endpoint for subsequent use in twin service. All endpoints
+            /// must be activated using this API or through a activation filter during
+            /// application registration or discovery.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -1038,9 +1369,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// endpoint identifier
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             public static EndpointInfoApiModel GetEndpoint(this IAzureOpcRegistryClient operations, string endpointId, bool? onlyServerState = default(bool?))
             {
@@ -1060,9 +1390,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// endpoint identifier
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
@@ -1079,17 +1408,16 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// Get list of endpoints
             /// </summary>
             /// <remarks>
-            /// Get all registered endpoints in paged form.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call this operation again using the token to retrieve more results.
+            /// Get all registered endpoints in paged form. The returned model can contain
+            /// a continuation token if more results are available. Call this operation
+            /// again using the token to retrieve more results.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             /// <param name='continuationToken'>
             /// Optional Continuation token
@@ -1106,17 +1434,16 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// Get list of endpoints
             /// </summary>
             /// <remarks>
-            /// Get all registered endpoints in paged form.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call this operation again using the token to retrieve more results.
+            /// Get all registered endpoints in paged form. The returned model can contain
+            /// a continuation token if more results are available. Call this operation
+            /// again using the token to retrieve more results.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             /// <param name='continuationToken'>
             /// Optional Continuation token
@@ -1136,164 +1463,180 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             }
 
             /// <summary>
-            /// Get filtered list of endpoints
+            /// Query endpoints
             /// </summary>
             /// <remarks>
-            /// Get a list of endpoints filtered using the specified query parameters.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfEndpoints operation using the token to retrieve
-            /// more results.
+            /// Return endpoints that match the specified query. The returned model can
+            /// contain a continuation token if more results are available. Call the
+            /// GetListOfEndpoints operation using the token to retrieve more results.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='url'>
-            /// Endoint url for direct server access
-            /// </param>
-            /// <param name='certificate'>
-            /// Certificate of the endpoint
-            /// </param>
-            /// <param name='securityMode'>
-            /// Security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt',
-            /// 'None'
-            /// </param>
-            /// <param name='securityPolicy'>
-            /// Security policy uri
-            /// </param>
-            /// <param name='activated'>
-            /// Whether the endpoint was activated
-            /// </param>
-            /// <param name='connected'>
-            /// Whether the endpoint is connected on supervisor.
-            /// </param>
-            /// <param name='endpointState'>
-            /// The last state of the the activated endpoint. Possible values include:
-            /// 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid',
-            /// 'Ready', 'Error'
-            /// </param>
-            /// <param name='includeNotSeenSince'>
-            /// Whether to include endpoints that were soft deleted
+            /// <param name='body'>
+            /// Query to match
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server state, or display
-            /// current client state of the endpoint if available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             /// <param name='pageSize'>
-            /// Optional number of results to
-            /// return
+            /// Optional number of results to return
             /// </param>
-            public static EndpointInfoListApiModel GetFilteredListOfEndpoints(this IAzureOpcRegistryClient operations, string url = default(string), byte[] certificate = default(byte[]), string securityMode = default(string), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), string endpointState = default(string), bool? includeNotSeenSince = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?))
+            public static EndpointInfoListApiModel QueryEndpoints(this IAzureOpcRegistryClient operations, EndpointRegistrationQueryApiModel body, bool? onlyServerState = default(bool?), int? pageSize = default(int?))
             {
-                return operations.GetFilteredListOfEndpointsAsync(url, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize).GetAwaiter().GetResult();
+                return operations.QueryEndpointsAsync(body, onlyServerState, pageSize).GetAwaiter().GetResult();
             }
 
             /// <summary>
-            /// Get filtered list of endpoints
+            /// Query endpoints
             /// </summary>
             /// <remarks>
-            /// Get a list of endpoints filtered using the specified query parameters.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfEndpoints operation using the token to retrieve
-            /// more results.
+            /// Return endpoints that match the specified query. The returned model can
+            /// contain a continuation token if more results are available. Call the
+            /// GetListOfEndpoints operation using the token to retrieve more results.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='url'>
-            /// Endoint url for direct server access
-            /// </param>
-            /// <param name='certificate'>
-            /// Certificate of the endpoint
-            /// </param>
-            /// <param name='securityMode'>
-            /// Security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt',
-            /// 'None'
-            /// </param>
-            /// <param name='securityPolicy'>
-            /// Security policy uri
-            /// </param>
-            /// <param name='activated'>
-            /// Whether the endpoint was activated
-            /// </param>
-            /// <param name='connected'>
-            /// Whether the endpoint is connected on supervisor.
-            /// </param>
-            /// <param name='endpointState'>
-            /// The last state of the the activated endpoint. Possible values include:
-            /// 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid',
-            /// 'Ready', 'Error'
-            /// </param>
-            /// <param name='includeNotSeenSince'>
-            /// Whether to include endpoints that were soft deleted
+            /// <param name='body'>
+            /// Query to match
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server state, or display
-            /// current client state of the endpoint if available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             /// <param name='pageSize'>
-            /// Optional number of results to
-            /// return
+            /// Optional number of results to return
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<EndpointInfoListApiModel> GetFilteredListOfEndpointsAsync(this IAzureOpcRegistryClient operations, string url = default(string), byte[] certificate = default(byte[]), string securityMode = default(string), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), string endpointState = default(string), bool? includeNotSeenSince = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<EndpointInfoListApiModel> QueryEndpointsAsync(this IAzureOpcRegistryClient operations, EndpointRegistrationQueryApiModel body, bool? onlyServerState = default(bool?), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.GetFilteredListOfEndpointsWithHttpMessagesAsync(url, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, onlyServerState, pageSize, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.QueryEndpointsWithHttpMessagesAsync(body, onlyServerState, pageSize, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
             }
 
             /// <summary>
-            /// Query endpoints
+            /// Get filtered list of endpoints
             /// </summary>
             /// <remarks>
-            /// Return endpoints that match the specified query.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfEndpoints operation using the token to retrieve
-            /// more results.
+            /// Get a list of endpoints filtered using the specified query parameters. The
+            /// returned model can contain a continuation token if more results are
+            /// available. Call the GetListOfEndpoints operation using the token to
+            /// retrieve more results.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='query'>
-            /// Query to match
+            /// <param name='url'>
+            /// Endoint url for direct server access
+            /// </param>
+            /// <param name='certificate'>
+            /// Certificate of the endpoint
+            /// </param>
+            /// <param name='securityMode'>
+            /// Security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt',
+            /// 'None'
+            /// </param>
+            /// <param name='securityPolicy'>
+            /// Security policy uri
+            /// </param>
+            /// <param name='activated'>
+            /// Whether the endpoint was activated
+            /// </param>
+            /// <param name='connected'>
+            /// Whether the endpoint is connected on supervisor.
+            /// </param>
+            /// <param name='endpointState'>
+            /// The last state of the the activated endpoint. Possible values include:
+            /// 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid',
+            /// 'Ready', 'Error'
+            /// </param>
+            /// <param name='includeNotSeenSince'>
+            /// Whether to include endpoints that were soft deleted
+            /// </param>
+            /// <param name='discovererId'>
+            /// Discoverer id to filter with
+            /// </param>
+            /// <param name='applicationId'>
+            /// Application id to filter
+            /// </param>
+            /// <param name='supervisorId'>
+            /// Supervisor id to filter with
+            /// </param>
+            /// <param name='siteOrGatewayId'>
+            /// Site or gateway id to filter with
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             /// <param name='pageSize'>
             /// Optional number of results to return
             /// </param>
-            public static EndpointInfoListApiModel QueryEndpoints(this IAzureOpcRegistryClient operations, EndpointRegistrationQueryApiModel query, bool? onlyServerState = default(bool?), int? pageSize = default(int?))
+            public static EndpointInfoListApiModel GetFilteredListOfEndpoints(this IAzureOpcRegistryClient operations, string url = default(string), byte[] certificate = default(byte[]), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), EndpointConnectivityState? endpointState = default(EndpointConnectivityState?), bool? includeNotSeenSince = default(bool?), string discovererId = default(string), string applicationId = default(string), string supervisorId = default(string), string siteOrGatewayId = default(string), bool? onlyServerState = default(bool?), int? pageSize = default(int?))
             {
-                return operations.QueryEndpointsAsync(query, onlyServerState, pageSize).GetAwaiter().GetResult();
+                return operations.GetFilteredListOfEndpointsAsync(url, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, discovererId, applicationId, supervisorId, siteOrGatewayId, onlyServerState, pageSize).GetAwaiter().GetResult();
             }
 
             /// <summary>
-            /// Query endpoints
+            /// Get filtered list of endpoints
             /// </summary>
             /// <remarks>
-            /// Return endpoints that match the specified query.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfEndpoints operation using the token to retrieve
-            /// more results.
+            /// Get a list of endpoints filtered using the specified query parameters. The
+            /// returned model can contain a continuation token if more results are
+            /// available. Call the GetListOfEndpoints operation using the token to
+            /// retrieve more results.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='query'>
-            /// Query to match
+            /// <param name='url'>
+            /// Endoint url for direct server access
+            /// </param>
+            /// <param name='certificate'>
+            /// Certificate of the endpoint
+            /// </param>
+            /// <param name='securityMode'>
+            /// Security Mode. Possible values include: 'Best', 'Sign', 'SignAndEncrypt',
+            /// 'None'
+            /// </param>
+            /// <param name='securityPolicy'>
+            /// Security policy uri
+            /// </param>
+            /// <param name='activated'>
+            /// Whether the endpoint was activated
+            /// </param>
+            /// <param name='connected'>
+            /// Whether the endpoint is connected on supervisor.
+            /// </param>
+            /// <param name='endpointState'>
+            /// The last state of the the activated endpoint. Possible values include:
+            /// 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid',
+            /// 'Ready', 'Error'
+            /// </param>
+            /// <param name='includeNotSeenSince'>
+            /// Whether to include endpoints that were soft deleted
+            /// </param>
+            /// <param name='discovererId'>
+            /// Discoverer id to filter with
+            /// </param>
+            /// <param name='applicationId'>
+            /// Application id to filter
+            /// </param>
+            /// <param name='supervisorId'>
+            /// Supervisor id to filter with
+            /// </param>
+            /// <param name='siteOrGatewayId'>
+            /// Site or gateway id to filter with
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             /// <param name='pageSize'>
             /// Optional number of results to return
@@ -1301,9 +1644,9 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<EndpointInfoListApiModel> QueryEndpointsAsync(this IAzureOpcRegistryClient operations, EndpointRegistrationQueryApiModel query, bool? onlyServerState = default(bool?), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<EndpointInfoListApiModel> GetFilteredListOfEndpointsAsync(this IAzureOpcRegistryClient operations, string url = default(string), byte[] certificate = default(byte[]), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), bool? activated = default(bool?), bool? connected = default(bool?), EndpointConnectivityState? endpointState = default(EndpointConnectivityState?), bool? includeNotSeenSince = default(bool?), string discovererId = default(string), string applicationId = default(string), string supervisorId = default(string), string siteOrGatewayId = default(string), bool? onlyServerState = default(bool?), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.QueryEndpointsWithHttpMessagesAsync(query, onlyServerState, pageSize, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.GetFilteredListOfEndpointsWithHttpMessagesAsync(url, certificate, securityMode, securityPolicy, activated, connected, endpointState, includeNotSeenSince, discovererId, applicationId, supervisorId, siteOrGatewayId, onlyServerState, pageSize, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -1355,13 +1698,12 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='userId'>
-            /// The user id that will receive endpoint
-            /// events.
+            /// <param name='body'>
+            /// The user id that will receive endpoint events.
             /// </param>
-            public static void Subscribe1(this IAzureOpcRegistryClient operations, string userId = default(string))
+            public static void Subscribe2(this IAzureOpcRegistryClient operations, string body = default(string))
             {
-                operations.Subscribe1Async(userId).GetAwaiter().GetResult();
+                operations.Subscribe2Async(body).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -1373,16 +1715,15 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='userId'>
-            /// The user id that will receive endpoint
-            /// events.
+            /// <param name='body'>
+            /// The user id that will receive endpoint events.
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task Subscribe1Async(this IAzureOpcRegistryClient operations, string userId = default(string), CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task Subscribe2Async(this IAzureOpcRegistryClient operations, string body = default(string), CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.Subscribe1WithHttpMessagesAsync(userId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                (await operations.Subscribe2WithHttpMessagesAsync(body, null, cancellationToken).ConfigureAwait(false)).Dispose();
             }
 
             /// <summary>
@@ -1395,12 +1736,11 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='userId'>
-            /// The user id that will not receive
-            /// any more endpoint events
+            /// The user id that will not receive any more endpoint events
             /// </param>
-            public static void Unsubscribe1(this IAzureOpcRegistryClient operations, string userId)
+            public static void Unsubscribe2(this IAzureOpcRegistryClient operations, string userId)
             {
-                operations.Unsubscribe1Async(userId).GetAwaiter().GetResult();
+                operations.Unsubscribe2Async(userId).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -1413,23 +1753,343 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='userId'>
-            /// The user id that will not receive
-            /// any more endpoint events
+            /// The user id that will not receive any more endpoint events
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task Unsubscribe1Async(this IAzureOpcRegistryClient operations, string userId, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task Unsubscribe2Async(this IAzureOpcRegistryClient operations, string userId, CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.Unsubscribe1WithHttpMessagesAsync(userId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                (await operations.Unsubscribe2WithHttpMessagesAsync(userId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Get Gateway registration information
+            /// </summary>
+            /// <remarks>
+            /// Returns a Gateway's registration and connectivity information. A Gateway id
+            /// corresponds to the twin modules module identity.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='gatewayId'>
+            /// Gateway identifier
+            /// </param>
+            public static GatewayInfoApiModel GetGateway(this IAzureOpcRegistryClient operations, string gatewayId)
+            {
+                return operations.GetGatewayAsync(gatewayId).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Get Gateway registration information
+            /// </summary>
+            /// <remarks>
+            /// Returns a Gateway's registration and connectivity information. A Gateway id
+            /// corresponds to the twin modules module identity.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='gatewayId'>
+            /// Gateway identifier
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<GatewayInfoApiModel> GetGatewayAsync(this IAzureOpcRegistryClient operations, string gatewayId, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.GetGatewayWithHttpMessagesAsync(gatewayId, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Update Gateway configuration
+            /// </summary>
+            /// <remarks>
+            /// Allows a caller to configure operations on the Gateway module identified by
+            /// the Gateway id.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='gatewayId'>
+            /// Gateway identifier
+            /// </param>
+            /// <param name='body'>
+            /// Patch request
+            /// </param>
+            public static void UpdateGateway(this IAzureOpcRegistryClient operations, string gatewayId, GatewayUpdateApiModel body)
+            {
+                operations.UpdateGatewayAsync(gatewayId, body).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Update Gateway configuration
+            /// </summary>
+            /// <remarks>
+            /// Allows a caller to configure operations on the Gateway module identified by
+            /// the Gateway id.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='gatewayId'>
+            /// Gateway identifier
+            /// </param>
+            /// <param name='body'>
+            /// Patch request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task UpdateGatewayAsync(this IAzureOpcRegistryClient operations, string gatewayId, GatewayUpdateApiModel body, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.UpdateGatewayWithHttpMessagesAsync(gatewayId, body, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Get list of Gateways
+            /// </summary>
+            /// <remarks>
+            /// Get all registered Gateways and therefore twin modules in paged form. The
+            /// returned model can contain a continuation token if more results are
+            /// available. Call this operation again using the token to retrieve more
+            /// results.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='continuationToken'>
+            /// Optional Continuation token
+            /// </param>
+            /// <param name='pageSize'>
+            /// Optional number of results to return
+            /// </param>
+            public static GatewayListApiModel GetListOfGateway(this IAzureOpcRegistryClient operations, string continuationToken = default(string), int? pageSize = default(int?))
+            {
+                return operations.GetListOfGatewayAsync(continuationToken, pageSize).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Get list of Gateways
+            /// </summary>
+            /// <remarks>
+            /// Get all registered Gateways and therefore twin modules in paged form. The
+            /// returned model can contain a continuation token if more results are
+            /// available. Call this operation again using the token to retrieve more
+            /// results.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='continuationToken'>
+            /// Optional Continuation token
+            /// </param>
+            /// <param name='pageSize'>
+            /// Optional number of results to return
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<GatewayListApiModel> GetListOfGatewayAsync(this IAzureOpcRegistryClient operations, string continuationToken = default(string), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.GetListOfGatewayWithHttpMessagesAsync(continuationToken, pageSize, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Query Gateways
+            /// </summary>
+            /// <remarks>
+            /// Get all Gateways that match a specified query. The returned model can
+            /// contain a continuation token if more results are available. Call the
+            /// GetListOfGateway operation using the token to retrieve more results.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='body'>
+            /// Gateway query model
+            /// </param>
+            /// <param name='pageSize'>
+            /// Number of results to return
+            /// </param>
+            public static GatewayListApiModel QueryGateway(this IAzureOpcRegistryClient operations, GatewayQueryApiModel body, int? pageSize = default(int?))
+            {
+                return operations.QueryGatewayAsync(body, pageSize).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Query Gateways
+            /// </summary>
+            /// <remarks>
+            /// Get all Gateways that match a specified query. The returned model can
+            /// contain a continuation token if more results are available. Call the
+            /// GetListOfGateway operation using the token to retrieve more results.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='body'>
+            /// Gateway query model
+            /// </param>
+            /// <param name='pageSize'>
+            /// Number of results to return
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<GatewayListApiModel> QueryGatewayAsync(this IAzureOpcRegistryClient operations, GatewayQueryApiModel body, int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.QueryGatewayWithHttpMessagesAsync(body, pageSize, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Get filtered list of Gateways
+            /// </summary>
+            /// <remarks>
+            /// Get a list of Gateways filtered using the specified query parameters. The
+            /// returned model can contain a continuation token if more results are
+            /// available. Call the GetListOfGateway operation using the token to retrieve
+            /// more results.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='siteId'>
+            /// Site of the Gateway
+            /// </param>
+            /// <param name='connected'>
+            /// Included connected or disconnected
+            /// </param>
+            /// <param name='pageSize'>
+            /// Number of results to return
+            /// </param>
+            public static GatewayListApiModel GetFilteredListOfGateway(this IAzureOpcRegistryClient operations, string siteId = default(string), bool? connected = default(bool?), int? pageSize = default(int?))
+            {
+                return operations.GetFilteredListOfGatewayAsync(siteId, connected, pageSize).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Get filtered list of Gateways
+            /// </summary>
+            /// <remarks>
+            /// Get a list of Gateways filtered using the specified query parameters. The
+            /// returned model can contain a continuation token if more results are
+            /// available. Call the GetListOfGateway operation using the token to retrieve
+            /// more results.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='siteId'>
+            /// Site of the Gateway
+            /// </param>
+            /// <param name='connected'>
+            /// Included connected or disconnected
+            /// </param>
+            /// <param name='pageSize'>
+            /// Number of results to return
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<GatewayListApiModel> GetFilteredListOfGatewayAsync(this IAzureOpcRegistryClient operations, string siteId = default(string), bool? connected = default(bool?), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.GetFilteredListOfGatewayWithHttpMessagesAsync(siteId, connected, pageSize, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
+            /// Subscribe to Gateway registry events
+            /// </summary>
+            /// <remarks>
+            /// Register a user to receive Gateway events through SignalR.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='body'>
+            /// The user id that will receive Gateway events.
+            /// </param>
+            public static void Subscribe3(this IAzureOpcRegistryClient operations, string body = default(string))
+            {
+                operations.Subscribe3Async(body).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Subscribe to Gateway registry events
+            /// </summary>
+            /// <remarks>
+            /// Register a user to receive Gateway events through SignalR.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='body'>
+            /// The user id that will receive Gateway events.
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task Subscribe3Async(this IAzureOpcRegistryClient operations, string body = default(string), CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.Subscribe3WithHttpMessagesAsync(body, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Unsubscribe registry events
+            /// </summary>
+            /// <remarks>
+            /// Unregister a user and stop it from receiving Gateway events.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='userId'>
+            /// The user id that will not receive any more Gateway events
+            /// </param>
+            public static void Unsubscribe3(this IAzureOpcRegistryClient operations, string userId)
+            {
+                operations.Unsubscribe3Async(userId).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Unsubscribe registry events
+            /// </summary>
+            /// <remarks>
+            /// Unregister a user and stop it from receiving Gateway events.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='userId'>
+            /// The user id that will not receive any more Gateway events
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task Unsubscribe3Async(this IAzureOpcRegistryClient operations, string userId, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.Unsubscribe3WithHttpMessagesAsync(userId, null, cancellationToken).ConfigureAwait(false)).Dispose();
             }
 
             /// <summary>
             /// Get publisher registration information
             /// </summary>
             /// <remarks>
-            /// Returns a publisher's registration and connectivity information.
-            /// A publisher id corresponds to the twin modules module identity.
+            /// Returns a publisher's registration and connectivity information. A
+            /// publisher id corresponds to the twin modules module identity.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -1438,9 +2098,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// Publisher identifier
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             public static PublisherApiModel GetPublisher(this IAzureOpcRegistryClient operations, string publisherId, bool? onlyServerState = default(bool?))
             {
@@ -1451,8 +2110,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// Get publisher registration information
             /// </summary>
             /// <remarks>
-            /// Returns a publisher's registration and connectivity information.
-            /// A publisher id corresponds to the twin modules module identity.
+            /// Returns a publisher's registration and connectivity information. A
+            /// publisher id corresponds to the twin modules module identity.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -1461,9 +2120,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// Publisher identifier
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
@@ -1480,8 +2138,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// Update publisher configuration
             /// </summary>
             /// <remarks>
-            /// Allows a caller to configure operations on the publisher module
-            /// identified by the publisher id.
+            /// Allows a caller to configure operations on the publisher module identified
+            /// by the publisher id.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -1489,20 +2147,20 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='publisherId'>
             /// Publisher identifier
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// Patch request
             /// </param>
-            public static void UpdatePublisher(this IAzureOpcRegistryClient operations, string publisherId, PublisherUpdateApiModel request)
+            public static void UpdatePublisher(this IAzureOpcRegistryClient operations, string publisherId, PublisherUpdateApiModel body)
             {
-                operations.UpdatePublisherAsync(publisherId, request).GetAwaiter().GetResult();
+                operations.UpdatePublisherAsync(publisherId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Update publisher configuration
             /// </summary>
             /// <remarks>
-            /// Allows a caller to configure operations on the publisher module
-            /// identified by the publisher id.
+            /// Allows a caller to configure operations on the publisher module identified
+            /// by the publisher id.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -1510,32 +2168,32 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='publisherId'>
             /// Publisher identifier
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// Patch request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task UpdatePublisherAsync(this IAzureOpcRegistryClient operations, string publisherId, PublisherUpdateApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task UpdatePublisherAsync(this IAzureOpcRegistryClient operations, string publisherId, PublisherUpdateApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.UpdatePublisherWithHttpMessagesAsync(publisherId, request, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                (await operations.UpdatePublisherWithHttpMessagesAsync(publisherId, body, null, cancellationToken).ConfigureAwait(false)).Dispose();
             }
 
             /// <summary>
             /// Get list of publishers
             /// </summary>
             /// <remarks>
-            /// Get all registered publishers and therefore twin modules in paged form.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call this operation again using the token to retrieve more results.
+            /// Get all registered publishers and therefore twin modules in paged form. The
+            /// returned model can contain a continuation token if more results are
+            /// available. Call this operation again using the token to retrieve more
+            /// results.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             /// <param name='continuationToken'>
             /// Optional Continuation token
@@ -1552,17 +2210,17 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// Get list of publishers
             /// </summary>
             /// <remarks>
-            /// Get all registered publishers and therefore twin modules in paged form.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call this operation again using the token to retrieve more results.
+            /// Get all registered publishers and therefore twin modules in paged form. The
+            /// returned model can contain a continuation token if more results are
+            /// available. Call this operation again using the token to retrieve more
+            /// results.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             /// <param name='continuationToken'>
             /// Optional Continuation token
@@ -1582,14 +2240,71 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             }
 
             /// <summary>
+            /// Query publishers
+            /// </summary>
+            /// <remarks>
+            /// Get all publishers that match a specified query. The returned model can
+            /// contain a continuation token if more results are available. Call the
+            /// GetListOfPublisher operation using the token to retrieve more results.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='body'>
+            /// Publisher query model
+            /// </param>
+            /// <param name='onlyServerState'>
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
+            /// </param>
+            /// <param name='pageSize'>
+            /// Number of results to return
+            /// </param>
+            public static PublisherListApiModel QueryPublisher(this IAzureOpcRegistryClient operations, PublisherQueryApiModel body, bool? onlyServerState = default(bool?), int? pageSize = default(int?))
+            {
+                return operations.QueryPublisherAsync(body, onlyServerState, pageSize).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Query publishers
+            /// </summary>
+            /// <remarks>
+            /// Get all publishers that match a specified query. The returned model can
+            /// contain a continuation token if more results are available. Call the
+            /// GetListOfPublisher operation using the token to retrieve more results.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='body'>
+            /// Publisher query model
+            /// </param>
+            /// <param name='onlyServerState'>
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
+            /// </param>
+            /// <param name='pageSize'>
+            /// Number of results to return
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<PublisherListApiModel> QueryPublisherAsync(this IAzureOpcRegistryClient operations, PublisherQueryApiModel body, bool? onlyServerState = default(bool?), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.QueryPublisherWithHttpMessagesAsync(body, onlyServerState, pageSize, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
             /// Get filtered list of publishers
             /// </summary>
             /// <remarks>
-            /// Get a list of publishers filtered using the specified query parameters.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfPublisher operation using the token to retrieve
-            /// more results.
+            /// Get a list of publishers filtered using the specified query parameters. The
+            /// returned model can contain a continuation token if more results are
+            /// available. Call the GetListOfPublisher operation using the token to
+            /// retrieve more results.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -1601,9 +2316,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// Included connected or disconnected
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             /// <param name='pageSize'>
             /// Number of results to return
@@ -1617,11 +2331,10 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// Get filtered list of publishers
             /// </summary>
             /// <remarks>
-            /// Get a list of publishers filtered using the specified query parameters.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfPublisher operation using the token to retrieve
-            /// more results.
+            /// Get a list of publishers filtered using the specified query parameters. The
+            /// returned model can contain a continuation token if more results are
+            /// available. Call the GetListOfPublisher operation using the token to
+            /// retrieve more results.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -1633,9 +2346,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// Included connected or disconnected
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             /// <param name='pageSize'>
             /// Number of results to return
@@ -1652,67 +2364,20 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             }
 
             /// <summary>
-            /// Query publishers
+            /// Subscribe to publisher registry events
             /// </summary>
             /// <remarks>
-            /// Get all publishers that match a specified query.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfPublisher operation using the token to retrieve
-            /// more results.
+            /// Register a user to receive publisher events through SignalR.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='query'>
-            /// Publisher query model
+            /// <param name='body'>
+            /// The user id that will receive publisher events.
             /// </param>
-            /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
-            /// </param>
-            /// <param name='pageSize'>
-            /// Number of results to return
-            /// </param>
-            public static PublisherListApiModel QueryPublisher(this IAzureOpcRegistryClient operations, PublisherQueryApiModel query, bool? onlyServerState = default(bool?), int? pageSize = default(int?))
+            public static void Subscribe4(this IAzureOpcRegistryClient operations, string body = default(string))
             {
-                return operations.QueryPublisherAsync(query, onlyServerState, pageSize).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Query publishers
-            /// </summary>
-            /// <remarks>
-            /// Get all publishers that match a specified query.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfPublisher operation using the token to retrieve
-            /// more results.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='query'>
-            /// Publisher query model
-            /// </param>
-            /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
-            /// </param>
-            /// <param name='pageSize'>
-            /// Number of results to return
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<PublisherListApiModel> QueryPublisherAsync(this IAzureOpcRegistryClient operations, PublisherQueryApiModel query, bool? onlyServerState = default(bool?), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.QueryPublisherWithHttpMessagesAsync(query, onlyServerState, pageSize, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
+                operations.Subscribe4Async(body).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -1724,34 +2389,15 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='userId'>
-            /// The user id that will receive publisher
-            /// events.
-            /// </param>
-            public static void Subscribe2(this IAzureOpcRegistryClient operations, string userId = default(string))
-            {
-                operations.Subscribe2Async(userId).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Subscribe to publisher registry events
-            /// </summary>
-            /// <remarks>
-            /// Register a user to receive publisher events through SignalR.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='userId'>
-            /// The user id that will receive publisher
-            /// events.
+            /// <param name='body'>
+            /// The user id that will receive publisher events.
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task Subscribe2Async(this IAzureOpcRegistryClient operations, string userId = default(string), CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task Subscribe4Async(this IAzureOpcRegistryClient operations, string body = default(string), CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.Subscribe2WithHttpMessagesAsync(userId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                (await operations.Subscribe4WithHttpMessagesAsync(body, null, cancellationToken).ConfigureAwait(false)).Dispose();
             }
 
             /// <summary>
@@ -1764,12 +2410,11 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='userId'>
-            /// The user id that will not receive
-            /// any more publisher events
+            /// The user id that will not receive any more publisher events
             /// </param>
-            public static void Unsubscribe2(this IAzureOpcRegistryClient operations, string userId)
+            public static void Unsubscribe4(this IAzureOpcRegistryClient operations, string userId)
             {
-                operations.Unsubscribe2Async(userId).GetAwaiter().GetResult();
+                operations.Unsubscribe4Async(userId).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -1782,15 +2427,14 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='userId'>
-            /// The user id that will not receive
-            /// any more publisher events
+            /// The user id that will not receive any more publisher events
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task Unsubscribe2Async(this IAzureOpcRegistryClient operations, string userId, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task Unsubscribe4Async(this IAzureOpcRegistryClient operations, string userId, CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.Unsubscribe2WithHttpMessagesAsync(userId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                (await operations.Unsubscribe4WithHttpMessagesAsync(userId, null, cancellationToken).ConfigureAwait(false)).Dispose();
             }
 
             /// <summary>
@@ -1827,8 +2471,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// Get supervisor registration information
             /// </summary>
             /// <remarks>
-            /// Returns a supervisor's registration and connectivity information.
-            /// A supervisor id corresponds to the twin modules module identity.
+            /// Returns a supervisor's registration and connectivity information. A
+            /// supervisor id corresponds to the twin modules module identity.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -1837,9 +2481,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// Supervisor identifier
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             public static SupervisorApiModel GetSupervisor(this IAzureOpcRegistryClient operations, string supervisorId, bool? onlyServerState = default(bool?))
             {
@@ -1850,8 +2493,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// Get supervisor registration information
             /// </summary>
             /// <remarks>
-            /// Returns a supervisor's registration and connectivity information.
-            /// A supervisor id corresponds to the twin modules module identity.
+            /// Returns a supervisor's registration and connectivity information. A
+            /// supervisor id corresponds to the twin modules module identity.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -1860,9 +2503,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// Supervisor identifier
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
@@ -1888,12 +2530,12 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='supervisorId'>
             /// supervisor identifier
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// Patch request
             /// </param>
-            public static void UpdateSupervisor(this IAzureOpcRegistryClient operations, string supervisorId, SupervisorUpdateApiModel request)
+            public static void UpdateSupervisor(this IAzureOpcRegistryClient operations, string supervisorId, SupervisorUpdateApiModel body)
             {
-                operations.UpdateSupervisorAsync(supervisorId, request).GetAwaiter().GetResult();
+                operations.UpdateSupervisorAsync(supervisorId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -1909,15 +2551,15 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='supervisorId'>
             /// supervisor identifier
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// Patch request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task UpdateSupervisorAsync(this IAzureOpcRegistryClient operations, string supervisorId, SupervisorUpdateApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task UpdateSupervisorAsync(this IAzureOpcRegistryClient operations, string supervisorId, SupervisorUpdateApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.UpdateSupervisorWithHttpMessagesAsync(supervisorId, request, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                (await operations.UpdateSupervisorWithHttpMessagesAsync(supervisorId, body, null, cancellationToken).ConfigureAwait(false)).Dispose();
             }
 
             /// <summary>
@@ -1964,8 +2606,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// Reset supervisor
             /// </summary>
             /// <remarks>
-            /// Allows a caller to reset the twin module using its supervisor
-            /// identity identifier.
+            /// Allows a caller to reset the twin module using its supervisor identity
+            /// identifier.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -1982,8 +2624,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// Reset supervisor
             /// </summary>
             /// <remarks>
-            /// Allows a caller to reset the twin module using its supervisor
-            /// identity identifier.
+            /// Allows a caller to reset the twin module using its supervisor identity
+            /// identifier.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -2005,15 +2647,15 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <remarks>
             /// Get all registered supervisors and therefore twin modules in paged form.
             /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call this operation again using the token to retrieve more results.
+            /// available. Call this operation again using the token to retrieve more
+            /// results.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             /// <param name='continuationToken'>
             /// Optional Continuation token
@@ -2032,15 +2674,15 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <remarks>
             /// Get all registered supervisors and therefore twin modules in paged form.
             /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call this operation again using the token to retrieve more results.
+            /// available. Call this operation again using the token to retrieve more
+            /// results.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             /// <param name='continuationToken'>
             /// Optional Continuation token
@@ -2060,68 +2702,48 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             }
 
             /// <summary>
-            /// Get filtered list of supervisors
+            /// Query supervisors
             /// </summary>
             /// <remarks>
-            /// Get a list of supervisors filtered using the specified query parameters.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfSupervisors operation using the token to retrieve
-            /// more results.
+            /// Get all supervisors that match a specified query. The returned model can
+            /// contain a continuation token if more results are available. Call the
+            /// GetListOfSupervisors operation using the token to retrieve more results.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='siteId'>
-            /// Site of the supervisor
-            /// </param>
-            /// <param name='discovery'>
-            /// Discovery mode of supervisor. Possible values include: 'Off', 'Local',
-            /// 'Network', 'Fast', 'Scan'
-            /// </param>
-            /// <param name='connected'>
-            /// Included connected or disconnected
+            /// <param name='body'>
+            /// Supervisors query model
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             /// <param name='pageSize'>
             /// Number of results to return
             /// </param>
-            public static SupervisorListApiModel GetFilteredListOfSupervisors(this IAzureOpcRegistryClient operations, string siteId = default(string), string discovery = default(string), bool? connected = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?))
+            public static SupervisorListApiModel QuerySupervisors(this IAzureOpcRegistryClient operations, SupervisorQueryApiModel body, bool? onlyServerState = default(bool?), int? pageSize = default(int?))
             {
-                return operations.GetFilteredListOfSupervisorsAsync(siteId, discovery, connected, onlyServerState, pageSize).GetAwaiter().GetResult();
+                return operations.QuerySupervisorsAsync(body, onlyServerState, pageSize).GetAwaiter().GetResult();
             }
 
             /// <summary>
-            /// Get filtered list of supervisors
+            /// Query supervisors
             /// </summary>
             /// <remarks>
-            /// Get a list of supervisors filtered using the specified query parameters.
-            /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfSupervisors operation using the token to retrieve
-            /// more results.
+            /// Get all supervisors that match a specified query. The returned model can
+            /// contain a continuation token if more results are available. Call the
+            /// GetListOfSupervisors operation using the token to retrieve more results.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='siteId'>
-            /// Site of the supervisor
-            /// </param>
-            /// <param name='discovery'>
-            /// Discovery mode of supervisor. Possible values include: 'Off', 'Local',
-            /// 'Network', 'Fast', 'Scan'
-            /// </param>
-            /// <param name='connected'>
-            /// Included connected or disconnected
+            /// <param name='body'>
+            /// Supervisors query model
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             /// <param name='pageSize'>
             /// Number of results to return
@@ -2129,63 +2751,65 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<SupervisorListApiModel> GetFilteredListOfSupervisorsAsync(this IAzureOpcRegistryClient operations, string siteId = default(string), string discovery = default(string), bool? connected = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<SupervisorListApiModel> QuerySupervisorsAsync(this IAzureOpcRegistryClient operations, SupervisorQueryApiModel body, bool? onlyServerState = default(bool?), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.GetFilteredListOfSupervisorsWithHttpMessagesAsync(siteId, discovery, connected, onlyServerState, pageSize, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.QuerySupervisorsWithHttpMessagesAsync(body, onlyServerState, pageSize, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
             }
 
             /// <summary>
-            /// Query supervisors
+            /// Get filtered list of supervisors
             /// </summary>
             /// <remarks>
-            /// Get all supervisors that match a specified query.
+            /// Get a list of supervisors filtered using the specified query parameters.
             /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfSupervisors operation using the token to retrieve
-            /// more results.
+            /// available. Call the GetListOfSupervisors operation using the token to
+            /// retrieve more results.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='query'>
-            /// Supervisors query model
+            /// <param name='siteId'>
+            /// Site of the supervisor
+            /// </param>
+            /// <param name='connected'>
+            /// Included connected or disconnected
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             /// <param name='pageSize'>
             /// Number of results to return
             /// </param>
-            public static SupervisorListApiModel QuerySupervisors(this IAzureOpcRegistryClient operations, SupervisorQueryApiModel query, bool? onlyServerState = default(bool?), int? pageSize = default(int?))
+            public static SupervisorListApiModel GetFilteredListOfSupervisors(this IAzureOpcRegistryClient operations, string siteId = default(string), bool? connected = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?))
             {
-                return operations.QuerySupervisorsAsync(query, onlyServerState, pageSize).GetAwaiter().GetResult();
+                return operations.GetFilteredListOfSupervisorsAsync(siteId, connected, onlyServerState, pageSize).GetAwaiter().GetResult();
             }
 
             /// <summary>
-            /// Query supervisors
+            /// Get filtered list of supervisors
             /// </summary>
             /// <remarks>
-            /// Get all supervisors that match a specified query.
+            /// Get a list of supervisors filtered using the specified query parameters.
             /// The returned model can contain a continuation token if more results are
-            /// available.
-            /// Call the GetListOfSupervisors operation using the token to retrieve
-            /// more results.
+            /// available. Call the GetListOfSupervisors operation using the token to
+            /// retrieve more results.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='query'>
-            /// Supervisors query model
+            /// <param name='siteId'>
+            /// Site of the supervisor
+            /// </param>
+            /// <param name='connected'>
+            /// Included connected or disconnected
             /// </param>
             /// <param name='onlyServerState'>
-            /// Whether to include only server
-            /// state, or display current client state of the endpoint if
-            /// available
+            /// Whether to include only server state, or display current client state of
+            /// the endpoint if available
             /// </param>
             /// <param name='pageSize'>
             /// Number of results to return
@@ -2193,9 +2817,9 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<SupervisorListApiModel> QuerySupervisorsAsync(this IAzureOpcRegistryClient operations, SupervisorQueryApiModel query, bool? onlyServerState = default(bool?), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<SupervisorListApiModel> GetFilteredListOfSupervisorsAsync(this IAzureOpcRegistryClient operations, string siteId = default(string), bool? connected = default(bool?), bool? onlyServerState = default(bool?), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.QuerySupervisorsWithHttpMessagesAsync(query, onlyServerState, pageSize, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.GetFilteredListOfSupervisorsWithHttpMessagesAsync(siteId, connected, onlyServerState, pageSize, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -2210,13 +2834,12 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='userId'>
-            /// The user id that will receive supervisor
-            /// events.
+            /// <param name='body'>
+            /// The user id that will receive supervisor events.
             /// </param>
-            public static void Subscribe3(this IAzureOpcRegistryClient operations, string userId = default(string))
+            public static void Subscribe5(this IAzureOpcRegistryClient operations, string body = default(string))
             {
-                operations.Subscribe3Async(userId).GetAwaiter().GetResult();
+                operations.Subscribe5Async(body).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -2228,16 +2851,15 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='userId'>
-            /// The user id that will receive supervisor
-            /// events.
+            /// <param name='body'>
+            /// The user id that will receive supervisor events.
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task Subscribe3Async(this IAzureOpcRegistryClient operations, string userId = default(string), CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task Subscribe5Async(this IAzureOpcRegistryClient operations, string body = default(string), CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.Subscribe3WithHttpMessagesAsync(userId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                (await operations.Subscribe5WithHttpMessagesAsync(body, null, cancellationToken).ConfigureAwait(false)).Dispose();
             }
 
             /// <summary>
@@ -2250,12 +2872,11 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='userId'>
-            /// The user id that will not receive
-            /// any more supervisor events
+            /// The user id that will not receive any more supervisor events
             /// </param>
-            public static void Unsubscribe3(this IAzureOpcRegistryClient operations, string userId)
+            public static void Unsubscribe5(this IAzureOpcRegistryClient operations, string userId)
             {
-                operations.Unsubscribe3Async(userId).GetAwaiter().GetResult();
+                operations.Unsubscribe5Async(userId).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -2268,15 +2889,14 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='userId'>
-            /// The user id that will not receive
-            /// any more supervisor events
+            /// The user id that will not receive any more supervisor events
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task Unsubscribe3Async(this IAzureOpcRegistryClient operations, string userId, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task Unsubscribe5Async(this IAzureOpcRegistryClient operations, string userId, CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.Unsubscribe3WithHttpMessagesAsync(userId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                (await operations.Unsubscribe5WithHttpMessagesAsync(userId, null, cancellationToken).ConfigureAwait(false)).Dispose();
             }
 
     }

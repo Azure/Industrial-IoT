@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Controllers {
     /// <summary>
     /// Activate, Deactivate and Query endpoint resources
     /// </summary>
-    [Route(VersionInfo.PATH + "/endpoints")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/endpoints")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanQuery)]

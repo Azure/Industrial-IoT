@@ -15,10 +15,10 @@ from msrest.serialization import Model
 class FinishSigningRequestResponseApiModel(Model):
     """Finish request results.
 
-    :param request: Request
+    :param request:
     :type request:
      ~azure-iiot-opc-vault.models.CertificateRequestRecordApiModel
-    :param certificate: Signed certificate
+    :param certificate:
     :type certificate: ~azure-iiot-opc-vault.models.X509CertificateApiModel
     """
 

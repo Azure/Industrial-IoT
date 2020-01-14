@@ -17,8 +17,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class CredentialApiModel {
     /**
-     * Type of credential. Possible values include: 'None', 'UserName',
-     * 'X509Certificate', 'JwtToken'.
+     * Possible values include: 'None', 'UserName', 'X509Certificate',
+     * 'JwtToken'.
      */
     @JsonProperty(value = "type")
     private CredentialType type;
@@ -30,7 +30,7 @@ public class CredentialApiModel {
     private Object value;
 
     /**
-     * Get type of credential. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'.
+     * Get possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'.
      *
      * @return the type value
      */
@@ -39,7 +39,7 @@ public class CredentialApiModel {
     }
 
     /**
-     * Set type of credential. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'.
+     * Set possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'.
      *
      * @param type the type value to set
      * @return the CredentialApiModel object itself.

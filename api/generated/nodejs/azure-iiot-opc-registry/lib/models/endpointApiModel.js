@@ -21,9 +21,8 @@ class EndpointApiModel {
    * @property {array} [alternativeUrls] Alternative endpoint urls that can be
    * used for
    * accessing and validating the server
-   * @property {string} [securityMode] Security Mode to use for communication
-   * default to best. Possible values include: 'Best', 'Sign',
-   * 'SignAndEncrypt', 'None'. Default value: 'Best' .
+   * @property {string} [securityMode] Possible values include: 'Best', 'Sign',
+   * 'SignAndEncrypt', 'None'
    * @property {string} [securityPolicy] Security policy uri to use for
    * communication
    * default to best.
@@ -73,7 +72,6 @@ class EndpointApiModel {
           securityMode: {
             required: false,
             serializedName: 'securityMode',
-            defaultValue: 'Best',
             type: {
               name: 'Enum',
               allowedValues: [ 'Best', 'Sign', 'SignAndEncrypt', 'None' ]

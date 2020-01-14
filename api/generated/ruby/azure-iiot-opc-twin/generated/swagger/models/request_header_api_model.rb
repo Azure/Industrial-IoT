@@ -13,13 +13,13 @@ module azure.iiot.opc.twin
     # Request header model
     #
     class RequestHeaderApiModel
-      # @return [CredentialApiModel] Optional User elevation
+      # @return [CredentialApiModel]
       attr_accessor :elevation
 
       # @return [Array<String>] Optional list of locales in preference order.
       attr_accessor :locales
 
-      # @return [DiagnosticsApiModel] Optional diagnostics configuration
+      # @return [DiagnosticsApiModel]
       attr_accessor :diagnostics
 
 

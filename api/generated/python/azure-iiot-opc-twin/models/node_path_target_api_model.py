@@ -17,7 +17,7 @@ class NodePathTargetApiModel(Model):
 
     :param browse_path: The target browse path
     :type browse_path: list[str]
-    :param target: Target node
+    :param target:
     :type target: ~azure-iiot-opc-twin.models.NodeApiModel
     :param remaining_path_index: Remaining index in path
     :type remaining_path_index: int

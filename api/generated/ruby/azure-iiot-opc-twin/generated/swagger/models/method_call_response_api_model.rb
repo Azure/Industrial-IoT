@@ -16,7 +16,7 @@ module azure.iiot.opc.twin
       # @return [Array<MethodCallArgumentApiModel>] Output results
       attr_accessor :results
 
-      # @return [ServiceResultApiModel] Service result in case of error
+      # @return [ServiceResultApiModel]
       attr_accessor :error_info
 
 

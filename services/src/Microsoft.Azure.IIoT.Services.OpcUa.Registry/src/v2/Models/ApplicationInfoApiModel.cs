@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             ProductUri = model.ProductUri;
             SiteId = model.SiteId;
             HostAddresses = model.HostAddresses;
-            SupervisorId = model.SupervisorId;
+            DiscovererId = model.DiscovererId;
             DiscoveryProfileUri = model.DiscoveryProfileUri;
             DiscoveryUrls = model.DiscoveryUrls;
             Capabilities = model.Capabilities;
@@ -66,7 +66,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
                 ProductUri = ProductUri,
                 SiteId = SiteId,
                 HostAddresses = HostAddresses,
-                SupervisorId = SupervisorId,
+                DiscovererId = DiscovererId,
                 DiscoveryProfileUri = DiscoveryProfileUri,
                 DiscoveryUrls = DiscoveryUrls,
                 Capabilities = Capabilities,
@@ -189,12 +189,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Supervisor having registered the application
+        /// Discoverer that registered the application
         /// </summary>
-        [JsonProperty(PropertyName = "supervisorId",
+        [JsonProperty(PropertyName = "discovererId",
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
-        public string SupervisorId { get; set; }
+        public string DiscovererId { get; set; }
 
         /// <summary>
         /// Last time application was seen

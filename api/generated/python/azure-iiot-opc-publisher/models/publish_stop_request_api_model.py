@@ -17,7 +17,7 @@ class PublishStopRequestApiModel(Model):
 
     :param node_id: Node of published item to unpublish
     :type node_id: str
-    :param header: Optional request header
+    :param header:
     :type header: ~azure-iiot-opc-publisher.models.RequestHeaderApiModel
     """
 

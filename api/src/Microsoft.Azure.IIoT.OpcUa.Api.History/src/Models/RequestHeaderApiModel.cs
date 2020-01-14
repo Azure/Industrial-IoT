@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
     using Newtonsoft.Json;
     using System.Collections.Generic;
+    using System.ComponentModel;
 
     /// <summary>
     /// Request header model
@@ -17,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// </summary>
         [JsonProperty(PropertyName = "elevation",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public CredentialApiModel Elevation { get; set; }
 
         /// <summary>
@@ -24,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// </summary>
         [JsonProperty(PropertyName = "locales",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public List<string> Locales { get; set; }
 
         /// <summary>
@@ -31,6 +34,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// </summary>
         [JsonProperty(PropertyName = "diagnostics",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public DiagnosticsApiModel Diagnostics { get; set; }
     }
+
 }

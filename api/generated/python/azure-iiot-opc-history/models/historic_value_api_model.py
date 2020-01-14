@@ -28,8 +28,7 @@ class HistoricValueApiModel(Model):
     :type server_timestamp: datetime
     :param server_picoseconds: Additional resolution for the server timestamp.
     :type server_picoseconds: int
-    :param modification_info: modification information when reading
-     modifications.
+    :param modification_info:
     :type modification_info:
      ~azure-iiot-opc-history.models.ModificationInfoApiModel
     """

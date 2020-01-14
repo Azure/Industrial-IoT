@@ -39,7 +39,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// out of a matrix or 0:1 for the first item in
         /// an array, string or bytestring.
         /// See 7.22 of part 4: NumericRange.</param>
-        /// <param name="header">Optional request header</param>
         public ValueReadRequestApiModel(string nodeId = default(string), IList<string> browsePath = default(IList<string>), string indexRange = default(string), RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             NodeId = nodeId;
@@ -77,7 +76,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public string IndexRange { get; set; }
 
         /// <summary>
-        /// Gets or sets optional request header
         /// </summary>
         [JsonProperty(PropertyName = "header")]
         public RequestHeaderApiModel Header { get; set; }

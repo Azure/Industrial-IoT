@@ -57,34 +57,34 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
             if (update?.IsDisabled != null &&
                 update.IsDisabled != existing?.IsDisabled) {
-                twin.Tags.Add(nameof(BaseRegistration.IsDisabled), (update?.IsDisabled ?? false) ?
+                twin.Tags.Add(nameof(EntityRegistration.IsDisabled), (update?.IsDisabled ?? false) ?
                     true : (bool?)null);
-                twin.Tags.Add(nameof(BaseRegistration.NotSeenSince), (update?.IsDisabled ?? false) ?
+                twin.Tags.Add(nameof(EntityRegistration.NotSeenSince), (update?.IsDisabled ?? false) ?
                     DateTime.UtcNow : (DateTime?)null);
             }
 
-            if (update?.SiteOrSupervisorId != existing?.SiteOrSupervisorId) {
-                twin.Tags.Add(nameof(BaseRegistration.SiteOrSupervisorId), update?.SiteOrSupervisorId);
+            if (update?.SiteOrGatewayId != existing?.SiteOrGatewayId) {
+                twin.Tags.Add(nameof(EntityRegistration.SiteOrGatewayId), update?.SiteOrGatewayId);
             }
 
-            if (update?.SupervisorId != existing?.SupervisorId) {
-                twin.Tags.Add(nameof(BaseRegistration.SupervisorId), update?.SupervisorId);
+            if (update?.DiscovererId != existing?.DiscovererId) {
+                twin.Tags.Add(nameof(ApplicationRegistration.DiscovererId), update?.DiscovererId);
             }
 
             if (update?.SiteId != existing?.SiteId) {
-                twin.Tags.Add(nameof(BaseRegistration.SiteId), update?.SiteId);
+                twin.Tags.Add(nameof(EntityRegistration.SiteId), update?.SiteId);
             }
 
             var certUpdate = update?.Certificate.DecodeAsByteArray().SequenceEqualsSafe(
                 existing?.Certificate.DecodeAsByteArray());
             if (!(certUpdate ?? true)) {
-                twin.Tags.Add(nameof(BaseRegistration.Certificate), update?.Certificate == null ?
+                twin.Tags.Add(nameof(EntityRegistration.Certificate), update?.Certificate == null ?
                     null : JToken.FromObject(update.Certificate));
-                twin.Tags.Add(nameof(BaseRegistration.Thumbprint),
+                twin.Tags.Add(nameof(EntityRegistration.Thumbprint),
                     update?.Certificate?.DecodeAsByteArray()?.ToSha1Hash());
             }
 
-            twin.Tags.Add(nameof(BaseRegistration.DeviceType), update?.DeviceType);
+            twin.Tags.Add(nameof(EntityRegistration.DeviceType), update?.DeviceType);
 
             if (update?.ApplicationType != null &&
                 update?.ApplicationType != existing?.ApplicationType) {
@@ -194,19 +194,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (applicationUri == null) {
                 throw new ArgumentException(nameof(ApplicationRegistration.ApplicationUri));
             }
-            var siteOrSupervisorId = existing?.SiteId ?? existing?.SupervisorId;
-            if (update?.SupervisorId != null || update?.SiteId != null) {
-                siteOrSupervisorId = update?.SiteId ?? update?.SupervisorId;
+
+            var siteOrGatewayId = existing?.SiteOrGatewayId;
+            if (siteOrGatewayId == null) {
+                siteOrGatewayId = update?.SiteOrGatewayId;
+                if (siteOrGatewayId == null) {
+                    throw new ArgumentException(nameof(ApplicationRegistration.SiteOrGatewayId));
+                }
             }
+
             var applicationType = existing?.ApplicationType;
             if (update?.ApplicationType != null) {
                 applicationType = update?.ApplicationType;
             }
 
             var applicationId = ApplicationInfoModelEx.CreateApplicationId(
-                siteOrSupervisorId, applicationUri, applicationType);
-            twin.Tags.Remove(nameof(ApplicationId));
-            twin.Tags.Add(nameof(ApplicationId), applicationId);
+                siteOrGatewayId, applicationUri, applicationType);
+
             twin.Id = applicationId;
 
             if (existing?.DeviceId != twin.Id) {
@@ -378,14 +382,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     tags.GetValueOrDefault<uint>(nameof(ApplicationRegistration.RecordId), null),
                 ProductUri =
                     tags.GetValueOrDefault<string>(nameof(ApplicationRegistration.ProductUri), null),
-                SupervisorId =
-                    tags.GetValueOrDefault<string>(nameof(ApplicationRegistration.SupervisorId), null),
+                DiscovererId =
+                    tags.GetValueOrDefault<string>(nameof(ApplicationRegistration.DiscovererId),
+                        tags.GetValueOrDefault<string>("SupervisorId", null)),
                 DiscoveryProfileUri =
                     tags.GetValueOrDefault<string>(nameof(ApplicationRegistration.DiscoveryProfileUri), null),
                 GatewayServerUri =
                     tags.GetValueOrDefault<string>(nameof(ApplicationRegistration.GatewayServerUri), null),
-                ApplicationId =
-                    tags.GetValueOrDefault<string>(nameof(ApplicationId), null),
                 ApplicationType =
                     tags.GetValueOrDefault<ApplicationType>(nameof(ApplicationType), null),
                 Capabilities =
@@ -422,7 +425,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
             return new ApplicationRegistration {
                 DeviceId = registration.Id,
-                ModuleId = registration.ModuleId,
                 Type = registration.Type,
                 Etag = registration.Etag,
                 IsDisabled = registration.IsDisabled,
@@ -435,10 +437,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 ApplicationUri = registration.ApplicationUri,
                 RecordId = registration.RecordId,
                 ProductUri = registration.ProductUri,
-                SupervisorId = registration.SupervisorId,
+                DiscovererId = registration.DiscovererId,
                 DiscoveryProfileUri = registration.DiscoveryProfileUri,
                 GatewayServerUri = registration.GatewayServerUri,
-                ApplicationId = registration.ApplicationId,
                 ApplicationType = registration.ApplicationType,
                 Capabilities = registration.Capabilities?
                     .ToDictionary(k => k.Key, v => v.Value),
@@ -473,7 +474,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
             return new ApplicationRegistration {
                 IsDisabled = disabled,
-                SupervisorId = model.SupervisorId,
+                DiscovererId = model.DiscovererId,
                 Etag = etag,
                 RecordId = recordId,
                 SiteId = model.SiteId,
@@ -519,8 +520,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 Certificate = registration.Certificate?.DecodeAsByteArray(),
                 SiteId = string.IsNullOrEmpty(registration.SiteId) ?
                     null : registration.SiteId,
-                SupervisorId = string.IsNullOrEmpty(registration.SupervisorId) ?
-                    null : registration.SupervisorId,
+                DiscovererId = string.IsNullOrEmpty(registration.DiscovererId) ?
+                    null : registration.DiscovererId,
                 DiscoveryUrls = registration.DiscoveryUrls.DecodeAsList().ToHashSetSafe(),
                 DiscoveryProfileUri = registration.DiscoveryProfileUri,
                 GatewayServerUri = registration.GatewayServerUri,
@@ -552,7 +553,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 registration.DiscoveryProfileUri == model.DiscoveryProfileUri &&
                 registration.GatewayServerUri == model.GatewayServerUri &&
                 registration.NotSeenSince == model.NotSeenSince &&
-                registration.SupervisorId == model.SupervisorId &&
+                registration.DiscovererId == model.DiscovererId &&
                 registration.SiteId == model.SiteId &&
                 registration.Capabilities.DecodeAsSet().SetEqualsSafe(
                     model.Capabilities?.Select(x =>
@@ -577,6 +578,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 return registration.LocalizedNames.First().Value;
             }
             return null;
+        }
+
+        /// <summary>
+        /// Get site or gateway id from registration
+        /// </summary>
+        /// <param name="registration"></param>
+        /// <returns></returns>
+        public static string GetSiteOrGatewayId(this ApplicationRegistration registration) {
+            if (registration == null) {
+                return null;
+            }
+            var siteOrGatewayId = registration?.SiteId;
+            if (siteOrGatewayId == null) {
+                var id = registration?.DiscovererId;
+                if (id != null) {
+                    siteOrGatewayId = DiscovererModelEx.ParseDeviceId(id, out _);
+                }
+            }
+            return siteOrGatewayId;
         }
 
         /// <summary>
@@ -605,7 +625,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             /// <inheritdoc />
             public bool Equals(ApplicationRegistration x, ApplicationRegistration y) {
                 return
-                    x.SiteOrSupervisorId == y.SiteOrSupervisorId &&
+                    x.SiteOrGatewayId == y.SiteOrGatewayId &&
                     x.ApplicationType == y.ApplicationType &&
                     x.ApplicationUriLC == y.ApplicationUriLC;
             }
@@ -618,7 +638,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 hashCode = (hashCode * -1521134295) +
                     EqualityComparer<string>.Default.GetHashCode(obj.ApplicationUriLC);
                 hashCode = (hashCode * -1521134295) +
-                    EqualityComparer<string>.Default.GetHashCode(obj.SiteOrSupervisorId);
+                    EqualityComparer<string>.Default.GetHashCode(obj.SiteOrGatewayId);
                 return hashCode;
             }
         }

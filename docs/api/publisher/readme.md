@@ -10,9 +10,15 @@ Azure Industrial IoT OPC UA Publisher Service
 *Version* : v2
 
 
+### License information
+*License* : MIT LICENSE  
+*License URL* : https://opensource.org/licenses/MIT  
+*Terms of service* : null
+
+
 ### URI scheme
-*BasePath* : /publisher  
-*Schemes* : HTTPS, HTTP
+*Host* : localhost:9080  
+*Schemes* : HTTP, HTTPS
 
 
 ### Tags
@@ -48,7 +54,7 @@ Register a client to receive publisher samples through SignalR.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The endpoint to subscribe to|string|
-|**Body**|**userId**  <br>*optional*|The user id that will receive publisher<br>            samples.|string|
+|**Body**|**body**  <br>*optional*|The user id that will receive publisher samples.|string|
 
 
 ##### Responses
@@ -64,11 +70,6 @@ Register a client to receive publisher samples through SignalR.
 * `application/json`
 * `text/json`
 * `application/*+json`
-
-
-##### Produces
-
-* `application/json`
 
 
 ##### Security
@@ -94,7 +95,7 @@ Unregister a client and stop it from receiving samples.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The endpoint to unsubscribe from|string|
-|**Path**|**userId**  <br>*required*|The user id that will not receive<br>            any more published samples|string|
+|**Path**|**userId**  <br>*required*|The user id that will not receive any more published samples|string|
 
 
 ##### Responses
@@ -102,11 +103,6 @@ Unregister a client and stop it from receiving samples.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-
-
-##### Produces
-
-* `application/json`
 
 
 ##### Security
@@ -129,9 +125,7 @@ POST /v2/publish/{endpointId}
 
 
 ##### Description
-Returns currently published node ids for an endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Returns currently published node ids for an endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -139,7 +133,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The list request|[PublishedItemListRequestApiModel](definitions.md#publisheditemlistrequestapimodel)|
+|**Body**|**body**  <br>*required*|The list request|[PublishedItemListRequestApiModel](definitions.md#publisheditemlistrequestapimodel)|
 
 
 ##### Responses
@@ -177,9 +171,7 @@ GET /v2/publish/{endpointId}
 
 
 ##### Description
-Returns next set of currently published node ids for an endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Returns next set of currently published node ids for an endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -217,9 +209,7 @@ POST /v2/publish/{endpointId}/start
 
 
 ##### Description
-Start publishing variable node values to IoT Hub.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Start publishing variable node values to IoT Hub. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -227,7 +217,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The publish request|[PublishStartRequestApiModel](definitions.md#publishstartrequestapimodel)|
+|**Body**|**body**  <br>*required*|The publish request|[PublishStartRequestApiModel](definitions.md#publishstartrequestapimodel)|
 
 
 ##### Responses
@@ -265,9 +255,7 @@ POST /v2/publish/{endpointId}/stop
 
 
 ##### Description
-Stop publishing variable node values to IoT Hub.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Stop publishing variable node values to IoT Hub. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -275,7 +263,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The unpublish request|[PublishStopRequestApiModel](definitions.md#publishstoprequestapimodel)|
+|**Body**|**body**  <br>*required*|The unpublish request|[PublishStopRequestApiModel](definitions.md#publishstoprequestapimodel)|
 
 
 ##### Responses

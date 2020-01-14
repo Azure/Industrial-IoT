@@ -32,7 +32,7 @@ class ValueWriteRequestApiModel(Model):
     :type data_type: str
     :param index_range: Index range to write
     :type index_range: str
-    :param header: Optional request header
+    :param header:
     :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
 

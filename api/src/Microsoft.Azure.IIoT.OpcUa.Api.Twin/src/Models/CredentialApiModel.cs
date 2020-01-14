@@ -5,35 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Linq;
-
-    /// <summary>
-    /// Type of credentials to use for authentication
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum CredentialType {
-
-        /// <summary>
-        /// No credentials for anonymous access
-        /// </summary>
-        None,
-
-        /// <summary>
-        /// User name and password as credential
-        /// </summary>
-        UserName,
-
-        /// <summary>
-        /// Credential is a x509 certificate
-        /// </summary>
-        X509Certificate,
-
-        /// <summary>
-        /// Jwt token as credential
-        /// </summary>
-        JwtToken
-    }
 
     /// <summary>
     /// Credential model

@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.v2.Controllers {
     /// <summary>
     /// Node writing services
     /// </summary>
-    [Route(VersionInfo.PATH + "/write")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/write")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanControl)]

@@ -23,7 +23,7 @@ public class ApplicationRecordApiModel {
     private int recordId;
 
     /**
-     * Application information.
+     * The application property.
      */
     @JsonProperty(value = "application", required = true)
     private ApplicationInfoApiModel application;
@@ -49,7 +49,7 @@ public class ApplicationRecordApiModel {
     }
 
     /**
-     * Get application information.
+     * Get the application value.
      *
      * @return the application value
      */
@@ -58,7 +58,7 @@ public class ApplicationRecordApiModel {
     }
 
     /**
-     * Set application information.
+     * Set the application value.
      *
      * @param application the application value to set
      * @return the ApplicationRecordApiModel object itself.

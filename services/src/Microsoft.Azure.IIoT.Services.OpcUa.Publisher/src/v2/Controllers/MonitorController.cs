@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.v2.Controllers {
     /// <summary>
     /// Value and Event monitoring services
     /// </summary>
-    [Route(VersionInfo.PATH + "/monitor")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/monitor")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanPublish)]

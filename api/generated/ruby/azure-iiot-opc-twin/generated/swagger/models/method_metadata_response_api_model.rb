@@ -24,7 +24,7 @@ module azure.iiot.opc.twin
       # data
       attr_accessor :output_arguments
 
-      # @return [ServiceResultApiModel] Service result in case of error
+      # @return [ServiceResultApiModel]
       attr_accessor :error_info
 
 

@@ -45,7 +45,7 @@ export default class AzureOpcPublisherClient extends ServiceClient {
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.userId] The user id that will receive publisher
+   * @param {string} [options.body] The user id that will receive publisher
    * samples.
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
@@ -57,7 +57,7 @@ export default class AzureOpcPublisherClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  subscribeWithHttpOperationResponse(endpointId: string, options?: { userId? : string, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+  subscribeWithHttpOperationResponse(endpointId: string, options?: { body? : string, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
 
   /**
    * @summary Subscribe to receive samples
@@ -68,7 +68,7 @@ export default class AzureOpcPublisherClient extends ServiceClient {
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.userId] The user id that will receive publisher
+   * @param {string} [options.body] The user id that will receive publisher
    * samples.
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
@@ -95,9 +95,9 @@ export default class AzureOpcPublisherClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  subscribe(endpointId: string, options?: { userId? : string, customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  subscribe(endpointId: string, options?: { body? : string, customHeaders? : { [headerName: string]: string; } }): Promise<void>;
   subscribe(endpointId: string, callback: ServiceCallback<void>): void;
-  subscribe(endpointId: string, options: { userId? : string, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+  subscribe(endpointId: string, options: { body? : string, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
 
 
   /**
@@ -107,8 +107,8 @@ export default class AzureOpcPublisherClient extends ServiceClient {
    *
    * @param {string} endpointId The endpoint to unsubscribe from
    *
-   * @param {string} userId The user id that will not receive
-   * any more published samples
+   * @param {string} userId The user id that will not receive any more published
+   * samples
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -130,8 +130,8 @@ export default class AzureOpcPublisherClient extends ServiceClient {
    *
    * @param {string} endpointId The endpoint to unsubscribe from
    *
-   * @param {string} userId The user id that will not receive
-   * any more published samples
+   * @param {string} userId The user id that will not receive any more published
+   * samples
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -167,46 +167,43 @@ export default class AzureOpcPublisherClient extends ServiceClient {
   /**
    * @summary Start publishing node values
    *
-   * Start publishing variable node values to IoT Hub.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Start publishing variable node values to IoT Hub. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The publish request
+   * @param {object} body The publish request
    *
-   * @param {object} request.item Item to publish
+   * @param {object} body.item
    *
-   * @param {string} request.item.nodeId Node to monitor
+   * @param {string} body.item.nodeId Node to monitor
    *
-   * @param {string} [request.item.publishingInterval] Publishing interval to use
+   * @param {string} [body.item.publishingInterval] Publishing interval to use
    *
-   * @param {string} [request.item.samplingInterval] Sampling interval to use
+   * @param {string} [body.item.samplingInterval] Sampling interval to use
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -220,51 +217,48 @@ export default class AzureOpcPublisherClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  startPublishingValuesWithHttpOperationResponse(endpointId: string, request: models.PublishStartRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.PublishStartResponseApiModel>>;
+  startPublishingValuesWithHttpOperationResponse(endpointId: string, body: models.PublishStartRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.PublishStartResponseApiModel>>;
 
   /**
    * @summary Start publishing node values
    *
-   * Start publishing variable node values to IoT Hub.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Start publishing variable node values to IoT Hub. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The publish request
+   * @param {object} body The publish request
    *
-   * @param {object} request.item Item to publish
+   * @param {object} body.item
    *
-   * @param {string} request.item.nodeId Node to monitor
+   * @param {string} body.item.nodeId Node to monitor
    *
-   * @param {string} [request.item.publishingInterval] Publishing interval to use
+   * @param {string} [body.item.publishingInterval] Publishing interval to use
    *
-   * @param {string} [request.item.samplingInterval] Sampling interval to use
+   * @param {string} [body.item.samplingInterval] Sampling interval to use
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -295,48 +289,45 @@ export default class AzureOpcPublisherClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  startPublishingValues(endpointId: string, request: models.PublishStartRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.PublishStartResponseApiModel>;
-  startPublishingValues(endpointId: string, request: models.PublishStartRequestApiModel, callback: ServiceCallback<models.PublishStartResponseApiModel>): void;
-  startPublishingValues(endpointId: string, request: models.PublishStartRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.PublishStartResponseApiModel>): void;
+  startPublishingValues(endpointId: string, body: models.PublishStartRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.PublishStartResponseApiModel>;
+  startPublishingValues(endpointId: string, body: models.PublishStartRequestApiModel, callback: ServiceCallback<models.PublishStartResponseApiModel>): void;
+  startPublishingValues(endpointId: string, body: models.PublishStartRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.PublishStartResponseApiModel>): void;
 
 
   /**
    * @summary Stop publishing node values
    *
-   * Stop publishing variable node values to IoT Hub.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Stop publishing variable node values to IoT Hub. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The unpublish request
+   * @param {object} body The unpublish request
    *
-   * @param {string} request.nodeId Node of published item to unpublish
+   * @param {string} body.nodeId Node of published item to unpublish
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -350,45 +341,42 @@ export default class AzureOpcPublisherClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  stopPublishingValuesWithHttpOperationResponse(endpointId: string, request: models.PublishStopRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.PublishStopResponseApiModel>>;
+  stopPublishingValuesWithHttpOperationResponse(endpointId: string, body: models.PublishStopRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.PublishStopResponseApiModel>>;
 
   /**
    * @summary Stop publishing node values
    *
-   * Stop publishing variable node values to IoT Hub.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Stop publishing variable node values to IoT Hub. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The unpublish request
+   * @param {object} body The unpublish request
    *
-   * @param {string} request.nodeId Node of published item to unpublish
+   * @param {string} body.nodeId Node of published item to unpublish
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -419,17 +407,89 @@ export default class AzureOpcPublisherClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  stopPublishingValues(endpointId: string, request: models.PublishStopRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.PublishStopResponseApiModel>;
-  stopPublishingValues(endpointId: string, request: models.PublishStopRequestApiModel, callback: ServiceCallback<models.PublishStopResponseApiModel>): void;
-  stopPublishingValues(endpointId: string, request: models.PublishStopRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.PublishStopResponseApiModel>): void;
+  stopPublishingValues(endpointId: string, body: models.PublishStopRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.PublishStopResponseApiModel>;
+  stopPublishingValues(endpointId: string, body: models.PublishStopRequestApiModel, callback: ServiceCallback<models.PublishStopResponseApiModel>): void;
+  stopPublishingValues(endpointId: string, body: models.PublishStopRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.PublishStopResponseApiModel>): void;
+
+
+  /**
+   * @summary Get currently published nodes
+   *
+   * Returns currently published node ids for an endpoint. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} body The list request
+   *
+   * @param {string} [body.continuationToken] Continuation token or null to start
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<PublishedItemListResponseApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  getFirstListOfPublishedNodesWithHttpOperationResponse(endpointId: string, body: models.PublishedItemListRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.PublishedItemListResponseApiModel>>;
+
+  /**
+   * @summary Get currently published nodes
+   *
+   * Returns currently published node ids for an endpoint. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} body The list request
+   *
+   * @param {string} [body.continuationToken] Continuation token or null to start
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {PublishedItemListResponseApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {PublishedItemListResponseApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link PublishedItemListResponseApiModel} for more
+   *                      information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getFirstListOfPublishedNodes(endpointId: string, body: models.PublishedItemListRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.PublishedItemListResponseApiModel>;
+  getFirstListOfPublishedNodes(endpointId: string, body: models.PublishedItemListRequestApiModel, callback: ServiceCallback<models.PublishedItemListResponseApiModel>): void;
+  getFirstListOfPublishedNodes(endpointId: string, body: models.PublishedItemListRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.PublishedItemListResponseApiModel>): void;
 
 
   /**
    * @summary Get next set of published nodes
    *
-   * Returns next set of currently published node ids for an endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Returns next set of currently published node ids for an endpoint. The
+   * endpoint must be activated and connected and the module client and server
+   * must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
@@ -451,9 +511,9 @@ export default class AzureOpcPublisherClient extends ServiceClient {
   /**
    * @summary Get next set of published nodes
    *
-   * Returns next set of currently published node ids for an endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Returns next set of currently published node ids for an endpoint. The
+   * endpoint must be activated and connected and the module client and server
+   * must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
@@ -490,80 +550,6 @@ export default class AzureOpcPublisherClient extends ServiceClient {
   getNextListOfPublishedNodes(endpointId: string, continuationToken: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.PublishedItemListResponseApiModel>;
   getNextListOfPublishedNodes(endpointId: string, continuationToken: string, callback: ServiceCallback<models.PublishedItemListResponseApiModel>): void;
   getNextListOfPublishedNodes(endpointId: string, continuationToken: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.PublishedItemListResponseApiModel>): void;
-
-
-  /**
-   * @summary Get currently published nodes
-   *
-   * Returns currently published node ids for an endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The list request
-   *
-   * @param {string} [request.continuationToken] Continuation token or null to
-   * start
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<PublishedItemListResponseApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  getFirstListOfPublishedNodesWithHttpOperationResponse(endpointId: string, request: models.PublishedItemListRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.PublishedItemListResponseApiModel>>;
-
-  /**
-   * @summary Get currently published nodes
-   *
-   * Returns currently published node ids for an endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The list request
-   *
-   * @param {string} [request.continuationToken] Continuation token or null to
-   * start
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {PublishedItemListResponseApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {PublishedItemListResponseApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link PublishedItemListResponseApiModel} for more
-   *                      information.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getFirstListOfPublishedNodes(endpointId: string, request: models.PublishedItemListRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.PublishedItemListResponseApiModel>;
-  getFirstListOfPublishedNodes(endpointId: string, request: models.PublishedItemListRequestApiModel, callback: ServiceCallback<models.PublishedItemListResponseApiModel>): void;
-  getFirstListOfPublishedNodes(endpointId: string, request: models.PublishedItemListRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.PublishedItemListResponseApiModel>): void;
 
 
   /**

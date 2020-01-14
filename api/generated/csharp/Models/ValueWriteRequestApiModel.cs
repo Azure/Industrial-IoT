@@ -44,7 +44,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// type.
         /// (default: best effort)</param>
         /// <param name="indexRange">Index range to write</param>
-        /// <param name="header">Optional request header</param>
         public ValueWriteRequestApiModel(object value, string nodeId = default(string), IList<string> browsePath = default(IList<string>), string dataType = default(string), string indexRange = default(string), RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             NodeId = nodeId;
@@ -99,7 +98,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public string IndexRange { get; set; }
 
         /// <summary>
-        /// Gets or sets optional request header
         /// </summary>
         [JsonProperty(PropertyName = "header")]
         public RequestHeaderApiModel Header { get; set; }

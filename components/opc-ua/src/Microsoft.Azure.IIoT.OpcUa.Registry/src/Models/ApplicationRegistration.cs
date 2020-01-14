@@ -14,10 +14,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     /// Aapplication registration persisted and comparable
     /// </summary>
     [Serializable]
-    public sealed class ApplicationRegistration : BaseRegistration {
+    public sealed class ApplicationRegistration : EntityRegistration {
 
         /// <inheritdoc/>
-        public override string DeviceType => "Application";
+        public override string DeviceType => IdentityType.Application;
+
+        /// <summary>
+        /// Identity that owns the twin.
+        /// </summary>
+        public string DiscovererId { get; set; }
 
         /// <summary>
         /// Connected
@@ -30,6 +35,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public override string DeviceId => base.DeviceId ?? Id;
 
         /// <summary>
+        /// Site or gateway id
+        /// </summary>
+        public override string SiteOrGatewayId => this.GetSiteOrGatewayId();
+
+        /// <summary>
         /// Type
         /// </summary>
         public override string Type => DeviceType;
@@ -37,7 +47,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Device id is application id
         /// </summary>
-        public override string ApplicationId => base.ApplicationId ?? DeviceId;
+        public string ApplicationId => DeviceId;
 
         /// <summary>
         /// Application uri
@@ -129,13 +139,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "id")]
         public string Id => ApplicationInfoModelEx.CreateApplicationId(
-             SiteOrSupervisorId, ApplicationUri, ApplicationType);
+             SiteOrGatewayId, ApplicationUri, ApplicationType);
 
 
         /// <inheritdoc/>
         public override bool Equals(object obj) {
             var registration = obj as ApplicationRegistration;
             return base.Equals(registration) &&
+                DiscovererId == registration.DiscovererId &&
+                ApplicationId == registration.ApplicationId &&
                 ApplicationType == registration.ApplicationType &&
                 ApplicationUriLC == registration.ApplicationUriLC &&
                 DiscoveryProfileUri == registration.DiscoveryProfileUri &&
@@ -167,6 +179,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <inheritdoc/>
         public override int GetHashCode() {
             var hashCode = base.GetHashCode();
+            hashCode = (hashCode * -1521134295) +
+                EqualityComparer<string>.Default.GetHashCode(DiscovererId);
+            hashCode = (hashCode * -1521134295) +
+                EqualityComparer<string>.Default.GetHashCode(ApplicationId);
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<ApplicationType?>.Default.GetHashCode(ApplicationType);
             hashCode = (hashCode * -1521134295) +

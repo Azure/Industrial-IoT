@@ -26,8 +26,8 @@ public class ApplicationInfoApiModel {
     private String applicationId;
 
     /**
-     * Type of application. Possible values include: 'Server', 'Client',
-     * 'ClientAndServer', 'DiscoveryServer'.
+     * Possible values include: 'Server', 'Client', 'ClientAndServer',
+     * 'DiscoveryServer'.
      */
     @JsonProperty(value = "applicationType")
     private ApplicationType applicationType;
@@ -105,10 +105,10 @@ public class ApplicationInfoApiModel {
     private String siteId;
 
     /**
-     * Supervisor having registered the application.
+     * Discoverer that registered the application.
      */
-    @JsonProperty(value = "supervisorId")
-    private String supervisorId;
+    @JsonProperty(value = "discovererId")
+    private String discovererId;
 
     /**
      * Last time application was seen.
@@ -117,13 +117,13 @@ public class ApplicationInfoApiModel {
     private DateTime notSeenSince;
 
     /**
-     * Created.
+     * The created property.
      */
     @JsonProperty(value = "created")
     private RegistryOperationApiModel created;
 
     /**
-     * Updated.
+     * The updated property.
      */
     @JsonProperty(value = "updated")
     private RegistryOperationApiModel updated;
@@ -149,7 +149,7 @@ public class ApplicationInfoApiModel {
     }
 
     /**
-     * Get type of application. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
+     * Get possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
      *
      * @return the applicationType value
      */
@@ -158,7 +158,7 @@ public class ApplicationInfoApiModel {
     }
 
     /**
-     * Set type of application. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
+     * Set possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
      *
      * @param applicationType the applicationType value to set
      * @return the ApplicationInfoApiModel object itself.
@@ -409,22 +409,22 @@ public class ApplicationInfoApiModel {
     }
 
     /**
-     * Get supervisor having registered the application.
+     * Get discoverer that registered the application.
      *
-     * @return the supervisorId value
+     * @return the discovererId value
      */
-    public String supervisorId() {
-        return this.supervisorId;
+    public String discovererId() {
+        return this.discovererId;
     }
 
     /**
-     * Set supervisor having registered the application.
+     * Set discoverer that registered the application.
      *
-     * @param supervisorId the supervisorId value to set
+     * @param discovererId the discovererId value to set
      * @return the ApplicationInfoApiModel object itself.
      */
-    public ApplicationInfoApiModel withSupervisorId(String supervisorId) {
-        this.supervisorId = supervisorId;
+    public ApplicationInfoApiModel withDiscovererId(String discovererId) {
+        this.discovererId = discovererId;
         return this;
     }
 
@@ -449,7 +449,7 @@ public class ApplicationInfoApiModel {
     }
 
     /**
-     * Get created.
+     * Get the created value.
      *
      * @return the created value
      */
@@ -458,7 +458,7 @@ public class ApplicationInfoApiModel {
     }
 
     /**
-     * Set created.
+     * Set the created value.
      *
      * @param created the created value to set
      * @return the ApplicationInfoApiModel object itself.
@@ -469,7 +469,7 @@ public class ApplicationInfoApiModel {
     }
 
     /**
-     * Get updated.
+     * Get the updated value.
      *
      * @return the updated value
      */
@@ -478,7 +478,7 @@ public class ApplicationInfoApiModel {
     }
 
     /**
-     * Set updated.
+     * Set the updated value.
      *
      * @param updated the updated value to set
      * @return the ApplicationInfoApiModel object itself.

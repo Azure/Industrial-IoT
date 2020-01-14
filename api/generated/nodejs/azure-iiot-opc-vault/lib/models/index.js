@@ -18,6 +18,7 @@ exports.X509CertificateApiModel = require('./x509CertificateApiModel');
 exports.X509CertificateChainApiModel = require('./x509CertificateChainApiModel');
 exports.X509CrlApiModel = require('./x509CrlApiModel');
 exports.X509CrlChainApiModel = require('./x509CrlChainApiModel');
+exports.NotFoundResult = require('./notFoundResult');
 exports.StartSigningRequestApiModel = require('./startSigningRequestApiModel');
 exports.StartSigningRequestResponseApiModel = require('./startSigningRequestResponseApiModel');
 exports.VaultOperationContextApiModel = require('./vaultOperationContextApiModel');

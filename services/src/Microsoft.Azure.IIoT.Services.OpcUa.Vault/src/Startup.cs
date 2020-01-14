@@ -30,16 +30,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.OpenApi.Models;
     using Newtonsoft.Json;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using Swashbuckle.AspNetCore.Swagger;
     using System;
     using ILogger = Serilog.ILogger;
-    using Microsoft.Extensions.Hosting;
-    using Microsoft.OpenApi.Models;
 
     /// <summary>
     /// Webservice startup
@@ -121,13 +120,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
                     options.SerializerSettings.MaxDepth = 10;
                 });
 
-            services.AddApplicationInsightsTelemetry(Config.Configuration);
-
-            services.AddSwagger(Config, new OpenApiInfo {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
+            services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 
 
@@ -154,11 +147,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
             }
 
             app.UseCorrelation();
-            app.UseSwagger(new OpenApiInfo {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
+            app.UseSwagger();
 
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();

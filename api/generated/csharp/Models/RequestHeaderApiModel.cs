@@ -31,11 +31,8 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// <summary>
         /// Initializes a new instance of the RequestHeaderApiModel class.
         /// </summary>
-        /// <param name="elevation">Optional User elevation</param>
         /// <param name="locales">Optional list of locales in preference
         /// order.</param>
-        /// <param name="diagnostics">Optional diagnostics
-        /// configuration</param>
         public RequestHeaderApiModel(CredentialApiModel elevation = default(CredentialApiModel), IList<string> locales = default(IList<string>), DiagnosticsApiModel diagnostics = default(DiagnosticsApiModel))
         {
             Elevation = elevation;
@@ -50,7 +47,6 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets optional User elevation
         /// </summary>
         [JsonProperty(PropertyName = "elevation")]
         public CredentialApiModel Elevation { get; set; }
@@ -62,7 +58,6 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         public IList<string> Locales { get; set; }
 
         /// <summary>
-        /// Gets or sets optional diagnostics configuration
         /// </summary>
         [JsonProperty(PropertyName = "diagnostics")]
         public DiagnosticsApiModel Diagnostics { get; set; }

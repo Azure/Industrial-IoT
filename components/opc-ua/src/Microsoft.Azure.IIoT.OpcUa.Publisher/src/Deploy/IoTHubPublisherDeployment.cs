@@ -38,7 +38,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
                     ModulesContent = CreateLayeredDeployment(true)
                 },
                 SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = "tags.__type__ = 'gateway' AND tags.os = 'Linux'",
+                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}' AND tags.os = 'Linux'",
                 Priority = 1
             }, true);
 
@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
                     ModulesContent = CreateLayeredDeployment(false)
                 },
                 SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = "tags.__type__ = 'gateway' AND tags.os = 'Windows'",
+                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}' AND tags.os = 'Windows'",
                 Priority = 1
             }, true);
         }
@@ -81,37 +81,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
             }
 
             // Configure create options per os specified
-            string createOptions;
-            if (isLinux) {
-                // Linux
-                createOptions = @"
-                {
-                    ""Hostname"": ""opcpublisher"",
-                    ""Cmd"": [
-                        ""--aa""
-                    ],
-                    ""NetworkingConfig"":{
-                        ""EndpointsConfig"": {
-                            ""host"": {
-                            }
-                        }
-                    },
-                    ""HostConfig"": {
-                        ""NetworkMode"": ""host"",
-                        ""CapAdd"": [ ""NET_ADMIN"" ]
-                    }
-                }";
-            }
-            else {
-                // Windows
-                createOptions = @"
-                {
-                    ""Hostname"":""opcpublisher"",
-                    ""Cmd"": [
-                        ""--aa""
-                    ]
-                }";
-            }
+            var createOptions = @"
+            {
+                ""Hostname"": ""opcpublisher"",
+                ""Cmd"": [
+                    ""--aa""
+                ]
+            }";
             createOptions = JObject.Parse(createOptions).ToString(Formatting.None).Replace("\"", "\\\"");
 
             var server = string.IsNullOrEmpty(_config.DockerServer) ?

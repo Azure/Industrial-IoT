@@ -17,10 +17,9 @@ class NodeReferenceApiModel(Model):
 
     :param reference_type_id: Reference Type identifier
     :type reference_type_id: str
-    :param direction: Browse direction of reference. Possible values include:
-     'Forward', 'Backward', 'Both'
+    :param direction: Possible values include: 'Forward', 'Backward', 'Both'
     :type direction: str or ~azure-iiot-opc-twin.models.BrowseDirection
-    :param target: Target node
+    :param target:
     :type target: ~azure-iiot-opc-twin.models.NodeApiModel
     """
 

@@ -17,7 +17,7 @@ class HistoryUpdateResponseApiModel(Model):
 
     :param results: List of results from the update operation
     :type results: list[~azure-iiot-opc-history.models.ServiceResultApiModel]
-    :param error_info: Service result in case of service call error
+    :param error_info:
     :type error_info: ~azure-iiot-opc-history.models.ServiceResultApiModel
     """
 

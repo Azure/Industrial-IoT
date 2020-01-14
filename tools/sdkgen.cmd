@@ -33,7 +33,6 @@ goto :args-continue
 :args-done
 goto :main
 
-
 rem
 rem generate sdk
 rem
@@ -57,6 +56,7 @@ popd
 goto :eof
 
 :generate_sdk_for_service
+echo Processing swagger for %1
 set service=%1
 copy %build_root%\docs\api\%service%\autorest.md readme.md
 copy %build_root%\api\swagger\%service%.json swagger.json

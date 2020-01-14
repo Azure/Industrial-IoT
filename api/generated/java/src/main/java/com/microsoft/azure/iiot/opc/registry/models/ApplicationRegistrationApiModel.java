@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class ApplicationRegistrationApiModel {
     /**
-     * Application information.
+     * The application property.
      */
     @JsonProperty(value = "application", required = true)
     private ApplicationInfoApiModel application;
@@ -30,14 +30,13 @@ public class ApplicationRegistrationApiModel {
     private List<EndpointRegistrationApiModel> endpoints;
 
     /**
-     * Application security assessment. Possible values include: 'Unknown',
-     * 'Low', 'Medium', 'High'.
+     * Possible values include: 'Unknown', 'Low', 'Medium', 'High'.
      */
     @JsonProperty(value = "securityAssessment")
     private SecurityAssessment securityAssessment;
 
     /**
-     * Get application information.
+     * Get the application value.
      *
      * @return the application value
      */
@@ -46,7 +45,7 @@ public class ApplicationRegistrationApiModel {
     }
 
     /**
-     * Set application information.
+     * Set the application value.
      *
      * @param application the application value to set
      * @return the ApplicationRegistrationApiModel object itself.
@@ -77,7 +76,7 @@ public class ApplicationRegistrationApiModel {
     }
 
     /**
-     * Get application security assessment. Possible values include: 'Unknown', 'Low', 'Medium', 'High'.
+     * Get possible values include: 'Unknown', 'Low', 'Medium', 'High'.
      *
      * @return the securityAssessment value
      */
@@ -86,7 +85,7 @@ public class ApplicationRegistrationApiModel {
     }
 
     /**
-     * Set application security assessment. Possible values include: 'Unknown', 'Low', 'Medium', 'High'.
+     * Set possible values include: 'Unknown', 'Low', 'Medium', 'High'.
      *
      * @param securityAssessment the securityAssessment value to set
      * @return the ApplicationRegistrationApiModel object itself.

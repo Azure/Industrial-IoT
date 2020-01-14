@@ -18,15 +18,15 @@ class PublisherUpdateApiModel {
   /**
    * Create a PublisherUpdateApiModel.
    * @property {string} [siteId] Site of the publisher
-   * @property {object} [configuration] Publisher discovery configuration
+   * @property {object} [configuration]
    * @property {object} [configuration.capabilities] Capabilities
    * @property {string} [configuration.jobCheckInterval] Interval to check job
    * @property {string} [configuration.heartbeatInterval] Heartbeat interval
    * @property {number} [configuration.maxWorkers] Parallel jobs
    * @property {string} [configuration.jobOrchestratorUrl] Job orchestrator
    * endpoint url
-   * @property {string} [logLevel] Current log level. Possible values include:
-   * 'Error', 'Information', 'Debug', 'Verbose'
+   * @property {string} [logLevel] Possible values include: 'Error',
+   * 'Information', 'Debug', 'Verbose'
    */
   constructor() {
   }

@@ -36,7 +36,6 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// reading more
         /// results.</param>
         /// <param name="abort">Abort reading after this read</param>
-        /// <param name="header">Optional request header</param>
         public HistoryReadNextRequestApiModel(string continuationToken, bool? abort = default(bool?), RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             ContinuationToken = continuationToken;
@@ -64,7 +63,6 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         public bool? Abort { get; set; }
 
         /// <summary>
-        /// Gets or sets optional request header
         /// </summary>
         [JsonProperty(PropertyName = "header")]
         public RequestHeaderApiModel Header { get; set; }

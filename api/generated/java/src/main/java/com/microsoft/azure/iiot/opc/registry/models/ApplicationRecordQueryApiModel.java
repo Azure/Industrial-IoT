@@ -42,8 +42,8 @@ public class ApplicationRecordQueryApiModel {
     private String applicationUri;
 
     /**
-     * Application type. Possible values include: 'Server', 'Client',
-     * 'ClientAndServer', 'DiscoveryServer'.
+     * Possible values include: 'Server', 'Client', 'ClientAndServer',
+     * 'DiscoveryServer'.
      */
     @JsonProperty(value = "applicationType")
     private ApplicationType applicationType;
@@ -141,7 +141,7 @@ public class ApplicationRecordQueryApiModel {
     }
 
     /**
-     * Get application type. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
+     * Get possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
      *
      * @return the applicationType value
      */
@@ -150,7 +150,7 @@ public class ApplicationRecordQueryApiModel {
     }
 
     /**
-     * Set application type. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
+     * Set possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
      *
      * @param applicationType the applicationType value to set
      * @return the ApplicationRecordQueryApiModel object itself.

@@ -32,10 +32,6 @@ namespace Microsoft.Azure.IIoT.Hub {
             builder.RegisterType<IoTHubTwinMethodClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // If not already registered, register module discovery
-            builder.RegisterType<IoTHubModuleDiscoveryClient>()
-                .AsImplementedInterfaces().SingleInstance()
-                .IfNotRegistered(typeof(IModuleDiscovery));
             base.Load(builder);
         }
     }

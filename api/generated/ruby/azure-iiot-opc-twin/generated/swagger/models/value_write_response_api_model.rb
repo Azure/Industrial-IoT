@@ -13,7 +13,7 @@ module azure.iiot.opc.twin
     # Value write response model
     #
     class ValueWriteResponseApiModel
-      # @return [ServiceResultApiModel] Service result in case of error
+      # @return [ServiceResultApiModel]
       attr_accessor :error_info
 
 

@@ -5,6 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Discovery message model extensions
@@ -23,10 +25,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
                 EventType = (DiscoveryProgressType)model.EventType,
                 Progress = model.Progress,
                 Total = model.Total,
-                RequestDetails = model.RequestDetails,
+                RequestDetails = model.RequestDetails?
+                    .ToDictionary(k => k.Key, v => v.Value),
                 RequestId = model.Request?.Id,
                 Result = model.Result,
-                SupervisorId = model.SupervisorId,
+                ResultDetails = model.ResultDetails?
+                    .ToDictionary(k => k.Key, v => v.Value),
+                DiscovererId = model.DiscovererId,
                 TimeStamp = model.TimeStamp,
                 Workers = model.Workers
             };

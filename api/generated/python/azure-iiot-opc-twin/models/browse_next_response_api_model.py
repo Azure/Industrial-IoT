@@ -19,7 +19,7 @@ class BrowseNextResponseApiModel(Model):
     :type references: list[~azure-iiot-opc-twin.models.NodeReferenceApiModel]
     :param continuation_token: Continuation token if more results pending.
     :type continuation_token: str
-    :param error_info: Service result in case of error
+    :param error_info:
     :type error_info: ~azure-iiot-opc-twin.models.ServiceResultApiModel
     """
 

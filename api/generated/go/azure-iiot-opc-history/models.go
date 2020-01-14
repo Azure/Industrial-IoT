@@ -55,6 +55,52 @@ const fqdn = "go/azure-iiot-opc-history"
         return []DiagnosticsLevel{DiagnosticsLevelDiagnostics,DiagnosticsLevelNone,DiagnosticsLevelOperations,DiagnosticsLevelStatus,DiagnosticsLevelVerbose}
     }
 
+        // FilterOperatorType enumerates the values for filter operator type.
+    type FilterOperatorType string
+
+    const (
+                // And ...
+        And FilterOperatorType = "And"
+                // Between ...
+        Between FilterOperatorType = "Between"
+                // BitwiseAnd ...
+        BitwiseAnd FilterOperatorType = "BitwiseAnd"
+                // BitwiseOr ...
+        BitwiseOr FilterOperatorType = "BitwiseOr"
+                // Cast ...
+        Cast FilterOperatorType = "Cast"
+                // Equals ...
+        Equals FilterOperatorType = "Equals"
+                // GreaterThan ...
+        GreaterThan FilterOperatorType = "GreaterThan"
+                // GreaterThanOrEqual ...
+        GreaterThanOrEqual FilterOperatorType = "GreaterThanOrEqual"
+                // InList ...
+        InList FilterOperatorType = "InList"
+                // InView ...
+        InView FilterOperatorType = "InView"
+                // IsNull ...
+        IsNull FilterOperatorType = "IsNull"
+                // LessThan ...
+        LessThan FilterOperatorType = "LessThan"
+                // LessThanOrEqual ...
+        LessThanOrEqual FilterOperatorType = "LessThanOrEqual"
+                // Like ...
+        Like FilterOperatorType = "Like"
+                // Not ...
+        Not FilterOperatorType = "Not"
+                // OfType ...
+        OfType FilterOperatorType = "OfType"
+                // Or ...
+        Or FilterOperatorType = "Or"
+                // RelatedTo ...
+        RelatedTo FilterOperatorType = "RelatedTo"
+            )
+    // PossibleFilterOperatorTypeValues returns an array of possible values for the FilterOperatorType const type.
+    func PossibleFilterOperatorTypeValues() []FilterOperatorType {
+        return []FilterOperatorType{And,Between,BitwiseAnd,BitwiseOr,Cast,Equals,GreaterThan,GreaterThanOrEqual,InList,InView,IsNull,LessThan,LessThanOrEqual,Like,Not,OfType,Or,RelatedTo}
+    }
+
         // HistoryUpdateOperation enumerates the values for history update
         // operation.
     type HistoryUpdateOperation string
@@ -74,6 +120,66 @@ const fqdn = "go/azure-iiot-opc-history"
         return []HistoryUpdateOperation{Delete,Insert,Replace,Update}
     }
 
+        // NodeAttribute enumerates the values for node attribute.
+    type NodeAttribute string
+
+    const (
+                // AccessLevel ...
+        AccessLevel NodeAttribute = "AccessLevel"
+                // AccessRestrictions ...
+        AccessRestrictions NodeAttribute = "AccessRestrictions"
+                // ArrayDimensions ...
+        ArrayDimensions NodeAttribute = "ArrayDimensions"
+                // BrowseName ...
+        BrowseName NodeAttribute = "BrowseName"
+                // ContainsNoLoops ...
+        ContainsNoLoops NodeAttribute = "ContainsNoLoops"
+                // DataType ...
+        DataType NodeAttribute = "DataType"
+                // DataTypeDefinition ...
+        DataTypeDefinition NodeAttribute = "DataTypeDefinition"
+                // Description ...
+        Description NodeAttribute = "Description"
+                // DisplayName ...
+        DisplayName NodeAttribute = "DisplayName"
+                // EventNotifier ...
+        EventNotifier NodeAttribute = "EventNotifier"
+                // Executable ...
+        Executable NodeAttribute = "Executable"
+                // Historizing ...
+        Historizing NodeAttribute = "Historizing"
+                // InverseName ...
+        InverseName NodeAttribute = "InverseName"
+                // IsAbstract ...
+        IsAbstract NodeAttribute = "IsAbstract"
+                // MinimumSamplingInterval ...
+        MinimumSamplingInterval NodeAttribute = "MinimumSamplingInterval"
+                // NodeClass ...
+        NodeClass NodeAttribute = "NodeClass"
+                // RolePermissions ...
+        RolePermissions NodeAttribute = "RolePermissions"
+                // Symmetric ...
+        Symmetric NodeAttribute = "Symmetric"
+                // UserAccessLevel ...
+        UserAccessLevel NodeAttribute = "UserAccessLevel"
+                // UserExecutable ...
+        UserExecutable NodeAttribute = "UserExecutable"
+                // UserRolePermissions ...
+        UserRolePermissions NodeAttribute = "UserRolePermissions"
+                // UserWriteMask ...
+        UserWriteMask NodeAttribute = "UserWriteMask"
+                // Value ...
+        Value NodeAttribute = "Value"
+                // ValueRank ...
+        ValueRank NodeAttribute = "ValueRank"
+                // WriteMask ...
+        WriteMask NodeAttribute = "WriteMask"
+            )
+    // PossibleNodeAttributeValues returns an array of possible values for the NodeAttribute const type.
+    func PossibleNodeAttributeValues() []NodeAttribute {
+        return []NodeAttribute{AccessLevel,AccessRestrictions,ArrayDimensions,BrowseName,ContainsNoLoops,DataType,DataTypeDefinition,Description,DisplayName,EventNotifier,Executable,Historizing,InverseName,IsAbstract,MinimumSamplingInterval,NodeClass,RolePermissions,Symmetric,UserAccessLevel,UserExecutable,UserRolePermissions,UserWriteMask,Value,ValueRank,WriteMask}
+    }
+
             // AggregateConfigurationAPIModel aggregate configuration
             type AggregateConfigurationAPIModel struct {
             // UseServerCapabilitiesDefaults - Whether to use the default server caps
@@ -88,9 +194,24 @@ const fqdn = "go/azure-iiot-opc-history"
             UseSlopedExtrapolation *bool `json:"useSlopedExtrapolation,omitempty"`
             }
 
+            // ContentFilterAPIModel content filter
+            type ContentFilterAPIModel struct {
+            // Elements - The flat list of elements in the filter AST
+            Elements *[]ContentFilterElementAPIModel `json:"elements,omitempty"`
+            }
+
+            // ContentFilterElementAPIModel an expression element in the filter
+            // ast
+            type ContentFilterElementAPIModel struct {
+            // FilterOperator - Possible values include: 'Equals', 'IsNull', 'GreaterThan', 'LessThan', 'GreaterThanOrEqual', 'LessThanOrEqual', 'Like', 'Not', 'Between', 'InList', 'And', 'Or', 'Cast', 'InView', 'OfType', 'RelatedTo', 'BitwiseAnd', 'BitwiseOr'
+            FilterOperator FilterOperatorType `json:"filterOperator,omitempty"`
+            // FilterOperands - The operands in the element for the operator
+            FilterOperands *[]FilterOperandAPIModel `json:"filterOperands,omitempty"`
+            }
+
             // CredentialAPIModel credential model
             type CredentialAPIModel struct {
-            // Type - Type of credential. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+            // Type - Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
             Type CredentialType `json:"type,omitempty"`
             // Value - Value to pass to server
             Value interface{} `json:"value,omitempty"`
@@ -102,6 +223,18 @@ const fqdn = "go/azure-iiot-opc-history"
             EventIds *[][]byte `json:"eventIds,omitempty"`
             }
 
+            // DeleteEventsDetailsAPIModelHistoryUpdateRequestAPIModel request
+            // node history update
+            type DeleteEventsDetailsAPIModelHistoryUpdateRequestAPIModel struct {
+            // NodeID - Node to update
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            Details *DeleteEventsDetailsAPIModel `json:"details,omitempty"`
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
             // DeleteModifiedValuesDetailsAPIModel delete raw modified data
             type DeleteModifiedValuesDetailsAPIModel struct {
             // StartTime - Start time
@@ -110,10 +243,34 @@ const fqdn = "go/azure-iiot-opc-history"
             EndTime *date.Time `json:"endTime,omitempty"`
             }
 
+            // DeleteModifiedValuesDetailsAPIModelHistoryUpdateRequestAPIModel
+            // request node history update
+            type DeleteModifiedValuesDetailsAPIModelHistoryUpdateRequestAPIModel struct {
+            // NodeID - Node to update
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            Details *DeleteModifiedValuesDetailsAPIModel `json:"details,omitempty"`
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
             // DeleteValuesAtTimesDetailsAPIModel deletes data at times
             type DeleteValuesAtTimesDetailsAPIModel struct {
             // ReqTimes - The timestamps to delete
             ReqTimes *[]date.Time `json:"reqTimes,omitempty"`
+            }
+
+            // DeleteValuesAtTimesDetailsAPIModelHistoryUpdateRequestAPIModel
+            // request node history update
+            type DeleteValuesAtTimesDetailsAPIModelHistoryUpdateRequestAPIModel struct {
+            // NodeID - Node to update
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            Details *DeleteValuesAtTimesDetailsAPIModel `json:"details,omitempty"`
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
             // DeleteValuesDetailsAPIModel delete raw modified data
@@ -124,10 +281,21 @@ const fqdn = "go/azure-iiot-opc-history"
             EndTime *date.Time `json:"endTime,omitempty"`
             }
 
+            // DeleteValuesDetailsAPIModelHistoryUpdateRequestAPIModel request
+            // node history update
+            type DeleteValuesDetailsAPIModelHistoryUpdateRequestAPIModel struct {
+            // NodeID - Node to update
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            Details *DeleteValuesDetailsAPIModel `json:"details,omitempty"`
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
             // DiagnosticsAPIModel diagnostics configuration
             type DiagnosticsAPIModel struct {
-            // Level - Requested level of response diagnostics.
-            // (default: Status). Possible values include: 'DiagnosticsLevelNone', 'DiagnosticsLevelStatus', 'DiagnosticsLevelOperations', 'DiagnosticsLevelDiagnostics', 'DiagnosticsLevelVerbose'
+            // Level - Possible values include: 'DiagnosticsLevelNone', 'DiagnosticsLevelStatus', 'DiagnosticsLevelOperations', 'DiagnosticsLevelDiagnostics', 'DiagnosticsLevelVerbose'
             Level DiagnosticsLevel `json:"level,omitempty"`
             // AuditID - Client audit log entry.
             // (default: client generated)
@@ -137,10 +305,60 @@ const fqdn = "go/azure-iiot-opc-history"
             TimeStamp *date.Time `json:"timeStamp,omitempty"`
             }
 
+            // EventFilterAPIModel event filter
+            type EventFilterAPIModel struct {
+            // SelectClauses - Select statements
+            SelectClauses *[]SimpleAttributeOperandAPIModel `json:"selectClauses,omitempty"`
+            WhereClause *ContentFilterAPIModel `json:"whereClause,omitempty"`
+            }
+
+            // FilterOperandAPIModel filter operand
+            type FilterOperandAPIModel struct {
+            // Index - Element reference in the outer list if
+            // operand is an element operand
+            Index *int32 `json:"index,omitempty"`
+            // Value - Variant value if operand is a literal
+            Value interface{} `json:"value,omitempty"`
+            // NodeID - Type definition node id if operand is
+            // simple or full attribute operand.
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - Browse path of attribute operand
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            // AttributeID - Possible values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank', 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel', 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable', 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions', 'AccessRestrictions'
+            AttributeID NodeAttribute `json:"attributeId,omitempty"`
+            // IndexRange - Index range of attribute operand
+            IndexRange *string `json:"indexRange,omitempty"`
+            // Alias - Optional alias to refer to it makeing it a
+            // full blown attribute operand
+            Alias *string `json:"alias,omitempty"`
+            }
+
             // HistoricEventAPIModel historic event
             type HistoricEventAPIModel struct {
             // EventFields - The selected fields of the event
             EventFields *[]interface{} `json:"eventFields,omitempty"`
+            }
+
+            // HistoricEventAPIModelHistoryReadNextResponseAPIModel history
+            // read continuation result
+            type HistoricEventAPIModelHistoryReadNextResponseAPIModel struct {
+            autorest.Response `json:"-"`
+            // History - History as json encoded extension object
+            History *[]HistoricEventAPIModel `json:"history,omitempty"`
+            // ContinuationToken - Continuation token if more results pending.
+            ContinuationToken *string `json:"continuationToken,omitempty"`
+            ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
+            }
+
+            // HistoricEventAPIModelHistoryReadResponseAPIModel history read
+            // results
+            type HistoricEventAPIModelHistoryReadResponseAPIModel struct {
+            autorest.Response `json:"-"`
+            // History - History as json encoded extension object
+            History *[]HistoricEventAPIModel `json:"history,omitempty"`
+            // ContinuationToken - Continuation token if more results pending.
+            ContinuationToken *string `json:"continuationToken,omitempty"`
+            ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
             // HistoricValueAPIModel historic data
@@ -158,8 +376,29 @@ const fqdn = "go/azure-iiot-opc-history"
             ServerTimestamp *date.Time `json:"serverTimestamp,omitempty"`
             // ServerPicoseconds - Additional resolution for the server timestamp.
             ServerPicoseconds *int32 `json:"serverPicoseconds,omitempty"`
-            // ModificationInfo - modification information when reading modifications.
             ModificationInfo *ModificationInfoAPIModel `json:"modificationInfo,omitempty"`
+            }
+
+            // HistoricValueAPIModelHistoryReadNextResponseAPIModel history
+            // read continuation result
+            type HistoricValueAPIModelHistoryReadNextResponseAPIModel struct {
+            autorest.Response `json:"-"`
+            // History - History as json encoded extension object
+            History *[]HistoricValueAPIModel `json:"history,omitempty"`
+            // ContinuationToken - Continuation token if more results pending.
+            ContinuationToken *string `json:"continuationToken,omitempty"`
+            ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
+            }
+
+            // HistoricValueAPIModelHistoryReadResponseAPIModel history read
+            // results
+            type HistoricValueAPIModelHistoryReadResponseAPIModel struct {
+            autorest.Response `json:"-"`
+            // History - History as json encoded extension object
+            History *[]HistoricValueAPIModel `json:"history,omitempty"`
+            // ContinuationToken - Continuation token if more results pending.
+            ContinuationToken *string `json:"continuationToken,omitempty"`
+            ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
             // HistoryReadNextRequestAPIModel request node history read
@@ -170,355 +409,6 @@ const fqdn = "go/azure-iiot-opc-history"
             ContinuationToken *string `json:"continuationToken,omitempty"`
             // Abort - Abort reading after this read
             Abort *bool `json:"abort,omitempty"`
-            // Header - Optional request header
-            Header *RequestHeaderAPIModel `json:"header,omitempty"`
-            }
-
-            // HistoryReadNextResponseAPIModelHistoricEventAPIModel history
-            // read continuation result
-            type HistoryReadNextResponseAPIModelHistoricEventAPIModel struct {
-            autorest.Response `json:"-"`
-            // History - History as json encoded extension object
-            History *[]HistoricEventAPIModel `json:"history,omitempty"`
-            // ContinuationToken - Continuation token if more results pending.
-            ContinuationToken *string `json:"continuationToken,omitempty"`
-            // ErrorInfo - Service result in case of error
-            ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
-            }
-
-            // HistoryReadNextResponseAPIModelHistoricValueAPIModel history
-            // read continuation result
-            type HistoryReadNextResponseAPIModelHistoricValueAPIModel struct {
-            autorest.Response `json:"-"`
-            // History - History as json encoded extension object
-            History *[]HistoricValueAPIModel `json:"history,omitempty"`
-            // ContinuationToken - Continuation token if more results pending.
-            ContinuationToken *string `json:"continuationToken,omitempty"`
-            // ErrorInfo - Service result in case of error
-            ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
-            }
-
-            // HistoryReadNextResponseAPIModelJToken history read continuation
-            // result
-            type HistoryReadNextResponseAPIModelJToken struct {
-            autorest.Response `json:"-"`
-            // History - History as json encoded extension object
-            History interface{} `json:"history,omitempty"`
-            // ContinuationToken - Continuation token if more results pending.
-            ContinuationToken *string `json:"continuationToken,omitempty"`
-            // ErrorInfo - Service result in case of error
-            ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
-            }
-
-            // HistoryReadRequestAPIModelJToken request node history read
-            type HistoryReadRequestAPIModelJToken struct {
-            // NodeID - Node to read from (mandatory)
-            NodeID *string `json:"nodeId,omitempty"`
-            // BrowsePath - An optional path from NodeId instance to
-            // the actual node.
-            BrowsePath *[]string `json:"browsePath,omitempty"`
-            // Details - The HistoryReadDetailsType extension object
-            // encoded in json and containing the tunneled
-            // Historian reader request.
-            Details interface{} `json:"details,omitempty"`
-            // IndexRange - Index range to read, e.g. 1:2,0:1 for 2 slices
-            // out of a matrix or 0:1 for the first item in
-            // an array, string or bytestring.
-            // See 7.22 of part 4: NumericRange.
-            IndexRange *string `json:"indexRange,omitempty"`
-            // Header - Optional request header
-            Header *RequestHeaderAPIModel `json:"header,omitempty"`
-            }
-
-            // HistoryReadRequestAPIModelReadEventsDetailsAPIModel request node
-            // history read
-            type HistoryReadRequestAPIModelReadEventsDetailsAPIModel struct {
-            // NodeID - Node to read from (mandatory)
-            NodeID *string `json:"nodeId,omitempty"`
-            // BrowsePath - An optional path from NodeId instance to
-            // the actual node.
-            BrowsePath *[]string `json:"browsePath,omitempty"`
-            // Details - The HistoryReadDetailsType extension object
-            // encoded in json and containing the tunneled
-            // Historian reader request.
-            Details *ReadEventsDetailsAPIModel `json:"details,omitempty"`
-            // IndexRange - Index range to read, e.g. 1:2,0:1 for 2 slices
-            // out of a matrix or 0:1 for the first item in
-            // an array, string or bytestring.
-            // See 7.22 of part 4: NumericRange.
-            IndexRange *string `json:"indexRange,omitempty"`
-            // Header - Optional request header
-            Header *RequestHeaderAPIModel `json:"header,omitempty"`
-            }
-
-            // HistoryReadRequestAPIModelReadModifiedValuesDetailsAPIModel
-            // request node history read
-            type HistoryReadRequestAPIModelReadModifiedValuesDetailsAPIModel struct {
-            // NodeID - Node to read from (mandatory)
-            NodeID *string `json:"nodeId,omitempty"`
-            // BrowsePath - An optional path from NodeId instance to
-            // the actual node.
-            BrowsePath *[]string `json:"browsePath,omitempty"`
-            // Details - The HistoryReadDetailsType extension object
-            // encoded in json and containing the tunneled
-            // Historian reader request.
-            Details *ReadModifiedValuesDetailsAPIModel `json:"details,omitempty"`
-            // IndexRange - Index range to read, e.g. 1:2,0:1 for 2 slices
-            // out of a matrix or 0:1 for the first item in
-            // an array, string or bytestring.
-            // See 7.22 of part 4: NumericRange.
-            IndexRange *string `json:"indexRange,omitempty"`
-            // Header - Optional request header
-            Header *RequestHeaderAPIModel `json:"header,omitempty"`
-            }
-
-            // HistoryReadRequestAPIModelReadProcessedValuesDetailsAPIModel
-            // request node history read
-            type HistoryReadRequestAPIModelReadProcessedValuesDetailsAPIModel struct {
-            // NodeID - Node to read from (mandatory)
-            NodeID *string `json:"nodeId,omitempty"`
-            // BrowsePath - An optional path from NodeId instance to
-            // the actual node.
-            BrowsePath *[]string `json:"browsePath,omitempty"`
-            // Details - The HistoryReadDetailsType extension object
-            // encoded in json and containing the tunneled
-            // Historian reader request.
-            Details *ReadProcessedValuesDetailsAPIModel `json:"details,omitempty"`
-            // IndexRange - Index range to read, e.g. 1:2,0:1 for 2 slices
-            // out of a matrix or 0:1 for the first item in
-            // an array, string or bytestring.
-            // See 7.22 of part 4: NumericRange.
-            IndexRange *string `json:"indexRange,omitempty"`
-            // Header - Optional request header
-            Header *RequestHeaderAPIModel `json:"header,omitempty"`
-            }
-
-            // HistoryReadRequestAPIModelReadValuesAtTimesDetailsAPIModel
-            // request node history read
-            type HistoryReadRequestAPIModelReadValuesAtTimesDetailsAPIModel struct {
-            // NodeID - Node to read from (mandatory)
-            NodeID *string `json:"nodeId,omitempty"`
-            // BrowsePath - An optional path from NodeId instance to
-            // the actual node.
-            BrowsePath *[]string `json:"browsePath,omitempty"`
-            // Details - The HistoryReadDetailsType extension object
-            // encoded in json and containing the tunneled
-            // Historian reader request.
-            Details *ReadValuesAtTimesDetailsAPIModel `json:"details,omitempty"`
-            // IndexRange - Index range to read, e.g. 1:2,0:1 for 2 slices
-            // out of a matrix or 0:1 for the first item in
-            // an array, string or bytestring.
-            // See 7.22 of part 4: NumericRange.
-            IndexRange *string `json:"indexRange,omitempty"`
-            // Header - Optional request header
-            Header *RequestHeaderAPIModel `json:"header,omitempty"`
-            }
-
-            // HistoryReadRequestAPIModelReadValuesDetailsAPIModel request node
-            // history read
-            type HistoryReadRequestAPIModelReadValuesDetailsAPIModel struct {
-            // NodeID - Node to read from (mandatory)
-            NodeID *string `json:"nodeId,omitempty"`
-            // BrowsePath - An optional path from NodeId instance to
-            // the actual node.
-            BrowsePath *[]string `json:"browsePath,omitempty"`
-            // Details - The HistoryReadDetailsType extension object
-            // encoded in json and containing the tunneled
-            // Historian reader request.
-            Details *ReadValuesDetailsAPIModel `json:"details,omitempty"`
-            // IndexRange - Index range to read, e.g. 1:2,0:1 for 2 slices
-            // out of a matrix or 0:1 for the first item in
-            // an array, string or bytestring.
-            // See 7.22 of part 4: NumericRange.
-            IndexRange *string `json:"indexRange,omitempty"`
-            // Header - Optional request header
-            Header *RequestHeaderAPIModel `json:"header,omitempty"`
-            }
-
-            // HistoryReadResponseAPIModelHistoricEventAPIModel history read
-            // results
-            type HistoryReadResponseAPIModelHistoricEventAPIModel struct {
-            autorest.Response `json:"-"`
-            // History - History as json encoded extension object
-            History *[]HistoricEventAPIModel `json:"history,omitempty"`
-            // ContinuationToken - Continuation token if more results pending.
-            ContinuationToken *string `json:"continuationToken,omitempty"`
-            // ErrorInfo - Service result in case of error
-            ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
-            }
-
-            // HistoryReadResponseAPIModelHistoricValueAPIModel history read
-            // results
-            type HistoryReadResponseAPIModelHistoricValueAPIModel struct {
-            autorest.Response `json:"-"`
-            // History - History as json encoded extension object
-            History *[]HistoricValueAPIModel `json:"history,omitempty"`
-            // ContinuationToken - Continuation token if more results pending.
-            ContinuationToken *string `json:"continuationToken,omitempty"`
-            // ErrorInfo - Service result in case of error
-            ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
-            }
-
-            // HistoryReadResponseAPIModelJToken history read results
-            type HistoryReadResponseAPIModelJToken struct {
-            autorest.Response `json:"-"`
-            // History - History as json encoded extension object
-            History interface{} `json:"history,omitempty"`
-            // ContinuationToken - Continuation token if more results pending.
-            ContinuationToken *string `json:"continuationToken,omitempty"`
-            // ErrorInfo - Service result in case of error
-            ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
-            }
-
-            // HistoryUpdateRequestAPIModelDeleteEventsDetailsAPIModel request
-            // node history update
-            type HistoryUpdateRequestAPIModelDeleteEventsDetailsAPIModel struct {
-            // NodeID - Node to update
-            NodeID *string `json:"nodeId,omitempty"`
-            // BrowsePath - An optional path from NodeId instance to
-            // the actual node.
-            BrowsePath *[]string `json:"browsePath,omitempty"`
-            // Details - The HistoryUpdateDetailsType extension object
-            // encoded as json Variant and containing the tunneled
-            // update request for the Historian server. The value
-            // is updated at edge using above node address.
-            Details *DeleteEventsDetailsAPIModel `json:"details,omitempty"`
-            // Header - Optional request header
-            Header *RequestHeaderAPIModel `json:"header,omitempty"`
-            }
-
-            // HistoryUpdateRequestAPIModelDeleteModifiedValuesDetailsAPIModel
-            // request node history update
-            type HistoryUpdateRequestAPIModelDeleteModifiedValuesDetailsAPIModel struct {
-            // NodeID - Node to update
-            NodeID *string `json:"nodeId,omitempty"`
-            // BrowsePath - An optional path from NodeId instance to
-            // the actual node.
-            BrowsePath *[]string `json:"browsePath,omitempty"`
-            // Details - The HistoryUpdateDetailsType extension object
-            // encoded as json Variant and containing the tunneled
-            // update request for the Historian server. The value
-            // is updated at edge using above node address.
-            Details *DeleteModifiedValuesDetailsAPIModel `json:"details,omitempty"`
-            // Header - Optional request header
-            Header *RequestHeaderAPIModel `json:"header,omitempty"`
-            }
-
-            // HistoryUpdateRequestAPIModelDeleteValuesAtTimesDetailsAPIModel
-            // request node history update
-            type HistoryUpdateRequestAPIModelDeleteValuesAtTimesDetailsAPIModel struct {
-            // NodeID - Node to update
-            NodeID *string `json:"nodeId,omitempty"`
-            // BrowsePath - An optional path from NodeId instance to
-            // the actual node.
-            BrowsePath *[]string `json:"browsePath,omitempty"`
-            // Details - The HistoryUpdateDetailsType extension object
-            // encoded as json Variant and containing the tunneled
-            // update request for the Historian server. The value
-            // is updated at edge using above node address.
-            Details *DeleteValuesAtTimesDetailsAPIModel `json:"details,omitempty"`
-            // Header - Optional request header
-            Header *RequestHeaderAPIModel `json:"header,omitempty"`
-            }
-
-            // HistoryUpdateRequestAPIModelDeleteValuesDetailsAPIModel request
-            // node history update
-            type HistoryUpdateRequestAPIModelDeleteValuesDetailsAPIModel struct {
-            // NodeID - Node to update
-            NodeID *string `json:"nodeId,omitempty"`
-            // BrowsePath - An optional path from NodeId instance to
-            // the actual node.
-            BrowsePath *[]string `json:"browsePath,omitempty"`
-            // Details - The HistoryUpdateDetailsType extension object
-            // encoded as json Variant and containing the tunneled
-            // update request for the Historian server. The value
-            // is updated at edge using above node address.
-            Details *DeleteValuesDetailsAPIModel `json:"details,omitempty"`
-            // Header - Optional request header
-            Header *RequestHeaderAPIModel `json:"header,omitempty"`
-            }
-
-            // HistoryUpdateRequestAPIModelInsertEventsDetailsAPIModel request
-            // node history update
-            type HistoryUpdateRequestAPIModelInsertEventsDetailsAPIModel struct {
-            // NodeID - Node to update
-            NodeID *string `json:"nodeId,omitempty"`
-            // BrowsePath - An optional path from NodeId instance to
-            // the actual node.
-            BrowsePath *[]string `json:"browsePath,omitempty"`
-            // Details - The HistoryUpdateDetailsType extension object
-            // encoded as json Variant and containing the tunneled
-            // update request for the Historian server. The value
-            // is updated at edge using above node address.
-            Details *InsertEventsDetailsAPIModel `json:"details,omitempty"`
-            // Header - Optional request header
-            Header *RequestHeaderAPIModel `json:"header,omitempty"`
-            }
-
-            // HistoryUpdateRequestAPIModelInsertValuesDetailsAPIModel request
-            // node history update
-            type HistoryUpdateRequestAPIModelInsertValuesDetailsAPIModel struct {
-            // NodeID - Node to update
-            NodeID *string `json:"nodeId,omitempty"`
-            // BrowsePath - An optional path from NodeId instance to
-            // the actual node.
-            BrowsePath *[]string `json:"browsePath,omitempty"`
-            // Details - The HistoryUpdateDetailsType extension object
-            // encoded as json Variant and containing the tunneled
-            // update request for the Historian server. The value
-            // is updated at edge using above node address.
-            Details *InsertValuesDetailsAPIModel `json:"details,omitempty"`
-            // Header - Optional request header
-            Header *RequestHeaderAPIModel `json:"header,omitempty"`
-            }
-
-            // HistoryUpdateRequestAPIModelJToken request node history update
-            type HistoryUpdateRequestAPIModelJToken struct {
-            // NodeID - Node to update
-            NodeID *string `json:"nodeId,omitempty"`
-            // BrowsePath - An optional path from NodeId instance to
-            // the actual node.
-            BrowsePath *[]string `json:"browsePath,omitempty"`
-            // Details - The HistoryUpdateDetailsType extension object
-            // encoded as json Variant and containing the tunneled
-            // update request for the Historian server. The value
-            // is updated at edge using above node address.
-            Details interface{} `json:"details,omitempty"`
-            // Header - Optional request header
-            Header *RequestHeaderAPIModel `json:"header,omitempty"`
-            }
-
-            // HistoryUpdateRequestAPIModelReplaceEventsDetailsAPIModel request
-            // node history update
-            type HistoryUpdateRequestAPIModelReplaceEventsDetailsAPIModel struct {
-            // NodeID - Node to update
-            NodeID *string `json:"nodeId,omitempty"`
-            // BrowsePath - An optional path from NodeId instance to
-            // the actual node.
-            BrowsePath *[]string `json:"browsePath,omitempty"`
-            // Details - The HistoryUpdateDetailsType extension object
-            // encoded as json Variant and containing the tunneled
-            // update request for the Historian server. The value
-            // is updated at edge using above node address.
-            Details *ReplaceEventsDetailsAPIModel `json:"details,omitempty"`
-            // Header - Optional request header
-            Header *RequestHeaderAPIModel `json:"header,omitempty"`
-            }
-
-            // HistoryUpdateRequestAPIModelReplaceValuesDetailsAPIModel request
-            // node history update
-            type HistoryUpdateRequestAPIModelReplaceValuesDetailsAPIModel struct {
-            // NodeID - Node to update
-            NodeID *string `json:"nodeId,omitempty"`
-            // BrowsePath - An optional path from NodeId instance to
-            // the actual node.
-            BrowsePath *[]string `json:"browsePath,omitempty"`
-            // Details - The HistoryUpdateDetailsType extension object
-            // encoded as json Variant and containing the tunneled
-            // update request for the Historian server. The value
-            // is updated at edge using above node address.
-            Details *ReplaceValuesDetailsAPIModel `json:"details,omitempty"`
-            // Header - Optional request header
             Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
@@ -527,16 +417,26 @@ const fqdn = "go/azure-iiot-opc-history"
             autorest.Response `json:"-"`
             // Results - List of results from the update operation
             Results *[]ServiceResultAPIModel `json:"results,omitempty"`
-            // ErrorInfo - Service result in case of service call error
             ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
             // InsertEventsDetailsAPIModel insert historic events
             type InsertEventsDetailsAPIModel struct {
-            // Filter - The filter to use to select the events
-            Filter interface{} `json:"filter,omitempty"`
+            Filter *EventFilterAPIModel `json:"filter,omitempty"`
             // Events - The new events to insert
             Events *[]HistoricEventAPIModel `json:"events,omitempty"`
+            }
+
+            // InsertEventsDetailsAPIModelHistoryUpdateRequestAPIModel request
+            // node history update
+            type InsertEventsDetailsAPIModelHistoryUpdateRequestAPIModel struct {
+            // NodeID - Node to update
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            Details *InsertEventsDetailsAPIModel `json:"details,omitempty"`
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
             // InsertValuesDetailsAPIModel insert historic data
@@ -545,11 +445,78 @@ const fqdn = "go/azure-iiot-opc-history"
             Values *[]HistoricValueAPIModel `json:"values,omitempty"`
             }
 
+            // InsertValuesDetailsAPIModelHistoryUpdateRequestAPIModel request
+            // node history update
+            type InsertValuesDetailsAPIModelHistoryUpdateRequestAPIModel struct {
+            // NodeID - Node to update
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            Details *InsertValuesDetailsAPIModel `json:"details,omitempty"`
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
+            // JTokenHistoryReadNextResponseAPIModel history read continuation
+            // result
+            type JTokenHistoryReadNextResponseAPIModel struct {
+            autorest.Response `json:"-"`
+            // History - History as json encoded extension object
+            History interface{} `json:"history,omitempty"`
+            // ContinuationToken - Continuation token if more results pending.
+            ContinuationToken *string `json:"continuationToken,omitempty"`
+            ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
+            }
+
+            // JTokenHistoryReadRequestAPIModel request node history read
+            type JTokenHistoryReadRequestAPIModel struct {
+            // NodeID - Node to read from (mandatory)
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            // Details - The HistoryReadDetailsType extension object
+            // encoded in json and containing the tunneled
+            // Historian reader request.
+            Details interface{} `json:"details,omitempty"`
+            // IndexRange - Index range to read, e.g. 1:2,0:1 for 2 slices
+            // out of a matrix or 0:1 for the first item in
+            // an array, string or bytestring.
+            // See 7.22 of part 4: NumericRange.
+            IndexRange *string `json:"indexRange,omitempty"`
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
+            // JTokenHistoryReadResponseAPIModel history read results
+            type JTokenHistoryReadResponseAPIModel struct {
+            autorest.Response `json:"-"`
+            // History - History as json encoded extension object
+            History interface{} `json:"history,omitempty"`
+            // ContinuationToken - Continuation token if more results pending.
+            ContinuationToken *string `json:"continuationToken,omitempty"`
+            ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
+            }
+
+            // JTokenHistoryUpdateRequestAPIModel request node history update
+            type JTokenHistoryUpdateRequestAPIModel struct {
+            // NodeID - Node to update
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            // Details - The HistoryUpdateDetailsType extension object
+            // encoded as json Variant and containing the tunneled
+            // update request for the Historian server. The value
+            // is updated at edge using above node address.
+            Details interface{} `json:"details,omitempty"`
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
             // ModificationInfoAPIModel modification information
             type ModificationInfoAPIModel struct {
             // ModificationTime - Modification time
             ModificationTime *date.Time `json:"modificationTime,omitempty"`
-            // UpdateType - Operation. Possible values include: 'Insert', 'Replace', 'Update', 'Delete'
+            // UpdateType - Possible values include: 'Insert', 'Replace', 'Update', 'Delete'
             UpdateType HistoryUpdateOperation `json:"updateType,omitempty"`
             // UserName - User who made the change
             UserName *string `json:"userName,omitempty"`
@@ -563,8 +530,24 @@ const fqdn = "go/azure-iiot-opc-history"
             EndTime *date.Time `json:"endTime,omitempty"`
             // NumEvents - Number of events to read
             NumEvents *int32 `json:"numEvents,omitempty"`
-            // Filter - The filter to use to select the event fields
-            Filter interface{} `json:"filter,omitempty"`
+            Filter *EventFilterAPIModel `json:"filter,omitempty"`
+            }
+
+            // ReadEventsDetailsAPIModelHistoryReadRequestAPIModel request node
+            // history read
+            type ReadEventsDetailsAPIModelHistoryReadRequestAPIModel struct {
+            // NodeID - Node to read from (mandatory)
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            Details *ReadEventsDetailsAPIModel `json:"details,omitempty"`
+            // IndexRange - Index range to read, e.g. 1:2,0:1 for 2 slices
+            // out of a matrix or 0:1 for the first item in
+            // an array, string or bytestring.
+            // See 7.22 of part 4: NumericRange.
+            IndexRange *string `json:"indexRange,omitempty"`
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
             // ReadModifiedValuesDetailsAPIModel read modified data
@@ -577,6 +560,23 @@ const fqdn = "go/azure-iiot-opc-history"
             NumValues *int32 `json:"numValues,omitempty"`
             }
 
+            // ReadModifiedValuesDetailsAPIModelHistoryReadRequestAPIModel
+            // request node history read
+            type ReadModifiedValuesDetailsAPIModelHistoryReadRequestAPIModel struct {
+            // NodeID - Node to read from (mandatory)
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            Details *ReadModifiedValuesDetailsAPIModel `json:"details,omitempty"`
+            // IndexRange - Index range to read, e.g. 1:2,0:1 for 2 slices
+            // out of a matrix or 0:1 for the first item in
+            // an array, string or bytestring.
+            // See 7.22 of part 4: NumericRange.
+            IndexRange *string `json:"indexRange,omitempty"`
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
             // ReadProcessedValuesDetailsAPIModel read processed historic data
             type ReadProcessedValuesDetailsAPIModel struct {
             // StartTime - Start time to read from.
@@ -587,8 +587,24 @@ const fqdn = "go/azure-iiot-opc-history"
             ProcessingInterval *float64 `json:"processingInterval,omitempty"`
             // AggregateTypeID - The aggregate type node ids
             AggregateTypeID *string `json:"aggregateTypeId,omitempty"`
-            // AggregateConfiguration - A configuration for the aggregate
             AggregateConfiguration *AggregateConfigurationAPIModel `json:"aggregateConfiguration,omitempty"`
+            }
+
+            // ReadProcessedValuesDetailsAPIModelHistoryReadRequestAPIModel
+            // request node history read
+            type ReadProcessedValuesDetailsAPIModelHistoryReadRequestAPIModel struct {
+            // NodeID - Node to read from (mandatory)
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            Details *ReadProcessedValuesDetailsAPIModel `json:"details,omitempty"`
+            // IndexRange - Index range to read, e.g. 1:2,0:1 for 2 slices
+            // out of a matrix or 0:1 for the first item in
+            // an array, string or bytestring.
+            // See 7.22 of part 4: NumericRange.
+            IndexRange *string `json:"indexRange,omitempty"`
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
             // ReadValuesAtTimesDetailsAPIModel read data at specified times
@@ -597,6 +613,23 @@ const fqdn = "go/azure-iiot-opc-history"
             ReqTimes *[]date.Time `json:"reqTimes,omitempty"`
             // UseSimpleBounds - Whether to use simple bounds
             UseSimpleBounds *bool `json:"useSimpleBounds,omitempty"`
+            }
+
+            // ReadValuesAtTimesDetailsAPIModelHistoryReadRequestAPIModel
+            // request node history read
+            type ReadValuesAtTimesDetailsAPIModelHistoryReadRequestAPIModel struct {
+            // NodeID - Node to read from (mandatory)
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            Details *ReadValuesAtTimesDetailsAPIModel `json:"details,omitempty"`
+            // IndexRange - Index range to read, e.g. 1:2,0:1 for 2 slices
+            // out of a matrix or 0:1 for the first item in
+            // an array, string or bytestring.
+            // See 7.22 of part 4: NumericRange.
+            IndexRange *string `json:"indexRange,omitempty"`
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
             // ReadValuesDetailsAPIModel read historic values
@@ -617,12 +650,40 @@ const fqdn = "go/azure-iiot-opc-history"
             ReturnBounds *bool `json:"returnBounds,omitempty"`
             }
 
+            // ReadValuesDetailsAPIModelHistoryReadRequestAPIModel request node
+            // history read
+            type ReadValuesDetailsAPIModelHistoryReadRequestAPIModel struct {
+            // NodeID - Node to read from (mandatory)
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            Details *ReadValuesDetailsAPIModel `json:"details,omitempty"`
+            // IndexRange - Index range to read, e.g. 1:2,0:1 for 2 slices
+            // out of a matrix or 0:1 for the first item in
+            // an array, string or bytestring.
+            // See 7.22 of part 4: NumericRange.
+            IndexRange *string `json:"indexRange,omitempty"`
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
             // ReplaceEventsDetailsAPIModel replace historic events
             type ReplaceEventsDetailsAPIModel struct {
-            // Filter - The filter to use to select the events
-            Filter interface{} `json:"filter,omitempty"`
+            Filter *EventFilterAPIModel `json:"filter,omitempty"`
             // Events - The events to replace
             Events *[]HistoricEventAPIModel `json:"events,omitempty"`
+            }
+
+            // ReplaceEventsDetailsAPIModelHistoryUpdateRequestAPIModel request
+            // node history update
+            type ReplaceEventsDetailsAPIModelHistoryUpdateRequestAPIModel struct {
+            // NodeID - Node to update
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            Details *ReplaceEventsDetailsAPIModel `json:"details,omitempty"`
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
             // ReplaceValuesDetailsAPIModel replace historic data
@@ -631,13 +692,23 @@ const fqdn = "go/azure-iiot-opc-history"
             Values *[]HistoricValueAPIModel `json:"values,omitempty"`
             }
 
+            // ReplaceValuesDetailsAPIModelHistoryUpdateRequestAPIModel request
+            // node history update
+            type ReplaceValuesDetailsAPIModelHistoryUpdateRequestAPIModel struct {
+            // NodeID - Node to update
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - An optional path from NodeId instance to
+            // the actual node.
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            Details *ReplaceValuesDetailsAPIModel `json:"details,omitempty"`
+            Header *RequestHeaderAPIModel `json:"header,omitempty"`
+            }
+
             // RequestHeaderAPIModel request header model
             type RequestHeaderAPIModel struct {
-            // Elevation - Optional User elevation
             Elevation *CredentialAPIModel `json:"elevation,omitempty"`
             // Locales - Optional list of locales in preference order.
             Locales *[]string `json:"locales,omitempty"`
-            // Diagnostics - Optional diagnostics configuration
             Diagnostics *DiagnosticsAPIModel `json:"diagnostics,omitempty"`
             }
 
@@ -649,6 +720,19 @@ const fqdn = "go/azure-iiot-opc-history"
             ErrorMessage *string `json:"errorMessage,omitempty"`
             // Diagnostics - Additional diagnostics information
             Diagnostics interface{} `json:"diagnostics,omitempty"`
+            }
+
+            // SimpleAttributeOperandAPIModel simple attribute operand model
+            type SimpleAttributeOperandAPIModel struct {
+            // NodeID - Type definition node id if operand is
+            // simple or full attribute operand.
+            NodeID *string `json:"nodeId,omitempty"`
+            // BrowsePath - Browse path of attribute operand
+            BrowsePath *[]string `json:"browsePath,omitempty"`
+            // AttributeID - Possible values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank', 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel', 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable', 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions', 'AccessRestrictions'
+            AttributeID NodeAttribute `json:"attributeId,omitempty"`
+            // IndexRange - Index range of attribute operand
+            IndexRange *string `json:"indexRange,omitempty"`
             }
 
             // StatusResponseAPIModel status response model
@@ -672,7 +756,7 @@ const fqdn = "go/azure-iiot-opc-history"
             Properties map[string]*string `json:"properties"`
             // Dependencies - READ-ONLY; A property bag with details about the internal dependencies
             Dependencies map[string]*string `json:"dependencies"`
-            // Metadata - READ-ONLY; Optional meta data.
+            // Metadata - READ-ONLY
             Metadata map[string]*string `json:"$metadata"`
             }
 

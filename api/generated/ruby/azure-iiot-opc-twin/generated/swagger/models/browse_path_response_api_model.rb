@@ -16,7 +16,7 @@ module azure.iiot.opc.twin
       # @return [Array<NodePathTargetApiModel>] Targets
       attr_accessor :targets
 
-      # @return [ServiceResultApiModel] Service result in case of error
+      # @return [ServiceResultApiModel]
       attr_accessor :error_info
 
 

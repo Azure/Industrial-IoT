@@ -165,7 +165,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
                 // Run
                 var records = service.QueryApplicationsAsync(new ApplicationRegistrationQueryModel {
-                    SiteOrSupervisorId = site
+                    SiteOrGatewayId = site
                 }, null).Result;
 
                 // Assert
@@ -184,7 +184,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
                 // Run
                 var records = service.QueryApplicationsAsync(new ApplicationRegistrationQueryModel {
-                    SiteOrSupervisorId = super
+                    SiteOrGatewayId = super
                 }, null).Result;
 
                 // Assert
@@ -386,7 +386,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 .Build<ApplicationInfoModel>()
                 .Without(x => x.NotSeenSince)
                 .With(x => x.SiteId, sitex)
-                .With(x => x.SupervisorId, superx)
+                .With(x => x.DiscovererId, superx)
                 .CreateMany(10)
                 .ToList();
             apps.ForEach(x => x.ApplicationId = ApplicationInfoModelEx.CreateApplicationId(

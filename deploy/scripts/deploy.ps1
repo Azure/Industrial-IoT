@@ -41,6 +41,9 @@
  .PARAMETER acrSubscriptionName
     The subscription of the container registry if differemt from the specified subscription.
 
+ .PARAMETER environmentName
+    The cloud environment to use (defaults to Azure Cloud).
+
 #>
 
 param(
@@ -56,7 +59,7 @@ param(
     [string] $acrSubscriptionName,
     $aadConfig,
     $context = $null,
-    [ValidateSet("AzureCloud")] [string] $environmentName = "AzureCloud"
+    [string] $environmentName = "AzureCloud"
 )
 
 #*******************************************************************************************************
@@ -71,7 +74,7 @@ Function Select-Context() {
 
     $contextFile = Join-Path $script:ScriptDir ".user"
     if (!$context) {
-        if (Test-Path $contextFile) {
+        if (8) {
             $profile = Import-AzContext -Path $contextFile
             if (($null -ne $profile) `
                     -and ($null -ne $profile.Context) `
@@ -135,7 +138,7 @@ Function Select-Context() {
     # Update context
     $writeProfile = $false
     if ($context.Subscription.Id -ne $subscriptionDetails.Id) {
-        ($subscriptionDetails | Set-AzContext) | Out-Null
+        $context = ($subscriptionDetails | Set-AzContext)
         # If file exists - silently update profile
         $writeProfile = Test-Path $contextFile
     }
@@ -419,7 +422,7 @@ Function New-Deployment() {
     )
     
     $templateParameters = @{ }
-
+    
     # Try get repo name / TODO
     $repo = "https://github.com/Azure/Industrial-IoT"
     
@@ -503,7 +506,7 @@ Function New-Deployment() {
             $templateParameters.Add("siteName", $script:applicationName)
             $templateParameters.Add("numberOfLinuxGateways", 1)
             $templateParameters.Add("numberOfWindowsGateways", 1)
-            $templateParameters.Add("numberOfServers", 1)
+            $templateParameters.Add("numberOfSimulations", 1)
 
             $adminUser = "sandboxuser"
             $adminPassword = New-Password
@@ -511,7 +514,7 @@ Function New-Deployment() {
             $templateParameters.Add("edgeUserName", $adminUser)
 
             Write-Host 
-            Write-Host "To trouble shoot simulation use the following User and Password to log on:"
+            Write-Host "To troubleshoot simulation use the following User and Password to log on:"
             Write-Host 
             Write-Host $adminUser
             Write-Host $adminPassword
@@ -540,6 +543,10 @@ Function New-Deployment() {
         Write-Host "Client and services AAD applications registered..."
         Write-Host 
         $aadAddReplyUrls = $true
+    }
+    elseif (($script:aadConfig -is [string]) -and (Test-Path $script:aadConfig)) {
+        # read configuration from file
+        $script:aadConfig = Get-Content -Raw -Path $script:aadConfig | ConvertFrom-Json
     }
     
     if (![string]::IsNullOrEmpty($script:aadConfig.ServicePrincipalId)) {

@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.v2.Controllers {
     /// <summary>
     /// History insert services
     /// </summary>
-    [Route(VersionInfo.PATH + "/insert")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/insert")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanUpdate)]

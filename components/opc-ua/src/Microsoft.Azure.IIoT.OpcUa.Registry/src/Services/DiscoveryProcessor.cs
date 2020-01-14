@@ -18,20 +18,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <summary>
         /// Create registry services
         /// </summary>
-        /// <param name="supervisors"></param>
+        /// <param name="gateways"></param>
         /// <param name="applications"></param>
-        public DiscoveryProcessor(ISupervisorRegistry supervisors,
-            IApplicationBulkProcessor applications) {
-            _supervisors = supervisors ?? throw new ArgumentNullException(nameof(supervisors));
+        public DiscoveryProcessor(IGatewayRegistry gateways, IApplicationBulkProcessor applications) {
+            _gateways = gateways ?? throw new ArgumentNullException(nameof(gateways));
             _applications = applications ?? throw new ArgumentNullException(nameof(applications));
         }
 
         /// <inheritdoc/>
-        public async Task ProcessDiscoveryResultsAsync(string supervisorId, DiscoveryResultModel result,
+        public async Task ProcessDiscoveryResultsAsync(string discovererId, DiscoveryResultModel result,
             IEnumerable<DiscoveryEventModel> events) {
-            if (string.IsNullOrEmpty(supervisorId)) {
-                throw new ArgumentNullException(nameof(supervisorId));
+            if (string.IsNullOrEmpty(discovererId)) {
+                throw new ArgumentNullException(nameof(discovererId));
             }
+
+            var gatewayId = DiscovererModelEx.ParseDeviceId(discovererId, out _);
+
             if (result == null) {
                 throw new ArgumentNullException(nameof(result));
             }
@@ -45,29 +47,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             if (sites.Count() > 1) {
                 throw new ArgumentException("Unexpected number of sites in discovery");
             }
-            var siteId = sites.SingleOrDefault() ?? supervisorId;
+
+            var siteId = sites.SingleOrDefault() ?? gatewayId;
+            var gateway = await _gateways.GetGatewayAsync(gatewayId);
+
             //
             // Merge in global discovery configuration into the one sent
-            // by the supervisor.
+            // by the discoverer.
             //
-            var supervisor = await _supervisors.GetSupervisorAsync(supervisorId, false);
             if (result.DiscoveryConfig == null) {
                 // Use global discovery configuration
-                result.DiscoveryConfig = supervisor.DiscoveryConfig;
+                result.DiscoveryConfig = gateway.Discoverer?.DiscoveryConfig;
             }
             else {
                 if (result.DiscoveryConfig.ActivationFilter == null) {
                     // Use global activation filter
                     result.DiscoveryConfig.ActivationFilter =
-                        supervisor.DiscoveryConfig?.ActivationFilter;
+                        gateway.Discoverer?.DiscoveryConfig?.ActivationFilter;
                 }
             }
 
             // Process discovery events
-            await _applications.ProcessDiscoveryEventsAsync(siteId, supervisorId, result, events);
+            await _applications.ProcessDiscoveryEventsAsync(siteId, discovererId,
+                gateway.Supervisor?.Id, result, events);
         }
 
-        private readonly ISupervisorRegistry _supervisors;
+        private readonly IGatewayRegistry _gateways;
         private readonly IApplicationBulkProcessor _applications;
     }
 }

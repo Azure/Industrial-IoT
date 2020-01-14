@@ -33,7 +33,6 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// class.
         /// </summary>
         /// <param name="id">The registered id of the trust group</param>
-        /// <param name="group">Trust group</param>
         public TrustGroupRegistrationApiModel(string id, TrustGroupApiModel group)
         {
             Id = id;
@@ -53,7 +52,6 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         public string Id { get; set; }
 
         /// <summary>
-        /// Gets or sets trust group
         /// </summary>
         [JsonProperty(PropertyName = "group")]
         public TrustGroupApiModel Group { get; set; }

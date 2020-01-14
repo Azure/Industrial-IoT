@@ -49,8 +49,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// use</param>
         /// <param name="locales">List of locales to filter with during
         /// discovery</param>
-        /// <param name="activationFilter">Activate all twins with this filter
-        /// during onboarding.</param>
         public DiscoveryConfigApiModel(string addressRangesToScan = default(string), int? networkProbeTimeoutMs = default(int?), int? maxNetworkProbes = default(int?), string portRangesToScan = default(string), int? portProbeTimeoutMs = default(int?), int? maxPortProbes = default(int?), int? minPortProbesPercent = default(int?), int? idleTimeBetweenScansSec = default(int?), IList<string> discoveryUrls = default(IList<string>), IList<string> locales = default(IList<string>), EndpointActivationFilterApiModel activationFilter = default(EndpointActivationFilterApiModel))
         {
             AddressRangesToScan = addressRangesToScan;
@@ -133,7 +131,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public IList<string> Locales { get; set; }
 
         /// <summary>
-        /// Gets or sets activate all twins with this filter during onboarding.
         /// </summary>
         [JsonProperty(PropertyName = "activationFilter")]
         public EndpointActivationFilterApiModel ActivationFilter { get; set; }

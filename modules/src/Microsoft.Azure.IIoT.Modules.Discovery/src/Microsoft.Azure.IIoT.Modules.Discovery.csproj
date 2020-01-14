@@ -18,6 +18,9 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Edge.Twin\src\Microsoft.Azure.IIoT.OpcUa.Edge.Twin.csproj" />
+    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Diagnostics.Debug\src\Microsoft.Azure.IIoT.Diagnostics.Debug.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Edge.Discovery\src\Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.csproj" />
   </ItemGroup>
 </Project>

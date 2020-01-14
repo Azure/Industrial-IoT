@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// </summary>
         /// <param name="entityId">Entity id</param>
         /// <param name="groupId">Certificate group</param>
-        /// <param name="certificateType">Type. Possible values include:
+        /// <param name="certificateType">Possible values include:
         /// 'ApplicationInstanceCertificate', 'HttpsCertificate',
         /// 'UserCredentialCertificate'</param>
         /// <param name="subjectName">Subject name</param>
@@ -69,7 +69,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         public string GroupId { get; set; }
 
         /// <summary>
-        /// Gets or sets type. Possible values include:
+        /// Gets or sets possible values include:
         /// 'ApplicationInstanceCertificate', 'HttpsCertificate',
         /// 'UserCredentialCertificate'
         /// </summary>

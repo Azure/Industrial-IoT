@@ -23,8 +23,8 @@ public class AuthenticationMethodApiModel {
     private String id;
 
     /**
-     * Type of credential. Possible values include: 'None', 'UserName',
-     * 'X509Certificate', 'JwtToken'.
+     * Possible values include: 'None', 'UserName', 'X509Certificate',
+     * 'JwtToken'.
      */
     @JsonProperty(value = "credentialType")
     private CredentialType credentialType;
@@ -62,7 +62,7 @@ public class AuthenticationMethodApiModel {
     }
 
     /**
-     * Get type of credential. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'.
+     * Get possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'.
      *
      * @return the credentialType value
      */
@@ -71,7 +71,7 @@ public class AuthenticationMethodApiModel {
     }
 
     /**
-     * Set type of credential. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'.
+     * Set possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'.
      *
      * @param credentialType the credentialType value to set
      * @return the AuthenticationMethodApiModel object itself.

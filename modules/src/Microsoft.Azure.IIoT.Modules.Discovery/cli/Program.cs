@@ -12,11 +12,14 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Cli {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
     using Serilog.Events;
+    using Serilog;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Linq;
     using System.Net;
+    using System.Diagnostics.Tracing;
+    using System.Collections.Generic;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Discovery module host process
@@ -27,6 +30,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Cli {
         /// Entry point
         /// </summary>
         public static void Main(string[] args) {
+            bool verbose = false;
             string deviceId = null, moduleId = null;
             Console.WriteLine("Discovery module command line interface.");
             var configuration = new ConfigurationBuilder()
@@ -43,6 +47,10 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Cli {
             try {
                 for (var i = 0; i < args.Length; i++) {
                     switch (args[i]) {
+                        case "-v":
+                        case "--verbose":
+                            verbose = true;
+                            break;
                         case "-C":
                         case "--connection-string":
                             i++;
@@ -95,7 +103,7 @@ Options:
                 return;
             }
             try {
-                HostAsync(config, deviceId, moduleId, args).Wait();
+                   HostAsync(config, deviceId, moduleId, verbose).Wait();
             }
             catch (Exception e) {
                 Console.WriteLine(e);
@@ -106,16 +114,26 @@ Options:
         /// Host the module giving it its connection string.
         /// </summary>
         private static async Task HostAsync(IIoTHubConfig config,
-            string deviceId, string moduleId, string[] args) {
+            string deviceId, string moduleId, bool verbose = false) {
             Console.WriteLine("Create or retrieve connection string...");
             var logger = ConsoleLogger.Create(LogEventLevel.Error);
             var cs = await Retry.WithExponentialBackoff(logger,
                 () => AddOrGetAsync(config, deviceId, moduleId));
-            Console.WriteLine("Starting discovery module...");
-            var arguments = args.ToList();
-            arguments.Add($"EdgeHubConnectionString={cs}");
-            Discovery.Program.Main(arguments.ToArray());
-            Console.WriteLine("Discovery module exited.");
+
+            // Hook event source
+            using (var broker = new EventSourceBroker()) {
+                LogControl.Level.MinimumLevel = verbose ?
+                    LogEventLevel.Verbose : LogEventLevel.Information;
+
+                Console.WriteLine("Starting publisher module...");
+                broker.Subscribe(IoTSdkLogger.EventSource, new IoTSdkLogger(logger));
+                Console.WriteLine("Starting twin module...");
+                var arguments = new List<string> {
+                    $"EdgeHubConnectionString={cs}"
+                };
+            	Discovery.Program.Main(arguments.ToArray());
+            	Console.WriteLine("Discovery module exited.");
+            }
         }
 
         /// <summary>
@@ -128,13 +146,44 @@ Options:
                 config, logger);
             await registry.CreateAsync(new DeviceTwinModel {
                 Id = deviceId,
-                ModuleId = moduleId,
+                Tags = new Dictionary<string, JToken> {
+                    [TwinProperty.Type] = IdentityType.Gateway
+                },
                 Capabilities = new DeviceCapabilitiesModel {
                     IotEdge = true
                 }
             }, true, CancellationToken.None);
+            await registry.CreateAsync(new DeviceTwinModel {
+                Id = deviceId,
+                ModuleId = moduleId
+            }, true, CancellationToken.None);
             var cs = await registry.GetConnectionStringAsync(deviceId, moduleId);
             return cs;
+        }
+
+        /// <summary>
+        /// Sdk logger event source hook
+        /// </summary>
+        sealed class IoTSdkLogger : EventSourceSerilogSink {
+            public IoTSdkLogger(ILogger logger) :
+                base(logger.ForContext("SourceContext", EventSource.Replace('-', '.'))) {
+            }
+
+            public override void OnEvent(EventWrittenEventArgs eventData) {
+                switch (eventData.EventName) {
+                    case "Enter":
+                    case "Exit":
+                    case "Associate":
+                        WriteEvent(LogEventLevel.Verbose, eventData);
+                        break;
+                    default:
+                        WriteEvent(LogEventLevel.Debug, eventData);
+                        break;
+                }
+            }
+
+            // ddbee999-a79e-5050-ea3c-6d1a8a7bafdd
+            public const string EventSource = "Microsoft-Azure-Devices-Device-Client";
         }
     }
 }

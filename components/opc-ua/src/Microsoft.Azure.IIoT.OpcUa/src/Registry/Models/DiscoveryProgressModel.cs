@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using System;
-    using Newtonsoft.Json.Linq;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Discovery progress
@@ -13,9 +13,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     public class DiscoveryProgressModel {
 
         /// <summary>
-        /// Message source
+        /// Discoverer that found the application
         /// </summary>
-        public string SupervisorId { get; set; }
+        public string DiscovererId { get; set; }
 
         /// <summary>
         /// Original request
@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Additional request information as per event
         /// </summary>
-        public JToken RequestDetails { get; set; }
+        public Dictionary<string, string> RequestDetails { get; set; }
 
         /// <summary>
         /// Timestamp of progress event
@@ -60,6 +60,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Discovery result
         /// </summary>
-        public JToken Result { get; set; }
+        public string Result { get; set; }
+
+        /// <summary>
+        /// Discovery result details
+        /// </summary>
+        public Dictionary<string, string> ResultDetails { get; set; }
     }
 }

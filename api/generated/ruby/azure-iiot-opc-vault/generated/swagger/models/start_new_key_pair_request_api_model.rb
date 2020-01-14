@@ -19,7 +19,7 @@ module azure.iiot.opc.vault
       # @return [String] Certificate group
       attr_accessor :group_id
 
-      # @return [TrustGroupType] Type. Possible values include:
+      # @return [TrustGroupType] Possible values include:
       # 'ApplicationInstanceCertificate', 'HttpsCertificate',
       # 'UserCredentialCertificate'
       attr_accessor :certificate_type

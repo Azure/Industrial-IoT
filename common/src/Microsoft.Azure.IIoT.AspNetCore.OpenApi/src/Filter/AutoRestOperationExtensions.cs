@@ -18,19 +18,22 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
 
         /// <inheritdoc/>
         public virtual void Apply(OpenApiOperation operation, OperationFilterContext context) {
-            var name = context.MethodInfo.Name;
-            if (name.EndsWith("Async", StringComparison.InvariantCultureIgnoreCase)) {
-                var autoOperationId = name.Substring(0, name.Length - 5);
-                if (operation.OperationId == null ||
-                    autoOperationId.Length < operation.OperationId.Length) {
-                    operation.OperationId = autoOperationId;
+            var versionParameter = operation.Parameters.SingleOrDefault(p => p.Name == "version");
+            if (versionParameter != null) {
+                operation.Parameters.Remove(versionParameter);
+            }
+            if (operation.OperationId == null) {
+                operation.OperationId = context.MethodInfo.Name;
+                if (operation.OperationId.EndsWith("Async", StringComparison.InvariantCultureIgnoreCase)) {
+                    var name = operation.OperationId;
+                    operation.OperationId = name[0..^5];
                 }
             }
-            var patchOperationId = operation.OperationId ?? context.MethodInfo.Name;
-            if (patchOperationId.Contains("CreateOrUpdate") &&
+            if (operation.OperationId.Contains("CreateOrUpdate") &&
                 context.ApiDescription.HttpMethod.EqualsIgnoreCase("PATCH")) {
-                operation.OperationId = patchOperationId.Replace("CreateOrUpdate", "Update");
+                operation.OperationId = operation.OperationId.Replace("CreateOrUpdate", "Update");
             }
+
             var attribute = context.MethodInfo
                 .GetCustomAttributes<AutoRestExtensionAttribute>().FirstOrDefault();
             if (attribute != null) {
@@ -44,6 +47,22 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
                         });
                 }
             }
+
+            // Fix up produces
+            foreach (var produces in operation.Responses.ToList()) {
+                if (produces.Key != "200") {
+                    operation.Responses.Remove(produces.Key);
+                }
+            }
+
+            foreach (var param in operation.Parameters) {
+                param.Description = param.Description.SingleSpacesNoLineBreak();
+            }
+            if (operation.RequestBody != null) {
+                operation.RequestBody.Description =
+                    operation.RequestBody.Description.SingleSpacesNoLineBreak();
+            }
+            operation.Description = operation.Description.SingleSpacesNoLineBreak();
         }
     }
 }

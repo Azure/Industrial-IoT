@@ -13,13 +13,13 @@ module azure.iiot.opc.vault
     # Finish request results
     #
     class FinishNewKeyPairRequestResponseApiModel
-      # @return [CertificateRequestRecordApiModel] Request
+      # @return [CertificateRequestRecordApiModel]
       attr_accessor :request
 
-      # @return [X509CertificateApiModel] Signed certificate
+      # @return [X509CertificateApiModel]
       attr_accessor :certificate
 
-      # @return [PrivateKeyApiModel] Private key
+      # @return [PrivateKeyApiModel]
       attr_accessor :private_key
 
 

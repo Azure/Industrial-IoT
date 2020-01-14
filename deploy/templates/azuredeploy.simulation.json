@@ -45,13 +45,13 @@
                 "description": "Password for the IoT Edge virtual machine."
             }
         },
-        "numberOfServers": {
+        "numberOfSimulations": {
             "type": "int",
             "defaultValue": 1,
             "maxValue": 255,
             "minValue": 0,
             "metadata": {
-                "description": "Number of OPC UA servers to deploy into the edge sandbox."
+                "description": "Number of simulated factories to deploy."
             }
         },
         "dockerServer": {
@@ -120,16 +120,7 @@
         "nicResourceId": "[resourceId(resourceGroup().name,'Microsoft.Network/networkInterfaces', variables('nicResourceName'))]",
         "vnetResourceName": "[concat(variables('vmName'), '-vnet')]",
         "vnetResourceId": "[resourceId(resourceGroup().name,'Microsoft.Network/virtualNetworks', variables('vnetResourceName'))]",
-        "networkProfileResourceName": "[concat(variables('vmName'), '-nprofile')]",
-        "networkProfileResourceId": "[resourceId('Microsoft.Network/networkProfiles', variables('networkProfileResourceName'))]",
-        "dockerCredentials": [
-            {
-                "server": "[parameters('dockerServer')]",
-                "username": "[parameters('dockerUser')]",
-                "password": "[parameters('dockerPassword')]"
-            }
-        ],
-        "opcservers": "[tolower(replace(concat(variables('vmName'), 'opcservers'), '-', ''))]",
+        "simulationName": "[concat(variables('vmName'), '-sim')]",
         "identity": {
             "type": "UserAssigned",
             "userAssignedIdentities": {
@@ -153,12 +144,12 @@
             "autoUpgradeMinorVersion": true,
             "settings": {
                 "fileUris": [
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/vm-enroll.ps1')]",
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/vm-setup.ps1')]"
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/dps-enroll.ps1')]",
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/edge-setup.ps1')]"
                 ]
             },
             "protectedSettings": {
-                "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ./vm-setup.ps1 -idScope \"', parameters('dpsIdScope'), '\" -dpsConnString \"', parameters('dpsConnString'), '\"')]"
+                "commandToExecute": "[concat('powershell -ExecutionPolicy Unrestricted -File ./edge-setup.ps1 -idScope \"', parameters('dpsIdScope'), '\" -dpsConnString \"', parameters('dpsConnString'), '\"')]"
             }
         },
         "windowsImage": {
@@ -185,13 +176,13 @@
             "autoUpgradeMinorVersion": true,
             "settings": {
                 "fileUris": [
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/vm-enroll.ps1')]",
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/vm-setup.ps1')]",
-                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/vm-setup.sh')]"
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/dps-enroll.ps1')]",
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/edge-setup.ps1')]",
+                    "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/edge-setup.sh')]"
                 ]
             },
             "protectedSettings": {
-                "commandToExecute": "[concat('sudo bash vm-setup.sh --idScope \"', parameters('dpsIdScope'), '\" --dpsConnString \"', parameters('dpsConnString'), '\"')]"
+                "commandToExecute": "[concat('sudo bash edge-setup.sh --idScope \"', parameters('dpsIdScope'), '\" --dpsConnString \"', parameters('dpsConnString'), '\"')]"
             }
         }
     },
@@ -213,20 +204,6 @@
                         "name": "vm-subnet",
                         "properties": {
                             "addressPrefix": "10.1.8.0/24"
-                        }
-                    },
-                    {
-                        "name": "aci-subnet",
-                        "properties": {
-                            "addressPrefix": "10.1.9.0/24",
-                            "delegations": [
-                                {
-                                    "name": "DelegationService",
-                                    "properties": {
-                                        "serviceName": "Microsoft.ContainerInstance/containerGroups"
-                                    }
-                                }
-                            ]
                         }
                     }
                 ]
@@ -299,81 +276,107 @@
             ]
         },
         {
-            "comments": "Network profile for test server containering.",
-            "name": "[variables('networkProfileResourceName')]",
-            "type": "Microsoft.Network/networkProfiles",
-            "apiVersion": "2019-09-01",
-            "location": "[resourceGroup().location]",
+            "comments": "Deploy factory network simulation.",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2017-05-10",
+            "name": "[variables('simulationName')]",
+            "condition": "[not(equals(parameters('numberOfSimulations'), 0))]",
+            "copy": {
+                "count": "[if(not(equals(0, parameters('numberOfSimulations'))), parameters('numberOfSimulations'), 1)]",
+                "mode": "Parallel",
+                "name": "simulationcopies"
+            },
             "properties": {
-                "containerNetworkInterfaceConfigurations": [
-                    {
-                        "name": "vm-container-network-interface",
-                        "properties": {
-                            "ipConfigurations": [
-                                {
-                                    "name": "vm-container-ipconfiguration",
-                                    "properties": {
-                                        "subnet": {
-                                            "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vnetResourceName'), 'aci-subnet')]"
+                "mode": "Incremental",
+                "template": {
+                    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+                    "contentVersion": "1.0.0.0",
+                    "resources": [
+                        {
+                            "comments": "Network interface for simulation virtual machine to use.",
+                            "name": "[concat(variables('simulationName'), copyIndex(), '-nic')]",
+                            "type": "Microsoft.Network/networkInterfaces",
+                            "apiVersion": "2019-09-01",
+                            "location": "[resourceGroup().location]",
+                            "properties": {
+                                "ipConfigurations": [
+                                    {
+                                        "name": "ipconfig1",
+                                        "properties": {
+                                            "subnet": {
+                                                "id": "[concat(variables('vnetResourceId'), '/subnets/', 'vm-subnet')]"
+                                            },
+                                            "privateIPAllocationMethod": "Dynamic"
                                         }
                                     }
+                                ]
+                            },
+                            "dependsOn": [
+                            ]
+                        },
+                        {
+                            "comments": "VM running the simulation",
+                            "type": "Microsoft.Compute/virtualMachines",
+                            "name": "[concat(variables('simulationName'), copyIndex())]",
+                            "apiVersion": "2019-03-01",
+                            "location": "[resourceGroup().location]",
+                            "properties": {
+                                "hardwareProfile": {
+                                    "vmSize": "Standard_A1"
+                                },
+                                "osProfile": {
+                                    "computerName": "[concat(variables('simulationName'), copyIndex())]",
+                                    "adminUsername": "[parameters('edgeUsername')]",
+                                    "adminPassword": "[if(not(empty(parameters('edgePassword'))), parameters('edgePassword'), json('null'))]"
+                                },
+                                "storageProfile": {
+                                    "imageReference": "[variables('linuxImage')]",
+                                    "osDisk": {
+                                        "createOption": "FromImage"
+                                    }
+                                },
+                                "networkProfile": {
+                                    "networkInterfaces": [
+                                        {
+                                            "id": "[resourceId('Microsoft.Network/networkInterfaces/', concat(variables('simulationName'), copyIndex(), '-nic'))]"
+                                        }
+                                    ]
                                 }
+                            },
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Network/networkInterfaces/', concat(variables('simulationName'), copyIndex(), '-nic'))]"
+                            ]
+                        },
+                        {
+                            "comments": "One time script execution to prepare the VM environment",
+                            "type": "Microsoft.Compute/virtualMachines/extensions",
+                            "name": "[concat(variables('simulationName'), copyIndex(), '/', 'scriptextensions')]",
+                            "apiVersion": "2019-03-01",
+                            "location": "[resourceGroup().location]",
+                            "properties": {
+                                "publisher": "Microsoft.Azure.Extensions",
+                                "type": "CustomScript",
+                                "typeHandlerVersion": "2.0",
+                                "autoUpgradeMinorVersion": true,
+                                "settings": {
+                                    "fileUris": [
+                                        "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/simulation.sh')]",
+                                        "[concat(parameters('templateUrl'), '/', parameters('branchName'), '/deploy/scripts/simulation.yml')]"
+                                    ]
+                                },
+                                "protectedSettings": {
+                                    "commandToExecute": "[concat('sudo bash simulation.sh ', ' --admin ', parameters('edgeUsername'), ' --imageNamespace ', concat('\"', parameters('imageNamespace'), '\"'), ' --imageVersion ', concat('\"', parameters('imageVersion'), '\"'), ' --dockerServer ', concat('\"', parameters('dockerServer'), '\"'), ' --dockerUser ', concat('\"', parameters('dockerUser'), '\"'), ' --dockerPassword ', concat('\"', parameters('dockerPassword'), '\"'))]"
+                                }
+                            },
+                            "dependsOn": [
+                                "[resourceId('Microsoft.Compute/virtualMachines/', concat(variables('simulationName'), copyIndex()))]"
                             ]
                         }
-                    }
-                ]
+                    ]
+                }
             },
             "dependsOn": [
-                "[variables('vnetResourceId')]"
-            ]
-        },
-        {
-            "comments": "OPC Test server containers hosted as container group.",
-            "type": "Microsoft.ContainerInstance/containerGroups",
-            "condition": "[not(equals(parameters('numberOfServers'), 0))]",
-            "name": "[variables('opcservers')]",
-            "apiVersion": "2018-10-01",
-            "location": "[resourceGroup().location]",
-            "properties": {
-                "copy": [
-                    {
-                        "name": "containers",
-                        "count": "[if(not(equals(0, parameters('numberOfServers'))), parameters('numberOfServers'), 1)]",
-                        "input": {
-                            "name": "[concat('opc-ua-test-server-container', copyIndex('containers'))]",
-                            "properties": {
-                                "image": "[concat(parameters('dockerServer'), '/', if(empty(parameters('imageNamespace')), '', concat(parameters('imageNamespace'), '/')), 'iot/opc-ua-test-server', ':', parameters('imageVersion'))]",
-                                "environmentVariables": [
-                                    {
-                                        "name": "SERVER_PORT",
-                                        "value": "[add(50000, copyIndex('containers'))]"
-                                    }
-                                ],
-                                "ports": [
-                                    {
-                                        "protocol": "TCP",
-                                        "port": "[add(50000, copyIndex('containers'))]"
-                                    }
-                                ],
-                                "resources": {
-                                    "requests": {
-                                        "memoryInGB": 1,
-                                        "cpu": 1
-                                    }
-                                }
-                            }
-                        }
-                    }
-                ],
-                "imageRegistryCredentials": "[if(not(empty(parameters('dockerPassword'))), variables('dockerCredentials'), json('null'))]",
-                "restartPolicy": "Always",
-                "networkProfile": {
-                    "Id": "[variables('networkProfileResourceId')]"
-                },
-                "osType": "linux"
-            },
-            "dependsOn": [
-                "[variables('networkProfileResourceId')]"
+                "[variables('vnetResourceId')]",
             ]
         }
     ],
@@ -381,10 +384,6 @@
         "edgeUsername": {
             "type": "string",
             "value": "[parameters('edgeUsername')]"
-        },
-        "edgeVMName": {
-            "type": "string",
-            "value": "[variables('vmName')]"
         }
     }
 }

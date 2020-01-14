@@ -31,12 +31,10 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// <summary>
         /// Initializes a new instance of the BrowseResponseApiModel class.
         /// </summary>
-        /// <param name="node">Node info for the currently browsed node</param>
         /// <param name="references">References, if included, otherwise
         /// null.</param>
         /// <param name="continuationToken">Continuation token if more results
         /// pending.</param>
-        /// <param name="errorInfo">Service result in case of error</param>
         public BrowseResponseApiModel(NodeApiModel node = default(NodeApiModel), IList<NodeReferenceApiModel> references = default(IList<NodeReferenceApiModel>), string continuationToken = default(string), ServiceResultApiModel errorInfo = default(ServiceResultApiModel))
         {
             Node = node;
@@ -52,7 +50,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets node info for the currently browsed node
         /// </summary>
         [JsonProperty(PropertyName = "node")]
         public NodeApiModel Node { get; set; }
@@ -70,7 +67,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public string ContinuationToken { get; set; }
 
         /// <summary>
-        /// Gets or sets service result in case of error
         /// </summary>
         [JsonProperty(PropertyName = "errorInfo")]
         public ServiceResultApiModel ErrorInfo { get; set; }

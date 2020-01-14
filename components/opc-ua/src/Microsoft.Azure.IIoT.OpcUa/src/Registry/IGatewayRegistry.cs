@@ -39,10 +39,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// Get gateway registration by identifer.
         /// </summary>
         /// <param name="id"></param>
+        /// <param name="onlyServerState"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<GatewayModel> GetGatewayAsync(string id,
-            CancellationToken ct = default);
+        Task<GatewayInfoModel> GetGatewayAsync(string id,
+            bool onlyServerState = false, CancellationToken ct = default);
 
         /// <summary>
         /// Update gateway

@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Handlers;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -130,24 +131,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery {
             builder.RegisterType<TaskProcessor>()
                 .AsImplementedInterfaces().SingleInstance();
 
-
             // Handle discovery request and pass to all edges
 
-            builder.RegisterType<SupervisorRegistry>()
-                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterModule<RegistryServices>();
             builder.RegisterType<DiscoveryRequestHandler>()
                 .AsImplementedInterfaces().SingleInstance();
-#if USE_JOBS
-            builder.RegisterType<DiscoveryJobClient>()
-                .AsImplementedInterfaces().SingleInstance();
-#else
             builder.RegisterType<DiscoveryMultiplexer>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<DiscoveryClient>()
+            builder.RegisterType<DiscovererClient>()
                 .AsImplementedInterfaces().SingleInstance();
-#endif
-
-            // ... Add more jobs
 
             return builder;
         }

@@ -30,7 +30,7 @@ const models = require('./models');
  *
  * @param {object} [options] Optional Parameters.
  *
- * @param {string} [options.userId] The user id that will receive publisher
+ * @param {string} [options.body] The user id that will receive publisher
  * samples.
  *
  * @param {object} [options.customHeaders] Headers that will be added to the
@@ -58,14 +58,14 @@ function _subscribe(endpointId, options, callback) {
   if (!callback) {
     throw new Error('callback cannot be null.');
   }
-  let userId = (options && options.userId !== undefined) ? options.userId : undefined;
+  let body = (options && options.body !== undefined) ? options.body : undefined;
   // Validate
   try {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (userId !== null && userId !== undefined && typeof userId.valueOf() !== 'string') {
-      throw new Error('userId must be of type string.');
+    if (body !== null && body !== undefined && typeof body.valueOf() !== 'string') {
+      throw new Error('body must be of type string.');
     }
   } catch (error) {
     return callback(error);
@@ -94,20 +94,20 @@ function _subscribe(endpointId, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (userId !== null && userId !== undefined) {
+    if (body !== null && body !== undefined) {
       let requestModelMapper = {
         required: false,
-        serializedName: 'userId',
+        serializedName: 'body',
         type: {
           name: 'String'
         }
       };
-      requestModel = client.serialize(requestModelMapper, userId, 'userId');
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(userId, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -154,8 +154,8 @@ function _subscribe(endpointId, options, callback) {
  *
  * @param {string} endpointId The endpoint to unsubscribe from
  *
- * @param {string} userId The user id that will not receive
- * any more published samples
+ * @param {string} userId The user id that will not receive any more published
+ * samples
  *
  * @param {object} [options] Optional Parameters.
  *
@@ -256,46 +256,43 @@ function _unsubscribe(endpointId, userId, options, callback) {
 /**
  * @summary Start publishing node values
  *
- * Start publishing variable node values to IoT Hub.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Start publishing variable node values to IoT Hub. The endpoint must be
+ * activated and connected and the module client and server must trust each
+ * other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The publish request
+ * @param {object} body The publish request
  *
- * @param {object} request.item Item to publish
+ * @param {object} body.item
  *
- * @param {string} request.item.nodeId Node to monitor
+ * @param {string} body.item.nodeId Node to monitor
  *
- * @param {string} [request.item.publishingInterval] Publishing interval to use
+ * @param {string} [body.item.publishingInterval] Publishing interval to use
  *
- * @param {string} [request.item.samplingInterval] Sampling interval to use
+ * @param {string} [body.item.samplingInterval] Sampling interval to use
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -317,7 +314,7 @@ function _unsubscribe(endpointId, userId, options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _startPublishingValues(endpointId, request, options, callback) {
+function _startPublishingValues(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -332,8 +329,8 @@ function _startPublishingValues(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -362,14 +359,14 @@ function _startPublishingValues(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
+    if (body !== null && body !== undefined) {
       let requestModelMapper = new client.models['PublishStartRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -429,40 +426,37 @@ function _startPublishingValues(endpointId, request, options, callback) {
 /**
  * @summary Stop publishing node values
  *
- * Stop publishing variable node values to IoT Hub.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Stop publishing variable node values to IoT Hub. The endpoint must be
+ * activated and connected and the module client and server must trust each
+ * other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The unpublish request
+ * @param {object} body The unpublish request
  *
- * @param {string} request.nodeId Node of published item to unpublish
+ * @param {string} body.nodeId Node of published item to unpublish
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -484,7 +478,7 @@ function _startPublishingValues(endpointId, request, options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _stopPublishingValues(endpointId, request, options, callback) {
+function _stopPublishingValues(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -499,8 +493,8 @@ function _stopPublishingValues(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -529,14 +523,14 @@ function _stopPublishingValues(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
+    if (body !== null && body !== undefined) {
       let requestModelMapper = new client.models['PublishStopRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -594,11 +588,152 @@ function _stopPublishingValues(endpointId, request, options, callback) {
 }
 
 /**
+ * @summary Get currently published nodes
+ *
+ * Returns currently published node ids for an endpoint. The endpoint must be
+ * activated and connected and the module client and server must trust each
+ * other.
+ *
+ * @param {string} endpointId The identifier of the activated endpoint.
+ *
+ * @param {object} body The list request
+ *
+ * @param {string} [body.continuationToken] Continuation token or null to start
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link PublishedItemListResponseApiModel} for more
+ *                      information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _getFirstListOfPublishedNodes(endpointId, body, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
+      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
+    }
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/publish/{endpointId}';
+  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['PublishedItemListRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(body, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['PublishedItemListResponseApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
  * @summary Get next set of published nodes
  *
- * Returns next set of currently published node ids for an endpoint.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Returns next set of currently published node ids for an endpoint. The
+ * endpoint must be activated and connected and the module client and server
+ * must trust each other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
@@ -670,148 +805,6 @@ function _getNextListOfPublishedNodes(endpointId, continuationToken, options, ca
     }
   }
   httpRequest.body = null;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['PublishedItemListResponseApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Get currently published nodes
- *
- * Returns currently published node ids for an endpoint.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
- *
- * @param {string} endpointId The identifier of the activated endpoint.
- *
- * @param {object} request The list request
- *
- * @param {string} [request.continuationToken] Continuation token or null to
- * start
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link PublishedItemListResponseApiModel} for more
- *                      information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _getFirstListOfPublishedNodes(endpointId, request, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  // Validate
-  try {
-    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
-      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
-    }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/publish/{endpointId}';
-  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'POST';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  // Serialize Request
-  let requestContent = null;
-  let requestModel = null;
-  try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['PublishedItemListRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
-      requestContent = JSON.stringify(requestModel);
-    }
-  } catch (error) {
-    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
-    return callback(serializationError);
-  }
-  httpRequest.body = requestContent;
   // Send Request
   return client.pipeline(httpRequest, (err, response, responseBody) => {
     if (err) {
@@ -994,7 +987,7 @@ class AzureOpcPublisherClient extends ServiceClient {
 
     this.baseUri = baseUri;
     if (!this.baseUri) {
-      this.baseUri = '/publisher';
+      this.baseUri = 'http://localhost:9080';
     }
     this.credentials = credentials;
 
@@ -1005,8 +998,8 @@ class AzureOpcPublisherClient extends ServiceClient {
     this._unsubscribe = _unsubscribe;
     this._startPublishingValues = _startPublishingValues;
     this._stopPublishingValues = _stopPublishingValues;
-    this._getNextListOfPublishedNodes = _getNextListOfPublishedNodes;
     this._getFirstListOfPublishedNodes = _getFirstListOfPublishedNodes;
+    this._getNextListOfPublishedNodes = _getNextListOfPublishedNodes;
     this._getStatus = _getStatus;
     msRest.addSerializationMixin(this);
   }
@@ -1020,7 +1013,7 @@ class AzureOpcPublisherClient extends ServiceClient {
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.userId] The user id that will receive publisher
+   * @param {string} [options.body] The user id that will receive publisher
    * samples.
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
@@ -1055,7 +1048,7 @@ class AzureOpcPublisherClient extends ServiceClient {
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.userId] The user id that will receive publisher
+   * @param {string} [options.body] The user id that will receive publisher
    * samples.
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
@@ -1109,8 +1102,8 @@ class AzureOpcPublisherClient extends ServiceClient {
    *
    * @param {string} endpointId The endpoint to unsubscribe from
    *
-   * @param {string} userId The user id that will not receive
-   * any more published samples
+   * @param {string} userId The user id that will not receive any more published
+   * samples
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -1144,8 +1137,8 @@ class AzureOpcPublisherClient extends ServiceClient {
    *
    * @param {string} endpointId The endpoint to unsubscribe from
    *
-   * @param {string} userId The user id that will not receive
-   * any more published samples
+   * @param {string} userId The user id that will not receive any more published
+   * samples
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -1196,46 +1189,43 @@ class AzureOpcPublisherClient extends ServiceClient {
   /**
    * @summary Start publishing node values
    *
-   * Start publishing variable node values to IoT Hub.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Start publishing variable node values to IoT Hub. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The publish request
+   * @param {object} body The publish request
    *
-   * @param {object} request.item Item to publish
+   * @param {object} body.item
    *
-   * @param {string} request.item.nodeId Node to monitor
+   * @param {string} body.item.nodeId Node to monitor
    *
-   * @param {string} [request.item.publishingInterval] Publishing interval to use
+   * @param {string} [body.item.publishingInterval] Publishing interval to use
    *
-   * @param {string} [request.item.samplingInterval] Sampling interval to use
+   * @param {string} [body.item.samplingInterval] Sampling interval to use
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -1249,11 +1239,11 @@ class AzureOpcPublisherClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  startPublishingValuesWithHttpOperationResponse(endpointId, request, options) {
+  startPublishingValuesWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._startPublishingValues(endpointId, request, options, (err, result, request, response) => {
+      self._startPublishingValues(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -1266,46 +1256,43 @@ class AzureOpcPublisherClient extends ServiceClient {
   /**
    * @summary Start publishing node values
    *
-   * Start publishing variable node values to IoT Hub.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Start publishing variable node values to IoT Hub. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The publish request
+   * @param {object} body The publish request
    *
-   * @param {object} request.item Item to publish
+   * @param {object} body.item
    *
-   * @param {string} request.item.nodeId Node to monitor
+   * @param {string} body.item.nodeId Node to monitor
    *
-   * @param {string} [request.item.publishingInterval] Publishing interval to use
+   * @param {string} [body.item.publishingInterval] Publishing interval to use
    *
-   * @param {string} [request.item.samplingInterval] Sampling interval to use
+   * @param {string} [body.item.samplingInterval] Sampling interval to use
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -1336,7 +1323,7 @@ class AzureOpcPublisherClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  startPublishingValues(endpointId, request, options, optionalCallback) {
+  startPublishingValues(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -1345,54 +1332,51 @@ class AzureOpcPublisherClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._startPublishingValues(endpointId, request, options, (err, result, request, response) => {
+        self._startPublishingValues(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._startPublishingValues(endpointId, request, options, optionalCallback);
+      return self._startPublishingValues(endpointId, body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Stop publishing node values
    *
-   * Stop publishing variable node values to IoT Hub.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Stop publishing variable node values to IoT Hub. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The unpublish request
+   * @param {object} body The unpublish request
    *
-   * @param {string} request.nodeId Node of published item to unpublish
+   * @param {string} body.nodeId Node of published item to unpublish
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -1406,11 +1390,11 @@ class AzureOpcPublisherClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  stopPublishingValuesWithHttpOperationResponse(endpointId, request, options) {
+  stopPublishingValuesWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._stopPublishingValues(endpointId, request, options, (err, result, request, response) => {
+      self._stopPublishingValues(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -1423,40 +1407,37 @@ class AzureOpcPublisherClient extends ServiceClient {
   /**
    * @summary Stop publishing node values
    *
-   * Stop publishing variable node values to IoT Hub.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Stop publishing variable node values to IoT Hub. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The unpublish request
+   * @param {object} body The unpublish request
    *
-   * @param {string} request.nodeId Node of published item to unpublish
+   * @param {string} body.nodeId Node of published item to unpublish
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -1487,7 +1468,7 @@ class AzureOpcPublisherClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  stopPublishingValues(endpointId, request, options, optionalCallback) {
+  stopPublishingValues(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -1496,23 +1477,122 @@ class AzureOpcPublisherClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._stopPublishingValues(endpointId, request, options, (err, result, request, response) => {
+        self._stopPublishingValues(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._stopPublishingValues(endpointId, request, options, optionalCallback);
+      return self._stopPublishingValues(endpointId, body, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Get currently published nodes
+   *
+   * Returns currently published node ids for an endpoint. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} body The list request
+   *
+   * @param {string} [body.continuationToken] Continuation token or null to start
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<PublishedItemListResponseApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  getFirstListOfPublishedNodesWithHttpOperationResponse(endpointId, body, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._getFirstListOfPublishedNodes(endpointId, body, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Get currently published nodes
+   *
+   * Returns currently published node ids for an endpoint. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} body The list request
+   *
+   * @param {string} [body.continuationToken] Continuation token or null to start
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {PublishedItemListResponseApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link PublishedItemListResponseApiModel} for more
+   *                      information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getFirstListOfPublishedNodes(endpointId, body, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._getFirstListOfPublishedNodes(endpointId, body, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._getFirstListOfPublishedNodes(endpointId, body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Get next set of published nodes
    *
-   * Returns next set of currently published node ids for an endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Returns next set of currently published node ids for an endpoint. The
+   * endpoint must be activated and connected and the module client and server
+   * must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
@@ -1546,9 +1626,9 @@ class AzureOpcPublisherClient extends ServiceClient {
   /**
    * @summary Get next set of published nodes
    *
-   * Returns next set of currently published node ids for an endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Returns next set of currently published node ids for an endpoint. The
+   * endpoint must be activated and connected and the module client and server
+   * must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
@@ -1599,107 +1679,6 @@ class AzureOpcPublisherClient extends ServiceClient {
       });
     } else {
       return self._getNextListOfPublishedNodes(endpointId, continuationToken, options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Get currently published nodes
-   *
-   * Returns currently published node ids for an endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The list request
-   *
-   * @param {string} [request.continuationToken] Continuation token or null to
-   * start
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<PublishedItemListResponseApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  getFirstListOfPublishedNodesWithHttpOperationResponse(endpointId, request, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._getFirstListOfPublishedNodes(endpointId, request, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Get currently published nodes
-   *
-   * Returns currently published node ids for an endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The list request
-   *
-   * @param {string} [request.continuationToken] Continuation token or null to
-   * start
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {PublishedItemListResponseApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link PublishedItemListResponseApiModel} for more
-   *                      information.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getFirstListOfPublishedNodes(endpointId, request, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._getFirstListOfPublishedNodes(endpointId, request, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._getFirstListOfPublishedNodes(endpointId, request, options, optionalCallback);
     }
   }
 

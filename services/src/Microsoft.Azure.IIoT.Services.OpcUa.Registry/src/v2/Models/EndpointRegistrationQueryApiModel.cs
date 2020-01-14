@@ -31,6 +31,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             Certificate = model.Certificate;
             SecurityPolicy = model.SecurityPolicy;
             SecurityMode = model.SecurityMode;
+            ApplicationId = model.ApplicationId;
+            DiscovererId = model.DiscovererId;
+            SiteOrGatewayId = model.SiteOrGatewayId;
+            SupervisorId = model.SupervisorId;
             IncludeNotSeenSince = model.IncludeNotSeenSince;
         }
 
@@ -47,6 +51,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
                 Certificate = Certificate,
                 SecurityPolicy = SecurityPolicy,
                 SecurityMode = SecurityMode,
+                ApplicationId = ApplicationId,
+                DiscovererId = DiscovererId,
+                SiteOrGatewayId = SiteOrGatewayId,
+                SupervisorId = SupervisorId,
                 IncludeNotSeenSince = IncludeNotSeenSince
             };
         }
@@ -114,6 +122,38 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public bool? IncludeNotSeenSince { get; set; }
+
+        /// <summary>
+        /// Discoverer id to filter with
+        /// </summary>
+        [JsonProperty(PropertyName = "discovererId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public string DiscovererId { get; set; }
+
+        /// <summary>
+        /// Application id to filter
+        /// </summary>
+        [JsonProperty(PropertyName = "applicationId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public string ApplicationId { get; set; }
+
+        /// <summary>
+        /// Supervisor id to filter with
+        /// </summary>
+        [JsonProperty(PropertyName = "supervisorId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public string SupervisorId { get; set; }
+
+        /// <summary>
+        /// Site or gateway id to filter with
+        /// </summary>
+        [JsonProperty(PropertyName = "siteOrGatewayId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public string SiteOrGatewayId { get; set; }
     }
 }
 

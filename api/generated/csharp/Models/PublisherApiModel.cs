@@ -33,9 +33,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// <param name="id">Publisher id</param>
         /// <param name="siteId">Site of the publisher</param>
         /// <param name="certificate">Publisher public client cert</param>
-        /// <param name="logLevel">Current log level. Possible values include:
-        /// 'Error', 'Information', 'Debug', 'Verbose'</param>
-        /// <param name="configuration">Publisher agent configuration</param>
+        /// <param name="logLevel">Possible values include: 'Error',
+        /// 'Information', 'Debug', 'Verbose'</param>
         /// <param name="outOfSync">Whether the registration is out of sync
         /// between
         /// client (module) and server (service) (default: false).</param>
@@ -77,14 +76,13 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public byte[] Certificate { get; set; }
 
         /// <summary>
-        /// Gets or sets current log level. Possible values include: 'Error',
-        /// 'Information', 'Debug', 'Verbose'
+        /// Gets or sets possible values include: 'Error', 'Information',
+        /// 'Debug', 'Verbose'
         /// </summary>
         [JsonProperty(PropertyName = "logLevel")]
         public TraceLogLevel? LogLevel { get; set; }
 
         /// <summary>
-        /// Gets or sets publisher agent configuration
         /// </summary>
         [JsonProperty(PropertyName = "configuration")]
         public PublisherConfigApiModel Configuration { get; set; }

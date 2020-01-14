@@ -13,8 +13,7 @@ module azure.iiot.opc.vault
     # Private key
     #
     class PrivateKeyApiModel
-      # @return [PrivateKeyType] Key type. Possible values include: 'RSA',
-      # 'ECC', 'AES'
+      # @return [PrivateKeyType] Possible values include: 'RSA', 'ECC', 'AES'
       attr_accessor :kty
 
       # @return [Array<Integer>] RSA modulus.
@@ -35,10 +34,10 @@ module azure.iiot.opc.vault
       # @return [Array<Integer>] RSA secret prime
       attr_accessor :p
 
-      # @return [Array<Integer>] RSA secret prime, with p &lt; q
+      # @return [Array<Integer>] RSA secret prime, with p < q
       attr_accessor :q
 
-      # @return [String] The curve for ECC algorithms
+      # @return [String]
       attr_accessor :crv
 
       # @return [Array<Integer>] X coordinate for the Elliptic Curve point.
@@ -53,7 +52,7 @@ module azure.iiot.opc.vault
       # @return [Array<Integer>] Symmetric key
       attr_accessor :k
 
-      # @return [Array<Integer>] HSM Token, used with "Bring Your Own Key"
+      # @return [Array<Integer>]
       attr_accessor :key_hsm
 
 

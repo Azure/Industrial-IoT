@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
     using Newtonsoft.Json;
     using System;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Read data at specified times
@@ -16,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// Requested datums
         /// </summary>
         [JsonProperty(PropertyName = "reqTimes")]
+        [Required]
         public DateTime[] ReqTimes { get; set; }
 
         /// <summary>

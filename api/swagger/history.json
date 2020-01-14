@@ -1,14 +1,21 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "v2",
     "title": "Opc-History-Service",
-    "description": "Azure Industrial IoT OPC UA Historic Access Service"
+    "description": "Azure Industrial IoT OPC UA Historic Access Service",
+    "contact": {
+      "url": "https://www.github.com/Azure/Industrial-IoT"
+    },
+    "license": {
+      "name": "MIT LICENSE",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "v2"
   },
-  "basePath": "/history",
+  "host": "localhost:9080",
   "schemes": [
-    "https",
-    "http"
+    "http",
+    "https"
   ],
   "paths": {
     "/v2/delete/{endpointId}/values/pick": {
@@ -17,7 +24,7 @@
           "Delete"
         ],
         "summary": "Delete value history at specified times",
-        "description": "Delete value history using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Delete value history using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryDeleteValuesAtTimes",
         "consumes": [
           "application/json-patch+json",
@@ -30,19 +37,19 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The history update request",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/HistoryUpdateRequestApiModel[DeleteValuesAtTimesDetailsApiModel]"
+              "$ref": "#/definitions/DeleteValuesAtTimesDetailsApiModelHistoryUpdateRequestApiModel"
             }
           }
         ],
@@ -69,7 +76,7 @@
           "Delete"
         ],
         "summary": "Delete historic values",
-        "description": "Delete historic values using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Delete historic values using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryDeleteValues",
         "consumes": [
           "application/json-patch+json",
@@ -82,19 +89,19 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The history update request",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/HistoryUpdateRequestApiModel[DeleteValuesDetailsApiModel]"
+              "$ref": "#/definitions/DeleteValuesDetailsApiModelHistoryUpdateRequestApiModel"
             }
           }
         ],
@@ -121,7 +128,7 @@
           "Delete"
         ],
         "summary": "Delete historic values",
-        "description": "Delete historic values using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Delete historic values using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryDeleteModifiedValues",
         "consumes": [
           "application/json-patch+json",
@@ -134,19 +141,19 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The history update request",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/HistoryUpdateRequestApiModel[DeleteModifiedValuesDetailsApiModel]"
+              "$ref": "#/definitions/DeleteModifiedValuesDetailsApiModelHistoryUpdateRequestApiModel"
             }
           }
         ],
@@ -173,7 +180,7 @@
           "Delete"
         ],
         "summary": "Delete historic events",
-        "description": "Delete historic events using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Delete historic events using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryDeleteEvents",
         "consumes": [
           "application/json-patch+json",
@@ -186,19 +193,19 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The history update request",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/HistoryUpdateRequestApiModel[DeleteEventsDetailsApiModel]"
+              "$ref": "#/definitions/DeleteEventsDetailsApiModelHistoryUpdateRequestApiModel"
             }
           }
         ],
@@ -225,7 +232,7 @@
           "History"
         ],
         "summary": "Read history using json details",
-        "description": "Read node history if available using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Read node history if available using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReadRaw",
         "consumes": [
           "application/json-patch+json",
@@ -238,19 +245,19 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The history read request",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/HistoryReadRequestApiModel[JToken]"
+              "$ref": "#/definitions/JTokenHistoryReadRequestApiModel"
             }
           }
         ],
@@ -258,7 +265,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/HistoryReadResponseApiModel[JToken]"
+              "$ref": "#/definitions/JTokenHistoryReadResponseApiModel"
             }
           }
         },
@@ -277,7 +284,7 @@
           "History"
         ],
         "summary": "Read next batch of history as json",
-        "description": "Read next batch of node history values using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Read next batch of node history values using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReadRawNext",
         "consumes": [
           "application/json-patch+json",
@@ -290,15 +297,15 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The history read next request",
             "required": true,
             "schema": {
@@ -310,7 +317,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/HistoryReadNextResponseApiModel[JToken]"
+              "$ref": "#/definitions/JTokenHistoryReadNextResponseApiModel"
             }
           }
         },
@@ -329,7 +336,7 @@
           "History"
         ],
         "summary": "Update node history using raw json",
-        "description": "Update node history using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Update node history using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryUpdateRaw",
         "consumes": [
           "application/json-patch+json",
@@ -342,19 +349,19 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The history update request",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/HistoryUpdateRequestApiModel[JToken]"
+              "$ref": "#/definitions/JTokenHistoryUpdateRequestApiModel"
             }
           }
         ],
@@ -381,7 +388,7 @@
           "Insert"
         ],
         "summary": "Insert historic values",
-        "description": "Insert historic values using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Insert historic values using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryInsertValues",
         "consumes": [
           "application/json-patch+json",
@@ -394,19 +401,19 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The history insert request",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/HistoryUpdateRequestApiModel[InsertValuesDetailsApiModel]"
+              "$ref": "#/definitions/InsertValuesDetailsApiModelHistoryUpdateRequestApiModel"
             }
           }
         ],
@@ -433,7 +440,7 @@
           "Insert"
         ],
         "summary": "Insert historic events",
-        "description": "Insert historic events using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Insert historic events using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryInsertEvents",
         "consumes": [
           "application/json-patch+json",
@@ -446,19 +453,19 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The history insert request",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/HistoryUpdateRequestApiModel[InsertEventsDetailsApiModel]"
+              "$ref": "#/definitions/InsertEventsDetailsApiModelHistoryUpdateRequestApiModel"
             }
           }
         ],
@@ -485,7 +492,7 @@
           "Read"
         ],
         "summary": "Read historic events",
-        "description": "Read historic events of a node if available using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Read historic events of a node if available using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReadEvents",
         "consumes": [
           "application/json-patch+json",
@@ -498,19 +505,19 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The history read request",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/HistoryReadRequestApiModel[ReadEventsDetailsApiModel]"
+              "$ref": "#/definitions/ReadEventsDetailsApiModelHistoryReadRequestApiModel"
             }
           }
         ],
@@ -518,7 +525,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/HistoryReadResponseApiModel[HistoricEventApiModel[]]"
+              "$ref": "#/definitions/HistoricEventApiModel[]HistoryReadResponseApiModel"
             }
           }
         },
@@ -537,7 +544,7 @@
           "Read"
         ],
         "summary": "Read next batch of historic events",
-        "description": "Read next batch of historic events of a node using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Read next batch of historic events of a node using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReadEventsNext",
         "consumes": [
           "application/json-patch+json",
@@ -550,15 +557,15 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The history read next request",
             "required": true,
             "schema": {
@@ -570,7 +577,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/HistoryReadNextResponseApiModel[HistoricEventApiModel[]]"
+              "$ref": "#/definitions/HistoricEventApiModel[]HistoryReadNextResponseApiModel"
             }
           }
         },
@@ -589,7 +596,7 @@
           "Read"
         ],
         "summary": "Read historic processed values at specified times",
-        "description": "Read processed history values of a node if available using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Read processed history values of a node if available using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReadValues",
         "consumes": [
           "application/json-patch+json",
@@ -602,19 +609,19 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The history read request",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/HistoryReadRequestApiModel[ReadValuesDetailsApiModel]"
+              "$ref": "#/definitions/ReadValuesDetailsApiModelHistoryReadRequestApiModel"
             }
           }
         ],
@@ -622,7 +629,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/HistoryReadResponseApiModel[HistoricValueApiModel[]]"
+              "$ref": "#/definitions/HistoricValueApiModel[]HistoryReadResponseApiModel"
             }
           }
         },
@@ -641,7 +648,7 @@
           "Read"
         ],
         "summary": "Read historic values at specified times",
-        "description": "Read historic values of a node if available using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Read historic values of a node if available using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReadValuesAtTimes",
         "consumes": [
           "application/json-patch+json",
@@ -654,19 +661,19 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The history read request",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/HistoryReadRequestApiModel[ReadValuesAtTimesDetailsApiModel]"
+              "$ref": "#/definitions/ReadValuesAtTimesDetailsApiModelHistoryReadRequestApiModel"
             }
           }
         ],
@@ -674,7 +681,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/HistoryReadResponseApiModel[HistoricValueApiModel[]]"
+              "$ref": "#/definitions/HistoricValueApiModel[]HistoryReadResponseApiModel"
             }
           }
         },
@@ -693,7 +700,7 @@
           "Read"
         ],
         "summary": "Read historic processed values at specified times",
-        "description": "Read processed history values of a node if available using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Read processed history values of a node if available using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReadProcessedValues",
         "consumes": [
           "application/json-patch+json",
@@ -706,19 +713,19 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The history read request",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/HistoryReadRequestApiModel[ReadProcessedValuesDetailsApiModel]"
+              "$ref": "#/definitions/ReadProcessedValuesDetailsApiModelHistoryReadRequestApiModel"
             }
           }
         ],
@@ -726,7 +733,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/HistoryReadResponseApiModel[HistoricValueApiModel[]]"
+              "$ref": "#/definitions/HistoricValueApiModel[]HistoryReadResponseApiModel"
             }
           }
         },
@@ -745,7 +752,7 @@
           "Read"
         ],
         "summary": "Read historic modified values at specified times",
-        "description": "Read processed history values of a node if available using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Read processed history values of a node if available using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReadModifiedValues",
         "consumes": [
           "application/json-patch+json",
@@ -758,19 +765,19 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The history read request",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/HistoryReadRequestApiModel[ReadModifiedValuesDetailsApiModel]"
+              "$ref": "#/definitions/ReadModifiedValuesDetailsApiModelHistoryReadRequestApiModel"
             }
           }
         ],
@@ -778,7 +785,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/HistoryReadResponseApiModel[HistoricValueApiModel[]]"
+              "$ref": "#/definitions/HistoricValueApiModel[]HistoryReadResponseApiModel"
             }
           }
         },
@@ -797,7 +804,7 @@
           "Read"
         ],
         "summary": "Read next batch of historic values",
-        "description": "Read next batch of historic values of a node using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Read next batch of historic values of a node using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReadValueNext",
         "consumes": [
           "application/json-patch+json",
@@ -810,15 +817,15 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The history read next request",
             "required": true,
             "schema": {
@@ -830,7 +837,7 @@
           "200": {
             "description": "Success",
             "schema": {
-              "$ref": "#/definitions/HistoryReadNextResponseApiModel[HistoricValueApiModel[]]"
+              "$ref": "#/definitions/HistoricValueApiModel[]HistoryReadNextResponseApiModel"
             }
           }
         },
@@ -849,7 +856,7 @@
           "Replace"
         ],
         "summary": "Replace historic values",
-        "description": "Replace historic values using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Replace historic values using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReplaceValues",
         "consumes": [
           "application/json-patch+json",
@@ -862,19 +869,19 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The history replace request",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/HistoryUpdateRequestApiModel[ReplaceValuesDetailsApiModel]"
+              "$ref": "#/definitions/ReplaceValuesDetailsApiModelHistoryUpdateRequestApiModel"
             }
           }
         ],
@@ -901,7 +908,7 @@
           "Replace"
         ],
         "summary": "Replace historic events",
-        "description": "Replace historic events using historic access.\r\nThe endpoint must be activated and connected and the module client\r\nand server must trust each other.",
+        "description": "Replace historic events using historic access. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "HistoryReplaceEvents",
         "consumes": [
           "application/json-patch+json",
@@ -914,19 +921,19 @@
         ],
         "parameters": [
           {
-            "name": "endpointId",
             "in": "path",
+            "name": "endpointId",
             "description": "The identifier of the activated endpoint.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The history replace request",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/HistoryUpdateRequestApiModel[ReplaceEventsDetailsApiModel]"
+              "$ref": "#/definitions/ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel"
             }
           }
         ],
@@ -954,11 +961,9 @@
         ],
         "summary": "Return the service status in the form of the service status\r\napi model.",
         "operationId": "GetStatus",
-        "consumes": [],
         "produces": [
           "application/json"
         ],
-        "parameters": [],
         "responses": {
           "200": {
             "description": "Success",
@@ -971,35 +976,6 @@
     }
   },
   "definitions": {
-    "HistoryUpdateRequestApiModel[DeleteValuesAtTimesDetailsApiModel]": {
-      "description": "Request node history update",
-      "required": [
-        "details"
-      ],
-      "type": "object",
-      "properties": {
-        "nodeId": {
-          "description": "Node to update",
-          "type": "string"
-        },
-        "browsePath": {
-          "description": "An optional path from NodeId instance to\r\nthe actual node.",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "details": {
-          "$ref": "#/definitions/DeleteValuesAtTimesDetailsApiModel",
-          "description": "The HistoryUpdateDetailsType extension object\r\nencoded as json Variant and containing the tunneled\r\nupdate request for the Historian server. The value\r\nis updated at edge using above node address."
-        },
-        "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
-        }
-      }
-    },
     "DeleteValuesAtTimesDetailsApiModel": {
       "description": "Deletes data at times",
       "required": [
@@ -1009,7 +985,6 @@
       "properties": {
         "reqTimes": {
           "description": "The timestamps to delete",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "format": "date-time",
@@ -1018,26 +993,17 @@
         }
       }
     },
-    "RequestHeaderApiModel": {
-      "description": "Request header model",
-      "type": "object",
-      "properties": {
-        "elevation": {
-          "$ref": "#/definitions/CredentialApiModel",
-          "description": "Optional User elevation"
-        },
-        "locales": {
-          "description": "Optional list of locales in preference order.",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "diagnostics": {
-          "$ref": "#/definitions/DiagnosticsApiModel",
-          "description": "Optional diagnostics configuration"
-        }
+    "CredentialTypeNullable": {
+      "enum": [
+        "None",
+        "UserName",
+        "X509Certificate",
+        "JwtToken"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "CredentialType",
+        "modelAsString": false
       }
     },
     "CredentialApiModel": {
@@ -1045,19 +1011,7 @@
       "type": "object",
       "properties": {
         "type": {
-          "description": "Type of credential",
-          "default": "None",
-          "enum": [
-            "None",
-            "UserName",
-            "X509Certificate",
-            "JwtToken"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "CredentialType",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/CredentialTypeNullable"
         },
         "value": {
           "description": "Value to pass to server",
@@ -1065,24 +1019,26 @@
         }
       }
     },
+    "DiagnosticsLevelNullable": {
+      "enum": [
+        "None",
+        "Status",
+        "Operations",
+        "Diagnostics",
+        "Verbose"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "DiagnosticsLevel",
+        "modelAsString": false
+      }
+    },
     "DiagnosticsApiModel": {
       "description": "Diagnostics configuration",
       "type": "object",
       "properties": {
         "level": {
-          "description": "Requested level of response diagnostics.\r\n(default: Status)",
-          "enum": [
-            "None",
-            "Status",
-            "Operations",
-            "Diagnostics",
-            "Verbose"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "DiagnosticsLevel",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/DiagnosticsLevelNullable"
         },
         "auditId": {
           "description": "Client audit log entry.\r\n(default: client generated)",
@@ -1095,21 +1051,48 @@
         }
       }
     },
-    "HistoryUpdateResponseApiModel": {
-      "description": "History update results",
+    "RequestHeaderApiModel": {
+      "description": "Request header model",
       "type": "object",
       "properties": {
-        "results": {
-          "description": "List of results from the update operation",
-          "uniqueItems": false,
+        "elevation": {
+          "$ref": "#/definitions/CredentialApiModel"
+        },
+        "locales": {
+          "description": "Optional list of locales in preference order.",
           "type": "array",
           "items": {
-            "$ref": "#/definitions/ServiceResultApiModel"
+            "type": "string"
           }
         },
-        "errorInfo": {
-          "$ref": "#/definitions/ServiceResultApiModel",
-          "description": "Service result in case of service call error"
+        "diagnostics": {
+          "$ref": "#/definitions/DiagnosticsApiModel"
+        }
+      }
+    },
+    "DeleteValuesAtTimesDetailsApiModelHistoryUpdateRequestApiModel": {
+      "description": "Request node history update",
+      "required": [
+        "details"
+      ],
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "description": "Node to update",
+          "type": "string"
+        },
+        "browsePath": {
+          "description": "An optional path from NodeId instance to\r\nthe actual node.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "details": {
+          "$ref": "#/definitions/DeleteValuesAtTimesDetailsApiModel"
+        },
+        "header": {
+          "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
@@ -1132,32 +1115,19 @@
         }
       }
     },
-    "HistoryUpdateRequestApiModel[DeleteValuesDetailsApiModel]": {
-      "description": "Request node history update",
-      "required": [
-        "details"
-      ],
+    "HistoryUpdateResponseApiModel": {
+      "description": "History update results",
       "type": "object",
       "properties": {
-        "nodeId": {
-          "description": "Node to update",
-          "type": "string"
-        },
-        "browsePath": {
-          "description": "An optional path from NodeId instance to\r\nthe actual node.",
-          "uniqueItems": false,
+        "results": {
+          "description": "List of results from the update operation",
           "type": "array",
           "items": {
-            "type": "string"
+            "$ref": "#/definitions/ServiceResultApiModel"
           }
         },
-        "details": {
-          "$ref": "#/definitions/DeleteValuesDetailsApiModel",
-          "description": "The HistoryUpdateDetailsType extension object\r\nencoded as json Variant and containing the tunneled\r\nupdate request for the Historian server. The value\r\nis updated at edge using above node address."
-        },
-        "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
+        "errorInfo": {
+          "$ref": "#/definitions/ServiceResultApiModel"
         }
       }
     },
@@ -1177,7 +1147,7 @@
         }
       }
     },
-    "HistoryUpdateRequestApiModel[DeleteModifiedValuesDetailsApiModel]": {
+    "DeleteValuesDetailsApiModelHistoryUpdateRequestApiModel": {
       "description": "Request node history update",
       "required": [
         "details"
@@ -1190,19 +1160,16 @@
         },
         "browsePath": {
           "description": "An optional path from NodeId instance to\r\nthe actual node.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "details": {
-          "$ref": "#/definitions/DeleteModifiedValuesDetailsApiModel",
-          "description": "The HistoryUpdateDetailsType extension object\r\nencoded as json Variant and containing the tunneled\r\nupdate request for the Historian server. The value\r\nis updated at edge using above node address."
+          "$ref": "#/definitions/DeleteValuesDetailsApiModel"
         },
         "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
+          "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
@@ -1222,7 +1189,7 @@
         }
       }
     },
-    "HistoryUpdateRequestApiModel[DeleteEventsDetailsApiModel]": {
+    "DeleteModifiedValuesDetailsApiModelHistoryUpdateRequestApiModel": {
       "description": "Request node history update",
       "required": [
         "details"
@@ -1235,19 +1202,16 @@
         },
         "browsePath": {
           "description": "An optional path from NodeId instance to\r\nthe actual node.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "details": {
-          "$ref": "#/definitions/DeleteEventsDetailsApiModel",
-          "description": "The HistoryUpdateDetailsType extension object\r\nencoded as json Variant and containing the tunneled\r\nupdate request for the Historian server. The value\r\nis updated at edge using above node address."
+          "$ref": "#/definitions/DeleteModifiedValuesDetailsApiModel"
         },
         "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
+          "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
@@ -1260,7 +1224,6 @@
       "properties": {
         "eventIds": {
           "description": "Events to delete",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "format": "byte",
@@ -1269,7 +1232,33 @@
         }
       }
     },
-    "HistoryReadRequestApiModel[JToken]": {
+    "DeleteEventsDetailsApiModelHistoryUpdateRequestApiModel": {
+      "description": "Request node history update",
+      "required": [
+        "details"
+      ],
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "description": "Node to update",
+          "type": "string"
+        },
+        "browsePath": {
+          "description": "An optional path from NodeId instance to\r\nthe actual node.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "details": {
+          "$ref": "#/definitions/DeleteEventsDetailsApiModel"
+        },
+        "header": {
+          "$ref": "#/definitions/RequestHeaderApiModel"
+        }
+      }
+    },
+    "JTokenHistoryReadRequestApiModel": {
       "description": "Request node history read",
       "type": "object",
       "properties": {
@@ -1279,7 +1268,6 @@
         },
         "browsePath": {
           "description": "An optional path from NodeId instance to\r\nthe actual node.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "type": "string"
@@ -1294,12 +1282,11 @@
           "type": "string"
         },
         "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
+          "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
-    "HistoryReadResponseApiModel[JToken]": {
+    "JTokenHistoryReadResponseApiModel": {
       "description": "History read results",
       "type": "object",
       "properties": {
@@ -1312,8 +1299,7 @@
           "type": "string"
         },
         "errorInfo": {
-          "$ref": "#/definitions/ServiceResultApiModel",
-          "description": "Service result in case of error"
+          "$ref": "#/definitions/ServiceResultApiModel"
         }
       }
     },
@@ -1334,12 +1320,11 @@
           "type": "boolean"
         },
         "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
+          "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
-    "HistoryReadNextResponseApiModel[JToken]": {
+    "JTokenHistoryReadNextResponseApiModel": {
       "description": "History read continuation result",
       "type": "object",
       "properties": {
@@ -1352,12 +1337,11 @@
           "type": "string"
         },
         "errorInfo": {
-          "$ref": "#/definitions/ServiceResultApiModel",
-          "description": "Service result in case of error"
+          "$ref": "#/definitions/ServiceResultApiModel"
         }
       }
     },
-    "HistoryUpdateRequestApiModel[JToken]": {
+    "JTokenHistoryUpdateRequestApiModel": {
       "description": "Request node history update",
       "required": [
         "details"
@@ -1370,7 +1354,6 @@
         },
         "browsePath": {
           "description": "An optional path from NodeId instance to\r\nthe actual node.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "type": "string"
@@ -1381,54 +1364,38 @@
           "type": "object"
         },
         "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
+          "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
-    "HistoryUpdateRequestApiModel[InsertValuesDetailsApiModel]": {
-      "description": "Request node history update",
-      "required": [
-        "details"
+    "HistoryUpdateOperationNullable": {
+      "enum": [
+        "Insert",
+        "Replace",
+        "Update",
+        "Delete"
       ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "HistoryUpdateOperation",
+        "modelAsString": false
+      }
+    },
+    "ModificationInfoApiModel": {
+      "description": "Modification information",
       "type": "object",
       "properties": {
-        "nodeId": {
-          "description": "Node to update",
+        "modificationTime": {
+          "format": "date-time",
+          "description": "Modification time",
           "type": "string"
         },
-        "browsePath": {
-          "description": "An optional path from NodeId instance to\r\nthe actual node.",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+        "updateType": {
+          "$ref": "#/definitions/HistoryUpdateOperationNullable"
         },
-        "details": {
-          "$ref": "#/definitions/InsertValuesDetailsApiModel",
-          "description": "The HistoryUpdateDetailsType extension object\r\nencoded as json Variant and containing the tunneled\r\nupdate request for the Historian server. The value\r\nis updated at edge using above node address."
-        },
-        "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
-        }
-      }
-    },
-    "InsertValuesDetailsApiModel": {
-      "description": "Insert historic data",
-      "required": [
-        "values"
-      ],
-      "type": "object",
-      "properties": {
-        "values": {
-          "description": "Values to insert",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/HistoricValueApiModel"
-          }
+        "userName": {
+          "description": "User who made the change",
+          "type": "string"
         }
       }
     },
@@ -1466,41 +1433,27 @@
           "type": "integer"
         },
         "modificationInfo": {
-          "$ref": "#/definitions/ModificationInfoApiModel",
-          "description": "modification information when reading modifications."
+          "$ref": "#/definitions/ModificationInfoApiModel"
         }
       }
     },
-    "ModificationInfoApiModel": {
-      "description": "Modification information",
+    "InsertValuesDetailsApiModel": {
+      "description": "Insert historic data",
+      "required": [
+        "values"
+      ],
       "type": "object",
       "properties": {
-        "modificationTime": {
-          "format": "date-time",
-          "description": "Modification time",
-          "type": "string"
-        },
-        "updateType": {
-          "description": "Operation",
-          "enum": [
-            "Insert",
-            "Replace",
-            "Update",
-            "Delete"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "HistoryUpdateOperation",
-            "modelAsString": false
+        "values": {
+          "description": "Values to insert",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/HistoricValueApiModel"
           }
-        },
-        "userName": {
-          "description": "User who made the change",
-          "type": "string"
         }
       }
     },
-    "HistoryUpdateRequestApiModel[InsertEventsDetailsApiModel]": {
+    "InsertValuesDetailsApiModelHistoryUpdateRequestApiModel": {
       "description": "Request node history update",
       "required": [
         "details"
@@ -1513,19 +1466,196 @@
         },
         "browsePath": {
           "description": "An optional path from NodeId instance to\r\nthe actual node.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "details": {
-          "$ref": "#/definitions/InsertEventsDetailsApiModel",
-          "description": "The HistoryUpdateDetailsType extension object\r\nencoded as json Variant and containing the tunneled\r\nupdate request for the Historian server. The value\r\nis updated at edge using above node address."
+          "$ref": "#/definitions/InsertValuesDetailsApiModel"
         },
         "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
+          "$ref": "#/definitions/RequestHeaderApiModel"
+        }
+      }
+    },
+    "NodeAttributeNullable": {
+      "enum": [
+        "NodeClass",
+        "BrowseName",
+        "DisplayName",
+        "Description",
+        "WriteMask",
+        "UserWriteMask",
+        "IsAbstract",
+        "Symmetric",
+        "InverseName",
+        "ContainsNoLoops",
+        "EventNotifier",
+        "Value",
+        "DataType",
+        "ValueRank",
+        "ArrayDimensions",
+        "AccessLevel",
+        "UserAccessLevel",
+        "MinimumSamplingInterval",
+        "Historizing",
+        "Executable",
+        "UserExecutable",
+        "DataTypeDefinition",
+        "RolePermissions",
+        "UserRolePermissions",
+        "AccessRestrictions"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "NodeAttribute",
+        "modelAsString": false
+      }
+    },
+    "SimpleAttributeOperandApiModel": {
+      "description": "Simple attribute operand model",
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "description": "Type definition node id if operand is\r\nsimple or full attribute operand.",
+          "type": "string"
+        },
+        "browsePath": {
+          "description": "Browse path of attribute operand",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "attributeId": {
+          "$ref": "#/definitions/NodeAttributeNullable"
+        },
+        "indexRange": {
+          "description": "Index range of attribute operand",
+          "type": "string"
+        }
+      }
+    },
+    "FilterOperatorType": {
+      "enum": [
+        "Equals",
+        "IsNull",
+        "GreaterThan",
+        "LessThan",
+        "GreaterThanOrEqual",
+        "LessThanOrEqual",
+        "Like",
+        "Not",
+        "Between",
+        "InList",
+        "And",
+        "Or",
+        "Cast",
+        "InView",
+        "OfType",
+        "RelatedTo",
+        "BitwiseAnd",
+        "BitwiseOr"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "FilterOperatorType",
+        "modelAsString": false
+      }
+    },
+    "FilterOperandApiModel": {
+      "description": "Filter operand",
+      "type": "object",
+      "properties": {
+        "index": {
+          "format": "int32",
+          "description": "Element reference in the outer list if\r\noperand is an element operand",
+          "type": "integer"
+        },
+        "value": {
+          "description": "Variant value if operand is a literal",
+          "type": "object"
+        },
+        "nodeId": {
+          "description": "Type definition node id if operand is\r\nsimple or full attribute operand.",
+          "type": "string"
+        },
+        "browsePath": {
+          "description": "Browse path of attribute operand",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "attributeId": {
+          "$ref": "#/definitions/NodeAttributeNullable"
+        },
+        "indexRange": {
+          "description": "Index range of attribute operand",
+          "type": "string"
+        },
+        "alias": {
+          "description": "Optional alias to refer to it makeing it a\r\nfull blown attribute operand",
+          "type": "string"
+        }
+      }
+    },
+    "ContentFilterElementApiModel": {
+      "description": "An expression element in the filter ast",
+      "type": "object",
+      "properties": {
+        "filterOperator": {
+          "$ref": "#/definitions/FilterOperatorType"
+        },
+        "filterOperands": {
+          "description": "The operands in the element for the operator",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/FilterOperandApiModel"
+          }
+        }
+      }
+    },
+    "ContentFilterApiModel": {
+      "description": "Content filter",
+      "type": "object",
+      "properties": {
+        "elements": {
+          "description": "The flat list of elements in the filter AST",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ContentFilterElementApiModel"
+          }
+        }
+      }
+    },
+    "EventFilterApiModel": {
+      "description": "Event filter",
+      "type": "object",
+      "properties": {
+        "selectClauses": {
+          "description": "Select statements",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/SimpleAttributeOperandApiModel"
+          }
+        },
+        "whereClause": {
+          "$ref": "#/definitions/ContentFilterApiModel"
+        }
+      }
+    },
+    "HistoricEventApiModel": {
+      "description": "Historic event",
+      "type": "object",
+      "properties": {
+        "eventFields": {
+          "description": "The selected fields of the event",
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
         }
       }
     },
@@ -1537,12 +1667,10 @@
       "type": "object",
       "properties": {
         "filter": {
-          "description": "The filter to use to select the events",
-          "type": "object"
+          "$ref": "#/definitions/EventFilterApiModel"
         },
         "events": {
           "description": "The new events to insert",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/HistoricEventApiModel"
@@ -1550,47 +1678,29 @@
         }
       }
     },
-    "HistoricEventApiModel": {
-      "description": "Historic event",
-      "type": "object",
-      "properties": {
-        "eventFields": {
-          "description": "The selected fields of the event",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "type": "object"
-          }
-        }
-      }
-    },
-    "HistoryReadRequestApiModel[ReadEventsDetailsApiModel]": {
-      "description": "Request node history read",
+    "InsertEventsDetailsApiModelHistoryUpdateRequestApiModel": {
+      "description": "Request node history update",
+      "required": [
+        "details"
+      ],
       "type": "object",
       "properties": {
         "nodeId": {
-          "description": "Node to read from (mandatory)",
+          "description": "Node to update",
           "type": "string"
         },
         "browsePath": {
           "description": "An optional path from NodeId instance to\r\nthe actual node.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "details": {
-          "$ref": "#/definitions/ReadEventsDetailsApiModel",
-          "description": "The HistoryReadDetailsType extension object\r\nencoded in json and containing the tunneled\r\nHistorian reader request."
-        },
-        "indexRange": {
-          "description": "Index range to read, e.g. 1:2,0:1 for 2 slices\r\nout of a matrix or 0:1 for the first item in\r\nan array, string or bytestring.\r\nSee 7.22 of part 4: NumericRange.",
-          "type": "string"
+          "$ref": "#/definitions/InsertEventsDetailsApiModel"
         },
         "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
+          "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
@@ -1614,56 +1724,11 @@
           "type": "integer"
         },
         "filter": {
-          "description": "The filter to use to select the event fields",
-          "type": "object"
+          "$ref": "#/definitions/EventFilterApiModel"
         }
       }
     },
-    "HistoryReadResponseApiModel[HistoricEventApiModel[]]": {
-      "description": "History read results",
-      "type": "object",
-      "properties": {
-        "history": {
-          "description": "History as json encoded extension object",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/HistoricEventApiModel"
-          }
-        },
-        "continuationToken": {
-          "description": "Continuation token if more results pending.",
-          "type": "string"
-        },
-        "errorInfo": {
-          "$ref": "#/definitions/ServiceResultApiModel",
-          "description": "Service result in case of error"
-        }
-      }
-    },
-    "HistoryReadNextResponseApiModel[HistoricEventApiModel[]]": {
-      "description": "History read continuation result",
-      "type": "object",
-      "properties": {
-        "history": {
-          "description": "History as json encoded extension object",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/HistoricEventApiModel"
-          }
-        },
-        "continuationToken": {
-          "description": "Continuation token if more results pending.",
-          "type": "string"
-        },
-        "errorInfo": {
-          "$ref": "#/definitions/ServiceResultApiModel",
-          "description": "Service result in case of error"
-        }
-      }
-    },
-    "HistoryReadRequestApiModel[ReadValuesDetailsApiModel]": {
+    "ReadEventsDetailsApiModelHistoryReadRequestApiModel": {
       "description": "Request node history read",
       "type": "object",
       "properties": {
@@ -1673,23 +1738,60 @@
         },
         "browsePath": {
           "description": "An optional path from NodeId instance to\r\nthe actual node.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "details": {
-          "$ref": "#/definitions/ReadValuesDetailsApiModel",
-          "description": "The HistoryReadDetailsType extension object\r\nencoded in json and containing the tunneled\r\nHistorian reader request."
+          "$ref": "#/definitions/ReadEventsDetailsApiModel"
         },
         "indexRange": {
           "description": "Index range to read, e.g. 1:2,0:1 for 2 slices\r\nout of a matrix or 0:1 for the first item in\r\nan array, string or bytestring.\r\nSee 7.22 of part 4: NumericRange.",
           "type": "string"
         },
         "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
+          "$ref": "#/definitions/RequestHeaderApiModel"
+        }
+      }
+    },
+    "HistoricEventApiModel[]HistoryReadResponseApiModel": {
+      "description": "History read results",
+      "type": "object",
+      "properties": {
+        "history": {
+          "description": "History as json encoded extension object",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/HistoricEventApiModel"
+          }
+        },
+        "continuationToken": {
+          "description": "Continuation token if more results pending.",
+          "type": "string"
+        },
+        "errorInfo": {
+          "$ref": "#/definitions/ServiceResultApiModel"
+        }
+      }
+    },
+    "HistoricEventApiModel[]HistoryReadNextResponseApiModel": {
+      "description": "History read continuation result",
+      "type": "object",
+      "properties": {
+        "history": {
+          "description": "History as json encoded extension object",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/HistoricEventApiModel"
+          }
+        },
+        "continuationToken": {
+          "description": "Continuation token if more results pending.",
+          "type": "string"
+        },
+        "errorInfo": {
+          "$ref": "#/definitions/ServiceResultApiModel"
         }
       }
     },
@@ -1718,13 +1820,39 @@
         }
       }
     },
-    "HistoryReadResponseApiModel[HistoricValueApiModel[]]": {
+    "ReadValuesDetailsApiModelHistoryReadRequestApiModel": {
+      "description": "Request node history read",
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "description": "Node to read from (mandatory)",
+          "type": "string"
+        },
+        "browsePath": {
+          "description": "An optional path from NodeId instance to\r\nthe actual node.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "details": {
+          "$ref": "#/definitions/ReadValuesDetailsApiModel"
+        },
+        "indexRange": {
+          "description": "Index range to read, e.g. 1:2,0:1 for 2 slices\r\nout of a matrix or 0:1 for the first item in\r\nan array, string or bytestring.\r\nSee 7.22 of part 4: NumericRange.",
+          "type": "string"
+        },
+        "header": {
+          "$ref": "#/definitions/RequestHeaderApiModel"
+        }
+      }
+    },
+    "HistoricValueApiModel[]HistoryReadResponseApiModel": {
       "description": "History read results",
       "type": "object",
       "properties": {
         "history": {
           "description": "History as json encoded extension object",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/HistoricValueApiModel"
@@ -1735,38 +1863,7 @@
           "type": "string"
         },
         "errorInfo": {
-          "$ref": "#/definitions/ServiceResultApiModel",
-          "description": "Service result in case of error"
-        }
-      }
-    },
-    "HistoryReadRequestApiModel[ReadValuesAtTimesDetailsApiModel]": {
-      "description": "Request node history read",
-      "type": "object",
-      "properties": {
-        "nodeId": {
-          "description": "Node to read from (mandatory)",
-          "type": "string"
-        },
-        "browsePath": {
-          "description": "An optional path from NodeId instance to\r\nthe actual node.",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "details": {
-          "$ref": "#/definitions/ReadValuesAtTimesDetailsApiModel",
-          "description": "The HistoryReadDetailsType extension object\r\nencoded in json and containing the tunneled\r\nHistorian reader request."
-        },
-        "indexRange": {
-          "description": "Index range to read, e.g. 1:2,0:1 for 2 slices\r\nout of a matrix or 0:1 for the first item in\r\nan array, string or bytestring.\r\nSee 7.22 of part 4: NumericRange.",
-          "type": "string"
-        },
-        "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
+          "$ref": "#/definitions/ServiceResultApiModel"
         }
       }
     },
@@ -1779,7 +1876,6 @@
       "properties": {
         "reqTimes": {
           "description": "Requested datums",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "format": "date-time",
@@ -1792,7 +1888,7 @@
         }
       }
     },
-    "HistoryReadRequestApiModel[ReadProcessedValuesDetailsApiModel]": {
+    "ReadValuesAtTimesDetailsApiModelHistoryReadRequestApiModel": {
       "description": "Request node history read",
       "type": "object",
       "properties": {
@@ -1802,52 +1898,20 @@
         },
         "browsePath": {
           "description": "An optional path from NodeId instance to\r\nthe actual node.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "details": {
-          "$ref": "#/definitions/ReadProcessedValuesDetailsApiModel",
-          "description": "The HistoryReadDetailsType extension object\r\nencoded in json and containing the tunneled\r\nHistorian reader request."
+          "$ref": "#/definitions/ReadValuesAtTimesDetailsApiModel"
         },
         "indexRange": {
           "description": "Index range to read, e.g. 1:2,0:1 for 2 slices\r\nout of a matrix or 0:1 for the first item in\r\nan array, string or bytestring.\r\nSee 7.22 of part 4: NumericRange.",
           "type": "string"
         },
         "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
-        }
-      }
-    },
-    "ReadProcessedValuesDetailsApiModel": {
-      "description": "Read processed historic data",
-      "type": "object",
-      "properties": {
-        "startTime": {
-          "format": "date-time",
-          "description": "Start time to read from.",
-          "type": "string"
-        },
-        "endTime": {
-          "format": "date-time",
-          "description": "End time to read until",
-          "type": "string"
-        },
-        "processingInterval": {
-          "format": "double",
-          "description": "Interval to process",
-          "type": "number"
-        },
-        "aggregateTypeId": {
-          "description": "The aggregate type node ids",
-          "type": "string"
-        },
-        "aggregateConfiguration": {
-          "$ref": "#/definitions/AggregateConfigurationApiModel",
-          "description": "A configuration for the aggregate"
+          "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
@@ -1879,7 +1943,35 @@
         }
       }
     },
-    "HistoryReadRequestApiModel[ReadModifiedValuesDetailsApiModel]": {
+    "ReadProcessedValuesDetailsApiModel": {
+      "description": "Read processed historic data",
+      "type": "object",
+      "properties": {
+        "startTime": {
+          "format": "date-time",
+          "description": "Start time to read from.",
+          "type": "string"
+        },
+        "endTime": {
+          "format": "date-time",
+          "description": "End time to read until",
+          "type": "string"
+        },
+        "processingInterval": {
+          "format": "double",
+          "description": "Interval to process",
+          "type": "number"
+        },
+        "aggregateTypeId": {
+          "description": "The aggregate type node ids",
+          "type": "string"
+        },
+        "aggregateConfiguration": {
+          "$ref": "#/definitions/AggregateConfigurationApiModel"
+        }
+      }
+    },
+    "ReadProcessedValuesDetailsApiModelHistoryReadRequestApiModel": {
       "description": "Request node history read",
       "type": "object",
       "properties": {
@@ -1889,23 +1981,20 @@
         },
         "browsePath": {
           "description": "An optional path from NodeId instance to\r\nthe actual node.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "details": {
-          "$ref": "#/definitions/ReadModifiedValuesDetailsApiModel",
-          "description": "The HistoryReadDetailsType extension object\r\nencoded in json and containing the tunneled\r\nHistorian reader request."
+          "$ref": "#/definitions/ReadProcessedValuesDetailsApiModel"
         },
         "indexRange": {
           "description": "Index range to read, e.g. 1:2,0:1 for 2 slices\r\nout of a matrix or 0:1 for the first item in\r\nan array, string or bytestring.\r\nSee 7.22 of part 4: NumericRange.",
           "type": "string"
         },
         "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
+          "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
@@ -1930,13 +2019,39 @@
         }
       }
     },
-    "HistoryReadNextResponseApiModel[HistoricValueApiModel[]]": {
+    "ReadModifiedValuesDetailsApiModelHistoryReadRequestApiModel": {
+      "description": "Request node history read",
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "description": "Node to read from (mandatory)",
+          "type": "string"
+        },
+        "browsePath": {
+          "description": "An optional path from NodeId instance to\r\nthe actual node.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "details": {
+          "$ref": "#/definitions/ReadModifiedValuesDetailsApiModel"
+        },
+        "indexRange": {
+          "description": "Index range to read, e.g. 1:2,0:1 for 2 slices\r\nout of a matrix or 0:1 for the first item in\r\nan array, string or bytestring.\r\nSee 7.22 of part 4: NumericRange.",
+          "type": "string"
+        },
+        "header": {
+          "$ref": "#/definitions/RequestHeaderApiModel"
+        }
+      }
+    },
+    "HistoricValueApiModel[]HistoryReadNextResponseApiModel": {
       "description": "History read continuation result",
       "type": "object",
       "properties": {
         "history": {
           "description": "History as json encoded extension object",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/HistoricValueApiModel"
@@ -1947,37 +2062,7 @@
           "type": "string"
         },
         "errorInfo": {
-          "$ref": "#/definitions/ServiceResultApiModel",
-          "description": "Service result in case of error"
-        }
-      }
-    },
-    "HistoryUpdateRequestApiModel[ReplaceValuesDetailsApiModel]": {
-      "description": "Request node history update",
-      "required": [
-        "details"
-      ],
-      "type": "object",
-      "properties": {
-        "nodeId": {
-          "description": "Node to update",
-          "type": "string"
-        },
-        "browsePath": {
-          "description": "An optional path from NodeId instance to\r\nthe actual node.",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "details": {
-          "$ref": "#/definitions/ReplaceValuesDetailsApiModel",
-          "description": "The HistoryUpdateDetailsType extension object\r\nencoded as json Variant and containing the tunneled\r\nupdate request for the Historian server. The value\r\nis updated at edge using above node address."
-        },
-        "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
+          "$ref": "#/definitions/ServiceResultApiModel"
         }
       }
     },
@@ -1990,7 +2075,6 @@
       "properties": {
         "values": {
           "description": "Values to replace",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/HistoricValueApiModel"
@@ -1998,7 +2082,7 @@
         }
       }
     },
-    "HistoryUpdateRequestApiModel[ReplaceEventsDetailsApiModel]": {
+    "ReplaceValuesDetailsApiModelHistoryUpdateRequestApiModel": {
       "description": "Request node history update",
       "required": [
         "details"
@@ -2011,19 +2095,16 @@
         },
         "browsePath": {
           "description": "An optional path from NodeId instance to\r\nthe actual node.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "type": "string"
           }
         },
         "details": {
-          "$ref": "#/definitions/ReplaceEventsDetailsApiModel",
-          "description": "The HistoryUpdateDetailsType extension object\r\nencoded as json Variant and containing the tunneled\r\nupdate request for the Historian server. The value\r\nis updated at edge using above node address."
+          "$ref": "#/definitions/ReplaceValuesDetailsApiModel"
         },
         "header": {
-          "$ref": "#/definitions/RequestHeaderApiModel",
-          "description": "Optional request header"
+          "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
@@ -2035,16 +2116,40 @@
       "type": "object",
       "properties": {
         "filter": {
-          "description": "The filter to use to select the events",
-          "type": "object"
+          "$ref": "#/definitions/EventFilterApiModel"
         },
         "events": {
           "description": "The events to replace",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/HistoricEventApiModel"
           }
+        }
+      }
+    },
+    "ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel": {
+      "description": "Request node history update",
+      "required": [
+        "details"
+      ],
+      "type": "object",
+      "properties": {
+        "nodeId": {
+          "description": "Node to update",
+          "type": "string"
+        },
+        "browsePath": {
+          "description": "An optional path from NodeId instance to\r\nthe actual node.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "details": {
+          "$ref": "#/definitions/ReplaceEventsDetailsApiModel"
+        },
+        "header": {
+          "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
@@ -2098,7 +2203,6 @@
           "readOnly": true
         },
         "$metadata": {
-          "description": "Optional meta data.",
           "type": "object",
           "additionalProperties": {
             "type": "string"
@@ -2110,12 +2214,12 @@
   },
   "securityDefinitions": {
     "oauth2": {
+      "type": "oauth2",
       "flow": "implicit",
       "authorizationUrl": "https://login.microsoftonline.com/6e660ce4-d51a-4585-80c6-58035e212354/oauth2/authorize",
       "scopes": {
         "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication": "Access http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication operations"
       },
-      "type": "oauth2",
       "description": "Implicit oauth2 token flow."
     }
   },

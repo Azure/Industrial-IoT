@@ -18,7 +18,7 @@ class MethodCallResponseApiModel(Model):
     :param results: Output results
     :type results:
      list[~azure-iiot-opc-twin.models.MethodCallArgumentApiModel]
-    :param error_info: Service result in case of error
+    :param error_info:
     :type error_info: ~azure-iiot-opc-twin.models.ServiceResultApiModel
     """
 

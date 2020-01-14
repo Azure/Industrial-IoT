@@ -17,8 +17,8 @@ class EndpointActivationStatusApiModel(Model):
 
     :param id: Identifier of the endoint
     :type id: str
-    :param activation_state: Activation state. Possible values include:
-     'Deactivated', 'Activated', 'ActivatedAndConnected'
+    :param activation_state: Possible values include: 'Deactivated',
+     'Activated', 'ActivatedAndConnected'
     :type activation_state: str or
      ~azure-iiot-opc-registry.models.EndpointActivationState
     """

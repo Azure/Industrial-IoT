@@ -24,10 +24,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         /// <param name="model"></param>
         public SupervisorUpdateApiModel(SupervisorUpdateModel model) {
             SiteId = model.SiteId;
-            Discovery = model.Discovery;
             LogLevel = model.LogLevel;
-            DiscoveryConfig = model.DiscoveryConfig == null ? null :
-                new DiscoveryConfigApiModel(model.DiscoveryConfig);
         }
 
         /// <summary>
@@ -37,9 +34,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
         public SupervisorUpdateModel ToServiceModel() {
             return new SupervisorUpdateModel {
                 SiteId = SiteId,
-                LogLevel = LogLevel,
-                Discovery = Discovery,
-                DiscoveryConfig = DiscoveryConfig?.ToServiceModel()
+                LogLevel = LogLevel
             };
         }
 
@@ -50,23 +45,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
         public string SiteId { get; set; }
-
-        /// <summary>
-        /// Whether the supervisor is in discovery mode.
-        /// If null, does not change.
-        /// </summary>
-        [JsonProperty(PropertyName = "discovery",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(DiscoveryMode.Off)]
-        public DiscoveryMode? Discovery { get; set; }
-
-        /// <summary>
-        /// Supervisor discovery configuration
-        /// </summary>
-        [JsonProperty(PropertyName = "discoveryConfig",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public DiscoveryConfigApiModel DiscoveryConfig { get; set; }
 
         /// <summary>
         /// Current log level

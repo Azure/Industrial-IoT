@@ -5,36 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
     using System;
     using System.Collections.Generic;
-
-    /// <summary>
-    /// Application type
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum ApplicationType {
-
-        /// <summary>
-        /// Server
-        /// </summary>
-        Server,
-
-        /// <summary>
-        /// Client
-        /// </summary>
-        Client,
-
-        /// <summary>
-        /// Client and server
-        /// </summary>
-        ClientAndServer,
-
-        /// <summary>
-        /// Discovery server
-        /// </summary>
-        DiscoveryServer
-    }
 
     /// <summary>
     /// Application info model
@@ -142,11 +114,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Supervisor having registered the application
+        /// Discoverer that registered the application
         /// </summary>
-        [JsonProperty(PropertyName = "supervisorId",
+        [JsonProperty(PropertyName = "discovererId",
             NullValueHandling = NullValueHandling.Ignore)]
-        public string SupervisorId { get; set; }
+        public string DiscovererId { get; set; }
 
         /// <summary>
         /// Last time application was seen

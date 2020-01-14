@@ -13,10 +13,10 @@ module azure.iiot.opc.vault
     # Finish request results
     #
     class FinishSigningRequestResponseApiModel
-      # @return [CertificateRequestRecordApiModel] Request
+      # @return [CertificateRequestRecordApiModel]
       attr_accessor :request
 
-      # @return [X509CertificateApiModel] Signed certificate
+      # @return [X509CertificateApiModel]
       attr_accessor :certificate
 
 

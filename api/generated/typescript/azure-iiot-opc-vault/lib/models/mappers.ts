@@ -125,6 +125,23 @@ export const X509CrlChainApiModel: msRest.CompositeMapper = {
   }
 };
 
+export const NotFoundResult: msRest.CompositeMapper = {
+  serializedName: "NotFoundResult",
+  type: {
+    name: "Composite",
+    className: "NotFoundResult",
+    modelProperties: {
+      statusCode: {
+        readOnly: true,
+        serializedName: "statusCode",
+        type: {
+          name: "Number"
+        }
+      }
+    }
+  }
+};
+
 export const StartSigningRequestApiModel: msRest.CompositeMapper = {
   serializedName: "StartSigningRequestApiModel",
   type: {
@@ -665,7 +682,6 @@ export const TrustGroupApiModel: msRest.CompositeMapper = {
       },
       type: {
         serializedName: "type",
-        defaultValue: 'ApplicationInstanceCertificate',
         type: {
           name: "Enum",
           allowedValues: [
@@ -922,7 +938,6 @@ export const TrustGroupRootCreateRequestApiModel: msRest.CompositeMapper = {
       },
       type: {
         serializedName: "type",
-        defaultValue: 'ApplicationInstanceCertificate',
         type: {
           name: "Enum",
           allowedValues: [

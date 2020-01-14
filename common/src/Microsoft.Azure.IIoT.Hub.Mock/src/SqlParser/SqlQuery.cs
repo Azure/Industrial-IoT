@@ -53,11 +53,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
                     _hub.Devices.Select(d => d.Twin), context)
                         .Select(JToken.FromObject), context);
             }
-            if (context.collection()?.DEVICES_JOBS() != null) {
-                return Project(Select(
-                    _hub.Jobs, context)
-                        .Select(JToken.FromObject), context);
-            }
             throw new FormatException("Bad format");
         }
 
@@ -255,6 +250,10 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
             switch (identifier.ToLowerInvariant()) {
                 case "tags":
                     return (t, s) => SelectTargetToken(t.Tags, s);
+                case "deviceid":
+                    return (t, s) => JToken.FromObject(t.Id);
+                case "moduleid":
+                    return (t, s) => JToken.FromObject(t.ModuleId);
                 case "reported":
                     return (t, s) => SelectTargetToken(t.Properties.Reported, s);
                 case "desired":
