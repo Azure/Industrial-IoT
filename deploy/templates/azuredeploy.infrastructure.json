@@ -821,7 +821,7 @@
             "name": "[concat(parameters('eventHubName'), '/events/', variables('eventHubConsumerGroup1'))]",
             "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
             "dependsOn": [
-                "[variables('eventHubNamespaceResourceId')]"
+                "[variables('eventHubResourceId')]"
             ]
         },
         {
@@ -830,7 +830,7 @@
             "name": "[concat(parameters('eventHubName'), '/events/', variables('eventHubConsumerGroup2'))]",
             "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
             "dependsOn": [
-                "[variables('eventHubNamespaceResourceId')]"
+                "[variables('eventHubResourceId')]"
             ]
         },
 		
