@@ -28,7 +28,6 @@ Azure Industrial IoT OPC UA Registry Service
 * Endpoints : Activate, Deactivate and Query endpoint resources
 * Gateways : Read, Update and Query Gateway resources
 * Publishers : Read, Update and Query publisher resources
-* Status : Status checks
 * Supervisors : Read, Update and Query supervisor resources
 
 
@@ -411,51 +410,6 @@ Get a list of applications filtered using the specified query parameters. The re
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[ApplicationInfoListApiModel](definitions.md#applicationinfolistapimodel)|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
-
-
-##### Produces
-
-* `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
-<a name="queryapplicationsbyid"></a>
-#### Query applications by id.
-```
-POST /v2/applications/querybyid
-```
-
-
-##### Description
-A query model which supports the OPC UA Global Discovery Server query.
-
-
-##### Parameters
-
-|Type|Name|Schema|
-|---|---|---|
-|**Body**|**body**  <br>*optional*|[ApplicationRecordQueryApiModel](definitions.md#applicationrecordqueryapimodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[ApplicationRecordListApiModel](definitions.md#applicationrecordlistapimodel)|
 
 
 ##### Consumes
@@ -1933,7 +1887,7 @@ Get a list of publishers filtered using the specified query parameters. The retu
 |**Query**|**connected**  <br>*optional*|Included connected or disconnected|boolean|
 |**Query**|**onlyServerState**  <br>*optional*|Whether to include only server state, or display current client state of the endpoint if available|boolean|
 |**Query**|**pageSize**  <br>*optional*|Number of results to return|integer (int32)|
-|**Query**|**siteId**  <br>*optional*|Site of the publisher|string|
+|**Query**|**siteId**  <br>*optional*|Site for the publishers|string|
 
 
 ##### Responses
@@ -2032,30 +1986,6 @@ Allows a caller to configure operations on the publisher module identified by th
 |Type|Name|Scopes|
 |---|---|---|
 |**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
-<a name="status_resource"></a>
-### Status
-Status checks
-
-
-<a name="getstatus"></a>
-#### Return the service status in the form of the service status api model.
-```
-GET /v2/status
-```
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[StatusResponseApiModel](definitions.md#statusresponseapimodel)|
-
-
-##### Produces
-
-* `application/json`
 
 
 <a name="supervisors_resource"></a>
@@ -2239,7 +2169,7 @@ Get a list of supervisors filtered using the specified query parameters. The ret
 |**Query**|**connected**  <br>*optional*|Included connected or disconnected|boolean|
 |**Query**|**onlyServerState**  <br>*optional*|Whether to include only server state, or display current client state of the endpoint if available|boolean|
 |**Query**|**pageSize**  <br>*optional*|Number of results to return|integer (int32)|
-|**Query**|**siteId**  <br>*optional*|Site of the supervisor|string|
+|**Query**|**siteId**  <br>*optional*|Site for the supervisors|string|
 
 
 ##### Responses

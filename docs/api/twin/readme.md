@@ -26,7 +26,6 @@ Azure Industrial IoT OPC UA Twin Service
 * Browse : Browse nodes services
 * Call : Call node method services
 * Read : Node read services
-* Status : Status checks
 * Write : Node writing services
 
 
@@ -484,30 +483,6 @@ Read attributes of a node. The endpoint must be activated and connected and the 
 |Type|Name|Scopes|
 |---|---|---|
 |**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
-<a name="status_resource"></a>
-### Status
-Status checks
-
-
-<a name="getstatus"></a>
-#### Return the service status in the form of the service status api model.
-```
-GET /v2/status
-```
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[StatusResponseApiModel](definitions.md#statusresponseapimodel)|
-
-
-##### Produces
-
-* `application/json`
 
 
 <a name="write_resource"></a>
