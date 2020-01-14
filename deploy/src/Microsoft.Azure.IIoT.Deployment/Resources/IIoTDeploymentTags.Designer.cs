@@ -115,7 +115,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to 2.5.1.
+        ///   Looks up a localized string similar to 2.5.2.
         /// </summary>
         internal static string VALUE_VERSION_IIOT {
             get {

@@ -6,7 +6,7 @@ metadata:
   labels:
     app.kubernetes.io/name: registry-service
     app.kubernetes.io/part-of: industrial-iot
-    app.kubernetes.io/version: 2.5.1
+    app.kubernetes.io/version: 2.5.2
     app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
 spec:
   replicas: 1
@@ -19,13 +19,13 @@ spec:
       labels:
         app.kubernetes.io/name: registry-service
         app.kubernetes.io/part-of: industrial-iot
-        app.kubernetes.io/version: 2.5.1
+        app.kubernetes.io/version: 2.5.2
         app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
     spec:
       serviceAccountName: industrial-iot-serviceaccount
       containers:
       - name: registry-service-container
-        image: mcr.microsoft.com/iot/opc-registry-service:2.5.1
+        image: mcr.microsoft.com/iot/opc-registry-service:2.5.2
         resources:
           requests:
             memory: "64Mi"
