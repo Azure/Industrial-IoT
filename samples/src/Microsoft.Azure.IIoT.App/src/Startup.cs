@@ -90,8 +90,6 @@ namespace Microsoft.Azure.IIoT.App {
             app.UseStaticFiles();
             app.UseRouting();
 
-            app.UseRewriter();
-
             app.UseRewriter(
                 new RewriteOptions().Add(
                     context => {

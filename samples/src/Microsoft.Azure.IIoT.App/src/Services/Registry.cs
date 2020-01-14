@@ -34,8 +34,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
             try {
                 var model = new EndpointRegistrationQueryApiModel();
-                model.DiscovererId = discovererId == "null" ? null : discovererId;
-                model.ApplicationId = applicationId == "null" ? null : applicationId;
+                model.DiscovererId = discovererId == PathAll ? null : discovererId;
+                model.ApplicationId = applicationId == PathAll ? null : applicationId;
 
                 var endpoints = await _registryService.QueryAllEndpointsAsync(model);
                 foreach (var endpoint in endpoints) {
@@ -191,5 +191,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
         private readonly IRegistryServiceApi _registryService;
         private const int _5MINUTES = 300;
+        public string PathAll = "All";
     }
 }

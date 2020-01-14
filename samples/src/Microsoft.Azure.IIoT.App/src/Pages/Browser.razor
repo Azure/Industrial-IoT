@@ -23,16 +23,20 @@
 
 <h1>Endpoint Control</h1>
 
-<div>@discovererId/@applicationId/@endpointId@BrowseManager.Path</div>
+<div>
+    @{ string discover = discovererId == RegistryHelper.PathAll ? string.Empty : discovererId; }
+    @{ string application = applicationId == RegistryHelper.PathAll ? string.Empty : applicationId; }
+    @discover/@application/@endpointId@BrowseManager.Path
+</div>
 
 <table class="table">
     <thead>
         <tr>
             <th>Name</th>
-            <th>NodeId</th>
-            <th>NodeType</th>
+            <th>Node Id</th>
+            <th>Node Type</th>
             <th>Value</th>
-	        <th>Publishing</th>
+            <th>Publishing</th>
             <th>
                 @if (PagedNodeList.Results.Count > 0)
                 {
@@ -82,21 +86,21 @@
                     <td>@node.NodeClass</td>
                 }
                 @if (node.NodeClass == NodeClass.Variable && (node.AccessLevel == NodeAccessLevel.CurrentRead || node.AccessLevel == NodeAccessLevel.CurrentWrite ||
-                    node.AccessLevel == (NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite)))
+                 node.AccessLevel == (NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite)))
                 {
                     <td>
                         <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
                             @{string output = $"{node.Value} ({node.DataType})";}
-                        @output
+                            @output
                         </a>
                     </td>
                 }
-		        else
-	            {
-	                <td>N/A</td>
-	            }
+                else
+                {
+                    <td>N/A</td>
+                }
 
-		        @if (node.NodeClass == NodeClass.Variable)
+                @if (node.NodeClass == NodeClass.Variable)
                 {
                     <td>
                         <input type="checkbox" checked=@node.Publishing @onchange="@((EventArgs) => SetPublishing(endpointId, node, EventArgs))" />
@@ -128,10 +132,10 @@
     public string discovererId { get; set; } = string.Empty;
 
     [Parameter]
-    public string endpointId { get; set; } = "null";
+    public string endpointId { get; set; } = string.Empty;
 
     [Parameter]
-    public string applicationId { get; set; } = "null";
+    public string applicationId { get; set; } = string.Empty;
 
     [Parameter]
     public string Page { get; set; } = "1";

@@ -16,23 +16,26 @@
 
 <h1>Endpoints</h1>
 
-<div>@DiscovererId</div>
+<div>
+    @{ string discover = DiscovererId == RegistryHelper.PathAll ? string.Empty : DiscovererId; }
+    @discover
+</div>
 
 <table class="table">
     <thead>
         <tr>
-            <th>EndpointUrl</th>
-            <th>SecurityMode</th>
-            <th>SecurityPolicy</th>
-            <th>SecurityLevel</th>
-            <th>EndpointActivation</th>
+            <th>Endpoint Url</th>
+            <th>Security Mode</th>
+            <th>Security Policy</th>
+            <th>Security Level</th>
+            <th>Activation Status</th>
             <th>
-                @if ((DiscovererId != null) && (DiscovererId != "null")) {
+                @if ((DiscovererId != null) && (DiscovererId != @RegistryHelper.PathAll)) {
                     <a href="/discoverers/">
                         <span class="oi oi-arrow-left"></span>
                     </a>
                 }
-                else if ((ApplicationId != null) && (ApplicationId != "null")) {
+                else if ((ApplicationId != null) && (ApplicationId != @RegistryHelper.PathAll)) {
                     <a href="/applications/">
                         <span class="oi oi-arrow-left"></span>
                     </a>
@@ -46,8 +49,8 @@
                 @if (endpoint.ActivationState == EndpointActivationState.ActivatedAndConnected ||
                      endpoint.ActivationState == EndpointActivationState.Activated) {
                 <td>
-                    @{ string discover = DiscovererId == null ? "null" : DiscovererId; } 
-                    @{ string application = ApplicationId == null ? "null" : ApplicationId; }
+                    @{ discover = DiscovererId == null ? RegistryHelper.PathAll : DiscovererId; } 
+                    @{ string application = ApplicationId == null ? RegistryHelper.PathAll : ApplicationId; }
                     <a href='browser/@discover/@application/@endpoint.Registration.Id'>
                         @endpoint.Registration.Endpoint.Url
                     </a>
@@ -88,10 +91,10 @@
     public string Page { get; set; } = "1";
 
     [Parameter]
-    public string DiscovererId { get; set; } = "null";
+    public string DiscovererId { get; set; } = string.Empty;
 
     [Parameter]
-    public string ApplicationId { get; set; } = "null";
+    public string ApplicationId { get; set; } = string.Empty;
 
     public const int PageLength = 10;
 
