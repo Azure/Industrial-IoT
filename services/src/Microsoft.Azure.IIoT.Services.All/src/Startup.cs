@@ -126,7 +126,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// <summary>
         /// Injected processor host
         /// </summary>
-        private sealed class ProcessorHost : IHostProcess, IStartable, IDisposable, IHealthCheck {
+        private sealed class ProcessorHost : IHostProcess, IDisposable, IHealthCheck {
 
             /// <inheritdoc/>
             public void Start() {
