@@ -31,7 +31,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
         /// <inheritdoc/>
         public string EventHubPath => _eh.EventHubPath;
         /// <inheritdoc/>
-        //public string ConsumerGroup => _eh.ConsumerGroup;
         public string ConsumerGroup => "events";
         /// <inheritdoc/>
         public bool UseWebsockets => _eh.UseWebsockets;

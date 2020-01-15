@@ -193,7 +193,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
                      sw.Elapsed, errorMessage);
             }
             finally {                
-                _cacheList.Clear();
+                _cacheList!.Clear();
             }
             sw.Stop();
         }
