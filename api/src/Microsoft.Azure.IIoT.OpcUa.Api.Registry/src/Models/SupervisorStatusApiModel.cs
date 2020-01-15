@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using System.Collections.Generic;
     using System.ComponentModel;
     using System.ComponentModel.DataAnnotations;
-    using System.Linq;
 
     /// <summary>
     /// Supervisor runtime status

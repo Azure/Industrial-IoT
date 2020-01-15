@@ -6,9 +6,6 @@
 namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Models {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Api.Jobs.Models;
-    using Newtonsoft.Json;
-    using System.ComponentModel;
-    using System.ComponentModel.DataAnnotations;
     using System.Linq;
 
     /// <summary>

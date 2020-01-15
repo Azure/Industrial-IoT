@@ -4,8 +4,6 @@
 // ------------------------------------------------------------
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     /// <summary>

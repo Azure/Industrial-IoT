@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System.ComponentModel;
-    using System;
 
     /// <summary>
     /// Service result

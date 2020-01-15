@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
     using System.ComponentModel.DataAnnotations;
     using Newtonsoft.Json.Linq;
-    using System;
 
     /// <summary>
     /// Attribute and value to write to it

@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Vault;
     using Microsoft.Azure.IIoT.Services.Auth;
     using Microsoft.Azure.IIoT.Services.Auth.Clients;
     using Microsoft.Azure.IIoT.Services.Cors;

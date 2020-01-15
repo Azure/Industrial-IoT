@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Models {
     using Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models;
     using System;
     using System.Linq;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Model conversion extensions

@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Mock {
-    using Microsoft.Azure.IIoT.Hub.Models;
     using System.Collections.Generic;
 
     /// <summary>

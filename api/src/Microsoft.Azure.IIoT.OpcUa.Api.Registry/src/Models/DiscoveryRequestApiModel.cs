@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
     using System.ComponentModel;
-    using System;
 
     /// <summary>
     /// Discovery request

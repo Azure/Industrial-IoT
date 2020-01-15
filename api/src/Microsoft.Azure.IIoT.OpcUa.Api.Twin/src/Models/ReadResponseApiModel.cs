@@ -5,9 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
-    using System;
     using System.Collections.Generic;
-    using System.Linq;
 
     /// <summary>
     /// Result of attribute reads

@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
     using System.ComponentModel.DataAnnotations;
-    using System;
 
     /// <summary>
     /// Role permission model

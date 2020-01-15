@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
 

@@ -8,7 +8,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;

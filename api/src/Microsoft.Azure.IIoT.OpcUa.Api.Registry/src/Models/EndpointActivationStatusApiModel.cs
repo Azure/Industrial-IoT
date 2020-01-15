@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
     using System.ComponentModel.DataAnnotations;
-    using System;
 
     /// <summary>
     /// Endpoint Activation status model

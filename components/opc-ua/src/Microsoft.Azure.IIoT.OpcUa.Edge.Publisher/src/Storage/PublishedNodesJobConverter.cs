@@ -18,7 +18,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using Serilog;
     using System.Diagnostics;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
-    using System.Diagnostics.CodeAnalysis;
 
     /// <summary>
     /// Published nodes

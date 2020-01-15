@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using System;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
-    using System.Linq;
 
     /// <summary>
     /// Node model
