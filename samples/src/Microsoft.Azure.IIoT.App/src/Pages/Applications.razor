@@ -25,7 +25,7 @@
         @foreach (var application in pagedapplicationList.Results) {
         <tr>
             <td>
-                <a href='application/@application.ApplicationId'>
+                <a href='endpoints/@RegistryHelper.PathAll/@application.ApplicationId'>
                     @application.ApplicationName
                 </a>
             </td>
@@ -42,6 +42,7 @@
 
     [Parameter]
     public string Page { get; set; } = "1";
+
     public const int PageLength = 10;
 
     /// <summary>

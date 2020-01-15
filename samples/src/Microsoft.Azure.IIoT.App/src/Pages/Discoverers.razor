@@ -24,8 +24,8 @@
             <th>Discovery Module Id</th>
             <th>Connection Status</th>
             <th>Scan Status</th>
-            <th>ScanMask</th>
-            <th>PortRange</th>
+            <th>Scan Mask</th>
+            <th>Port Range</th>
         </tr>
     </thead>
     <tbody>
@@ -36,7 +36,7 @@
                 @if (discoverer.HasApplication == true)
                 {
                     <td>
-                        <a href='endpoints/@discoverer.DiscovererModel.Id'>
+                        <a href='endpoints/@discoverer.DiscovererModel.Id/@RegistryHelper.PathAll'>
                             @discoverer.DiscovererModel.Id
                         </a>
                     </td>
@@ -50,10 +50,16 @@
                     @connectStatus
                 </td>
                 <td>
-                    <input type="checkbox" @bind="@discoverer.ScanStatus" @onclick="@(() => SetScan(discoverer, true,
-                                                                                                    discoverer.DiscovererModel.DiscoveryConfig?.AddressRangesToScan,
-                                                                                                    discoverer.DiscovererModel.DiscoveryConfig?.PortRangesToScan))" />
-                    @{string output = discoverer.ScanStatus == true ?  "On" : "Off";}
+                    @if (discoverer.DiscovererModel.Connected == true) {
+                        <input type="checkbox" enabled @bind="@discoverer.ScanStatus" @onclick="@(() => SetScan(discoverer, true,
+                                                                                                                discoverer.DiscovererModel.DiscoveryConfig?.AddressRangesToScan,
+                                                                                                                discoverer.DiscovererModel.DiscoveryConfig?.PortRangesToScan))" />
+                    }
+                    else {
+                        <input type="checkbox" disabled @bind="@discoverer.ScanStatus" />
+                    }
+                    
+                    @{string output = discoverer.ScanStatus == true ? "On" : "Off";}
                     @output
                     @if (discoverer.IsSearching)
                     {
@@ -130,6 +136,7 @@
     public const int PageLength = 10;
     private string _eventResult { get; set; }
     private string _scanResult { get; set; } = "hidden";
+    private IAsyncDisposable _discovererEvent { get; set; }
 
 
     /// <summary>
@@ -151,6 +158,7 @@
         discovererList = await RegistryHelper.GetDiscovererListAsync();
         Page = "1";
         pagedDiscovererList = discovererList.GetPaged(Int32.Parse(Page), PageLength);
+        _discovererEvent = await RegistryServiceEvents.SubscribeDiscovererEventsAsync(null, DiscovererEvent);
     }
 
     /// <summary>
@@ -276,4 +284,23 @@
         StateHasChanged();
         return Task.CompletedTask;
     }
+
+    /// <summary>
+    /// refresh UI on DiscovererEvent
+    /// </summary>
+    /// <param name="ev"></param>
+    private Task DiscovererEvent(DiscovererEventApiModel ev)
+    {
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    public async void Dispose()
+    {
+        if (_discovererEvent != null)
+        {
+            await _discovererEvent.DisposeAsync();
+        }
+    }
+
 }

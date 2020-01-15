@@ -1,6 +1,6 @@
-﻿@page "/browser/{endpointId}"
-@page "/browser/{discovererId}/{endpointId}"
-@page "/browser/{discovererId}/{endpointId}/{page}"
+﻿@page "/browser/{applicationId}/{endpointId}"
+@page "/browser/{discovererId}/{applicationId}/{endpointId}"
+@page "/browser/{discovererId}/{applicationId}/{endpointId}/{page}"
 
 
 @using Microsoft.Azure.IIoT.App.Services
@@ -18,21 +18,26 @@
 @inject Services.Browser BrowseManager
 @inject Services.Publisher Publisher
 @inject PublisherServiceEvents PublisherServiceEvents
+@inject Registry RegistryHelper
 
 @implements IDisposable
 
 <h1>Endpoint Control</h1>
 
-<div>@discovererId/@endpointId/@BrowseManager.Path</div>
+<div>
+    @{ string discover = discovererId == RegistryHelper.PathAll ? string.Empty : discovererId; }
+    @{ string application = applicationId == RegistryHelper.PathAll ? string.Empty : applicationId; }
+    @discover/@application/@endpointId@BrowseManager.Path
+</div>
 
 <table class="table">
     <thead>
         <tr>
             <th>Name</th>
-            <th>NodeId</th>
-            <th>NodeType</th>
+            <th>Node Id</th>
+            <th>Node Type</th>
             <th>Value</th>
-	    <th>Publishing</th>
+            <th>Publishing</th>
             <th>
                 @if (PagedNodeList.Results.Count > 0)
                 {
@@ -46,7 +51,7 @@
                     {
                         if (PagedNodeList.Results[0].DiscovererId != null)
                         {
-                            <a href='endpoints/@PagedNodeList.Results[0].DiscovererId'>
+                            <a href='endpoints/@PagedNodeList.Results[0].DiscovererId/@applicationId'>
                                 <span class="oi oi-arrow-left"></span>
                             </a>
                         }
@@ -82,21 +87,21 @@
                     <td>@node.NodeClass</td>
                 }
                 @if (node.NodeClass == NodeClass.Variable && (node.AccessLevel == NodeAccessLevel.CurrentRead || node.AccessLevel == NodeAccessLevel.CurrentWrite ||
-                    node.AccessLevel == (NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite)))
+               node.AccessLevel == (NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite)))
                 {
                     <td>
                         <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
                             @{string output = $"{node.Value} ({node.DataType})";}
-                        @output
+                            @output
                         </a>
                     </td>
                 }
-		        else
-	            {
-	                <td>N/A</td>
-	            }
+                else
+                {
+                    <td>N/A</td>
+                }
 
-		        @if (node.NodeClass == NodeClass.Variable)
+                @if (node.NodeClass == NodeClass.Variable)
                 {
                     <td>
                         <input type="checkbox" checked=@node.Publishing @onchange="@((EventArgs) => SetPublishing(endpointId, node, EventArgs))" />
@@ -128,7 +133,10 @@
     public string discovererId { get; set; } = string.Empty;
 
     [Parameter]
-    public string endpointId { get; set; }
+    public string endpointId { get; set; } = string.Empty;
+
+    [Parameter]
+    public string applicationId { get; set; } = string.Empty;
 
     [Parameter]
     public string Page { get; set; } = "1";
@@ -156,7 +164,7 @@
                 node.Value = await BrowseManager.ReadValueAsync(endpointId, node.Id);
             }
         }
-        NavigationManager.NavigateTo("/browser/" + discovererId + "/" + endpointId + "/" + page);
+        NavigationManager.NavigateTo("/browser/" + discovererId + "/" + applicationId + "/" + endpointId + "/" + page);
     }
 
     /// <summary>
@@ -194,7 +202,7 @@
     private async Task GetTreeBackAsync(string id, List<string> parentId)
     {
         await BrowseTreeAsync(id, parentId, BrowseDirection.Backward);
-        NavigationManager.NavigateTo("/browser/" + discovererId + "/" + endpointId);
+        NavigationManager.NavigateTo("/browser/" + discovererId + "/" + applicationId + "/" + endpointId);
     }
 
     /// <summary>

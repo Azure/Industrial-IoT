@@ -35,6 +35,7 @@ namespace Microsoft.Azure.IIoT.App {
     using System;
     using System.Threading.Tasks;
     using System.Security.Claims;
+    using Microsoft.AspNetCore.Rewrite;
 
     /// <summary>
     /// Webapp startup
@@ -88,6 +89,13 @@ namespace Microsoft.Azure.IIoT.App {
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
+
+            app.UseRewriter(
+                new RewriteOptions().Add(
+                    context => {
+                        if (context.HttpContext.Request.Path == "/AzureAD/Account/SignedOut") { context.HttpContext.Response.Redirect("/"); }
+                    })
+            );
 
             app.UseAuthentication();
             app.UseAuthorization();

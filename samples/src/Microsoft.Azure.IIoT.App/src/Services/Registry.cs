@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
     using System;
+    using System.Linq;
     using System.Diagnostics;
     using System.Threading.Tasks;
 
@@ -27,25 +28,18 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="discovererId"></param>
         /// <returns>EndpointInfoApiModel</returns>
         public async Task<PagedResult<EndpointInfoApiModel>> GetEndpointListAsync(
-            string discovererId) {
+            string discovererId, string applicationId) {
 
-            // TODO Use query
             var pageResult = new PagedResult<EndpointInfoApiModel>();
 
             try {
-                var endpoints = await _registryService.ListAllEndpointsAsync();
+                var model = new EndpointRegistrationQueryApiModel();
+                model.DiscovererId = discovererId == PathAll ? null : discovererId;
+                model.ApplicationId = applicationId == PathAll ? null : applicationId;
 
-                var allApplications = await _registryService.ListAllApplicationsAsync();
-                if (allApplications != null) {
-                    foreach (var application in allApplications) {
-                        if (application.DiscovererId == discovererId) {
-                            foreach (var endpoint in endpoints) {
-                                if (endpoint.ApplicationId == application.ApplicationId) {
-                                    pageResult.Results.Add(endpoint);
-                                }
-                            }
-                        }
-                    }
+                var endpoints = await _registryService.QueryAllEndpointsAsync(model);
+                foreach (var endpoint in endpoints) {
+                    pageResult.Results.Add(endpoint);
                 }
             }
             catch (Exception e) {
@@ -68,22 +62,30 @@ namespace Microsoft.Azure.IIoT.App.Services {
             var pageResult = new PagedResult<DiscovererInfo>();
 
             try {
-                var discoverers = await _registryService.ListAllDiscoverersAsync();
-                var applications = await _registryService.ListAllApplicationsAsync();
+                var discovererModel = new DiscovererQueryApiModel();
+                var applicationModel = new ApplicationRegistrationQueryApiModel();
+                var discoverers = await _registryService.QueryAllDiscoverersAsync(discovererModel);
 
                 if (discoverers != null) {
-                    foreach (var discoverer in discoverers) {
-                        var info = new DiscovererInfo {
-                            DiscovererModel = discoverer,
-                            HasApplication = false,
-                            ScanStatus = (discoverer.Discovery == DiscoveryMode.Off) || (discoverer.Discovery == null) ? false : true
-                        };
-                        foreach (var application in applications) {
-                            if (application.DiscovererId == discoverer.Id) {
+                    if (discoverers.Count() > 0) {
+                        foreach (var discoverer in discoverers) {
+                            var info = new DiscovererInfo {
+                                DiscovererModel = discoverer,
+                                HasApplication = false,
+                                ScanStatus = (discoverer.Discovery == DiscoveryMode.Off) || (discoverer.Discovery == null) ? false : true
+                            };
+                            applicationModel.DiscovererId = discoverer.Id;
+                            var applications = await _registryService.QueryAllApplicationsAsync(applicationModel);
+                            if (applications != null) {
                                 info.HasApplication = true;
                             }
+                            pageResult.Results.Add(info);
                         }
-                        pageResult.Results.Add(info);
+                    }
+                    else {
+                        pageResult.Results.Add(new DiscovererInfo {
+                            DiscovererModel = new DiscovererApiModel { Id = "No Discoveres Found" }
+                        });
                     }
                 }
             }
@@ -110,7 +112,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
             var pageResult = new PagedResult<ApplicationInfoApiModel>();
 
             try {
-                var applications = await _registryService.ListAllApplicationsAsync();
+                var applicationModel = new ApplicationRegistrationQueryApiModel();
+                var applications = await _registryService.QueryAllApplicationsAsync(applicationModel);
 
                 if (applications != null) {
                     foreach (var application in applications) {
@@ -188,5 +191,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
         private readonly IRegistryServiceApi _registryService;
         private const int _5MINUTES = 300;
+        public string PathAll = "All";
     }
 }
