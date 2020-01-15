@@ -18,6 +18,7 @@
 @inject Services.Browser BrowseManager
 @inject Services.Publisher Publisher
 @inject PublisherServiceEvents PublisherServiceEvents
+@inject Registry RegistryHelper
 
 @implements IDisposable
 
@@ -86,7 +87,7 @@
                     <td>@node.NodeClass</td>
                 }
                 @if (node.NodeClass == NodeClass.Variable && (node.AccessLevel == NodeAccessLevel.CurrentRead || node.AccessLevel == NodeAccessLevel.CurrentWrite ||
-                 node.AccessLevel == (NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite)))
+               node.AccessLevel == (NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite)))
                 {
                     <td>
                         <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
