@@ -54,7 +54,6 @@ from .replace_values_details_api_model import ReplaceValuesDetailsApiModel
 from .replace_values_details_api_model_history_update_request_api_model import ReplaceValuesDetailsApiModelHistoryUpdateRequestApiModel
 from .replace_events_details_api_model import ReplaceEventsDetailsApiModel
 from .replace_events_details_api_model_history_update_request_api_model import ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel
-from .status_response_api_model import StatusResponseApiModel
 from .historic_event_api_model_history_read_response_api_model import HistoricEventApiModelHistoryReadResponseApiModel
 from .historic_event_api_model_history_read_next_response_api_model import HistoricEventApiModelHistoryReadNextResponseApiModel
 from .historic_value_api_model_history_read_response_api_model import HistoricValueApiModelHistoryReadResponseApiModel
@@ -113,7 +112,6 @@ __all__ = [
     'ReplaceValuesDetailsApiModelHistoryUpdateRequestApiModel',
     'ReplaceEventsDetailsApiModel',
     'ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel',
-    'StatusResponseApiModel',
     'HistoricEventApiModelHistoryReadResponseApiModel',
     'HistoricEventApiModelHistoryReadNextResponseApiModel',
     'HistoricValueApiModelHistoryReadResponseApiModel',

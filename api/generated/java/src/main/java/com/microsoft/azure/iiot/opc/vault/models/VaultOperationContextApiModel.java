@@ -26,7 +26,7 @@ public class VaultOperationContextApiModel {
     /**
      * Operation time.
      */
-    @JsonProperty(value = "time", required = true)
+    @JsonProperty(value = "time")
     private DateTime time;
 
     /**

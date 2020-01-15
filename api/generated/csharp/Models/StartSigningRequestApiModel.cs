@@ -10,7 +10,6 @@
 
 namespace Microsoft.Azure.IIoT.Opc.Vault.Models
 {
-    using Microsoft.Rest;
     using Newtonsoft.Json;
     using System.Linq;
 
@@ -36,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// for</param>
         /// <param name="groupId">Certificate group id</param>
         /// <param name="certificateRequest">Request</param>
-        public StartSigningRequestApiModel(string entityId, string groupId, object certificateRequest)
+        public StartSigningRequestApiModel(string entityId = default(string), string groupId = default(string), object certificateRequest = default(object))
         {
             EntityId = entityId;
             GroupId = groupId;
@@ -67,26 +66,5 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         [JsonProperty(PropertyName = "certificateRequest")]
         public object CertificateRequest { get; set; }
 
-        /// <summary>
-        /// Validate the object.
-        /// </summary>
-        /// <exception cref="ValidationException">
-        /// Thrown if validation fails
-        /// </exception>
-        public virtual void Validate()
-        {
-            if (EntityId == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "EntityId");
-            }
-            if (GroupId == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "GroupId");
-            }
-            if (CertificateRequest == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "CertificateRequest");
-            }
-        }
     }
 }

@@ -1311,97 +1311,6 @@ module azure.iiot.opc.registry
     end
 
     #
-    # Query applications by id.
-    #
-    # A query model which supports the OPC UA Global Discovery Server query.
-    #
-    # @param body [ApplicationRecordQueryApiModel]
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [ApplicationRecordListApiModel] operation results.
-    #
-    def query_applications_by_id(body:nil, custom_headers:nil)
-      response = query_applications_by_id_async(body:body, custom_headers:custom_headers).value!
-      response.body unless response.nil?
-    end
-
-    #
-    # Query applications by id.
-    #
-    # A query model which supports the OPC UA Global Discovery Server query.
-    #
-    # @param body [ApplicationRecordQueryApiModel]
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def query_applications_by_id_with_http_info(body:nil, custom_headers:nil)
-      query_applications_by_id_async(body:body, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Query applications by id.
-    #
-    # A query model which supports the OPC UA Global Discovery Server query.
-    #
-    # @param body [ApplicationRecordQueryApiModel]
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def query_applications_by_id_async(body:nil, custom_headers:nil)
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-
-      # Serialize Request
-      request_mapper = azure.iiot.opc.registry::Models::ApplicationRecordQueryApiModel.mapper()
-      request_content = self.serialize(request_mapper,  body)
-      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
-
-      path_template = 'v2/applications/querybyid'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          body: request_content,
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:post, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-        # Deserialize Response
-        if status_code == 200
-          begin
-            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.registry::Models::ApplicationRecordListApiModel.mapper()
-            result.body = self.deserialize(result_mapper, parsed_response)
-          rescue Exception => e
-            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
-          end
-        end
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
     # Subscribe for application events
     #
     # Register a client to receive application events through SignalR.
@@ -4505,7 +4414,7 @@ module azure.iiot.opc.registry
     # available. Call the GetListOfPublisher operation using the token to retrieve
     # more results.
     #
-    # @param site_id [String] Site of the publisher
+    # @param site_id [String] Site for the publishers
     # @param connected [Boolean] Included connected or disconnected
     # @param only_server_state [Boolean] Whether to include only server state, or
     # display current client state of the endpoint if available
@@ -4528,7 +4437,7 @@ module azure.iiot.opc.registry
     # available. Call the GetListOfPublisher operation using the token to retrieve
     # more results.
     #
-    # @param site_id [String] Site of the publisher
+    # @param site_id [String] Site for the publishers
     # @param connected [Boolean] Included connected or disconnected
     # @param only_server_state [Boolean] Whether to include only server state, or
     # display current client state of the endpoint if available
@@ -4550,7 +4459,7 @@ module azure.iiot.opc.registry
     # available. Call the GetListOfPublisher operation using the token to retrieve
     # more results.
     #
-    # @param site_id [String] Site of the publisher
+    # @param site_id [String] Site for the publishers
     # @param connected [Boolean] Included connected or disconnected
     # @param only_server_state [Boolean] Whether to include only server state, or
     # display current client state of the endpoint if available
@@ -4761,84 +4670,6 @@ module azure.iiot.opc.registry
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
 
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Return the service status in the form of the service status
-    # api model.
-    #
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [StatusResponseApiModel] operation results.
-    #
-    def get_status(custom_headers:nil)
-      response = get_status_async(custom_headers:custom_headers).value!
-      response.body unless response.nil?
-    end
-
-    #
-    # Return the service status in the form of the service status
-    # api model.
-    #
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def get_status_with_http_info(custom_headers:nil)
-      get_status_async(custom_headers:custom_headers).value!
-    end
-
-    #
-    # Return the service status in the form of the service status
-    # api model.
-    #
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def get_status_async(custom_headers:nil)
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v2/status'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:get, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-        # Deserialize Response
-        if status_code == 200
-          begin
-            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.registry::Models::StatusResponseApiModel.mapper()
-            result.body = self.deserialize(result_mapper, parsed_response)
-          rescue Exception => e
-            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
-          end
-        end
 
         result
       end
@@ -5414,7 +5245,7 @@ module azure.iiot.opc.registry
     # available. Call the GetListOfSupervisors operation using the token to
     # retrieve more results.
     #
-    # @param site_id [String] Site of the supervisor
+    # @param site_id [String] Site for the supervisors
     # @param connected [Boolean] Included connected or disconnected
     # @param only_server_state [Boolean] Whether to include only server state, or
     # display current client state of the endpoint if available
@@ -5437,7 +5268,7 @@ module azure.iiot.opc.registry
     # available. Call the GetListOfSupervisors operation using the token to
     # retrieve more results.
     #
-    # @param site_id [String] Site of the supervisor
+    # @param site_id [String] Site for the supervisors
     # @param connected [Boolean] Included connected or disconnected
     # @param only_server_state [Boolean] Whether to include only server state, or
     # display current client state of the endpoint if available
@@ -5459,7 +5290,7 @@ module azure.iiot.opc.registry
     # available. Call the GetListOfSupervisors operation using the token to
     # retrieve more results.
     #
-    # @param site_id [String] Site of the supervisor
+    # @param site_id [String] Site for the supervisors
     # @param connected [Boolean] Included connected or disconnected
     # @param only_server_state [Boolean] Whether to include only server state, or
     # display current client state of the endpoint if available

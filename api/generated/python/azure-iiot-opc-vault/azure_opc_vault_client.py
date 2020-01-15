@@ -879,53 +879,6 @@ class AzureOpcVaultClient(object):
         return deserialized
     list_requests.metadata = {'url': '/v2/requests'}
 
-    def get_status(
-            self, custom_headers=None, raw=False, **operation_config):
-        """Return the service status in the form of the service status
-        api model.
-
-        :param dict custom_headers: headers that will be added to the request
-        :param bool raw: returns the direct response alongside the
-         deserialized response
-        :param operation_config: :ref:`Operation configuration
-         overrides<msrest:optionsforoperations>`.
-        :return: StatusResponseApiModel or ClientRawResponse if raw=true
-        :rtype: ~azure-iiot-opc-vault.models.StatusResponseApiModel or
-         ~msrest.pipeline.ClientRawResponse
-        :raises:
-         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
-        """
-        # Construct URL
-        url = self.get_status.metadata['url']
-
-        # Construct parameters
-        query_parameters = {}
-
-        # Construct headers
-        header_parameters = {}
-        header_parameters['Content-Type'] = 'application/json; charset=utf-8'
-        if custom_headers:
-            header_parameters.update(custom_headers)
-
-        # Construct and send request
-        request = self._client.get(url, query_parameters)
-        response = self._client.send(request, header_parameters, stream=False, **operation_config)
-
-        if response.status_code not in [200]:
-            raise HttpOperationError(self._deserialize, response)
-
-        deserialized = None
-
-        if response.status_code == 200:
-            deserialized = self._deserialize('StatusResponseApiModel', response)
-
-        if raw:
-            client_raw_response = ClientRawResponse(deserialized, response)
-            return client_raw_response
-
-        return deserialized
-    get_status.metadata = {'url': '/v2/status'}
-
     def list_groups(
             self, next_page_link=None, page_size=None, custom_headers=None, raw=False, **operation_config):
         """Get information about all groups.

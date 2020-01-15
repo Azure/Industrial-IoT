@@ -11,7 +11,7 @@
 'use strict';
 
 /**
- * Application registration request
+ * Server registration request
  *
  */
 class ServerRegistrationRequestApiModel {

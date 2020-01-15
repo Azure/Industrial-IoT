@@ -10,7 +10,7 @@
 module azure.iiot.opc.registry
   module Models
     #
-    # Discovery configuration
+    # Discovery configuration api model
     #
     class DiscoveryConfigApiModel
       # @return [String] Address ranges to scan (null == all wired nics)

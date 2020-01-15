@@ -16,7 +16,6 @@ import (
     "context"
     "github.com/Azure/go-autorest/autorest"
     "github.com/Azure/go-autorest/autorest/azure"
-    "github.com/Azure/go-autorest/autorest/validation"
     "github.com/Azure/go-autorest/tracing"
     "net/http"
 )
@@ -272,15 +271,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-                if err := validation.Validate([]validation.Validation{
-                { TargetValue: body,
-                 Constraints: []validation.Constraint{	{Target: "body.Name", Name: validation.Null, Rule: true, Chain: nil },
-                	{Target: "body.ParentID", Name: validation.Null, Rule: true, Chain: nil },
-                	{Target: "body.SubjectName", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
-                return result, validation.NewError("azureiiotopcvault.BaseClient", "CreateGroup", err.Error())
-                }
-
-                    req, err := client.CreateGroupPreparer(ctx, body)
+            req, err := client.CreateGroupPreparer(ctx, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopcvault.BaseClient", "CreateGroup", nil , "Failure preparing request")
         return
@@ -346,15 +337,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-                if err := validation.Validate([]validation.Validation{
-                { TargetValue: body,
-                 Constraints: []validation.Constraint{	{Target: "body.Name", Name: validation.Null, Rule: true, Chain: nil },
-                	{Target: "body.SubjectName", Name: validation.Null, Rule: true, Chain: nil },
-                	{Target: "body.Lifetime", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
-                return result, validation.NewError("azureiiotopcvault.BaseClient", "CreateRoot", err.Error())
-                }
-
-                    req, err := client.CreateRootPreparer(ctx, body)
+            req, err := client.CreateRootPreparer(ctx, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopcvault.BaseClient", "CreateRoot", nil , "Failure preparing request")
         return
@@ -1123,68 +1106,6 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // GetStatus sends the get status request.
-    func (client BaseClient) GetStatus(ctx context.Context) (result StatusResponseAPIModel, err error) {
-        if tracing.IsEnabled() {
-            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetStatus")
-            defer func() {
-                sc := -1
-                if result.Response.Response != nil {
-                    sc = result.Response.Response.StatusCode
-                }
-                tracing.EndSpan(ctx, sc, err)
-            }()
-        }
-            req, err := client.GetStatusPreparer(ctx)
-        if err != nil {
-        err = autorest.NewErrorWithError(err, "azureiiotopcvault.BaseClient", "GetStatus", nil , "Failure preparing request")
-        return
-        }
-
-                resp, err := client.GetStatusSender(req)
-                if err != nil {
-                result.Response = autorest.Response{Response: resp}
-                err = autorest.NewErrorWithError(err, "azureiiotopcvault.BaseClient", "GetStatus", resp, "Failure sending request")
-                return
-                }
-
-                result, err = client.GetStatusResponder(resp)
-                if err != nil {
-                err = autorest.NewErrorWithError(err, "azureiiotopcvault.BaseClient", "GetStatus", resp, "Failure responding to request")
-                }
-
-        return
-        }
-
-        // GetStatusPreparer prepares the GetStatus request.
-        func (client BaseClient) GetStatusPreparer(ctx context.Context) (*http.Request, error) {
-            preparer := autorest.CreatePreparer(
-        autorest.AsGet(),
-        autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPath("/v2/status"))
-        return preparer.Prepare((&http.Request{}).WithContext(ctx))
-        }
-
-        // GetStatusSender sends the GetStatus request. The method will close the
-        // http.Response Body if it receives an error.
-        func (client BaseClient) GetStatusSender(req *http.Request) (*http.Response, error) {
-            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-                return autorest.SendWithSender(client, req, sd...)
-                }
-
-    // GetStatusResponder handles the response to the GetStatus request. The method always
-    // closes the http.Response Body.
-    func (client BaseClient) GetStatusResponder(resp *http.Response) (result StatusResponseAPIModel, err error) {
-        err = autorest.Respond(
-        resp,
-        client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK),
-        autorest.ByUnmarshallingJSON(&result),
-        autorest.ByClosing())
-        result.Response = autorest.Response{Response: resp}
-            return
-        }
-
     // ListGroups a trust group has a root certificate which issues certificates to
     // entities. Entities can be part of a trust group and thus trust the root
     // certificate and all entities that the root has issued certificates for.
@@ -1830,15 +1751,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-                if err := validation.Validate([]validation.Validation{
-                { TargetValue: body,
-                 Constraints: []validation.Constraint{	{Target: "body.EntityID", Name: validation.Null, Rule: true, Chain: nil },
-                	{Target: "body.GroupID", Name: validation.Null, Rule: true, Chain: nil },
-                	{Target: "body.SubjectName", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
-                return result, validation.NewError("azureiiotopcvault.BaseClient", "StartNewKeyPairRequest", err.Error())
-                }
-
-                    req, err := client.StartNewKeyPairRequestPreparer(ctx, body)
+            req, err := client.StartNewKeyPairRequestPreparer(ctx, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopcvault.BaseClient", "StartNewKeyPairRequest", nil , "Failure preparing request")
         return
@@ -1905,15 +1818,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-                if err := validation.Validate([]validation.Validation{
-                { TargetValue: body,
-                 Constraints: []validation.Constraint{	{Target: "body.EntityID", Name: validation.Null, Rule: true, Chain: nil },
-                	{Target: "body.GroupID", Name: validation.Null, Rule: true, Chain: nil },
-                	{Target: "body.CertificateRequest", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
-                return result, validation.NewError("azureiiotopcvault.BaseClient", "StartSigningRequest", err.Error())
-                }
-
-                    req, err := client.StartSigningRequestPreparer(ctx, body)
+            req, err := client.StartSigningRequestPreparer(ctx, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopcvault.BaseClient", "StartSigningRequest", nil , "Failure preparing request")
         return

@@ -19,7 +19,7 @@ public class TrustGroupRootCreateRequestApiModel {
     /**
      * The new name of the trust group root.
      */
-    @JsonProperty(value = "name", required = true)
+    @JsonProperty(value = "name")
     private String name;
 
     /**
@@ -32,13 +32,13 @@ public class TrustGroupRootCreateRequestApiModel {
     /**
      * The subject name of the group as distinguished name.
      */
-    @JsonProperty(value = "subjectName", required = true)
+    @JsonProperty(value = "subjectName")
     private String subjectName;
 
     /**
      * The lifetime of the trust group root certificate.
      */
-    @JsonProperty(value = "lifetime", required = true)
+    @JsonProperty(value = "lifetime")
     private String lifetime;
 
     /**

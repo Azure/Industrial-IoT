@@ -10,7 +10,6 @@
 
 namespace Microsoft.Azure.IIoT.Opc.Vault.Models
 {
-    using Microsoft.Rest;
     using Newtonsoft.Json;
     using System.Linq;
 
@@ -31,13 +30,13 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// Initializes a new instance of the TrustGroupApiModel class.
         /// </summary>
         /// <param name="name">The name of the trust group.</param>
-        /// <param name="subjectName">The subject name of the group as
-        /// distinguished name.</param>
         /// <param name="parentId">The identifer of the parent trust
         /// group.</param>
         /// <param name="type">Possible values include:
         /// 'ApplicationInstanceCertificate', 'HttpsCertificate',
         /// 'UserCredentialCertificate'</param>
+        /// <param name="subjectName">The subject name of the group as
+        /// distinguished name.</param>
         /// <param name="lifetime">The lifetime of the trust group
         /// certificate.</param>
         /// <param name="keySize">The trust group certificate key size in
@@ -51,7 +50,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// <param name="issuedSignatureAlgorithm">Possible values include:
         /// 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss',
         /// 'Rsa512Pss'</param>
-        public TrustGroupApiModel(string name, string subjectName, string parentId = default(string), TrustGroupType? type = default(TrustGroupType?), string lifetime = default(string), int? keySize = default(int?), SignatureAlgorithm? signatureAlgorithm = default(SignatureAlgorithm?), string issuedLifetime = default(string), int? issuedKeySize = default(int?), SignatureAlgorithm? issuedSignatureAlgorithm = default(SignatureAlgorithm?))
+        public TrustGroupApiModel(string name = default(string), string parentId = default(string), TrustGroupType? type = default(TrustGroupType?), string subjectName = default(string), string lifetime = default(string), int? keySize = default(int?), SignatureAlgorithm? signatureAlgorithm = default(SignatureAlgorithm?), string issuedLifetime = default(string), int? issuedKeySize = default(int?), SignatureAlgorithm? issuedSignatureAlgorithm = default(SignatureAlgorithm?))
         {
             Name = name;
             ParentId = parentId;
@@ -135,22 +134,5 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         [JsonProperty(PropertyName = "issuedSignatureAlgorithm")]
         public SignatureAlgorithm? IssuedSignatureAlgorithm { get; set; }
 
-        /// <summary>
-        /// Validate the object.
-        /// </summary>
-        /// <exception cref="ValidationException">
-        /// Thrown if validation fails
-        /// </exception>
-        public virtual void Validate()
-        {
-            if (Name == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "Name");
-            }
-            if (SubjectName == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "SubjectName");
-            }
-        }
     }
 }

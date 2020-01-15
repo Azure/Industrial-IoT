@@ -19,7 +19,7 @@ public class StartNewKeyPairRequestResponseApiModel {
     /**
      * Request id.
      */
-    @JsonProperty(value = "requestId", required = true)
+    @JsonProperty(value = "requestId")
     private String requestId;
 
     /**

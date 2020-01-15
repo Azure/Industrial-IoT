@@ -21,16 +21,12 @@ class X509CrlApiModel(Model):
     :type crl: object
     """
 
-    _validation = {
-        'crl': {'required': True},
-    }
-
     _attribute_map = {
         'issuer': {'key': 'issuer', 'type': 'str'},
         'crl': {'key': 'crl', 'type': 'object'},
     }
 
-    def __init__(self, crl, issuer=None):
+    def __init__(self, issuer=None, crl=None):
         super(X509CrlApiModel, self).__init__()
         self.issuer = issuer
         self.crl = crl

@@ -44,6 +44,9 @@ module azure.iiot.opc.registry
       # @return [Boolean] Whether to include apps that were soft deleted
       attr_accessor :include_not_seen_since
 
+      # @return [String] Discoverer id to filter with
+      attr_accessor :discoverer_id
+
 
       #
       # Mapper for ApplicationRegistrationQueryApiModel class as Ruby Hash.
@@ -137,6 +140,14 @@ module azure.iiot.opc.registry
                 serialized_name: 'includeNotSeenSince',
                 type: {
                   name: 'Boolean'
+                }
+              },
+              discoverer_id: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'discovererId',
+                type: {
+                  name: 'String'
                 }
               }
             }

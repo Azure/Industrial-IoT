@@ -25,7 +25,6 @@ import com.microsoft.azure.iiot.opc.vault.models.StartNewKeyPairRequestApiModel;
 import com.microsoft.azure.iiot.opc.vault.models.StartNewKeyPairRequestResponseApiModel;
 import com.microsoft.azure.iiot.opc.vault.models.StartSigningRequestApiModel;
 import com.microsoft.azure.iiot.opc.vault.models.StartSigningRequestResponseApiModel;
-import com.microsoft.azure.iiot.opc.vault.models.StatusResponseApiModel;
 import com.microsoft.azure.iiot.opc.vault.models.TrustGroupRegistrationApiModel;
 import com.microsoft.azure.iiot.opc.vault.models.TrustGroupRegistrationListApiModel;
 import com.microsoft.azure.iiot.opc.vault.models.TrustGroupRegistrationRequestApiModel;
@@ -185,10 +184,6 @@ public class AzureOpcVaultClientImpl extends ServiceClient implements AzureOpcVa
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.vault.AzureOpcVaultClient listRequests" })
         @GET("v2/requests")
         Observable<Response<ResponseBody>> listRequests(@Query("nextPageLink") String nextPageLink, @Query("pageSize") Integer pageSize);
-
-        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.vault.AzureOpcVaultClient getStatus" })
-        @GET("v2/status")
-        Observable<Response<ResponseBody>> getStatus();
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.vault.AzureOpcVaultClient listGroups" })
         @GET("v2/groups")
@@ -1484,75 +1479,6 @@ public class AzureOpcVaultClientImpl extends ServiceClient implements AzureOpcVa
     private ServiceResponse<CertificateRequestQueryResponseApiModel> listRequestsDelegate(Response<ResponseBody> response) throws RestException, IOException {
         return this.restClient().responseBuilderFactory().<CertificateRequestQueryResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<CertificateRequestQueryResponseApiModel>() { }.getType())
-                .build(response);
-    }
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the StatusResponseApiModel object if successful.
-     */
-    public StatusResponseApiModel getStatus() {
-        return getStatusWithServiceResponseAsync().toBlocking().single().body();
-    }
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    public ServiceFuture<StatusResponseApiModel> getStatusAsync(final ServiceCallback<StatusResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(getStatusWithServiceResponseAsync(), serviceCallback);
-    }
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the StatusResponseApiModel object
-     */
-    public Observable<StatusResponseApiModel> getStatusAsync() {
-        return getStatusWithServiceResponseAsync().map(new Func1<ServiceResponse<StatusResponseApiModel>, StatusResponseApiModel>() {
-            @Override
-            public StatusResponseApiModel call(ServiceResponse<StatusResponseApiModel> response) {
-                return response.body();
-            }
-        });
-    }
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the StatusResponseApiModel object
-     */
-    public Observable<ServiceResponse<StatusResponseApiModel>> getStatusWithServiceResponseAsync() {
-        return service.getStatus()
-            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<StatusResponseApiModel>>>() {
-                @Override
-                public Observable<ServiceResponse<StatusResponseApiModel>> call(Response<ResponseBody> response) {
-                    try {
-                        ServiceResponse<StatusResponseApiModel> clientResponse = getStatusDelegate(response);
-                        return Observable.just(clientResponse);
-                    } catch (Throwable t) {
-                        return Observable.error(t);
-                    }
-                }
-            });
-    }
-
-    private ServiceResponse<StatusResponseApiModel> getStatusDelegate(Response<ResponseBody> response) throws RestException, IOException {
-        return this.restClient().responseBuilderFactory().<StatusResponseApiModel, RestException>newInstance(this.serializerAdapter())
-                .register(200, new TypeToken<StatusResponseApiModel>() { }.getType())
                 .build(response);
     }
 

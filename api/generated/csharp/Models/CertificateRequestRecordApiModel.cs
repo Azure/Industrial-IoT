@@ -111,26 +111,5 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         [JsonProperty(PropertyName = "accepted")]
         public VaultOperationContextApiModel Accepted { get; set; }
 
-        /// <summary>
-        /// Validate the object.
-        /// </summary>
-        /// <exception cref="Rest.ValidationException">
-        /// Thrown if validation fails
-        /// </exception>
-        public virtual void Validate()
-        {
-            if (Submitted != null)
-            {
-                Submitted.Validate();
-            }
-            if (Approved != null)
-            {
-                Approved.Validate();
-            }
-            if (Accepted != null)
-            {
-                Accepted.Validate();
-            }
-        }
     }
 }

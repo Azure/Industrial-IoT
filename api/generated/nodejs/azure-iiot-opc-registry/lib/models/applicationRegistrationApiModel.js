@@ -11,7 +11,7 @@
 'use strict';
 
 /**
- * Application with list of endpoints
+ * Application with optional list of endpoints
  *
  */
 class ApplicationRegistrationApiModel {
@@ -48,8 +48,8 @@ class ApplicationRegistrationApiModel {
    * @property {string} [application.updated.authorityId] Operation User
    * @property {date} [application.updated.time] Operation time
    * @property {array} [endpoints] List of endpoint twins
-   * @property {string} [securityAssessment] Possible values include:
-   * 'Unknown', 'Low', 'Medium', 'High'
+   * @property {string} [securityAssessment] Possible values include: 'Low',
+   * 'Medium', 'High'
    */
   constructor() {
   }
@@ -96,7 +96,7 @@ class ApplicationRegistrationApiModel {
             serializedName: 'securityAssessment',
             type: {
               name: 'Enum',
-              allowedValues: [ 'Unknown', 'Low', 'Medium', 'High' ]
+              allowedValues: [ 'Low', 'Medium', 'High' ]
             }
           }
         }

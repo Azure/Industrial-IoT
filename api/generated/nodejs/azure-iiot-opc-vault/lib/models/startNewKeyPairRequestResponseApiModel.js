@@ -17,7 +17,7 @@
 class StartNewKeyPairRequestResponseApiModel {
   /**
    * Create a StartNewKeyPairRequestResponseApiModel.
-   * @property {string} requestId Request id
+   * @property {string} [requestId] Request id
    */
   constructor() {
   }
@@ -37,7 +37,7 @@ class StartNewKeyPairRequestResponseApiModel {
         className: 'StartNewKeyPairRequestResponseApiModel',
         modelProperties: {
           requestId: {
-            required: true,
+            required: false,
             serializedName: 'requestId',
             type: {
               name: 'String'

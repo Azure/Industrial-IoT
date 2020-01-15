@@ -30,7 +30,6 @@ exports.PrivateKeyApiModel = require('./privateKeyApiModel');
 exports.FinishNewKeyPairRequestResponseApiModel = require('./finishNewKeyPairRequestResponseApiModel');
 exports.CertificateRequestQueryRequestApiModel = require('./certificateRequestQueryRequestApiModel');
 exports.CertificateRequestQueryResponseApiModel = require('./certificateRequestQueryResponseApiModel');
-exports.StatusResponseApiModel = require('./statusResponseApiModel');
 exports.TrustGroupApiModel = require('./trustGroupApiModel');
 exports.TrustGroupRegistrationApiModel = require('./trustGroupRegistrationApiModel');
 exports.TrustGroupRegistrationListApiModel = require('./trustGroupRegistrationListApiModel');

@@ -36,7 +36,6 @@ from .attribute_read_request_api_model import AttributeReadRequestApiModel
 from .read_request_api_model import ReadRequestApiModel
 from .attribute_read_response_api_model import AttributeReadResponseApiModel
 from .read_response_api_model import ReadResponseApiModel
-from .status_response_api_model import StatusResponseApiModel
 from .value_write_request_api_model import ValueWriteRequestApiModel
 from .value_write_response_api_model import ValueWriteResponseApiModel
 from .attribute_write_request_api_model import AttributeWriteRequestApiModel
@@ -84,7 +83,6 @@ __all__ = [
     'ReadRequestApiModel',
     'AttributeReadResponseApiModel',
     'ReadResponseApiModel',
-    'StatusResponseApiModel',
     'ValueWriteRequestApiModel',
     'ValueWriteResponseApiModel',
     'AttributeWriteRequestApiModel',

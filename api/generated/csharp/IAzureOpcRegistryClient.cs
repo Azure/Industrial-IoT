@@ -314,23 +314,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         Task<HttpOperationResponse<ApplicationInfoListApiModel>> GetFilteredListOfApplicationsWithHttpMessagesAsync(ApplicationRegistrationQueryApiModel body, int? pageSize = default(int?), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Query applications by id.
-        /// </summary>
-        /// <remarks>
-        /// A query model which supports the OPC UA Global Discovery Server
-        /// query.
-        /// </remarks>
-        /// <param name='body'>
-        /// </param>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<ApplicationRecordListApiModel>> QueryApplicationsByIdWithHttpMessagesAsync(ApplicationRecordQueryApiModel body = default(ApplicationRecordQueryApiModel), Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
         /// Subscribe for application events
         /// </summary>
         /// <remarks>
@@ -1096,7 +1079,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         /// using the token to retrieve more results.
         /// </remarks>
         /// <param name='siteId'>
-        /// Site of the publisher
+        /// Site for the publishers
         /// </param>
         /// <param name='connected'>
         /// Included connected or disconnected
@@ -1149,18 +1132,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         /// The cancellation token.
         /// </param>
         Task<HttpOperationResponse> Unsubscribe4WithHttpMessagesAsync(string userId, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Return the service status in the form of the service status
-        /// api model.
-        /// </summary>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<StatusResponseApiModel>> GetStatusWithHttpMessagesAsync(Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Get supervisor registration information
@@ -1304,7 +1275,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
         /// using the token to retrieve more results.
         /// </remarks>
         /// <param name='siteId'>
-        /// Site of the supervisor
+        /// Site for the supervisors
         /// </param>
         /// <param name='connected'>
         /// Included connected or disconnected

@@ -17,7 +17,7 @@
 class SupervisorQueryApiModel {
   /**
    * Create a SupervisorQueryApiModel.
-   * @property {string} [siteId] Site of the supervisor
+   * @property {string} [siteId] Site for the supervisors
    * @property {boolean} [connected] Included connected or disconnected
    */
   constructor() {

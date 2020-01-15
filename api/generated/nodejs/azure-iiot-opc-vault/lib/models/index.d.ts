@@ -35,7 +35,7 @@ export interface X509CertificateApiModel {
   /**
    * Raw data
    */
-  certificate: any;
+  certificate?: any;
 }
 
 /**
@@ -59,11 +59,11 @@ export interface X509CrlApiModel {
   /**
    * The certificate revocation list.
    */
-  crl: any;
+  crl?: any;
 }
 
 /**
- * Crl collection model
+ * Crl chain model
  */
 export interface X509CrlChainApiModel {
   /**
@@ -83,15 +83,15 @@ export interface StartSigningRequestApiModel {
   /**
    * Id of entity to sign a certificate for
   */
-  entityId: string;
+  entityId?: string;
   /**
    * Certificate group id
   */
-  groupId: string;
+  groupId?: string;
   /**
    * Request
   */
-  certificateRequest: any;
+  certificateRequest?: any;
 }
 
 /**
@@ -101,7 +101,7 @@ export interface StartSigningRequestResponseApiModel {
   /**
    * Request id
   */
-  requestId: string;
+  requestId?: string;
 }
 
 /**
@@ -115,7 +115,7 @@ export interface VaultOperationContextApiModel {
   /**
    * Operation time
   */
-  time: Date;
+  time?: Date;
 }
 
 /**
@@ -166,20 +166,20 @@ export interface StartNewKeyPairRequestApiModel {
   /**
    * Entity id
   */
-  entityId: string;
+  entityId?: string;
   /**
    * Certificate group
   */
-  groupId: string;
+  groupId?: string;
   /**
    * Possible values include: 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
   */
-  certificateType: string;
+  certificateType?: string;
   /**
    * Subject name
   */
-  subjectName: string;
+  subjectName?: string;
   /**
    * Domain names
   */
@@ -193,7 +193,7 @@ export interface StartNewKeyPairRequestResponseApiModel {
   /**
    * Request id
   */
-  requestId: string;
+  requestId?: string;
 }
 
 /**
@@ -290,54 +290,13 @@ export interface CertificateRequestQueryResponseApiModel {
 }
 
 /**
- * Status model
-*/
-export interface StatusResponseApiModel {
-  /**
-   * Name of this service
-  */
-  name?: string;
-  /**
-   * Operational status
-  */
-  status?: string;
-  /**
-   * Current time
-  */
-  readonly currentTime?: string;
-  /**
-   * Start time of service
-  */
-  readonly startTime?: string;
-  /**
-   * Up time of service
-  */
-  readonly upTime?: number;
-  /**
-   * Value generated at bootstrap by each instance of the service and
-   * used to correlate logs coming from the same instance. The value
-   * changes every time the service starts.
-  */
-  readonly uid?: string;
-  /**
-   * A property bag with details about the service
-  */
-  readonly properties?: { [propertyName: string]: string };
-  /**
-   * A property bag with details about the internal dependencies
-  */
-  readonly dependencies?: { [propertyName: string]: string };
-  readonly metadata?: { [propertyName: string]: string };
-}
-
-/**
  * Trust group model
 */
 export interface TrustGroupApiModel {
   /**
    * The name of the trust group.
   */
-  name: string;
+  name?: string;
   /**
    * The identifer of the parent trust group.
   */
@@ -350,7 +309,7 @@ export interface TrustGroupApiModel {
   /**
    * The subject name of the group as distinguished name.
   */
-  subjectName: string;
+  subjectName?: string;
   /**
    * The lifetime of the trust group certificate.
   */
@@ -384,8 +343,8 @@ export interface TrustGroupRegistrationApiModel {
   /**
    * The registered id of the trust group
   */
-  id: string;
-  group: TrustGroupApiModel;
+  id?: string;
+  group?: TrustGroupApiModel;
 }
 
 /**
@@ -409,15 +368,15 @@ export interface TrustGroupRegistrationRequestApiModel {
   /**
    * The new name of the trust group
   */
-  name: string;
+  name?: string;
   /**
    * The identifer of the parent trust group.
   */
-  parentId: string;
+  parentId?: string;
   /**
    * The subject name of the group as distinguished name.
   */
-  subjectName: string;
+  subjectName?: string;
   /**
    * The lifetime of certificates issued in the group.
   */
@@ -439,7 +398,7 @@ export interface TrustGroupRegistrationResponseApiModel {
   /**
    * The id of the trust group
   */
-  id: string;
+  id?: string;
 }
 
 /**
@@ -471,7 +430,7 @@ export interface TrustGroupRootCreateRequestApiModel {
   /**
    * The new name of the trust group root
   */
-  name: string;
+  name?: string;
   /**
    * Possible values include: 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
@@ -480,11 +439,11 @@ export interface TrustGroupRootCreateRequestApiModel {
   /**
    * The subject name of the group as distinguished name.
   */
-  subjectName: string;
+  subjectName?: string;
   /**
    * The lifetime of the trust group root certificate.
   */
-  lifetime: string;
+  lifetime?: string;
   /**
    * The certificate key size in bits.
   */

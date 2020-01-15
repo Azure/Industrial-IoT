@@ -17,7 +17,7 @@
 class PublisherQueryApiModel {
   /**
    * Create a PublisherQueryApiModel.
-   * @property {string} [siteId] Site of the publisher
+   * @property {string} [siteId] Site for the publishers
    * @property {boolean} [connected] Included connected or disconnected
    */
   constructor() {

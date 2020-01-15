@@ -15,7 +15,7 @@ from msrest.serialization import Model
 class ApplicationSiteListApiModel(Model):
     """List of application sites.
 
-    :param sites: Distinct list of sites applications were registered in.
+    :param sites: Sites
     :type sites: list[str]
     :param continuation_token: Continuation or null if final
     :type continuation_token: str

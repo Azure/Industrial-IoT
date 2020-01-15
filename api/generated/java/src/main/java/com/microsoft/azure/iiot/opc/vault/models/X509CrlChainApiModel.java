@@ -14,7 +14,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Crl collection model.
+ * Crl chain model.
  */
 public class X509CrlChainApiModel {
     /**

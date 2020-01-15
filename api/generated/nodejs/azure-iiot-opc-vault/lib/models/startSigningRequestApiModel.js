@@ -17,9 +17,9 @@
 class StartSigningRequestApiModel {
   /**
    * Create a StartSigningRequestApiModel.
-   * @property {string} entityId Id of entity to sign a certificate for
-   * @property {string} groupId Certificate group id
-   * @property {object} certificateRequest Request
+   * @property {string} [entityId] Id of entity to sign a certificate for
+   * @property {string} [groupId] Certificate group id
+   * @property {object} [certificateRequest] Request
    */
   constructor() {
   }
@@ -39,21 +39,21 @@ class StartSigningRequestApiModel {
         className: 'StartSigningRequestApiModel',
         modelProperties: {
           entityId: {
-            required: true,
+            required: false,
             serializedName: 'entityId',
             type: {
               name: 'String'
             }
           },
           groupId: {
-            required: true,
+            required: false,
             serializedName: 'groupId',
             type: {
               name: 'String'
             }
           },
           certificateRequest: {
-            required: true,
+            required: false,
             serializedName: 'certificateRequest',
             type: {
               name: 'Object'

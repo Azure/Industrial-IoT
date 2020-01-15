@@ -10,7 +10,6 @@
 
 namespace Microsoft.Azure.IIoT.Opc.Vault.Models
 {
-    using Microsoft.Rest;
     using Newtonsoft.Json;
     using System.Linq;
 
@@ -30,10 +29,10 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// <summary>
         /// Initializes a new instance of the X509CrlApiModel class.
         /// </summary>
-        /// <param name="crl">The certificate revocation list.</param>
         /// <param name="issuer">The Issuer name of the revocation
         /// list.</param>
-        public X509CrlApiModel(object crl, string issuer = default(string))
+        /// <param name="crl">The certificate revocation list.</param>
+        public X509CrlApiModel(string issuer = default(string), object crl = default(object))
         {
             Issuer = issuer;
             Crl = crl;
@@ -57,18 +56,5 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         [JsonProperty(PropertyName = "crl")]
         public object Crl { get; set; }
 
-        /// <summary>
-        /// Validate the object.
-        /// </summary>
-        /// <exception cref="ValidationException">
-        /// Thrown if validation fails
-        /// </exception>
-        public virtual void Validate()
-        {
-            if (Crl == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "Crl");
-            }
-        }
     }
 }

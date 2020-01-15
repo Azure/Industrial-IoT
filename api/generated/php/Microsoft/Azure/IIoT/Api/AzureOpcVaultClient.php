@@ -30,7 +30,6 @@ final class AzureOpcVaultClient
         $this->_GetRequest_operation = $_client->createOperation('GetRequest');
         $this->_QueryRequests_operation = $_client->createOperation('QueryRequests');
         $this->_ListRequests_operation = $_client->createOperation('ListRequests');
-        $this->_GetStatus_operation = $_client->createOperation('GetStatus');
         $this->_ListGroups_operation = $_client->createOperation('ListGroups');
         $this->_CreateGroup_operation = $_client->createOperation('CreateGroup');
         $this->_GetGroup_operation = $_client->createOperation('GetGroup');
@@ -181,13 +180,6 @@ final class AzureOpcVaultClient
             'nextPageLink' => $nextPageLink,
             'pageSize' => $pageSize
         ]);
-    }
-    /**
-     * @return array
-     */
-    public function getStatus()
-    {
-        return $this->_GetStatus_operation->call([]);
     }
     /**
      * A trust group has a root certificate which issues certificates to entities. Entities can be part of a trust group and thus trust the root certificate and all entities that the root has issued certificates for.
@@ -371,10 +363,6 @@ final class AzureOpcVaultClient
      * @var \Microsoft\Rest\OperationInterface
      */
     private $_ListRequests_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_GetStatus_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
@@ -588,11 +576,6 @@ final class AzureOpcVaultClient
                 ],
                 'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/CertificateRequestQueryResponseApiModel']]]
             ]],
-            '/v2/status' => ['get' => [
-                'operationId' => 'GetStatus',
-                'parameters' => [],
-                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/StatusResponseApiModel']]]
-            ]],
             '/v2/groups' => [
                 'get' => [
                     'operationId' => 'ListGroups',
@@ -763,7 +746,7 @@ final class AzureOpcVaultClient
                     'certificate' => ['type' => 'object']
                 ],
                 'additionalProperties' => FALSE,
-                'required' => ['certificate']
+                'required' => []
             ],
             'X509CertificateChainApiModel' => [
                 'properties' => ['chain' => [
@@ -779,7 +762,7 @@ final class AzureOpcVaultClient
                     'crl' => ['type' => 'object']
                 ],
                 'additionalProperties' => FALSE,
-                'required' => ['crl']
+                'required' => []
             ],
             'X509CrlChainApiModel' => [
                 'properties' => ['chain' => [
@@ -804,16 +787,12 @@ final class AzureOpcVaultClient
                     'certificateRequest' => ['type' => 'object']
                 ],
                 'additionalProperties' => FALSE,
-                'required' => [
-                    'entityId',
-                    'groupId',
-                    'certificateRequest'
-                ]
+                'required' => []
             ],
             'StartSigningRequestResponseApiModel' => [
                 'properties' => ['requestId' => ['type' => 'string']],
                 'additionalProperties' => FALSE,
-                'required' => ['requestId']
+                'required' => []
             ],
             'VaultOperationContextApiModel' => [
                 'properties' => [
@@ -824,7 +803,7 @@ final class AzureOpcVaultClient
                     ]
                 ],
                 'additionalProperties' => FALSE,
-                'required' => ['time']
+                'required' => []
             ],
             'CertificateRequestRecordApiModel' => [
                 'properties' => [
@@ -884,17 +863,12 @@ final class AzureOpcVaultClient
                     ]
                 ],
                 'additionalProperties' => FALSE,
-                'required' => [
-                    'entityId',
-                    'groupId',
-                    'certificateType',
-                    'subjectName'
-                ]
+                'required' => []
             ],
             'StartNewKeyPairRequestResponseApiModel' => [
                 'properties' => ['requestId' => ['type' => 'string']],
                 'additionalProperties' => FALSE,
-                'required' => ['requestId']
+                'required' => []
             ],
             'PrivateKeyApiModel' => [
                 'properties' => [
@@ -997,33 +971,6 @@ final class AzureOpcVaultClient
                 'additionalProperties' => FALSE,
                 'required' => []
             ],
-            'StatusResponseApiModel' => [
-                'properties' => [
-                    'name' => ['type' => 'string'],
-                    'status' => ['type' => 'string'],
-                    'currentTime' => ['type' => 'string'],
-                    'startTime' => ['type' => 'string'],
-                    'upTime' => [
-                        'type' => 'integer',
-                        'format' => 'int64'
-                    ],
-                    'uid' => ['type' => 'string'],
-                    'properties' => [
-                        'type' => 'object',
-                        'additionalProperties' => ['type' => 'string']
-                    ],
-                    'dependencies' => [
-                        'type' => 'object',
-                        'additionalProperties' => ['type' => 'string']
-                    ],
-                    '$metadata' => [
-                        'type' => 'object',
-                        'additionalProperties' => ['type' => 'string']
-                    ]
-                ],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
             'TrustGroupApiModel' => [
                 'properties' => [
                     'name' => ['type' => 'string'],
@@ -1071,10 +1018,7 @@ final class AzureOpcVaultClient
                     ]
                 ],
                 'additionalProperties' => FALSE,
-                'required' => [
-                    'name',
-                    'subjectName'
-                ]
+                'required' => []
             ],
             'TrustGroupRegistrationApiModel' => [
                 'properties' => [
@@ -1082,10 +1026,7 @@ final class AzureOpcVaultClient
                     'group' => ['$ref' => '#/definitions/TrustGroupApiModel']
                 ],
                 'additionalProperties' => FALSE,
-                'required' => [
-                    'id',
-                    'group'
-                ]
+                'required' => []
             ],
             'TrustGroupRegistrationListApiModel' => [
                 'properties' => [
@@ -1121,16 +1062,12 @@ final class AzureOpcVaultClient
                     ]
                 ],
                 'additionalProperties' => FALSE,
-                'required' => [
-                    'name',
-                    'parentId',
-                    'subjectName'
-                ]
+                'required' => []
             ],
             'TrustGroupRegistrationResponseApiModel' => [
                 'properties' => ['id' => ['type' => 'string']],
                 'additionalProperties' => FALSE,
-                'required' => ['id']
+                'required' => []
             ],
             'TrustGroupUpdateRequestApiModel' => [
                 'properties' => [
@@ -1201,11 +1138,7 @@ final class AzureOpcVaultClient
                     ]
                 ],
                 'additionalProperties' => FALSE,
-                'required' => [
-                    'name',
-                    'subjectName',
-                    'lifetime'
-                ]
+                'required' => []
             ],
             'X509CertificateListApiModel' => [
                 'properties' => [

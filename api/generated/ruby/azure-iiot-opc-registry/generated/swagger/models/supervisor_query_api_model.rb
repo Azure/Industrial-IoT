@@ -13,7 +13,7 @@ module azure.iiot.opc.registry
     # Supervisor registration query
     #
     class SupervisorQueryApiModel
-      # @return [String] Site of the supervisor
+      # @return [String] Site for the supervisors
       attr_accessor :site_id
 
       # @return [Boolean] Included connected or disconnected

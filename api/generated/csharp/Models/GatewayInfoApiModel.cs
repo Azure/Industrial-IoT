@@ -30,12 +30,10 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// <summary>
         /// Initializes a new instance of the GatewayInfoApiModel class.
         /// </summary>
-        public GatewayInfoApiModel(GatewayApiModel gateway, SupervisorApiModel supervisor = default(SupervisorApiModel), PublisherApiModel publisher = default(PublisherApiModel), DiscovererApiModel discoverer = default(DiscovererApiModel))
+        public GatewayInfoApiModel(GatewayApiModel gateway, GatewayModulesApiModel modules = default(GatewayModulesApiModel))
         {
             Gateway = gateway;
-            Supervisor = supervisor;
-            Publisher = publisher;
-            Discoverer = discoverer;
+            Modules = modules;
             CustomInit();
         }
 
@@ -51,18 +49,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
 
         /// <summary>
         /// </summary>
-        [JsonProperty(PropertyName = "supervisor")]
-        public SupervisorApiModel Supervisor { get; set; }
-
-        /// <summary>
-        /// </summary>
-        [JsonProperty(PropertyName = "publisher")]
-        public PublisherApiModel Publisher { get; set; }
-
-        /// <summary>
-        /// </summary>
-        [JsonProperty(PropertyName = "discoverer")]
-        public DiscovererApiModel Discoverer { get; set; }
+        [JsonProperty(PropertyName = "modules")]
+        public GatewayModulesApiModel Modules { get; set; }
 
         /// <summary>
         /// Validate the object.
@@ -80,17 +68,9 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
             {
                 Gateway.Validate();
             }
-            if (Supervisor != null)
+            if (Modules != null)
             {
-                Supervisor.Validate();
-            }
-            if (Publisher != null)
-            {
-                Publisher.Validate();
-            }
-            if (Discoverer != null)
-            {
-                Discoverer.Validate();
+                Modules.Validate();
             }
         }
     }

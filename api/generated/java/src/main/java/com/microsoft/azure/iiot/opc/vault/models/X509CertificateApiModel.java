@@ -50,7 +50,7 @@ public class X509CertificateApiModel {
     /**
      * Raw data.
      */
-    @JsonProperty(value = "certificate", required = true)
+    @JsonProperty(value = "certificate")
     private Object certificate;
 
     /**

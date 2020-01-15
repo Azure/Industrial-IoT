@@ -78,6 +78,12 @@ public class ApplicationRegistrationQueryApiModel {
     private Boolean includeNotSeenSince;
 
     /**
+     * Discoverer id to filter with.
+     */
+    @JsonProperty(value = "discovererId")
+    private String discovererId;
+
+    /**
      * Get possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'.
      *
      * @return the applicationType value
@@ -274,6 +280,26 @@ public class ApplicationRegistrationQueryApiModel {
      */
     public ApplicationRegistrationQueryApiModel withIncludeNotSeenSince(Boolean includeNotSeenSince) {
         this.includeNotSeenSince = includeNotSeenSince;
+        return this;
+    }
+
+    /**
+     * Get discoverer id to filter with.
+     *
+     * @return the discovererId value
+     */
+    public String discovererId() {
+        return this.discovererId;
+    }
+
+    /**
+     * Set discoverer id to filter with.
+     *
+     * @param discovererId the discovererId value to set
+     * @return the ApplicationRegistrationQueryApiModel object itself.
+     */
+    public ApplicationRegistrationQueryApiModel withDiscovererId(String discovererId) {
+        this.discovererId = discovererId;
         return this;
     }
 

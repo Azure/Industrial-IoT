@@ -30,6 +30,7 @@ class ApplicationRegistrationQueryApiModel {
    * belongs to.
    * @property {boolean} [includeNotSeenSince] Whether to include apps that
    * were soft deleted
+   * @property {string} [discovererId] Discoverer id to filter with
    */
   constructor() {
   }
@@ -117,6 +118,13 @@ class ApplicationRegistrationQueryApiModel {
             serializedName: 'includeNotSeenSince',
             type: {
               name: 'Boolean'
+            }
+          },
+          discovererId: {
+            required: false,
+            serializedName: 'discovererId',
+            type: {
+              name: 'String'
             }
           }
         }

@@ -11,7 +11,7 @@
 'use strict';
 
 /**
- * Crl collection model
+ * Crl chain model
  *
  */
 class X509CrlChainApiModel {

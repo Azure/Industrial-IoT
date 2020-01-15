@@ -59,22 +59,5 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         [JsonProperty(PropertyName = "privateKey")]
         public PrivateKeyApiModel PrivateKey { get; set; }
 
-        /// <summary>
-        /// Validate the object.
-        /// </summary>
-        /// <exception cref="Rest.ValidationException">
-        /// Thrown if validation fails
-        /// </exception>
-        public virtual void Validate()
-        {
-            if (Request != null)
-            {
-                Request.Validate();
-            }
-            if (Certificate != null)
-            {
-                Certificate.Validate();
-            }
-        }
     }
 }

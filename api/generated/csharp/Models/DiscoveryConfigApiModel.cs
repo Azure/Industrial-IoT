@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
     using System.Linq;
 
     /// <summary>
-    /// Discovery configuration
+    /// Discovery configuration api model
     /// </summary>
     public partial class DiscoveryConfigApiModel
     {

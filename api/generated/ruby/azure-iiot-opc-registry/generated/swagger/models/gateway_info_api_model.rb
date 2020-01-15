@@ -16,14 +16,8 @@ module azure.iiot.opc.registry
       # @return [GatewayApiModel]
       attr_accessor :gateway
 
-      # @return [SupervisorApiModel]
-      attr_accessor :supervisor
-
-      # @return [PublisherApiModel]
-      attr_accessor :publisher
-
-      # @return [DiscovererApiModel]
-      attr_accessor :discoverer
+      # @return [GatewayModulesApiModel]
+      attr_accessor :modules
 
 
       #
@@ -48,31 +42,13 @@ module azure.iiot.opc.registry
                   class_name: 'GatewayApiModel'
                 }
               },
-              supervisor: {
+              modules: {
                 client_side_validation: true,
                 required: false,
-                serialized_name: 'supervisor',
+                serialized_name: 'modules',
                 type: {
                   name: 'Composite',
-                  class_name: 'SupervisorApiModel'
-                }
-              },
-              publisher: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'publisher',
-                type: {
-                  name: 'Composite',
-                  class_name: 'PublisherApiModel'
-                }
-              },
-              discoverer: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'discoverer',
-                type: {
-                  name: 'Composite',
-                  class_name: 'DiscovererApiModel'
+                  class_name: 'GatewayModulesApiModel'
                 }
               }
             }

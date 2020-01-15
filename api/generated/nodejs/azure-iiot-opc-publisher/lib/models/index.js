@@ -25,4 +25,3 @@ exports.PublishStopRequestApiModel = require('./publishStopRequestApiModel');
 exports.PublishStopResponseApiModel = require('./publishStopResponseApiModel');
 exports.PublishedItemListRequestApiModel = require('./publishedItemListRequestApiModel');
 exports.PublishedItemListResponseApiModel = require('./publishedItemListResponseApiModel');
-exports.StatusResponseApiModel = require('./statusResponseApiModel');

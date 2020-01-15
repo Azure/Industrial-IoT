@@ -612,44 +612,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             }
 
             /// <summary>
-            /// Query applications by id.
-            /// </summary>
-            /// <remarks>
-            /// A query model which supports the OPC UA Global Discovery Server query.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='body'>
-            /// </param>
-            public static ApplicationRecordListApiModel QueryApplicationsById(this IAzureOpcRegistryClient operations, ApplicationRecordQueryApiModel body = default(ApplicationRecordQueryApiModel))
-            {
-                return operations.QueryApplicationsByIdAsync(body).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Query applications by id.
-            /// </summary>
-            /// <remarks>
-            /// A query model which supports the OPC UA Global Discovery Server query.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='body'>
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<ApplicationRecordListApiModel> QueryApplicationsByIdAsync(this IAzureOpcRegistryClient operations, ApplicationRecordQueryApiModel body = default(ApplicationRecordQueryApiModel), CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.QueryApplicationsByIdWithHttpMessagesAsync(body, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
             /// Subscribe for application events
             /// </summary>
             /// <remarks>
@@ -2310,7 +2272,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='siteId'>
-            /// Site of the publisher
+            /// Site for the publishers
             /// </param>
             /// <param name='connected'>
             /// Included connected or disconnected
@@ -2340,7 +2302,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='siteId'>
-            /// Site of the publisher
+            /// Site for the publishers
             /// </param>
             /// <param name='connected'>
             /// Included connected or disconnected
@@ -2435,36 +2397,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             public static async Task Unsubscribe4Async(this IAzureOpcRegistryClient operations, string userId, CancellationToken cancellationToken = default(CancellationToken))
             {
                 (await operations.Unsubscribe4WithHttpMessagesAsync(userId, null, cancellationToken).ConfigureAwait(false)).Dispose();
-            }
-
-            /// <summary>
-            /// Return the service status in the form of the service status
-            /// api model.
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            public static StatusResponseApiModel GetStatus(this IAzureOpcRegistryClient operations)
-            {
-                return operations.GetStatusAsync().GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Return the service status in the form of the service status
-            /// api model.
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<StatusResponseApiModel> GetStatusAsync(this IAzureOpcRegistryClient operations, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.GetStatusWithHttpMessagesAsync(null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
             }
 
             /// <summary>
@@ -2772,7 +2704,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='siteId'>
-            /// Site of the supervisor
+            /// Site for the supervisors
             /// </param>
             /// <param name='connected'>
             /// Included connected or disconnected
@@ -2802,7 +2734,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry
             /// The operations group for this extension method.
             /// </param>
             /// <param name='siteId'>
-            /// Site of the supervisor
+            /// Site for the supervisors
             /// </param>
             /// <param name='connected'>
             /// Included connected or disconnected

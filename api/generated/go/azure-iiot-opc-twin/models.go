@@ -10,7 +10,6 @@ package azureiiotopctwin
 
 import (
     "context"
-    "encoding/json"
     "github.com/Azure/go-autorest/autorest"
     "github.com/Azure/go-autorest/autorest/date"
     "github.com/Azure/go-autorest/autorest/to"
@@ -741,7 +740,7 @@ const fqdn = "go/azure-iiot-opc-twin"
 
             // NodeReferenceAPIModel reference model
             type NodeReferenceAPIModel struct {
-            // ReferenceTypeID - Reference Type identifier
+            // ReferenceTypeID - Reference Type id
             ReferenceTypeID *string `json:"referenceTypeId,omitempty"`
             // Direction - Possible values include: 'Forward', 'Backward', 'Both'
             Direction BrowseDirection `json:"direction,omitempty"`
@@ -787,43 +786,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             // Diagnostics - Additional diagnostics information
             Diagnostics interface{} `json:"diagnostics,omitempty"`
             }
-
-            // StatusResponseAPIModel status response model
-            type StatusResponseAPIModel struct {
-            autorest.Response `json:"-"`
-            // Name - Name of this service
-            Name *string `json:"name,omitempty"`
-            // Status - Operational status
-            Status *string `json:"status,omitempty"`
-            // CurrentTime - READ-ONLY; Current time
-            CurrentTime *string `json:"currentTime,omitempty"`
-            // StartTime - READ-ONLY; Start time of service
-            StartTime *string `json:"startTime,omitempty"`
-            // UpTime - READ-ONLY; Up time of service
-            UpTime *int64 `json:"upTime,omitempty"`
-            // UID - READ-ONLY; Value generated at bootstrap by each instance of the service and
-            // used to correlate logs coming from the same instance. The value
-            // changes every time the service starts.
-            UID *string `json:"uid,omitempty"`
-            // Properties - READ-ONLY; A property bag with details about the service
-            Properties map[string]*string `json:"properties"`
-            // Dependencies - READ-ONLY; A property bag with details about the internal dependencies
-            Dependencies map[string]*string `json:"dependencies"`
-            // Metadata - READ-ONLY
-            Metadata map[string]*string `json:"$metadata"`
-            }
-
-        // MarshalJSON is the custom marshaler for StatusResponseAPIModel.
-        func (sram StatusResponseAPIModel)MarshalJSON() ([]byte, error){
-        objectMap := make(map[string]interface{})
-                if(sram.Name != nil) {
-                objectMap["name"] = sram.Name
-                }
-                if(sram.Status != nil) {
-                objectMap["status"] = sram.Status
-                }
-                return json.Marshal(objectMap)
-        }
 
             // ValueReadRequestAPIModel node value read request webservice api
             // model

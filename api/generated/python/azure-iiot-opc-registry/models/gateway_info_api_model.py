@@ -17,12 +17,8 @@ class GatewayInfoApiModel(Model):
 
     :param gateway:
     :type gateway: ~azure-iiot-opc-registry.models.GatewayApiModel
-    :param supervisor:
-    :type supervisor: ~azure-iiot-opc-registry.models.SupervisorApiModel
-    :param publisher:
-    :type publisher: ~azure-iiot-opc-registry.models.PublisherApiModel
-    :param discoverer:
-    :type discoverer: ~azure-iiot-opc-registry.models.DiscovererApiModel
+    :param modules:
+    :type modules: ~azure-iiot-opc-registry.models.GatewayModulesApiModel
     """
 
     _validation = {
@@ -31,14 +27,10 @@ class GatewayInfoApiModel(Model):
 
     _attribute_map = {
         'gateway': {'key': 'gateway', 'type': 'GatewayApiModel'},
-        'supervisor': {'key': 'supervisor', 'type': 'SupervisorApiModel'},
-        'publisher': {'key': 'publisher', 'type': 'PublisherApiModel'},
-        'discoverer': {'key': 'discoverer', 'type': 'DiscovererApiModel'},
+        'modules': {'key': 'modules', 'type': 'GatewayModulesApiModel'},
     }
 
-    def __init__(self, gateway, supervisor=None, publisher=None, discoverer=None):
+    def __init__(self, gateway, modules=None):
         super(GatewayInfoApiModel, self).__init__()
         self.gateway = gateway
-        self.supervisor = supervisor
-        self.publisher = publisher
-        self.discoverer = discoverer
+        self.modules = modules

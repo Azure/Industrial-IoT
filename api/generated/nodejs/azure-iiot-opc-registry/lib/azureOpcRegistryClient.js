@@ -1537,6 +1537,8 @@ function _getListOfSites(options, callback) {
  * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
  * were soft deleted
  *
+ * @param {string} [body.discovererId] Discoverer id to filter with
+ *
  * @param {object} [options] Optional Parameters.
  *
  * @param {number} [options.pageSize] Optional number of results to return
@@ -1707,6 +1709,8 @@ function _queryApplications(body, options, callback) {
  * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
  * were soft deleted
  *
+ * @param {string} [body.discovererId] Discoverer id to filter with
+ *
  * @param {object} [options] Optional Parameters.
  *
  * @param {number} [options.pageSize] Number of results to return
@@ -1830,145 +1834,6 @@ function _getFilteredListOfApplications(body, options, callback) {
         result = JSON.parse(responseBody);
         if (parsedResponse !== null && parsedResponse !== undefined) {
           let resultMapper = new client.models['ApplicationInfoListApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Query applications by id.
- *
- * A query model which supports the OPC UA Global Discovery Server query.
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.body]
- *
- * @param {number} [options.body.startingRecordId] Starting record id
- *
- * @param {number} [options.body.maxRecordsToReturn] Max records to return
- *
- * @param {string} [options.body.applicationName] Application name
- *
- * @param {string} [options.body.applicationUri] Application uri
- *
- * @param {string} [options.body.applicationType] Possible values include:
- * 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
- *
- * @param {string} [options.body.productUri] Product uri
- *
- * @param {array} [options.body.serverCapabilities] Server capabilities
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link ApplicationRecordListApiModel} for more
- *                      information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _queryApplicationsById(options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  let body = (options && options.body !== undefined) ? options.body : undefined;
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/querybyid';
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'POST';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  // Serialize Request
-  let requestContent = null;
-  let requestModel = null;
-  try {
-    if (body !== null && body !== undefined) {
-      let requestModelMapper = new client.models['ApplicationRecordQueryApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, body, 'body');
-      requestContent = JSON.stringify(requestModel);
-    }
-  } catch (error) {
-    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(body, null, 2)}.`);
-    return callback(serializationError);
-  }
-  httpRequest.body = requestContent;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['ApplicationRecordListApiModel']().mapper();
           result = client.deserialize(resultMapper, parsedResponse, 'result');
         }
       } catch (error) {
@@ -6299,7 +6164,7 @@ function _getListOfPublisher(options, callback) {
  *
  * @param {object} body Publisher query model
  *
- * @param {string} [body.siteId] Site of the publisher
+ * @param {string} [body.siteId] Site for the publishers
  *
  * @param {boolean} [body.connected] Included connected or disconnected
  *
@@ -6459,7 +6324,7 @@ function _queryPublisher(body, options, callback) {
  *
  * @param {object} [options] Optional Parameters.
  *
- * @param {string} [options.siteId] Site of the publisher
+ * @param {string} [options.siteId] Site for the publishers
  *
  * @param {boolean} [options.connected] Included connected or disconnected
  *
@@ -6825,112 +6690,6 @@ function _unsubscribe4(userId, options, callback) {
 }
 
 /**
- * @summary Return the service status in the form of the service status
- * api model.
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link StatusResponseApiModel} for more
- *                      information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _getStatus(options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/status';
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'GET';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  httpRequest.body = null;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['StatusResponseApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
  * @summary Get supervisor registration information
  *
  * Returns a supervisor's registration and connectivity information. A
@@ -7072,7 +6831,7 @@ function _getSupervisor(supervisorId, options, callback) {
  *
  * @param {object} body Patch request
  *
- * @param {string} [body.siteId] Site of the supervisor
+ * @param {string} [body.siteId] Site the supervisor is part of
  *
  * @param {string} [body.logLevel] Possible values include: 'Error',
  * 'Information', 'Debug', 'Verbose'
@@ -7560,7 +7319,7 @@ function _getListOfSupervisors(options, callback) {
  *
  * @param {object} body Supervisors query model
  *
- * @param {string} [body.siteId] Site of the supervisor
+ * @param {string} [body.siteId] Site for the supervisors
  *
  * @param {boolean} [body.connected] Included connected or disconnected
  *
@@ -7721,7 +7480,7 @@ function _querySupervisors(body, options, callback) {
  *
  * @param {object} [options] Optional Parameters.
  *
- * @param {string} [options.siteId] Site of the supervisor
+ * @param {string} [options.siteId] Site for the supervisors
  *
  * @param {boolean} [options.connected] Included connected or disconnected
  *
@@ -8131,7 +7890,6 @@ class AzureOpcRegistryClient extends ServiceClient {
     this._getListOfSites = _getListOfSites;
     this._queryApplications = _queryApplications;
     this._getFilteredListOfApplications = _getFilteredListOfApplications;
-    this._queryApplicationsById = _queryApplicationsById;
     this._subscribe = _subscribe;
     this._unsubscribe = _unsubscribe;
     this._getDiscoverer = _getDiscoverer;
@@ -8168,7 +7926,6 @@ class AzureOpcRegistryClient extends ServiceClient {
     this._getFilteredListOfPublisher = _getFilteredListOfPublisher;
     this._subscribe4 = _subscribe4;
     this._unsubscribe4 = _unsubscribe4;
-    this._getStatus = _getStatus;
     this._getSupervisor = _getSupervisor;
     this._updateSupervisor = _updateSupervisor;
     this._getSupervisorStatus = _getSupervisorStatus;
@@ -9499,6 +9256,8 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
    * were soft deleted
    *
+   * @param {string} [body.discovererId] Discoverer id to filter with
+   *
    * @param {object} [options] Optional Parameters.
    *
    * @param {number} [options.pageSize] Optional number of results to return
@@ -9557,6 +9316,8 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
    * were soft deleted
+   *
+   * @param {string} [body.discovererId] Discoverer id to filter with
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -9641,6 +9402,8 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
    * were soft deleted
    *
+   * @param {string} [body.discovererId] Discoverer id to filter with
+   *
    * @param {object} [options] Optional Parameters.
    *
    * @param {number} [options.pageSize] Number of results to return
@@ -9701,6 +9464,8 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
    * were soft deleted
    *
+   * @param {string} [body.discovererId] Discoverer id to filter with
+   *
    * @param {object} [options] Optional Parameters.
    *
    * @param {number} [options.pageSize] Number of results to return
@@ -9748,123 +9513,6 @@ class AzureOpcRegistryClient extends ServiceClient {
       });
     } else {
       return self._getFilteredListOfApplications(body, options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Query applications by id.
-   *
-   * A query model which supports the OPC UA Global Discovery Server query.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.body]
-   *
-   * @param {number} [options.body.startingRecordId] Starting record id
-   *
-   * @param {number} [options.body.maxRecordsToReturn] Max records to return
-   *
-   * @param {string} [options.body.applicationName] Application name
-   *
-   * @param {string} [options.body.applicationUri] Application uri
-   *
-   * @param {string} [options.body.applicationType] Possible values include:
-   * 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
-   *
-   * @param {string} [options.body.productUri] Product uri
-   *
-   * @param {array} [options.body.serverCapabilities] Server capabilities
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<ApplicationRecordListApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  queryApplicationsByIdWithHttpOperationResponse(options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._queryApplicationsById(options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Query applications by id.
-   *
-   * A query model which supports the OPC UA Global Discovery Server query.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.body]
-   *
-   * @param {number} [options.body.startingRecordId] Starting record id
-   *
-   * @param {number} [options.body.maxRecordsToReturn] Max records to return
-   *
-   * @param {string} [options.body.applicationName] Application name
-   *
-   * @param {string} [options.body.applicationUri] Application uri
-   *
-   * @param {string} [options.body.applicationType] Possible values include:
-   * 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
-   *
-   * @param {string} [options.body.productUri] Product uri
-   *
-   * @param {array} [options.body.serverCapabilities] Server capabilities
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {ApplicationRecordListApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ApplicationRecordListApiModel} for more
-   *                      information.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  queryApplicationsById(options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._queryApplicationsById(options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._queryApplicationsById(options, optionalCallback);
     }
   }
 
@@ -13231,7 +12879,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} body Publisher query model
    *
-   * @param {string} [body.siteId] Site of the publisher
+   * @param {string} [body.siteId] Site for the publishers
    *
    * @param {boolean} [body.connected] Included connected or disconnected
    *
@@ -13274,7 +12922,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} body Publisher query model
    *
-   * @param {string} [body.siteId] Site of the publisher
+   * @param {string} [body.siteId] Site for the publishers
    *
    * @param {boolean} [body.connected] Included connected or disconnected
    *
@@ -13340,7 +12988,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.siteId] Site of the publisher
+   * @param {string} [options.siteId] Site for the publishers
    *
    * @param {boolean} [options.connected] Included connected or disconnected
    *
@@ -13382,7 +13030,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.siteId] Site of the publisher
+   * @param {string} [options.siteId] Site for the publishers
    *
    * @param {boolean} [options.connected] Included connected or disconnected
    *
@@ -13611,87 +13259,6 @@ class AzureOpcRegistryClient extends ServiceClient {
   }
 
   /**
-   * @summary Return the service status in the form of the service status
-   * api model.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<StatusResponseApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  getStatusWithHttpOperationResponse(options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._getStatus(options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Return the service status in the form of the service status
-   * api model.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {StatusResponseApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link StatusResponseApiModel} for more
-   *                      information.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getStatus(options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._getStatus(options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._getStatus(options, optionalCallback);
-    }
-  }
-
-  /**
    * @summary Get supervisor registration information
    *
    * Returns a supervisor's registration and connectivity information. A
@@ -13795,7 +13362,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} body Patch request
    *
-   * @param {string} [body.siteId] Site of the supervisor
+   * @param {string} [body.siteId] Site the supervisor is part of
    *
    * @param {string} [body.logLevel] Possible values include: 'Error',
    * 'Information', 'Debug', 'Verbose'
@@ -13835,7 +13402,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} body Patch request
    *
-   * @param {string} [body.siteId] Site of the supervisor
+   * @param {string} [body.siteId] Site the supervisor is part of
    *
    * @param {string} [body.logLevel] Possible values include: 'Error',
    * 'Information', 'Debug', 'Verbose'
@@ -14172,7 +13739,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} body Supervisors query model
    *
-   * @param {string} [body.siteId] Site of the supervisor
+   * @param {string} [body.siteId] Site for the supervisors
    *
    * @param {boolean} [body.connected] Included connected or disconnected
    *
@@ -14215,7 +13782,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} body Supervisors query model
    *
-   * @param {string} [body.siteId] Site of the supervisor
+   * @param {string} [body.siteId] Site for the supervisors
    *
    * @param {boolean} [body.connected] Included connected or disconnected
    *
@@ -14282,7 +13849,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.siteId] Site of the supervisor
+   * @param {string} [options.siteId] Site for the supervisors
    *
    * @param {boolean} [options.connected] Included connected or disconnected
    *
@@ -14324,7 +13891,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.siteId] Site of the supervisor
+   * @param {string} [options.siteId] Site for the supervisors
    *
    * @param {boolean} [options.connected] Included connected or disconnected
    *

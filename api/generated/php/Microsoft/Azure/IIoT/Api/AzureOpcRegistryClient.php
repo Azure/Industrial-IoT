@@ -29,7 +29,6 @@ final class AzureOpcRegistryClient
         $this->_GetListOfSites_operation = $_client->createOperation('GetListOfSites');
         $this->_QueryApplications_operation = $_client->createOperation('QueryApplications');
         $this->_GetFilteredListOfApplications_operation = $_client->createOperation('GetFilteredListOfApplications');
-        $this->_QueryApplicationsById_operation = $_client->createOperation('QueryApplicationsById');
         $this->_Subscribe_operation = $_client->createOperation('Subscribe');
         $this->_Unsubscribe_operation = $_client->createOperation('Unsubscribe');
         $this->_GetDiscoverer_operation = $_client->createOperation('GetDiscoverer');
@@ -66,7 +65,6 @@ final class AzureOpcRegistryClient
         $this->_GetFilteredListOfPublisher_operation = $_client->createOperation('GetFilteredListOfPublisher');
         $this->_Subscribe4_operation = $_client->createOperation('Subscribe');
         $this->_Unsubscribe4_operation = $_client->createOperation('Unsubscribe');
-        $this->_GetStatus_operation = $_client->createOperation('GetStatus');
         $this->_GetSupervisor_operation = $_client->createOperation('GetSupervisor');
         $this->_UpdateSupervisor_operation = $_client->createOperation('UpdateSupervisor');
         $this->_GetSupervisorStatus_operation = $_client->createOperation('GetSupervisorStatus');
@@ -228,15 +226,6 @@ final class AzureOpcRegistryClient
             'pageSize' => $pageSize,
             'body' => $body
         ]);
-    }
-    /**
-     * A query model which supports the OPC UA Global Discovery Server query.
-     * @param array|null $body
-     * @return array
-     */
-    public function queryApplicationsById(array $body = null)
-    {
-        return $this->_QueryApplicationsById_operation->call(['body' => $body]);
     }
     /**
      * Register a client to receive application events through SignalR.
@@ -779,13 +768,6 @@ final class AzureOpcRegistryClient
         return $this->_Unsubscribe4_operation->call(['userId' => $userId]);
     }
     /**
-     * @return array
-     */
-    public function getStatus()
-    {
-        return $this->_GetStatus_operation->call([]);
-    }
-    /**
      * Returns a supervisor's registration and connectivity information. A supervisor id corresponds to the twin modules module identity.
      * @param string $supervisorId
      * @param boolean|null $onlyServerState
@@ -968,10 +950,6 @@ final class AzureOpcRegistryClient
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
-    private $_QueryApplicationsById_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
     private $_Subscribe_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
@@ -1113,10 +1091,6 @@ final class AzureOpcRegistryClient
      * @var \Microsoft\Rest\OperationInterface
      */
     private $_Unsubscribe4_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_GetStatus_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
@@ -1346,16 +1320,6 @@ final class AzureOpcRegistryClient
                     'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationInfoListApiModel']]]
                 ]
             ],
-            '/v2/applications/querybyid' => ['post' => [
-                'operationId' => 'QueryApplicationsById',
-                'parameters' => [[
-                    'name' => 'body',
-                    'in' => 'body',
-                    'required' => FALSE,
-                    'schema' => ['$ref' => '#/definitions/ApplicationRecordQueryApiModel']
-                ]],
-                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ApplicationRecordListApiModel']]]
-            ]],
             '/v2/applications/events' => ['put' => [
                 'operationId' => 'Subscribe',
                 'parameters' => [[
@@ -2106,11 +2070,6 @@ final class AzureOpcRegistryClient
                 ]],
                 'responses' => ['200' => []]
             ]],
-            '/v2/status' => ['get' => [
-                'operationId' => 'GetStatus',
-                'parameters' => [],
-                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/StatusResponseApiModel']]]
-            ]],
             '/v2/supervisors/{supervisorId}' => [
                 'get' => [
                     'operationId' => 'GetSupervisor',
@@ -2555,7 +2514,6 @@ final class AzureOpcRegistryClient
                     'securityAssessment' => [
                         'type' => 'string',
                         'enum' => [
-                            'Unknown',
                             'Low',
                             'Medium',
                             'High'
@@ -2622,75 +2580,11 @@ final class AzureOpcRegistryClient
                     'discoveryProfileUri' => ['type' => 'string'],
                     'gatewayServerUri' => ['type' => 'string'],
                     'siteOrGatewayId' => ['type' => 'string'],
-                    'includeNotSeenSince' => ['type' => 'boolean']
+                    'includeNotSeenSince' => ['type' => 'boolean'],
+                    'discovererId' => ['type' => 'string']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => []
-            ],
-            'ApplicationRecordQueryApiModel' => [
-                'properties' => [
-                    'startingRecordId' => [
-                        'type' => 'integer',
-                        'format' => 'int32'
-                    ],
-                    'maxRecordsToReturn' => [
-                        'type' => 'integer',
-                        'format' => 'int32'
-                    ],
-                    'applicationName' => ['type' => 'string'],
-                    'applicationUri' => ['type' => 'string'],
-                    'applicationType' => [
-                        'type' => 'string',
-                        'enum' => [
-                            'Server',
-                            'Client',
-                            'ClientAndServer',
-                            'DiscoveryServer'
-                        ]
-                    ],
-                    'productUri' => ['type' => 'string'],
-                    'serverCapabilities' => [
-                        'type' => 'array',
-                        'items' => ['type' => 'string']
-                    ]
-                ],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'ApplicationRecordApiModel' => [
-                'properties' => [
-                    'recordId' => [
-                        'type' => 'integer',
-                        'format' => 'int32'
-                    ],
-                    'application' => ['$ref' => '#/definitions/ApplicationInfoApiModel']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => [
-                    'recordId',
-                    'application'
-                ]
-            ],
-            'ApplicationRecordListApiModel' => [
-                'properties' => [
-                    'applications' => [
-                        'type' => 'array',
-                        'items' => ['$ref' => '#/definitions/ApplicationRecordApiModel']
-                    ],
-                    'lastCounterResetTime' => [
-                        'type' => 'string',
-                        'format' => 'date-time'
-                    ],
-                    'nextRecordId' => [
-                        'type' => 'integer',
-                        'format' => 'int32'
-                    ]
-                ],
-                'additionalProperties' => FALSE,
-                'required' => [
-                    'lastCounterResetTime',
-                    'nextRecordId'
-                ]
             ],
             'DiscovererApiModel' => [
                 'properties' => [
@@ -2938,12 +2832,19 @@ final class AzureOpcRegistryClient
                 'additionalProperties' => FALSE,
                 'required' => ['id']
             ],
-            'GatewayInfoApiModel' => [
+            'GatewayModulesApiModel' => [
                 'properties' => [
-                    'gateway' => ['$ref' => '#/definitions/GatewayApiModel'],
                     'supervisor' => ['$ref' => '#/definitions/SupervisorApiModel'],
                     'publisher' => ['$ref' => '#/definitions/PublisherApiModel'],
                     'discoverer' => ['$ref' => '#/definitions/DiscovererApiModel']
+                ],
+                'additionalProperties' => FALSE,
+                'required' => []
+            ],
+            'GatewayInfoApiModel' => [
+                'properties' => [
+                    'gateway' => ['$ref' => '#/definitions/GatewayApiModel'],
+                    'modules' => ['$ref' => '#/definitions/GatewayModulesApiModel']
                 ],
                 'additionalProperties' => FALSE,
                 'required' => ['gateway']
@@ -3004,33 +2905,6 @@ final class AzureOpcRegistryClient
                 'properties' => [
                     'siteId' => ['type' => 'string'],
                     'connected' => ['type' => 'boolean']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'StatusResponseApiModel' => [
-                'properties' => [
-                    'name' => ['type' => 'string'],
-                    'status' => ['type' => 'string'],
-                    'currentTime' => ['type' => 'string'],
-                    'startTime' => ['type' => 'string'],
-                    'upTime' => [
-                        'type' => 'integer',
-                        'format' => 'int64'
-                    ],
-                    'uid' => ['type' => 'string'],
-                    'properties' => [
-                        'type' => 'object',
-                        'additionalProperties' => ['type' => 'string']
-                    ],
-                    'dependencies' => [
-                        'type' => 'object',
-                        'additionalProperties' => ['type' => 'string']
-                    ],
-                    '$metadata' => [
-                        'type' => 'object',
-                        'additionalProperties' => ['type' => 'string']
-                    ]
                 ],
                 'additionalProperties' => FALSE,
                 'required' => []

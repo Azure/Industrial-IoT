@@ -33,8 +33,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// Initializes a new instance of the ApplicationSiteListApiModel
         /// class.
         /// </summary>
-        /// <param name="sites">Distinct list of sites applications were
-        /// registered in.</param>
+        /// <param name="sites">Sites</param>
         /// <param name="continuationToken">Continuation or null if
         /// final</param>
         public ApplicationSiteListApiModel(IList<string> sites = default(IList<string>), string continuationToken = default(string))
@@ -50,8 +49,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets distinct list of sites applications were registered
-        /// in.
+        /// Gets or sets sites
         /// </summary>
         [JsonProperty(PropertyName = "sites")]
         public IList<string> Sites { get; set; }

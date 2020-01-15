@@ -13,7 +13,7 @@ module azure.iiot.opc.registry
     # Publisher registration query
     #
     class PublisherQueryApiModel
-      # @return [String] Site of the publisher
+      # @return [String] Site for the publishers
       attr_accessor :site_id
 
       # @return [Boolean] Included connected or disconnected
