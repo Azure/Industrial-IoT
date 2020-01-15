@@ -1,0 +1,24 @@
+﻿apiVersion: v1
+kind: Service
+metadata:
+  name: gateway-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: gateway-service
+    app.kubernetes.io/part-of: industrial-iot
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: gateway-service
+    app.kubernetes.io/part-of: industrial-iot
+  ports:
+  - port: 443
+    protocol: TCP
+    name: https
+  - port: 9040
+    protocol: TCP
+    name: rest
+  - port: 51111
+    protocol: TCP
+    name: opc-ua-access

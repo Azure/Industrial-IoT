@@ -1,0 +1,21 @@
+﻿apiVersion: v1
+kind: Service
+metadata:
+  name: vault-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: vault-service
+    app.kubernetes.io/part-of: industrial-iot
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: vault-service
+    app.kubernetes.io/part-of: industrial-iot
+  ports:
+  - port: 443
+    protocol: TCP
+    name: https
+  - port: 9044
+    protocol: TCP
+    name: rest

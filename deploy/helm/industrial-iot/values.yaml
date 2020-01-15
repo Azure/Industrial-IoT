@@ -1,0 +1,164 @@
+Image:
+  Registry: mcr.microsoft.com/iot
+  Tag: 2.5.2
+
+TenantId: null
+
+IoTHub:
+  Name: null
+
+  EventHub:
+    Endpoint: null
+    PartitionCount: null
+    ConsumerGroup: null
+
+  SharedAccessPolicies:
+    iothubowner:
+      ConnectionString: null
+
+CosmosDB:
+  ConnectionString: null
+
+StorageAccount:
+  Name: null
+  AccessKey: null
+  EndpointSuffix: core.windows.net
+
+EventHubNamespace:
+  SharedAccessPolicies:
+    RootManageSharedAccessKey:
+      ConnectionString: null  
+  
+  EventHub:
+    Name: null
+
+ServiceBusNamespace:
+  SharedAccessPolicies:
+    RootManageSharedAccessKey:
+      ConnectionString: null
+
+KeyVault:
+  URI: null
+
+LogAnalyticsWorkspace:
+  Name: null
+
+ApplicationInsights:
+  Name: null
+  InstrumentationKey: null
+
+AppService:
+  URL: null
+
+SignalR:
+  ConnectionString: null
+
+Services:
+  CorsWhitelist: '*'
+  Auth:
+    HttpsRedirectPort: 0
+    Required: true
+    Audience: null
+
+Clients:
+  Auth:
+    AadAppId: null
+    Authority: https://login.microsoftonline.com/
+
+Deployment:
+  MicroServices:
+    registry:
+      replicas: 1
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "512Mi"
+          cpu: "250m"
+    twin:
+      replicas: 1
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "512Mi"
+          cpu: "250m"
+    history:
+      replicas: 1
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "512Mi"
+          cpu: "250m"
+    gateway:
+      replicas: 1
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "512Mi"
+          cpu: "250m"
+    vault:
+      replicas: 1
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "512Mi"
+          cpu: "250m"
+    alerting:
+      replicas: 1
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "512Mi"
+          cpu: "250m"
+    onboarding:
+      replicas: 1
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "512Mi"
+          cpu: "250m"
+    jobs:
+      replicas: 1
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "512Mi"
+          cpu: "250m"
+    model-processor:
+      replicas: 1
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "512Mi"
+          cpu: "250m"
+    blob-notification:
+      replicas: 1
+      resources:
+        requests:
+          memory: "64Mi"
+          cpu: "50m"
+        limits:
+          memory: "512Mi"
+          cpu: "250m"
+
+  Ingress:
+    tls:
+      crt: null
+      key: null
