@@ -87,7 +87,7 @@ module azure.iiot.opc.vault
               },
               certificate: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'certificate',
                 type: {
                   name: 'Object'

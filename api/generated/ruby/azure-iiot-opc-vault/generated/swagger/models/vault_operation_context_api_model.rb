@@ -43,7 +43,7 @@ module azure.iiot.opc.vault
               },
               time: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'time',
                 type: {
                   name: 'DateTime'

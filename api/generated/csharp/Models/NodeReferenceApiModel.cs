@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// <summary>
         /// Initializes a new instance of the NodeReferenceApiModel class.
         /// </summary>
-        /// <param name="referenceTypeId">Reference Type identifier</param>
+        /// <param name="referenceTypeId">Reference Type id</param>
         /// <param name="direction">Possible values include: 'Forward',
         /// 'Backward', 'Both'</param>
         public NodeReferenceApiModel(NodeApiModel target, string referenceTypeId = default(string), BrowseDirection? direction = default(BrowseDirection?))
@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets reference Type identifier
+        /// Gets or sets reference Type id
         /// </summary>
         [JsonProperty(PropertyName = "referenceTypeId")]
         public string ReferenceTypeId { get; set; }

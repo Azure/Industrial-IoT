@@ -17,8 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault {
         /// Returns status of the service
         /// </summary>
         /// <returns></returns>
-        Task<StatusResponseApiModel> GetServiceStatusAsync(
-            CancellationToken ct = default);
+        Task<string> GetServiceStatusAsync(CancellationToken ct = default);
 
         /// <summary>
         /// Get information about all groups.

@@ -1030,6 +1030,8 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
    * were soft deleted
    *
+   * @param {string} [body.discovererId] Discoverer id to filter with
+   *
    * @param {object} [options] Optional Parameters.
    *
    * @param {number} [options.pageSize] Optional number of results to return
@@ -1076,6 +1078,8 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
    * were soft deleted
+   *
+   * @param {string} [body.discovererId] Discoverer id to filter with
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -1145,6 +1149,8 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
    * were soft deleted
    *
+   * @param {string} [body.discovererId] Discoverer id to filter with
+   *
    * @param {object} [options] Optional Parameters.
    *
    * @param {number} [options.pageSize] Number of results to return
@@ -1193,6 +1199,8 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
    * were soft deleted
    *
+   * @param {string} [body.discovererId] Discoverer id to filter with
+   *
    * @param {object} [options] Optional Parameters.
    *
    * @param {number} [options.pageSize] Number of results to return
@@ -1226,96 +1234,6 @@ export default class AzureOpcRegistryClient extends ServiceClient {
   getFilteredListOfApplications(body: models.ApplicationRegistrationQueryApiModel, options?: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.ApplicationInfoListApiModel>;
   getFilteredListOfApplications(body: models.ApplicationRegistrationQueryApiModel, callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
   getFilteredListOfApplications(body: models.ApplicationRegistrationQueryApiModel, options: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
-
-
-  /**
-   * @summary Query applications by id.
-   *
-   * A query model which supports the OPC UA Global Discovery Server query.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.body]
-   *
-   * @param {number} [options.body.startingRecordId] Starting record id
-   *
-   * @param {number} [options.body.maxRecordsToReturn] Max records to return
-   *
-   * @param {string} [options.body.applicationName] Application name
-   *
-   * @param {string} [options.body.applicationUri] Application uri
-   *
-   * @param {string} [options.body.applicationType] Possible values include:
-   * 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
-   *
-   * @param {string} [options.body.productUri] Product uri
-   *
-   * @param {array} [options.body.serverCapabilities] Server capabilities
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<ApplicationRecordListApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  queryApplicationsByIdWithHttpOperationResponse(options?: { body? : models.ApplicationRecordQueryApiModel, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ApplicationRecordListApiModel>>;
-
-  /**
-   * @summary Query applications by id.
-   *
-   * A query model which supports the OPC UA Global Discovery Server query.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.body]
-   *
-   * @param {number} [options.body.startingRecordId] Starting record id
-   *
-   * @param {number} [options.body.maxRecordsToReturn] Max records to return
-   *
-   * @param {string} [options.body.applicationName] Application name
-   *
-   * @param {string} [options.body.applicationUri] Application uri
-   *
-   * @param {string} [options.body.applicationType] Possible values include:
-   * 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
-   *
-   * @param {string} [options.body.productUri] Product uri
-   *
-   * @param {array} [options.body.serverCapabilities] Server capabilities
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {ApplicationRecordListApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {ApplicationRecordListApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ApplicationRecordListApiModel} for more
-   *                      information.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  queryApplicationsById(options?: { body? : models.ApplicationRecordQueryApiModel, customHeaders? : { [headerName: string]: string; } }): Promise<models.ApplicationRecordListApiModel>;
-  queryApplicationsById(callback: ServiceCallback<models.ApplicationRecordListApiModel>): void;
-  queryApplicationsById(options: { body? : models.ApplicationRecordQueryApiModel, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ApplicationRecordListApiModel>): void;
 
 
   /**
@@ -3817,7 +3735,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} body Publisher query model
    *
-   * @param {string} [body.siteId] Site of the publisher
+   * @param {string} [body.siteId] Site for the publishers
    *
    * @param {boolean} [body.connected] Included connected or disconnected
    *
@@ -3848,7 +3766,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} body Publisher query model
    *
-   * @param {string} [body.siteId] Site of the publisher
+   * @param {string} [body.siteId] Site for the publishers
    *
    * @param {boolean} [body.connected] Included connected or disconnected
    *
@@ -3899,7 +3817,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.siteId] Site of the publisher
+   * @param {string} [options.siteId] Site for the publishers
    *
    * @param {boolean} [options.connected] Included connected or disconnected
    *
@@ -3929,7 +3847,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.siteId] Site of the publisher
+   * @param {string} [options.siteId] Site for the publishers
    *
    * @param {boolean} [options.connected] Included connected or disconnected
    *
@@ -4089,60 +4007,6 @@ export default class AzureOpcRegistryClient extends ServiceClient {
 
 
   /**
-   * @summary Return the service status in the form of the service status
-   * api model.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<StatusResponseApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  getStatusWithHttpOperationResponse(options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.StatusResponseApiModel>>;
-
-  /**
-   * @summary Return the service status in the form of the service status
-   * api model.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {StatusResponseApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {StatusResponseApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link StatusResponseApiModel} for more
-   *                      information.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getStatus(options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.StatusResponseApiModel>;
-  getStatus(callback: ServiceCallback<models.StatusResponseApiModel>): void;
-  getStatus(options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.StatusResponseApiModel>): void;
-
-
-  /**
    * @summary Get supervisor registration information
    *
    * Returns a supervisor's registration and connectivity information. A
@@ -4219,7 +4083,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} body Patch request
    *
-   * @param {string} [body.siteId] Site of the supervisor
+   * @param {string} [body.siteId] Site the supervisor is part of
    *
    * @param {string} [body.logLevel] Possible values include: 'Error',
    * 'Information', 'Debug', 'Verbose'
@@ -4247,7 +4111,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} body Patch request
    *
-   * @param {string} [body.siteId] Site of the supervisor
+   * @param {string} [body.siteId] Site the supervisor is part of
    *
    * @param {string} [body.logLevel] Possible values include: 'Error',
    * 'Information', 'Debug', 'Verbose'
@@ -4488,7 +4352,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} body Supervisors query model
    *
-   * @param {string} [body.siteId] Site of the supervisor
+   * @param {string} [body.siteId] Site for the supervisors
    *
    * @param {boolean} [body.connected] Included connected or disconnected
    *
@@ -4519,7 +4383,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} body Supervisors query model
    *
-   * @param {string} [body.siteId] Site of the supervisor
+   * @param {string} [body.siteId] Site for the supervisors
    *
    * @param {boolean} [body.connected] Included connected or disconnected
    *
@@ -4571,7 +4435,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.siteId] Site of the supervisor
+   * @param {string} [options.siteId] Site for the supervisors
    *
    * @param {boolean} [options.connected] Included connected or disconnected
    *
@@ -4601,7 +4465,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.siteId] Site of the supervisor
+   * @param {string} [options.siteId] Site for the supervisors
    *
    * @param {boolean} [options.connected] Included connected or disconnected
    *

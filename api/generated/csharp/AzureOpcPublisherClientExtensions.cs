@@ -305,35 +305,5 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher
                 }
             }
 
-            /// <summary>
-            /// Return the service status in the form of the service status
-            /// api model.
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            public static StatusResponseApiModel GetStatus(this IAzureOpcPublisherClient operations)
-            {
-                return operations.GetStatusAsync().GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Return the service status in the form of the service status
-            /// api model.
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<StatusResponseApiModel> GetStatusAsync(this IAzureOpcPublisherClient operations, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.GetStatusWithHttpMessagesAsync(null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
     }
 }

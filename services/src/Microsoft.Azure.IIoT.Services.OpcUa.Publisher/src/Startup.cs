@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.v2;
     using Microsoft.Azure.IIoT.Services.Auth;
     using Microsoft.Azure.IIoT.Services.Auth.Clients;
     using Microsoft.Azure.IIoT.Services.Cors;

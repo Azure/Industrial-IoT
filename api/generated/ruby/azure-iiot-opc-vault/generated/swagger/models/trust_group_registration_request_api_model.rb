@@ -48,7 +48,7 @@ module azure.iiot.opc.vault
             model_properties: {
               name: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'name',
                 type: {
                   name: 'String'
@@ -56,7 +56,7 @@ module azure.iiot.opc.vault
               },
               parent_id: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'parentId',
                 type: {
                   name: 'String'
@@ -64,7 +64,7 @@ module azure.iiot.opc.vault
               },
               subject_name: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'subjectName',
                 type: {
                   name: 'String'

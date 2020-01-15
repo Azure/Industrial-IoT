@@ -18,8 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<StatusResponseApiModel> GetServiceStatusAsync(
-            CancellationToken ct = default);
+        Task<string> GetServiceStatusAsync(CancellationToken ct = default);
 
         /// <summary>
         /// Browse node on endpoint

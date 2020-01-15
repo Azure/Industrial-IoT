@@ -729,7 +729,6 @@ export const ApplicationRegistrationApiModel: msRest.CompositeMapper = {
         type: {
           name: "Enum",
           allowedValues: [
-            "Unknown",
             "Low",
             "Medium",
             "High"
@@ -923,129 +922,11 @@ export const ApplicationRegistrationQueryApiModel: msRest.CompositeMapper = {
         type: {
           name: "Boolean"
         }
-      }
-    }
-  }
-};
-
-export const ApplicationRecordQueryApiModel: msRest.CompositeMapper = {
-  serializedName: "ApplicationRecordQueryApiModel",
-  type: {
-    name: "Composite",
-    className: "ApplicationRecordQueryApiModel",
-    modelProperties: {
-      startingRecordId: {
-        serializedName: "startingRecordId",
-        type: {
-          name: "Number"
-        }
       },
-      maxRecordsToReturn: {
-        serializedName: "maxRecordsToReturn",
-        type: {
-          name: "Number"
-        }
-      },
-      applicationName: {
-        serializedName: "applicationName",
+      discovererId: {
+        serializedName: "discovererId",
         type: {
           name: "String"
-        }
-      },
-      applicationUri: {
-        serializedName: "applicationUri",
-        type: {
-          name: "String"
-        }
-      },
-      applicationType: {
-        serializedName: "applicationType",
-        type: {
-          name: "Enum",
-          allowedValues: [
-            "Server",
-            "Client",
-            "ClientAndServer",
-            "DiscoveryServer"
-          ]
-        }
-      },
-      productUri: {
-        serializedName: "productUri",
-        type: {
-          name: "String"
-        }
-      },
-      serverCapabilities: {
-        serializedName: "serverCapabilities",
-        type: {
-          name: "Sequence",
-          element: {
-            type: {
-              name: "String"
-            }
-          }
-        }
-      }
-    }
-  }
-};
-
-export const ApplicationRecordApiModel: msRest.CompositeMapper = {
-  serializedName: "ApplicationRecordApiModel",
-  type: {
-    name: "Composite",
-    className: "ApplicationRecordApiModel",
-    modelProperties: {
-      recordId: {
-        required: true,
-        serializedName: "recordId",
-        type: {
-          name: "Number"
-        }
-      },
-      application: {
-        required: true,
-        serializedName: "application",
-        type: {
-          name: "Composite",
-          className: "ApplicationInfoApiModel"
-        }
-      }
-    }
-  }
-};
-
-export const ApplicationRecordListApiModel: msRest.CompositeMapper = {
-  serializedName: "ApplicationRecordListApiModel",
-  type: {
-    name: "Composite",
-    className: "ApplicationRecordListApiModel",
-    modelProperties: {
-      applications: {
-        serializedName: "applications",
-        type: {
-          name: "Sequence",
-          element: {
-            type: {
-              name: "Composite",
-              className: "ApplicationRecordApiModel"
-            }
-          }
-        }
-      },
-      lastCounterResetTime: {
-        required: true,
-        serializedName: "lastCounterResetTime",
-        type: {
-          name: "DateTime"
-        }
-      },
-      nextRecordId: {
-        required: true,
-        serializedName: "nextRecordId",
-        type: {
-          name: "Number"
         }
       }
     }
@@ -1605,20 +1486,12 @@ export const PublisherApiModel: msRest.CompositeMapper = {
   }
 };
 
-export const GatewayInfoApiModel: msRest.CompositeMapper = {
-  serializedName: "GatewayInfoApiModel",
+export const GatewayModulesApiModel: msRest.CompositeMapper = {
+  serializedName: "GatewayModulesApiModel",
   type: {
     name: "Composite",
-    className: "GatewayInfoApiModel",
+    className: "GatewayModulesApiModel",
     modelProperties: {
-      gateway: {
-        required: true,
-        serializedName: "gateway",
-        type: {
-          name: "Composite",
-          className: "GatewayApiModel"
-        }
-      },
       supervisor: {
         serializedName: "supervisor",
         type: {
@@ -1638,6 +1511,31 @@ export const GatewayInfoApiModel: msRest.CompositeMapper = {
         type: {
           name: "Composite",
           className: "DiscovererApiModel"
+        }
+      }
+    }
+  }
+};
+
+export const GatewayInfoApiModel: msRest.CompositeMapper = {
+  serializedName: "GatewayInfoApiModel",
+  type: {
+    name: "Composite",
+    className: "GatewayInfoApiModel",
+    modelProperties: {
+      gateway: {
+        required: true,
+        serializedName: "gateway",
+        type: {
+          name: "Composite",
+          className: "GatewayApiModel"
+        }
+      },
+      modules: {
+        serializedName: "modules",
+        type: {
+          name: "Composite",
+          className: "GatewayModulesApiModel"
         }
       }
     }
@@ -1789,92 +1687,6 @@ export const PublisherQueryApiModel: msRest.CompositeMapper = {
         serializedName: "connected",
         type: {
           name: "Boolean"
-        }
-      }
-    }
-  }
-};
-
-export const StatusResponseApiModel: msRest.CompositeMapper = {
-  serializedName: "StatusResponseApiModel",
-  type: {
-    name: "Composite",
-    className: "StatusResponseApiModel",
-    modelProperties: {
-      name: {
-        serializedName: "name",
-        type: {
-          name: "String"
-        }
-      },
-      status: {
-        serializedName: "status",
-        type: {
-          name: "String"
-        }
-      },
-      currentTime: {
-        readOnly: true,
-        serializedName: "currentTime",
-        type: {
-          name: "String"
-        }
-      },
-      startTime: {
-        readOnly: true,
-        serializedName: "startTime",
-        type: {
-          name: "String"
-        }
-      },
-      upTime: {
-        readOnly: true,
-        serializedName: "upTime",
-        type: {
-          name: "Number"
-        }
-      },
-      uid: {
-        readOnly: true,
-        serializedName: "uid",
-        type: {
-          name: "String"
-        }
-      },
-      properties: {
-        readOnly: true,
-        serializedName: "properties",
-        type: {
-          name: "Dictionary",
-          value: {
-            type: {
-              name: "String"
-            }
-          }
-        }
-      },
-      dependencies: {
-        readOnly: true,
-        serializedName: "dependencies",
-        type: {
-          name: "Dictionary",
-          value: {
-            type: {
-              name: "String"
-            }
-          }
-        }
-      },
-      metadata: {
-        readOnly: true,
-        serializedName: "$metadata",
-        type: {
-          name: "Dictionary",
-          value: {
-            type: {
-              name: "String"
-            }
-          }
         }
       }
     }

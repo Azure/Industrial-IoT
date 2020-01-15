@@ -13,7 +13,7 @@ package com.microsoft.azure.iiot.opc.registry.models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Application registration request.
+ * Server registration request.
  */
 public class ServerRegistrationRequestApiModel {
     /**

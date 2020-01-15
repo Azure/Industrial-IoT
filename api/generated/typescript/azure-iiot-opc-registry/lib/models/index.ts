@@ -43,7 +43,7 @@ export interface EndpointActivationFilterApiModel {
 /**
  * @interface
  * An interface representing ServerRegistrationRequestApiModel.
- * Application registration request
+ * Server registration request
  *
  */
 export interface ServerRegistrationRequestApiModel {
@@ -253,7 +253,7 @@ export interface ApplicationInfoListApiModel {
 /**
  * @interface
  * An interface representing DiscoveryConfigApiModel.
- * Discovery configuration
+ * Discovery configuration api model
  *
  */
 export interface DiscoveryConfigApiModel {
@@ -374,7 +374,7 @@ export interface EndpointApiModel {
  */
 export interface AuthenticationMethodApiModel {
   /**
-   * @member {string} id Authentication method id
+   * @member {string} id Method id
    */
   id: string;
   /**
@@ -439,7 +439,7 @@ export interface EndpointRegistrationApiModel {
 /**
  * @interface
  * An interface representing ApplicationRegistrationApiModel.
- * Application with list of endpoints
+ * Application with optional list of endpoints
  *
  */
 export interface ApplicationRegistrationApiModel {
@@ -454,7 +454,7 @@ export interface ApplicationRegistrationApiModel {
   endpoints?: EndpointRegistrationApiModel[];
   /**
    * @member {SecurityAssessment} [securityAssessment] Possible values include:
-   * 'Unknown', 'Low', 'Medium', 'High'
+   * 'Low', 'Medium', 'High'
    */
   securityAssessment?: SecurityAssessment;
 }
@@ -514,8 +514,7 @@ export interface ApplicationRegistrationUpdateApiModel {
  */
 export interface ApplicationSiteListApiModel {
   /**
-   * @member {string[]} [sites] Distinct list of sites applications were
-   * registered in.
+   * @member {string[]} [sites] Sites
    */
   sites?: string[];
   /**
@@ -574,82 +573,10 @@ export interface ApplicationRegistrationQueryApiModel {
    * soft deleted
    */
   includeNotSeenSince?: boolean;
-}
-
-/**
- * @interface
- * An interface representing ApplicationRecordQueryApiModel.
- * Query by id
- *
- */
-export interface ApplicationRecordQueryApiModel {
   /**
-   * @member {number} [startingRecordId] Starting record id
+   * @member {string} [discovererId] Discoverer id to filter with
    */
-  startingRecordId?: number;
-  /**
-   * @member {number} [maxRecordsToReturn] Max records to return
-   */
-  maxRecordsToReturn?: number;
-  /**
-   * @member {string} [applicationName] Application name
-   */
-  applicationName?: string;
-  /**
-   * @member {string} [applicationUri] Application uri
-   */
-  applicationUri?: string;
-  /**
-   * @member {ApplicationType} [applicationType] Possible values include:
-   * 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
-   */
-  applicationType?: ApplicationType;
-  /**
-   * @member {string} [productUri] Product uri
-   */
-  productUri?: string;
-  /**
-   * @member {string[]} [serverCapabilities] Server capabilities
-   */
-  serverCapabilities?: string[];
-}
-
-/**
- * @interface
- * An interface representing ApplicationRecordApiModel.
- * Application with optional list of endpoints
- *
- */
-export interface ApplicationRecordApiModel {
-  /**
-   * @member {number} recordId Record id
-   */
-  recordId: number;
-  /**
-   * @member {ApplicationInfoApiModel} application
-   */
-  application: ApplicationInfoApiModel;
-}
-
-/**
- * @interface
- * An interface representing ApplicationRecordListApiModel.
- * Create response
- *
- */
-export interface ApplicationRecordListApiModel {
-  /**
-   * @member {ApplicationRecordApiModel[]} [applications] Applications found
-   */
-  applications?: ApplicationRecordApiModel[];
-  /**
-   * @member {Date} lastCounterResetTime Last counter reset
-   */
-  lastCounterResetTime: Date;
-  /**
-   * @member {number} nextRecordId Next record id
-   */
-  nextRecordId: number;
+  discovererId?: string;
 }
 
 /**
@@ -1007,15 +934,11 @@ export interface PublisherApiModel {
 
 /**
  * @interface
- * An interface representing GatewayInfoApiModel.
- * Gateway info model
+ * An interface representing GatewayModulesApiModel.
+ * Gateway modules model
  *
  */
-export interface GatewayInfoApiModel {
-  /**
-   * @member {GatewayApiModel} gateway
-   */
-  gateway: GatewayApiModel;
+export interface GatewayModulesApiModel {
   /**
    * @member {SupervisorApiModel} [supervisor]
    */
@@ -1028,6 +951,23 @@ export interface GatewayInfoApiModel {
    * @member {DiscovererApiModel} [discoverer]
    */
   discoverer?: DiscovererApiModel;
+}
+
+/**
+ * @interface
+ * An interface representing GatewayInfoApiModel.
+ * Gateway info model
+ *
+ */
+export interface GatewayInfoApiModel {
+  /**
+   * @member {GatewayApiModel} gateway
+   */
+  gateway: GatewayApiModel;
+  /**
+   * @member {GatewayModulesApiModel} [modules]
+   */
+  modules?: GatewayModulesApiModel;
 }
 
 /**
@@ -1124,7 +1064,7 @@ export interface PublisherListApiModel {
  */
 export interface PublisherQueryApiModel {
   /**
-   * @member {string} [siteId] Site of the publisher
+   * @member {string} [siteId] Site for the publishers
    */
   siteId?: string;
   /**
@@ -1135,76 +1075,13 @@ export interface PublisherQueryApiModel {
 
 /**
  * @interface
- * An interface representing StatusResponseApiModel.
- * Status response model
- *
- */
-export interface StatusResponseApiModel {
-  /**
-   * @member {string} [name] Name of this service
-   */
-  name?: string;
-  /**
-   * @member {string} [status] Operational status
-   */
-  status?: string;
-  /**
-   * @member {string} [currentTime] Current time
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly currentTime?: string;
-  /**
-   * @member {string} [startTime] Start time of service
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly startTime?: string;
-  /**
-   * @member {number} [upTime] Up time of service
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly upTime?: number;
-  /**
-   * @member {string} [uid] Value generated at bootstrap by each instance of
-   * the service and
-   * used to correlate logs coming from the same instance. The value
-   * changes every time the service starts.
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly uid?: string;
-  /**
-   * @member {{ [propertyName: string]: string }} [properties] A property bag
-   * with details about the service
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly properties?: { [propertyName: string]: string };
-  /**
-   * @member {{ [propertyName: string]: string }} [dependencies] A property bag
-   * with details about the internal dependencies
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly dependencies?: { [propertyName: string]: string };
-  /**
-   * @member {{ [propertyName: string]: string }} [metadata] **NOTE: This
-   * property will not be serialized. It can only be populated by the server.**
-   */
-  readonly metadata?: { [propertyName: string]: string };
-}
-
-/**
- * @interface
  * An interface representing SupervisorUpdateApiModel.
- * Supervisor registration update request
+ * Supervisor update request
  *
  */
 export interface SupervisorUpdateApiModel {
   /**
-   * @member {string} [siteId] Site of the supervisor
+   * @member {string} [siteId] Site the supervisor is part of
    */
   siteId?: string;
   /**
@@ -1283,7 +1160,7 @@ export interface SupervisorListApiModel {
  */
 export interface SupervisorQueryApiModel {
   /**
-   * @member {string} [siteId] Site of the supervisor
+   * @member {string} [siteId] Site for the supervisors
    */
   siteId?: string;
   /**
@@ -1380,20 +1257,6 @@ export interface AzureOpcRegistryClientGetFilteredListOfApplicationsOptionalPara
    * @member {number} [pageSize] Number of results to return
    */
   pageSize?: number;
-}
-
-/**
- * @interface
- * An interface representing AzureOpcRegistryClientQueryApplicationsByIdOptionalParams.
- * Optional Parameters.
- *
- * @extends RequestOptionsBase
- */
-export interface AzureOpcRegistryClientQueryApplicationsByIdOptionalParams extends msRest.RequestOptionsBase {
-  /**
-   * @member {ApplicationRecordQueryApiModel} [body]
-   */
-  body?: ApplicationRecordQueryApiModel;
 }
 
 /**
@@ -1832,7 +1695,7 @@ export interface AzureOpcRegistryClientQueryPublisherOptionalParams extends msRe
  */
 export interface AzureOpcRegistryClientGetFilteredListOfPublisherOptionalParams extends msRest.RequestOptionsBase {
   /**
-   * @member {string} [siteId] Site of the publisher
+   * @member {string} [siteId] Site for the publishers
    */
   siteId?: string;
   /**
@@ -1930,7 +1793,7 @@ export interface AzureOpcRegistryClientQuerySupervisorsOptionalParams extends ms
  */
 export interface AzureOpcRegistryClientGetFilteredListOfSupervisorsOptionalParams extends msRest.RequestOptionsBase {
   /**
-   * @member {string} [siteId] Site of the supervisor
+   * @member {string} [siteId] Site for the supervisors
    */
   siteId?: string;
   /**
@@ -1996,11 +1859,11 @@ export type CredentialType = 'None' | 'UserName' | 'X509Certificate' | 'JwtToken
 
 /**
  * Defines values for SecurityAssessment.
- * Possible values include: 'Unknown', 'Low', 'Medium', 'High'
+ * Possible values include: 'Low', 'Medium', 'High'
  * @readonly
  * @enum {string}
  */
-export type SecurityAssessment = 'Unknown' | 'Low' | 'Medium' | 'High';
+export type SecurityAssessment = 'Low' | 'Medium' | 'High';
 
 /**
  * Defines values for TraceLogLevel.
@@ -2138,25 +2001,6 @@ export type GetFilteredListOfApplicationsResponse = ApplicationInfoListApiModel 
        * The response body as parsed JSON or XML
        */
       parsedBody: ApplicationInfoListApiModel;
-    };
-};
-
-/**
- * Contains response data for the queryApplicationsById operation.
- */
-export type QueryApplicationsByIdResponse = ApplicationRecordListApiModel & {
-  /**
-   * The underlying HTTP response.
-   */
-  _response: msRest.HttpResponse & {
-      /**
-       * The response body as text (string format)
-       */
-      bodyAsText: string;
-      /**
-       * The response body as parsed JSON or XML
-       */
-      parsedBody: ApplicationRecordListApiModel;
     };
 };
 
@@ -2461,25 +2305,6 @@ export type GetFilteredListOfPublisherResponse = PublisherListApiModel & {
        * The response body as parsed JSON or XML
        */
       parsedBody: PublisherListApiModel;
-    };
-};
-
-/**
- * Contains response data for the getStatus operation.
- */
-export type GetStatusResponse = StatusResponseApiModel & {
-  /**
-   * The underlying HTTP response.
-   */
-  _response: msRest.HttpResponse & {
-      /**
-       * The response body as text (string format)
-       */
-      bodyAsText: string;
-      /**
-       * The response body as parsed JSON or XML
-       */
-      parsedBody: StatusResponseApiModel;
     };
 };
 

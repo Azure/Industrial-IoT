@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Services.Common.Configuration {
     using Microsoft.Azure.IIoT.Services.Common.Configuration.Runtime;
-    using Microsoft.Azure.IIoT.Services.Common.Configuration.v2;
     using Microsoft.Azure.IIoT.Services.Cors;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Messaging.SignalR.Services;

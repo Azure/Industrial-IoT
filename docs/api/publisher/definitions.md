@@ -69,7 +69,7 @@ Unpublish request
 
 <a name="publishstopresponseapimodel"></a>
 ### PublishStopResponseApiModel
-Result of unpublish request
+Result of publish stop request
 
 
 |Name|Schema|
@@ -132,24 +132,6 @@ Service result
 |**diagnostics**  <br>*optional*|Additional diagnostics information|object|
 |**errorMessage**  <br>*optional*|Error message in case of error or null.|string|
 |**statusCode**  <br>*optional*|Error code - if null operation succeeded.|integer (int32)|
-
-
-<a name="statusresponseapimodel"></a>
-### StatusResponseApiModel
-Status response model
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**$metadata**  <br>*optional*  <br>*read-only*||< string, string > map|
-|**currentTime**  <br>*optional*  <br>*read-only*|Current time|string|
-|**dependencies**  <br>*optional*  <br>*read-only*|A property bag with details about the internal dependencies|< string, string > map|
-|**name**  <br>*optional*|Name of this service|string|
-|**properties**  <br>*optional*  <br>*read-only*|A property bag with details about the service|< string, string > map|
-|**startTime**  <br>*optional*  <br>*read-only*|Start time of service|string|
-|**status**  <br>*optional*|Operational status|string|
-|**uid**  <br>*optional*  <br>*read-only*|Value generated at bootstrap by each instance of the service and<br>used to correlate logs coming from the same instance. The value<br>changes every time the service starts.|string|
-|**upTime**  <br>*optional*  <br>*read-only*|Up time of service|integer (int64)|
 
 
 

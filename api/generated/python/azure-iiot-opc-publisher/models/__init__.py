@@ -20,7 +20,6 @@ from .publish_stop_request_api_model import PublishStopRequestApiModel
 from .publish_stop_response_api_model import PublishStopResponseApiModel
 from .published_item_list_request_api_model import PublishedItemListRequestApiModel
 from .published_item_list_response_api_model import PublishedItemListResponseApiModel
-from .status_response_api_model import StatusResponseApiModel
 from .azure_opc_publisher_client_enums import (
     CredentialType,
     DiagnosticsLevel,
@@ -38,7 +37,6 @@ __all__ = [
     'PublishStopResponseApiModel',
     'PublishedItemListRequestApiModel',
     'PublishedItemListResponseApiModel',
-    'StatusResponseApiModel',
     'CredentialType',
     'DiagnosticsLevel',
 ]

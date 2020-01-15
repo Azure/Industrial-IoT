@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
+    using System.ComponentModel;
     using System.Collections.Generic;
 
     /// <summary>
@@ -20,6 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "trustLists",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public List<string> TrustLists { get; set; }
 
         /// <summary>
@@ -28,6 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "securityPolicies",
            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public List<string> SecurityPolicies { get; set; }
 
         /// <summary>
@@ -36,6 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "securityMode",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public SecurityMode? SecurityMode { get; set; }
     }
 }

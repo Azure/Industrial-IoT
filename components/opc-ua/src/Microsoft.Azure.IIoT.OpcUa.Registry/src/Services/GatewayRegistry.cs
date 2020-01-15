@@ -44,31 +44,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     $"{gatewayId} is not a gateway registration.");
             }
 
-            var info = new GatewayInfoModel {
-                Gateway = registration.ToServiceModel()
-            };
-
             var modules = await _iothub.QueryAllDeviceTwinsAsync(
                 $"SELECT * FROM devices.modules WHERE deviceId = '{device.Id}'", ct);
-
+            var gatewayModules = new GatewayModulesModel();
             foreach (var module in modules) {
                 var entity = module.ToEntityRegistration(onlyServerState);
                 switch (entity) {
                     case SupervisorRegistration sr:
-                        info.Supervisor = sr.ToServiceModel();
+                        gatewayModules.Supervisor = sr.ToServiceModel();
                         break;
                     case PublisherRegistration pr:
-                        info.Publisher = pr.ToServiceModel();
+                        gatewayModules.Publisher = pr.ToServiceModel();
                         break;
                     case DiscovererRegistration dr:
-                        info.Discoverer = dr.ToServiceModel();
+                        gatewayModules.Discoverer = dr.ToServiceModel();
                         break;
                     default:
                         // might add module to dictionary in the future
                         break;
                 }
             }
-            return info;
+            return new GatewayInfoModel {
+                Gateway = registration.ToServiceModel(),
+                Modules = gatewayModules
+            };
         }
 
         /// <inheritdoc/>

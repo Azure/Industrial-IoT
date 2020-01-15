@@ -10,6 +10,9 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    /// Job service client
+    /// </summary>
     public class JobsServiceClient : IJobsServiceApi {
 
         /// <summary>
@@ -35,12 +38,12 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<StatusResponseApiModel> GetServiceStatusAsync(CancellationToken ct) {
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/status",
+        public async Task<string> GetServiceStatusAsync(CancellationToken ct) {
+            var request = _httpClient.NewRequest($"{_serviceUri}/healthz",
                 _resourceId);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
-            return response.GetContent<StatusResponseApiModel>();
+            return response.GetContent<string>();
         }
 
         /// <inheritdoc/>

@@ -13,7 +13,7 @@ package com.microsoft.azure.iiot.opc.publisher.models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Result of unpublish request.
+ * Result of publish stop request.
  */
 public class PublishStopResponseApiModel {
     /**

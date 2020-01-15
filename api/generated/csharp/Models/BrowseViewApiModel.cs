@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
     using System.Linq;
 
     /// <summary>
-    /// browse view model
+    /// Browse view model
     /// </summary>
     public partial class BrowseViewApiModel
     {

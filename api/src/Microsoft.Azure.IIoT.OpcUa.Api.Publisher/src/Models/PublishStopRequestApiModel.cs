@@ -5,6 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     using Newtonsoft.Json;
+    using System.ComponentModel;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Unpublish request
@@ -12,9 +14,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     public class PublishStopRequestApiModel {
 
         /// <summary>
-        /// Node of item to unpublish
+        /// Node of published item to unpublish
         /// </summary>
         [JsonProperty(PropertyName = "nodeId")]
+        [Required]
         public string NodeId { get; set; }
 
         /// <summary>
@@ -22,6 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         [JsonProperty(PropertyName = "header",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public RequestHeaderApiModel Header { get; set; }
     }
 }

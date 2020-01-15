@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     using Newtonsoft.Json;
     using System;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// A monitored and published item
@@ -16,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// Node to monitor
         /// </summary>
         [JsonProperty(PropertyName = "nodeId")]
+        [Required]
         public string NodeId { get; set; }
 
         /// <summary>

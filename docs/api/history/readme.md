@@ -28,7 +28,6 @@ Azure Industrial IoT OPC UA Historic Access Service
 * Insert : History insert services
 * Read : Historic access read services
 * Replace : History replace services
-* Status : Status checks
 
 
 
@@ -887,30 +886,6 @@ Replace historic values using historic access. The endpoint must be activated an
 |Type|Name|Scopes|
 |---|---|---|
 |**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
-<a name="status_resource"></a>
-### Status
-Status checks
-
-
-<a name="getstatus"></a>
-#### Return the service status in the form of the service status api model.
-```
-GET /v2/status
-```
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[StatusResponseApiModel](definitions.md#statusresponseapimodel)|
-
-
-##### Produces
-
-* `application/json`
 
 
 

@@ -9,7 +9,6 @@ package azureiiotopchistory
 // regenerated.
 
 import (
-    "encoding/json"
     "github.com/Azure/go-autorest/autorest"
     "github.com/Azure/go-autorest/autorest/date"
 )
@@ -734,41 +733,4 @@ const fqdn = "go/azure-iiot-opc-history"
             // IndexRange - Index range of attribute operand
             IndexRange *string `json:"indexRange,omitempty"`
             }
-
-            // StatusResponseAPIModel status response model
-            type StatusResponseAPIModel struct {
-            autorest.Response `json:"-"`
-            // Name - Name of this service
-            Name *string `json:"name,omitempty"`
-            // Status - Operational status
-            Status *string `json:"status,omitempty"`
-            // CurrentTime - READ-ONLY; Current time
-            CurrentTime *string `json:"currentTime,omitempty"`
-            // StartTime - READ-ONLY; Start time of service
-            StartTime *string `json:"startTime,omitempty"`
-            // UpTime - READ-ONLY; Up time of service
-            UpTime *int64 `json:"upTime,omitempty"`
-            // UID - READ-ONLY; Value generated at bootstrap by each instance of the service and
-            // used to correlate logs coming from the same instance. The value
-            // changes every time the service starts.
-            UID *string `json:"uid,omitempty"`
-            // Properties - READ-ONLY; A property bag with details about the service
-            Properties map[string]*string `json:"properties"`
-            // Dependencies - READ-ONLY; A property bag with details about the internal dependencies
-            Dependencies map[string]*string `json:"dependencies"`
-            // Metadata - READ-ONLY
-            Metadata map[string]*string `json:"$metadata"`
-            }
-
-        // MarshalJSON is the custom marshaler for StatusResponseAPIModel.
-        func (sram StatusResponseAPIModel)MarshalJSON() ([]byte, error){
-        objectMap := make(map[string]interface{})
-                if(sram.Name != nil) {
-                objectMap["name"] = sram.Name
-                }
-                if(sram.Status != nil) {
-                objectMap["status"] = sram.Status
-                }
-                return json.Marshal(objectMap)
-        }
 

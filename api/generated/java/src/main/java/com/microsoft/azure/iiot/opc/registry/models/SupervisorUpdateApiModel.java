@@ -13,11 +13,11 @@ package com.microsoft.azure.iiot.opc.registry.models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Supervisor registration update request.
+ * Supervisor update request.
  */
 public class SupervisorUpdateApiModel {
     /**
-     * Site of the supervisor.
+     * Site the supervisor is part of.
      */
     @JsonProperty(value = "siteId")
     private String siteId;
@@ -29,7 +29,7 @@ public class SupervisorUpdateApiModel {
     private TraceLogLevel logLevel;
 
     /**
-     * Get site of the supervisor.
+     * Get site the supervisor is part of.
      *
      * @return the siteId value
      */
@@ -38,7 +38,7 @@ public class SupervisorUpdateApiModel {
     }
 
     /**
-     * Set site of the supervisor.
+     * Set site the supervisor is part of.
      *
      * @param siteId the siteId value to set
      * @return the SupervisorUpdateApiModel object itself.

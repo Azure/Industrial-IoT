@@ -1,18 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>bin\Debug\netcoreapp3.1\Microsoft.Azure.IIoT.Services.Common.Jobs.xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\Release\netcoreapp3.1\Microsoft.Azure.IIoT.Services.Common.Jobs.xml</DocumentationFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="5.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\api\src\Microsoft.Azure.IIoT.Api\src\Microsoft.Azure.IIoT.Api.csproj" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Diagnostics.AppInsights\src\Microsoft.Azure.IIoT.Diagnostics.AppInsights.csproj" />
@@ -29,8 +27,5 @@
   <ItemGroup>
     <Content Remove="container.json" />
     <None Include="container.json" />
-  </ItemGroup>
-  <ItemGroup>
-    <DotNetCliToolReference Include="Swashbuckle.AspNetCore.Cli" Version="2.4.0-beta1" />
   </ItemGroup>
 </Project>

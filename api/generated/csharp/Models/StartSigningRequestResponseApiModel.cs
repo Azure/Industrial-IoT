@@ -10,7 +10,6 @@
 
 namespace Microsoft.Azure.IIoT.Opc.Vault.Models
 {
-    using Microsoft.Rest;
     using Newtonsoft.Json;
     using System.Linq;
 
@@ -33,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// StartSigningRequestResponseApiModel class.
         /// </summary>
         /// <param name="requestId">Request id</param>
-        public StartSigningRequestResponseApiModel(string requestId)
+        public StartSigningRequestResponseApiModel(string requestId = default(string))
         {
             RequestId = requestId;
             CustomInit();
@@ -50,18 +49,5 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         [JsonProperty(PropertyName = "requestId")]
         public string RequestId { get; set; }
 
-        /// <summary>
-        /// Validate the object.
-        /// </summary>
-        /// <exception cref="ValidationException">
-        /// Thrown if validation fails
-        /// </exception>
-        public virtual void Validate()
-        {
-            if (RequestId == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "RequestId");
-            }
-        }
     }
 }

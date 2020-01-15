@@ -433,31 +433,6 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
   }
 
   /**
-   * A query model which supports the OPC UA Global Discovery Server query.
-   * @summary Query applications by id.
-   * @param [options] The optional parameters
-   * @returns Promise<Models.QueryApplicationsByIdResponse>
-   */
-  queryApplicationsById(options?: Models.AzureOpcRegistryClientQueryApplicationsByIdOptionalParams): Promise<Models.QueryApplicationsByIdResponse>;
-  /**
-   * @param callback The callback
-   */
-  queryApplicationsById(callback: msRest.ServiceCallback<Models.ApplicationRecordListApiModel>): void;
-  /**
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  queryApplicationsById(options: Models.AzureOpcRegistryClientQueryApplicationsByIdOptionalParams, callback: msRest.ServiceCallback<Models.ApplicationRecordListApiModel>): void;
-  queryApplicationsById(options?: Models.AzureOpcRegistryClientQueryApplicationsByIdOptionalParams | msRest.ServiceCallback<Models.ApplicationRecordListApiModel>, callback?: msRest.ServiceCallback<Models.ApplicationRecordListApiModel>): Promise<Models.QueryApplicationsByIdResponse> {
-    return this.sendOperationRequest(
-      {
-        options
-      },
-      queryApplicationsByIdOperationSpec,
-      callback) as Promise<Models.QueryApplicationsByIdResponse>;
-  }
-
-  /**
    * Register a client to receive application events through SignalR.
    * @summary Subscribe for application events
    * @param [options] The optional parameters
@@ -1505,31 +1480,6 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
   }
 
   /**
-   * @summary Return the service status in the form of the service status
-   * api model.
-   * @param [options] The optional parameters
-   * @returns Promise<Models.GetStatusResponse>
-   */
-  getStatus(options?: msRest.RequestOptionsBase): Promise<Models.GetStatusResponse>;
-  /**
-   * @param callback The callback
-   */
-  getStatus(callback: msRest.ServiceCallback<Models.StatusResponseApiModel>): void;
-  /**
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  getStatus(options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.StatusResponseApiModel>): void;
-  getStatus(options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.StatusResponseApiModel>, callback?: msRest.ServiceCallback<Models.StatusResponseApiModel>): Promise<Models.GetStatusResponse> {
-    return this.sendOperationRequest(
-      {
-        options
-      },
-      getStatusOperationSpec,
-      callback) as Promise<Models.GetStatusResponse>;
-  }
-
-  /**
    * Returns a supervisor's registration and connectivity information. A supervisor id corresponds to
    * the twin modules module identity.
    * @summary Get supervisor registration information
@@ -2022,26 +1972,6 @@ const getFilteredListOfApplicationsOperationSpec: msRest.OperationSpec = {
   responses: {
     200: {
       bodyMapper: Mappers.ApplicationInfoListApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const queryApplicationsByIdOperationSpec: msRest.OperationSpec = {
-  httpMethod: "POST",
-  path: "v2/applications/querybyid",
-  requestBody: {
-    parameterPath: [
-      "options",
-      "body"
-    ],
-    mapper: Mappers.ApplicationRecordQueryApiModel
-  },
-  contentType: "application/json-patch+json; charset=utf-8",
-  responses: {
-    200: {
-      bodyMapper: Mappers.ApplicationRecordListApiModel
     },
     default: {}
   },
@@ -2729,18 +2659,6 @@ const unsubscribe4OperationSpec: msRest.OperationSpec = {
   ],
   responses: {
     200: {},
-    default: {}
-  },
-  serializer
-};
-
-const getStatusOperationSpec: msRest.OperationSpec = {
-  httpMethod: "GET",
-  path: "v2/status",
-  responses: {
-    200: {
-      bodyMapper: Mappers.StatusResponseApiModel
-    },
     default: {}
   },
   serializer

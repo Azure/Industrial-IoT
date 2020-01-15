@@ -16,18 +16,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public GatewayModel Gateway { get; set; }
 
         /// <summary>
-        /// Supervisor identity if deployed
+        /// Gateway modules
         /// </summary>
-        public SupervisorModel Supervisor { get; set; }
-
-        /// <summary>
-        /// Publisher identity if deployed
-        /// </summary>
-        public PublisherModel Publisher { get; set; }
-
-        /// <summary>
-        /// Discoverer identity if deployed
-        /// </summary>
-        public DiscovererModel Discoverer { get; set; }
+        public GatewayModulesModel Modules { get; set; }
     }
 }

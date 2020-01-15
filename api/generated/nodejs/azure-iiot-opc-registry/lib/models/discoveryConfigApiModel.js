@@ -11,7 +11,7 @@
 'use strict';
 
 /**
- * Discovery configuration
+ * Discovery configuration api model
  *
  */
 class DiscoveryConfigApiModel {

@@ -11,13 +11,13 @@
 'use strict';
 
 /**
- * Supervisor registration update request
+ * Supervisor update request
  *
  */
 class SupervisorUpdateApiModel {
   /**
    * Create a SupervisorUpdateApiModel.
-   * @property {string} [siteId] Site of the supervisor
+   * @property {string} [siteId] Site the supervisor is part of
    * @property {string} [logLevel] Possible values include: 'Error',
    * 'Information', 'Debug', 'Verbose'
    */

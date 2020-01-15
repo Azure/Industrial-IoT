@@ -44,6 +44,8 @@ Certificate request record model
 
 <a name="certificaterequeststate"></a>
 ### CertificateRequestState
+The certificate request states.
+
 *Type* : enum (New, Approved, Rejected, Failure, Completed, Accepted)
 
 
@@ -54,6 +56,8 @@ Certificate request record model
 
 <a name="certificaterequesttype"></a>
 ### CertificateRequestType
+The certificate request type.
+
 *Type* : enum (SigningRequest, KeyPairRequest)
 
 
@@ -113,11 +117,15 @@ Private key
 
 <a name="privatekeytype"></a>
 ### PrivateKeyType
+Key type
+
 *Type* : enum (RSA, ECC, AES)
 
 
 <a name="signaturealgorithm"></a>
 ### SignatureAlgorithm
+Signature algorithm
+
 *Type* : enum (Rsa256, Rsa384, Rsa512, Rsa256Pss, Rsa384Pss, Rsa512Pss)
 
 
@@ -133,11 +141,11 @@ New key pair request
 
 |Name|Description|Schema|
 |---|---|---|
-|**certificateType**  <br>*required*||[TrustGroupType](definitions.md#trustgrouptype)|
+|**certificateType**  <br>*optional*||[TrustGroupType](definitions.md#trustgrouptype)|
 |**domainNames**  <br>*optional*|Domain names|< string > array|
-|**entityId**  <br>*required*|Entity id|string|
-|**groupId**  <br>*required*|Certificate group|string|
-|**subjectName**  <br>*required*|Subject name|string|
+|**entityId**  <br>*optional*|Entity id|string|
+|**groupId**  <br>*optional*|Certificate group|string|
+|**subjectName**  <br>*optional*|Subject name|string|
 
 
 <a name="startnewkeypairrequestresponseapimodel"></a>
@@ -147,7 +155,7 @@ New key pair response
 
 |Name|Description|Schema|
 |---|---|---|
-|**requestId**  <br>*required*|Request id|string|
+|**requestId**  <br>*optional*|Request id|string|
 
 
 <a name="startsigningrequestapimodel"></a>
@@ -157,9 +165,9 @@ Signing request
 
 |Name|Description|Schema|
 |---|---|---|
-|**certificateRequest**  <br>*required*|Request|object|
-|**entityId**  <br>*required*|Id of entity to sign a certificate for|string|
-|**groupId**  <br>*required*|Certificate group id|string|
+|**certificateRequest**  <br>*optional*|Request|object|
+|**entityId**  <br>*optional*|Id of entity to sign a certificate for|string|
+|**groupId**  <br>*optional*|Certificate group id|string|
 
 
 <a name="startsigningrequestresponseapimodel"></a>
@@ -169,25 +177,7 @@ Signing request response
 
 |Name|Description|Schema|
 |---|---|---|
-|**requestId**  <br>*required*|Request id|string|
-
-
-<a name="statusresponseapimodel"></a>
-### StatusResponseApiModel
-Status model
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**$metadata**  <br>*optional*  <br>*read-only*||< string, string > map|
-|**currentTime**  <br>*optional*  <br>*read-only*|Current time|string|
-|**dependencies**  <br>*optional*  <br>*read-only*|A property bag with details about the internal dependencies|< string, string > map|
-|**name**  <br>*optional*|Name of this service|string|
-|**properties**  <br>*optional*  <br>*read-only*|A property bag with details about the service|< string, string > map|
-|**startTime**  <br>*optional*  <br>*read-only*|Start time of service|string|
-|**status**  <br>*optional*|Operational status|string|
-|**uid**  <br>*optional*  <br>*read-only*|Value generated at bootstrap by each instance of the service and<br>used to correlate logs coming from the same instance. The value<br>changes every time the service starts.|string|
-|**upTime**  <br>*optional*  <br>*read-only*|Up time of service|integer (int64)|
+|**requestId**  <br>*optional*|Request id|string|
 
 
 <a name="trustgroupapimodel"></a>
@@ -202,10 +192,10 @@ Trust group model
 |**issuedSignatureAlgorithm**  <br>*optional*||[SignatureAlgorithm](definitions.md#signaturealgorithm)|
 |**keySize**  <br>*optional*|The trust group certificate key size in bits.|integer (int32)|
 |**lifetime**  <br>*optional*|The lifetime of the trust group certificate.|string (date-span)|
-|**name**  <br>*required*|The name of the trust group.|string|
+|**name**  <br>*optional*|The name of the trust group.|string|
 |**parentId**  <br>*optional*|The identifer of the parent trust group.|string|
 |**signatureAlgorithm**  <br>*optional*||[SignatureAlgorithm](definitions.md#signaturealgorithm)|
-|**subjectName**  <br>*required*|The subject name of the group as distinguished name.|string|
+|**subjectName**  <br>*optional*|The subject name of the group as distinguished name.|string|
 |**type**  <br>*optional*||[TrustGroupType](definitions.md#trustgrouptype)|
 
 
@@ -216,8 +206,8 @@ Trust group registration model
 
 |Name|Description|Schema|
 |---|---|---|
-|**group**  <br>*required*||[TrustGroupApiModel](definitions.md#trustgroupapimodel)|
-|**id**  <br>*required*|The registered id of the trust group|string|
+|**group**  <br>*optional*||[TrustGroupApiModel](definitions.md#trustgroupapimodel)|
+|**id**  <br>*optional*|The registered id of the trust group|string|
 
 
 <a name="trustgroupregistrationlistapimodel"></a>
@@ -241,9 +231,9 @@ Trust group registration request model
 |**issuedKeySize**  <br>*optional*|The issued certificate key size in bits.|integer (int32)|
 |**issuedLifetime**  <br>*optional*|The lifetime of certificates issued in the group.|string (date-span)|
 |**issuedSignatureAlgorithm**  <br>*optional*||[SignatureAlgorithmNullable](definitions.md#signaturealgorithmnullable)|
-|**name**  <br>*required*|The new name of the trust group|string|
-|**parentId**  <br>*required*|The identifer of the parent trust group.|string|
-|**subjectName**  <br>*required*|The subject name of the group as distinguished name.|string|
+|**name**  <br>*optional*|The new name of the trust group|string|
+|**parentId**  <br>*optional*|The identifer of the parent trust group.|string|
+|**subjectName**  <br>*optional*|The subject name of the group as distinguished name.|string|
 
 
 <a name="trustgroupregistrationresponseapimodel"></a>
@@ -253,7 +243,7 @@ Trust group registration response model
 
 |Name|Description|Schema|
 |---|---|---|
-|**id**  <br>*required*|The id of the trust group|string|
+|**id**  <br>*optional*|The id of the trust group|string|
 
 
 <a name="trustgrouprootcreaterequestapimodel"></a>
@@ -267,15 +257,17 @@ Trust group root registration model
 |**issuedLifetime**  <br>*optional*|The issued certificate lifetime.|string (date-span)|
 |**issuedSignatureAlgorithm**  <br>*optional*||[SignatureAlgorithmNullable](definitions.md#signaturealgorithmnullable)|
 |**keySize**  <br>*optional*|The certificate key size in bits.|integer (int32)|
-|**lifetime**  <br>*required*|The lifetime of the trust group root certificate.|string (date-span)|
-|**name**  <br>*required*|The new name of the trust group root|string|
+|**lifetime**  <br>*optional*|The lifetime of the trust group root certificate.|string (date-span)|
+|**name**  <br>*optional*|The new name of the trust group root|string|
 |**signatureAlgorithm**  <br>*optional*||[SignatureAlgorithmNullable](definitions.md#signaturealgorithmnullable)|
-|**subjectName**  <br>*required*|The subject name of the group as distinguished name.|string|
+|**subjectName**  <br>*optional*|The subject name of the group as distinguished name.|string|
 |**type**  <br>*optional*||[TrustGroupType](definitions.md#trustgrouptype)|
 
 
 <a name="trustgrouptype"></a>
 ### TrustGroupType
+Trust group types
+
 *Type* : enum (ApplicationInstanceCertificate, HttpsCertificate, UserCredentialCertificate)
 
 
@@ -300,7 +292,7 @@ Vault operation log model
 |Name|Description|Schema|
 |---|---|---|
 |**authorityId**  <br>*optional*|User|string|
-|**time**  <br>*required*|Operation time|string (date-time)|
+|**time**  <br>*optional*|Operation time|string (date-time)|
 
 
 <a name="x509certificateapimodel"></a>
@@ -310,7 +302,7 @@ Certificate model
 
 |Name|Description|Schema|
 |---|---|---|
-|**certificate**  <br>*required*|Raw data|object|
+|**certificate**  <br>*optional*|Raw data|object|
 |**notAfterUtc**  <br>*optional*|Not after validity|string (date-time)|
 |**notBeforeUtc**  <br>*optional*|Not before validity|string (date-time)|
 |**serialNumber**  <br>*optional*|Serial number|string|
@@ -346,13 +338,13 @@ A X509 certificate revocation list.
 
 |Name|Description|Schema|
 |---|---|---|
-|**crl**  <br>*required*|The certificate revocation list.|object|
+|**crl**  <br>*optional*|The certificate revocation list.|object|
 |**issuer**  <br>*optional*|The Issuer name of the revocation list.|string|
 
 
 <a name="x509crlchainapimodel"></a>
 ### X509CrlChainApiModel
-Crl collection model
+Crl chain model
 
 
 |Name|Description|Schema|

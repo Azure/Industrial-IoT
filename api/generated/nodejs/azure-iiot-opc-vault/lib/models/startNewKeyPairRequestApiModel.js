@@ -17,12 +17,12 @@
 class StartNewKeyPairRequestApiModel {
   /**
    * Create a StartNewKeyPairRequestApiModel.
-   * @property {string} entityId Entity id
-   * @property {string} groupId Certificate group
-   * @property {string} certificateType Possible values include:
+   * @property {string} [entityId] Entity id
+   * @property {string} [groupId] Certificate group
+   * @property {string} [certificateType] Possible values include:
    * 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
-   * @property {string} subjectName Subject name
+   * @property {string} [subjectName] Subject name
    * @property {array} [domainNames] Domain names
    */
   constructor() {
@@ -43,21 +43,21 @@ class StartNewKeyPairRequestApiModel {
         className: 'StartNewKeyPairRequestApiModel',
         modelProperties: {
           entityId: {
-            required: true,
+            required: false,
             serializedName: 'entityId',
             type: {
               name: 'String'
             }
           },
           groupId: {
-            required: true,
+            required: false,
             serializedName: 'groupId',
             type: {
               name: 'String'
             }
           },
           certificateType: {
-            required: true,
+            required: false,
             serializedName: 'certificateType',
             type: {
               name: 'Enum',
@@ -65,7 +65,7 @@ class StartNewKeyPairRequestApiModel {
             }
           },
           subjectName: {
-            required: true,
+            required: false,
             serializedName: 'subjectName',
             type: {
               name: 'String'

@@ -129,12 +129,10 @@ const fqdn = "go/azure-iiot-opc-registry"
         Low SecurityAssessment = "Low"
                 // Medium ...
         Medium SecurityAssessment = "Medium"
-                // Unknown ...
-        Unknown SecurityAssessment = "Unknown"
             )
     // PossibleSecurityAssessmentValues returns an array of possible values for the SecurityAssessment const type.
     func PossibleSecurityAssessmentValues() []SecurityAssessment {
-        return []SecurityAssessment{High,Low,Medium,Unknown}
+        return []SecurityAssessment{High,Low,Medium}
     }
 
         // SecurityMode enumerates the values for security mode.
@@ -410,51 +408,14 @@ const fqdn = "go/azure-iiot-opc-registry"
             return ApplicationInfoListAPIModelPage{fn: getNextPage}
         }
 
-            // ApplicationRecordAPIModel application with optional list of
-            // endpoints
-            type ApplicationRecordAPIModel struct {
-            // RecordID - Record id
-            RecordID *int32 `json:"recordId,omitempty"`
-            Application *ApplicationInfoAPIModel `json:"application,omitempty"`
-            }
-
-            // ApplicationRecordListAPIModel create response
-            type ApplicationRecordListAPIModel struct {
-            autorest.Response `json:"-"`
-            // Applications - Applications found
-            Applications *[]ApplicationRecordAPIModel `json:"applications,omitempty"`
-            // LastCounterResetTime - Last counter reset
-            LastCounterResetTime *date.Time `json:"lastCounterResetTime,omitempty"`
-            // NextRecordID - Next record id
-            NextRecordID *int32 `json:"nextRecordId,omitempty"`
-            }
-
-            // ApplicationRecordQueryAPIModel query by id
-            type ApplicationRecordQueryAPIModel struct {
-            // StartingRecordID - Starting record id
-            StartingRecordID *int32 `json:"startingRecordId,omitempty"`
-            // MaxRecordsToReturn - Max records to return
-            MaxRecordsToReturn *int32 `json:"maxRecordsToReturn,omitempty"`
-            // ApplicationName - Application name
-            ApplicationName *string `json:"applicationName,omitempty"`
-            // ApplicationURI - Application uri
-            ApplicationURI *string `json:"applicationUri,omitempty"`
-            // ApplicationType - Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
-            ApplicationType ApplicationType `json:"applicationType,omitempty"`
-            // ProductURI - Product uri
-            ProductURI *string `json:"productUri,omitempty"`
-            // ServerCapabilities - Server capabilities
-            ServerCapabilities *[]string `json:"serverCapabilities,omitempty"`
-            }
-
-            // ApplicationRegistrationAPIModel application with list of
-            // endpoints
+            // ApplicationRegistrationAPIModel application with optional list
+            // of endpoints
             type ApplicationRegistrationAPIModel struct {
             autorest.Response `json:"-"`
             Application *ApplicationInfoAPIModel `json:"application,omitempty"`
             // Endpoints - List of endpoint twins
             Endpoints *[]EndpointRegistrationAPIModel `json:"endpoints,omitempty"`
-            // SecurityAssessment - Possible values include: 'Unknown', 'Low', 'Medium', 'High'
+            // SecurityAssessment - Possible values include: 'Low', 'Medium', 'High'
             SecurityAssessment SecurityAssessment `json:"securityAssessment,omitempty"`
             }
 
@@ -480,6 +441,8 @@ const fqdn = "go/azure-iiot-opc-registry"
             SiteOrGatewayID *string `json:"siteOrGatewayId,omitempty"`
             // IncludeNotSeenSince - Whether to include apps that were soft deleted
             IncludeNotSeenSince *bool `json:"includeNotSeenSince,omitempty"`
+            // DiscovererID - Discoverer id to filter with
+            DiscovererID *string `json:"discovererId,omitempty"`
             }
 
             // ApplicationRegistrationRequestAPIModel application information
@@ -615,7 +578,7 @@ const fqdn = "go/azure-iiot-opc-registry"
             // ApplicationSiteListAPIModel list of application sites
             type ApplicationSiteListAPIModel struct {
             autorest.Response `json:"-"`
-            // Sites - Distinct list of sites applications were registered in.
+            // Sites - Sites
             Sites *[]string `json:"sites,omitempty"`
             // ContinuationToken - Continuation or null if final
             ContinuationToken *string `json:"continuationToken,omitempty"`
@@ -753,7 +716,7 @@ const fqdn = "go/azure-iiot-opc-registry"
 
             // AuthenticationMethodAPIModel authentication Method model
             type AuthenticationMethodAPIModel struct {
-            // ID - Authentication method id
+            // ID - Method id
             ID *string `json:"id,omitempty"`
             // CredentialType - Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
             CredentialType CredentialType `json:"credentialType,omitempty"`
@@ -942,7 +905,7 @@ const fqdn = "go/azure-iiot-opc-registry"
             LogLevel TraceLogLevel `json:"logLevel,omitempty"`
             }
 
-            // DiscoveryConfigAPIModel discovery configuration
+            // DiscoveryConfigAPIModel discovery configuration api model
             type DiscoveryConfigAPIModel struct {
             // AddressRangesToScan - Address ranges to scan (null == all wired nics)
             AddressRangesToScan *string `json:"addressRangesToScan,omitempty"`
@@ -1233,9 +1196,7 @@ const fqdn = "go/azure-iiot-opc-registry"
             type GatewayInfoAPIModel struct {
             autorest.Response `json:"-"`
             Gateway *GatewayAPIModel `json:"gateway,omitempty"`
-            Supervisor *SupervisorAPIModel `json:"supervisor,omitempty"`
-            Publisher *PublisherAPIModel `json:"publisher,omitempty"`
-            Discoverer *DiscovererAPIModel `json:"discoverer,omitempty"`
+            Modules *GatewayModulesAPIModel `json:"modules,omitempty"`
             }
 
             // GatewayListAPIModel gateway registration list
@@ -1376,6 +1337,13 @@ const fqdn = "go/azure-iiot-opc-registry"
         func NewGatewayListAPIModelPage (getNextPage func(context.Context, GatewayListAPIModel) (GatewayListAPIModel, error)) GatewayListAPIModelPage {
             return GatewayListAPIModelPage{fn: getNextPage}
         }
+
+            // GatewayModulesAPIModel gateway modules model
+            type GatewayModulesAPIModel struct {
+            Supervisor *SupervisorAPIModel `json:"supervisor,omitempty"`
+            Publisher *PublisherAPIModel `json:"publisher,omitempty"`
+            Discoverer *DiscovererAPIModel `json:"discoverer,omitempty"`
+            }
 
             // GatewayQueryAPIModel gateway registration query
             type GatewayQueryAPIModel struct {
@@ -1586,7 +1554,7 @@ const fqdn = "go/azure-iiot-opc-registry"
 
             // PublisherQueryAPIModel publisher registration query
             type PublisherQueryAPIModel struct {
-            // SiteID - Site of the publisher
+            // SiteID - Site for the publishers
             SiteID *string `json:"siteId,omitempty"`
             // Connected - Included connected or disconnected
             Connected *bool `json:"connected,omitempty"`
@@ -1609,8 +1577,7 @@ const fqdn = "go/azure-iiot-opc-registry"
             Time *date.Time `json:"time,omitempty"`
             }
 
-            // ServerRegistrationRequestAPIModel application registration
-            // request
+            // ServerRegistrationRequestAPIModel server registration request
             type ServerRegistrationRequestAPIModel struct {
             // DiscoveryURL - Discovery url to use for registration
             DiscoveryURL *string `json:"discoveryUrl,omitempty"`
@@ -1618,43 +1585,6 @@ const fqdn = "go/azure-iiot-opc-registry"
             ID *string `json:"id,omitempty"`
             ActivationFilter *EndpointActivationFilterAPIModel `json:"activationFilter,omitempty"`
             }
-
-            // StatusResponseAPIModel status response model
-            type StatusResponseAPIModel struct {
-            autorest.Response `json:"-"`
-            // Name - Name of this service
-            Name *string `json:"name,omitempty"`
-            // Status - Operational status
-            Status *string `json:"status,omitempty"`
-            // CurrentTime - READ-ONLY; Current time
-            CurrentTime *string `json:"currentTime,omitempty"`
-            // StartTime - READ-ONLY; Start time of service
-            StartTime *string `json:"startTime,omitempty"`
-            // UpTime - READ-ONLY; Up time of service
-            UpTime *int64 `json:"upTime,omitempty"`
-            // UID - READ-ONLY; Value generated at bootstrap by each instance of the service and
-            // used to correlate logs coming from the same instance. The value
-            // changes every time the service starts.
-            UID *string `json:"uid,omitempty"`
-            // Properties - READ-ONLY; A property bag with details about the service
-            Properties map[string]*string `json:"properties"`
-            // Dependencies - READ-ONLY; A property bag with details about the internal dependencies
-            Dependencies map[string]*string `json:"dependencies"`
-            // Metadata - READ-ONLY
-            Metadata map[string]*string `json:"$metadata"`
-            }
-
-        // MarshalJSON is the custom marshaler for StatusResponseAPIModel.
-        func (sram StatusResponseAPIModel)MarshalJSON() ([]byte, error){
-        objectMap := make(map[string]interface{})
-                if(sram.Name != nil) {
-                objectMap["name"] = sram.Name
-                }
-                if(sram.Status != nil) {
-                objectMap["status"] = sram.Status
-                }
-                return json.Marshal(objectMap)
-        }
 
             // SupervisorAPIModel supervisor registration model
             type SupervisorAPIModel struct {
@@ -1815,7 +1745,7 @@ const fqdn = "go/azure-iiot-opc-registry"
 
             // SupervisorQueryAPIModel supervisor registration query
             type SupervisorQueryAPIModel struct {
-            // SiteID - Site of the supervisor
+            // SiteID - Site for the supervisors
             SiteID *string `json:"siteId,omitempty"`
             // Connected - Included connected or disconnected
             Connected *bool `json:"connected,omitempty"`
@@ -1834,9 +1764,9 @@ const fqdn = "go/azure-iiot-opc-registry"
             Endpoints *[]EndpointActivationStatusAPIModel `json:"endpoints,omitempty"`
             }
 
-            // SupervisorUpdateAPIModel supervisor registration update request
+            // SupervisorUpdateAPIModel supervisor update request
             type SupervisorUpdateAPIModel struct {
-            // SiteID - Site of the supervisor
+            // SiteID - Site the supervisor is part of
             SiteID *string `json:"siteId,omitempty"`
             // LogLevel - Possible values include: 'TraceLogLevelError', 'TraceLogLevelInformation', 'TraceLogLevelDebug', 'TraceLogLevelVerbose'
             LogLevel TraceLogLevel `json:"logLevel,omitempty"`

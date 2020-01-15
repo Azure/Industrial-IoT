@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using System.ComponentModel;
 
     /// <summary>
     /// Credential model
@@ -17,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "type",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(CredentialType.None)]
         public CredentialType? Type { get; set; }
 
         /// <summary>
@@ -24,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "value",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public JToken Value { get; set; }
     }
 }

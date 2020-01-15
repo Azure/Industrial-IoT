@@ -25,7 +25,6 @@ Azure Industrial IoT OPC UA Publisher Service
 
 * Monitor : Value and Event monitoring services
 * Publish : Value and Event publishing services
-* Status : Status checks
 
 
 
@@ -291,30 +290,6 @@ Stop publishing variable node values to IoT Hub. The endpoint must be activated 
 |Type|Name|Scopes|
 |---|---|---|
 |**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
-<a name="status_resource"></a>
-### Status
-Status checks
-
-
-<a name="getstatus"></a>
-#### Return the service status in the form of the service status api model.
-```
-GET /v2/status
-```
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[StatusResponseApiModel](definitions.md#statusresponseapimodel)|
-
-
-##### Produces
-
-* `application/json`
 
 
 

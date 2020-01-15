@@ -10,10 +10,10 @@
 module azure.iiot.opc.registry
   module Models
     #
-    # Supervisor registration update request
+    # Supervisor update request
     #
     class SupervisorUpdateApiModel
-      # @return [String] Site of the supervisor
+      # @return [String] Site the supervisor is part of
       attr_accessor :site_id
 
       # @return [TraceLogLevel] Possible values include: 'Error',

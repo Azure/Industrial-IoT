@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         public NodeApiModel Type { get; set; }
 
         /// <summary>
-        /// Default value for the argument
+        /// Default value
         /// </summary>
         [JsonProperty(PropertyName = "defaultValue",
             NullValueHandling = NullValueHandling.Ignore)]

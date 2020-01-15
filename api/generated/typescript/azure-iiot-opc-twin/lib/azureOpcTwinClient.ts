@@ -368,31 +368,6 @@ class AzureOpcTwinClient extends AzureOpcTwinClientContext {
   }
 
   /**
-   * @summary Return the service status in the form of the service status
-   * api model.
-   * @param [options] The optional parameters
-   * @returns Promise<Models.GetStatusResponse>
-   */
-  getStatus(options?: msRest.RequestOptionsBase): Promise<Models.GetStatusResponse>;
-  /**
-   * @param callback The callback
-   */
-  getStatus(callback: msRest.ServiceCallback<Models.StatusResponseApiModel>): void;
-  /**
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  getStatus(options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.StatusResponseApiModel>): void;
-  getStatus(options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.StatusResponseApiModel>, callback?: msRest.ServiceCallback<Models.StatusResponseApiModel>): Promise<Models.GetStatusResponse> {
-    return this.sendOperationRequest(
-      {
-        options
-      },
-      getStatusOperationSpec,
-      callback) as Promise<Models.GetStatusResponse>;
-  }
-
-  /**
    * Write variable node's value. The endpoint must be activated and connected and the module client
    * and server must trust each other.
    * @summary Write variable value
@@ -668,19 +643,6 @@ const readAttributesOperationSpec: msRest.OperationSpec = {
   responses: {
     200: {
       bodyMapper: Mappers.ReadResponseApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const getStatusOperationSpec: msRest.OperationSpec = {
-  httpMethod: "GET",
-  path: "v2/status",
-  contentType: "application/json; charset=utf-8",
-  responses: {
-    200: {
-      bodyMapper: Mappers.StatusResponseApiModel
     },
     default: {}
   },

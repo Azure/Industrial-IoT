@@ -32,7 +32,7 @@ module azure.iiot.opc.vault
             model_properties: {
               request_id: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'requestId',
                 type: {
                   name: 'String'

@@ -17,8 +17,6 @@ import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import com.google.common.reflect.TypeToken;
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationInfoListApiModel;
-import com.microsoft.azure.iiot.opc.registry.models.ApplicationRecordListApiModel;
-import com.microsoft.azure.iiot.opc.registry.models.ApplicationRecordQueryApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationRegistrationApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationRegistrationQueryApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationRegistrationRequestApiModel;
@@ -46,7 +44,6 @@ import com.microsoft.azure.iiot.opc.registry.models.PublisherQueryApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.PublisherUpdateApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.SecurityMode;
 import com.microsoft.azure.iiot.opc.registry.models.ServerRegistrationRequestApiModel;
-import com.microsoft.azure.iiot.opc.registry.models.StatusResponseApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.SupervisorApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.SupervisorListApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.SupervisorQueryApiModel;
@@ -201,10 +198,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
         @GET("v2/applications/query")
         Observable<Response<ResponseBody>> getFilteredListOfApplications(@Query("pageSize") Integer pageSize, @Body ApplicationRegistrationQueryApiModel body);
 
-        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient queryApplicationsById" })
-        @POST("v2/applications/querybyid")
-        Observable<Response<ResponseBody>> queryApplicationsById(@Body ApplicationRecordQueryApiModel body);
-
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient subscribe" })
         @PUT("v2/applications/events")
         Observable<Response<ResponseBody>> subscribe(@Body String body);
@@ -348,10 +341,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient unsubscribe4" })
         @HTTP(path = "v2/publishers/events/{userId}", method = "DELETE", hasBody = true)
         Observable<Response<ResponseBody>> unsubscribe4(@Path("userId") String userId);
-
-        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getStatus" })
-        @GET("v2/status")
-        Observable<Response<ResponseBody>> getStatus();
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.registry.AzureOpcRegistryClient getSupervisor" })
         @GET("v2/supervisors/{supervisorId}")
@@ -1797,144 +1786,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<ApplicationInfoListApiModel> getFilteredListOfApplicationsDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<ApplicationInfoListApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<ApplicationInfoListApiModel>() { }.getType())
-                .build(response);
-    }
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the ApplicationRecordListApiModel object if successful.
-     */
-    public ApplicationRecordListApiModel queryApplicationsById() {
-        return queryApplicationsByIdWithServiceResponseAsync().toBlocking().single().body();
-    }
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    public ServiceFuture<ApplicationRecordListApiModel> queryApplicationsByIdAsync(final ServiceCallback<ApplicationRecordListApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(queryApplicationsByIdWithServiceResponseAsync(), serviceCallback);
-    }
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationRecordListApiModel object
-     */
-    public Observable<ApplicationRecordListApiModel> queryApplicationsByIdAsync() {
-        return queryApplicationsByIdWithServiceResponseAsync().map(new Func1<ServiceResponse<ApplicationRecordListApiModel>, ApplicationRecordListApiModel>() {
-            @Override
-            public ApplicationRecordListApiModel call(ServiceResponse<ApplicationRecordListApiModel> response) {
-                return response.body();
-            }
-        });
-    }
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationRecordListApiModel object
-     */
-    public Observable<ServiceResponse<ApplicationRecordListApiModel>> queryApplicationsByIdWithServiceResponseAsync() {
-        final ApplicationRecordQueryApiModel body = null;
-        return service.queryApplicationsById(body)
-            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<ApplicationRecordListApiModel>>>() {
-                @Override
-                public Observable<ServiceResponse<ApplicationRecordListApiModel>> call(Response<ResponseBody> response) {
-                    try {
-                        ServiceResponse<ApplicationRecordListApiModel> clientResponse = queryApplicationsByIdDelegate(response);
-                        return Observable.just(clientResponse);
-                    } catch (Throwable t) {
-                        return Observable.error(t);
-                    }
-                }
-            });
-    }
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @param body the ApplicationRecordQueryApiModel value
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the ApplicationRecordListApiModel object if successful.
-     */
-    public ApplicationRecordListApiModel queryApplicationsById(ApplicationRecordQueryApiModel body) {
-        return queryApplicationsByIdWithServiceResponseAsync(body).toBlocking().single().body();
-    }
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @param body the ApplicationRecordQueryApiModel value
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    public ServiceFuture<ApplicationRecordListApiModel> queryApplicationsByIdAsync(ApplicationRecordQueryApiModel body, final ServiceCallback<ApplicationRecordListApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(queryApplicationsByIdWithServiceResponseAsync(body), serviceCallback);
-    }
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @param body the ApplicationRecordQueryApiModel value
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationRecordListApiModel object
-     */
-    public Observable<ApplicationRecordListApiModel> queryApplicationsByIdAsync(ApplicationRecordQueryApiModel body) {
-        return queryApplicationsByIdWithServiceResponseAsync(body).map(new Func1<ServiceResponse<ApplicationRecordListApiModel>, ApplicationRecordListApiModel>() {
-            @Override
-            public ApplicationRecordListApiModel call(ServiceResponse<ApplicationRecordListApiModel> response) {
-                return response.body();
-            }
-        });
-    }
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @param body the ApplicationRecordQueryApiModel value
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationRecordListApiModel object
-     */
-    public Observable<ServiceResponse<ApplicationRecordListApiModel>> queryApplicationsByIdWithServiceResponseAsync(ApplicationRecordQueryApiModel body) {
-        Validator.validate(body);
-        return service.queryApplicationsById(body)
-            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<ApplicationRecordListApiModel>>>() {
-                @Override
-                public Observable<ServiceResponse<ApplicationRecordListApiModel>> call(Response<ResponseBody> response) {
-                    try {
-                        ServiceResponse<ApplicationRecordListApiModel> clientResponse = queryApplicationsByIdDelegate(response);
-                        return Observable.just(clientResponse);
-                    } catch (Throwable t) {
-                        return Observable.error(t);
-                    }
-                }
-            });
-    }
-
-    private ServiceResponse<ApplicationRecordListApiModel> queryApplicationsByIdDelegate(Response<ResponseBody> response) throws RestException, IOException {
-        return this.restClient().responseBuilderFactory().<ApplicationRecordListApiModel, RestException>newInstance(this.serializerAdapter())
-                .register(200, new TypeToken<ApplicationRecordListApiModel>() { }.getType())
                 .build(response);
     }
 
@@ -6121,7 +5972,7 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      * Get filtered list of publishers.
      * Get a list of publishers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
      *
-     * @param siteId Site of the publisher
+     * @param siteId Site for the publishers
      * @param connected Included connected or disconnected
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
@@ -6138,7 +5989,7 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      * Get filtered list of publishers.
      * Get a list of publishers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
      *
-     * @param siteId Site of the publisher
+     * @param siteId Site for the publishers
      * @param connected Included connected or disconnected
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
@@ -6154,7 +6005,7 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      * Get filtered list of publishers.
      * Get a list of publishers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
      *
-     * @param siteId Site of the publisher
+     * @param siteId Site for the publishers
      * @param connected Included connected or disconnected
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
@@ -6174,7 +6025,7 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      * Get filtered list of publishers.
      * Get a list of publishers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
      *
-     * @param siteId Site of the publisher
+     * @param siteId Site for the publishers
      * @param connected Included connected or disconnected
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
@@ -6409,75 +6260,6 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
     private ServiceResponse<Void> unsubscribe4Delegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<Void, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<Void>() { }.getType())
-                .build(response);
-    }
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the StatusResponseApiModel object if successful.
-     */
-    public StatusResponseApiModel getStatus() {
-        return getStatusWithServiceResponseAsync().toBlocking().single().body();
-    }
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    public ServiceFuture<StatusResponseApiModel> getStatusAsync(final ServiceCallback<StatusResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(getStatusWithServiceResponseAsync(), serviceCallback);
-    }
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the StatusResponseApiModel object
-     */
-    public Observable<StatusResponseApiModel> getStatusAsync() {
-        return getStatusWithServiceResponseAsync().map(new Func1<ServiceResponse<StatusResponseApiModel>, StatusResponseApiModel>() {
-            @Override
-            public StatusResponseApiModel call(ServiceResponse<StatusResponseApiModel> response) {
-                return response.body();
-            }
-        });
-    }
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the StatusResponseApiModel object
-     */
-    public Observable<ServiceResponse<StatusResponseApiModel>> getStatusWithServiceResponseAsync() {
-        return service.getStatus()
-            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<StatusResponseApiModel>>>() {
-                @Override
-                public Observable<ServiceResponse<StatusResponseApiModel>> call(Response<ResponseBody> response) {
-                    try {
-                        ServiceResponse<StatusResponseApiModel> clientResponse = getStatusDelegate(response);
-                        return Observable.just(clientResponse);
-                    } catch (Throwable t) {
-                        return Observable.error(t);
-                    }
-                }
-            });
-    }
-
-    private ServiceResponse<StatusResponseApiModel> getStatusDelegate(Response<ResponseBody> response) throws RestException, IOException {
-        return this.restClient().responseBuilderFactory().<StatusResponseApiModel, RestException>newInstance(this.serializerAdapter())
-                .register(200, new TypeToken<StatusResponseApiModel>() { }.getType())
                 .build(response);
     }
 
@@ -7242,7 +7024,7 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      * Get filtered list of supervisors.
      * Get a list of supervisors filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
      *
-     * @param siteId Site of the supervisor
+     * @param siteId Site for the supervisors
      * @param connected Included connected or disconnected
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
@@ -7259,7 +7041,7 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      * Get filtered list of supervisors.
      * Get a list of supervisors filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
      *
-     * @param siteId Site of the supervisor
+     * @param siteId Site for the supervisors
      * @param connected Included connected or disconnected
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
@@ -7275,7 +7057,7 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      * Get filtered list of supervisors.
      * Get a list of supervisors filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
      *
-     * @param siteId Site of the supervisor
+     * @param siteId Site for the supervisors
      * @param connected Included connected or disconnected
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
@@ -7295,7 +7077,7 @@ public class AzureOpcRegistryClientImpl extends ServiceClient implements AzureOp
      * Get filtered list of supervisors.
      * Get a list of supervisors filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
      *
-     * @param siteId Site of the supervisor
+     * @param siteId Site for the supervisors
      * @param connected Included connected or disconnected
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return

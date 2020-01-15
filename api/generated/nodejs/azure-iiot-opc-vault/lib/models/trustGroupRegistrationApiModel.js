@@ -17,8 +17,8 @@
 class TrustGroupRegistrationApiModel {
   /**
    * Create a TrustGroupRegistrationApiModel.
-   * @property {string} id The registered id of the trust group
-   * @property {object} group
+   * @property {string} [id] The registered id of the trust group
+   * @property {object} [group]
    * @property {string} [group.name] The name of the trust group.
    * @property {string} [group.parentId] The identifer of the parent trust
    * group.
@@ -59,14 +59,14 @@ class TrustGroupRegistrationApiModel {
         className: 'TrustGroupRegistrationApiModel',
         modelProperties: {
           id: {
-            required: true,
+            required: false,
             serializedName: 'id',
             type: {
               name: 'String'
             }
           },
           group: {
-            required: true,
+            required: false,
             serializedName: 'group',
             type: {
               name: 'Composite',

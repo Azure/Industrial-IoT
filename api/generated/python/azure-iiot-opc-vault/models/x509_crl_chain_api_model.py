@@ -13,7 +13,7 @@ from msrest.serialization import Model
 
 
 class X509CrlChainApiModel(Model):
-    """Crl collection model.
+    """Crl chain model.
 
     :param chain: Chain
     :type chain: list[~azure-iiot-opc-vault.models.X509CrlApiModel]

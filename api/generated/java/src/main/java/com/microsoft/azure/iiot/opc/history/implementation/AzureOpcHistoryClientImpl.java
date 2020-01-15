@@ -39,7 +39,6 @@ import com.microsoft.azure.iiot.opc.history.models.ReadValuesAtTimesDetailsApiMo
 import com.microsoft.azure.iiot.opc.history.models.ReadValuesDetailsApiModelHistoryReadRequestApiModel;
 import com.microsoft.azure.iiot.opc.history.models.ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel;
 import com.microsoft.azure.iiot.opc.history.models.ReplaceValuesDetailsApiModelHistoryUpdateRequestApiModel;
-import com.microsoft.azure.iiot.opc.history.models.StatusResponseApiModel;
 import com.microsoft.rest.RestException;
 import com.microsoft.rest.ServiceCallback;
 import com.microsoft.rest.ServiceFuture;
@@ -48,7 +47,6 @@ import com.microsoft.rest.Validator;
 import java.io.IOException;
 import okhttp3.ResponseBody;
 import retrofit2.http.Body;
-import retrofit2.http.GET;
 import retrofit2.http.Headers;
 import retrofit2.http.Path;
 import retrofit2.http.POST;
@@ -199,10 +197,6 @@ public class AzureOpcHistoryClientImpl extends ServiceClient implements AzureOpc
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.history.AzureOpcHistoryClient historyReplaceEvents" })
         @POST("v2/replace/{endpointId}/events")
         Observable<Response<ResponseBody>> historyReplaceEvents(@Path("endpointId") String endpointId, @Body ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel body);
-
-        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.history.AzureOpcHistoryClient getStatus" })
-        @GET("v2/status")
-        Observable<Response<ResponseBody>> getStatus();
 
     }
 
@@ -1715,75 +1709,6 @@ public class AzureOpcHistoryClientImpl extends ServiceClient implements AzureOpc
     private ServiceResponse<HistoryUpdateResponseApiModel> historyReplaceEventsDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<HistoryUpdateResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<HistoryUpdateResponseApiModel>() { }.getType())
-                .build(response);
-    }
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the StatusResponseApiModel object if successful.
-     */
-    public StatusResponseApiModel getStatus() {
-        return getStatusWithServiceResponseAsync().toBlocking().single().body();
-    }
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    public ServiceFuture<StatusResponseApiModel> getStatusAsync(final ServiceCallback<StatusResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(getStatusWithServiceResponseAsync(), serviceCallback);
-    }
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the StatusResponseApiModel object
-     */
-    public Observable<StatusResponseApiModel> getStatusAsync() {
-        return getStatusWithServiceResponseAsync().map(new Func1<ServiceResponse<StatusResponseApiModel>, StatusResponseApiModel>() {
-            @Override
-            public StatusResponseApiModel call(ServiceResponse<StatusResponseApiModel> response) {
-                return response.body();
-            }
-        });
-    }
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the StatusResponseApiModel object
-     */
-    public Observable<ServiceResponse<StatusResponseApiModel>> getStatusWithServiceResponseAsync() {
-        return service.getStatus()
-            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<StatusResponseApiModel>>>() {
-                @Override
-                public Observable<ServiceResponse<StatusResponseApiModel>> call(Response<ResponseBody> response) {
-                    try {
-                        ServiceResponse<StatusResponseApiModel> clientResponse = getStatusDelegate(response);
-                        return Observable.just(clientResponse);
-                    } catch (Throwable t) {
-                        return Observable.error(t);
-                    }
-                }
-            });
-    }
-
-    private ServiceResponse<StatusResponseApiModel> getStatusDelegate(Response<ResponseBody> response) throws RestException, IOException {
-        return this.restClient().responseBuilderFactory().<StatusResponseApiModel, RestException>newInstance(this.serializerAdapter())
-                .register(200, new TypeToken<StatusResponseApiModel>() { }.getType())
                 .build(response);
     }
 

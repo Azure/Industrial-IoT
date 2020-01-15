@@ -12,13 +12,12 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Autofac;
 
     /// <summary>
     /// Implementation of event processor host interface to host event
     /// processors.
     /// </summary>
-    public sealed class EventProcessorHost : IStartable, IDisposable,
+    public sealed class EventProcessorHost : IDisposable,
         IEventProcessorHost, IHostProcess {
 
         /// <summary>

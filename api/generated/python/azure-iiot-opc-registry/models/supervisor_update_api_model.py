@@ -13,9 +13,9 @@ from msrest.serialization import Model
 
 
 class SupervisorUpdateApiModel(Model):
-    """Supervisor registration update request.
+    """Supervisor update request.
 
-    :param site_id: Site of the supervisor
+    :param site_id: Site the supervisor is part of
     :type site_id: str
     :param log_level: Possible values include: 'Error', 'Information',
      'Debug', 'Verbose'

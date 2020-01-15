@@ -33,7 +33,6 @@ final class AzureOpcHistoryClient
         $this->_HistoryReadValueNext_operation = $_client->createOperation('HistoryReadValueNext');
         $this->_HistoryReplaceValues_operation = $_client->createOperation('HistoryReplaceValues');
         $this->_HistoryReplaceEvents_operation = $_client->createOperation('HistoryReplaceEvents');
-        $this->_GetStatus_operation = $_client->createOperation('GetStatus');
     }
     /**
      * Delete value history using historic access. The endpoint must be activated and connected and the module client and server must trust each other.
@@ -324,13 +323,6 @@ final class AzureOpcHistoryClient
         ]);
     }
     /**
-     * @return array
-     */
-    public function getStatus()
-    {
-        return $this->_GetStatus_operation->call([]);
-    }
-    /**
      * @var \Microsoft\Rest\OperationInterface
      */
     private $_HistoryDeleteValuesAtTimes_operation;
@@ -402,10 +394,6 @@ final class AzureOpcHistoryClient
      * @var \Microsoft\Rest\OperationInterface
      */
     private $_HistoryReplaceEvents_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_GetStatus_operation;
     const _SWAGGER_OBJECT_DATA = [
         'host' => 'localhost',
         'paths' => [
@@ -732,11 +720,6 @@ final class AzureOpcHistoryClient
                     ]
                 ],
                 'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/HistoryUpdateResponseApiModel']]]
-            ]],
-            '/v2/status' => ['get' => [
-                'operationId' => 'GetStatus',
-                'parameters' => [],
-                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/StatusResponseApiModel']]]
             ]]
         ],
         'definitions' => [
@@ -1480,33 +1463,6 @@ final class AzureOpcHistoryClient
                 ],
                 'additionalProperties' => FALSE,
                 'required' => ['details']
-            ],
-            'StatusResponseApiModel' => [
-                'properties' => [
-                    'name' => ['type' => 'string'],
-                    'status' => ['type' => 'string'],
-                    'currentTime' => ['type' => 'string'],
-                    'startTime' => ['type' => 'string'],
-                    'upTime' => [
-                        'type' => 'integer',
-                        'format' => 'int64'
-                    ],
-                    'uid' => ['type' => 'string'],
-                    'properties' => [
-                        'type' => 'object',
-                        'additionalProperties' => ['type' => 'string']
-                    ],
-                    'dependencies' => [
-                        'type' => 'object',
-                        'additionalProperties' => ['type' => 'string']
-                    ],
-                    '$metadata' => [
-                        'type' => 'object',
-                        'additionalProperties' => ['type' => 'string']
-                    ]
-                ],
-                'additionalProperties' => FALSE,
-                'required' => []
             ]
         ]
     ];

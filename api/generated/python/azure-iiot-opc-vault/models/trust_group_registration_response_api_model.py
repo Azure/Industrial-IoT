@@ -19,14 +19,10 @@ class TrustGroupRegistrationResponseApiModel(Model):
     :type id: str
     """
 
-    _validation = {
-        'id': {'required': True},
-    }
-
     _attribute_map = {
         'id': {'key': 'id', 'type': 'str'},
     }
 
-    def __init__(self, id):
+    def __init__(self, id=None):
         super(TrustGroupRegistrationResponseApiModel, self).__init__()
         self.id = id

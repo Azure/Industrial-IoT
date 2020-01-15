@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Role permission model
@@ -15,6 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// Identifier of the role object.
         /// </summary>
         [JsonProperty(PropertyName = "roleId")]
+        [Required]
         public string RoleId { get; set; }
 
         /// <summary>

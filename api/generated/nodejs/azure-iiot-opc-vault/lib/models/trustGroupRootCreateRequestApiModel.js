@@ -17,13 +17,13 @@
 class TrustGroupRootCreateRequestApiModel {
   /**
    * Create a TrustGroupRootCreateRequestApiModel.
-   * @property {string} name The new name of the trust group root
+   * @property {string} [name] The new name of the trust group root
    * @property {string} [type] Possible values include:
    * 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
-   * @property {string} subjectName The subject name of the group as
+   * @property {string} [subjectName] The subject name of the group as
    * distinguished name.
-   * @property {string} lifetime The lifetime of the trust group root
+   * @property {string} [lifetime] The lifetime of the trust group root
    * certificate.
    * @property {number} [keySize] The certificate key size in bits.
    * @property {string} [signatureAlgorithm] Possible values include: 'Rsa256',
@@ -52,7 +52,7 @@ class TrustGroupRootCreateRequestApiModel {
         className: 'TrustGroupRootCreateRequestApiModel',
         modelProperties: {
           name: {
-            required: true,
+            required: false,
             serializedName: 'name',
             type: {
               name: 'String'
@@ -67,14 +67,14 @@ class TrustGroupRootCreateRequestApiModel {
             }
           },
           subjectName: {
-            required: true,
+            required: false,
             serializedName: 'subjectName',
             type: {
               name: 'String'
             }
           },
           lifetime: {
-            required: true,
+            required: false,
             serializedName: 'lifetime',
             type: {
               name: 'String'

@@ -169,8 +169,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  PCS_IOTHUB_CONNSTRING: null
         ///  PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING: null
         ///  PCS_TELEMETRY_DOCUMENTDB_CONNSTRING: null
+<<<<<<< HEAD
         ///  PCS_TELEMETRYAGENT_DOCUMENTDB_CONNSTRING: null
         ///  PCS_IOTH [rest of string was truncated]&quot;;.
+=======
+        ///  PCS_TELEMETRYAGENT_DOCUMENTDB_CONNSTRING: [rest of string was truncated]&quot;;.
+>>>>>>> 70f3dda0a877f4ea7d61f6ce31d558f4dfe060ee
         /// </summary>
         internal static string _10_industrial_iot_env_secret {
             get {
@@ -198,7 +202,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  template:
         ///    metadata:
         ///      labels:
+<<<<<<< HEAD
         ///        app.kubernete [rest of string was truncated]&quot;;.
+=======
+        ///   [rest of string was truncated]&quot;;.
+>>>>>>> 70f3dda0a877f4ea7d61f6ce31d558f4dfe060ee
         /// </summary>
         internal static string _11_registry_deployment {
             get {
@@ -226,8 +234,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  - port: 443
         ///    protocol: TCP
         ///    name: https
+<<<<<<< HEAD
         ///  - port: 9042
         ///    protocol: TCP [rest of string was truncated]&quot;;.
+=======
+        ///  - port: 904 [rest of string was truncated]&quot;;.
+>>>>>>> 70f3dda0a877f4ea7d61f6ce31d558f4dfe060ee
         /// </summary>
         internal static string _11_registry_service {
             get {
@@ -255,7 +267,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  template:
         ///    metadata:
         ///      labels:
+<<<<<<< HEAD
         ///        app.kubernetes.io/name: t [rest of string was truncated]&quot;;.
+=======
+        ///        app.ku [rest of string was truncated]&quot;;.
+>>>>>>> 70f3dda0a877f4ea7d61f6ce31d558f4dfe060ee
         /// </summary>
         internal static string _12_twin_deployment {
             get {
@@ -284,8 +300,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///    protocol: TCP
         ///    name: https
         ///  - port: 9041
+<<<<<<< HEAD
         ///    protocol: TCP
         ///    name: r [rest of string was truncated]&quot;;.
+=======
+        ///    proto [rest of string was truncated]&quot;;.
+>>>>>>> 70f3dda0a877f4ea7d61f6ce31d558f4dfe060ee
         /// </summary>
         internal static string _12_twin_service {
             get {
@@ -313,7 +333,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  template:
         ///    metadata:
         ///      labels:
+<<<<<<< HEAD
         ///        app.kubernetes.i [rest of string was truncated]&quot;;.
+=======
+        ///      [rest of string was truncated]&quot;;.
+>>>>>>> 70f3dda0a877f4ea7d61f6ce31d558f4dfe060ee
         /// </summary>
         internal static string _13_history_deployment {
             get {
@@ -342,8 +366,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///    protocol: TCP
         ///    name: https
         ///  - port: 9043
+<<<<<<< HEAD
         ///    protocol: TCP
         ///   [rest of string was truncated]&quot;;.
+=======
+        /// [rest of string was truncated]&quot;;.
+>>>>>>> 70f3dda0a877f4ea7d61f6ce31d558f4dfe060ee
         /// </summary>
         internal static string _13_history_service {
             get {
@@ -371,7 +399,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  template:
         ///    metadata:
         ///      labels:
+<<<<<<< HEAD
         ///        app.kubernetes.i [rest of string was truncated]&quot;;.
+=======
+        ///      [rest of string was truncated]&quot;;.
+>>>>>>> 70f3dda0a877f4ea7d61f6ce31d558f4dfe060ee
         /// </summary>
         internal static string _14_gateway_deployment {
             get {
@@ -400,8 +432,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///    protocol: TCP
         ///    name: https
         ///  - port: 9040
+<<<<<<< HEAD
         ///    protocol: TCP
         ///   [rest of string was truncated]&quot;;.
+=======
+        /// [rest of string was truncated]&quot;;.
+>>>>>>> 70f3dda0a877f4ea7d61f6ce31d558f4dfe060ee
         /// </summary>
         internal static string _14_gateway_service {
             get {
@@ -429,7 +465,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  template:
         ///    metadata:
         ///      labels:
+<<<<<<< HEAD
         ///        app.kubernetes.io/name [rest of string was truncated]&quot;;.
+=======
+        ///        app [rest of string was truncated]&quot;;.
+>>>>>>> 70f3dda0a877f4ea7d61f6ce31d558f4dfe060ee
         /// </summary>
         internal static string _15_vault_deployment {
             get {
@@ -458,8 +498,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///    protocol: TCP
         ///    name: https
         ///  - port: 9044
+<<<<<<< HEAD
         ///    protocol: TCP
         ///    name [rest of string was truncated]&quot;;.
+=======
+        ///    pr [rest of string was truncated]&quot;;.
+>>>>>>> 70f3dda0a877f4ea7d61f6ce31d558f4dfe060ee
         /// </summary>
         internal static string _15_vault_service {
             get {
@@ -487,7 +531,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  template:
         ///    metadata:
         ///      labels:
+<<<<<<< HEAD
         ///        app.kubernete [rest of string was truncated]&quot;;.
+=======
+        ///   [rest of string was truncated]&quot;;.
+>>>>>>> 70f3dda0a877f4ea7d61f6ce31d558f4dfe060ee
         /// </summary>
         internal static string _16_alerting_deployment {
             get {
@@ -514,8 +562,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///      app.kubernetes.io/part-of: industrial-iot
         ///  template:
         ///    metadata:
+<<<<<<< HEAD
         ///      labels:
         ///        app.kub [rest of string was truncated]&quot;;.
+=======
+        ///      label [rest of string was truncated]&quot;;.
+>>>>>>> 70f3dda0a877f4ea7d61f6ce31d558f4dfe060ee
         /// </summary>
         internal static string _17_onboarding_deployment {
             get {
@@ -543,7 +595,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  template:
         ///    metadata:
         ///      labels:
+<<<<<<< HEAD
         ///        app.kubernetes.io/name: j [rest of string was truncated]&quot;;.
+=======
+        ///        app.ku [rest of string was truncated]&quot;;.
+>>>>>>> 70f3dda0a877f4ea7d61f6ce31d558f4dfe060ee
         /// </summary>
         internal static string _18_jobs_deployment {
             get {
@@ -569,9 +625,13 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///      app.kubernetes.io/name: model-processor-service
         ///      app.kubernetes.io/part-of: industrial-iot
         ///  template:
+<<<<<<< HEAD
         ///    metadata:
         ///      labels:
         /// [rest of string was truncated]&quot;;.
+=======
+        ///    metadat [rest of string was truncated]&quot;;.
+>>>>>>> 70f3dda0a877f4ea7d61f6ce31d558f4dfe060ee
         /// </summary>
         internal static string _19_modelprocessor_deployment {
             get {
@@ -597,8 +657,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///      app.kubernetes.io/name: blob-notification-service
         ///      app.kubernetes.io/part-of: industrial-iot
         ///  template:
+<<<<<<< HEAD
         ///    metadata:
         ///      la [rest of string was truncated]&quot;;.
+=======
+        ///    m [rest of string was truncated]&quot;;.
+>>>>>>> 70f3dda0a877f4ea7d61f6ce31d558f4dfe060ee
         /// </summary>
         internal static string _20_blobnotification_deployment {
             get {
@@ -625,8 +689,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///      app.kubernetes.io/part-of: industrial-iot
         ///  template:
         ///    metadata:
+<<<<<<< HEAD
         ///      labels:
         ///        app.kub [rest of string was truncated]&quot;;.
+=======
+        ///      label [rest of string was truncated]&quot;;.
+>>>>>>> 70f3dda0a877f4ea7d61f6ce31d558f4dfe060ee
         /// </summary>
         internal static string _21_twinwebui_deployment {
             get {
@@ -675,8 +743,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  rules:
         ///  - http:
         ///      paths:
-        ///      - path: /registry/(.*)
-        ///        backend [rest of string was truncated]&quot;;.
+        ///      - path: /registry/(.* [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _30_industrial_iot_ingress {
             get {

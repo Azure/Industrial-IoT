@@ -9,15 +9,11 @@ There are several options to deploy modules to your [Azure IoT Edge](https://azu
 - [Deploying from Azure Portal's IoT Edge blade](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-modules-portal)
 - [Deploying using AZ CLI](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-deploy-monitor-cli)
 
-## Deploying from Azure Portal
+## Prerequisites
 
-The easiest way to deploy the modules to an Azure IoT Edge gateway device is through the Azure Portal.  
+1. [Deploy](howto-deploy-microservices.md) the Industrial IoT platform or at a minimum the required [dependencies](services/dependencies.md) and obtained the resulting `.env` file. Note the resource group name in the `.env` file to find the IoT Hub resource in the portal view.  
 
-### Prerequisites
-
-1. [Deploy](howto-deploy-microservices.md) the Industrial IoT platform or at a minimum the required [dependencies](services/dependencies.md) and obtained the resulting `.env` file. Note the resource group name in the .env file to find the IoT Hub resource in the portal view.  
-
-2. For a windows Windows IoT Edge runtime deoplyment:
+2. For a windows Windows IoT Edge runtime deployment:
     - Hyper-V must be active  
     - Create a new virtual switch named host having attached to an external network interface (e.g. "Ethernet 2").
     ```bash
@@ -47,12 +43,12 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
         6750449db22d        none                null                local
     ```
 
-    When running the industrial iot edge modules in host (transparent) network, the containers will require IP addresses assignment. There are 2 possibilitues: 
+    When running the industrial IoT Edge modules in host (transparent) network, the containers will require IP addresses assignment. There are 2 possibilities: 
     - dynamic IP address from a local DHCP server accessible from the host's network interface associated to the container's 'host' network.  
     - static IP address assigned on the container create options statement
 
     Windows Static IP Example:
-    In order to allow static IP address assignment on a container, the docker network requires to be created having the the subnet speciffied identical to the host's interface
+    In order to allow static IP address assignment on a container, the docker network requires to be created having the the subnet specified identical to the host's interface
 
     ```bash
     docker -H npipe:////.//pipe//iotedge_moby_engine network create -d transparent -o com.docker.network.windowsshim.interface="Ethernet 2" -o com.docker.network.windowsshim.networkname=host --subnet=192.168.30.0/24 --gateway=192.168.30.1 host
@@ -63,7 +59,30 @@ The easiest way to deploy the modules to an Azure IoT Edge gateway device is thr
     "createOptions": "{\"Hostname\":\"opctwin\",\"NetworkingConfig\":{\"EndpointsConfig\":{\"host\":{\"IPAMConfig\":{\"IPv4Address\":\"192.168.30.100\"}}}},\"HostConfig\":{\"NetworkMode\":\"host\",\"CapAdd\":[\"NET_ADMIN\"]}}"
     ```
 
-### Deploy to Edge device
+## Deploy using Industrial IoT Edge Management service
+
+> If you have **only** deployed the cloud dependencies, start the [Edge Management](services/edgemanager.md) Microservice or the [all-in-one](services/all-in-one.md) service locally to ensure IoT Hub is configured to auto deploy the Industrial IoT Edge modules.   
+
+The service will set up layered deployments for each required module.   These layered deployment configurations will be automatically applied to any gateway with the following Device Twin tags:
+
+```JSON
+"tags" = {
+    "__type__" = "iiotedge"
+    "os" = "Windows" // or "Linux"
+}
+```
+
+You can assign these tags to the IoT Edge device's twin [when you register the IoT Edge device](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-register-device).  
+
+It can also be created as part of a Azure Device Provisioning (DPS) enrollment.  An example of the latter can be found in `/deploy/scripts/dps-enroll.ps1`.
+
+By default the "latest" tag from mcr.microsoft.com is deployed.   This corresponds to the latest stable release.  
+
+> If you need to point to a different docker container registry, you can configure the source using  environment variables `PCS_DOCKER_SERVER`, `PCS_DOCKER_USER`, `PCS_DOCKER_PASSWORD`, `PCS_IMAGE_NAMESPACE`, for example in your `.env` file (which can also be set during deployment) and restart the edge management or all-in-one service. 
+
+## Individual module deployment using Azure Portal
+
+The easiest way to deploy the modules to an Azure IoT Edge gateway device is through the Azure Portal.  
 
 1. Sign in to the [Azure portal](https://portal.azure.com/) and navigate to your IoT hub.
 
@@ -135,7 +154,7 @@ All modules are deployed using a deployment manifest.
 
 ### Linux
 
-An example manifest to deploy both [OPC Publisher](publisher.md) and [OPC Twin](twin.md) to a Linux IoT Edge gateway is shown below.
+An example manifest to deploy [Discovery](modules/discovery.md) module, [OPC Publisher](modules/publisher.md) and [OPC Twin](modules/twin.md) to a Linux IoT Edge gateway is shown below.
 
 ```json
 {

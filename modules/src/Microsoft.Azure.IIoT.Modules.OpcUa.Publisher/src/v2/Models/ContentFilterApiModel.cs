@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Linq;

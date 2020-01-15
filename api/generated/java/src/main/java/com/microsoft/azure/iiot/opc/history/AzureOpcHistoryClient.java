@@ -33,7 +33,6 @@ import com.microsoft.azure.iiot.opc.history.models.ReadValuesAtTimesDetailsApiMo
 import com.microsoft.azure.iiot.opc.history.models.ReadValuesDetailsApiModelHistoryReadRequestApiModel;
 import com.microsoft.azure.iiot.opc.history.models.ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel;
 import com.microsoft.azure.iiot.opc.history.models.ReplaceValuesDetailsApiModelHistoryUpdateRequestApiModel;
-import com.microsoft.azure.iiot.opc.history.models.StatusResponseApiModel;
 import com.microsoft.rest.RestException;
 import com.microsoft.rest.ServiceCallback;
 import com.microsoft.rest.ServiceFuture;
@@ -903,44 +902,5 @@ public interface AzureOpcHistoryClient {
      * @return the observable to the HistoryUpdateResponseApiModel object
      */
     Observable<ServiceResponse<HistoryUpdateResponseApiModel>> historyReplaceEventsWithServiceResponseAsync(String endpointId, ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel body);
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the StatusResponseApiModel object if successful.
-     */
-    StatusResponseApiModel getStatus();
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<StatusResponseApiModel> getStatusAsync(final ServiceCallback<StatusResponseApiModel> serviceCallback);
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the StatusResponseApiModel object
-     */
-    Observable<StatusResponseApiModel> getStatusAsync();
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the StatusResponseApiModel object
-     */
-    Observable<ServiceResponse<StatusResponseApiModel>> getStatusWithServiceResponseAsync();
 
 }

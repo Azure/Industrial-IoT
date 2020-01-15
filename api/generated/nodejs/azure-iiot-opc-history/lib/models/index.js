@@ -59,7 +59,6 @@ exports.ReplaceValuesDetailsApiModel = require('./replaceValuesDetailsApiModel')
 exports.ReplaceValuesDetailsApiModelHistoryUpdateRequestApiModel = require('./replaceValuesDetailsApiModelHistoryUpdateRequestApiModel');
 exports.ReplaceEventsDetailsApiModel = require('./replaceEventsDetailsApiModel');
 exports.ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel = require('./replaceEventsDetailsApiModelHistoryUpdateRequestApiModel');
-exports.StatusResponseApiModel = require('./statusResponseApiModel');
 exports.HistoricEventApiModelHistoryReadResponseApiModel = require('./historicEventApiModelHistoryReadResponseApiModel');
 exports.HistoricEventApiModelHistoryReadNextResponseApiModel = require('./historicEventApiModelHistoryReadNextResponseApiModel');
 exports.HistoricValueApiModelHistoryReadResponseApiModel = require('./historicValueApiModelHistoryReadResponseApiModel');

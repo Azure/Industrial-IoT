@@ -17,7 +17,7 @@
 class NodeReferenceApiModel {
   /**
    * Create a NodeReferenceApiModel.
-   * @property {string} [referenceTypeId] Reference Type identifier
+   * @property {string} [referenceTypeId] Reference Type id
    * @property {string} [direction] Possible values include: 'Forward',
    * 'Backward', 'Both'
    * @property {object} target

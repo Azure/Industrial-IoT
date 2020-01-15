@@ -22,7 +22,7 @@ class X509CertificateApiModel {
    * @property {string} [serialNumber] Serial number
    * @property {date} [notBeforeUtc] Not before validity
    * @property {date} [notAfterUtc] Not after validity
-   * @property {object} certificate Raw data
+   * @property {object} [certificate] Raw data
    */
   constructor() {
   }
@@ -77,7 +77,7 @@ class X509CertificateApiModel {
             }
           },
           certificate: {
-            required: true,
+            required: false,
             serializedName: 'certificate',
             type: {
               name: 'Object'

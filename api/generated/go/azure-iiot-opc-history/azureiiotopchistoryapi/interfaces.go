@@ -15,7 +15,6 @@ import (
 
         // BaseClientAPI contains the set of methods on the BaseClient type.
         type BaseClientAPI interface {
-            GetStatus(ctx context.Context) (result azureiiotopchistory.StatusResponseAPIModel, err error)
             HistoryDeleteEvents(ctx context.Context, endpointID string, body azureiiotopchistory.DeleteEventsDetailsAPIModelHistoryUpdateRequestAPIModel) (result azureiiotopchistory.HistoryUpdateResponseAPIModel, err error)
             HistoryDeleteModifiedValues(ctx context.Context, endpointID string, body azureiiotopchistory.DeleteModifiedValuesDetailsAPIModelHistoryUpdateRequestAPIModel) (result azureiiotopchistory.HistoryUpdateResponseAPIModel, err error)
             HistoryDeleteValues(ctx context.Context, endpointID string, body azureiiotopchistory.DeleteValuesDetailsAPIModelHistoryUpdateRequestAPIModel) (result azureiiotopchistory.HistoryUpdateResponseAPIModel, err error)

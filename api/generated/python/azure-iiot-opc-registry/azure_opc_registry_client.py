@@ -799,65 +799,6 @@ class AzureOpcRegistryClient(object):
         return deserialized
     get_filtered_list_of_applications.metadata = {'url': '/v2/applications/query'}
 
-    def query_applications_by_id(
-            self, body=None, custom_headers=None, raw=False, **operation_config):
-        """Query applications by id.
-
-        A query model which supports the OPC UA Global Discovery Server query.
-
-        :param body:
-        :type body:
-         ~azure-iiot-opc-registry.models.ApplicationRecordQueryApiModel
-        :param dict custom_headers: headers that will be added to the request
-        :param bool raw: returns the direct response alongside the
-         deserialized response
-        :param operation_config: :ref:`Operation configuration
-         overrides<msrest:optionsforoperations>`.
-        :return: ApplicationRecordListApiModel or ClientRawResponse if
-         raw=true
-        :rtype: ~azure-iiot-opc-registry.models.ApplicationRecordListApiModel
-         or ~msrest.pipeline.ClientRawResponse
-        :raises:
-         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
-        """
-        # Construct URL
-        url = self.query_applications_by_id.metadata['url']
-
-        # Construct parameters
-        query_parameters = {}
-
-        # Construct headers
-        header_parameters = {}
-        header_parameters['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-        if custom_headers:
-            header_parameters.update(custom_headers)
-
-        # Construct body
-        if body is not None:
-            body_content = self._serialize.body(body, 'ApplicationRecordQueryApiModel')
-        else:
-            body_content = None
-
-        # Construct and send request
-        request = self._client.post(url, query_parameters)
-        response = self._client.send(
-            request, header_parameters, body_content, stream=False, **operation_config)
-
-        if response.status_code not in [200]:
-            raise HttpOperationError(self._deserialize, response)
-
-        deserialized = None
-
-        if response.status_code == 200:
-            deserialized = self._deserialize('ApplicationRecordListApiModel', response)
-
-        if raw:
-            client_raw_response = ClientRawResponse(deserialized, response)
-            return client_raw_response
-
-        return deserialized
-    query_applications_by_id.metadata = {'url': '/v2/applications/querybyid'}
-
     def subscribe(
             self, body=None, custom_headers=None, raw=False, **operation_config):
         """Subscribe for application events.
@@ -2767,7 +2708,7 @@ class AzureOpcRegistryClient(object):
         available. Call the GetListOfPublisher operation using the token to
         retrieve more results.
 
-        :param site_id: Site of the publisher
+        :param site_id: Site for the publishers
         :type site_id: str
         :param connected: Included connected or disconnected
         :type connected: bool
@@ -2921,53 +2862,6 @@ class AzureOpcRegistryClient(object):
             client_raw_response = ClientRawResponse(None, response)
             return client_raw_response
     unsubscribe4.metadata = {'url': '/v2/publishers/events/{userId}'}
-
-    def get_status(
-            self, custom_headers=None, raw=False, **operation_config):
-        """Return the service status in the form of the service status
-        api model.
-
-        :param dict custom_headers: headers that will be added to the request
-        :param bool raw: returns the direct response alongside the
-         deserialized response
-        :param operation_config: :ref:`Operation configuration
-         overrides<msrest:optionsforoperations>`.
-        :return: StatusResponseApiModel or ClientRawResponse if raw=true
-        :rtype: ~azure-iiot-opc-registry.models.StatusResponseApiModel or
-         ~msrest.pipeline.ClientRawResponse
-        :raises:
-         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
-        """
-        # Construct URL
-        url = self.get_status.metadata['url']
-
-        # Construct parameters
-        query_parameters = {}
-
-        # Construct headers
-        header_parameters = {}
-        header_parameters['Content-Type'] = 'application/json; charset=utf-8'
-        if custom_headers:
-            header_parameters.update(custom_headers)
-
-        # Construct and send request
-        request = self._client.get(url, query_parameters)
-        response = self._client.send(request, header_parameters, stream=False, **operation_config)
-
-        if response.status_code not in [200]:
-            raise HttpOperationError(self._deserialize, response)
-
-        deserialized = None
-
-        if response.status_code == 200:
-            deserialized = self._deserialize('StatusResponseApiModel', response)
-
-        if raw:
-            client_raw_response = ClientRawResponse(deserialized, response)
-            return client_raw_response
-
-        return deserialized
-    get_status.metadata = {'url': '/v2/status'}
 
     def get_supervisor(
             self, supervisor_id, only_server_state=None, custom_headers=None, raw=False, **operation_config):
@@ -3322,7 +3216,7 @@ class AzureOpcRegistryClient(object):
         results are available. Call the GetListOfSupervisors operation using
         the token to retrieve more results.
 
-        :param site_id: Site of the supervisor
+        :param site_id: Site for the supervisors
         :type site_id: str
         :param connected: Included connected or disconnected
         :type connected: bool

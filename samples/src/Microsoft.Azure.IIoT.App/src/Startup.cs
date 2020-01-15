@@ -23,8 +23,8 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.AspNetCore.HttpOverrides;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Rewrite;
     using Microsoft.AspNetCore.Mvc.Authorization;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
@@ -35,7 +35,6 @@ namespace Microsoft.Azure.IIoT.App {
     using System;
     using System.Threading.Tasks;
     using System.Security.Claims;
-    using Microsoft.AspNetCore.Rewrite;
 
     /// <summary>
     /// Webapp startup
@@ -76,7 +75,6 @@ namespace Microsoft.Azure.IIoT.App {
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
             IHostApplicationLifetime appLifetime) {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
-            app.UseForwardedHeaders();
 
             if (env.IsDevelopment()) {
                 app.UseDeveloperExceptionPage();
@@ -89,7 +87,6 @@ namespace Microsoft.Azure.IIoT.App {
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
-
             app.UseRewriter(
                 new RewriteOptions().Add(
                     context => {
@@ -120,26 +117,9 @@ namespace Microsoft.Azure.IIoT.App {
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services) {
 
-            if (string.Equals(
-                Environment.GetEnvironmentVariable("ASPNETCORE_FORWARDEDHEADERS_ENABLED"),
-                    "true", StringComparison.OrdinalIgnoreCase)) {
-
-                services.Configure<ForwardedHeadersOptions>(options => {
-                    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
-                        ForwardedHeaders.XForwardedProto;
-                    // Only loopback proxies are allowed by default.
-                    // Clear that restriction because forwarders are enabled by explicit
-                    // configuration.
-                    options.KnownNetworks.Clear();
-                    options.KnownProxies.Clear();
-                });
-            }
-
             services.Configure<CookiePolicyOptions>(options => {
-                // This lambda determines whether user consent for non-essential cookies
-                // is needed for a given request.
                 options.CheckConsentNeeded = context => true;
-                options.MinimumSameSitePolicy = SameSiteMode.Strict;
+                options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
             services.AddAntiforgery(options => {

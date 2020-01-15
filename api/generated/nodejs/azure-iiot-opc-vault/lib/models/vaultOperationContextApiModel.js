@@ -18,7 +18,7 @@ class VaultOperationContextApiModel {
   /**
    * Create a VaultOperationContextApiModel.
    * @property {string} [authorityId] User
-   * @property {date} time Operation time
+   * @property {date} [time] Operation time
    */
   constructor() {
   }
@@ -45,7 +45,7 @@ class VaultOperationContextApiModel {
             }
           },
           time: {
-            required: true,
+            required: false,
             serializedName: 'time',
             type: {
               name: 'DateTime'

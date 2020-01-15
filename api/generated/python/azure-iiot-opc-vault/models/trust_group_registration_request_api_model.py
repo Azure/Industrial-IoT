@@ -31,12 +31,6 @@ class TrustGroupRegistrationRequestApiModel(Model):
      ~azure-iiot-opc-vault.models.SignatureAlgorithm
     """
 
-    _validation = {
-        'name': {'required': True},
-        'parent_id': {'required': True},
-        'subject_name': {'required': True},
-    }
-
     _attribute_map = {
         'name': {'key': 'name', 'type': 'str'},
         'parent_id': {'key': 'parentId', 'type': 'str'},
@@ -46,7 +40,7 @@ class TrustGroupRegistrationRequestApiModel(Model):
         'issued_signature_algorithm': {'key': 'issuedSignatureAlgorithm', 'type': 'SignatureAlgorithm'},
     }
 
-    def __init__(self, name, parent_id, subject_name, issued_lifetime=None, issued_key_size=None, issued_signature_algorithm=None):
+    def __init__(self, name=None, parent_id=None, subject_name=None, issued_lifetime=None, issued_key_size=None, issued_signature_algorithm=None):
         super(TrustGroupRegistrationRequestApiModel, self).__init__()
         self.name = name
         self.parent_id = parent_id

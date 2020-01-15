@@ -441,17 +441,5 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// </param>
         Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryReplaceEventsWithHttpMessagesAsync(string endpointId, ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
-        /// <summary>
-        /// Return the service status in the form of the service status
-        /// api model.
-        /// </summary>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<StatusResponseApiModel>> GetStatusWithHttpMessagesAsync(Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
     }
 }

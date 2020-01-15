@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Runtime;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.v2;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Services;

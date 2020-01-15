@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
     using Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime;
-    using Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.v2;
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
     using Microsoft.Azure.IIoT.Hub.Client;

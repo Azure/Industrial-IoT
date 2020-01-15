@@ -117,7 +117,7 @@ export interface PublishStopRequestApiModel {
 }
 
 /**
- * Result of unpublish request
+ * Result of publish stop request
 */
 export interface PublishStopResponseApiModel {
   errorInfo?: ServiceResultApiModel;
@@ -145,45 +145,4 @@ export interface PublishedItemListResponseApiModel {
    * Continuation or null if final
   */
   continuationToken?: string;
-}
-
-/**
- * Status response model
-*/
-export interface StatusResponseApiModel {
-  /**
-   * Name of this service
-  */
-  name?: string;
-  /**
-   * Operational status
-  */
-  status?: string;
-  /**
-   * Current time
-  */
-  readonly currentTime?: string;
-  /**
-   * Start time of service
-  */
-  readonly startTime?: string;
-  /**
-   * Up time of service
-  */
-  readonly upTime?: number;
-  /**
-   * Value generated at bootstrap by each instance of the service and
-   * used to correlate logs coming from the same instance. The value
-   * changes every time the service starts.
-  */
-  readonly uid?: string;
-  /**
-   * A property bag with details about the service
-  */
-  readonly properties?: { [propertyName: string]: string };
-  /**
-   * A property bag with details about the internal dependencies
-  */
-  readonly dependencies?: { [propertyName: string]: string };
-  readonly metadata?: { [propertyName: string]: string };
 }

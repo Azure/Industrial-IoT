@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
     using Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager.Runtime;
-    using Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager.v2;
     using Microsoft.Azure.IIoT.Services.Cors;
     using Microsoft.Azure.IIoT.Services.Auth;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy;

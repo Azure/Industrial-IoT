@@ -510,26 +510,6 @@
         ]
       }
     },
-    "/v2/status": {
-      "get": {
-        "tags": [
-          "Status"
-        ],
-        "summary": "Return the service status in the form of the service status\r\napi model.",
-        "operationId": "GetStatus",
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/StatusResponseApiModel"
-            }
-          }
-        }
-      }
-    },
     "/v2/write/{endpointId}": {
       "post": {
         "tags": [
@@ -649,7 +629,7 @@
       }
     },
     "BrowseViewApiModel": {
-      "description": "browse view model",
+      "description": "Browse view model",
       "required": [
         "viewId"
       ],
@@ -1044,7 +1024,7 @@
       "type": "object",
       "properties": {
         "referenceTypeId": {
-          "description": "Reference Type identifier",
+          "description": "Reference Type id",
           "type": "string"
         },
         "direction": {
@@ -1425,6 +1405,7 @@
       }
     },
     "NodeAttribute": {
+      "description": "Node attribute identifiers",
       "enum": [
         "NodeClass",
         "BrowseName",
@@ -1517,64 +1498,6 @@
           "items": {
             "$ref": "#/definitions/AttributeReadResponseApiModel"
           }
-        }
-      }
-    },
-    "StatusResponseApiModel": {
-      "description": "Status response model",
-      "type": "object",
-      "properties": {
-        "name": {
-          "description": "Name of this service",
-          "type": "string"
-        },
-        "status": {
-          "description": "Operational status",
-          "type": "string"
-        },
-        "currentTime": {
-          "description": "Current time",
-          "type": "string",
-          "readOnly": true
-        },
-        "startTime": {
-          "description": "Start time of service",
-          "type": "string",
-          "readOnly": true
-        },
-        "upTime": {
-          "format": "int64",
-          "description": "Up time of service",
-          "type": "integer",
-          "readOnly": true
-        },
-        "uid": {
-          "description": "Value generated at bootstrap by each instance of the service and\r\nused to correlate logs coming from the same instance. The value\r\nchanges every time the service starts.",
-          "type": "string",
-          "readOnly": true
-        },
-        "properties": {
-          "description": "A property bag with details about the service",
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          },
-          "readOnly": true
-        },
-        "dependencies": {
-          "description": "A property bag with details about the internal dependencies",
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          },
-          "readOnly": true
-        },
-        "$metadata": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          },
-          "readOnly": true
         }
       }
     },
@@ -1709,10 +1632,6 @@
     {
       "name": "Read",
       "description": "Node read services"
-    },
-    {
-      "name": "Status",
-      "description": "Status checks"
     },
     {
       "name": "Write",

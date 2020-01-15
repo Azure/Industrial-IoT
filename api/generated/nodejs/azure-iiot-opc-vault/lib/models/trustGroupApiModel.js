@@ -17,12 +17,12 @@
 class TrustGroupApiModel {
   /**
    * Create a TrustGroupApiModel.
-   * @property {string} name The name of the trust group.
+   * @property {string} [name] The name of the trust group.
    * @property {string} [parentId] The identifer of the parent trust group.
    * @property {string} [type] Possible values include:
    * 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
-   * @property {string} subjectName The subject name of the group as
+   * @property {string} [subjectName] The subject name of the group as
    * distinguished name.
    * @property {string} [lifetime] The lifetime of the trust group certificate.
    * @property {number} [keySize] The trust group certificate key size in bits.
@@ -53,7 +53,7 @@ class TrustGroupApiModel {
         className: 'TrustGroupApiModel',
         modelProperties: {
           name: {
-            required: true,
+            required: false,
             serializedName: 'name',
             type: {
               name: 'String'
@@ -75,7 +75,7 @@ class TrustGroupApiModel {
             }
           },
           subjectName: {
-            required: true,
+            required: false,
             serializedName: 'subjectName',
             type: {
               name: 'String'

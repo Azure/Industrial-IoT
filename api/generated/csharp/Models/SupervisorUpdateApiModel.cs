@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
     using System.Linq;
 
     /// <summary>
-    /// Supervisor registration update request
+    /// Supervisor update request
     /// </summary>
     public partial class SupervisorUpdateApiModel
     {
@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// <summary>
         /// Initializes a new instance of the SupervisorUpdateApiModel class.
         /// </summary>
-        /// <param name="siteId">Site of the supervisor</param>
+        /// <param name="siteId">Site the supervisor is part of</param>
         /// <param name="logLevel">Possible values include: 'Error',
         /// 'Information', 'Debug', 'Verbose'</param>
         public SupervisorUpdateApiModel(string siteId = default(string), TraceLogLevel? logLevel = default(TraceLogLevel?))
@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets site of the supervisor
+        /// Gets or sets site the supervisor is part of
         /// </summary>
         [JsonProperty(PropertyName = "siteId")]
         public string SiteId { get; set; }

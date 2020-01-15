@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Node model
@@ -29,9 +30,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         public string DisplayName { get; set; }
 
         /// <summary>
-        /// Id of node (Mandatory).
+        /// Id of node.
+        /// (Mandatory).
         /// </summary>
         [JsonProperty(PropertyName = "nodeId")]
+        [Required]
         public string NodeId { get; set; }
 
         /// <summary>

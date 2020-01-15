@@ -21,7 +21,6 @@ final class AzureOpcPublisherClient
         $this->_StopPublishingValues_operation = $_client->createOperation('StopPublishingValues');
         $this->_GetFirstListOfPublishedNodes_operation = $_client->createOperation('GetFirstListOfPublishedNodes');
         $this->_GetNextListOfPublishedNodes_operation = $_client->createOperation('GetNextListOfPublishedNodes');
-        $this->_GetStatus_operation = $_client->createOperation('GetStatus');
     }
     /**
      * Register a client to receive publisher samples through SignalR.
@@ -118,13 +117,6 @@ final class AzureOpcPublisherClient
         ]);
     }
     /**
-     * @return array
-     */
-    public function getStatus()
-    {
-        return $this->_GetStatus_operation->call([]);
-    }
-    /**
      * @var \Microsoft\Rest\OperationInterface
      */
     private $_Subscribe_operation;
@@ -148,10 +140,6 @@ final class AzureOpcPublisherClient
      * @var \Microsoft\Rest\OperationInterface
      */
     private $_GetNextListOfPublishedNodes_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_GetStatus_operation;
     const _SWAGGER_OBJECT_DATA = [
         'host' => 'localhost',
         'paths' => [
@@ -264,12 +252,7 @@ final class AzureOpcPublisherClient
                     ],
                     'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/PublishedItemListResponseApiModel']]]
                 ]
-            ],
-            '/v2/status' => ['get' => [
-                'operationId' => 'GetStatus',
-                'parameters' => [],
-                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/StatusResponseApiModel']]]
-            ]]
+            ]
         ],
         'definitions' => [
             'PublishedItemApiModel' => [
@@ -380,33 +363,6 @@ final class AzureOpcPublisherClient
                         'items' => ['$ref' => '#/definitions/PublishedItemApiModel']
                     ],
                     'continuationToken' => ['type' => 'string']
-                ],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'StatusResponseApiModel' => [
-                'properties' => [
-                    'name' => ['type' => 'string'],
-                    'status' => ['type' => 'string'],
-                    'currentTime' => ['type' => 'string'],
-                    'startTime' => ['type' => 'string'],
-                    'upTime' => [
-                        'type' => 'integer',
-                        'format' => 'int64'
-                    ],
-                    'uid' => ['type' => 'string'],
-                    'properties' => [
-                        'type' => 'object',
-                        'additionalProperties' => ['type' => 'string']
-                    ],
-                    'dependencies' => [
-                        'type' => 'object',
-                        'additionalProperties' => ['type' => 'string']
-                    ],
-                    '$metadata' => [
-                        'type' => 'object',
-                        'additionalProperties' => ['type' => 'string']
-                    ]
                 ],
                 'additionalProperties' => FALSE,
                 'required' => []

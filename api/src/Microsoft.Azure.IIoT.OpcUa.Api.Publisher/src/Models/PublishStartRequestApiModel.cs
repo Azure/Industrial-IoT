@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     using Newtonsoft.Json;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Publish request
@@ -15,10 +16,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// Item to publish
         /// </summary>
         [JsonProperty(PropertyName = "item")]
+        [Required]
         public PublishedItemApiModel Item { get; set; }
 
         /// <summary>
-        /// Optional header
+        /// Optional request header
         /// </summary>
         [JsonProperty(PropertyName = "header",
             NullValueHandling = NullValueHandling.Ignore)]

@@ -13,7 +13,7 @@ from msrest.serialization import Model
 
 
 class DiscoveryConfigApiModel(Model):
-    """Discovery configuration.
+    """Discovery configuration api model.
 
     :param address_ranges_to_scan: Address ranges to scan (null == all wired
      nics)

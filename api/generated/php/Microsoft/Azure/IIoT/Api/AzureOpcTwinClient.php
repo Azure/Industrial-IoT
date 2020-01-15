@@ -25,7 +25,6 @@ final class AzureOpcTwinClient
         $this->_ReadValue_operation = $_client->createOperation('ReadValue');
         $this->_GetValue_operation = $_client->createOperation('GetValue');
         $this->_ReadAttributes_operation = $_client->createOperation('ReadAttributes');
-        $this->_GetStatus_operation = $_client->createOperation('GetStatus');
         $this->_WriteValue_operation = $_client->createOperation('WriteValue');
         $this->_WriteAttributes_operation = $_client->createOperation('WriteAttributes');
     }
@@ -190,13 +189,6 @@ final class AzureOpcTwinClient
         ]);
     }
     /**
-     * @return array
-     */
-    public function getStatus()
-    {
-        return $this->_GetStatus_operation->call([]);
-    }
-    /**
      * Write variable node's value. The endpoint must be activated and connected and the module client and server must trust each other.
      * @param string $endpointId
      * @param array $body
@@ -268,10 +260,6 @@ final class AzureOpcTwinClient
      * @var \Microsoft\Rest\OperationInterface
      */
     private $_ReadAttributes_operation;
-    /**
-     * @var \Microsoft\Rest\OperationInterface
-     */
-    private $_GetStatus_operation;
     /**
      * @var \Microsoft\Rest\OperationInterface
      */
@@ -468,11 +456,6 @@ final class AzureOpcTwinClient
                     ]
                 ],
                 'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/ReadResponseApiModel']]]
-            ]],
-            '/v2/status' => ['get' => [
-                'operationId' => 'GetStatus',
-                'parameters' => [],
-                'responses' => ['200' => ['schema' => ['$ref' => '#/definitions/StatusResponseApiModel']]]
             ]],
             '/v2/write/{endpointId}' => ['post' => [
                 'operationId' => 'WriteValue',
@@ -1053,33 +1036,6 @@ final class AzureOpcTwinClient
                     'type' => 'array',
                     'items' => ['$ref' => '#/definitions/AttributeReadResponseApiModel']
                 ]],
-                'additionalProperties' => FALSE,
-                'required' => []
-            ],
-            'StatusResponseApiModel' => [
-                'properties' => [
-                    'name' => ['type' => 'string'],
-                    'status' => ['type' => 'string'],
-                    'currentTime' => ['type' => 'string'],
-                    'startTime' => ['type' => 'string'],
-                    'upTime' => [
-                        'type' => 'integer',
-                        'format' => 'int64'
-                    ],
-                    'uid' => ['type' => 'string'],
-                    'properties' => [
-                        'type' => 'object',
-                        'additionalProperties' => ['type' => 'string']
-                    ],
-                    'dependencies' => [
-                        'type' => 'object',
-                        'additionalProperties' => ['type' => 'string']
-                    ],
-                    '$metadata' => [
-                        'type' => 'object',
-                        'additionalProperties' => ['type' => 'string']
-                    ]
-                ],
                 'additionalProperties' => FALSE,
                 'required' => []
             ],

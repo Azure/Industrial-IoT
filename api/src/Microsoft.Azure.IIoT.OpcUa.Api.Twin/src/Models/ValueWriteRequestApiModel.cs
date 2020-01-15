@@ -6,6 +6,8 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using System.ComponentModel;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Value write request model
@@ -13,9 +15,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     public class ValueWriteRequestApiModel {
 
         /// <summary>
-        /// Node id to to write value to. (Mandatory)
+        /// Node id to to write value to.
         /// </summary>
-        [JsonProperty(PropertyName = "nodeId")]
+        [JsonProperty(PropertyName = "nodeId",
+            NullValueHandling = NullValueHandling.Ignore)]
         public string NodeId { get; set; }
 
         /// <summary>
@@ -24,15 +27,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "browsePath",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string[] BrowsePath { get; set; }
 
         /// <summary>
         /// Value to write. The system tries to convert
         /// the value according to the data type value,
         /// e.g. convert comma seperated value strings
-        /// into arrays.
+        /// into arrays.  (Mandatory)
         /// </summary>
         [JsonProperty(PropertyName = "value")]
+        [Required]
         public JToken Value { get; set; }
 
         /// <summary>
@@ -50,6 +55,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "indexRange",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string IndexRange { get; set; }
 
         /// <summary>
@@ -57,6 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "header",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public RequestHeaderApiModel Header { get; set; }
     }
 }

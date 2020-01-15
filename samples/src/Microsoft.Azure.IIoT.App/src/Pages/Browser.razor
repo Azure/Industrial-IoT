@@ -1,4 +1,4 @@
-﻿@page "/browser/{applicationId}/{endpointId}"
+@page "/browser/{applicationId}/{endpointId}"
 @page "/browser/{discovererId}/{applicationId}/{endpointId}"
 @page "/browser/{discovererId}/{applicationId}/{endpointId}/{page}"
 
@@ -87,7 +87,7 @@
                     <td>@node.NodeClass</td>
                 }
                 @if (node.NodeClass == NodeClass.Variable && (node.AccessLevel == NodeAccessLevel.CurrentRead || node.AccessLevel == NodeAccessLevel.CurrentWrite ||
-               node.AccessLevel == (NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite)))
+                    node.AccessLevel == (NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite)))
                 {
                     <td>
                         <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">

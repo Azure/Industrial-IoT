@@ -17,7 +17,7 @@
 class TrustGroupRegistrationResponseApiModel {
   /**
    * Create a TrustGroupRegistrationResponseApiModel.
-   * @property {string} id The id of the trust group
+   * @property {string} [id] The id of the trust group
    */
   constructor() {
   }
@@ -37,7 +37,7 @@ class TrustGroupRegistrationResponseApiModel {
         className: 'TrustGroupRegistrationResponseApiModel',
         modelProperties: {
           id: {
-            required: true,
+            required: false,
             serializedName: 'id',
             type: {
               name: 'String'

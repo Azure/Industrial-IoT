@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     using Newtonsoft.Json;
     using System;
+    using System.ComponentModel;
 
     /// <summary>
     /// Diagnostics configuration
@@ -18,6 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         [JsonProperty(PropertyName = "level",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public DiagnosticsLevel? Level { get; set; }
 
         /// <summary>
@@ -26,6 +28,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         [JsonProperty(PropertyName = "auditId",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string AuditId { get; set; }
 
         /// <summary>
@@ -34,6 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         [JsonProperty(PropertyName = "timeStamp",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public DateTime? TimeStamp { get; set; }
     }
 }

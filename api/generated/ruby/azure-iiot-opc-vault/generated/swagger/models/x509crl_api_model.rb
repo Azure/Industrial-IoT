@@ -43,7 +43,7 @@ module azure.iiot.opc.vault
               },
               crl: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'crl',
                 type: {
                   name: 'Object'

@@ -28,7 +28,6 @@ import com.microsoft.azure.iiot.opc.twin.models.MethodMetadataRequestApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.MethodMetadataResponseApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.ReadRequestApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.ReadResponseApiModel;
-import com.microsoft.azure.iiot.opc.twin.models.StatusResponseApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.ValueReadRequestApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.ValueReadResponseApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.ValueWriteRequestApiModel;
@@ -163,10 +162,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient readAttributes" })
         @POST("v2/read/{endpointId}/attributes")
         Observable<Response<ResponseBody>> readAttributes(@Path("endpointId") String endpointId, @Body ReadRequestApiModel body);
-
-        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient getStatus" })
-        @GET("v2/status")
-        Observable<Response<ResponseBody>> getStatus();
 
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient writeValue" })
         @POST("v2/write/{endpointId}")
@@ -1080,75 +1075,6 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     private ServiceResponse<ReadResponseApiModel> readAttributesDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
         return this.restClient().responseBuilderFactory().<ReadResponseApiModel, RestException>newInstance(this.serializerAdapter())
                 .register(200, new TypeToken<ReadResponseApiModel>() { }.getType())
-                .build(response);
-    }
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the StatusResponseApiModel object if successful.
-     */
-    public StatusResponseApiModel getStatus() {
-        return getStatusWithServiceResponseAsync().toBlocking().single().body();
-    }
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    public ServiceFuture<StatusResponseApiModel> getStatusAsync(final ServiceCallback<StatusResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(getStatusWithServiceResponseAsync(), serviceCallback);
-    }
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the StatusResponseApiModel object
-     */
-    public Observable<StatusResponseApiModel> getStatusAsync() {
-        return getStatusWithServiceResponseAsync().map(new Func1<ServiceResponse<StatusResponseApiModel>, StatusResponseApiModel>() {
-            @Override
-            public StatusResponseApiModel call(ServiceResponse<StatusResponseApiModel> response) {
-                return response.body();
-            }
-        });
-    }
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the StatusResponseApiModel object
-     */
-    public Observable<ServiceResponse<StatusResponseApiModel>> getStatusWithServiceResponseAsync() {
-        return service.getStatus()
-            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<StatusResponseApiModel>>>() {
-                @Override
-                public Observable<ServiceResponse<StatusResponseApiModel>> call(Response<ResponseBody> response) {
-                    try {
-                        ServiceResponse<StatusResponseApiModel> clientResponse = getStatusDelegate(response);
-                        return Observable.just(clientResponse);
-                    } catch (Throwable t) {
-                        return Observable.error(t);
-                    }
-                }
-            });
-    }
-
-    private ServiceResponse<StatusResponseApiModel> getStatusDelegate(Response<ResponseBody> response) throws RestException, IOException {
-        return this.restClient().responseBuilderFactory().<StatusResponseApiModel, RestException>newInstance(this.serializerAdapter())
-                .register(200, new TypeToken<StatusResponseApiModel>() { }.getType())
                 .build(response);
     }
 

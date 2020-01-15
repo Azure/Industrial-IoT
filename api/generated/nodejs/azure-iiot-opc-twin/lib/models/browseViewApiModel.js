@@ -11,7 +11,7 @@
 'use strict';
 
 /**
- * browse view model
+ * Browse view model
  *
  */
 class BrowseViewApiModel {

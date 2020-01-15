@@ -46,68 +46,6 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
     }
 }
 
-    // GetStatus sends the get status request.
-    func (client BaseClient) GetStatus(ctx context.Context) (result StatusResponseAPIModel, err error) {
-        if tracing.IsEnabled() {
-            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetStatus")
-            defer func() {
-                sc := -1
-                if result.Response.Response != nil {
-                    sc = result.Response.Response.StatusCode
-                }
-                tracing.EndSpan(ctx, sc, err)
-            }()
-        }
-            req, err := client.GetStatusPreparer(ctx)
-        if err != nil {
-        err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "GetStatus", nil , "Failure preparing request")
-        return
-        }
-
-                resp, err := client.GetStatusSender(req)
-                if err != nil {
-                result.Response = autorest.Response{Response: resp}
-                err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "GetStatus", resp, "Failure sending request")
-                return
-                }
-
-                result, err = client.GetStatusResponder(resp)
-                if err != nil {
-                err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "GetStatus", resp, "Failure responding to request")
-                }
-
-        return
-        }
-
-        // GetStatusPreparer prepares the GetStatus request.
-        func (client BaseClient) GetStatusPreparer(ctx context.Context) (*http.Request, error) {
-            preparer := autorest.CreatePreparer(
-        autorest.AsGet(),
-        autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPath("/v2/status"))
-        return preparer.Prepare((&http.Request{}).WithContext(ctx))
-        }
-
-        // GetStatusSender sends the GetStatus request. The method will close the
-        // http.Response Body if it receives an error.
-        func (client BaseClient) GetStatusSender(req *http.Request) (*http.Response, error) {
-            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-                return autorest.SendWithSender(client, req, sd...)
-                }
-
-    // GetStatusResponder handles the response to the GetStatus request. The method always
-    // closes the http.Response Body.
-    func (client BaseClient) GetStatusResponder(resp *http.Response) (result StatusResponseAPIModel, err error) {
-        err = autorest.Respond(
-        resp,
-        client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK),
-        autorest.ByUnmarshallingJSON(&result),
-        autorest.ByClosing())
-        result.Response = autorest.Response{Response: resp}
-            return
-        }
-
     // HistoryDeleteEvents delete historic events using historic access. The
     // endpoint must be activated and connected and the module client and server
     // must trust each other.
