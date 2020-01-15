@@ -165,7 +165,7 @@
         },
         "eventHubSkuTier": {
             "type": "string",
-            "defaultValue": "Basic",
+            "defaultValue": "Standard",
             "allowedValues": [
                 "Basic",
                 "Standard"
@@ -416,6 +416,8 @@
         "eventHubKeyResourceId": "[resourceId('Microsoft.EventHub/namespaces/AuthorizationRules', parameters('eventHubNamespaceName'), variables('eventHubKeyName'))]",
         "eventHubNamespaceResourceId": "[resourceId('Microsoft.EventHub/namespaces', parameters('eventHubNamespaceName'))]",
         "eventHubResourceId": "[resourceId('Microsoft.EventHub/namespaces/eventhubs', parameters('eventHubNamespaceName'), parameters('eventHubName'))]",
+        "eventHubConsumerGroup1": "telemetrycdm",
+        "eventHubConsumerGroup2": "telemetryux",
         "tsiEventSourceName": "TelemetryEventHub",
         "tsiEventSourceKeyResourceId": "[resourceId('Microsoft.EventHub/namespaces/eventhubs/authorizationRules', parameters('eventHubNamespaceName'), parameters('eventHubName'), parameters('eventHubAuthorizationName'))]",
         "tsiEnvironmentTagsValue": {
@@ -813,6 +815,30 @@
                 "[variables('eventHubNamespaceResourceId')]"
             ]
         },
+        {
+            "comments": "CDM Telemetry Consumer Group of Event Hub for Device Telemetry",
+            "apiVersion": "2017-04-01",
+            "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('eventHubName'), '/', variables('eventHubConsumerGroup1'))]",
+            "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
+			"properties": {
+				"userMetadata": "CDM Telemetry Consumer Group"
+			},
+			"dependsOn": [
+                "[variables('eventHubResourceId')]"
+            ]
+        },
+        {
+            "comments": "UX Telemetry Consumer Group of Event Hub for Device Telemetry",
+            "apiVersion": "2017-04-01",
+            "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('eventHubName'), '/', variables('eventHubConsumerGroup2'))]",
+            "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
+			"properties": {
+				"userMetadata": "UX Telemetry Consumer Group"
+			},			
+            "dependsOn": [
+                "[variables('eventHubResourceId')]"
+            ]
+        },		
         {
             "comments": "Event Hub Authorization for Device Telemetry Consumers",
             "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",

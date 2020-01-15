@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
+namespace Microsoft.Azure.IIoT.Services.Processor.Events {
     using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
         /// <summary>
         /// ID
         /// </summary>
-        public string ServiceId => "TELEMETRYPROCESSORHOST";
+        public string ServiceId => "EVENTSPROCESSORHOST";
 
         /// <summary>
         /// Process id
@@ -24,11 +24,11 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
         /// <summary>
         /// Name of service
         /// </summary>
-        public string Name => "Telemetry-Processor-Host";
+        public string Name => "Events-Processor-Host";
 
         /// <summary>
         /// Description of service
         /// </summary>
-        public string Description => "Azure Industrial IoT Telemetry Processor Host";
+        public string Description => "Azure Industrial IoT Events Processor Host";
     }
 }

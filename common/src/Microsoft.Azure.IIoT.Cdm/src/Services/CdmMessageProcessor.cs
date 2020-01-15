@@ -37,6 +37,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
             _lock = new SemaphoreSlim(1, 1);
             _cacheListSize = 5000;
             _cacheUploadTimer = new Timer(CacheTimer_ElapesedAsync);
+            _cacheUploadTriggered = false;
             _cacheUploadInterval = TimeSpan.FromSeconds(20);
             _cacheList = new List<SubscriberCdmSampleModel>(_cacheListSize);
 
@@ -153,13 +154,12 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
         /// <summary>
         /// PerformWriteCache
         /// </summary>
-
         private async Task PerformWriteCache() {
             var sw = Stopwatch.StartNew();
             _logger.Information("Sending processed CDM data ...");
-            try {
-                await _lock.WaitAsync();
+            try {                
                 if (_cacheList.Count == 0) {
+                    _logger.Information("End sending processed CDM data - empty buffer");
                     return;
                 }
                 if (Manifest == null) {
@@ -183,7 +183,6 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
                 }
                 _logger.Information("Successfully sent processed CDM data {count} records (took {elapsed}).", 
                     _cacheList.Count, sw.Elapsed);
-                _cacheList.Clear();
             }
             catch (Exception e) {
                 var errorMessage = e.Message;
@@ -193,9 +192,10 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
                 _logger.Warning("Failed to send processed CDM data after {elapsed} : {message}",
                      sw.Elapsed, errorMessage);
             }
-            finally {
-                _lock.Release();
+            finally {                
+                _cacheList!.Clear();
             }
+            sw.Stop();
         }
 
         /// <summary>
@@ -203,16 +203,25 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
         /// </summary>
         /// <param name="sender"></param>
         private async void CacheTimer_ElapesedAsync(object sender) {
-            await PerformWriteCache();
-            Try.Op(() => _cacheUploadTimer.Change(_cacheUploadInterval, Timeout.InfiniteTimeSpan));
+            try {
+                await _lock.WaitAsync();
+                _cacheUploadTriggered = true;
+                await PerformWriteCache();
+            }
+            finally {
+                Try.Op(() => _cacheUploadTimer.Change(_cacheUploadInterval, Timeout.InfiniteTimeSpan));
+                _cacheUploadTriggered = false;
+                _lock.Release();
+            }
         }
 
         private async Task ProcessCdmSampleAsync(SubscriberCdmSampleModel payload) {
             try {
                 await _lock.WaitAsync();
                 _cacheList.Add(payload);
-                if (_cacheList.Count >= _cacheListSize) {
+                if (!_cacheUploadTriggered && _cacheList.Count >= _cacheListSize) {
                     Try.Op(() => _cacheUploadTimer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan));
+                    _cacheUploadTriggered = true;
                 }
             }
             finally {
@@ -366,6 +375,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
         private readonly SemaphoreSlim _lock;
         private readonly Timer _cacheUploadTimer;
         private readonly TimeSpan _cacheUploadInterval;
+        private bool _cacheUploadTriggered;
         private readonly int _cacheListSize;
         private readonly List<SubscriberCdmSampleModel> _cacheList;
 

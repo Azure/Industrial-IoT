@@ -126,7 +126,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// <summary>
         /// Injected processor host
         /// </summary>
-        private sealed class ProcessorHost : IHostProcess, IStartable, IDisposable, IHealthCheck {
+        private sealed class ProcessorHost : IHostProcess, IDisposable, IHealthCheck {
 
             /// <inheritdoc/>
             public void Start() {
@@ -136,6 +136,9 @@ namespace Microsoft.Azure.IIoT.Services.All {
 
                 _runner = Task.WhenAll(new[] {
                     Task.Run(() => Processor.Telemetry.Program.Main(args), _cts.Token),
+                    Task.Run(() => Processor.Events.Program.Main(args), _cts.Token),
+                    Task.Run(() => Processor.Telemetry.Cdm.Program.Main(args), _cts.Token),
+                    Task.Run(() => Processor.Telemetry.Ux.Program.Main(args), _cts.Token),
                     Task.Run(() => Common.Identity.Program.Main(args), _cts.Token),
                     Task.Run(() => Common.Hub.Fileupload.Program.Main(args), _cts.Token),
                     Task.Run(() => OpcUa.Registry.Discovery.Program.Main(args), _cts.Token),

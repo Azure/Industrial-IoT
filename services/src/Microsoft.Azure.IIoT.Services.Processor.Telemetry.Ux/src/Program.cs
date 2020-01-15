@@ -3,17 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
-    using Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime;
-    using Microsoft.Azure.IIoT.Messaging.EventHub.Services;
-    using Microsoft.Azure.IIoT.Messaging.EventHub.Runtime;
-    using Microsoft.Azure.IIoT.Messaging;
+namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux {
+    using Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux.Runtime;
+    using Microsoft.Azure.IIoT.Core.Messaging.EventHub;
+    using Microsoft.Azure.IIoT.Messaging.SignalR.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
     using Microsoft.Azure.IIoT.Hub.Processor.Services;
-    using Microsoft.Azure.IIoT.Hub.Services;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Autofac;
@@ -21,7 +19,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
     using System;
     using System.IO;
     using System.Runtime.Loader;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -66,17 +63,17 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
                 using (var container = ConfigureContainer(config).Build()) {
                     var logger = container.Resolve<ILogger>();
                     try {
-                        logger.Information("Telemetry event processor host started.");
+                        logger.Information("Telemetry UX event processor host started.");
                         exit = await tcs.Task;
                     }
                     catch (InvalidConfigurationException e) {
                         logger.Error(e,
-                            "Error starting telemetry event processor host - exit!");
+                            "Error starting telemetry UX event processor host - exit!");
                         return;
                     }
                     catch (Exception ex) {
                         logger.Error(ex,
-                            "Error running telemetry event processor host - restarting!");
+                            "Error running telemetry UX event processor host - restarting!");
                     }
                 }
             }
@@ -104,7 +101,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
             // register diagnostics
             builder.AddDiagnostics(config);
 
-            // Event processor services
+            // Event processor services for onboarding consumer
             builder.RegisterType<EventProcessorHost>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<EventProcessorFactory>()
@@ -115,56 +112,20 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
                 .AsImplementedInterfaces().SingleInstance();
 
             // Handle telemetry events
-            builder.RegisterType<IoTHubDeviceEventHandler>()
+            builder.RegisterType<EventHubDeviceEventHandler>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            builder.RegisterType<SignalRServiceHost>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Handle opc-ua pub/sub subscriber messages
             builder.RegisterType<MonitoredItemSampleHandler>()
                 .AsImplementedInterfaces().SingleInstance();
-            
-            // ... forward samples to the eventhub
-            builder.RegisterType<MonitoredItemSampleForwarder>()
-                .AsImplementedInterfaces().SingleInstance();
-
-            builder.RegisterType<EventHubNamespaceClient>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<EventHubClientConfig>()
-                .AsImplementedInterfaces().SingleInstance();
-
-            // ... forward unknown samples to the tsi eventhub
-            builder.RegisterType<UnknownTelemetryForwarder>()
+            // ... forward samples to clients
+            builder.RegisterType<MonitoredItemMessagePublisher>()
                 .AsImplementedInterfaces().SingleInstance();
 
             return builder;
-        }
-
-        /// <summary>
-        /// Forwards telemetry not part of the platform for example from other devices
-        /// </summary>
-        internal sealed class UnknownTelemetryForwarder : IUnknownEventHandler, IDisposable {
-
-            /// <summary>
-            /// Create forwarder
-            /// </summary>
-            /// <param name="queue"></param>
-            public UnknownTelemetryForwarder(IEventQueueService queue) {
-                if (queue == null) {
-                    throw new ArgumentNullException(nameof(queue));
-                }
-                _client = queue.OpenAsync().Result;
-            }
-
-            /// <inheritdoc/>
-            public void Dispose() {
-                _client.Dispose();
-            }
-
-            /// <inheritdoc/>
-            public Task HandleAsync(byte[] eventData, IDictionary<string, string> properties) {
-                return _client.SendAsync(eventData, properties);
-            }
-
-            private readonly IEventQueueClient _client;
         }
     }
 }

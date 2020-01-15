@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
+namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux.Runtime {
     using System;
 
     /// <summary>
@@ -23,6 +23,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
         /// <summary>
         /// A randomly generated ID used to identify the process in the logs
         /// </summary>
-        public static string ProcessId { get; } = "TelemetryProcessor." + Guid.NewGuid();
+        public static string ProcessId { get; } = "TelemetryUxProcessor." + Guid.NewGuid();
     }
 }

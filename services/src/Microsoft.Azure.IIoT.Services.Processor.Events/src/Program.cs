@@ -3,25 +3,27 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
-    using Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime;
-    using Microsoft.Azure.IIoT.Messaging.EventHub.Services;
-    using Microsoft.Azure.IIoT.Messaging.EventHub.Runtime;
-    using Microsoft.Azure.IIoT.Messaging;
-    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers;
+namespace Microsoft.Azure.IIoT.Services.Processor.Events {
+    using Microsoft.Azure.IIoT.Services.Processor.Events.Runtime;
+    using Microsoft.Azure.IIoT.Messaging.SignalR.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Onboarding;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Handlers;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
     using Microsoft.Azure.IIoT.Hub.Processor.Services;
     using Microsoft.Azure.IIoT.Hub.Services;
+    using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Http.Auth;
+    using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Extensions.Configuration;
     using Autofac;
     using Serilog;
     using System;
     using System.IO;
     using System.Runtime.Loader;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -66,17 +68,17 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
                 using (var container = ConfigureContainer(config).Build()) {
                     var logger = container.Resolve<ILogger>();
                     try {
-                        logger.Information("Telemetry event processor host started.");
+                        logger.Information("Events processor host started.");
                         exit = await tcs.Task;
                     }
                     catch (InvalidConfigurationException e) {
                         logger.Error(e,
-                            "Error starting telemetry event processor host - exit!");
+                            "Error starting events processor host - exit!");
                         return;
                     }
                     catch (Exception ex) {
                         logger.Error(ex,
-                            "Error running telemetry event processor host - restarting!");
+                            "Error running events processor host - restarting!");
                     }
                 }
             }
@@ -104,7 +106,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
             // register diagnostics
             builder.AddDiagnostics(config);
 
-            // Event processor services
+            // Event processor services for onboarding consumer
             builder.RegisterType<EventProcessorHost>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<EventProcessorFactory>()
@@ -118,53 +120,34 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
             builder.RegisterType<IoTHubDeviceEventHandler>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Handle opc-ua pub/sub subscriber messages
-            builder.RegisterType<MonitoredItemSampleHandler>()
+            // Handle discovery events
+            builder.RegisterType<DiscoveryEventHandler>()
                 .AsImplementedInterfaces().SingleInstance();
-            
-            // ... forward samples to the eventhub
-            builder.RegisterType<MonitoredItemSampleForwarder>()
+            // ... requires the corresponding services
+            // Register http client module (needed for api)
+            builder.RegisterModule<HttpClientModule>();
+            // Use bearer authentication
+            builder.RegisterType<HttpBearerAuthentication>()
+                .AsImplementedInterfaces().SingleInstance();
+            // Use device code token provider to get tokens
+            builder.RegisterType<AppAuthenticationProvider>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            builder.RegisterType<EventHubNamespaceClient>()
+            builder.RegisterType<OnboardingAdapter>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<EventHubClientConfig>()
+            builder.RegisterType<OnboardingServiceClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // ... forward unknown samples to the tsi eventhub
-            builder.RegisterType<UnknownTelemetryForwarder>()
+            // Handle discovery messages
+            builder.RegisterType<DiscoveryMessageHandler>()
+                .AsImplementedInterfaces().SingleInstance();
+            // ... forward progress directly to clients
+            builder.RegisterType<DiscoveryProgressPublisher>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<SignalRServiceHost>()
                 .AsImplementedInterfaces().SingleInstance();
 
             return builder;
-        }
-
-        /// <summary>
-        /// Forwards telemetry not part of the platform for example from other devices
-        /// </summary>
-        internal sealed class UnknownTelemetryForwarder : IUnknownEventHandler, IDisposable {
-
-            /// <summary>
-            /// Create forwarder
-            /// </summary>
-            /// <param name="queue"></param>
-            public UnknownTelemetryForwarder(IEventQueueService queue) {
-                if (queue == null) {
-                    throw new ArgumentNullException(nameof(queue));
-                }
-                _client = queue.OpenAsync().Result;
-            }
-
-            /// <inheritdoc/>
-            public void Dispose() {
-                _client.Dispose();
-            }
-
-            /// <inheritdoc/>
-            public Task HandleAsync(byte[] eventData, IDictionary<string, string> properties) {
-                return _client.SendAsync(eventData, properties);
-            }
-
-            private readonly IEventQueueClient _client;
         }
     }
 }
