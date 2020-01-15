@@ -35,14 +35,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public TimeSpan? HeartbeatInterval { get; set; }
 
         /// <summary>
-        /// Max workers
+        /// Parallel jobs
         /// </summary>
         [JsonProperty(PropertyName = "maxWorkers",
             NullValueHandling = NullValueHandling.Ignore)]
         public int? MaxWorkers { get; set; }
 
         /// <summary>
-        /// Job service endpoint url
+        /// Job orchestrator endpoint url
         /// </summary>
         [JsonProperty(PropertyName = "jobOrchestratorUrl",
             NullValueHandling = NullValueHandling.Ignore)]

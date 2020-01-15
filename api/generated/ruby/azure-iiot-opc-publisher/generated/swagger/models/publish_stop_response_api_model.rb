@@ -10,7 +10,7 @@
 module azure.iiot.opc.publisher
   module Models
     #
-    # Result of unpublish request
+    # Result of publish stop request
     #
     class PublishStopResponseApiModel
       # @return [ServiceResultApiModel]

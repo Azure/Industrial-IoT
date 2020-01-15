@@ -40,9 +40,9 @@ export interface X509CertificateApiModel {
    */
   notAfterUtc?: Date;
   /**
-   * @member {any} certificate Raw data
+   * @member {any} [certificate] Raw data
    */
-  certificate: any;
+  certificate?: any;
 }
 
 /**
@@ -70,15 +70,15 @@ export interface X509CrlApiModel {
    */
   issuer?: string;
   /**
-   * @member {any} crl The certificate revocation list.
+   * @member {any} [crl] The certificate revocation list.
    */
-  crl: any;
+  crl?: any;
 }
 
 /**
  * @interface
  * An interface representing X509CrlChainApiModel.
- * Crl collection model
+ * Crl chain model
  *
  */
 export interface X509CrlChainApiModel {
@@ -108,17 +108,17 @@ export interface NotFoundResult {
  */
 export interface StartSigningRequestApiModel {
   /**
-   * @member {string} entityId Id of entity to sign a certificate for
+   * @member {string} [entityId] Id of entity to sign a certificate for
    */
-  entityId: string;
+  entityId?: string;
   /**
-   * @member {string} groupId Certificate group id
+   * @member {string} [groupId] Certificate group id
    */
-  groupId: string;
+  groupId?: string;
   /**
-   * @member {any} certificateRequest Request
+   * @member {any} [certificateRequest] Request
    */
-  certificateRequest: any;
+  certificateRequest?: any;
 }
 
 /**
@@ -129,9 +129,9 @@ export interface StartSigningRequestApiModel {
  */
 export interface StartSigningRequestResponseApiModel {
   /**
-   * @member {string} requestId Request id
+   * @member {string} [requestId] Request id
    */
-  requestId: string;
+  requestId?: string;
 }
 
 /**
@@ -146,9 +146,9 @@ export interface VaultOperationContextApiModel {
    */
   authorityId?: string;
   /**
-   * @member {Date} time Operation time
+   * @member {Date} [time] Operation time
    */
-  time: Date;
+  time?: Date;
 }
 
 /**
@@ -223,23 +223,23 @@ export interface FinishSigningRequestResponseApiModel {
  */
 export interface StartNewKeyPairRequestApiModel {
   /**
-   * @member {string} entityId Entity id
+   * @member {string} [entityId] Entity id
    */
-  entityId: string;
+  entityId?: string;
   /**
-   * @member {string} groupId Certificate group
+   * @member {string} [groupId] Certificate group
    */
-  groupId: string;
+  groupId?: string;
   /**
-   * @member {TrustGroupType} certificateType Possible values include:
+   * @member {TrustGroupType} [certificateType] Possible values include:
    * 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
    */
-  certificateType: TrustGroupType;
+  certificateType?: TrustGroupType;
   /**
-   * @member {string} subjectName Subject name
+   * @member {string} [subjectName] Subject name
    */
-  subjectName: string;
+  subjectName?: string;
   /**
    * @member {string[]} [domainNames] Domain names
    */
@@ -254,9 +254,9 @@ export interface StartNewKeyPairRequestApiModel {
  */
 export interface StartNewKeyPairRequestResponseApiModel {
   /**
-   * @member {string} requestId Request id
+   * @member {string} [requestId] Request id
    */
-  requestId: string;
+  requestId?: string;
 }
 
 /**
@@ -383,78 +383,15 @@ export interface CertificateRequestQueryResponseApiModel {
 
 /**
  * @interface
- * An interface representing StatusResponseApiModel.
- * Status model
- *
- */
-export interface StatusResponseApiModel {
-  /**
-   * @member {string} [name] Name of this service
-   */
-  name?: string;
-  /**
-   * @member {string} [status] Operational status
-   */
-  status?: string;
-  /**
-   * @member {string} [currentTime] Current time
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly currentTime?: string;
-  /**
-   * @member {string} [startTime] Start time of service
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly startTime?: string;
-  /**
-   * @member {number} [upTime] Up time of service
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly upTime?: number;
-  /**
-   * @member {string} [uid] Value generated at bootstrap by each instance of
-   * the service and
-   * used to correlate logs coming from the same instance. The value
-   * changes every time the service starts.
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly uid?: string;
-  /**
-   * @member {{ [propertyName: string]: string }} [properties] A property bag
-   * with details about the service
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly properties?: { [propertyName: string]: string };
-  /**
-   * @member {{ [propertyName: string]: string }} [dependencies] A property bag
-   * with details about the internal dependencies
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly dependencies?: { [propertyName: string]: string };
-  /**
-   * @member {{ [propertyName: string]: string }} [metadata] **NOTE: This
-   * property will not be serialized. It can only be populated by the server.**
-   */
-  readonly metadata?: { [propertyName: string]: string };
-}
-
-/**
- * @interface
  * An interface representing TrustGroupApiModel.
  * Trust group model
  *
  */
 export interface TrustGroupApiModel {
   /**
-   * @member {string} name The name of the trust group.
+   * @member {string} [name] The name of the trust group.
    */
-  name: string;
+  name?: string;
   /**
    * @member {string} [parentId] The identifer of the parent trust group.
    */
@@ -466,10 +403,10 @@ export interface TrustGroupApiModel {
    */
   type?: TrustGroupType;
   /**
-   * @member {string} subjectName The subject name of the group as
+   * @member {string} [subjectName] The subject name of the group as
    * distinguished name.
    */
-  subjectName: string;
+  subjectName?: string;
   /**
    * @member {string} [lifetime] The lifetime of the trust group certificate.
    */
@@ -508,13 +445,13 @@ export interface TrustGroupApiModel {
  */
 export interface TrustGroupRegistrationApiModel {
   /**
-   * @member {string} id The registered id of the trust group
+   * @member {string} [id] The registered id of the trust group
    */
-  id: string;
+  id?: string;
   /**
-   * @member {TrustGroupApiModel} group
+   * @member {TrustGroupApiModel} [group]
    */
-  group: TrustGroupApiModel;
+  group?: TrustGroupApiModel;
 }
 
 /**
@@ -543,18 +480,18 @@ export interface TrustGroupRegistrationListApiModel {
  */
 export interface TrustGroupRegistrationRequestApiModel {
   /**
-   * @member {string} name The new name of the trust group
+   * @member {string} [name] The new name of the trust group
    */
-  name: string;
+  name?: string;
   /**
-   * @member {string} parentId The identifer of the parent trust group.
+   * @member {string} [parentId] The identifer of the parent trust group.
    */
-  parentId: string;
+  parentId?: string;
   /**
-   * @member {string} subjectName The subject name of the group as
+   * @member {string} [subjectName] The subject name of the group as
    * distinguished name.
    */
-  subjectName: string;
+  subjectName?: string;
   /**
    * @member {string} [issuedLifetime] The lifetime of certificates issued in
    * the group.
@@ -580,9 +517,9 @@ export interface TrustGroupRegistrationRequestApiModel {
  */
 export interface TrustGroupRegistrationResponseApiModel {
   /**
-   * @member {string} id The id of the trust group
+   * @member {string} [id] The id of the trust group
    */
-  id: string;
+  id?: string;
 }
 
 /**
@@ -620,9 +557,9 @@ export interface TrustGroupUpdateRequestApiModel {
  */
 export interface TrustGroupRootCreateRequestApiModel {
   /**
-   * @member {string} name The new name of the trust group root
+   * @member {string} [name] The new name of the trust group root
    */
-  name: string;
+  name?: string;
   /**
    * @member {TrustGroupType} [type] Possible values include:
    * 'ApplicationInstanceCertificate', 'HttpsCertificate',
@@ -630,15 +567,15 @@ export interface TrustGroupRootCreateRequestApiModel {
    */
   type?: TrustGroupType;
   /**
-   * @member {string} subjectName The subject name of the group as
+   * @member {string} [subjectName] The subject name of the group as
    * distinguished name.
    */
-  subjectName: string;
+  subjectName?: string;
   /**
-   * @member {string} lifetime The lifetime of the trust group root
+   * @member {string} [lifetime] The lifetime of the trust group root
    * certificate.
    */
-  lifetime: string;
+  lifetime?: string;
   /**
    * @member {number} [keySize] The certificate key size in bits.
    */
@@ -1025,25 +962,6 @@ export type ListRequestsResponse = CertificateRequestQueryResponseApiModel & {
        * The response body as parsed JSON or XML
        */
       parsedBody: CertificateRequestQueryResponseApiModel;
-    };
-};
-
-/**
- * Contains response data for the getStatus operation.
- */
-export type GetStatusResponse = StatusResponseApiModel & {
-  /**
-   * The underlying HTTP response.
-   */
-  _response: msRest.HttpResponse & {
-      /**
-       * The response body as text (string format)
-       */
-      bodyAsText: string;
-      /**
-       * The response body as parsed JSON or XML
-       */
-      parsedBody: StatusResponseApiModel;
     };
 };
 

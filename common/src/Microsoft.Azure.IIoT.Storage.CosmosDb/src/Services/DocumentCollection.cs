@@ -11,8 +11,6 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;
     using Microsoft.Azure.Documents.Linq;
-    using Microsoft.Azure.CosmosDB.BulkExecutor;
-    using Microsoft.Azure.CosmosDB.BulkExecutor.Graph;
     using Serilog;
     using System;
     using System.Collections.Generic;

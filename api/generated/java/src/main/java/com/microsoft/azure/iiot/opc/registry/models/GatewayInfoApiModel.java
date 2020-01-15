@@ -23,22 +23,10 @@ public class GatewayInfoApiModel {
     private GatewayApiModel gateway;
 
     /**
-     * The supervisor property.
+     * The modules property.
      */
-    @JsonProperty(value = "supervisor")
-    private SupervisorApiModel supervisor;
-
-    /**
-     * The publisher property.
-     */
-    @JsonProperty(value = "publisher")
-    private PublisherApiModel publisher;
-
-    /**
-     * The discoverer property.
-     */
-    @JsonProperty(value = "discoverer")
-    private DiscovererApiModel discoverer;
+    @JsonProperty(value = "modules")
+    private GatewayModulesApiModel modules;
 
     /**
      * Get the gateway value.
@@ -61,62 +49,22 @@ public class GatewayInfoApiModel {
     }
 
     /**
-     * Get the supervisor value.
+     * Get the modules value.
      *
-     * @return the supervisor value
+     * @return the modules value
      */
-    public SupervisorApiModel supervisor() {
-        return this.supervisor;
+    public GatewayModulesApiModel modules() {
+        return this.modules;
     }
 
     /**
-     * Set the supervisor value.
+     * Set the modules value.
      *
-     * @param supervisor the supervisor value to set
+     * @param modules the modules value to set
      * @return the GatewayInfoApiModel object itself.
      */
-    public GatewayInfoApiModel withSupervisor(SupervisorApiModel supervisor) {
-        this.supervisor = supervisor;
-        return this;
-    }
-
-    /**
-     * Get the publisher value.
-     *
-     * @return the publisher value
-     */
-    public PublisherApiModel publisher() {
-        return this.publisher;
-    }
-
-    /**
-     * Set the publisher value.
-     *
-     * @param publisher the publisher value to set
-     * @return the GatewayInfoApiModel object itself.
-     */
-    public GatewayInfoApiModel withPublisher(PublisherApiModel publisher) {
-        this.publisher = publisher;
-        return this;
-    }
-
-    /**
-     * Get the discoverer value.
-     *
-     * @return the discoverer value
-     */
-    public DiscovererApiModel discoverer() {
-        return this.discoverer;
-    }
-
-    /**
-     * Set the discoverer value.
-     *
-     * @param discoverer the discoverer value to set
-     * @return the GatewayInfoApiModel object itself.
-     */
-    public GatewayInfoApiModel withDiscoverer(DiscovererApiModel discoverer) {
-        this.discoverer = discoverer;
+    public GatewayInfoApiModel withModules(GatewayModulesApiModel modules) {
+        this.modules = modules;
         return this;
     }
 

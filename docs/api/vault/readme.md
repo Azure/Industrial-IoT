@@ -28,7 +28,6 @@ Azure Industrial IoT OPC UA Vault Service
 Information Access
 services.
 * Requests : Certificate request services.
-* Status : Status checks
 * TrustGroups : Trust group services.
 * TrustLists : Trust lists services.
 
@@ -580,30 +579,6 @@ The request is in the 'Rejected' state after this call. Requires Approver role. 
 |Type|Name|Scopes|
 |---|---|---|
 |**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
-<a name="status_resource"></a>
-### Status
-Status checks
-
-
-<a name="getstatus"></a>
-#### Return the service status in the form of the service status api model.
-```
-GET /v2/status
-```
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[StatusResponseApiModel](definitions.md#statusresponseapimodel)|
-
-
-##### Produces
-
-* `application/json`
 
 
 <a name="trustgroups_resource"></a>

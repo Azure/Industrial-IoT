@@ -19,19 +19,19 @@ public class TrustGroupRegistrationRequestApiModel {
     /**
      * The new name of the trust group.
      */
-    @JsonProperty(value = "name", required = true)
+    @JsonProperty(value = "name")
     private String name;
 
     /**
      * The identifer of the parent trust group.
      */
-    @JsonProperty(value = "parentId", required = true)
+    @JsonProperty(value = "parentId")
     private String parentId;
 
     /**
      * The subject name of the group as distinguished name.
      */
-    @JsonProperty(value = "subjectName", required = true)
+    @JsonProperty(value = "subjectName")
     private String subjectName;
 
     /**

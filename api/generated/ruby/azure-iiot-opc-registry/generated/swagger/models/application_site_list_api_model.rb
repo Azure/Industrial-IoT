@@ -13,8 +13,7 @@ module azure.iiot.opc.registry
     # List of application sites
     #
     class ApplicationSiteListApiModel
-      # @return [Array<String>] Distinct list of sites applications were
-      # registered in.
+      # @return [Array<String>] Sites
       attr_accessor :sites
 
       # @return [String] Continuation or null if final

@@ -14,7 +14,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Discovery configuration.
+ * Discovery configuration api model.
  */
 public class DiscoveryConfigApiModel {
     /**

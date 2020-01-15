@@ -19,7 +19,6 @@ import com.microsoft.azure.iiot.opc.vault.models.StartNewKeyPairRequestApiModel;
 import com.microsoft.azure.iiot.opc.vault.models.StartNewKeyPairRequestResponseApiModel;
 import com.microsoft.azure.iiot.opc.vault.models.StartSigningRequestApiModel;
 import com.microsoft.azure.iiot.opc.vault.models.StartSigningRequestResponseApiModel;
-import com.microsoft.azure.iiot.opc.vault.models.StatusResponseApiModel;
 import com.microsoft.azure.iiot.opc.vault.models.TrustGroupRegistrationApiModel;
 import com.microsoft.azure.iiot.opc.vault.models.TrustGroupRegistrationListApiModel;
 import com.microsoft.azure.iiot.opc.vault.models.TrustGroupRegistrationRequestApiModel;
@@ -761,45 +760,6 @@ public interface AzureOpcVaultClient {
      * @return the observable to the CertificateRequestQueryResponseApiModel object
      */
     Observable<ServiceResponse<CertificateRequestQueryResponseApiModel>> listRequestsWithServiceResponseAsync(String nextPageLink, Integer pageSize);
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the StatusResponseApiModel object if successful.
-     */
-    StatusResponseApiModel getStatus();
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<StatusResponseApiModel> getStatusAsync(final ServiceCallback<StatusResponseApiModel> serviceCallback);
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the StatusResponseApiModel object
-     */
-    Observable<StatusResponseApiModel> getStatusAsync();
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the StatusResponseApiModel object
-     */
-    Observable<ServiceResponse<StatusResponseApiModel>> getStatusWithServiceResponseAsync();
 
     /**
      * Get information about all groups.

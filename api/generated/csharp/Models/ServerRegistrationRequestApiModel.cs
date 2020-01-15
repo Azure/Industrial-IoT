@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
     using System.Linq;
 
     /// <summary>
-    /// Application registration request
+    /// Server registration request
     /// </summary>
     public partial class ServerRegistrationRequestApiModel
     {

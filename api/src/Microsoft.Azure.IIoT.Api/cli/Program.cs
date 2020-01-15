@@ -2482,6 +2482,24 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             catch (Exception ex) {
                 PrintResult(options, ex);
             }
+            try {
+                var cfg = _scope.Resolve<IPublisherConfig>();
+                Console.WriteLine($"Connecting to {cfg.OpcUaPublisherServiceUrl}...");
+                var result = await _publisher.GetServiceStatusAsync();
+                PrintResult(options, result);
+            }
+            catch (Exception ex) {
+                PrintResult(options, ex);
+            }
+            try {
+                var cfg = _scope.Resolve<IJobsServiceConfig>();
+                Console.WriteLine($"Connecting to {cfg.JobServiceUrl}...");
+                var result = await _jobs.GetServiceStatusAsync();
+                PrintResult(options, result);
+            }
+            catch (Exception ex) {
+                PrintResult(options, ex);
+            }
         }
 
         /// <summary>

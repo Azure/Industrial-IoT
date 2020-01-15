@@ -47,7 +47,6 @@ class CredentialType(Enum):
 
 class SecurityAssessment(Enum):
 
-    unknown = "Unknown"
     low = "Low"
     medium = "Medium"
     high = "High"

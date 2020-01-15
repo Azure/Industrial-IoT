@@ -15,7 +15,7 @@ from msrest.serialization import Model
 class NodeReferenceApiModel(Model):
     """reference model.
 
-    :param reference_type_id: Reference Type identifier
+    :param reference_type_id: Reference Type id
     :type reference_type_id: str
     :param direction: Possible values include: 'Forward', 'Backward', 'Both'
     :type direction: str or ~azure-iiot-opc-twin.models.BrowseDirection

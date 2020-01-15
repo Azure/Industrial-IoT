@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
+    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
 
@@ -16,21 +17,27 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
         /// Status
         /// </summary>
 
+        [JsonProperty(PropertyName = "status",
+            NullValueHandling = NullValueHandling.Ignore)]
         public JobStatus Status { get; set; }
 
         /// <summary>
         /// Processing status
         /// </summary>
+        [JsonProperty(PropertyName = "processingStatus",
+            NullValueHandling = NullValueHandling.Ignore)]
         public Dictionary<string, ProcessingStatusApiModel> ProcessingStatus { get; set; }
 
         /// <summary>
         /// Updated at
         /// </summary>
+        [JsonProperty(PropertyName = "updated")]
         public DateTime Updated { get; set; }
 
         /// <summary>
         /// Created at
         /// </summary>
+        [JsonProperty(PropertyName = "created")]
         public DateTime Created { get; set; }
     }
 }

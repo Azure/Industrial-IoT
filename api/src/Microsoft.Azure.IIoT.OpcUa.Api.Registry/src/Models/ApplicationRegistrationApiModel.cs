@@ -6,6 +6,8 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
     using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Application with optional list of endpoints
@@ -16,13 +18,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// Server information
         /// </summary>
         [JsonProperty(PropertyName = "application")]
+        [Required]
         public ApplicationInfoApiModel Application { get; set; }
 
         /// <summary>
-        /// List of endpoints for the application
+        /// List of endpoint twins
         /// </summary>
         [JsonProperty(PropertyName = "endpoints",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public List<EndpointRegistrationApiModel> Endpoints { get; set; }
 
         /// <summary>
@@ -30,6 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "securityAssessment",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public SecurityAssessment? SecurityAssessment { get; set; }
     }
 }

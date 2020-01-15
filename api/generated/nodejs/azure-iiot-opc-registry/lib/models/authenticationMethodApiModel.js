@@ -17,7 +17,7 @@
 class AuthenticationMethodApiModel {
   /**
    * Create a AuthenticationMethodApiModel.
-   * @property {string} id Authentication method id
+   * @property {string} id Method id
    * @property {string} [credentialType] Possible values include: 'None',
    * 'UserName', 'X509Certificate', 'JwtToken'
    * @property {string} [securityPolicy] Security policy to use when passing

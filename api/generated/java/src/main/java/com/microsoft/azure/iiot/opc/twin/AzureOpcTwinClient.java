@@ -22,7 +22,6 @@ import com.microsoft.azure.iiot.opc.twin.models.MethodMetadataRequestApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.MethodMetadataResponseApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.ReadRequestApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.ReadResponseApiModel;
-import com.microsoft.azure.iiot.opc.twin.models.StatusResponseApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.ValueReadRequestApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.ValueReadResponseApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.ValueWriteRequestApiModel;
@@ -564,45 +563,6 @@ public interface AzureOpcTwinClient {
      * @return the observable to the ReadResponseApiModel object
      */
     Observable<ServiceResponse<ReadResponseApiModel>> readAttributesWithServiceResponseAsync(String endpointId, ReadRequestApiModel body);
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the StatusResponseApiModel object if successful.
-     */
-    StatusResponseApiModel getStatus();
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<StatusResponseApiModel> getStatusAsync(final ServiceCallback<StatusResponseApiModel> serviceCallback);
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the StatusResponseApiModel object
-     */
-    Observable<StatusResponseApiModel> getStatusAsync();
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the StatusResponseApiModel object
-     */
-    Observable<ServiceResponse<StatusResponseApiModel>> getStatusWithServiceResponseAsync();
 
     /**
      * Write variable value.

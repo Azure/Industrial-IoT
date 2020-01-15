@@ -12,15 +12,11 @@ namespace Microsoft.AspNetCore.Hosting {
     using Microsoft.AspNetCore.Http.Features;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Autofac.Extensions.Hosting;
     using Autofac.Extensions.DependencyInjection;
-    using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Extensions.Primitives;
 
     /// <summary>
     /// Application builder extensions

@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
     using System.Collections.Generic;
+    using System.ComponentModel;
 
     /// <summary>
     /// Call request model
@@ -36,7 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
 
         /// <summary>
         /// Context of the method, i.e. an object or object type
-        /// node. 
+        /// node.
         /// </summary>
         [JsonProperty(PropertyName = "objectId",
             NullValueHandling = NullValueHandling.Ignore)]
@@ -52,10 +53,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// An optional component path from the node identified by
         /// MethodId or from a resolved objectId to the actual
-        /// method node.  
+        /// method node.
         /// </summary>
         [JsonProperty(PropertyName = "methodBrowsePath",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string[] MethodBrowsePath { get; set; }
 
         /// <summary>
@@ -65,6 +67,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "objectBrowsePath",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string[] ObjectBrowsePath { get; set; }
 
         /// <summary>
@@ -72,6 +75,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "header",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public RequestHeaderApiModel Header { get; set; }
     }
 }

@@ -17,7 +17,7 @@
 class StartSigningRequestResponseApiModel {
   /**
    * Create a StartSigningRequestResponseApiModel.
-   * @property {string} requestId Request id
+   * @property {string} [requestId] Request id
    */
   constructor() {
   }
@@ -37,7 +37,7 @@ class StartSigningRequestResponseApiModel {
         className: 'StartSigningRequestResponseApiModel',
         modelProperties: {
           requestId: {
-            required: true,
+            required: false,
             serializedName: 'requestId',
             type: {
               name: 'String'

@@ -23,7 +23,6 @@ import (
             GetNextSetOfUniqueNodes(ctx context.Context, endpointID string, continuationToken string) (result azureiiotopctwin.BrowseNextResponseAPIModelPage, err error)
                 GetNextSetOfUniqueNodesComplete(ctx context.Context, endpointID string, continuationToken string) (result azureiiotopctwin.BrowseNextResponseAPIModelIterator, err error)
             GetSetOfUniqueNodes(ctx context.Context, endpointID string, nodeID string) (result azureiiotopctwin.BrowseResponseAPIModel, err error)
-            GetStatus(ctx context.Context) (result azureiiotopctwin.StatusResponseAPIModel, err error)
             GetValue(ctx context.Context, endpointID string, nodeID string) (result azureiiotopctwin.ValueReadResponseAPIModel, err error)
             ReadAttributes(ctx context.Context, endpointID string, body azureiiotopctwin.ReadRequestAPIModel) (result azureiiotopctwin.ReadResponseAPIModel, err error)
             ReadValue(ctx context.Context, endpointID string, body azureiiotopctwin.ValueReadRequestAPIModel) (result azureiiotopctwin.ValueReadResponseAPIModel, err error)

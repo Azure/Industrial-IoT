@@ -11,8 +11,6 @@
 package com.microsoft.azure.iiot.opc.registry;
 
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationInfoListApiModel;
-import com.microsoft.azure.iiot.opc.registry.models.ApplicationRecordListApiModel;
-import com.microsoft.azure.iiot.opc.registry.models.ApplicationRecordQueryApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationRegistrationApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationRegistrationQueryApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.ApplicationRegistrationRequestApiModel;
@@ -40,7 +38,6 @@ import com.microsoft.azure.iiot.opc.registry.models.PublisherQueryApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.PublisherUpdateApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.SecurityMode;
 import com.microsoft.azure.iiot.opc.registry.models.ServerRegistrationRequestApiModel;
-import com.microsoft.azure.iiot.opc.registry.models.StatusResponseApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.SupervisorApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.SupervisorListApiModel;
 import com.microsoft.azure.iiot.opc.registry.models.SupervisorQueryApiModel;
@@ -876,87 +873,6 @@ public interface AzureOpcRegistryClient {
      * @return the observable to the ApplicationInfoListApiModel object
      */
     Observable<ServiceResponse<ApplicationInfoListApiModel>> getFilteredListOfApplicationsWithServiceResponseAsync(ApplicationRegistrationQueryApiModel body, Integer pageSize);
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the ApplicationRecordListApiModel object if successful.
-     */
-    ApplicationRecordListApiModel queryApplicationsById();
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<ApplicationRecordListApiModel> queryApplicationsByIdAsync(final ServiceCallback<ApplicationRecordListApiModel> serviceCallback);
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationRecordListApiModel object
-     */
-    Observable<ApplicationRecordListApiModel> queryApplicationsByIdAsync();
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationRecordListApiModel object
-     */
-    Observable<ServiceResponse<ApplicationRecordListApiModel>> queryApplicationsByIdWithServiceResponseAsync();
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @param body the ApplicationRecordQueryApiModel value
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the ApplicationRecordListApiModel object if successful.
-     */
-    ApplicationRecordListApiModel queryApplicationsById(ApplicationRecordQueryApiModel body);
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @param body the ApplicationRecordQueryApiModel value
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<ApplicationRecordListApiModel> queryApplicationsByIdAsync(ApplicationRecordQueryApiModel body, final ServiceCallback<ApplicationRecordListApiModel> serviceCallback);
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @param body the ApplicationRecordQueryApiModel value
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationRecordListApiModel object
-     */
-    Observable<ApplicationRecordListApiModel> queryApplicationsByIdAsync(ApplicationRecordQueryApiModel body);
-
-    /**
-     * Query applications by id.
-     * A query model which supports the OPC UA Global Discovery Server query.
-     *
-     * @param body the ApplicationRecordQueryApiModel value
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ApplicationRecordListApiModel object
-     */
-    Observable<ServiceResponse<ApplicationRecordListApiModel>> queryApplicationsByIdWithServiceResponseAsync(ApplicationRecordQueryApiModel body);
 
     /**
      * Subscribe for application events.
@@ -3416,7 +3332,7 @@ public interface AzureOpcRegistryClient {
      * Get filtered list of publishers.
      * Get a list of publishers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
      *
-     * @param siteId Site of the publisher
+     * @param siteId Site for the publishers
      * @param connected Included connected or disconnected
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
@@ -3431,7 +3347,7 @@ public interface AzureOpcRegistryClient {
      * Get filtered list of publishers.
      * Get a list of publishers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
      *
-     * @param siteId Site of the publisher
+     * @param siteId Site for the publishers
      * @param connected Included connected or disconnected
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
@@ -3445,7 +3361,7 @@ public interface AzureOpcRegistryClient {
      * Get filtered list of publishers.
      * Get a list of publishers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
      *
-     * @param siteId Site of the publisher
+     * @param siteId Site for the publishers
      * @param connected Included connected or disconnected
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
@@ -3458,7 +3374,7 @@ public interface AzureOpcRegistryClient {
      * Get filtered list of publishers.
      * Get a list of publishers filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfPublisher operation using the token to retrieve more results.
      *
-     * @param siteId Site of the publisher
+     * @param siteId Site for the publishers
      * @param connected Included connected or disconnected
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
@@ -3587,45 +3503,6 @@ public interface AzureOpcRegistryClient {
      * @return the {@link ServiceResponse} object if successful.
      */
     Observable<ServiceResponse<Void>> unsubscribe4WithServiceResponseAsync(String userId);
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the StatusResponseApiModel object if successful.
-     */
-    StatusResponseApiModel getStatus();
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<StatusResponseApiModel> getStatusAsync(final ServiceCallback<StatusResponseApiModel> serviceCallback);
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the StatusResponseApiModel object
-     */
-    Observable<StatusResponseApiModel> getStatusAsync();
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the StatusResponseApiModel object
-     */
-    Observable<ServiceResponse<StatusResponseApiModel>> getStatusWithServiceResponseAsync();
 
     /**
      * Get supervisor registration information.
@@ -4071,7 +3948,7 @@ public interface AzureOpcRegistryClient {
      * Get filtered list of supervisors.
      * Get a list of supervisors filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
      *
-     * @param siteId Site of the supervisor
+     * @param siteId Site for the supervisors
      * @param connected Included connected or disconnected
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
@@ -4086,7 +3963,7 @@ public interface AzureOpcRegistryClient {
      * Get filtered list of supervisors.
      * Get a list of supervisors filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
      *
-     * @param siteId Site of the supervisor
+     * @param siteId Site for the supervisors
      * @param connected Included connected or disconnected
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
@@ -4100,7 +3977,7 @@ public interface AzureOpcRegistryClient {
      * Get filtered list of supervisors.
      * Get a list of supervisors filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
      *
-     * @param siteId Site of the supervisor
+     * @param siteId Site for the supervisors
      * @param connected Included connected or disconnected
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return
@@ -4113,7 +3990,7 @@ public interface AzureOpcRegistryClient {
      * Get filtered list of supervisors.
      * Get a list of supervisors filtered using the specified query parameters. The returned model can contain a continuation token if more results are available. Call the GetListOfSupervisors operation using the token to retrieve more results.
      *
-     * @param siteId Site of the supervisor
+     * @param siteId Site for the supervisors
      * @param connected Included connected or disconnected
      * @param onlyServerState Whether to include only server state, or display current client state of the endpoint if available
      * @param pageSize Number of results to return

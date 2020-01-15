@@ -35,7 +35,7 @@ module azure.iiot.opc.vault
             model_properties: {
               id: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'id',
                 type: {
                   name: 'String'
@@ -43,7 +43,7 @@ module azure.iiot.opc.vault
               },
               group: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'group',
                 type: {
                   name: 'Composite',

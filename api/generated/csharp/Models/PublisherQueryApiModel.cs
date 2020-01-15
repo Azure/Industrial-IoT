@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// <summary>
         /// Initializes a new instance of the PublisherQueryApiModel class.
         /// </summary>
-        /// <param name="siteId">Site of the publisher</param>
+        /// <param name="siteId">Site for the publishers</param>
         /// <param name="connected">Included connected or disconnected</param>
         public PublisherQueryApiModel(string siteId = default(string), bool? connected = default(bool?))
         {
@@ -44,7 +44,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets site of the publisher
+        /// Gets or sets site for the publishers
         /// </summary>
         [JsonProperty(PropertyName = "siteId")]
         public string SiteId { get; set; }

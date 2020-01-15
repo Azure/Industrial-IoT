@@ -28,32 +28,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         public string DataType { get; set; }
 
         /// <summary>
-        /// Source time stamp
-        /// </summary>
-        [JsonProperty(PropertyName = "sourceTimestamp",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public DateTime? SourceTimestamp { get; set; }
-
-        /// <summary>
-        /// Source pico seconds
+        /// Pico seconds part of when value was read at source.
         /// </summary>
         [JsonProperty(PropertyName = "sourcePicoseconds",
             NullValueHandling = NullValueHandling.Ignore)]
         public ushort? SourcePicoseconds { get; set; }
 
         /// <summary>
-        /// Server time stamp
+        /// Timestamp of when value was read at source.
         /// </summary>
-        [JsonProperty(PropertyName = "serverTimestamp",
+        [JsonProperty(PropertyName = "sourceTimestamp",
             NullValueHandling = NullValueHandling.Ignore)]
-        public DateTime? ServerTimestamp { get; set; }
+        public DateTime? SourceTimestamp { get; set; }
 
         /// <summary>
-        /// Server pico seconds
+        /// Pico seconds part of when value was read at server.
         /// </summary>
         [JsonProperty(PropertyName = "serverPicoseconds",
             NullValueHandling = NullValueHandling.Ignore)]
         public ushort? ServerPicoseconds { get; set; }
+
+        /// <summary>
+        /// Timestamp of when value was read at server.
+        /// </summary>
+        [JsonProperty(PropertyName = "serverTimestamp",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public DateTime? ServerTimestamp { get; set; }
 
         /// <summary>
         /// Service result in case of error

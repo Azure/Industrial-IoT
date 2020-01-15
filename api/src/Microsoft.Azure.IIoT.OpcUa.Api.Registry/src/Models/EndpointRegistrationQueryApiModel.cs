@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
+    using System.ComponentModel;
 
     /// <summary>
     /// Endpoint query
@@ -16,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "url",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string Url { get; set; }
 
         /// <summary>
@@ -23,6 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "certificate",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public byte[] Certificate { get; set; }
 
         /// <summary>
@@ -30,6 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "securityMode",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public SecurityMode? SecurityMode { get; set; }
 
         /// <summary>
@@ -37,6 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "securityPolicy",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string SecurityPolicy { get; set; }
 
         /// <summary>
@@ -44,6 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "activated",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public bool? Activated { get; set; }
 
         /// <summary>
@@ -51,6 +57,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "connected",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public bool? Connected { get; set; }
 
         /// <summary>
@@ -58,6 +65,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "endpointState",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public EndpointConnectivityState? EndpointState { get; set; }
 
         /// <summary>
@@ -65,6 +73,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "includeNotSeenSince",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public bool? IncludeNotSeenSince { get; set; }
 
         /// <summary>
@@ -72,6 +81,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "discovererId",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string DiscovererId { get; set; }
 
         /// <summary>
@@ -79,6 +89,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "applicationId",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string ApplicationId { get; set; }
 
         /// <summary>
@@ -86,6 +97,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "supervisorId",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string SupervisorId { get; set; }
 
         /// <summary>
@@ -93,6 +105,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "siteOrGatewayId",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string SiteOrGatewayId { get; set; }
     }
 }

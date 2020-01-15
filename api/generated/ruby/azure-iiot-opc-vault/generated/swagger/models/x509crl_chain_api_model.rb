@@ -10,7 +10,7 @@
 module azure.iiot.opc.vault
   module Models
     #
-    # Crl collection model
+    # Crl chain model
     #
     class X509CrlChainApiModel
       # @return [Array<X509CrlApiModel>] Chain

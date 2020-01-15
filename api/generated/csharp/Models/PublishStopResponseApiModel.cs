@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Opc.Publisher.Models
     using System.Linq;
 
     /// <summary>
-    /// Result of unpublish request
+    /// Result of publish stop request
     /// </summary>
     public partial class PublishStopResponseApiModel
     {

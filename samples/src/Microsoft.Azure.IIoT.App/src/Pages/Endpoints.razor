@@ -65,7 +65,7 @@
 
                 <td>
                     @if (endpoint.ActivationState == EndpointActivationState.ActivatedAndConnected ||
-                      endpoint.ActivationState == EndpointActivationState.Activated) {
+                        endpoint.ActivationState == EndpointActivationState.Activated) {
                         <input type="checkbox" checked
                                @onchange="async eventArgs => { await SetActivation(endpoint.Registration.Id, eventArgs.Value); }" />
                         @endpoint.ActivationState.ToString()

@@ -6,6 +6,8 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using System.ComponentModel;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Authentication Method model
@@ -16,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// Method id
         /// </summary>
         [JsonProperty(PropertyName = "id")]
+        [Required]
         public string Id { get; set; }
 
         /// <summary>
@@ -23,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "credentialType",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(Models.CredentialType.None)]
         public CredentialType? CredentialType { get; set; }
 
         /// <summary>
@@ -30,6 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "securityPolicy",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string SecurityPolicy { get; set; }
 
         /// <summary>
@@ -37,6 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "configuration",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public JToken Configuration { get; set; }
     }
 }

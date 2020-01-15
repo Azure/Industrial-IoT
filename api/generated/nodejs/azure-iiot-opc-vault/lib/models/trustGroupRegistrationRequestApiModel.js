@@ -17,9 +17,9 @@
 class TrustGroupRegistrationRequestApiModel {
   /**
    * Create a TrustGroupRegistrationRequestApiModel.
-   * @property {string} name The new name of the trust group
-   * @property {string} parentId The identifer of the parent trust group.
-   * @property {string} subjectName The subject name of the group as
+   * @property {string} [name] The new name of the trust group
+   * @property {string} [parentId] The identifer of the parent trust group.
+   * @property {string} [subjectName] The subject name of the group as
    * distinguished name.
    * @property {string} [issuedLifetime] The lifetime of certificates issued in
    * the group.
@@ -46,21 +46,21 @@ class TrustGroupRegistrationRequestApiModel {
         className: 'TrustGroupRegistrationRequestApiModel',
         modelProperties: {
           name: {
-            required: true,
+            required: false,
             serializedName: 'name',
             type: {
               name: 'String'
             }
           },
           parentId: {
-            required: true,
+            required: false,
             serializedName: 'parentId',
             type: {
               name: 'String'
             }
           },
           subjectName: {
-            required: true,
+            required: false,
             serializedName: 'subjectName',
             type: {
               name: 'String'

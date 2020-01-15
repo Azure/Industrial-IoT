@@ -17,9 +17,6 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * Defines values for SecurityAssessment.
  */
 public enum SecurityAssessment {
-    /** Enum value Unknown. */
-    UNKNOWN("Unknown"),
-
     /** Enum value Low. */
     LOW("Low"),
 

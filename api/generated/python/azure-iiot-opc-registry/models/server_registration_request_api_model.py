@@ -13,7 +13,7 @@ from msrest.serialization import Model
 
 
 class ServerRegistrationRequestApiModel(Model):
-    """Application registration request.
+    """Server registration request.
 
     :param discovery_url: Discovery url to use for registration
     :type discovery_url: str

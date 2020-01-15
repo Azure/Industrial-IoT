@@ -266,11 +266,11 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    * @param {object} body The signing request parameters
    *
-   * @param {string} body.entityId Id of entity to sign a certificate for
+   * @param {string} [body.entityId] Id of entity to sign a certificate for
    *
-   * @param {string} body.groupId Certificate group id
+   * @param {string} [body.groupId] Certificate group id
    *
-   * @param {object} body.certificateRequest Request
+   * @param {object} [body.certificateRequest] Request
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -294,11 +294,11 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    * @param {object} body The signing request parameters
    *
-   * @param {string} body.entityId Id of entity to sign a certificate for
+   * @param {string} [body.entityId] Id of entity to sign a certificate for
    *
-   * @param {string} body.groupId Certificate group id
+   * @param {string} [body.groupId] Certificate group id
    *
-   * @param {object} body.certificateRequest Request
+   * @param {object} [body.certificateRequest] Request
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -403,15 +403,15 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    * @param {object} body The new key pair request parameters
    *
-   * @param {string} body.entityId Entity id
+   * @param {string} [body.entityId] Entity id
    *
-   * @param {string} body.groupId Certificate group
+   * @param {string} [body.groupId] Certificate group
    *
-   * @param {string} body.certificateType Possible values include:
+   * @param {string} [body.certificateType] Possible values include:
    * 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
    *
-   * @param {string} body.subjectName Subject name
+   * @param {string} [body.subjectName] Subject name
    *
    * @param {array} [body.domainNames] Domain names
    *
@@ -436,15 +436,15 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    * @param {object} body The new key pair request parameters
    *
-   * @param {string} body.entityId Entity id
+   * @param {string} [body.entityId] Entity id
    *
-   * @param {string} body.groupId Certificate group
+   * @param {string} [body.groupId] Certificate group
    *
-   * @param {string} body.certificateType Possible values include:
+   * @param {string} [body.certificateType] Possible values include:
    * 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
    *
-   * @param {string} body.subjectName Subject name
+   * @param {string} [body.subjectName] Subject name
    *
    * @param {array} [body.domainNames] Domain names
    *
@@ -1002,60 +1002,6 @@ export default class AzureOpcVaultClient extends ServiceClient {
 
 
   /**
-   * @summary Return the service status in the form of the service status
-   * api model.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<StatusResponseApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  getStatusWithHttpOperationResponse(options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.StatusResponseApiModel>>;
-
-  /**
-   * @summary Return the service status in the form of the service status
-   * api model.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {StatusResponseApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {StatusResponseApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link StatusResponseApiModel} for more
-   *                      information.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getStatus(options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.StatusResponseApiModel>;
-  getStatus(callback: ServiceCallback<models.StatusResponseApiModel>): void;
-  getStatus(options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.StatusResponseApiModel>): void;
-
-
-  /**
    * @summary Get information about all groups.
    *
    * A trust group has a root certificate which issues certificates to entities.
@@ -1132,11 +1078,11 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    * @param {object} body The create request
    *
-   * @param {string} body.name The new name of the trust group
+   * @param {string} [body.name] The new name of the trust group
    *
-   * @param {string} body.parentId The identifer of the parent trust group.
+   * @param {string} [body.parentId] The identifer of the parent trust group.
    *
-   * @param {string} body.subjectName The subject name of the group as
+   * @param {string} [body.subjectName] The subject name of the group as
    * distinguished name.
    *
    * @param {string} [body.issuedLifetime] The lifetime of certificates issued in
@@ -1168,11 +1114,11 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    * @param {object} body The create request
    *
-   * @param {string} body.name The new name of the trust group
+   * @param {string} [body.name] The new name of the trust group
    *
-   * @param {string} body.parentId The identifer of the parent trust group.
+   * @param {string} [body.parentId] The identifer of the parent trust group.
    *
-   * @param {string} body.subjectName The subject name of the group as
+   * @param {string} [body.subjectName] The subject name of the group as
    * distinguished name.
    *
    * @param {string} [body.issuedLifetime] The lifetime of certificates issued in
@@ -1432,16 +1378,16 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    * @param {object} body The create request
    *
-   * @param {string} body.name The new name of the trust group root
+   * @param {string} [body.name] The new name of the trust group root
    *
    * @param {string} [body.type] Possible values include:
    * 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
    *
-   * @param {string} body.subjectName The subject name of the group as
+   * @param {string} [body.subjectName] The subject name of the group as
    * distinguished name.
    *
-   * @param {string} body.lifetime The lifetime of the trust group root
+   * @param {string} [body.lifetime] The lifetime of the trust group root
    * certificate.
    *
    * @param {number} [body.keySize] The certificate key size in bits.
@@ -1477,16 +1423,16 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    * @param {object} body The create request
    *
-   * @param {string} body.name The new name of the trust group root
+   * @param {string} [body.name] The new name of the trust group root
    *
    * @param {string} [body.type] Possible values include:
    * 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
    *
-   * @param {string} body.subjectName The subject name of the group as
+   * @param {string} [body.subjectName] The subject name of the group as
    * distinguished name.
    *
-   * @param {string} body.lifetime The lifetime of the trust group root
+   * @param {string} [body.lifetime] The lifetime of the trust group root
    * certificate.
    *
    * @param {number} [body.keySize] The certificate key size in bits.

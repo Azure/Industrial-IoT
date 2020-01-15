@@ -41,7 +41,6 @@ exports.AttributeReadRequestApiModel = require('./attributeReadRequestApiModel')
 exports.ReadRequestApiModel = require('./readRequestApiModel');
 exports.AttributeReadResponseApiModel = require('./attributeReadResponseApiModel');
 exports.ReadResponseApiModel = require('./readResponseApiModel');
-exports.StatusResponseApiModel = require('./statusResponseApiModel');
 exports.ValueWriteRequestApiModel = require('./valueWriteRequestApiModel');
 exports.ValueWriteResponseApiModel = require('./valueWriteResponseApiModel');
 exports.AttributeWriteRequestApiModel = require('./attributeWriteRequestApiModel');

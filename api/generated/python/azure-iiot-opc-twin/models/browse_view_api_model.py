@@ -13,7 +13,7 @@ from msrest.serialization import Model
 
 
 class BrowseViewApiModel(Model):
-    """browse view model.
+    """Browse view model.
 
     :param view_id: Node of the view to browse
     :type view_id: str

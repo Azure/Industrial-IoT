@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Gateway info model
@@ -12,30 +13,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     public class GatewayInfoApiModel {
 
         /// <summary>
-        /// Gateway
+        /// Gateway identity
         /// </summary>
         [JsonProperty(PropertyName = "gateway")]
+        [Required]
         public GatewayApiModel Gateway { get; set; }
 
         /// <summary>
-        /// Supervisor identity if deployed
+        /// Gateway modules
         /// </summary>
-        [JsonProperty(PropertyName = "supervisor",
+        [JsonProperty(PropertyName = "modules",
             NullValueHandling = NullValueHandling.Ignore)]
-        public SupervisorApiModel Supervisor { get; set; }
-
-        /// <summary>
-        /// Publisher identity if deployed
-        /// </summary>
-        [JsonProperty(PropertyName = "publisher",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public PublisherApiModel Publisher { get; set; }
-
-        /// <summary>
-        /// Discoverer identity if deployed
-        /// </summary>
-        [JsonProperty(PropertyName = "discoverer",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public DiscovererApiModel Discoverer { get; set; }
+        public GatewayModulesApiModel Modules { get; set; }
     }
 }

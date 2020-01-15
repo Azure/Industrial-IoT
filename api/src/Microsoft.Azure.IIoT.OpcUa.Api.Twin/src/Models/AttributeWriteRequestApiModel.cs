@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
+    using System.ComponentModel.DataAnnotations;
     using Newtonsoft.Json.Linq;
 
     /// <summary>
@@ -16,18 +17,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// Node to write to (mandatory)
         /// </summary>
         [JsonProperty(PropertyName = "nodeId")]
+        [Required]
         public string NodeId { get; set; }
 
         /// <summary>
         /// Attribute to write (mandatory)
         /// </summary>
         [JsonProperty(PropertyName = "attribute")]
+        [Required]
         public NodeAttribute Attribute { get; set; }
 
         /// <summary>
         /// Value to write (mandatory)
         /// </summary>
         [JsonProperty(PropertyName = "value")]
+        [Required]
         public JToken Value { get; set; }
     }
 }

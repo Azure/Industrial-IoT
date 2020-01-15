@@ -10,7 +10,6 @@
 
 namespace Microsoft.Azure.IIoT.Opc.Vault.Models
 {
-    using Microsoft.Rest;
     using Newtonsoft.Json;
     using System.Linq;
 
@@ -33,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// TrustGroupRegistrationResponseApiModel class.
         /// </summary>
         /// <param name="id">The id of the trust group</param>
-        public TrustGroupRegistrationResponseApiModel(string id)
+        public TrustGroupRegistrationResponseApiModel(string id = default(string))
         {
             Id = id;
             CustomInit();
@@ -50,18 +49,5 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }
 
-        /// <summary>
-        /// Validate the object.
-        /// </summary>
-        /// <exception cref="ValidationException">
-        /// Thrown if validation fails
-        /// </exception>
-        public virtual void Validate()
-        {
-            if (Id == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "Id");
-            }
-        }
     }
 }

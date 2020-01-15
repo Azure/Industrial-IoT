@@ -40,48 +40,9 @@ List of registered applications
 |**items**  <br>*optional*|Application infos|< [ApplicationInfoApiModel](definitions.md#applicationinfoapimodel) > array|
 
 
-<a name="applicationrecordapimodel"></a>
-### ApplicationRecordApiModel
-Application with optional list of endpoints
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**application**  <br>*required*||[ApplicationInfoApiModel](definitions.md#applicationinfoapimodel)|
-|**recordId**  <br>*required*|Record id|integer (int32)|
-
-
-<a name="applicationrecordlistapimodel"></a>
-### ApplicationRecordListApiModel
-Create response
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**applications**  <br>*optional*|Applications found|< [ApplicationRecordApiModel](definitions.md#applicationrecordapimodel) > array|
-|**lastCounterResetTime**  <br>*required*|Last counter reset|string (date-time)|
-|**nextRecordId**  <br>*required*|Next record id|integer (int32)|
-
-
-<a name="applicationrecordqueryapimodel"></a>
-### ApplicationRecordQueryApiModel
-Query by id
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**applicationName**  <br>*optional*|Application name|string|
-|**applicationType**  <br>*optional*||[ApplicationTypeNullable](definitions.md#applicationtypenullable)|
-|**applicationUri**  <br>*optional*|Application uri|string|
-|**maxRecordsToReturn**  <br>*optional*|Max records to return|integer (int32)|
-|**productUri**  <br>*optional*|Product uri|string|
-|**serverCapabilities**  <br>*optional*|Server capabilities|< string > array|
-|**startingRecordId**  <br>*optional*|Starting record id|integer (int32)|
-
-
 <a name="applicationregistrationapimodel"></a>
 ### ApplicationRegistrationApiModel
-Application with list of endpoints
+Application with optional list of endpoints
 
 
 |Name|Description|Schema|
@@ -102,6 +63,7 @@ Application information
 |**applicationType**  <br>*optional*||[ApplicationTypeNullable](definitions.md#applicationtypenullable)|
 |**applicationUri**  <br>*optional*|Application uri|string|
 |**capability**  <br>*optional*|Application capability to query with|string|
+|**discovererId**  <br>*optional*|Discoverer id to filter with|string|
 |**discoveryProfileUri**  <br>*optional*|Discovery profile uri|string|
 |**gatewayServerUri**  <br>*optional*|Gateway server uri|string|
 |**includeNotSeenSince**  <br>*optional*|Whether to include apps that were soft deleted|boolean|
@@ -166,11 +128,13 @@ List of application sites
 |Name|Description|Schema|
 |---|---|---|
 |**continuationToken**  <br>*optional*|Continuation or null if final|string|
-|**sites**  <br>*optional*|Distinct list of sites applications were registered in.|< string > array|
+|**sites**  <br>*optional*|Sites|< string > array|
 
 
 <a name="applicationtype"></a>
 ### ApplicationType
+Application type
+
 *Type* : enum (Server, Client, ClientAndServer, DiscoveryServer)
 
 
@@ -188,7 +152,7 @@ Authentication Method model
 |---|---|---|
 |**configuration**  <br>*optional*|Method specific configuration|object|
 |**credentialType**  <br>*optional*||[CredentialTypeNullable](definitions.md#credentialtypenullable)|
-|**id**  <br>*required*|Authentication method id|string|
+|**id**  <br>*required*|Method id|string|
 |**securityPolicy**  <br>*optional*|Security policy to use when passing credential.|string|
 
 
@@ -251,7 +215,7 @@ Discoverer update request
 
 <a name="discoveryconfigapimodel"></a>
 ### DiscoveryConfigApiModel
-Discovery configuration
+Discovery configuration api model
 
 
 |Name|Description|Schema|
@@ -271,6 +235,8 @@ Discovery configuration
 
 <a name="discoverymode"></a>
 ### DiscoveryMode
+Discovery mode to use
+
 *Type* : enum (Off, Local, Network, Fast, Scan)
 
 
@@ -421,10 +387,8 @@ Gateway info model
 
 |Name|Schema|
 |---|---|
-|**discoverer**  <br>*optional*|[DiscovererApiModel](definitions.md#discovererapimodel)|
 |**gateway**  <br>*required*|[GatewayApiModel](definitions.md#gatewayapimodel)|
-|**publisher**  <br>*optional*|[PublisherApiModel](definitions.md#publisherapimodel)|
-|**supervisor**  <br>*optional*|[SupervisorApiModel](definitions.md#supervisorapimodel)|
+|**modules**  <br>*optional*|[GatewayModulesApiModel](definitions.md#gatewaymodulesapimodel)|
 
 
 <a name="gatewaylistapimodel"></a>
@@ -436,6 +400,18 @@ Gateway registration list
 |---|---|---|
 |**continuationToken**  <br>*optional*|Continuation or null if final|string|
 |**items**  <br>*optional*|Registrations|< [GatewayApiModel](definitions.md#gatewayapimodel) > array|
+
+
+<a name="gatewaymodulesapimodel"></a>
+### GatewayModulesApiModel
+Gateway modules model
+
+
+|Name|Schema|
+|---|---|
+|**discoverer**  <br>*optional*|[DiscovererApiModel](definitions.md#discovererapimodel)|
+|**publisher**  <br>*optional*|[PublisherApiModel](definitions.md#publisherapimodel)|
+|**supervisor**  <br>*optional*|[SupervisorApiModel](definitions.md#supervisorapimodel)|
 
 
 <a name="gatewayqueryapimodel"></a>
@@ -508,7 +484,7 @@ Publisher registration query
 |Name|Description|Schema|
 |---|---|---|
 |**connected**  <br>*optional*|Included connected or disconnected|boolean|
-|**siteId**  <br>*optional*|Site of the publisher|string|
+|**siteId**  <br>*optional*|Site for the publishers|string|
 
 
 <a name="publisherupdateapimodel"></a>
@@ -536,7 +512,7 @@ Registry operation log model
 
 <a name="securityassessmentnullable"></a>
 ### SecurityAssessmentNullable
-*Type* : enum (Unknown, Low, Medium, High)
+*Type* : enum (Low, Medium, High)
 
 
 <a name="securitymodenullable"></a>
@@ -546,7 +522,7 @@ Registry operation log model
 
 <a name="serverregistrationrequestapimodel"></a>
 ### ServerRegistrationRequestApiModel
-Application registration request
+Server registration request
 
 
 |Name|Description|Schema|
@@ -554,24 +530,6 @@ Application registration request
 |**activationFilter**  <br>*optional*||[EndpointActivationFilterApiModel](definitions.md#endpointactivationfilterapimodel)|
 |**discoveryUrl**  <br>*required*|Discovery url to use for registration|string|
 |**id**  <br>*optional*|Registration id|string|
-
-
-<a name="statusresponseapimodel"></a>
-### StatusResponseApiModel
-Status response model
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**$metadata**  <br>*optional*  <br>*read-only*||< string, string > map|
-|**currentTime**  <br>*optional*  <br>*read-only*|Current time|string|
-|**dependencies**  <br>*optional*  <br>*read-only*|A property bag with details about the internal dependencies|< string, string > map|
-|**name**  <br>*optional*|Name of this service|string|
-|**properties**  <br>*optional*  <br>*read-only*|A property bag with details about the service|< string, string > map|
-|**startTime**  <br>*optional*  <br>*read-only*|Start time of service|string|
-|**status**  <br>*optional*|Operational status|string|
-|**uid**  <br>*optional*  <br>*read-only*|Value generated at bootstrap by each instance of the service and<br>used to correlate logs coming from the same instance. The value<br>changes every time the service starts.|string|
-|**upTime**  <br>*optional*  <br>*read-only*|Up time of service|integer (int64)|
 
 
 <a name="supervisorapimodel"></a>
@@ -608,7 +566,7 @@ Supervisor registration query
 |Name|Description|Schema|
 |---|---|---|
 |**connected**  <br>*optional*|Included connected or disconnected|boolean|
-|**siteId**  <br>*optional*|Site of the supervisor|string|
+|**siteId**  <br>*optional*|Site for the supervisors|string|
 
 
 <a name="supervisorstatusapimodel"></a>
@@ -626,13 +584,13 @@ Supervisor runtime status
 
 <a name="supervisorupdateapimodel"></a>
 ### SupervisorUpdateApiModel
-Supervisor registration update request
+Supervisor update request
 
 
 |Name|Description|Schema|
 |---|---|---|
 |**logLevel**  <br>*optional*||[TraceLogLevelNullable](definitions.md#traceloglevelnullable)|
-|**siteId**  <br>*optional*|Site of the supervisor|string|
+|**siteId**  <br>*optional*|Site the supervisor is part of|string|
 
 
 <a name="traceloglevelnullable"></a>

@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
+    using System.ComponentModel;
 
     /// <summary>
     /// Discoverer registration query
@@ -16,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "siteId",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string SiteId { get; set; }
 
         /// <summary>
@@ -23,6 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "discovery",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public DiscoveryMode? Discovery { get; set; }
 
         /// <summary>
@@ -30,6 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "connected",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public bool? Connected { get; set; }
     }
 }

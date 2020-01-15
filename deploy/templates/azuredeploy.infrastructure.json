@@ -820,10 +820,10 @@
             "apiVersion": "2017-04-01",
             "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('eventHubName'), '/', variables('eventHubConsumerGroup1'))]",
             "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
-			"properties": {
-				"userMetadata": "CDM Telemetry Consumer Group"
-			},
-			"dependsOn": [
+            "properties": {
+                "userMetadata": "CDM Telemetry Consumer Group"
+            },
+            "dependsOn": [
                 "[variables('eventHubResourceId')]"
             ]
         },
@@ -832,13 +832,13 @@
             "apiVersion": "2017-04-01",
             "name": "[concat(parameters('eventHubNamespaceName'), '/', parameters('eventHubName'), '/', variables('eventHubConsumerGroup2'))]",
             "type": "Microsoft.EventHub/namespaces/eventhubs/consumergroups",
-			"properties": {
-				"userMetadata": "UX Telemetry Consumer Group"
-			},			
+            "properties": {
+                "userMetadata": "UX Telemetry Consumer Group"
+            },
             "dependsOn": [
                 "[variables('eventHubResourceId')]"
             ]
-        },		
+        },
         {
             "comments": "Event Hub Authorization for Device Telemetry Consumers",
             "type": "Microsoft.EventHub/namespaces/eventhubs/authorizationRules",

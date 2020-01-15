@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
+    using System.ComponentModel;
 
     /// <summary>
     /// Browse request model
@@ -24,6 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "direction",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public BrowseDirection? Direction { get; set; }
 
         /// <summary>
@@ -32,6 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "view",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public BrowseViewApiModel View { get; set; }
 
         /// <summary>
@@ -40,6 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "referenceTypeId",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string ReferenceTypeId { get; set; }
 
         /// <summary>
@@ -48,6 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "noSubtypes",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(false)]
         public bool? NoSubtypes { get; set; }
 
         /// <summary>
@@ -59,6 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "maxReferencesToReturn",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public uint? MaxReferencesToReturn { get; set; }
 
         /// <summary>
@@ -69,6 +75,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "targetNodesOnly",
            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(false)]
         public bool? TargetNodesOnly { get; set; }
 
         /// <summary>
@@ -77,6 +84,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "readVariableValues",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(false)]
         public bool? ReadVariableValues { get; set; }
 
         /// <summary>
@@ -84,6 +92,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "header",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public RequestHeaderApiModel Header { get; set; }
     }
 }

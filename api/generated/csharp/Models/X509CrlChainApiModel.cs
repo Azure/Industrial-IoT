@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
     using System.Linq;
 
     /// <summary>
-    /// Crl collection model
+    /// Crl chain model
     /// </summary>
     public partial class X509CrlChainApiModel
     {

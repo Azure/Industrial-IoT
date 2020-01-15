@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class SupervisorQueryApiModel {
     /**
-     * Site of the supervisor.
+     * Site for the supervisors.
      */
     @JsonProperty(value = "siteId")
     private String siteId;
@@ -29,7 +29,7 @@ public class SupervisorQueryApiModel {
     private Boolean connected;
 
     /**
-     * Get site of the supervisor.
+     * Get site for the supervisors.
      *
      * @return the siteId value
      */
@@ -38,7 +38,7 @@ public class SupervisorQueryApiModel {
     }
 
     /**
-     * Set site of the supervisor.
+     * Set site for the supervisors.
      *
      * @param siteId the siteId value to set
      * @return the SupervisorQueryApiModel object itself.

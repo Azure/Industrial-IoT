@@ -10,7 +10,7 @@
 module azure.iiot.opc.registry
   module Models
     #
-    # Application registration request
+    # Server registration request
     #
     class ServerRegistrationRequestApiModel
       # @return [String] Discovery url to use for registration

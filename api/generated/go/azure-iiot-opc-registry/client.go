@@ -1277,7 +1277,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
     // token if more results are available. Call the GetListOfPublisher operation
     // using the token to retrieve more results.
         // Parameters:
-            // siteID - site of the publisher
+            // siteID - site for the publishers
             // connected - included connected or disconnected
             // onlyServerState - whether to include only server state, or display
             // current client state of the endpoint if available
@@ -1364,7 +1364,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
     // token if more results are available. Call the GetListOfSupervisors operation
     // using the token to retrieve more results.
         // Parameters:
-            // siteID - site of the supervisor
+            // siteID - site for the supervisors
             // connected - included connected or disconnected
             // onlyServerState - whether to include only server state, or display
             // current client state of the endpoint if available
@@ -2421,68 +2421,6 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // GetStatus sends the get status request.
-    func (client BaseClient) GetStatus(ctx context.Context) (result StatusResponseAPIModel, err error) {
-        if tracing.IsEnabled() {
-            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetStatus")
-            defer func() {
-                sc := -1
-                if result.Response.Response != nil {
-                    sc = result.Response.Response.StatusCode
-                }
-                tracing.EndSpan(ctx, sc, err)
-            }()
-        }
-            req, err := client.GetStatusPreparer(ctx)
-        if err != nil {
-        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "GetStatus", nil , "Failure preparing request")
-        return
-        }
-
-                resp, err := client.GetStatusSender(req)
-                if err != nil {
-                result.Response = autorest.Response{Response: resp}
-                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "GetStatus", resp, "Failure sending request")
-                return
-                }
-
-                result, err = client.GetStatusResponder(resp)
-                if err != nil {
-                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "GetStatus", resp, "Failure responding to request")
-                }
-
-        return
-        }
-
-        // GetStatusPreparer prepares the GetStatus request.
-        func (client BaseClient) GetStatusPreparer(ctx context.Context) (*http.Request, error) {
-            preparer := autorest.CreatePreparer(
-        autorest.AsGet(),
-        autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPath("/v2/status"))
-        return preparer.Prepare((&http.Request{}).WithContext(ctx))
-        }
-
-        // GetStatusSender sends the GetStatus request. The method will close the
-        // http.Response Body if it receives an error.
-        func (client BaseClient) GetStatusSender(req *http.Request) (*http.Response, error) {
-            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-                return autorest.SendWithSender(client, req, sd...)
-                }
-
-    // GetStatusResponder handles the response to the GetStatus request. The method always
-    // closes the http.Response Body.
-    func (client BaseClient) GetStatusResponder(resp *http.Response) (result StatusResponseAPIModel, err error) {
-        err = autorest.Respond(
-        resp,
-        client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK),
-        autorest.ByUnmarshallingJSON(&result),
-        autorest.ByClosing())
-        result.Response = autorest.Response{Response: resp}
-            return
-        }
-
     // GetSupervisor returns a supervisor's registration and connectivity
     // information. A supervisor id corresponds to the twin modules module
     // identity.
@@ -2697,74 +2635,6 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
     // QueryApplicationsResponder handles the response to the QueryApplications request. The method always
     // closes the http.Response Body.
     func (client BaseClient) QueryApplicationsResponder(resp *http.Response) (result ApplicationInfoListAPIModel, err error) {
-        err = autorest.Respond(
-        resp,
-        client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK),
-        autorest.ByUnmarshallingJSON(&result),
-        autorest.ByClosing())
-        result.Response = autorest.Response{Response: resp}
-            return
-        }
-
-    // QueryApplicationsByID a query model which supports the OPC UA Global
-    // Discovery Server query.
-    func (client BaseClient) QueryApplicationsByID(ctx context.Context, body *ApplicationRecordQueryAPIModel) (result ApplicationRecordListAPIModel, err error) {
-        if tracing.IsEnabled() {
-            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.QueryApplicationsByID")
-            defer func() {
-                sc := -1
-                if result.Response.Response != nil {
-                    sc = result.Response.Response.StatusCode
-                }
-                tracing.EndSpan(ctx, sc, err)
-            }()
-        }
-            req, err := client.QueryApplicationsByIDPreparer(ctx, body)
-        if err != nil {
-        err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "QueryApplicationsByID", nil , "Failure preparing request")
-        return
-        }
-
-                resp, err := client.QueryApplicationsByIDSender(req)
-                if err != nil {
-                result.Response = autorest.Response{Response: resp}
-                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "QueryApplicationsByID", resp, "Failure sending request")
-                return
-                }
-
-                result, err = client.QueryApplicationsByIDResponder(resp)
-                if err != nil {
-                err = autorest.NewErrorWithError(err, "azureiiotopcregistry.BaseClient", "QueryApplicationsByID", resp, "Failure responding to request")
-                }
-
-        return
-        }
-
-        // QueryApplicationsByIDPreparer prepares the QueryApplicationsByID request.
-        func (client BaseClient) QueryApplicationsByIDPreparer(ctx context.Context, body *ApplicationRecordQueryAPIModel) (*http.Request, error) {
-            preparer := autorest.CreatePreparer(
-        autorest.AsContentType("application/json-patch+json; charset=utf-8"),
-        autorest.AsPost(),
-        autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPath("/v2/applications/querybyid"))
-                if body != nil {
-                preparer = autorest.DecoratePreparer(preparer,
-                autorest.WithJSON(body))
-                }
-        return preparer.Prepare((&http.Request{}).WithContext(ctx))
-        }
-
-        // QueryApplicationsByIDSender sends the QueryApplicationsByID request. The method will close the
-        // http.Response Body if it receives an error.
-        func (client BaseClient) QueryApplicationsByIDSender(req *http.Request) (*http.Response, error) {
-            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-                return autorest.SendWithSender(client, req, sd...)
-                }
-
-    // QueryApplicationsByIDResponder handles the response to the QueryApplicationsByID request. The method always
-    // closes the http.Response Body.
-    func (client BaseClient) QueryApplicationsByIDResponder(resp *http.Response) (result ApplicationRecordListAPIModel, err error) {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),

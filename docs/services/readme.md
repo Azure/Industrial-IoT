@@ -38,6 +38,10 @@ The following Agents are part of the platform:
 * [File upload Handler](fileupload.md) (Experimental)
 * [OPC Model Importer](graph.md) (Experimental)
 
+## All-in-one platform service
+
+An alternative to hosting individual containers in a cluster is the "[all in one service container](all-in-one.md)", which is a single web service that hosts all micro services and agents in its process.  
+
 ## Next steps
 
 * [Deploy Microservices to Azure](../howto-deploy-microservices.md)

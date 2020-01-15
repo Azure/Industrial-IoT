@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class NodeReferenceApiModel {
     /**
-     * Reference Type identifier.
+     * Reference Type id.
      */
     @JsonProperty(value = "referenceTypeId")
     private String referenceTypeId;
@@ -35,7 +35,7 @@ public class NodeReferenceApiModel {
     private NodeApiModel target;
 
     /**
-     * Get reference Type identifier.
+     * Get reference Type id.
      *
      * @return the referenceTypeId value
      */
@@ -44,7 +44,7 @@ public class NodeReferenceApiModel {
     }
 
     /**
-     * Set reference Type identifier.
+     * Set reference Type id.
      *
      * @param referenceTypeId the referenceTypeId value to set
      * @return the NodeReferenceApiModel object itself.

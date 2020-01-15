@@ -562,50 +562,6 @@
         ]
       }
     },
-    "/v2/applications/querybyid": {
-      "post": {
-        "tags": [
-          "Applications"
-        ],
-        "summary": "Query applications by id.",
-        "description": "A query model which supports the OPC UA Global Discovery Server query.",
-        "operationId": "QueryApplicationsById",
-        "consumes": [
-          "application/json-patch+json",
-          "application/json",
-          "text/json",
-          "application/*+json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "in": "body",
-            "name": "body",
-            "description": "",
-            "schema": {
-              "$ref": "#/definitions/ApplicationRecordQueryApiModel"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/ApplicationRecordListApiModel"
-            }
-          }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
-      }
-    },
     "/v2/applications/events": {
       "put": {
         "tags": [
@@ -2164,7 +2120,7 @@
           {
             "in": "query",
             "name": "siteId",
-            "description": "Site of the publisher",
+            "description": "Site for the publishers",
             "type": "string"
           },
           {
@@ -2271,26 +2227,6 @@
             ]
           }
         ]
-      }
-    },
-    "/v2/status": {
-      "get": {
-        "tags": [
-          "Status"
-        ],
-        "summary": "Return the service status in the form of the service status\r\napi model.",
-        "operationId": "GetStatus",
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/StatusResponseApiModel"
-            }
-          }
-        }
       }
     },
     "/v2/supervisors/{supervisorId}": {
@@ -2571,7 +2507,7 @@
           {
             "in": "query",
             "name": "siteId",
-            "description": "Site of the supervisor",
+            "description": "Site for the supervisors",
             "type": "string"
           },
           {
@@ -2719,7 +2655,7 @@
       }
     },
     "ServerRegistrationRequestApiModel": {
-      "description": "Application registration request",
+      "description": "Server registration request",
       "required": [
         "discoveryUrl"
       ],
@@ -2826,6 +2762,7 @@
       }
     },
     "ApplicationType": {
+      "description": "Application type",
       "enum": [
         "Server",
         "Client",
@@ -2982,7 +2919,7 @@
       }
     },
     "DiscoveryConfigApiModel": {
-      "description": "Discovery configuration",
+      "description": "Discovery configuration api model",
       "type": "object",
       "properties": {
         "addressRangesToScan": {
@@ -3112,7 +3049,7 @@
       "type": "object",
       "properties": {
         "id": {
-          "description": "Authentication method id",
+          "description": "Method id",
           "type": "string"
         },
         "credentialType": {
@@ -3175,7 +3112,6 @@
     },
     "SecurityAssessmentNullable": {
       "enum": [
-        "Unknown",
         "Low",
         "Medium",
         "High"
@@ -3187,7 +3123,7 @@
       }
     },
     "ApplicationRegistrationApiModel": {
-      "description": "Application with list of endpoints",
+      "description": "Application with optional list of endpoints",
       "required": [
         "application"
       ],
@@ -3267,7 +3203,7 @@
       "type": "object",
       "properties": {
         "sites": {
-          "description": "Distinct list of sites applications were registered in.",
+          "description": "Sites",
           "type": "array",
           "items": {
             "type": "string"
@@ -3321,89 +3257,10 @@
         "includeNotSeenSince": {
           "description": "Whether to include apps that were soft deleted",
           "type": "boolean"
-        }
-      }
-    },
-    "ApplicationRecordQueryApiModel": {
-      "description": "Query by id",
-      "type": "object",
-      "properties": {
-        "startingRecordId": {
-          "format": "int32",
-          "description": "Starting record id",
-          "type": "integer"
         },
-        "maxRecordsToReturn": {
-          "format": "int32",
-          "description": "Max records to return",
-          "type": "integer"
-        },
-        "applicationName": {
-          "description": "Application name",
+        "discovererId": {
+          "description": "Discoverer id to filter with",
           "type": "string"
-        },
-        "applicationUri": {
-          "description": "Application uri",
-          "type": "string"
-        },
-        "applicationType": {
-          "$ref": "#/definitions/ApplicationTypeNullable"
-        },
-        "productUri": {
-          "description": "Product uri",
-          "type": "string"
-        },
-        "serverCapabilities": {
-          "description": "Server capabilities",
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    },
-    "ApplicationRecordApiModel": {
-      "description": "Application with optional list of endpoints",
-      "required": [
-        "application",
-        "recordId"
-      ],
-      "type": "object",
-      "properties": {
-        "recordId": {
-          "format": "int32",
-          "description": "Record id",
-          "type": "integer"
-        },
-        "application": {
-          "$ref": "#/definitions/ApplicationInfoApiModel"
-        }
-      }
-    },
-    "ApplicationRecordListApiModel": {
-      "description": "Create response",
-      "required": [
-        "lastCounterResetTime",
-        "nextRecordId"
-      ],
-      "type": "object",
-      "properties": {
-        "applications": {
-          "description": "Applications found",
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/ApplicationRecordApiModel"
-          }
-        },
-        "lastCounterResetTime": {
-          "format": "date-time",
-          "description": "Last counter reset",
-          "type": "string"
-        },
-        "nextRecordId": {
-          "format": "int32",
-          "description": "Next record id",
-          "type": "integer"
         }
       }
     },
@@ -3474,6 +3331,7 @@
       }
     },
     "DiscoveryMode": {
+      "description": "Discovery mode to use",
       "enum": [
         "Off",
         "Local",
@@ -3773,6 +3631,21 @@
         }
       }
     },
+    "GatewayModulesApiModel": {
+      "description": "Gateway modules model",
+      "type": "object",
+      "properties": {
+        "supervisor": {
+          "$ref": "#/definitions/SupervisorApiModel"
+        },
+        "publisher": {
+          "$ref": "#/definitions/PublisherApiModel"
+        },
+        "discoverer": {
+          "$ref": "#/definitions/DiscovererApiModel"
+        }
+      }
+    },
     "GatewayInfoApiModel": {
       "description": "Gateway info model",
       "required": [
@@ -3783,14 +3656,8 @@
         "gateway": {
           "$ref": "#/definitions/GatewayApiModel"
         },
-        "supervisor": {
-          "$ref": "#/definitions/SupervisorApiModel"
-        },
-        "publisher": {
-          "$ref": "#/definitions/PublisherApiModel"
-        },
-        "discoverer": {
-          "$ref": "#/definitions/DiscovererApiModel"
+        "modules": {
+          "$ref": "#/definitions/GatewayModulesApiModel"
         }
       }
     },
@@ -3873,7 +3740,7 @@
       "type": "object",
       "properties": {
         "siteId": {
-          "description": "Site of the publisher",
+          "description": "Site for the publishers",
           "type": "string"
         },
         "connected": {
@@ -3882,70 +3749,12 @@
         }
       }
     },
-    "StatusResponseApiModel": {
-      "description": "Status response model",
-      "type": "object",
-      "properties": {
-        "name": {
-          "description": "Name of this service",
-          "type": "string"
-        },
-        "status": {
-          "description": "Operational status",
-          "type": "string"
-        },
-        "currentTime": {
-          "description": "Current time",
-          "type": "string",
-          "readOnly": true
-        },
-        "startTime": {
-          "description": "Start time of service",
-          "type": "string",
-          "readOnly": true
-        },
-        "upTime": {
-          "format": "int64",
-          "description": "Up time of service",
-          "type": "integer",
-          "readOnly": true
-        },
-        "uid": {
-          "description": "Value generated at bootstrap by each instance of the service and\r\nused to correlate logs coming from the same instance. The value\r\nchanges every time the service starts.",
-          "type": "string",
-          "readOnly": true
-        },
-        "properties": {
-          "description": "A property bag with details about the service",
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          },
-          "readOnly": true
-        },
-        "dependencies": {
-          "description": "A property bag with details about the internal dependencies",
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          },
-          "readOnly": true
-        },
-        "$metadata": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          },
-          "readOnly": true
-        }
-      }
-    },
     "SupervisorUpdateApiModel": {
-      "description": "Supervisor registration update request",
+      "description": "Supervisor update request",
       "type": "object",
       "properties": {
         "siteId": {
-          "description": "Site of the supervisor",
+          "description": "Site the supervisor is part of",
           "type": "string"
         },
         "logLevel": {
@@ -4019,7 +3828,7 @@
       "type": "object",
       "properties": {
         "siteId": {
-          "description": "Site of the supervisor",
+          "description": "Site for the supervisors",
           "type": "string"
         },
         "connected": {
@@ -4060,10 +3869,6 @@
     {
       "name": "Publishers",
       "description": "Read, Update and Query publisher resources"
-    },
-    {
-      "name": "Status",
-      "description": "Status checks"
     },
     {
       "name": "Supervisors",

@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class PublisherQueryApiModel {
     /**
-     * Site of the publisher.
+     * Site for the publishers.
      */
     @JsonProperty(value = "siteId")
     private String siteId;
@@ -29,7 +29,7 @@ public class PublisherQueryApiModel {
     private Boolean connected;
 
     /**
-     * Get site of the publisher.
+     * Get site for the publishers.
      *
      * @return the siteId value
      */
@@ -38,7 +38,7 @@ public class PublisherQueryApiModel {
     }
 
     /**
-     * Set site of the publisher.
+     * Set site for the publishers.
      *
      * @param siteId the siteId value to set
      * @return the PublisherQueryApiModel object itself.

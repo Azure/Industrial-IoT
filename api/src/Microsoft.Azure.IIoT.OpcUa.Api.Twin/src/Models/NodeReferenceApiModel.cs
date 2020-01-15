@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
     using System;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// reference model
@@ -30,6 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// Target node
         /// </summary>
         [JsonProperty(PropertyName = "target")]
+        [Required]
         public NodeApiModel Target { get; set; }
 
         // Legacy

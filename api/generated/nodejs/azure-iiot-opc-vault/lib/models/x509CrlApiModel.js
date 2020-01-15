@@ -18,7 +18,7 @@ class X509CrlApiModel {
   /**
    * Create a X509CrlApiModel.
    * @property {string} [issuer] The Issuer name of the revocation list.
-   * @property {object} crl The certificate revocation list.
+   * @property {object} [crl] The certificate revocation list.
    */
   constructor() {
   }
@@ -45,7 +45,7 @@ class X509CrlApiModel {
             }
           },
           crl: {
-            required: true,
+            required: false,
             serializedName: 'crl',
             type: {
               name: 'Object'

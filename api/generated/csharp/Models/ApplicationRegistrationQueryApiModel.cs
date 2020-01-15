@@ -46,7 +46,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// belongs to.</param>
         /// <param name="includeNotSeenSince">Whether to include apps that were
         /// soft deleted</param>
-        public ApplicationRegistrationQueryApiModel(ApplicationType? applicationType = default(ApplicationType?), string applicationUri = default(string), string productUri = default(string), string applicationName = default(string), string locale = default(string), string capability = default(string), string discoveryProfileUri = default(string), string gatewayServerUri = default(string), string siteOrGatewayId = default(string), bool? includeNotSeenSince = default(bool?))
+        /// <param name="discovererId">Discoverer id to filter with</param>
+        public ApplicationRegistrationQueryApiModel(ApplicationType? applicationType = default(ApplicationType?), string applicationUri = default(string), string productUri = default(string), string applicationName = default(string), string locale = default(string), string capability = default(string), string discoveryProfileUri = default(string), string gatewayServerUri = default(string), string siteOrGatewayId = default(string), bool? includeNotSeenSince = default(bool?), string discovererId = default(string))
         {
             ApplicationType = applicationType;
             ApplicationUri = applicationUri;
@@ -58,6 +59,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
             GatewayServerUri = gatewayServerUri;
             SiteOrGatewayId = siteOrGatewayId;
             IncludeNotSeenSince = includeNotSeenSince;
+            DiscovererId = discovererId;
             CustomInit();
         }
 
@@ -126,6 +128,12 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// </summary>
         [JsonProperty(PropertyName = "includeNotSeenSince")]
         public bool? IncludeNotSeenSince { get; set; }
+
+        /// <summary>
+        /// Gets or sets discoverer id to filter with
+        /// </summary>
+        [JsonProperty(PropertyName = "discovererId")]
+        public string DiscovererId { get; set; }
 
     }
 }

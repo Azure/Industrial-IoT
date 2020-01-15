@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
     public class WorkerInfoApiModel {
 
         /// <summary>
-        /// Identifier of the worker
+        /// Identifier of the worker instance
         /// </summary>
         [JsonProperty(PropertyName = "workerId",
             NullValueHandling = NullValueHandling.Ignore)]

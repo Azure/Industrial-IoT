@@ -13,7 +13,7 @@ module azure.iiot.opc.twin
     # reference model
     #
     class NodeReferenceApiModel
-      # @return [String] Reference Type identifier
+      # @return [String] Reference Type id
       attr_accessor :reference_type_id
 
       # @return [BrowseDirection] Possible values include: 'Forward',

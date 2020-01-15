@@ -1113,69 +1113,6 @@ export interface ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel {
 
 /**
  * @interface
- * An interface representing StatusResponseApiModel.
- * Status response model
- *
- */
-export interface StatusResponseApiModel {
-  /**
-   * @member {string} [name] Name of this service
-   */
-  name?: string;
-  /**
-   * @member {string} [status] Operational status
-   */
-  status?: string;
-  /**
-   * @member {string} [currentTime] Current time
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly currentTime?: string;
-  /**
-   * @member {string} [startTime] Start time of service
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly startTime?: string;
-  /**
-   * @member {number} [upTime] Up time of service
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly upTime?: number;
-  /**
-   * @member {string} [uid] Value generated at bootstrap by each instance of
-   * the service and
-   * used to correlate logs coming from the same instance. The value
-   * changes every time the service starts.
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly uid?: string;
-  /**
-   * @member {{ [propertyName: string]: string }} [properties] A property bag
-   * with details about the service
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly properties?: { [propertyName: string]: string };
-  /**
-   * @member {{ [propertyName: string]: string }} [dependencies] A property bag
-   * with details about the internal dependencies
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly dependencies?: { [propertyName: string]: string };
-  /**
-   * @member {{ [propertyName: string]: string }} [metadata] **NOTE: This
-   * property will not be serialized. It can only be populated by the server.**
-   */
-  readonly metadata?: { [propertyName: string]: string };
-}
-
-/**
- * @interface
  * An interface representing HistoricEventApiModelHistoryReadResponseApiModel.
  * History read results
  *
@@ -1663,24 +1600,5 @@ export type HistoryReplaceEventsResponse = HistoryUpdateResponseApiModel & {
        * The response body as parsed JSON or XML
        */
       parsedBody: HistoryUpdateResponseApiModel;
-    };
-};
-
-/**
- * Contains response data for the getStatus operation.
- */
-export type GetStatusResponse = StatusResponseApiModel & {
-  /**
-   * The underlying HTTP response.
-   */
-  _response: msRest.HttpResponse & {
-      /**
-       * The response body as text (string format)
-       */
-      bodyAsText: string;
-      /**
-       * The response body as parsed JSON or XML
-       */
-      parsedBody: StatusResponseApiModel;
     };
 };

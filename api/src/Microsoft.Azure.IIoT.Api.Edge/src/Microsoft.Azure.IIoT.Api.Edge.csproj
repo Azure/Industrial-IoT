@@ -5,11 +5,6 @@
     <Description>Azure Industrial IoT Edge API</Description>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Runtime\**" />
-    <EmbeddedResource Remove="Runtime\**" />
-    <None Remove="Runtime\**" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Api.Jobs\src\Microsoft.Azure.IIoT.Api.Jobs.csproj" />
   </ItemGroup>
   <ItemGroup>

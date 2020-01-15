@@ -31,7 +31,7 @@ export interface EndpointActivationFilterApiModel {
 }
 
 /**
- * Application registration request
+ * Server registration request
  */
 export interface ServerRegistrationRequestApiModel {
   /**
@@ -206,7 +206,7 @@ export interface ApplicationInfoListApiModel {
 }
 
 /**
- * Discovery configuration
+ * Discovery configuration api model
 */
 export interface DiscoveryConfigApiModel {
   /**
@@ -300,7 +300,7 @@ export interface EndpointApiModel {
 */
 export interface AuthenticationMethodApiModel {
   /**
-   * Authentication method id
+   * Method id
   */
   id: string;
   /**
@@ -354,7 +354,7 @@ export interface EndpointRegistrationApiModel {
 }
 
 /**
- * Application with list of endpoints
+ * Application with optional list of endpoints
 */
 export interface ApplicationRegistrationApiModel {
   application: ApplicationInfoApiModel;
@@ -363,7 +363,7 @@ export interface ApplicationRegistrationApiModel {
   */
   endpoints?: EndpointRegistrationApiModel[];
   /**
-   * Possible values include: 'Unknown', 'Low', 'Medium', 'High'
+   * Possible values include: 'Low', 'Medium', 'High'
   */
   securityAssessment?: string;
 }
@@ -416,7 +416,7 @@ export interface ApplicationRegistrationUpdateApiModel {
 */
 export interface ApplicationSiteListApiModel {
   /**
-   * Distinct list of sites applications were registered in.
+   * Sites
   */
   sites?: string[];
   /**
@@ -469,69 +469,10 @@ export interface ApplicationRegistrationQueryApiModel {
    * Whether to include apps that were soft deleted
   */
   includeNotSeenSince?: boolean;
-}
-
-/**
- * Query by id
-*/
-export interface ApplicationRecordQueryApiModel {
   /**
-   * Starting record id
+   * Discoverer id to filter with
   */
-  startingRecordId?: number;
-  /**
-   * Max records to return
-  */
-  maxRecordsToReturn?: number;
-  /**
-   * Application name
-  */
-  applicationName?: string;
-  /**
-   * Application uri
-  */
-  applicationUri?: string;
-  /**
-   * Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
-  */
-  applicationType?: string;
-  /**
-   * Product uri
-  */
-  productUri?: string;
-  /**
-   * Server capabilities
-  */
-  serverCapabilities?: string[];
-}
-
-/**
- * Application with optional list of endpoints
-*/
-export interface ApplicationRecordApiModel {
-  /**
-   * Record id
-  */
-  recordId: number;
-  application: ApplicationInfoApiModel;
-}
-
-/**
- * Create response
-*/
-export interface ApplicationRecordListApiModel {
-  /**
-   * Applications found
-  */
-  applications?: ApplicationRecordApiModel[];
-  /**
-   * Last counter reset
-  */
-  lastCounterResetTime: Date;
-  /**
-   * Next record id
-  */
-  nextRecordId: number;
+  discovererId?: string;
 }
 
 /**
@@ -822,13 +763,20 @@ export interface PublisherApiModel {
 }
 
 /**
+ * Gateway modules model
+*/
+export interface GatewayModulesApiModel {
+  supervisor?: SupervisorApiModel;
+  publisher?: PublisherApiModel;
+  discoverer?: DiscovererApiModel;
+}
+
+/**
  * Gateway info model
 */
 export interface GatewayInfoApiModel {
   gateway: GatewayApiModel;
-  supervisor?: SupervisorApiModel;
-  publisher?: PublisherApiModel;
-  discoverer?: DiscovererApiModel;
+  modules?: GatewayModulesApiModel;
 }
 
 /**
@@ -903,7 +851,7 @@ export interface PublisherListApiModel {
 */
 export interface PublisherQueryApiModel {
   /**
-   * Site of the publisher
+   * Site for the publishers
   */
   siteId?: string;
   /**
@@ -913,52 +861,11 @@ export interface PublisherQueryApiModel {
 }
 
 /**
- * Status response model
-*/
-export interface StatusResponseApiModel {
-  /**
-   * Name of this service
-  */
-  name?: string;
-  /**
-   * Operational status
-  */
-  status?: string;
-  /**
-   * Current time
-  */
-  readonly currentTime?: string;
-  /**
-   * Start time of service
-  */
-  readonly startTime?: string;
-  /**
-   * Up time of service
-  */
-  readonly upTime?: number;
-  /**
-   * Value generated at bootstrap by each instance of the service and
-   * used to correlate logs coming from the same instance. The value
-   * changes every time the service starts.
-  */
-  readonly uid?: string;
-  /**
-   * A property bag with details about the service
-  */
-  readonly properties?: { [propertyName: string]: string };
-  /**
-   * A property bag with details about the internal dependencies
-  */
-  readonly dependencies?: { [propertyName: string]: string };
-  readonly metadata?: { [propertyName: string]: string };
-}
-
-/**
- * Supervisor registration update request
+ * Supervisor update request
 */
 export interface SupervisorUpdateApiModel {
   /**
-   * Site of the supervisor
+   * Site the supervisor is part of
   */
   siteId?: string;
   /**
@@ -1022,7 +929,7 @@ export interface SupervisorListApiModel {
 */
 export interface SupervisorQueryApiModel {
   /**
-   * Site of the supervisor
+   * Site for the supervisors
   */
   siteId?: string;
   /**

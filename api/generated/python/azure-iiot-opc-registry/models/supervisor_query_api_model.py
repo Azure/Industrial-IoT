@@ -15,7 +15,7 @@ from msrest.serialization import Model
 class SupervisorQueryApiModel(Model):
     """Supervisor registration query.
 
-    :param site_id: Site of the supervisor
+    :param site_id: Site for the supervisors
     :type site_id: str
     :param connected: Included connected or disconnected
     :type connected: bool

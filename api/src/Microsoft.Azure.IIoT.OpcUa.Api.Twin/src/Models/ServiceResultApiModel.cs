@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using System.ComponentModel;
 
     /// <summary>
     /// Service result
@@ -17,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "statusCode",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public uint? StatusCode { get; set; }
 
         /// <summary>
@@ -24,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "errorMessage",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string ErrorMessage { get; set; }
 
         /// <summary>
@@ -31,6 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// </summary>
         [JsonProperty(PropertyName = "diagnostics",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public JToken Diagnostics { get; set; }
     }
 }

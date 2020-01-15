@@ -39,9 +39,10 @@ rem
 :generate_sdk
 
 docker pull azuresdk/autorest:latest
-if exist %build_root%\api\generated rmdir /s /q %build_root%\api\generated
-mkdir %build_root%\api\generated
-pushd %build_root%\api\generated
+pushd %build_root%\api
+if exist generated rmdir /s /q generated
+mkdir generated
+pushd generated
 
 call :generate_sdk_for_service twin
 call :generate_sdk_for_service publisher
@@ -52,6 +53,7 @@ call :generate_sdk_for_service vault
 rem call :generate_sdk_for_service jobs
 rem call :generate_sdk_for_service onboarding
 
+popd
 popd
 goto :eof
 

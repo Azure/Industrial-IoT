@@ -21,17 +21,12 @@ class TrustGroupRegistrationApiModel(Model):
     :type group: ~azure-iiot-opc-vault.models.TrustGroupApiModel
     """
 
-    _validation = {
-        'id': {'required': True},
-        'group': {'required': True},
-    }
-
     _attribute_map = {
         'id': {'key': 'id', 'type': 'str'},
         'group': {'key': 'group', 'type': 'TrustGroupApiModel'},
     }
 
-    def __init__(self, id, group):
+    def __init__(self, id=None, group=None):
         super(TrustGroupRegistrationApiModel, self).__init__()
         self.id = id
         self.group = group

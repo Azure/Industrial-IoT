@@ -21,8 +21,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
     [JsonConverter(typeof(StringEnumConverter))]
     public enum SecurityAssessment
     {
-        [EnumMember(Value = "Unknown")]
-        Unknown,
         [EnumMember(Value = "Low")]
         Low,
         [EnumMember(Value = "Medium")]
@@ -41,8 +39,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         {
             switch( value )
             {
-                case SecurityAssessment.Unknown:
-                    return "Unknown";
                 case SecurityAssessment.Low:
                     return "Low";
                 case SecurityAssessment.Medium:
@@ -57,8 +53,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         {
             switch( value )
             {
-                case "Unknown":
-                    return SecurityAssessment.Unknown;
                 case "Low":
                     return SecurityAssessment.Low;
                 case "Medium":

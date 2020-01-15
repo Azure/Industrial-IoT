@@ -5,6 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
+    using System.ComponentModel;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Supervisor registration model
@@ -15,13 +17,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// Supervisor id
         /// </summary>
         [JsonProperty(PropertyName = "id")]
+        [Required]
         public string Id { get; set; }
 
         /// <summary>
-        /// Site of the application
+        /// Site of the supervisor
         /// </summary>
         [JsonProperty(PropertyName = "siteId",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string SiteId { get; set; }
 
         /// <summary>
@@ -29,6 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "certificate",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public byte[] Certificate { get; set; }
 
         /// <summary>
@@ -36,6 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "logLevel",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(TraceLogLevel.Information)]
         public TraceLogLevel? LogLevel { get; set; }
 
         /// <summary>
@@ -44,6 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "outOfSync",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public bool? OutOfSync { get; set; }
 
         /// <summary>
@@ -51,6 +58,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "connected",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public bool? Connected { get; set; }
     }
 }

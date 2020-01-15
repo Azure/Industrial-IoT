@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
+    using System.ComponentModel;
 
     /// <summary>
     /// Discoverer update request
@@ -16,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "siteId",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string SiteId { get; set; }
 
         /// <summary>
@@ -23,6 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "discovery",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(DiscoveryMode.Off)]
         public DiscoveryMode? Discovery { get; set; }
 
         /// <summary>
@@ -30,6 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "discoveryConfig",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public DiscoveryConfigApiModel DiscoveryConfig { get; set; }
 
         /// <summary>
@@ -37,6 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "logLevel",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public TraceLogLevel? LogLevel { get; set; }
     }
 }

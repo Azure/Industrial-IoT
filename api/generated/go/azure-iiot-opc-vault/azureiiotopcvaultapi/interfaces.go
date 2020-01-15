@@ -32,7 +32,6 @@ import (
             GetIssuerCrlChain(ctx context.Context, serialNumber string) (result azureiiotopcvault.X509CrlChainAPIModel, err error)
             GetIssuerCrlChain1(ctx context.Context, serialNumber string) (result azureiiotopcvault.String, err error)
             GetRequest(ctx context.Context, requestID string) (result azureiiotopcvault.CertificateRequestRecordAPIModel, err error)
-            GetStatus(ctx context.Context) (result azureiiotopcvault.StatusResponseAPIModel, err error)
             ListGroups(ctx context.Context, nextPageLink string, pageSize *int32) (result azureiiotopcvault.TrustGroupRegistrationListAPIModelPage, err error)
                 ListGroupsComplete(ctx context.Context, nextPageLink string, pageSize *int32) (result azureiiotopcvault.TrustGroupRegistrationListAPIModelIterator, err error)
             ListRequests(ctx context.Context, nextPageLink string, pageSize *int32) (result azureiiotopcvault.CertificateRequestQueryResponseAPIModelPage, err error)

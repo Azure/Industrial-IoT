@@ -17,8 +17,7 @@
 class ApplicationSiteListApiModel {
   /**
    * Create a ApplicationSiteListApiModel.
-   * @property {array} [sites] Distinct list of sites applications were
-   * registered in.
+   * @property {array} [sites] Sites
    * @property {string} [continuationToken] Continuation or null if final
    */
   constructor() {
