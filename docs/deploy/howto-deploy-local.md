@@ -1,8 +1,8 @@
-# Deploying Dependencies for local Development
+# Deploying Azure Resources for local Development
 
 [Home](readme.md)
 
-This article explains how to deploy only the Azure Platform Microservices need to do local development and debugging.   At the end you will have a resource group deployed that contains everything you need for local development and debugging.
+This article explains how to deploy only the Azure services needed to do local development and debugging.   At the end you will have a resource group deployed that contains everything you need for local development and debugging.
 
 ## Prerequisites
 
@@ -56,5 +56,5 @@ cd deploy/scripts
 
 Now that you have successfully deployed Azure Industrial IoT Microservices to an existing project, here are the suggested next steps:
 
-* [Run the Industrial IoT modules locally](howto-deploy-modules.md)
+* [Run the Industrial IoT modules locally](howto-install-iot-edge.md)
 * [Learn about the OPC Twin dependencies](services/dependencies.md)

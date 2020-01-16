@@ -14,13 +14,13 @@ This article will walk you through the steps to discover and register OPC UA ser
 
 You should have already successfully deployed all Microservices and at least one IoT Edge Gateway with the Industrial IoT Modules.  If you have not, please follow the instructions in:
 
-1. [Deploy the Industrial IoT Microservices to Azure](howto-deploy-microservices.md) and securely store the resulting `.env` file.
+1. [Deploy the Industrial IoT Microservices to Azure](deploy/readme.md) and securely store the resulting `.env` file.
 
-2. [Deploy Industrial IoT Edge Modules](howto-deploy-modules.md)
+2. [Install Industrial IoT Edge Gateway](deploy/howto-install-iot-edge.md)
 
-To run the demo OPC UA server and the OPC Device Management Console Client you will also need Docker installed on your development PC.  If you have not, please follow the instructions for [Linux](https://docs.docker.com/install/linux/docker-ce/ubuntu/), [Mac](https://docs.docker.com/docker-for-mac/install/), or on [Windows](https://docs.docker.com/docker-for-windows/install/).
+  To run the demo OPC UA server and the OPC Device Management Console Client you will also need Docker installed on your development PC.  If you have not, please follow the instructions for [Linux](https://docs.docker.com/install/linux/docker-ce/ubuntu/), [Mac](https://docs.docker.com/docker-for-mac/install/), or on [Windows](https://docs.docker.com/docker-for-windows/install/).
 
-Also, make sure you have Git installed.  Otherwise follow the instructions for [Linux or Mac](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), or [Windows](https://gitforwindows.org/) to install it.
+  Also, make sure you have Git installed.  Otherwise follow the instructions for [Linux or Mac](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), or [Windows](https://gitforwindows.org/) to install it.
 
 ## Start the demo OPC UA server
 
@@ -102,23 +102,11 @@ To make the demo deterministic we also start a demo OPC UA server.
    ```bash
    Connecting to https://opctwintest.azurewebsites.net/twin...
    ==================
-   {
-     "Name": "IIoT-Opc-Twin-Service",
-     "Status": "OK:Alive and well",
-     "CurrentTime": "2019-01-10T18:42:42+00:00",
-     "StartTime": "2019-01-10T18:42:18+00:00",
-     "UpTime": 24
-   }
+   OK
    ==================
    Connecting to https://opctwintest.azurewebsites.net/registry...
    ==================
-   {
-     "Name": "IIoT-Opc-Twin-Registry",
-     "Status": "OK:Alive and well",
-     "CurrentTime": "2019-01-10T18:42:44+00:00",
-     "StartTime": "2019-01-10T18:42:18+00:00",
-     "UpTime": 26
-   }
+   OK
    ==================
    >
    ```
@@ -194,7 +182,7 @@ To make the demo deterministic we also start a demo OPC UA server.
    ```
 
    Note all the information about the application that the IoT Edge added during the registration, including public certificate, product URI and more. 
-   
+
 4. To activate all endpoints of all servers and enable communication with them run
 
    ```bash

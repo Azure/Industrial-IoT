@@ -1,6 +1,6 @@
 # OPC Twin Edge Module
 
-[Home](../readme.md)
+[Home](readme.md)
 
 The OPC Twin module runs inside IoT Edge.  
 
@@ -77,7 +77,7 @@ All OPC UA components use the OPC Foundation's OPC UA reference stack as nuget p
 
 ## Next steps
 
-* [Learn how to deploy OPC Twin Module](../howto-deploy-modules.md)
+* [Learn how to deploy OPC Twin Module](../deploy/howto-install-iot-edge.md)
 * [Learn about the OPC Twin Microservice](../services/twin.md)
 * [Learn about OPC Registry Onboarding](../services/onboarding.md)
 

@@ -1,6 +1,6 @@
 # Edge Event Processor
 
-[Home](../readme.md)
+[Home](readme.md)
 
 ## Overview
 

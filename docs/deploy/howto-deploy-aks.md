@@ -21,13 +21,12 @@
   * [User Interface](#user-interface)
 * [Resources](#resources)
 
-`Microsoft.Azure.IIoT.Deployment` is a command line application for deploying Industrial IoT solution.
-It takes care of deploying Azure infrastructure resources and microservices of Industrial IoT solution.
+`Microsoft.Azure.IIoT.Deployment` is a command line application for deploying Industrial IoT platform.
+It takes care of deploying Azure infrastructure resources and microservices of Industrial IoT platform.
 
-This replaces [services/deploy/deploy.ps1](../services/deploy/deploy.ps1) script, which similarly deployed
-Azure infrastructure resources and microservices. Main difference from infrastructure perspective is that
-`Microsoft.Azure.IIoT.Deployment` deploys microservices to an AKS cluster, while `deploy.ps1` uses a VM for
-that.
+The main difference compared to the [script based deployment](howto-deploy-all-in-one.md) option is that
+from an infrastructure perspective `Microsoft.Azure.IIoT.Deployment` deploys microservices to an Azure
+Kubernetes Service (AKS) cluster, while `deploy.ps1` runs the entire platform as a web application.
 
 ## Running Microsoft.Azure.IIoT.Deployment
 

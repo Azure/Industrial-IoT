@@ -1,6 +1,6 @@
-# Discovery Multiplexer Agent 
+# Discovery Multiplexer Agent
 
-[Home](../readme.md)
+[Home](readme.md)
 
 ## Overview
 

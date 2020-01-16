@@ -2,19 +2,13 @@
 
 [Home](readme.md)
 
-### Prerequisites
+## Prerequisites
 
 * Log Analytics workspace
   * Information is stored by default in your Log Analytics Workspace by ASC for IoT
-* IoT Hub 
-* Supported service regions for ASC for IoT
-  * Central US
-  * Northern Europe
-  * Southeast Asia
-* Azure Sentinel supports  workspaces created in the following regions only:
-  * Southeast, Canada Central, Central India, East U.S., East U.S. 2 EUAP (Canary), Japan  East, Southeast Asia, UK South, West Europe, and West U.S. 2.
+* IoT Hub [deployed](readme.md)
 
-### Steps
+## Steps
 
 1. Enable ASC for IoT
    * Open your IoT Hub in Azure portal

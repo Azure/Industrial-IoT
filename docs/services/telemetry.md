@@ -1,6 +1,6 @@
 # Edge Telemetry processor
 
-[Home](../readme.md)
+[Home](readme.md)
 
 ## Overview
 

@@ -12,5 +12,5 @@ The following modules are part of the platform:
 
 ## Next steps
 
-* [Deploy edge modules in IoT Edge](../howto-deploy-modules.md)
-* [Deploy to Azure](../howto-deploy-microservices.md)
+* [Deploy edge modules in IoT Edge](../deploy/howto-install-iot-edge.md)
+* [Deploy to Azure](../deploy/readme.md)

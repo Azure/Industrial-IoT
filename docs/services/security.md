@@ -1,6 +1,6 @@
 # Registry Security Alerting Agent
 
-[Home](../readme.md)
+[Home](readme.md)
 
 ## Overview
 
