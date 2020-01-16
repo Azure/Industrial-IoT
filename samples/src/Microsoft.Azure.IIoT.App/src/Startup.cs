@@ -88,10 +88,11 @@ namespace Microsoft.Azure.IIoT.App {
             app.UseStaticFiles();
             app.UseRouting();
             app.UseRewriter(
-                new RewriteOptions().Add(
-                    context => {
-                        if (context.HttpContext.Request.Path == "/AzureAD/Account/SignedOut") { context.HttpContext.Response.Redirect("/"); }
-                    })
+                new RewriteOptions().Add(context => {
+                    if (context.HttpContext.Request.Path == "/AzureAD/Account/SignedOut") {
+                        context.HttpContext.Response.Redirect("/");
+                    }
+                })
             );
 
             app.UseAuthentication();
@@ -119,7 +120,7 @@ namespace Microsoft.Azure.IIoT.App {
 
             services.Configure<CookiePolicyOptions>(options => {
                 options.CheckConsentNeeded = context => true;
-                options.MinimumSameSitePolicy = SameSiteMode.None;
+                options.MinimumSameSitePolicy = SameSiteMode.Strict;
             });
 
             services.AddAntiforgery(options => {

@@ -121,8 +121,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
             // Handle opc-ua pub/sub subscriber messages
             builder.RegisterType<MonitoredItemSampleHandler>()
                 .AsImplementedInterfaces().SingleInstance();
-            
-            // ... forward samples to the eventhub
+            // ... which forward to secondary eventhub
             builder.RegisterType<MonitoredItemSampleForwarder>()
                 .AsImplementedInterfaces().SingleInstance();
 

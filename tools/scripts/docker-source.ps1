@@ -169,20 +169,21 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
             $entryPoint = "[`"dotnet`", `"$($assemblyName).dll`"]"
         }
 
-        $environmentVars = "DOTNET_RUNNING_IN_CONTAINER=true "
+        $environmentVars = @"
+ENV DOTNET_RUNNING_IN_CONTAINER=true
+"@
         $exposes = ""
         if ($metadata.exposes -ne $null) {
             $metadata.exposes | ForEach-Object {
                 $exposes = "$("EXPOSE $($_)" | Out-String)$($exposes)"
             }
-            $environmentVars += "ASPNETCORE_FORWARDEDHEADERS_ENABLED=true "
+            $environmentVars +=  @"
+ENV ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
+"@
         }
         $workdir = ""
         if ($metadata.workdir -ne $null) {
             $workdir = "WORKDIR /$($metadata.workdir)"
-        }
-        if (![string]::IsNullOrEmpty($environmentVars)) {
-            $environmentVars = "ENV $($environmentVars)"
         }
         if ([string]::IsNullOrEmpty($workdir)) {
             $workdir = "WORKDIR /app"

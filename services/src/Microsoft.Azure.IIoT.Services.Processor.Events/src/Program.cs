@@ -124,6 +124,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
             builder.RegisterType<DiscoveryEventHandler>()
                 .AsImplementedInterfaces().SingleInstance();
             // ... requires the corresponding services
+
             // Register http client module (needed for api)
             builder.RegisterModule<HttpClientModule>();
             // Use bearer authentication
@@ -132,7 +133,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
             // Use device code token provider to get tokens
             builder.RegisterType<AppAuthenticationProvider>()
                 .AsImplementedInterfaces().SingleInstance();
-
             builder.RegisterType<OnboardingAdapter>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<OnboardingServiceClient>()
@@ -141,11 +141,15 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
             // Handle discovery messages
             builder.RegisterType<DiscoveryMessageHandler>()
                 .AsImplementedInterfaces().SingleInstance();
+
             // ... forward progress directly to clients
             builder.RegisterType<DiscoveryProgressPublisher>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<SignalRServiceHost>()
                 .AsImplementedInterfaces().SingleInstance();
+
+            // Handle twin events
+            // ...
 
             return builder;
         }
