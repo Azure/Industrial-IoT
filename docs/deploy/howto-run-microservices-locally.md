@@ -1,9 +1,8 @@
-# Run the Azure Industrial IoT Microservices locally
+# Run / Debug Azure Industrial IoT locally
 
 [Home](readme.md)
 
-The Industrial IoT Microservices contained in this repository provide a REST like API exposing the Industrial IoT Platform capabilities.  
-This article explains how to build and run these services on your local machine.
+The Industrial IoT Microservices contained in this repository provide a REST like API exposing the Industrial IoT Platform capabilities.  This article explains how to build, run and debug these services on your local machine.
 
 ## Prerequisites
 
@@ -27,6 +26,8 @@ cd Industrial-IoT
 5. Set the start up project to be  `Microsoft.Azure.IIoT.Services.All`.  
 6. Start debugging by pressing the "Start" button or hitting F5.
 7. [Ensure the Microservices are running](#Ensure-the-Microservices-are-running)
+
+> Installing [this extension]( https://marketplace.visualstudio.com/items?itemName=vs-publisher-141975.SwitchStartupProject) you can start an entire environment containing Edge modules, command line interface, engineering sample application and services from within Visual Studio 2019.  Just select the the "Local development" startup configuration in the top left corner drop down in the IDE.   Use the "no services" configuration if you want to start only the edge environment and applications.
 
 ## Ensure the Microservices are running
 
