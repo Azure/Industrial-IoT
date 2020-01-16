@@ -30,7 +30,9 @@ All REST calls use JSON as mime type.  OPC UA types are encoded as per Part 6 [w
 The following Agents are part of the platform:
 
 * [Edge Telemetry processor](telemetry.md) (GA)
-* [Edge Event Processor](events.md) (COMING SOON)
+* [Edge Event Processor](events.md) (GA)
+* [SignalR Telemetry Forwarder](ux.md) (GA)
+* [Datalake and CDM Telemetry Exporter](cdm.md) (Preview)
 * [Registry Discovery Multiplexer](discovery.md) (GA)
 * [Identity Service](identity.md) (Preview)
 * [Registry Security Alerting Service](security.md) (Preview)
