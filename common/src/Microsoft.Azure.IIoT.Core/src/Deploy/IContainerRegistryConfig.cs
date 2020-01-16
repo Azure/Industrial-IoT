@@ -28,6 +28,11 @@ namespace Microsoft.Azure.IIoT.Deploy {
         /// <summary>
         /// Namespace
         /// </summary>
-        string ImageNamespace { get; }
+        string ImagesNamespace { get; }
+
+        /// <summary>
+        /// Version
+        /// </summary>
+        string ImagesTag { get; }
     }
 }

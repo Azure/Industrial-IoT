@@ -6,7 +6,7 @@
 namespace System {
     using IO;
     using Newtonsoft.Json.Linq;
-    using Reflection;
+    using System.Reflection;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -61,7 +61,7 @@ namespace System {
         /// <summary>
         /// Get assembly version
         /// </summary>
-        public static Version GetFileVersion(this Assembly assembly) {
+        public static Version GetReleaseVersion(this Assembly assembly) {
             if (assembly == null) {
                 throw new ArgumentNullException(nameof(assembly));
             }

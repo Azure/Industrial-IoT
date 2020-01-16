@@ -127,9 +127,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
 
             // Register http client module (needed for api)
             builder.RegisterModule<HttpClientModule>();
-            // Use bearer authentication
-            builder.RegisterType<HttpBearerAuthentication>()
-                .AsImplementedInterfaces().SingleInstance();
             // Use device code token provider to get tokens
             builder.RegisterType<AppAuthenticationProvider>()
                 .AsImplementedInterfaces().SingleInstance();

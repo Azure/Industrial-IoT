@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
     using Microsoft.Azure.IIoT.Hub.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -19,36 +20,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
     public sealed class IoTHubPublisherDeployment : IHostProcess {
 
         /// <summary>
-        /// Create edge base deployer
+        /// Create deployer
         /// </summary>
         /// <param name="service"></param>
         /// <param name="config"></param>
+        /// <param name="logger"></param>
         public IoTHubPublisherDeployment(IIoTHubConfigurationServices service,
-            IContainerRegistryConfig config) {
+            IContainerRegistryConfig config, ILogger logger) {
             _service = service ?? throw new ArgumentNullException(nameof(service));
             _config = config ?? throw new ArgumentNullException(nameof(service));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
         public async Task StartAsync() {
 
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
-                Id = "__default-opcpublisher-linux",
+                Id = "__default-opcpublisher",
                 Content = new ConfigurationContentModel {
-                    ModulesContent = CreateLayeredDeployment(true)
+                    ModulesContent = CreateLayeredDeployment()
                 },
                 SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}' AND tags.os = 'Linux'",
-                Priority = 1
-            }, true);
-
-            await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
-                Id = "__default-opcpublisher-windows",
-                Content = new ConfigurationContentModel {
-                    ModulesContent = CreateLayeredDeployment(false)
-                },
-                SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}' AND tags.os = 'Windows'",
+                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}'",
                 Priority = 1
             }, true);
         }
@@ -61,11 +54,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
         /// <summary>
         /// Get base edge configuration
         /// </summary>
-        /// <param name="isLinux"></param>
-        /// <param name="version"></param>
         /// <returns></returns>
-        private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment(
-            bool isLinux, string version = "latest") {
+        private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment() {
 
             var registryCredentials = "";
             if (!string.IsNullOrEmpty(_config.DockerServer) &&
@@ -92,9 +82,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
 
             var server = string.IsNullOrEmpty(_config.DockerServer) ?
                 "mcr.microsoft.com" : _config.DockerServer;
-            var ns = string.IsNullOrEmpty(_config.ImageNamespace) ? "" :
-                _config.ImageNamespace.TrimEnd('/') + "/";
+            var ns = string.IsNullOrEmpty(_config.ImagesNamespace) ? "" :
+                _config.ImagesNamespace.TrimEnd('/') + "/";
+            var version = _config.ImagesTag ?? "latest";
             var image = $"{server}/{ns}iotedge/opc-publisher:{version}";
+
+            _logger.Information("Updating opc publisher module deployment with image {image}", image);
 
             // Return deployment modules object
             var content = @"
@@ -122,5 +115,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
         private const string kDefaultSchemaVersion = "1.0";
         private readonly IIoTHubConfigurationServices _service;
         private readonly IContainerRegistryConfig _config;
+        private readonly ILogger _logger;
     }
 }

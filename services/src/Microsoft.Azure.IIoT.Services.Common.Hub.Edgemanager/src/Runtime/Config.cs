@@ -80,7 +80,9 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager.Runtime {
         /// <inheritdoc/>
         public string DockerPassword => _cr.DockerPassword;
         /// <inheritdoc/>
-        public string ImageNamespace => _cr.ImageNamespace;
+        public string ImagesNamespace => _cr.ImagesNamespace;
+        /// <inheritdoc/>
+        public string ImagesTag => _cr.ImagesTag;
 
         /// <summary>
         /// Configuration constructor
