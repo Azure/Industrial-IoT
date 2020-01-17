@@ -10,20 +10,19 @@ namespace Microsoft.Azure.IIoT.Module.Models {
     /// <summary>
     /// Tunneled message
     /// </summary>
-    public class HttpTunnelMessageModel {
+    public class HttpTunnelResponseModel {
 
         /// <summary>
-        /// Correlation id
+        /// Message contains discover requests
         /// </summary>
-        [JsonProperty(PropertyName = "correlationId")]
-        public string CorrelationId { get; set; }
+        public const string SchemaName =
+            "application/x-http-tunnel-response-v1";
 
         /// <summary>
-        /// Method
+        /// Request id
         /// </summary>
-        [JsonProperty(PropertyName = "method",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public string Method { get; set; }
+        [JsonProperty(PropertyName = "requestId")]
+        public string RequestId { get; set; }
 
         /// <summary>
         /// Headers

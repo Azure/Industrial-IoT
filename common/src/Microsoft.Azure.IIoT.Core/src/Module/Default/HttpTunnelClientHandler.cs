@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Module.Default {
     using Microsoft.Azure.IIoT.Module.Models;
+    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Hub;
     using Newtonsoft.Json;
     using Serilog;
@@ -17,22 +18,23 @@ namespace Microsoft.Azure.IIoT.Module.Default {
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Provides a http message handler using events and methods as tunnel
     /// Wrap the receive end into a chunk message server.
     /// </summary>
-    public sealed class HttpTunnelHandler : HttpClientHandler, IMethodHandler {
+    public sealed class HttpTunnelClientHandler : HttpClientHandler, IMethodHandler {
 
         /// <summary>
         /// Create client wrapping a json method client
         /// </summary>
         /// <param name="client"></param>
         /// <param name="logger"></param>
-        public HttpTunnelHandler(IEventClient client, ILogger logger) {
+        public HttpTunnelClientHandler(IEventClient client, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _maxSize = 256 * 1024; // Max event message size
+            _maxSize = 230 * 1024; // Max event message size
             _outstanding = new ConcurrentDictionary<string,
                 TaskCompletionSource<HttpResponseMessage>>();
         }
@@ -41,40 +43,52 @@ namespace Microsoft.Azure.IIoT.Module.Default {
         protected override async Task<HttpResponseMessage> SendAsync(
             HttpRequestMessage request, CancellationToken ct) {
 
-            var payload = await request.Content.ReadAsByteArrayAsync();
             var headers = request.Headers
                 .ToDictionary(h => h.Key, h => h.Value.ToList());
             var method = request.Method.ToString();
-            var buffer = payload.Zip(); // Gzip payload
 
-            var correlationId = Guid.NewGuid().ToString();
+            // Create chunks
+            var payload = await request.Content.ReadAsByteArrayAsync();
+            var chunks = new List<byte[]>();
+            if (payload.Length > 0) {
+                var buffer = payload.Zip(); // Gzip payload
+                for (var offset = 0; offset < buffer.Length; offset += _maxSize) {
+                    var length = Math.Min(buffer.Length - offset, _maxSize);
+                    var chunk = buffer.AsSpan(offset, length).ToArray();
+                    chunks.Add(chunk);
+                }
+            }
+
+            var requestId = Guid.NewGuid().ToString();
             var tcs = new TaskCompletionSource<HttpResponseMessage>();
             // Remove on cancellation
             ct.Register(() => {
-                _outstanding.TryRemove(correlationId, out var completion);
+                _outstanding.TryRemove(requestId, out var completion);
                 System.Diagnostics.Debug.Assert(tcs == completion);
                 completion.TrySetCanceled();
             });
-            if (!_outstanding.TryAdd(correlationId, tcs)) {
+            if (!_outstanding.TryAdd(requestId, tcs)) {
                 throw new InvalidOperationException("Could not add completion.");
             }
 
             // Send headers
+            var messageId = 0;
             await _client.SendEventAsync(Encoding.UTF8.GetBytes(
-                JsonConvertEx.SerializeObject(new HttpTunnelMessageModel {
+                JsonConvertEx.SerializeObject(new HttpTunnelRequestModel {
+                    ResourceId = null, // TODO
+                    Uri = request.RequestUri.ToString(),
                     Headers = headers,
-                    Method = method,
-                    CorrelationId = correlationId
-                })), "content", "schema", "application/json");
+                    Chunks = chunks.Count,
+                    Method = method
+                })), requestId + "_" + messageId.ToString(),
+                    HttpTunnelRequestModel.SchemaName, ContentMimeType.Json);
 
             // Send payload chunks
-            var eventId = 0;
-            for (var offset = 0; offset < buffer.Length; offset += _maxSize) {
-                var length = Math.Min(buffer.Length - offset, _maxSize);
-                var chunk = buffer.AsSpan(offset, length).ToArray();
-                ++eventId;
-                await _client.SendEventAsync(chunk, "content",
-                    correlationId + "_" + eventId.ToString(), "gzip");
+            foreach (var chunk in chunks) {
+                ++messageId;
+                await _client.SendEventAsync(chunk,
+                    requestId + "_" + messageId.ToString(),
+                    HttpTunnelRequestModel.SchemaName, ContentMimeType.Binary);
             }
             return await tcs.Task;
         }
@@ -85,8 +99,8 @@ namespace Microsoft.Azure.IIoT.Module.Default {
 
             // Handle response from device method
             var result = Encoding.UTF8.GetString(payload);
-            var response = JsonConvertEx.DeserializeObject<HttpTunnelMessageModel>(result);
-            if (_outstanding.TryRemove(response.CorrelationId, out var tcs)) {
+            var response = JsonConvertEx.DeserializeObject<HttpTunnelResponseModel>(result);
+            if (_outstanding.TryRemove(response.RequestId, out var tcs)) {
                 var httpResponse = new HttpResponseMessage((HttpStatusCode)response.Status) {
                     Content = new ByteArrayContent(response.Payload)
                 };

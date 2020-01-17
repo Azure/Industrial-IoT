@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     public sealed class SubscriberCdmSampleHandler : IDeviceTelemetryHandler {
 
         /// <inheritdoc/>
-        public string MessageSchema => ContentTypes.LegacySubscriberSample;
+        public string MessageSchema => MessageSchemaTypes.LegacySubscriberSample;
 
         /// <summary>
         /// Create handler

@@ -6,9 +6,9 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
 
     /// <summary>
-    /// Content type constants
+    /// Message schema type constants
     /// </summary>
-    public static class ContentTypes {
+    public static class MessageSchemaTypes {
 
         /// <summary>
         /// Message contains a single publisher sample

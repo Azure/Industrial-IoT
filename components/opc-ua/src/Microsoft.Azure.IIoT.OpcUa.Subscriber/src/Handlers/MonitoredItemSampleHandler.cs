@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     public sealed class MonitoredItemSampleHandler : IDeviceTelemetryHandler {
 
         /// <inheritdoc/>
-        public string MessageSchema => MessageSchemaTypes.MonitoredItemMessageJson;
+        public string MessageSchema => Core.MessageSchemaTypes.MonitoredItemMessageJson;
 
         /// <summary>
         /// Create handler
