@@ -498,7 +498,7 @@ Function New-Deployment() {
                 $namespace = "master"
             }
             $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
-            $templateParameters.Add("imageNamespace", $namespace)
+            $templateParameters.Add("imagesNamespace", $namespace)
             Write-Host "Using latest $($namespace) images from $($creds.dockerServer)."
         }
 

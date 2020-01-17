@@ -144,14 +144,14 @@
                 "description": "Specifies the password to use for a private Container Registry."
             }
         },
-        "imageNamespace": {
+        "imagesNamespace": {
             "type": "string",
             "defaultValue": "",
             "metadata": {
                 "description": "Specifies the namespace prefix for the images in the Container Registry."
             }
         },
-        "imageVersion": {
+        "imagesTag": {
             "type": "string",
             "defaultValue": "latest",
             "metadata": {
@@ -196,13 +196,13 @@
         "simulationConfigurationResourceName": "simulation.configuration",
         "serviceSiteResourceName": "[if(empty(parameters('serviceSiteName')), concat('svc', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5)), parameters('serviceSiteName'))]",
         "serviceSiteResourceId": "[resourceId('Microsoft.Web/sites', variables('serviceSiteResourceName'))]",
-        "serviceContainerImageName": "[concat(if(empty(parameters('imageNamespace')), '', concat(parameters('imageNamespace'), '/')), 'iot/industrial-iot-services-all', ':', parameters('imageVersion'))]",
+        "serviceContainerImageName": "[concat(if(empty(parameters('imagesNamespace')), '', concat(parameters('imagesNamespace'), '/')), 'iot/industrial-iot-services-all', ':', parameters('imagesTag'))]",
         "serviceConfigurationResourceName": "platform.service.configuration",
         "serviceConfigurationResourceId": "[resourceId('Microsoft.Resources/deployments', variables('serviceConfigurationResourceName'))]",
         "servicePublishingConfigResource": "[concat('Microsoft.Web/sites/', variables('serviceSiteResourceName'), '/config/publishingcredentials')]",
         "appSiteResourceName": "[if(empty(parameters('siteName')), concat('app', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5)), parameters('siteName'))]",
         "appSiteResourceId": "[resourceId('Microsoft.Web/sites', variables('appSiteResourceName'))]",
-        "appContainerImageName": "[concat(if(empty(parameters('imageNamespace')), '', concat(parameters('imageNamespace'), '/')), 'iot/industrial-iot-frontend', ':', parameters('imageVersion'))]",
+        "appContainerImageName": "[concat(if(empty(parameters('imagesNamespace')), '', concat(parameters('imagesNamespace'), '/')), 'iot/industrial-iot-frontend', ':', parameters('imagesTag'))]",
         "appConfigurationResourceName": "platform.app.configuration",
         "appPublishingConfigResource": "[concat('Microsoft.Web/sites/', variables('appSiteResourceName'), '/config/publishingcredentials')]"
     },
@@ -531,11 +531,11 @@
                     "dockerPassword": {
                         "value": "[parameters('dockerPassword')]"
                     },
-                    "imageNamespace": {
-                        "value": "[parameters('imageNamespace')]"
+                    "imagesNamespace": {
+                        "value": "[parameters('imagesNamespace')]"
                     },
-                    "imageVersion": {
-                        "value": "[parameters('imageVersion')]"
+                    "imagesTag": {
+                        "value": "[parameters('imagesTag')]"
                     },
                     "templateUrl": {
                         "value": "[parameters('templateUrl')]"
@@ -609,11 +609,11 @@
                     "dockerPassword": {
                         "value": "[parameters('dockerPassword')]"
                     },
-                    "imageNamespace": {
-                        "value": "[parameters('imageNamespace')]"
+                    "imagesNamespace": {
+                        "value": "[parameters('imagesNamespace')]"
                     },
-                    "imageVersion": {
-                        "value": "[parameters('imageVersion')]"
+                    "imagesTag": {
+                        "value": "[parameters('imagesTag')]"
                     },
                     "templateUrl": {
                         "value": "[parameters('templateUrl')]"

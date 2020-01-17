@@ -308,7 +308,7 @@
         {
             if (node.Id == samples.NodeId)
             {
-                node.Value = samples.Value.ToObject<string>();
+                node.Value = samples.Value?.ToString();
                 this.StateHasChanged();
             }
         }
