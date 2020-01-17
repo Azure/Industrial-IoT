@@ -4,9 +4,13 @@ metadata:
   name: industrial-iot-role
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: industrial-iot-role
-    app.kubernetes.io/part-of: industrial-iot
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    app.kubernetes.io/name: {{ template "industrial-iot.name" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: industrial-iot-role
+    app.kubernetes.io/part-of: industrial-iot
 rules:
 - apiGroups:
   - ""

@@ -4,13 +4,19 @@ metadata:
   name: vault-service
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: vault-service
-    app.kubernetes.io/part-of: industrial-iot
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    app.kubernetes.io/name: {{ template "industrial-iot.name" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: vault-service
+    app.kubernetes.io/part-of: industrial-iot
 spec:
   type: ClusterIP
   selector:
-    app.kubernetes.io/name: vault-service
+    app.kubernetes.io/name: {{ template "industrial-iot.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: vault-service
     app.kubernetes.io/part-of: industrial-iot
   ports:
   - port: 443

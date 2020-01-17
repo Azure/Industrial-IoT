@@ -4,21 +4,31 @@ metadata:
   name: jobs-deployment
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: jobs-service
-    app.kubernetes.io/part-of: industrial-iot
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    app.kubernetes.io/name: {{ template "industrial-iot.name" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: jobs-service
+    app.kubernetes.io/part-of: industrial-iot
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: jobs-service
+      app.kubernetes.io/name: {{ template "industrial-iot.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: jobs-service
       app.kubernetes.io/part-of: industrial-iot
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: jobs-service
-        app.kubernetes.io/part-of: industrial-iot
+        helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+        app.kubernetes.io/name: {{ template "industrial-iot.name" . }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/version: {{ .Chart.AppVersion }}
+        app.kubernetes.io/component: jobs-service
+        app.kubernetes.io/part-of: industrial-iot
     spec:
       serviceAccountName: industrial-iot-serviceaccount
       containers:
