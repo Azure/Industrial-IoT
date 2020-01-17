@@ -30,7 +30,7 @@ spec:
         app.kubernetes.io/component: opc-history
         app.kubernetes.io/part-of: industrial-iot
     spec:
-      serviceAccountName: industrial-iot-serviceaccount
+      # serviceAccountName: industrial-iot-serviceaccount
       containers:
       - name: history-service-container
         image: {{ .Values.Image.Registry }}/opc-history-service:{{ .Values.Image.Tag }}

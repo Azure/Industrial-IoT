@@ -30,7 +30,7 @@ spec:
         app.kubernetes.io/component: opc-processor
         app.kubernetes.io/part-of: industrial-iot
     spec:
-      serviceAccountName: industrial-iot-serviceaccount
+      # serviceAccountName: industrial-iot-serviceaccount
       containers:
       - name: model-processor-service-container
         image: {{ .Values.Image.Registry }}/opc-processor-service:{{ .Values.Image.Tag }}

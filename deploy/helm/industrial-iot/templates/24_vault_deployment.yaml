@@ -30,7 +30,7 @@ spec:
         app.kubernetes.io/component: opc-vault
         app.kubernetes.io/part-of: industrial-iot
     spec:
-      serviceAccountName: industrial-iot-serviceaccount
+      # serviceAccountName: industrial-iot-serviceaccount
       containers:
       - name: vault-service-container
         image: {{ .Values.Image.Registry }}/opc-vault-service:{{ .Values.Image.Tag }}
