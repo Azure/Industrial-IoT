@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.App.Services;
     using Microsoft.Azure.IIoT.App.Runtime;
     using Microsoft.Azure.IIoT.Services.Auth.Clients;
+    using Microsoft.Azure.IIoT.Services.Auth;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
@@ -36,10 +37,7 @@ namespace Microsoft.Azure.IIoT.App {
     using System;
     using System.Threading.Tasks;
     using System.Security.Claims;
-    using Microsoft.Azure.IIoT.Auth;
-    using Microsoft.AspNetCore.Components;
     using System.Security.Authentication;
-    using Microsoft.Azure.IIoT.Services.Auth;
 
     /// <summary>
     /// Webapp startup
@@ -83,7 +81,7 @@ namespace Microsoft.Azure.IIoT.App {
             app.UseForwardedHeaders();
 
             var isDevelopment = env.IsDevelopment();
-            isDevelopment = false; // TODO Remove when all issues fixed
+            isDevelopment = true; // TODO Remove when all issues fixed
             if (isDevelopment) {
                 app.UseDeveloperExceptionPage();
             }
@@ -126,9 +124,9 @@ namespace Microsoft.Azure.IIoT.App {
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services) {
 
-          //  if (string.Equals(
-          //      Environment.GetEnvironmentVariable("ASPNETCORE_FORWARDEDHEADERS_ENABLED"),
-          //          "true", StringComparison.OrdinalIgnoreCase)) {
+            if (string.Equals(
+                Environment.GetEnvironmentVariable("ASPNETCORE_FORWARDEDHEADERS_ENABLED"),
+                    "true", StringComparison.OrdinalIgnoreCase)) {
 
                 services.Configure<ForwardedHeadersOptions>(options => {
                     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
@@ -139,7 +137,12 @@ namespace Microsoft.Azure.IIoT.App {
                     options.KnownNetworks.Clear();
                     options.KnownProxies.Clear();
                 });
-          //  }
+            }
+
+            // Protect cookies using keyvault
+            services.AddDataProtection()
+                .AddAzureBlobKeyStorage(Config)
+                .AddAzureKeyVaultDataProtection(Config, Config);
 
             services.Configure<CookiePolicyOptions>(options => {
                 // This lambda determines whether user consent for non-essential cookies
@@ -153,7 +156,8 @@ namespace Microsoft.Azure.IIoT.App {
             });
 
             services.AddHttpContextAccessor();
-            services.AddAuthentication(AzureADDefaults.AuthenticationScheme)
+            services
+                .AddAuthentication(AzureADDefaults.AuthenticationScheme)
                 .AddAzureAD(options => {
                     options.Instance = Config.InstanceUrl;
                     options.Domain = Config.Domain;
@@ -176,10 +180,8 @@ namespace Microsoft.Azure.IIoT.App {
                     options.ResponseType = "id_token code";
                     options.Resource = Config.AppId;
                     options.Scope.Add("offline_access");
-                    options.Events = new OpenIdConnectEvents {
-                        OnAuthenticationFailed = OnAuthenticationFailedAsync,
-                        OnAuthorizationCodeReceived = OnAuthorizationCodeReceivedAsync
-                    };
+                    options.Events.OnAuthenticationFailed = OnAuthenticationFailedAsync;
+                    options.Events.OnAuthorizationCodeReceived = OnAuthorizationCodeReceivedAsync;
                 });
 
             services.AddControllersWithViews(options => {
@@ -293,7 +295,7 @@ namespace Microsoft.Azure.IIoT.App {
 
             /// <inheritdoc/>
             public void Handle(HttpContext context, AuthenticationException ex) {
-                context.Response.Redirect("/AzureAD/Account/SignIn");
+                throw ex;
             }
         }
     }
