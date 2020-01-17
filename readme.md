@@ -2,6 +2,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Build Status](https://msazure.visualstudio.com/One/_apis/build/status/Custom/Azure_IOT/Industrial/Components/Azure.Industrial-IoT?branchName=master)](https://msazure.visualstudio.com/One/_build/latest?definitionId=86580&branchName=master)
 
+## Features
+
 ### Discover, register and manage your Industrial Assets with Azure
 
 Azure Industrial IoT allows plant operators to discover OPC UA enabled servers in a factory network and register them in Azure IoT Hub.  
@@ -14,14 +16,15 @@ Operations personnel can subscribe to and react to events on the factory floor f
 
 The [REST API](docs/api/readme.md) can be used with any programming language through its exposed Open API specification (Swagger). This means when integrating OPC UA into cloud management solutions, developers are free to choose technology that matches their skills, interests, and architecture choices.  For example, a full stack web developer who develops an application for an alarm and event dashboard can write logic to respond to events in JavaScript or TypeScript without ramping up on a OPC UA SDK, C, C++, Java or C#.
 
-### Architecture and Components
+## Getting started
 
-This repository contains the Azure Industrial IoT Platform which includes the Industrial IoT Microservices as well as several [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/) modules.  Applications can utilize the platform components to enable new Industry 4.0 scenarios without worrying about connectivity. [Details](https://azure.github.io/Industrial-IoT/) on how things work together can be found in the [architecture](docs/architecture.md) documentation.
-
-## Learn more
-
+- [Deploy the platform components and Edge Gateway](docs/deploy/readme.md)
+- Discover and register Industrial Assets
+  - [Discover a server and browse its address space using the CLI](docs/howto-use-cli.md).
+  - [Discover a server and browse its address space using Postman](docs/howto-use-postman.md).
+- Subscribe to data and visualize the data (COMING SOON)
 - [Read the docs](https://azure.github.io/Industrial-IoT/)
-- Explore the samples
+- Explore Industrial IoT projects using this platform
   - [Connected Factory](https://github.com/Azure/Azure-IoT-Connected-Factory) Solution Accelerator which you can try out [here](https://www.azureiotsolutions.com/Accelerators).
   - [OPC Vault Dashboard](https://github.com/Azure/azure-iiot-opc-vault-service/tree/master/app)
 
@@ -29,7 +32,7 @@ This repository contains the Azure Industrial IoT Platform which includes the In
 
 Please report any security related issues by following our [Security](security.md) process.
 
-Please enter all other bugs, feature requests, documentation issues, or suggestions as GitHub Issues [here](https://github.com/Azure/Industrial-IoT/issues).   
+Please enter all other bugs, feature requests, documentation issues, or suggestions as GitHub Issues [here](https://github.com/Azure/Industrial-IoT/issues).
 
 ## Contribute
 
@@ -41,4 +44,3 @@ If you want/plan to contribute, we ask you to sign a [CLA](https://cla.microsoft
 
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the [MIT](LICENSE) License.  
-

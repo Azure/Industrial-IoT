@@ -1,6 +1,6 @@
 # All in one service
 
-[Home](../readme.md)
+[Home](readme.md)
 
 ## Overview
 

@@ -2,19 +2,13 @@
 
 [Home](readme.md)
 
-### Prerequisites
+## Prerequisites
 
 * Log Analytics workspace
   * Information is stored by default in your Log Analytics Workspace by ASC for IoT
-* IoT Hub 
-* Supported service regions for ASC for IoT
-  * Central US
-  * Northern Europe
-  * Southeast Asia
-* Azure Sentinel supports  workspaces created in the following regions only:
-  * Southeast, Canada Central, Central India, East U.S., East U.S. 2 EUAP (Canary), Japan  East, Southeast Asia, UK South, West Europe, and West U.S. 2.
+* IoT Hub [deployed](readme.md)
 
-### Steps
+## Steps
 
 1. Enable ASC for IoT
    * Open your IoT Hub in Azure portal
@@ -25,20 +19,20 @@
      * Elect to enable twin collection by leaving the twin collection toggle On
    * Click Save
 
-   ![enable](media/asc1.png)
+   ![enable](../media/asc1.png)
   
-   ![workspace](media/asc2.png)
+   ![workspace](../media/asc2.png)
 
 2. Add Azure Sentinel to Log Analytics Workspace
    * Go to Azure Sentinel and click New. This opens a new blade showing list of workspaces to add. Choose your workspace and click Add Azure Sentinel
 
-   ![sentinel](media/asc3.png)
+   ![sentinel](../media/asc3.png)
 
 3. Create Alert rules
    * Go to Azure Sentinel and select the workspace from Step 2
    * Go to Analytics and click Add
 
-   ![analytics](media/asc4.png)
+   ![analytics](../media/asc4.png)
 
    * Create the alert rule using the following query:
 
@@ -48,8 +42,8 @@
      | extend AccountCustomEntity = EventDetails
      ```
 
-   ![alertrule](media/asc5.png)
+   ![alertrule](../media/asc5.png)
 
    * And you're done! Next time an alert is raised matching the alert rule, a case is created which you can check on Cases. You could also go to Logs section to check logs in certain time period
 
-   ![cases](media/asc6.png)
+   ![cases](../media/asc6.png)

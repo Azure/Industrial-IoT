@@ -1,6 +1,6 @@
 # Jobs Service and Edge endpoint
 
-[Home](../readme.md)
+[Home](readme.md)
 
 ## Overview
 

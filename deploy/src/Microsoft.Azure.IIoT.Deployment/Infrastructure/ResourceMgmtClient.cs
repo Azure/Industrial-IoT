@@ -29,6 +29,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public const string MICROSOFT_CONTAINER_SERVICE = "Microsoft.ContainerService";
         public const string MICROSOFT_DOMAIN_REGISTRATION = "Microsoft.DomainRegistration";
         public const string MICROSOFT_OPERATIONS_MANAGEMENT = "Microsoft.OperationsManagement";
+        public const string MICROSOFT_NETWORK = "Microsoft.Network";
+        public const string MICROSOFT_OPERATIONAL_INSIGHTS = "Microsoft.OperationalInsights";
+        public const string MICROSOFT_WEB = "Microsoft.Web";
 
         private const string STATE_NOT_REGISTERED = "notregistered";
         private const string STATE_REGISTERING = "registering";
@@ -90,6 +93,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 var containerServiceCreationTask = RegisterResourceProviderAsync(MICROSOFT_CONTAINER_SERVICE, cancellationToken);
                 var domainRegistrationCreationTask = RegisterResourceProviderAsync(MICROSOFT_DOMAIN_REGISTRATION, cancellationToken);
                 var operationsManagementCreationTask = RegisterResourceProviderAsync(MICROSOFT_OPERATIONS_MANAGEMENT, cancellationToken);
+                var networkCreationTask = RegisterResourceProviderAsync(MICROSOFT_NETWORK, cancellationToken);
+                var operationalInsightsCreationTask = RegisterResourceProviderAsync(MICROSOFT_OPERATIONAL_INSIGHTS, cancellationToken);
+                var webCreationTask = RegisterResourceProviderAsync(MICROSOFT_WEB, cancellationToken);
 
                 await devicesCreationTask;
                 await documentDBCreationTask;
@@ -103,6 +109,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 await containerServiceCreationTask;
                 await domainRegistrationCreationTask;
                 await operationsManagementCreationTask;
+                await networkCreationTask;
+                await operationalInsightsCreationTask;
+                await webCreationTask;
 
                 Log.Information("Registered resource providers");
             }

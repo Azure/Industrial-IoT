@@ -4,7 +4,7 @@
 
 The Industrial-IoT repository includes all Azure Industrial IoT platform components:
 
-* **Api** 
+* **Api**
   The Api folder contains projects and nuget packages that represent the API of the included Microservices.   It also includes a handy Command Line Interface to excercise these APIs.
 * **Common**
   The common folder includes utility functionality and abstractions used across the entire platform.  This includes tools and functionality for Diagnostics, Networking, Crypto, Storage, Messaging as well as IoT Hub functionality and IoT Edge framework code.
@@ -19,8 +19,6 @@ The Industrial-IoT repository includes all Azure Industrial IoT platform compone
 * **Services**
   The services folder includes the Microservices and Agents running in Azure Cloud and communicating with the Edge modules.  They utilize the business logic contained in the `Components` folder
 
+## Learn more
 
-## Learn more 
-
-* [Deploy Azure Industrial IoT](docs/readme.md)
-* [Deploy the Microservices](docs/howto-deploy-microservices.md)
+* [Deploy Azure Industrial IoT](deploy/readme.md)

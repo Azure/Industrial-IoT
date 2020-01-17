@@ -1,6 +1,6 @@
 # OPC Gateway Microservice
 
-[Home](../readme.md)
+[Home](readme.md)
 
 > **This service is not intended for production use at this point in time !**
 

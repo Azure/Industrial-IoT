@@ -14,7 +14,7 @@ All OPC UA components use the [OPC Foundation](https://opcfoundation.org/)'s OPC
 
 The deployment tool deploys the Industrial IoT Microservices into a Linux [VM](https://azure.microsoft.com/en-us/services/virtual-machines/) or [Azure Kubernetes Cluster](https://azure.microsoft.com/en-us/services/kubernetes-service/) and creates the following required PaaS services:
 
-### Azure IoT Hub 
+### Azure IoT Hub
 
 The [Azure IoT Hub](https://azure.microsoft.com/en-us/services/iot-hub/) is used as cloud broker for Edge to Cloud and Cloud to Edge messaging.   IoT Hub manages device and module identities, including OPC UA endpoints and applications.
 
@@ -36,7 +36,7 @@ Azure SignalR service is used for scalable UI client notifications without the n
 
 ### Azure Storage
 
-A [storage](https://azure.microsoft.com/en-us/services/storage/blobs/) account is used by the [onboarding](../services/onboarding.md) Microservice to persist Azure IoT Hub Event Hub Endpoint read offsets and partition information to support partitioned and reliable access from multiple instances.
+A [storage](https://azure.microsoft.com/en-us/services/storage/blobs/) account is used by the [onboarding](onboarding.md) Microservice to persist Azure IoT Hub Event Hub Endpoint read offsets and partition information to support partitioned and reliable access from multiple instances.
 
 ### Azure Active Directory
 
@@ -44,10 +44,9 @@ All Microservices are registered as Application in [Azure Active Directory](http
 
 ## Azure IoT Edge
 
-Edge modules are deployed through IoT Hub to [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/). to provide protocol translation and a local management plane.  Modules are simple Docker containers consumed from a docker registry, such as Microsoft Container Registry (MCR).  Edge components only need to open an outbound SSL connection to enable bidirectional services.   
+Edge modules are deployed through IoT Hub to [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/). to provide protocol translation and a local management plane.  Modules are simple Docker containers consumed from a docker registry, such as Microsoft Container Registry (MCR).  Edge components only need to open an outbound SSL connection to enable bidirectional services.
 
 ## Next steps
 
-* [Deploy dependencies for local development](../howto-deploy-dependencies.md)
-* [Deploy Microservices](../howto-deploy-microservices.md)
-* [Learn about Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/).
+- [Deploy dependencies for local development](../deploy/howto-deploy-local.md)
+- [Learn about Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/).

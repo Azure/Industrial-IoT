@@ -23,14 +23,16 @@ The following Microservices are part of the platform:
 
 These microservices use business logic and components included in this repository to provide discovery, registration, and remote control of industrial devices through REST APIs that can be implemented in any programming language and framework that can call an HTTP endpoint.
 
-All REST calls use JSON as mime type.  OPC UA types are encoded as per Part 6 [with some exceptions](../api/json.md). 
+All REST calls use JSON as mime type.  OPC UA types are encoded as per Part 6 [with some exceptions](../api/json.md).
 
 ## Agent services
 
 The following Agents are part of the platform:
 
 * [Edge Telemetry processor](telemetry.md) (GA)
-* [Edge Event Processor](events.md) (COMING SOON)
+* [Edge Event Processor](events.md) (GA)
+* [SignalR Telemetry Forwarder](ux.md) (GA)
+* [Datalake and CDM Telemetry Exporter](cdm.md) (Preview)
 * [Registry Discovery Multiplexer](discovery.md) (GA)
 * [Identity Service](identity.md) (Preview)
 * [Registry Security Alerting Service](security.md) (Preview)
@@ -44,6 +46,6 @@ An alternative to hosting individual containers in a cluster is the "[all in one
 
 ## Next steps
 
-* [Deploy Microservices to Azure](../howto-deploy-microservices.md)
+* [Deploy Microservices to Azure](../deploy/readme.md)
 * [Register a server and browse its address space](../howto-use-cli.md)
 * [Explore the REST API](../api/readme.md)

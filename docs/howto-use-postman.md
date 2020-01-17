@@ -8,16 +8,15 @@ This article will walk you through the steps to discover and register OPC UA ser
 
 You should have already successfully deployed all Microservices and at least one IoT Edge Gateway with the Industrial IoT Modules.  If you have not, please follow the instructions in:
 
-1. [Deploy the Industrial IoT Microservices to Azure](howto-deploy-microservices.md).
+1. [Deploy the Industrial IoT Microservices to Azure](deploy/howto-deploy-microservices.md).
 
-2. [Deploy Industrial IoT Edge Modules](howto-deploy-modules.md)
+2. [Install Industrial IoT Edge](deploy/howto-install-iot-edge.md)
 
-To run the demo OPC UA server you will also need Docker installed on a machine that is visible to the IoT Edge from a network point of view).  If you have not, please follow the instructions for [Linux](https://docs.docker.com/install/linux/docker-ce/ubuntu/), [Mac](https://docs.docker.com/docker-for-mac/install/), or on [Windows](https://docs.docker.com/docker-for-windows/install/).
+    To run the demo OPC UA server you will also need Docker installed on a machine that is visible to the IoT Edge from a network point of view).  If you have not, please follow the instructions for [Linux](https://docs.docker.com/install/linux/docker-ce/ubuntu/), [Mac](https://docs.docker.com/docker-for-mac/install/), or on [Windows](https://docs.docker.com/docker-for-windows/install/).
 
-Also, make sure you have Git installed on the same machine that will run the demo OPC UA server.  Otherwise follow the instructions for [Linux or Mac](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), or [Windows](https://gitforwindows.org/) to install it.
+    Also, make sure you have Git installed on the same machine that will run the demo OPC UA server.  Otherwise follow the instructions for [Linux or Mac](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), or [Windows](https://gitforwindows.org/) to install it.
 
 3. [Have Postman installed](https://www.getpostman.com/).
-
 
 ## Start the demo OPC UA server
 
@@ -40,6 +39,7 @@ To make the demo deterministic we also start a demo OPC UA server.
    to start PLC demo server.  For simplicity we instruct the demo server to accept our certificate.  
 
 ## Configure Azure AD App permissions for using later with Postman
+
 Note: the Postman requests will use an Authorization Code flow to authenticate to the service.
 
 ### Create AAD App secret
@@ -63,8 +63,8 @@ Note: the Postman requests will use an Authorization Code flow to authenticate t
 2. From Azure Active Directory, back in App registrations, go to the details of the '-services' appl registration. You'll need to copy and keep handy the following data:
     - From the Expose an API screen, copy the default scope which will look like this: 'https://[yourtenant]].onmicrosoft.com/[yourprefix]-services/user_impersonation', you will need this under [YOUR SCOPE URI] below
 
-
 ## Download a sample set of API calls (Postman collection)
+
 1. Download the collection [here](media/OPCTwin.postman_collection1.0.json)
 2. Import the collection by choosing 'Import' button at the top left of Postman.
 3. Create a new Environment named OPC Twin: within Postman at the top right click Manage Environments.
@@ -161,7 +161,6 @@ Note: the Postman requests will use an Authorization Code flow to authenticate t
 4. Now execute the request 'Twin: publish node', make sure the URI has your `applicationId`, and update the request's Body to reflect the node you wish to publish.
 5. Re-execute the request 'Twin: Get currently published nodes'.
 
-
 ## Clean up
 
 Note the `applicationId` by executing the request `Registry: get applications. 
@@ -173,5 +172,5 @@ Note this step does not remove any configuration for published nodes in OPC Publ
 
 Now that you are done, try to run your own OPC UA server in the same network as your IoT Edge gateway and follow the instructions above with the relevant variations (e.g. discovery URL).
 
-* See the [architectural flow diagrams](architecture-flow.md) for more information.
-* [Explore Microservices REST APIs](api/readme.md)
+- See the [architectural flow diagrams](architecture-flow.md) for more information.
+- [Explore Microservices REST APIs](api/readme.md)

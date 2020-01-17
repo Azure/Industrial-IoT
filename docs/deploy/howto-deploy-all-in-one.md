@@ -2,14 +2,7 @@
 
 [Home](readme.md)
 
-This article explains how to deploy the Azure Industrial IoT Platform in Azure.  
-
-## Deploy Industrial IoT Microservices to AKS using the deployment tool
-
-To deploy the Industrial IoT platform to Azure Kubernetes Service (AKS) follow the steps outlined [here](industrial_iot_deployment.md).
-
-## Deploy Industrial IoT Platform to Azure using the Azure Portal
-
+This article explains how to deploy the Azure Industrial IoT Platform and Simulation in Azure using the deployment scripts.  
 The ARM deployment templates included in the repository deploy the platform and an entire simulation environment consisting of
 
 - Linux and Windows IoT Edge simulation running all required modules
@@ -17,6 +10,8 @@ The ARM deployment templates included in the repository deploy the platform and 
 - All required Azure infrastructure
 - The Industrial IoT Platform
 - The Industrial IoT Sample Engineering tool.
+
+## Deploy using the Portal
 
 You can deploy directly from the *master* branch using the deploy button:
 
@@ -28,9 +23,7 @@ To get the AAD information needed by the template use the `deploy/scripts/aad-re
 
 ## Deploy Industrial IoT Platform using deployment script
 
-The platform can also be deployed using the deploy script.
-
-### Prerequisites
+The platform and simulation can also be deployed using the deploy script.
 
 1. Make sure you have PowerShell and [Az PowerShell](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps) extensions installed.  If not, first install PowerShell, then open PowerShell as Administrator and run
 
@@ -46,9 +39,7 @@ The platform can also be deployed using the deploy script.
    cd Industrial-IoT
    ```
 
-### Deploy
-
-1. Open a command prompt or terminal in the repository root and run:
+3. Open a command prompt or terminal in the repository root and run:
 
    ```bash
    deploy
@@ -56,16 +47,16 @@ The platform can also be deployed using the deploy script.
 
    The supported parameters can be found [below](#deployment-script-options).
 
-2. Follow the prompts to assign a name to the resource group of the deployment and a name to the website. The script deploys the Microservices and their Azure platform dependencies into the resource group in your Azure subscription.  The script also registers an Application in your Azure Active Directory (AAD) tenant to support OAUTH based authentication.  
+4. Follow the prompts to assign a name to the resource group of the deployment and a name to the website. The script deploys the Microservices and their Azure platform dependencies into the resource group in your Azure subscription.  The script also registers an Application in your Azure Active Directory (AAD) tenant to support OAUTH based authentication.  
    Deployment will take several minutes.  An example of what you'd see once the solution is successfully deployed:
 
-   ![Deployment Result](media/deployment1.png)
+   ![Deployment Result](../media/deployment1.png)
 
    The output includes the  URL of the public endpoint.  
 
    In case you run into issues please follow the steps [below](#troubleshooting-deployment-failures).
 
-3. Once the script completes successfully, select whether you want to save the `.env` file.  You need the `.env` environment file if you want to connect to the cloud endpoint using tools such as the [Console](howto-use-cli.md) or for debugging.
+5. Once the script completes successfully, select whether you want to save the `.env` file.  You need the `.env` environment file if you want to connect to the cloud endpoint using tools such as the [Console](howto-use-cli.md) or for debugging.
 
 ## Troubleshooting deployment failures
 
@@ -139,6 +130,6 @@ To support these scenarios, the `deploy.ps1` takes the following parameters:
 
 Now that you have successfully deployed the Microservices to an existing project, here are the suggested next steps:
 
-- [Deploy Industrial IoT modules to IoT Edge](howto-deploy-modules.md)
+- [Deploy Industrial IoT modules to IoT Edge](howto-install-iot-edge.md)
 - [Learn more about OPC Twin](services/readme.md)
 - [OPC Twin Dependencies](services/dependencies.md)

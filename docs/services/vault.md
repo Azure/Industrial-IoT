@@ -1,6 +1,6 @@
 # OPC Vault Micro service (Experimental)
 
-[Home](../readme.md)
+[Home](readme.md)
 
 ## Overview
 
