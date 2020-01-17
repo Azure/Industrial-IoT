@@ -1,6 +1,6 @@
 # Registry Microservice
 
-[Home](../readme.md)
+[Home](readme.md)
 
 ## Overview
 
@@ -16,7 +16,7 @@ You can update, read as well as **query** all of these identities' models in the
 
 The following diagram shows the registry service in relationship to the other components.
 
-![](../media/architecture.PNG)
+![architecture](../media/architecture.PNG)
 
 ## Create and Delete Items in the registry
 
@@ -34,7 +34,7 @@ The supervisor model for example contains the configuration for "recurring" disc
 
 To update an item, you must send a HTTP `PATCH` request containing the item's model (e.g. a `SupervisorModel`).  
 
-Values in the model that are set to *null* <u>are not updated</u>.  However, missing values in the incoming payload are de-serialized as *null*.  This means, to remove a value, you must explicitly set the value in the model to its *default*, e.g. an empty string, or 0, etc.
+Values in the model that are set to *null* are not updated.  However, missing values in the incoming payload are de-serialized as *null*.  This means, to remove a value, you must explicitly set the value in the model to its *default*, e.g. an empty string, or 0, etc.
 
 ## Activate and Deactivate Endpoints
 

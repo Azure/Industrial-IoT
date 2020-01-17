@@ -20,30 +20,21 @@ The [REST API](docs/api/readme.md) can be used with any programming language thr
 
 Azure Industrial IoT manages OPC UA Application Certificates and Trust Lists of factory floor machinery and control systems to keep OPC UA client to server communication secure. It restricts which client is allowed to talk to which server.  Storage of private keys and signing of certificates is backed by Azure Key Vault, which supports hardware based security (HSM).
 
-### Architecture
+## Getting started
 
-Check out the Azure Industrial IoT platform [architecture](architecture.md) and [flow](architecture-flow.md).  The Platform includes several [Azure IoT Edge modules](modules/readme.md), which can be [deployed](howto-deploy-modules.md) and used in conjunction with the included cloud services, or standalone with Azure IoT Hub (but with limited functionality).   These include:
+Deploying Azure Industrial IoT includes deploying the Azure Industrial IoT Microservices to Azure and the required edge modules to Azure IoT Edge. The following articles help you get started:
 
-- [OPC Publisher](modules/publisher.md)
-- [OPC Twin](modules/twin.md) and
-- [Discovery module](modules/discovery.md)
-
-## Deploying Azure Industrial IoT
-
-Deploying Azure Industrial IoT includes deploying the Azure Industrial IoT Microservices to Azure and the corresponding modules to Azure IoT Edge. The following articles provide more information about how to deploy both Microservices and edge modules in addition to their dependencies.
-
-- [Deploy all Microservices and dependencies to Azure](howto-deploy-microservices.md)
-- For development and testing purposes, one can also [deploy only the Microservices dependencies in Azure](howto-deploy-dependencies.md) and [run Microservices locally](howto-run-microservices-locally.md)
-- [Deploy Azure Industrial IoT Edge modules](howto-deploy-modules.md)
-- [Enable ASC for IoT](enable-asc-for-iot-and-sentinel-steps.md) to monitor security of OPC UA endpoints
+- [Deploy the platform components and Edge Gateway](deploy/readme.md)
+- Discover and register Industrial Assets
+  - [Discover a server and browse its address space using the CLI](howto-use-cli.md).
+  - [Discover a server and browse its address space using Postman](howto-use-postman.md).
+- Subscribe to data and visualize the data (COMING SOON)
 
 ## Learn more
 
-- [Discover a server and browse its address space using the CLI](howto-use-cli.md).
-- [Discover a server and browse its address space using Postman](howto-use-postman.md).
-- [Industrial IoT cloud Microservices](services/readme.md)
+- Read up on the Azure Industrial IoT platform [architecture](architecture.md) and [flow](architecture-flow.md).
+- Read about the [Industrial IoT cloud Microservices](services/readme.md)
   - [What is OPC Twin?](services/twin.md)
   - [What is OPC Vault?](services/vault.md)
 - [Explore and work with the REST API](api/readme.md)
 - [Explore the code structure](code-structure.md)
-

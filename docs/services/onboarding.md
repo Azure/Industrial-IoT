@@ -1,6 +1,6 @@
 # Onboarding Service
 
-[Home](../readme.md)
+[Home](readme.md)
 
 ## Overview
 

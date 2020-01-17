@@ -1,6 +1,6 @@
 # OPC UA JSON
 
-[Home](../readme.md)
+[Home](readme.md)
 
 The Twin Microservice REST API uses OPC UA JSON reversible encoding as per standard defined in OPC UA specification 1.04, Part 6, with the following exceptions or enhancements:
 

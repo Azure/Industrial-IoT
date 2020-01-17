@@ -1,12 +1,12 @@
 # Discovery Services Edge Module
 
-[Home](../readme.md)
+[Home](readme.md)
 
 The Discovery services module runs inside IoT Edge.  
 
 ## Server Discovery
 
-The discovery module, represented by the discoverer identity, provides discovery services on the edge which include OPC UA server discovery.  If discovery is configured and enabled, the module will send the results of a scan probe via the IoT Edge and IoT Hub telemetry path to the Onboarding service.  The service processes the results and updates all related Identities in the [Registry](../services/registry.md)   
+The discovery module, represented by the discoverer identity, provides discovery services on the edge which include OPC UA server discovery.  If discovery is configured and enabled, the module will send the results of a scan probe via the IoT Edge and IoT Hub telemetry path to the Onboarding service.  The service processes the results and updates all related Identities in the [Registry](../services/registry.md)
 
 The discovery interface allows for **recurring** as well as **one-time** scans.  
 
@@ -24,7 +24,7 @@ If no active scanning is desired the configuration can also specify
 
 ### Recurring discovery
 
-Recurring discovery can be enabled in the Discoverer identity's twin model using the Registry API.   A specific “mode” must be specified in addition to an optional [configuration](#configuration):
+Recurring discovery can be enabled in the Discoverer identity's twin model using the Registry API.   A specific “mode” must be specified in addition to an optional [configuration](#Configuration):
 
 * **`Off`** – no scanning takes place (default)
 * **`Local`** – only scan the address of each interface, i.e. localhost.
@@ -35,7 +35,7 @@ If any discovery URL's are part of the supervisor's discovery configuration, no 
 
 ### One time discovery
 
-One-time only discovery can be initiated by an operator through the registry’s REST API.  A discovery [configuration](#configuration) is part of the request payload.  One time discovery is serialized at the edge, i.e. will be performed one by one.
+One-time only discovery can be initiated by an operator through the registry’s REST API.  A discovery [configuration](#Configuration) is part of the request payload.  One time discovery is serialized at the edge, i.e. will be performed one by one.
 
 Using the configuration's discovery URLs, servers can be registered using a well known discovery URL without active scanning.  
 
@@ -45,7 +45,7 @@ The discovery progress as well as current request queue size is reported via the
 
 ## Next steps
 
-* [Learn how to deploy Discovery Module](../howto-deploy-modules.md)
+* [Learn how to deploy Discovery Module](../deploy/howto-install-iot-edge.md)
 * [Learn about the Registry Microservice](../services/registry.md)
 * [Learn about Registry Onboarding service](../services/onboarding.md)
 

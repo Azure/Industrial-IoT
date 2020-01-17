@@ -26,4 +26,4 @@ The following diagrams illustrate the OPC Twin architecture and how its componen
 
 ## Next steps
 
-* [Deploy Industrial IoT Microservices to Azure](howto-deploy-microservices.md)
+* [Deploy Industrial IoT components](deploy/readme.md)

@@ -1,6 +1,6 @@
-# Identity Agent 
+# Identity Agent
 
-[Home](../readme.md)
+[Home](readme.md)
 
 ## Overview
 
