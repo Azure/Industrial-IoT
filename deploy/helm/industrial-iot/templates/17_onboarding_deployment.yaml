@@ -33,7 +33,7 @@ spec:
       serviceAccountName: industrial-iot-serviceaccount
       containers:
       - name: onboarding-service-container
-        image: mcr.microsoft.com/iot/opc-onboarding-service:2.5.2
+        image: {{ .Values.Image.Registry }}/opc-onboarding-service:{{ .Values.Image.Tag }}
         resources:
           requests:
             memory: "64Mi"
