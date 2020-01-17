@@ -189,6 +189,70 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
         }
 
+        /// <summary>
+        /// GetGatewayListAsync
+        /// </summary>
+        /// <returns>GatewayApiModel</returns>
+        public async Task<PagedResult<GatewayApiModel>> GetGatewayListAsync() {
+            var pageResult = new PagedResult<GatewayApiModel>();
+
+            try {
+                var gatewayModel = new GatewayQueryApiModel();
+                var gateways = await _registryService.QueryAllGatewaysAsync(gatewayModel);
+
+                if (gateways != null) {
+                    foreach (var gateway in gateways) {
+                        pageResult.Results.Add(gateway);
+                    }
+                }
+            }
+            catch (Exception e) {
+                Trace.TraceWarning("Can not get gateways list");
+                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
+                Trace.TraceWarning(errorMessage);
+                pageResult.Results.Add(new GatewayApiModel {
+                    Id = e.Message
+                });
+            }
+
+            pageResult.PageSize = 10;
+            pageResult.RowCount = pageResult.Results.Count;
+            pageResult.PageCount = (int)Math.Ceiling((decimal)pageResult.RowCount / 10);
+            return pageResult;
+        }
+
+        /// <summary>
+        /// GetPublisherListAsync
+        /// </summary>
+        /// <returns>PublisherApiModel</returns>
+        public async Task<PagedResult<PublisherApiModel>> GetPublisherListAsync() {
+            var pageResult = new PagedResult<PublisherApiModel>();
+
+            try {
+                var publisherModel = new PublisherQueryApiModel();
+                var publishers = await _registryService.QueryAllPublishersAsync(publisherModel);
+
+                if (publishers != null) {
+                    foreach (var publisher in publishers) {
+                        pageResult.Results.Add(publisher);
+                    }
+                }
+            }
+            catch (Exception e) {
+                Trace.TraceWarning("Can not get publisher list");
+                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
+                Trace.TraceWarning(errorMessage);
+                pageResult.Results.Add(new PublisherApiModel {
+                    Id = e.Message
+                });
+            }
+
+            pageResult.PageSize = 10;
+            pageResult.RowCount = pageResult.Results.Count;
+            pageResult.PageCount = (int)Math.Ceiling((decimal)pageResult.RowCount / 10);
+            return pageResult;
+        }
+
         private readonly IRegistryServiceApi _registryService;
         private const int _5MINUTES = 300;
         public string PathAll = "All";
