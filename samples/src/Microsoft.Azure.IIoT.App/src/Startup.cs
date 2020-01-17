@@ -83,7 +83,7 @@ namespace Microsoft.Azure.IIoT.App {
             app.UseForwardedHeaders();
 
             var isDevelopment = env.IsDevelopment();
-            isDevelopment = true; // TODO Remove when all issues fixed
+            isDevelopment = false; // TODO Remove when all issues fixed
             if (isDevelopment) {
                 app.UseDeveloperExceptionPage();
             }
@@ -126,9 +126,9 @@ namespace Microsoft.Azure.IIoT.App {
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services) {
 
-            if (string.Equals(
-                Environment.GetEnvironmentVariable("ASPNETCORE_FORWARDEDHEADERS_ENABLED"),
-                    "true", StringComparison.OrdinalIgnoreCase)) {
+          //  if (string.Equals(
+          //      Environment.GetEnvironmentVariable("ASPNETCORE_FORWARDEDHEADERS_ENABLED"),
+          //          "true", StringComparison.OrdinalIgnoreCase)) {
 
                 services.Configure<ForwardedHeadersOptions>(options => {
                     options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
@@ -139,7 +139,7 @@ namespace Microsoft.Azure.IIoT.App {
                     options.KnownNetworks.Clear();
                     options.KnownProxies.Clear();
                 });
-            }
+          //  }
 
             services.Configure<CookiePolicyOptions>(options => {
                 // This lambda determines whether user consent for non-essential cookies
