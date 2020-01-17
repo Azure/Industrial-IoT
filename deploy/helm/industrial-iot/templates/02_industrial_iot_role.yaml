@@ -8,12 +8,12 @@ metadata:
     app.kubernetes.io/part-of: industrial-iot
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
 rules:
-  - apiGroups:
-      - ""
-    resources:
-      - configmaps
-      - pods
-      - secrets
-      - namespaces
-    verbs:
-      - get
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - pods
+  - secrets
+  - namespaces
+  verbs:
+  - get
