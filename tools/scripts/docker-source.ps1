@@ -138,6 +138,7 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
         $baseImage = $platformInfo.image
         $platformTag = $platformInfo.platformTag
         $entryPoint = $platformInfo.entryPoint
+        $environmentVars = @("ENV DOTNET_RUNNING_IN_CONTAINER=true")
 
         #
         # Check for overridden base image name - e.g. aspnet core images
@@ -169,17 +170,12 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
             $entryPoint = "[`"dotnet`", `"$($assemblyName).dll`"]"
         }
 
-        $environmentVars = @"
-ENV DOTNET_RUNNING_IN_CONTAINER=true
-"@
         $exposes = ""
         if ($metadata.exposes -ne $null) {
             $metadata.exposes | ForEach-Object {
                 $exposes = "$("EXPOSE $($_)" | Out-String)$($exposes)"
             }
-            $environmentVars +=  @"
-ENV ASPNETCORE_FORWARDEDHEADERS_ENABLED=true
-"@
+            $environmentVars += "ENV ASPNETCORE_FORWARDEDHEADERS_ENABLED=true"
         }
         $workdir = ""
         if ($metadata.workdir -ne $null) {
@@ -199,7 +195,7 @@ $($runtimeOnly)
 
 $($debugger)
 
-$($environmentVars)
+$($environmentVars | Out-String)
 
 ENTRYPOINT $($entryPoint)
 
