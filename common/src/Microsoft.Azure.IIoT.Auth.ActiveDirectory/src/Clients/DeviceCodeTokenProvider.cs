@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     using Microsoft.Azure.IIoT.Auth.Models;
-    using Serilog;
     using Microsoft.IdentityModel.Clients.ActiveDirectory;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <param name="config"></param>
         /// <param name="logger"></param>
         public DeviceCodeTokenProvider(IClientConfig config, ILogger logger) :
-            this((c, exp, msg) => Console.WriteLine(msg), config, null, logger) {
+            this(new ConsolePrompt(), config, null, logger) {
         }
 
         /// <summary>
@@ -35,21 +35,21 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <param name="logger"></param>
         public DeviceCodeTokenProvider(IClientConfig config, ITokenCacheProvider store,
             ILogger logger) :
-            this((c, exp, msg) => Console.WriteLine(msg), config, store, logger) {
+            this(new ConsolePrompt(), config, store, logger) {
         }
 
         /// <summary>
         /// Create device code provider with callback
         /// </summary>
         /// <param name="store"></param>
-        /// <param name="callback"></param>
+        /// <param name="prompt"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public DeviceCodeTokenProvider(Action<string, DateTimeOffset, string> callback,
+        public DeviceCodeTokenProvider(IDeviceCodePrompt prompt,
             IClientConfig config, ITokenCacheProvider store, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
-            _callback = callback ?? throw new ArgumentNullException(nameof(callback));
+            _prompt = prompt ?? throw new ArgumentNullException(nameof(prompt));
             _store = store ?? DefaultTokenCacheProvider.Instance;
 
             if (string.IsNullOrEmpty(_config.AppId)) {
@@ -84,7 +84,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
                     var codeResult = await ctx.AcquireDeviceCodeAsync(
                         resource, _config.AppId);
 
-                    _callback(codeResult.DeviceCode, codeResult.ExpiresOn,
+                    _prompt.Prompt(codeResult.DeviceCode, codeResult.ExpiresOn,
                         codeResult.Message);
 
                     // Wait and acquire it when authenticated
@@ -96,6 +96,11 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
             catch (AdalException exc) {
                 throw new AuthenticationException("Failed to authenticate", exc);
             }
+        }
+
+        /// <inheritdoc/>
+        public Task InvalidateAsync(string resource) {
+            return Task.CompletedTask;
         }
 
         /// <summary>
@@ -122,9 +127,15 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
             return ctx;
         }
 
-        /// <inheritdoc/>
-        public Task InvalidateAsync(string resource) {
-            return Task.CompletedTask;
+        /// <summary>
+        /// Console prompt
+        /// </summary>
+        private sealed class ConsolePrompt : IDeviceCodePrompt {
+            /// <inheritdoc/>
+            public void Prompt(string deviceCode, DateTimeOffset expiresOn,
+                string message) {
+                Console.WriteLine(message);
+            }
         }
 
         /// <summary>Logger for derived class</summary>
@@ -132,7 +143,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <summary>Configuration for derived class</summary>
         protected readonly IClientConfig _config;
         /// <summary>Callback for derived class</summary>
-        protected readonly Action<string, DateTimeOffset, string> _callback;
+        protected readonly IDeviceCodePrompt _prompt;
 
         private const string kDefaultAuthorityUrl = "https://login.microsoftonline.com/";
         private readonly ITokenCacheProvider _store;

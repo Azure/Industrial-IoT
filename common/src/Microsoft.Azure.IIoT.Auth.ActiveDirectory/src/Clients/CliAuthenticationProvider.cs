@@ -29,10 +29,10 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         }
 
         /// <inheritdoc/>
-        public CliAuthenticationProvider(Action<string, DateTimeOffset, string> callback,
+        public CliAuthenticationProvider(IDeviceCodePrompt prompt,
             IClientConfig config, ITokenCacheProvider store, ILogger logger) {
             _vs = new VsAuthenticationProvider(config);
-            _dc = new DeviceCodeTokenProvider(callback, config, store, logger);
+            _dc = new DeviceCodeTokenProvider(prompt, config, store, logger);
         }
 
         /// <inheritdoc/>
