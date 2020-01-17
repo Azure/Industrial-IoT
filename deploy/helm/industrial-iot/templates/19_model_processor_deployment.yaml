@@ -9,7 +9,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    app.kubernetes.io/component: model-processor-service
+    app.kubernetes.io/component: opc-processor
     app.kubernetes.io/part-of: industrial-iot
 spec:
   replicas: 1
@@ -17,7 +17,7 @@ spec:
     matchLabels:
       app.kubernetes.io/name: {{ template "industrial-iot.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
-      app.kubernetes.io/component: model-processor-service
+      app.kubernetes.io/component: opc-processor
       app.kubernetes.io/part-of: industrial-iot
   template:
     metadata:
@@ -27,7 +27,7 @@ spec:
         app.kubernetes.io/managed-by: {{ .Release.Service }}
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/version: {{ .Chart.AppVersion }}
-        app.kubernetes.io/component: model-processor-service
+        app.kubernetes.io/component: opc-processor
         app.kubernetes.io/part-of: industrial-iot
     spec:
       serviceAccountName: industrial-iot-serviceaccount

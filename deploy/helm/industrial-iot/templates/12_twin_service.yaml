@@ -9,14 +9,14 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    app.kubernetes.io/component: twin-service
+    app.kubernetes.io/component: opc-twin
     app.kubernetes.io/part-of: industrial-iot
 spec:
   type: ClusterIP
   selector:
     app.kubernetes.io/name: {{ template "industrial-iot.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/component: twin-service
+    app.kubernetes.io/component: opc-twin
     app.kubernetes.io/part-of: industrial-iot
   ports:
   - port: 443
