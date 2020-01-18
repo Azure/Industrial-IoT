@@ -3,32 +3,27 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Http.Default {
+namespace Microsoft.Azure.IIoT.Module.Default {
+    using Microsoft.Azure.IIoT.Http.Default;
     using Autofac;
 
     /// <summary>
-    /// Injected http client framework module
+    /// Injected module framework module
     /// </summary>
-    public sealed class HttpClientModule : Module {
+    public sealed class HttpTunnelClient : Module {
 
         /// <summary>
         /// Load the module
         /// </summary>
         /// <param name="builder"></param>
         protected override void Load(ContainerBuilder builder) {
-
-            // Http client services ...
+            // Http tunnel client services ...
             builder.RegisterType<HttpClient>().SingleInstance()
-                .AsImplementedInterfaces()
-                .IfNotRegistered(typeof(IHttpClient));
-            builder.RegisterType<HttpHandlerFactory>().SingleInstance()
-                .AsImplementedInterfaces()
-                .IfNotRegistered(typeof(IHttpHandlerFactory));
+                .AsImplementedInterfaces();
+            builder.RegisterType<HttpTunnelHandlerFactory>().SingleInstance()
+                .AsImplementedInterfaces();
             builder.RegisterType<HttpClientFactory>().SingleInstance()
-                .AsImplementedInterfaces()
-                .IfNotRegistered(typeof(System.Net.Http.IHttpClientFactory));
-
-            base.Load(builder);
+                .AsImplementedInterfaces();
         }
     }
 }

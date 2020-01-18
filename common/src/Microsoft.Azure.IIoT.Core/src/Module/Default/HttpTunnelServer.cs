@@ -222,7 +222,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                 catch (Exception ex) {
                     // Forward failure back to caller
                     await _outer._client.CallMethodAsync(
-                        _deviceId, _moduleId, "response",
+                        _deviceId, _moduleId, MethodNames.Response,
                         JsonConvertEx.SerializeObject(new HttpTunnelResponseModel {
                             RequestId = RequestId,
                             Status = (int)HttpStatusCode.InternalServerError,

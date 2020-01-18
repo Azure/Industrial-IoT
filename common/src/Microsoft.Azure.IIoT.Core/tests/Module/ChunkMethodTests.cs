@@ -12,9 +12,9 @@ namespace Microsoft.Azure.IIoT.Module {
     using System;
     using System.Text;
     using System.Threading.Tasks;
+    using System.Threading;
     using Xunit;
     using AutoFixture;
-    using System.Threading;
 
     public class ChunkMethodTests {
 
