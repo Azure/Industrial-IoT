@@ -12,7 +12,7 @@
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "description": "Specifies the object ID of the registered client principal in your Azure Active Directory tenant.  You can obtain it using Get-AzADServicePrincipal cmdlet."
+                "description": "Specifies the object ID of the registered service principal in your Azure Active Directory tenant.  You can obtain it using Get-AzADServicePrincipal cmdlet."
             }
         },
         "managedIdentityName": {
@@ -519,9 +519,7 @@
                             ],
                             "secrets": [
                                 "get",
-                                "list",
-                                "set",
-                                "delete"
+                                "list"
                             ]
                         }
                     }

@@ -20,12 +20,6 @@
                 "description": "The registered service application secret used to authenticate against KeyVault."
             }
         },
-        "clientPrincipalId": {
-            "type": "string",
-            "metadata": {
-                "description": "Specifies the object ID of the client principal in your Azure Active Directory tenant.  You can obtain it using Get-AzADServicePrincipal cmdlet."
-            }
-        },
         "clientAppId": {
             "type": "string",
             "metadata": {
@@ -209,7 +203,7 @@
                         "value": "[parameters('servicePrincipalId')]"
                     },
                     "keyVaultPrincipalId": {
-                        "value": "[parameters('clientPrincipalId')]"
+                        "value": "[parameters('servicePrincipalId')]"
                     }
                 },
                 "templateLink": {
