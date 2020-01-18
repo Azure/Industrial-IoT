@@ -474,7 +474,9 @@
                             "keys": [
                                 "get",
                                 "list",
-                                "sign"
+                                "sign",
+                                "encrypt",
+                                "decrypt"
                             ],
                             "secrets": [
                                 "get",
@@ -508,8 +510,16 @@
                         "tenantId": "[subscription().tenantId]",
                         "objectId": "[if(not(empty(parameters('managedIdentityName'))), reference(variables('identityResourceId'), '2018-11-30').principalId, parameters('keyVaultPrincipalId'))]",
                         "permissions": {
+                            "keys": [
+                                "get",
+                                "list",
+                                "sign",
+                                "encrypt",
+                                "decrypt"
+                            ],
                             "secrets": [
-                                "get"
+                                "get",
+                                "list"
                             ]
                         }
                     }
