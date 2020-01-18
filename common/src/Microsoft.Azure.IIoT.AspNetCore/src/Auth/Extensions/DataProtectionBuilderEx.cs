@@ -7,10 +7,15 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
     using Microsoft.AspNetCore.DataProtection;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Crypto.KeyVault;
+    using Microsoft.Azure.IIoT.Crypto.KeyVault.Runtime;
     using Microsoft.Azure.IIoT.Storage.Blob;
+    using Microsoft.Azure.IIoT.Storage.Blob.Runtime;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.KeyVault;
     using Microsoft.Azure.Services.AppAuthentication;
     using Microsoft.Azure.Storage;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
     using Serilog;
     using System;
     using System.Threading.Tasks;
@@ -21,35 +26,36 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
     public static class DataProtectionBuilderEx {
 
         /// <summary>
-        /// Helper to add jwt bearer authentication
+        /// Add Keyvault protection
         /// </summary>
         /// <param name="builder"></param>
-        /// <param name="config"></param>
-        /// <param name="keyVault"></param>
-        /// <param name="keyId"></param>
         public static IDataProtectionBuilder AddAzureKeyVaultDataProtection(
-            this IDataProtectionBuilder builder, IClientConfig config,
-            IKeyVaultConfig keyVault, string keyId = "keys") {
-            if (keyVault?.KeyVaultBaseUrl == null) {
-                throw new ArgumentNullException(nameof(keyVault));
+            this IDataProtectionBuilder builder) {
+            var configuration = builder.Services.BuildServiceProvider()
+                    .GetRequiredService<IConfiguration>();
+            var config = new DataProtectionConfig(configuration);
+            if (config.KeyVaultBaseUrl == null) {
+                return builder;
             }
-            var client = TryKeyVaultClientAsync(keyVault.KeyVaultBaseUrl, config).Result;
+            var client = TryKeyVaultClientAsync(config.KeyVaultBaseUrl, config).Result;
             if (client == null) {
                 throw new UnauthorizedAccessException("Cannot access keyvault");
             }
-            return builder.ProtectKeysWithAzureKeyVault(client, keyId);
+            return builder.ProtectKeysWithAzureKeyVault(client, "keys");
         }
 
         /// <summary>
         /// Add blob key storage
         /// </summary>
         /// <param name="builder"></param>
-        /// <param name="storage"></param>
         public static IDataProtectionBuilder AddAzureBlobKeyStorage(
-            this IDataProtectionBuilder builder, IStorageConfig storage) {
+            this IDataProtectionBuilder builder) {
 
+            var configuration = builder.Services.BuildServiceProvider()
+                    .GetRequiredService<IConfiguration>();
+            var storage = new DataProtectionConfig(configuration);
             if (storage?.BlobStorageConnString == null) {
-                throw new ArgumentNullException(nameof(storage));
+                return builder;
             }
             return builder.PersistKeysToAzureBlobStorage(
                 CloudStorageAccount.Parse(storage.BlobStorageConnString), "keys");
@@ -114,6 +120,50 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
                     vaultUri, method, ex.Message);
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Dataprotection default configuration
+        /// </summary>
+        internal sealed class DataProtectionConfig : ConfigBase, IClientConfig,
+            IKeyVaultConfig, IStorageConfig {
+
+            /// <summary>Application id</summary>
+            public string AppId => GetStringOrDefault("PCS_KEYVAULT_APPID",
+                Environment.GetEnvironmentVariable("PCS_KEYVAULT_APPID"))?.Trim();
+            /// <summary>App secret</summary>
+            public string AppSecret => GetStringOrDefault("PCS_KEYVAULT_SECRET",
+                Environment.GetEnvironmentVariable("PCS_KEYVAULT_SECRET"))?.Trim();
+            /// <summary>Optional tenant</summary>
+            public string TenantId => GetStringOrDefault("PCS_AUTH_TENANT",
+                Environment.GetEnvironmentVariable("PCS_AUTH_TENANT") ?? "common").Trim();
+
+            /// <summary>Aad instance url</summary>
+            public string InstanceUrl => null;
+            /// <summary>Aad domain</summary>
+            public string Domain => null;
+
+            /// <inheritdoc/>
+            public string BlobStorageConnString { get; }
+            /// <inheritdoc/>
+            public string KeyVaultBaseUrl => _kv.KeyVaultBaseUrl;
+            /// <inheritdoc/>
+            public string KeyVaultResourceId => _kv.KeyVaultResourceId;
+            /// <inheritdoc/>
+            public bool KeyVaultIsHsm => _kv.KeyVaultIsHsm;
+
+            /// <summary>
+            /// Configuration constructor
+            /// </summary>
+            /// <param name="configuration"></param>
+            public DataProtectionConfig(IConfiguration configuration) :
+                base(configuration) {
+                _stg = new StorageConfig(configuration);
+                _kv = new KeyVaultConfig(configuration);
+            }
+
+            private readonly StorageConfig _stg;
+            private readonly KeyVaultConfig _kv;
         }
     }
 }
