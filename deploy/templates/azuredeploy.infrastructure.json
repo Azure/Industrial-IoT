@@ -519,7 +519,9 @@
                             ],
                             "secrets": [
                                 "get",
-                                "list"
+                                "list",
+                                "set",
+                                "delete"
                             ]
                         }
                     }

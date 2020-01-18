@@ -558,6 +558,9 @@ Function New-Deployment() {
     if (![string]::IsNullOrEmpty($script:aadConfig.ServiceSecret)) {
         $templateParameters.Add("serviceAppSecret", $script:aadConfig.ServiceSecret)
     }
+    if (![string]::IsNullOrEmpty($script:aadConfig.ClientPrincipalId)) {
+        $templateParameters.Add("clientPrincipalId", $script:aadConfig.ClientPrincipalId)
+    }
     if (![string]::IsNullOrEmpty($script:aadConfig.ClientId)) {
         $templateParameters.Add("clientAppId", $script:aadConfig.ClientId)
     }
