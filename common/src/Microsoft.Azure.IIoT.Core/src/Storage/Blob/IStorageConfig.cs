@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Storage.Blob {
     public interface IStorageConfig {
 
         /// <summary>
-        /// Blob storage connection string 
+        /// Blob storage connection string
         /// </summary>
         string BlobStorageConnString { get; }
     }
