@@ -141,8 +141,8 @@ namespace Microsoft.Azure.IIoT.App {
 
             // Protect cookies using keyvault
             services.AddDataProtection()
-                .AddAzureBlobKeyStorage()
-                .AddAzureKeyVaultDataProtection();
+                .AddAzureBlobKeyStorage(Config.Configuration)
+                .AddAzureKeyVaultDataProtection(Config.Configuration);
 
             services.Configure<CookiePolicyOptions>(options => {
                 // This lambda determines whether user consent for non-essential cookies

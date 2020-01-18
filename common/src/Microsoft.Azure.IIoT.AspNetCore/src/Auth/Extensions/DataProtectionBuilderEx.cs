@@ -29,10 +29,9 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
         /// Add Keyvault protection
         /// </summary>
         /// <param name="builder"></param>
+        /// <param name="configuration"></param>
         public static IDataProtectionBuilder AddAzureKeyVaultDataProtection(
-            this IDataProtectionBuilder builder) {
-            var configuration = builder.Services.BuildServiceProvider()
-                    .GetRequiredService<IConfiguration>();
+            this IDataProtectionBuilder builder, IConfiguration configuration) {
             var config = new DataProtectionConfig(configuration);
             if (config.KeyVaultBaseUrl == null) {
                 return builder;
@@ -48,11 +47,9 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
         /// Add blob key storage
         /// </summary>
         /// <param name="builder"></param>
+        /// <param name="configuration"></param>
         public static IDataProtectionBuilder AddAzureBlobKeyStorage(
-            this IDataProtectionBuilder builder) {
-
-            var configuration = builder.Services.BuildServiceProvider()
-                    .GetRequiredService<IConfiguration>();
+            this IDataProtectionBuilder builder, IConfiguration configuration) {
             var storage = new DataProtectionConfig(configuration);
             if (storage?.BlobStorageConnString == null) {
                 return builder;
