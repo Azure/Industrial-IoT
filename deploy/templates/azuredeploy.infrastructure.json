@@ -475,10 +475,9 @@
                                 "get",
                                 "list",
                                 "sign",
-                                "unwrap", 
-                                "wrap", 
-                                "create", 
-                                "update"
+                                "unwrapKey", 
+                                "wrapKey", 
+                                "create"
                             ],
                             "secrets": [
                                 "get", 
@@ -514,8 +513,8 @@
                         "permissions": {
                             "keys": [
                                 "get",
-                                "unwrap", 
-                                "wrap", 
+                                "unwrapKey", 
+                                "wrapKey", 
                                 "create"
                             ],
                             "secrets": [
