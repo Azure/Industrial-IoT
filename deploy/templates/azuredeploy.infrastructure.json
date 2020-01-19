@@ -472,11 +472,11 @@
                         "objectId": "[parameters('servicePrincipalId')]",
                         "permissions": {
                             "keys": [
-                                "gedt",
+                                "get",
                                 "list",
                                 "sign",
-                                "unwrapKey", 
-                                "wrapKey", 
+                                "unwrap", 
+                                "wrap", 
                                 "create", 
                                 "update"
                             ],
@@ -514,8 +514,8 @@
                         "permissions": {
                             "keys": [
                                 "get",
-                                "unwrapKey", 
-                                "wrapKey", 
+                                "unwrap", 
+                                "wrap", 
                                 "create"
                             ],
                             "secrets": [
