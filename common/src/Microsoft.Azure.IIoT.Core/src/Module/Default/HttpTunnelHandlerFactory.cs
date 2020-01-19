@@ -116,14 +116,14 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             protected override async Task<HttpResponseMessage> SendAsync(
                 HttpRequestMessage request, CancellationToken ct) {
 
-                var headers = request.Headers
+                var headers = request.Headers?
                     .ToDictionary(h => h.Key, h => h.Value.ToList());
                 var method = request.Method.ToString();
 
                 // Create chunks
-                var payload = await request.Content.ReadAsByteArrayAsync();
+                var payload = request.Content != null ? await request.Content.ReadAsByteArrayAsync() : null;
                 var chunks = new List<byte[]>();
-                if (payload.Length > 0) {
+                if (payload != null && payload.Length > 0) {
                     var buffer = payload.Zip(); // Gzip payload
                     for (var offset = 0; offset < buffer.Length; offset += _maxSize) {
                         var length = Math.Min(buffer.Length - offset, _maxSize);
