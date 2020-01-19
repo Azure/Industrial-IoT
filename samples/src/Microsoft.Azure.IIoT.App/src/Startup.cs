@@ -216,8 +216,6 @@ namespace Microsoft.Azure.IIoT.App {
             // Use bearer authentication
             builder.RegisterType<HttpBearerAuthentication>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<AzureADSignin>()
-                .AsImplementedInterfaces().SingleInstance();
             // Use behalf of token provider to get tokens from user
             builder.RegisterType<BehalfOfTokenProvider>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -286,15 +284,6 @@ namespace Microsoft.Azure.IIoT.App {
             context.Response.Redirect("/Error");
             context.HandleResponse(); // Suppress the exception
             return Task.CompletedTask;
-        }
-
-        /// <inheritdoc/>
-        private class AzureADSignin : IAuthenticationErrorHandler {
-
-            /// <inheritdoc/>
-            public void Handle(HttpContext context, AuthenticationException ex) {
-                throw ex;
-            }
         }
     }
 }
