@@ -69,7 +69,6 @@ jobs:
   strategy:
     matrix: $[dependencies.testprep.outputs['testmatrix.jobMatrix'] ]
   variables:
-    NO_GIT: 'true'
     skipComponentGovernanceDetection: true
   pool:
     name: $(poolName)
@@ -81,11 +80,15 @@ jobs:
       version: 3.1.x
       includePreviewVersions: false
       installationPath: $(Agent.ToolsDirectory)/dotnet
+  - task: PowerShell@2
+    displayName: Versioning
+    inputs:
+      targetType: filePath
+      filePath: ./tools/scripts/set-version.ps1
   - task: DotNetCoreCLI@2
     displayName: Test
     timeoutInMinutes: 20
     inputs:
       command: test
       projects: '**/tests/*.csproj'
-      # projects: '$(folder)/**/tests/*.csproj'
       arguments: '--configuration Release'
