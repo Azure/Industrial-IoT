@@ -12,18 +12,38 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
     using Microsoft.Azure.IIoT.Storage.Blob.Runtime;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.KeyVault;
+    using Microsoft.Azure.KeyVault.Models;
+    using Microsoft.Azure.KeyVault.WebKey;
     using Microsoft.Azure.Services.AppAuthentication;
     using Microsoft.Azure.Storage;
+    using Microsoft.Azure.Storage.Blob;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Serilog;
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Add data protection
+    /// Add data protection using azure blob storage and keyvault
     /// </summary>
     public static class DataProtectionBuilderEx {
+
+        /// <summary>
+        /// Add azure data protection
+        /// </summary>
+        /// <param name="services"></param>
+        /// <param name="configuration"></param>
+        public static void AddAzureDataProtection(
+            this IServiceCollection services, IConfiguration configuration = null) {
+            if (configuration == null) {
+                configuration = services.BuildServiceProvider()
+                    .GetRequiredService<IConfiguration>();
+            }
+            services.AddDataProtection()
+                .AddAzureBlobKeyStorage(configuration)
+                .AddAzureKeyVaultDataProtection(configuration);
+        }
 
         /// <summary>
         /// Add Keyvault protection
@@ -31,16 +51,23 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
         /// <param name="builder"></param>
         /// <param name="configuration"></param>
         public static IDataProtectionBuilder AddAzureKeyVaultDataProtection(
-            this IDataProtectionBuilder builder, IConfiguration configuration) {
+            this IDataProtectionBuilder builder, IConfiguration configuration = null) {
+            if (configuration == null) {
+                configuration = builder.Services.BuildServiceProvider()
+                    .GetRequiredService<IConfiguration>();
+            }
             var config = new DataProtectionConfig(configuration);
-            if (config.KeyVaultBaseUrl == null) {
+            if (string.IsNullOrEmpty(config.KeyVaultBaseUrl)) {
                 return builder;
             }
-            var client = TryKeyVaultClientAsync(config.KeyVaultBaseUrl, config).Result;
+            var keyName = "dataprotection";
+            var client = TryKeyVaultClientAsync(config.KeyVaultBaseUrl,
+                config, keyName).Result;
             if (client == null) {
                 throw new UnauthorizedAccessException("Cannot access keyvault");
             }
-            return builder.ProtectKeysWithAzureKeyVault(client, "keys");
+            var identifier = $"{config.KeyVaultBaseUrl.TrimEnd('/')}/keys/{keyName}";
+            return builder.ProtectKeysWithAzureKeyVault(client, identifier);
         }
 
         /// <summary>
@@ -49,13 +76,25 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
         /// <param name="builder"></param>
         /// <param name="configuration"></param>
         public static IDataProtectionBuilder AddAzureBlobKeyStorage(
-            this IDataProtectionBuilder builder, IConfiguration configuration) {
+            this IDataProtectionBuilder builder, IConfiguration configuration = null) {
+            if (configuration == null) {
+                configuration = builder.Services.BuildServiceProvider()
+                    .GetRequiredService<IConfiguration>();
+            }
+
+            var containerName = "dataprotection";
             var storage = new DataProtectionConfig(configuration);
-            if (storage?.BlobStorageConnString == null) {
+            if (string.IsNullOrEmpty(storage.BlobStorageConnString)) {
                 return builder;
             }
-            return builder.PersistKeysToAzureBlobStorage(
-                CloudStorageAccount.Parse(storage.BlobStorageConnString), "keys");
+
+            var storageAccount = CloudStorageAccount.Parse(storage.BlobStorageConnString);
+            var relativePath = $"{containerName}/keys.xml";
+            var uriBuilder = new UriBuilder(storageAccount.BlobEndpoint);
+            uriBuilder.Path = uriBuilder.Path.TrimEnd('/') + "/" + relativePath.TrimStart('/');
+            var block = new CloudBlockBlob(uriBuilder.Uri, storageAccount.Credentials);
+            Try.Op(() => block.Container.Create());
+            return builder.PersistKeysToAzureBlobStorage(block);
         }
 
         /// <summary>
@@ -65,17 +104,18 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
         /// </summary>
         /// <param name="vaultUri"></param>
         /// <param name="client"></param>
+        /// <param name="keyName"></param>
         /// <returns></returns>
         private static async Task<KeyVaultClient> TryKeyVaultClientAsync(string vaultUri,
-            IClientConfig client) {
+            IClientConfig client, string keyName) {
             KeyVaultClient keyVault;
 
             // Try reading with app and secret if available.
             if (!string.IsNullOrEmpty(client.AppId) &&
                 !string.IsNullOrEmpty(client.AppSecret) &&
                 !string.IsNullOrEmpty(client.TenantId)) {
-                keyVault = await TryCredentialsToReadSecretAsync("Application",
-                    vaultUri, $"RunAs=App; AppId={client.AppId}; " +
+                keyVault = await TryInititalizeKeyAsync("Application",
+                    vaultUri, keyName, $"RunAs=App; AppId={client.AppId}; " +
                         $"AppKey={client.AppSecret}; TenantId={client.TenantId}");
                 if (keyVault != null) {
                     return keyVault;
@@ -83,8 +123,8 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
             }
 
             // Try using aims
-            keyVault = TryCredentialsToReadSecretAsync("Managed Service Identity",
-                vaultUri).Result;
+            keyVault = TryInititalizeKeyAsync("Managed Service Identity",
+                vaultUri, keyName).Result;
             if (keyVault != null) {
                 return keyVault;
             }
@@ -96,18 +136,30 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
         /// </summary>
         /// <param name="method"></param>
         /// <param name="vaultUri"></param>
+        /// <param name="keyName"></param>
         /// <param name="connectionString"></param>
         /// <returns></returns>
-        private static async Task<KeyVaultClient> TryCredentialsToReadSecretAsync(
-            string method, string vaultUri, string connectionString = null) {
+        private static async Task<KeyVaultClient> TryInititalizeKeyAsync(
+            string method, string vaultUri, string keyName, string connectionString = null) {
             var tokenProvider = new AzureServiceTokenProvider(connectionString);
             try {
                 var keyVaultClient = new KeyVaultClient(
                     new KeyVaultClient.AuthenticationCallback(
                         tokenProvider.KeyVaultTokenCallback));
 
-                var secrets = await keyVaultClient.GetSecretsAsync(vaultUri, 1);
-
+                try {
+                    var key = await keyVaultClient.GetKeyAsync(vaultUri, keyName);
+                }
+                catch {
+                    // Try create key
+                    await keyVaultClient.CreateKeyAsync(vaultUri, keyName, new NewKeyParameters {
+                        KeySize = 2048,
+                        Kty = JsonWebKeyType.Rsa,
+                        KeyOps = new List<string> {
+                            JsonWebKeyOperation.Wrap, JsonWebKeyOperation.Unwrap
+                        }
+                    });
+                }
                 // Worked - we have a working keyvault client.
                 return keyVaultClient;
             }
@@ -141,7 +193,7 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
             public string Domain => null;
 
             /// <inheritdoc/>
-            public string BlobStorageConnString { get; }
+            public string BlobStorageConnString => _stg.BlobStorageConnString;
             /// <inheritdoc/>
             public string KeyVaultBaseUrl => _kv.KeyVaultBaseUrl;
             /// <inheritdoc/>
