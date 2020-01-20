@@ -48,65 +48,65 @@ spec:
         - name: PCS_KEYVAULT_URL
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_KEYVAULT_URL
         - name: PCS_IOTHUB_CONNSTRING
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_IOTHUB_CONNSTRING
         - name: PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
         - name: PCS_AUTH_HTTPSREDIRECTPORT
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_AUTH_HTTPSREDIRECTPORT
         - name: PCS_AUTH_REQUIRED
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_AUTH_REQUIRED
         - name: PCS_AUTH_ISSUER
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_AUTH_ISSUER
         - name: PCS_AUTH_AUDIENCE
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_AUTH_AUDIENCE
         - name: PCS_WEBUI_AUTH_AAD_APPID
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_WEBUI_AUTH_AAD_APPID
         - name: PCS_WEBUI_AUTH_AAD_AUTHORITY
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_WEBUI_AUTH_AAD_AUTHORITY
         - name: PCS_WEBUI_AUTH_AAD_TENANT
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_WEBUI_AUTH_AAD_TENANT
         - name: PCS_CORS_WHITELIST
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_CORS_WHITELIST
         - name: PCS_APPINSIGHTS_NAME
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_APPINSIGHTS_NAME
         - name: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_APPINSIGHTS_INSTRUMENTATIONKEY

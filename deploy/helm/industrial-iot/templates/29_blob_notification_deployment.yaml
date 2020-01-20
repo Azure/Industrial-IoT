@@ -45,65 +45,65 @@ spec:
         - name: PCS_KEYVAULT_URL
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_KEYVAULT_URL
         - name: PCS_IOTHUB_CONNSTRING
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_IOTHUB_CONNSTRING
         - name: PCS_SERVICEBUS_CONNSTRING
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_SERVICEBUS_CONNSTRING
         - name: PCS_EVENTHUB_CONNSTRING
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_EVENTHUB_CONNSTRING
         - name: PCS_IOTHUBREACT_HUB_ENDPOINT
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_IOTHUBREACT_HUB_ENDPOINT
         - name: PCS_IOTHUBREACT_HUB_PARTITIONS
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_IOTHUBREACT_HUB_PARTITIONS
         - name: PCS_IOTHUBREACT_HUB_NAME
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_IOTHUBREACT_HUB_NAME
         - name: PCS_IOTHUBREACT_HUB_CONSUMERGROUP
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_IOTHUBREACT_HUB_CONSUMERGROUP
         - name: PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
         - name: PCS_IOTHUBREACT_AZUREBLOB_KEY
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_IOTHUBREACT_AZUREBLOB_KEY
         - name: PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
         - name: PCS_APPINSIGHTS_NAME
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_APPINSIGHTS_NAME
         - name: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
           valueFrom:
             secretKeyRef:
-              name: industrial-iot-env
+              name: {{ template "industrial-iot.env.fullname" . }}
               key: PCS_APPINSIGHTS_INSTRUMENTATIONKEY

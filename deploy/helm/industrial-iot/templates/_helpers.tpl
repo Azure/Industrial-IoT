@@ -23,3 +23,7 @@ If release name contains chart name it will be used as a full name.
 {{- end -}}
 {{- end -}}
 {{- end -}}
+
+{{- define "industrial-iot.env.fullname" -}}
+{{- printf "%s-%s" .Release.Name "industrial-iot-env" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
