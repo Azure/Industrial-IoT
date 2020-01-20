@@ -1,27 +1,27 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "industrial-iot.vault.fullname" . }}
+  name: {{ template "azure-industrial-iot.twin.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-    app.kubernetes.io/name: {{ template "industrial-iot.name" . }}
+    app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    app.kubernetes.io/component: opc-vault
-    app.kubernetes.io/part-of: industrial-iot
+    app.kubernetes.io/component: opc-twin
+    app.kubernetes.io/part-of: azure-industrial-iot
 spec:
   type: ClusterIP
   selector:
-    app.kubernetes.io/name: {{ template "industrial-iot.name" . }}
+    app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/component: opc-vault
-    app.kubernetes.io/part-of: industrial-iot
+    app.kubernetes.io/component: opc-twin
+    app.kubernetes.io/part-of: azure-industrial-iot
   ports:
   - port: 443
     protocol: TCP
     name: https
-  - port: 9044
+  - port: 9041
     protocol: TCP
     name: rest

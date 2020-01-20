@@ -1,5 +1,5 @@
 apiVersion: v2
-name: industrial-iot
+name: azure-industrial-iot
 version: 0.1.0
 description: Azure Industrial IoT allows plant operators to discover OPC UA enabled servers in a factory network and register them in Azure IoT Hub.
 type: application
@@ -8,6 +8,7 @@ keywords:
 - iot
 - iiot
 - industrial-iot
+- azure-industrial-iot
 - opc-ua
 home: https://github.com/Azure/Industrial-IoT
 maintainers:

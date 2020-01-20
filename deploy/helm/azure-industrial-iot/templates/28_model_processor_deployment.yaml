@@ -1,34 +1,34 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "industrial-iot.model-processor.fullname" . }}
+  name: {{ template "azure-industrial-iot.model-processor.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-    app.kubernetes.io/name: {{ template "industrial-iot.name" . }}
+    app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
     app.kubernetes.io/component: opc-processor
-    app.kubernetes.io/part-of: industrial-iot
+    app.kubernetes.io/part-of: azure-industrial-iot
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ template "industrial-iot.name" . }}
+      app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
       app.kubernetes.io/component: opc-processor
-      app.kubernetes.io/part-of: industrial-iot
+      app.kubernetes.io/part-of: azure-industrial-iot
   template:
     metadata:
       labels:
         helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-        app.kubernetes.io/name: {{ template "industrial-iot.name" . }}
+        app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
         app.kubernetes.io/managed-by: {{ .Release.Service }}
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/version: {{ .Chart.AppVersion }}
         app.kubernetes.io/component: opc-processor
-        app.kubernetes.io/part-of: industrial-iot
+        app.kubernetes.io/part-of: azure-industrial-iot
     spec:
       # serviceAccountName: industrial-iot-serviceaccount
       containers:
@@ -45,65 +45,65 @@ spec:
         - name: PCS_KEYVAULT_URL
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_KEYVAULT_URL
         - name: PCS_IOTHUB_CONNSTRING
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_IOTHUB_CONNSTRING
         - name: PCS_SERVICEBUS_CONNSTRING
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_SERVICEBUS_CONNSTRING
         - name: PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
         - name: PCS_IOTHUBREACT_HUB_ENDPOINT
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_IOTHUBREACT_HUB_ENDPOINT
         - name: PCS_IOTHUBREACT_HUB_PARTITIONS
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_IOTHUBREACT_HUB_PARTITIONS
         - name: PCS_IOTHUBREACT_HUB_NAME
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_IOTHUBREACT_HUB_NAME
         - name: PCS_IOTHUBREACT_HUB_CONSUMERGROUP
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_IOTHUBREACT_HUB_CONSUMERGROUP
         - name: PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
         - name: PCS_IOTHUBREACT_AZUREBLOB_KEY
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_IOTHUBREACT_AZUREBLOB_KEY
         - name: PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
         - name: PCS_APPINSIGHTS_NAME
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_APPINSIGHTS_NAME
         - name: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_APPINSIGHTS_INSTRUMENTATIONKEY

@@ -1,27 +1,30 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "industrial-iot.history.fullname" . }}
+  name: {{ template "azure-industrial-iot.gateway.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-    app.kubernetes.io/name: {{ template "industrial-iot.name" . }}
+    app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    app.kubernetes.io/component: opc-history
-    app.kubernetes.io/part-of: industrial-iot
+    app.kubernetes.io/component: opc-gateway
+    app.kubernetes.io/part-of: azure-industrial-iot
 spec:
   type: ClusterIP
   selector:
-    app.kubernetes.io/name: {{ template "industrial-iot.name" . }}
+    app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/component: opc-history
-    app.kubernetes.io/part-of: industrial-iot
+    app.kubernetes.io/component: opc-gateway
+    app.kubernetes.io/part-of: azure-industrial-iot
   ports:
   - port: 443
     protocol: TCP
     name: https
-  - port: 9043
+  - port: 9040
     protocol: TCP
     name: rest
+  - port: 51111
+    protocol: TCP
+    name: opc-ua-access

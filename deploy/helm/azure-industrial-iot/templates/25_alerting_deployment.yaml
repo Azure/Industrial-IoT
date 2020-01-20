@@ -1,39 +1,39 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "industrial-iot.jobs.fullname" . }}
+  name: {{ template "azure-industrial-iot.alerting.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-    app.kubernetes.io/name: {{ template "industrial-iot.name" . }}
+    app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    app.kubernetes.io/component: opc-jobs
-    app.kubernetes.io/part-of: industrial-iot
+    app.kubernetes.io/component: opc-alerting
+    app.kubernetes.io/part-of: azure-industrial-iot
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ template "industrial-iot.name" . }}
+      app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
-      app.kubernetes.io/component: opc-jobs
-      app.kubernetes.io/part-of: industrial-iot
+      app.kubernetes.io/component: opc-alerting
+      app.kubernetes.io/part-of: azure-industrial-iot
   template:
     metadata:
       labels:
         helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-        app.kubernetes.io/name: {{ template "industrial-iot.name" . }}
+        app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
         app.kubernetes.io/managed-by: {{ .Release.Service }}
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/version: {{ .Chart.AppVersion }}
-        app.kubernetes.io/component: opc-jobs
-        app.kubernetes.io/part-of: industrial-iot
+        app.kubernetes.io/component: opc-alerting
+        app.kubernetes.io/part-of: azure-industrial-iot
     spec:
       # serviceAccountName: industrial-iot-serviceaccount
       containers:
-      - name: jobs-service-container
-        image: {{ .Values.Image.Registry }}/opc-jobs-service:{{ .Values.Image.Tag }}
+      - name: alerting-service-container
+        image: {{ .Values.Image.Registry }}/opc-alerting-service:{{ .Values.Image.Tag }}
         resources:
           requests:
             memory: "64Mi"
@@ -45,25 +45,30 @@ spec:
         - name: PCS_KEYVAULT_URL
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_KEYVAULT_URL
+        - name: PCS_WORKSPACE_NAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_WORKSPACE_NAME
         - name: PCS_IOTHUB_CONNSTRING
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_IOTHUB_CONNSTRING
         - name: PCS_SERVICEBUS_CONNSTRING
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_SERVICEBUS_CONNSTRING
         - name: PCS_APPINSIGHTS_NAME
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_APPINSIGHTS_NAME
         - name: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_APPINSIGHTS_INSTRUMENTATIONKEY

@@ -1,39 +1,39 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "industrial-iot.history.fullname" . }}
+  name: {{ template "azure-industrial-iot.twin.fullname" . }}
   namespace: {{ .Release.Namespace }}
   labels:
     helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-    app.kubernetes.io/name: {{ template "industrial-iot.name" . }}
+    app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    app.kubernetes.io/component: opc-history
-    app.kubernetes.io/part-of: industrial-iot
+    app.kubernetes.io/component: opc-twin
+    app.kubernetes.io/part-of: azure-industrial-iot
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ template "industrial-iot.name" . }}
+      app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
-      app.kubernetes.io/component: opc-history
-      app.kubernetes.io/part-of: industrial-iot
+      app.kubernetes.io/component: opc-twin
+      app.kubernetes.io/part-of: azure-industrial-iot
   template:
     metadata:
       labels:
         helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-        app.kubernetes.io/name: {{ template "industrial-iot.name" . }}
+        app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
         app.kubernetes.io/managed-by: {{ .Release.Service }}
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/version: {{ .Chart.AppVersion }}
-        app.kubernetes.io/component: opc-history
-        app.kubernetes.io/part-of: industrial-iot
+        app.kubernetes.io/component: opc-twin
+        app.kubernetes.io/part-of: azure-industrial-iot
     spec:
       # serviceAccountName: industrial-iot-serviceaccount
       containers:
-      - name: history-service-container
-        image: {{ .Values.Image.Registry }}/opc-history-service:{{ .Values.Image.Tag }}
+      - name: twin-service-container
+        image: {{ .Values.Image.Registry }}/opc-twin-service:{{ .Values.Image.Tag }}
         resources:
           requests:
             memory: "64Mi"
@@ -43,70 +43,70 @@ spec:
             cpu: "250m"
         ports:
         - containerPort: 443
-        - containerPort: 9043
+        - containerPort: 9041
         env:
         - name: PCS_KEYVAULT_URL
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_KEYVAULT_URL
         - name: PCS_IOTHUB_CONNSTRING
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_IOTHUB_CONNSTRING
         - name: PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
         - name: PCS_AUTH_HTTPSREDIRECTPORT
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_AUTH_HTTPSREDIRECTPORT
         - name: PCS_AUTH_REQUIRED
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_AUTH_REQUIRED
         - name: PCS_AUTH_ISSUER
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_AUTH_ISSUER
         - name: PCS_AUTH_AUDIENCE
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_AUTH_AUDIENCE
         - name: PCS_WEBUI_AUTH_AAD_APPID
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_WEBUI_AUTH_AAD_APPID
         - name: PCS_WEBUI_AUTH_AAD_AUTHORITY
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_WEBUI_AUTH_AAD_AUTHORITY
         - name: PCS_WEBUI_AUTH_AAD_TENANT
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_WEBUI_AUTH_AAD_TENANT
         - name: PCS_CORS_WHITELIST
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_CORS_WHITELIST
         - name: PCS_APPINSIGHTS_NAME
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_APPINSIGHTS_NAME
         - name: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
           valueFrom:
             secretKeyRef:
-              name: {{ template "industrial-iot.env.fullname" . }}
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
