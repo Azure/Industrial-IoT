@@ -12,7 +12,7 @@
             "type": "string",
             "defaultValue": "",
             "metadata": {
-                "description": "Specifies the object ID of the registered client principal in your Azure Active Directory tenant.  You can obtain it using Get-AzADServicePrincipal cmdlet."
+                "description": "Specifies the object ID of the registered service principal in your Azure Active Directory tenant.  You can obtain it using Get-AzADServicePrincipal cmdlet."
             }
         },
         "managedIdentityName": {
@@ -474,10 +474,13 @@
                             "keys": [
                                 "get",
                                 "list",
-                                "sign"
+                                "sign",
+                                "unwrapKey", 
+                                "wrapKey", 
+                                "create"
                             ],
                             "secrets": [
-                                "get",
+                                "get", 
                                 "list",
                                 "set",
                                 "delete"
@@ -508,8 +511,15 @@
                         "tenantId": "[subscription().tenantId]",
                         "objectId": "[if(not(empty(parameters('managedIdentityName'))), reference(variables('identityResourceId'), '2018-11-30').principalId, parameters('keyVaultPrincipalId'))]",
                         "permissions": {
+                            "keys": [
+                                "get",
+                                "unwrapKey", 
+                                "wrapKey", 
+                                "create"
+                            ],
                             "secrets": [
-                                "get"
+                                "get",
+                                "list"
                             ]
                         }
                     }
@@ -1000,6 +1010,10 @@
                                 "value": "[variables('iothubConsumerGroup1')]"
                             },
                             {
+                                "key": "PCS_IOTHUB_EVENTHUBCONSUMERGROUP2",
+                                "value": "[variables('iothubConsumerGroup2')]"
+                            },
+                            {
                                 "key": "PCS_ADLSG2_ACCOUNT",
                                 "value": "[parameters('datalakeName')]"
                             },
@@ -1030,10 +1044,6 @@
                             {
                                 "key": "PCS_WORKSPACE_NAME",
                                 "value": "[parameters('workspaceName')]"
-                            },
-                            {
-                                "key": "PCS_APPINSIGHTS_NAME",
-                                "value": "[parameters('appInsightsName')]"
                             },
                             {
                                 "key": "PCS_APPINSIGHTS_INSTRUMENTATIONKEY",

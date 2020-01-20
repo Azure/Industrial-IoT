@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Auth;
     using Microsoft.AspNetCore.Authorization;
-    using Microsoft.Azure.IIoT.Services.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
 
     /// <summary>
     /// AuthorizationOptions extension

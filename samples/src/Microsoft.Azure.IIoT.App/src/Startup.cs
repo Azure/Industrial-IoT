@@ -6,7 +6,8 @@
 namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.App.Services;
     using Microsoft.Azure.IIoT.App.Runtime;
-    using Microsoft.Azure.IIoT.Services.Auth.Clients;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
@@ -25,6 +26,7 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Rewrite;
+    using Microsoft.AspNetCore.HttpOverrides;
     using Microsoft.AspNetCore.Mvc.Authorization;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
@@ -75,8 +77,11 @@ namespace Microsoft.Azure.IIoT.App {
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
             IHostApplicationLifetime appLifetime) {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
+            app.UseForwardedHeaders();
 
-            if (env.IsDevelopment()) {
+            var isDevelopment = env.IsDevelopment();
+            isDevelopment = true; // TODO Remove when all issues fixed
+            if (isDevelopment) {
                 app.UseDeveloperExceptionPage();
             }
             else {
@@ -88,10 +93,11 @@ namespace Microsoft.Azure.IIoT.App {
             app.UseStaticFiles();
             app.UseRouting();
             app.UseRewriter(
-                new RewriteOptions().Add(
-                    context => {
-                        if (context.HttpContext.Request.Path == "/AzureAD/Account/SignedOut") { context.HttpContext.Response.Redirect("/"); }
-                    })
+                new RewriteOptions().Add(context => {
+                    if (context.HttpContext.Request.Path == "/AzureAD/Account/SignedOut") {
+                        context.HttpContext.Response.Redirect("/");
+                    }
+                })
             );
 
             app.UseAuthentication();
@@ -117,9 +123,29 @@ namespace Microsoft.Azure.IIoT.App {
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services) {
 
+            if (string.Equals(
+                Environment.GetEnvironmentVariable("ASPNETCORE_FORWARDEDHEADERS_ENABLED"),
+                    "true", StringComparison.OrdinalIgnoreCase)) {
+
+                services.Configure<ForwardedHeadersOptions>(options => {
+                    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
+                        ForwardedHeaders.XForwardedProto;
+                    // Only loopback proxies are allowed by default.
+                    // Clear that restriction because forwarders are enabled by explicit
+                    // configuration.
+                    options.KnownNetworks.Clear();
+                    options.KnownProxies.Clear();
+                });
+            }
+
+            // Protect anything using keyvault and storage persisted keys
+            services.AddAzureDataProtection(Config.Configuration);
+
             services.Configure<CookiePolicyOptions>(options => {
+                // This lambda determines whether user consent for non-essential cookies
+                // is needed for a given request.
                 options.CheckConsentNeeded = context => true;
-                options.MinimumSameSitePolicy = SameSiteMode.None;
+                options.MinimumSameSitePolicy = SameSiteMode.Strict;
             });
 
             services.AddAntiforgery(options => {
@@ -127,7 +153,8 @@ namespace Microsoft.Azure.IIoT.App {
             });
 
             services.AddHttpContextAccessor();
-            services.AddAuthentication(AzureADDefaults.AuthenticationScheme)
+            services
+                .AddAuthentication(AzureADDefaults.AuthenticationScheme)
                 .AddAzureAD(options => {
                     options.Instance = Config.InstanceUrl;
                     options.Domain = Config.Domain;
@@ -150,10 +177,8 @@ namespace Microsoft.Azure.IIoT.App {
                     options.ResponseType = "id_token code";
                     options.Resource = Config.AppId;
                     options.Scope.Add("offline_access");
-                    options.Events = new OpenIdConnectEvents {
-                        OnAuthenticationFailed = OnAuthenticationFailedAsync,
-                        OnAuthorizationCodeReceived = OnAuthorizationCodeReceivedAsync
-                    };
+                    options.Events.OnAuthenticationFailed = OnAuthenticationFailedAsync;
+                    options.Events.OnAuthorizationCodeReceived = OnAuthorizationCodeReceivedAsync;
                 });
 
             services.AddControllersWithViews(options => {

@@ -37,21 +37,23 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
                 // Not from a device
                 return;
             }
-            if (properties.TryGetValue(CommonProperties.EventSchemaType, out var contentType) ||
-                properties.TryGetValue(SystemProperties.MessageSchema, out contentType)) {
+
+            if (properties.TryGetValue(CommonProperties.EventSchemaType, out var schemaType) ||
+                properties.TryGetValue(SystemProperties.MessageSchema, out schemaType)) {
 
                 properties.TryGetValue(CommonProperties.ModuleId, out var moduleId);
-                if (_handlers.TryGetValue(contentType.ToLowerInvariant(), out var handler)) {
+                if (_handlers.TryGetValue(schemaType.ToLowerInvariant(), out var handler)) {
                     await handler.HandleAsync(deviceId, moduleId?.ToString(), eventData,
                         properties, checkpoint);
                     _used.Add(handler);
-                    // Handled...
                 }
+
+                // Handled...
                 return;
             }
 
             if (_unknown != null) {
-                // From a device, but does not have any content type
+                // From a device, but does not have any event schema or message schema
                 await _unknown.HandleAsync(eventData, properties);
                 return;
             }

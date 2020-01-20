@@ -32,11 +32,11 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime {
             GetBoolOrDefault("PCS_SWAGGER_V2", true));
         /// <summary>Application id</summary>
         public string OpenApiAppId => GetStringOrDefault(kOpenApi_AppIdKey,
-            GetStringOrDefault("PCS_AUTH_CLIENT_APPID",
+            GetStringOrDefault(PcsVariable.PCS_AUTH_CLIENT_APPID,
             GetStringOrDefault("PCS_OPENAPI_APP_ID")))?.Trim();
         /// <summary>App secret</summary>
         public string OpenApiAppSecret => GetStringOrDefault(kOpenApi_AppSecretKey,
-            GetStringOrDefault("PCS_AUTH_CLIENT_SECRET",
+            GetStringOrDefault(PcsVariable.PCS_AUTH_CLIENT_SECRET,
             GetStringOrDefault("PCS_OPENAPI_APP_KEY")))?.Trim();
 
         /// <summary>

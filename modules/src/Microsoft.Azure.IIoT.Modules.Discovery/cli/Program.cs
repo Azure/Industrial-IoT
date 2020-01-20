@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Cli {
                 .AddFromDotEnvFile()
                 .AddFromKeyVault()
                 .Build();
-            var cs = configuration.GetValue<string>("PCS_IOTHUB_CONNSTRING", null);
+            var cs = configuration.GetValue<string>(PcsVariable.PCS_IOTHUB_CONNSTRING, null);
             if (string.IsNullOrEmpty(cs)) {
                 cs = configuration.GetValue<string>("_HUB_CS", null);
             }

@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
-    using Microsoft.Azure.IIoT.Services.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.AspNetCore.Authorization;
 
     /// <summary>

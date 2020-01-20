@@ -6,6 +6,8 @@
 namespace Microsoft.Azure.IIoT.Deploy.Runtime {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
+    using System.Reflection;
+    using System;
 
     /// <summary>
     /// Container registry configuration
@@ -15,20 +17,26 @@ namespace Microsoft.Azure.IIoT.Deploy.Runtime {
         private const string kDockerServer = "Docker:Server";
         private const string kDockerUser = "Docker:User";
         private const string kDockerPassword = "Docker:Password";
-        private const string kImageNamespace = "Docker:Namespace";
+        private const string kImagesNamespace = "Docker:ImagesNamespace";
+        private const string kImagesTag = "Docker:ImagesTag";
 
         /// <inheritdoc/>
         public string DockerServer => GetStringOrDefault(kDockerServer,
-            GetStringOrDefault("PCS_DOCKER_SERVER"));
+            GetStringOrDefault(PcsVariable.PCS_DOCKER_SERVER));
         /// <inheritdoc/>
         public string DockerUser => GetStringOrDefault(kDockerUser,
-            GetStringOrDefault("PCS_DOCKER_USER"));
+            GetStringOrDefault(PcsVariable.PCS_DOCKER_USER));
         /// <inheritdoc/>
         public string DockerPassword => GetStringOrDefault(kDockerPassword,
-            GetStringOrDefault("PCS_DOCKER_PASSWORD"));
+            GetStringOrDefault(PcsVariable.PCS_DOCKER_PASSWORD));
+
         /// <inheritdoc/>
-        public string ImageNamespace => GetStringOrDefault(kImageNamespace,
-            GetStringOrDefault("PCS_IMAGE_NAMESPACE"));
+        public string ImagesNamespace => GetStringOrDefault(kImagesNamespace,
+            GetStringOrDefault(PcsVariable.PCS_IMAGES_NAMESPACE));
+        /// <inheritdoc/>
+        public string ImagesTag => GetStringOrDefault(kImagesTag,
+            GetStringOrDefault(PcsVariable.PCS_IMAGES_TAG,
+                Assembly.GetExecutingAssembly().GetReleaseVersion().ToString(3)));
 
         /// <summary>
         /// Configuration constructor

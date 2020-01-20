@@ -13,7 +13,16 @@ namespace System {
         public void GetVersionInfoObjectTests() {
             var o = GetType().Assembly.GetVersionInfoObject();
             Assert.NotNull(o);
+            var s = o.ToString();
             Assert.True(o.Properties().Any());
+        }
+
+        [Fact]
+        public void GetFileVersion() {
+            var o = GetType().Assembly.GetVersionInfoObject();
+            Assert.NotNull(o);
+            var v = GetType().Assembly.GetReleaseVersion().ToString();
+            Assert.Equal(v, (string)o.GetValue("AssemblyFileVersion"));
         }
     }
 }

@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
     using Microsoft.Azure.IIoT.Hub.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -23,10 +24,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
         /// </summary>
         /// <param name="service"></param>
         /// <param name="config"></param>
+        /// <param name="logger"></param>
         public IoTHubDiscovererDeployment(IIoTHubConfigurationServices service,
-            IContainerRegistryConfig config) {
+            IContainerRegistryConfig config, ILogger logger) {
             _service = service ?? throw new ArgumentNullException(nameof(service));
             _config = config ?? throw new ArgumentNullException(nameof(service));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
@@ -62,10 +65,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
         /// Get base edge configuration
         /// </summary>
         /// <param name="isLinux"></param>
-        /// <param name="version"></param>
         /// <returns></returns>
         private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment(
-            bool isLinux, string version = "latest") {
+            bool isLinux) {
 
             var registryCredentials = "";
             if (!string.IsNullOrEmpty(_config.DockerServer) &&
@@ -111,9 +113,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
 
             var server = string.IsNullOrEmpty(_config.DockerServer) ?
                 "mcr.microsoft.com" : _config.DockerServer;
-            var ns = string.IsNullOrEmpty(_config.ImageNamespace) ?
-                "" : _config.ImageNamespace.TrimEnd('/') + "/";
+            var ns = string.IsNullOrEmpty(_config.ImagesNamespace) ?
+                "" : _config.ImagesNamespace.TrimEnd('/') + "/";
+            var version = _config.ImagesTag ?? "latest";
             var image = $"{server}/{ns}iotedge/discovery:{version}";
+
+            _logger.Information("Updating discoverer module deployment with image {image}", image);
 
             // Return deployment modules object
             var content = @"
@@ -141,5 +146,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
         private const string kDefaultSchemaVersion = "1.0";
         private readonly IIoTHubConfigurationServices _service;
         private readonly IContainerRegistryConfig _config;
+        private readonly ILogger _logger;
     }
 }

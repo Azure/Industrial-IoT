@@ -57,7 +57,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                     request.Timeout);
                 if (!_requests.TryAdd(handle, processor)) {
                     throw new MethodCallStatusException(
-                        (int)HttpStatusCode.InternalServerError, "Adding handle {handle} failed.");
+                        (int)HttpStatusCode.InternalServerError, $"Adding handle {handle} failed.");
                 }
             }
             return await processor.ProcessAsync(request);

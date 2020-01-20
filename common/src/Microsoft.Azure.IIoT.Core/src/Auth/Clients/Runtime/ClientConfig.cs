@@ -25,23 +25,23 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
 
         /// <summary>Application id</summary>
         public string AppId => GetStringOrDefault(kAuth_AppIdKey,
-            GetStringOrDefault("PCS_AUTH_SERVICE_APPID"))?.Trim();
+            GetStringOrDefault(PcsVariable.PCS_AUTH_SERVICE_APPID))?.Trim();
         /// <summary>App secret</summary>
         public string AppSecret => GetStringOrDefault(kAuth_AppSecretKey,
-            GetStringOrDefault("PCS_AUTH_SERVICE_SECRET"))?.Trim();
+            GetStringOrDefault(PcsVariable.PCS_AUTH_SERVICE_SECRET))?.Trim();
         /// <summary>Optional tenant</summary>
         public string TenantId => GetStringOrDefault(kAuth_TenantIdKey,
-            GetStringOrDefault("PCS_AUTH_TENANT",
+            GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT,
             GetStringOrDefault("PCS_WEBUI_AUTH_AAD_TENANT", "common"))).Trim();
         /// <summary>Aad instance url</summary>
         public string InstanceUrl => GetStringOrDefault(kAuth_InstanceUrlKey,
-            GetStringOrDefault("PCS_AUTH_INSTANCE",
+            GetStringOrDefault(PcsVariable.PCS_AUTH_INSTANCE,
             GetStringOrDefault("PCS_WEBUI_AUTH_AAD_INSTANCE",
                 "https://login.microsoftonline.com"))).Trim();
         /// <summary>Aad domain</summary>
         public string Domain => GetStringOrDefault(kAuth_DomainKey,
             GetStringOrDefault("PCS_AUTH_DOMAIN", Try.Op(() =>
-            new Uri(GetStringOrDefault("PCS_AUTH_AUDIENCE")).DnsSafeHost)))?.Trim();
+            new Uri(GetStringOrDefault(PcsVariable.PCS_AUTH_AUDIENCE)).DnsSafeHost)))?.Trim();
 
         /// <summary>
         /// Configuration constructor

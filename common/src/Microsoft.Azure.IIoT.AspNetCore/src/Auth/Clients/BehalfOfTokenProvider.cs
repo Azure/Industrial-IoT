@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
+namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Models;
@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
     /// Authenticate on behalf of current logged in claims principal to another
     /// service. This uses the behalf_of flow defined in xxx.
     /// </summary>
-    public class BehalfOfTokenProvider : ITokenProvider {
+    public partial class BehalfOfTokenProvider : ITokenProvider {
 
         /// <summary>
         /// Create auth provider. Need to also inject the http context accessor
@@ -32,12 +32,14 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
         /// <param name="store"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
+        /// <param name="handler"></param>
         public BehalfOfTokenProvider(IHttpContextAccessor ctx, ITokenCacheProvider store,
-            IClientConfig config, ILogger logger) {
+            IClientConfig config, ILogger logger, IAuthenticationErrorHandler handler = null) {
             _store = store ?? throw new ArgumentNullException(nameof(store));
             _ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
+            _handler = handler ?? new ThrowHandler();
 
             if (string.IsNullOrEmpty(_config.AppId) ||
                 string.IsNullOrEmpty(_config.AppSecret)) {
@@ -57,7 +59,9 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
             var user = _ctx.HttpContext.User;
             // User id should be known, we need it to sign in on behalf of...
             if (user == null) {
-                throw new AuthenticationException("Missing claims principal.");
+                _handler.Handle(_ctx.HttpContext,
+                    new AuthenticationException("Missing claims principal."));
+                return null;
             }
 
             var name = user.FindFirstValue(ClaimTypes.Upn);
@@ -71,14 +75,14 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
             const string kAccessTokenKey = "access_token";
             var token = await _ctx.HttpContext.GetTokenAsync(kAccessTokenKey);
             if (string.IsNullOrEmpty(token)) {
-                throw new AuthenticationException(
-                    $"No auth on behalf of {name} without token...");
+                _handler.Handle(_ctx.HttpContext, new AuthenticationException(
+                    $"No auth on behalf of {name} without token..."));
+                return null;
             }
 
             var cache = _store.GetCache($"OID:{user.GetObjectId()}");
             var ctx = CreateAuthenticationContext(_config.InstanceUrl,
                 _config.TenantId, cache);
-
             try {
                 var result = await ctx.AcquireTokenAsync(resource,
                     new ClientCredential(_config.AppId, _config.AppSecret),
@@ -86,8 +90,9 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
                 return result.ToTokenResult();
             }
             catch (AdalException ex) {
-                throw new AuthenticationException(
-                    $"Failed to authenticate on behalf of {name}", ex);
+                _handler.Handle(_ctx.HttpContext, new AuthenticationException(
+                    $"Failed to authenticate on behalf of {name}", ex));
+                return null;
             }
         }
 
@@ -127,6 +132,16 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
             return Task.CompletedTask;
         }
 
+        /// <summary>
+        /// Throw exception
+        /// </summary>
+        private sealed class ThrowHandler : IAuthenticationErrorHandler {
+            /// <inheritdoc/>
+            public void Handle(HttpContext context, AuthenticationException ex) {
+                throw ex;
+            }
+        }
+
         private const string kGrantType = "urn:ietf:params:oauth:grant-type:jwt-bearer";
         private const string kDefaultAuthorityUrl = "https://login.microsoftonline.com/";
 
@@ -134,6 +149,7 @@ namespace Microsoft.Azure.IIoT.Services.Auth.Clients {
         private readonly ITokenCacheProvider _store;
         private readonly ILogger _logger;
         private readonly IClientConfig _config;
+        private readonly IAuthenticationErrorHandler _handler;
     }
 
 }

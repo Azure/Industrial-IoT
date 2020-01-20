@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.Cors.Runtime {
+namespace Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime {
     using Microsoft.Extensions.Configuration;
     using Microsoft.Azure.IIoT.Utils;
 

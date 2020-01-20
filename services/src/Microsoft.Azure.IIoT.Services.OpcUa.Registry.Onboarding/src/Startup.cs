@@ -8,9 +8,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
-    using Microsoft.Azure.IIoT.Services.Auth;
-    using Microsoft.Azure.IIoT.Services.Auth.Clients;
-    using Microsoft.Azure.IIoT.Services.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.Correlation;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub.Client;

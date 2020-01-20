@@ -32,7 +32,7 @@ namespace Microsoft.Extensions.Configuration {
             string keyVaultUrlVarName = null) {
 
             if (string.IsNullOrEmpty(keyVaultUrlVarName)) {
-                keyVaultUrlVarName = "PCS_KEYVAULT_URL";
+                keyVaultUrlVarName = PcsVariable.PCS_KEYVAULT_URL;
             }
             if (string.IsNullOrEmpty(configurationSecretName)) {
                 configurationSecretName = "configuration";

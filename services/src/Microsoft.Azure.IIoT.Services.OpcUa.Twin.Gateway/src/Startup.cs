@@ -11,8 +11,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Clients;
-    using Microsoft.Azure.IIoT.Services.Auth;
-    using Microsoft.Azure.IIoT.Services.Auth.Clients;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Module.Default;

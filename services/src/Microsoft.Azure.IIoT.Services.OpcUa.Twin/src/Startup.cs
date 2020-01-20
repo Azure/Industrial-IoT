@@ -6,8 +6,9 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
-    using Microsoft.Azure.IIoT.Services.Auth;
-    using Microsoft.Azure.IIoT.Services.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.Correlation;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Module.Default;

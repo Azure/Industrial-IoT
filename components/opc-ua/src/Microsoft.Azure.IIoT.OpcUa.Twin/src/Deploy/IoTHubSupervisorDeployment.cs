@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Newtonsoft.Json;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -18,36 +19,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
     public sealed class IoTHubSupervisorDeployment : IHostProcess {
 
         /// <summary>
-        /// Create edge base deployer
+        /// Create deployer
         /// </summary>
         /// <param name="service"></param>
         /// <param name="config"></param>
+        /// <param name="logger"></param>
         public IoTHubSupervisorDeployment(IIoTHubConfigurationServices service,
-            IContainerRegistryConfig config) {
+            IContainerRegistryConfig config, ILogger logger) {
             _service = service ?? throw new ArgumentNullException(nameof(service));
             _config = config ?? throw new ArgumentNullException(nameof(service));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <inheritdoc/>
         public async Task StartAsync() {
-
             await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
-                Id = "__default-opctwin-linux",
+                Id = "__default-opctwin",
                 Content = new ConfigurationContentModel {
-                    ModulesContent = CreateLayeredDeployment(true)
+                    ModulesContent = CreateLayeredDeployment()
                 },
                 SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}' AND tags.os = 'Linux'",
-                Priority = 1
-            }, true);
-
-            await _service.CreateOrUpdateConfigurationAsync(new ConfigurationModel {
-                Id = "__default-opctwin-windows",
-                Content = new ConfigurationContentModel {
-                    ModulesContent = CreateLayeredDeployment(false)
-                },
-                SchemaVersion = kDefaultSchemaVersion,
-                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}' AND tags.os = 'Windows'",
+                TargetCondition = $"tags.__type__ = '{IdentityType.Gateway}'",
                 Priority = 1
             }, true);
         }
@@ -60,11 +52,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
         /// <summary>
         /// Get base edge configuration
         /// </summary>
-        /// <param name="isLinux"></param>
-        /// <param name="version"></param>
         /// <returns></returns>
-        private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment(
-            bool isLinux, string version = "latest") {
+        private IDictionary<string, IDictionary<string, object>> CreateLayeredDeployment() {
 
             var registryCredentials = "";
             if (!string.IsNullOrEmpty(_config.DockerServer) &&
@@ -80,9 +69,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
             }
             var server = string.IsNullOrEmpty(_config.DockerServer) ?
                 "mcr.microsoft.com" : _config.DockerServer;
-            var ns = string.IsNullOrEmpty(_config.ImageNamespace) ? "" :
-                _config.ImageNamespace.TrimEnd('/') + "/";
+            var ns = string.IsNullOrEmpty(_config.ImagesNamespace) ? "" :
+                _config.ImagesNamespace.TrimEnd('/') + "/";
+            var version = _config.ImagesTag ?? "latest";
             var image = $"{server}/{ns}iotedge/opc-twin:{version}";
+
+            _logger.Information("Updating opc twin module deployment with image {image}", image);
 
             // Return deployment modules object
             var content = @"
@@ -109,5 +101,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
         private const string kDefaultSchemaVersion = "1.0";
         private readonly IIoTHubConfigurationServices _service;
         private readonly IContainerRegistryConfig _config;
+        private readonly ILogger _logger;
     }
 }

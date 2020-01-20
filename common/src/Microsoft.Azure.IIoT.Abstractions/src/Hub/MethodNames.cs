@@ -15,5 +15,11 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// server method.
         /// </summary>
         public const string Call = "$call";
+
+        /// <summary>
+        /// Used by clients to call http
+        /// tunnel server.
+        /// </summary>
+        public const string Response = "$response";
     }
 }

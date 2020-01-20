@@ -6,9 +6,9 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
     using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Utils;
 
     /// <summary>
     /// Registry service event client

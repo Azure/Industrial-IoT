@@ -9,8 +9,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway.Runtime {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Transport;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Runtime;
-    using Microsoft.Azure.IIoT.Services.Cors;
-    using Microsoft.Azure.IIoT.Services.Cors.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Auth.Server;

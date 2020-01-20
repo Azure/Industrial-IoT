@@ -1,8 +1,8 @@
 #!/bin/bash -ex
 
 ADMIN=$USER
-IMAGE_NAMESPACE=
-IMAGE_VERSION=
+IMAGES_NAMESPACE=
+IMAGES_TAG=
 DOCKER_SERVER=
 DOCKER_USER=
 DOCKER_PASSWORD=
@@ -16,8 +16,8 @@ ENVVARS="${APP_PATH}/.env"
 while [ "$#" -gt 0 ]; do
     case "$1" in
         --admin)                ADMIN="$2" ;;
-        --imageNamespace)       IMAGE_NAMESPACE="$2" ;;
-        --imageVersion)         IMAGE_VERSION="$2" ;;
+        --imagesNamespace)      IMAGES_NAMESPACE="$2" ;;
+        --imagesTag)            IMAGES_TAG="$2" ;;
         --dockerServer)         DOCKER_SERVER="$2" ;;
         --dockerUser)           DOCKER_USER="$2" ;;
         --dockerPassword)       DOCKER_PASSWORD="$2" ;;
@@ -66,15 +66,15 @@ fi
 chown -R $ADMIN ${APP_PATH}
 cd ${APP_PATH}
 rm -f ${ENVVARS}
-if [ -z "$IMAGE_NAMESPACE" ]; then
+if [ -z "$IMAGES_NAMESPACE" ]; then
     echo "REPOSITORY=${DOCKER_SERVER}" >> ${ENVVARS}
 else
-    echo "REPOSITORY=${DOCKER_SERVER}/${IMAGE_NAMESPACE}" >> ${ENVVARS}
+    echo "REPOSITORY=${DOCKER_SERVER}/${IMAGES_NAMESPACE}" >> ${ENVVARS}
 fi
-if [ -z "$IMAGE_VERSION" ]; then
+if [ -z "$IMAGES_TAG" ]; then
     echo -e "Using latest version of images as defined in compose file."
 else
-    echo "VERSION=${IMAGE_VERSION}" >> ${ENVVARS}
+    echo "VERSION=${IMAGES_TAG}" >> ${ENVVARS}
 fi
 touch ${ENVVARS} && chmod 644 ${ENVVARS}
 docker-compose pull

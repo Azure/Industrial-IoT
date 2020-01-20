@@ -41,14 +41,16 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// Create router
         /// </summary>
         /// <param name="logger"></param>
-        public MethodRouter(ILogger logger) {
+        /// <param name="invokers"></param>
+        public MethodRouter(ILogger logger, IEnumerable<IMethodInvoker> invokers = null) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+
+            _calltable = invokers?.ToDictionary(i => i.MethodName, i => i) ??
+                new Dictionary<string, IMethodInvoker>();
 
             // Create chunk server
             var server = new ChunkMethodServer(this, logger);
-            _calltable = new Dictionary<string, IMethodInvoker> {
-                [MethodNames.Call] = new ChunkMethodServerInvoker(server)
-            };
+            _calltable.Add(MethodNames.Call, new ChunkMethodServerInvoker(server)); ;
         }
 
         /// <inheritdoc/>
@@ -136,23 +138,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <summary>
-        /// Represents an invoker
-        /// </summary>
-        private interface IMethodInvoker : IDisposable {
-
-            /// <summary>
-            /// Invoke method and return result.
-            /// </summary>
-            /// <param name="payload"></param>
-            /// <param name="contentType"></param>
-            /// <returns></returns>
-            Task<byte[]> InvokeAsync(byte[] payload, string contentType);
-        }
-
-        /// <summary>
         /// Manage chunked messages
         /// </summary>
         private class ChunkMethodServerInvoker : IMethodInvoker {
+
+            /// <inheritdoc/>
+            public string MethodName => MethodNames.Call;
 
             /// <summary>
             /// Create invoker
@@ -183,6 +174,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// </summary>
         private class DynamicInvoker : IMethodInvoker {
 
+            /// <inheritdoc/>
+            public string MethodName { get; private set; }
+
             /// <summary>
             /// Create dynamic invoker
             /// </summary>
@@ -200,6 +194,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 _logger.Verbose("Adding {controller}.{method} method to invoker...",
                     controller.GetType().Name, controllerMethod.Name);
                 _invokers.Add(new JsonMethodInvoker(controller, controllerMethod, _logger));
+                MethodName = controllerMethod.Name;
             }
 
             /// <inheritdoc/>
@@ -233,6 +228,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// Invokes a method with json payload
         /// </summary>
         private class JsonMethodInvoker : IMethodInvoker {
+
+            /// <inheritdoc/>
+            public string MethodName => _controllerMethod.Name;
 
             /// <summary>
             /// Default filter implementation if none is specified

@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Runtime {
         /// <inheritdoc/>
         public string KeyVaultBaseUrl => GetStringOrDefault(kOpcVault_KeyVaultBaseUrlKey,
             GetStringOrDefault("KEYVAULT__BASEURL",
-                GetStringOrDefault("PCS_KEYVAULT_URL"))).Trim();
+                GetStringOrDefault(PcsVariable.PCS_KEYVAULT_URL))).Trim();
         /// <inheritdoc/>
         public string KeyVaultResourceId => GetStringOrDefault(kOpcVault_KeyVaultResourceIdKey,
             GetStringOrDefault("KEYVAULT__RESOURCEID",

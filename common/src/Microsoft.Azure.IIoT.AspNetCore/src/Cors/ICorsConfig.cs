@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.Cors {
+namespace Microsoft.Azure.IIoT.AspNetCore.Cors {
 
     /// <summary>
     /// Configuration interface for auth

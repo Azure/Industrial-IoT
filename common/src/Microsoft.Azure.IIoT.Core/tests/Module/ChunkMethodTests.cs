@@ -4,19 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module {
-    using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Azure.IIoT.Module.Models;
-    using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Hub;
     using Newtonsoft.Json;
     using System;
     using System.Text;
-    using System.Threading.Tasks;
     using Xunit;
     using AutoFixture;
-    using System.Threading;
 
-    public class ChunkMethodTests {
+    public partial class ChunkMethodTests {
 
         [Theory]
         [InlineData(120 * 1024)]
@@ -38,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Module {
                 test1 = fixture.Create<byte[]>(),
                 test2 = fixture.Create<string>()
             });
-            var server = new TestServer(chunkSize, (method, buffer, type) => {
+            var server = new TestChunkServer(chunkSize, (method, buffer, type) => {
                 Assert.Equal(expectedMethod, method);
                 Assert.Equal(expectedContentType, type);
                 Assert.Equal(expectedRequest, Encoding.UTF8.GetString(buffer));
@@ -72,7 +66,7 @@ namespace Microsoft.Azure.IIoT.Module {
             var expectedResponse = new byte[300000];
             kR.NextBytes(expectedResponse);
 
-            var server = new TestServer(chunkSize, (method, buffer, type) => {
+            var server = new TestChunkServer(chunkSize, (method, buffer, type) => {
                 Assert.Equal(expectedMethod, method);
                 Assert.Equal(expectedContentType, type);
                 Assert.Equal(expectedRequest, buffer);
@@ -85,35 +79,5 @@ namespace Microsoft.Azure.IIoT.Module {
         }
 
         private static readonly Random kR = new Random();
-        public class TestServer : IJsonMethodClient, IMethodHandler {
-
-            public TestServer(int size,
-                Func<string, byte[], string, byte[]> handler) {
-                MaxMethodPayloadCharacterCount = size;
-                _handler = handler;
-                _server = new ChunkMethodServer(this, TraceLogger.Create());
-            }
-
-            public IMethodClient CreateClient() {
-                return new ChunkMethodClient(this, TraceLogger.Create());
-            }
-
-            public int MaxMethodPayloadCharacterCount { get; }
-
-            public async Task<string> CallMethodAsync(string deviceId,
-                string moduleId, string method, string json, TimeSpan? timeout,
-                CancellationToken ct) {
-                var processed = await _server.ProcessAsync(
-                    JsonConvertEx.DeserializeObject<MethodChunkModel>(json));
-                return JsonConvertEx.SerializeObject(processed);
-            }
-
-            public Task<byte[]> InvokeAsync(string method, byte[] payload, string contentType) {
-                return Task.FromResult(_handler.Invoke(method, payload, contentType));
-            }
-
-            private readonly ChunkMethodServer _server;
-            private readonly Func<string, byte[], string, byte[]> _handler;
-        }
     }
 }

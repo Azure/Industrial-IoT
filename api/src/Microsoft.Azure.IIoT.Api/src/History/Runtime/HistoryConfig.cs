@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Runtime {
         /// <summary>OPC vault audience</summary>
         public string OpcUaHistoryServiceResourceId => GetStringOrDefault(
             kOpcUaHistoryServiceIdKey, GetStringOrDefault("OPC_HISTORY_APP_ID",
-                GetStringOrDefault("PCS_AUTH_AUDIENCE", null)));
+                GetStringOrDefault(PcsVariable.PCS_AUTH_AUDIENCE, null)));
 
         /// <inheritdoc/>
         public HistoryConfig(IConfiguration configuration) :

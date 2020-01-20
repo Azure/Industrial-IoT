@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client.Runtime {
         /// <summary> Event hub connection string </summary>
         public string EventHubConnString {
             get {
-                var ep = GetStringOrDefault("PCS_IOTHUB_EVENTHUBENDPOINT",
+                var ep = GetStringOrDefault(PcsVariable.PCS_IOTHUB_EVENTHUBENDPOINT,
                     GetStringOrDefault("PCS_IOTHUBREACT_HUB_ENDPOINT", null));
                 if (string.IsNullOrEmpty(ep)) {
                     var cs = GetStringOrDefault(kEventHubConnStringKey, GetStringOrDefault(
@@ -60,7 +60,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client.Runtime {
         /// <summary>IoT hub connection string</summary>
         public string IoTHubConnString => GetStringOrDefault(kIoTHubConnectionStringKey,
             GetStringOrDefault(_serviceId + "_HUB_CS",
-                GetStringOrDefault("PCS_IOTHUB_CONNSTRING", GetStringOrDefault("_HUB_CS", null))));
+                GetStringOrDefault(PcsVariable.PCS_IOTHUB_CONNSTRING, GetStringOrDefault("_HUB_CS", null))));
         /// <summary>Hub name</summary>
         public string IoTHubName {
             get {

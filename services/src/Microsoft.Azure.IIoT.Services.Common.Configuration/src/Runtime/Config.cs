@@ -6,8 +6,8 @@
 namespace Microsoft.Azure.IIoT.Services.Common.Configuration.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
-    using Microsoft.Azure.IIoT.Services.Cors;
-    using Microsoft.Azure.IIoT.Services.Cors.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.Azure.IIoT.Messaging.SignalR.Runtime;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus;

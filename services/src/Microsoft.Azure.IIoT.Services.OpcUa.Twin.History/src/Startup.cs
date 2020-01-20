@@ -5,9 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Runtime;
-    using Microsoft.Azure.IIoT.Services.Auth;
-    using Microsoft.Azure.IIoT.Services.Auth.Clients;
-    using Microsoft.Azure.IIoT.Services.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.Correlation;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.History.Clients;

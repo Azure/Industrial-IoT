@@ -58,7 +58,7 @@
                     else {
                         <input type="checkbox" disabled @bind="@discoverer.ScanStatus" />
                     }
-                    
+
                     @{string output = discoverer.ScanStatus == true ? "On" : "Off";}
                     @output
                     @if (discoverer.IsSearching)
@@ -171,7 +171,9 @@
     private async Task SetScan(DiscovererInfo discoverer, bool forceScan, string ipMask = null, string portRange = null)
     {
         var discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByDiscovererIdAsync(
-                discoverer.DiscovererModel.Id, null, ScanProgress);
+                discoverer.DiscovererModel.Id, null, async data => {
+                    await InvokeAsync(() => ScanProgress(data));
+                });
 
         try
         {
@@ -219,7 +221,7 @@
     /// display discoverers scan events
     /// </summary>
     /// <param name="ev"></param>
-    private Task ScanProgress(DiscoveryProgressApiModel ev)
+    private void ScanProgress(DiscoveryProgressApiModel ev)
     {
         switch (ev.EventType) {
             case DiscoveryProgressType.Pending:
@@ -268,21 +270,26 @@
             case DiscoveryProgressType.Cancelled:
                 _eventResult += "==========================================" + System.Environment.NewLine;
                 _eventResult += string.Format("{0}: Cancelled.", ev.DiscovererId) + System.Environment.NewLine;
-                DiscovererData.IsSearching = false;
+                if (DiscovererData != null) {
+                    DiscovererData.IsSearching = false;
+                }
                 break;
             case DiscoveryProgressType.Error:
                 _eventResult += "==========================================" + System.Environment.NewLine;
                 _eventResult += string.Format("{0}: Failure.", ev.DiscovererId) + System.Environment.NewLine;
-                DiscovererData.IsSearching = false;
+                if (DiscovererData != null) {
+                    DiscovererData.IsSearching = false;
+                }
                 break;
             case DiscoveryProgressType.Finished:
                 _eventResult += "==========================================" + System.Environment.NewLine;
                 _eventResult += string.Format("{0}: Completed.", ev.DiscovererId) + System.Environment.NewLine;
-                DiscovererData.IsSearching = false;
+                if (DiscovererData != null) {
+                    DiscovererData.IsSearching = false;
+                }
                 break;
         }
         StateHasChanged();
-        return Task.CompletedTask;
     }
 
     /// <summary>

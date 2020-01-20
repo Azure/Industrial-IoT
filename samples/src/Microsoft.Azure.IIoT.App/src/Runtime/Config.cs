@@ -31,7 +31,6 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
         /// <param name="configuration"></param>
         public Config(IConfiguration configuration) :
             base(configuration) {
-
             _auth = new ApiClientConfig(configuration);
         }
 

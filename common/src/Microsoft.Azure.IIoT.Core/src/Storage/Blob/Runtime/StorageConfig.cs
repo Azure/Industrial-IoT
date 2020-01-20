@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Storage.Blob.Runtime {
         public string BlobStorageConnString {
             get {
                 var cs = GetStringOrDefault(kBlobStorageConnStringKey,
-                    GetStringOrDefault("PCS_STORAGE_CONNSTRING", null))?.Trim();
+                    GetStringOrDefault(PcsVariable.PCS_STORAGE_CONNSTRING, null))?.Trim();
                 if (!string.IsNullOrEmpty(cs)) {
                     return cs;
                 }

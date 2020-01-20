@@ -441,7 +441,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                                     await DiscovererScanAsync(options);
                                     break;
                                 case "monitor":
-                                    await MonitorDiscoverersAsync();
+                                    await MonitorDiscoverersAsync(options);
                                     break;
                                 case "list":
                                     await ListDiscoverersAsync(options);
@@ -1642,10 +1642,19 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Monitor discoverers
         /// </summary>
-        private async Task MonitorDiscoverersAsync() {
+        private async Task MonitorDiscoverersAsync(CliOptions options) {
             var events = _scope.Resolve<IRegistryServiceEvents>();
             Console.WriteLine("Press any key to stop.");
-            var complete = await events.SubscribeDiscovererEventsAsync(null, PrintEvent);
+            IAsyncDisposable complete;
+            var discovererId = options.GetValueOrDefault<string>("-i", "--id", null);
+            if (discovererId != null) {
+                // If specified - monitor progress
+                complete = await events.SubscribeDiscoveryProgressByDiscovererIdAsync(
+                    discovererId, null, PrintProgress);
+            }
+            else {
+                complete = await events.SubscribeDiscovererEventsAsync(null, PrintEvent);
+            }
             try {
                 Console.ReadKey();
             }
@@ -1677,16 +1686,12 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             var discovererId = GetDiscovererId(options);
             var events = _scope.Resolve<IRegistryServiceEvents>();
             Console.WriteLine("Press any key to stop.");
-
             var discovery = await events.SubscribeDiscoveryProgressByDiscovererIdAsync(
                 discovererId, null, PrintProgress);
             try {
                 var config = BuildDiscoveryConfig(options);
                 var mode = options.GetValueOrDefault("-d", "--discovery",
-                     config == null ? DiscoveryMode.Fast : DiscoveryMode.Scan);
-                if (config == null) {
-                    config = new DiscoveryConfigApiModel();
-                }
+                    config == null ? DiscoveryMode.Fast : DiscoveryMode.Scan);
                 if (mode == DiscoveryMode.Off) {
                     throw new ArgumentException("-d/--discovery Off is not supported");
                 }
@@ -3245,7 +3250,11 @@ Commands and Options
         -c, --clear     Clear current selection
         -s, --show      Show current selection
 
-     monitor     Monitor changes to discoverers.
+     monitor     Monitor changes to discoverer twins.
+
+     monitor     Monitor discovery progress of specified discoverer.
+        with ...
+        -i, --id        Discoverer to monitor
 
      list        List discoverers
         with ...

@@ -5,9 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime;
-    using Microsoft.Azure.IIoT.Services.Auth;
-    using Microsoft.Azure.IIoT.Services.Auth.Clients;
-    using Microsoft.Azure.IIoT.Services.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.Correlation;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2;
     using Microsoft.Azure.IIoT.OpcUa.Vault.Handler;
     using Microsoft.Azure.IIoT.OpcUa.Vault.Events;

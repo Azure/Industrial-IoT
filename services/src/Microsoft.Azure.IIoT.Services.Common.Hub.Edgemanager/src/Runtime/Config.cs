@@ -6,8 +6,8 @@
 namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
-    using Microsoft.Azure.IIoT.Services.Cors;
-    using Microsoft.Azure.IIoT.Services.Cors.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Auth.Server;
@@ -80,7 +80,9 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager.Runtime {
         /// <inheritdoc/>
         public string DockerPassword => _cr.DockerPassword;
         /// <inheritdoc/>
-        public string ImageNamespace => _cr.ImageNamespace;
+        public string ImagesNamespace => _cr.ImagesNamespace;
+        /// <inheritdoc/>
+        public string ImagesTag => _cr.ImagesTag;
 
         /// <summary>
         /// Configuration constructor
