@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.Cors {
-    using Microsoft.Azure.IIoT.Services.Models;
+namespace Microsoft.Azure.IIoT.AspNetCore.Cors {
+    using Microsoft.Azure.IIoT.AspNetCore.Models;
     using Serilog;
     using Microsoft.AspNetCore.Builder;
     using Newtonsoft.Json;

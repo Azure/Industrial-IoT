@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Runtime {
-    using Microsoft.Azure.IIoT.Services.Cors;
-    using Microsoft.Azure.IIoT.Services.Cors.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;

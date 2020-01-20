@@ -6,8 +6,8 @@
 namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.App.Services;
     using Microsoft.Azure.IIoT.App.Runtime;
-    using Microsoft.Azure.IIoT.Services.Auth.Clients;
-    using Microsoft.Azure.IIoT.Services.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
@@ -37,7 +37,6 @@ namespace Microsoft.Azure.IIoT.App {
     using System;
     using System.Threading.Tasks;
     using System.Security.Claims;
-    using System.Security.Authentication;
 
     /// <summary>
     /// Webapp startup

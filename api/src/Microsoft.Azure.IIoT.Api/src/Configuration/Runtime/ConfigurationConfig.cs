@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Api.Configuration.Runtime {
         /// <summary>Configuration service audience</summary>
         public string ConfigurationServiceResourceId => GetStringOrDefault(
             kConfigurationServiceIdKey, GetStringOrDefault("CONFIGURATION_APP_ID",
-                GetStringOrDefault("PCS_AUTH_AUDIENCE", null)));
+                GetStringOrDefault(PcsVariable.PCS_AUTH_AUDIENCE, null)));
 
         /// <inheritdoc/>
         public ConfigurationConfig(IConfiguration configuration) :

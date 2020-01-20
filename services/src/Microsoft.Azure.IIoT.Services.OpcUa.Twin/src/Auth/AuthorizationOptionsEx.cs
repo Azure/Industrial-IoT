@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.Auth;
-    using Microsoft.Azure.IIoT.Services.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.AspNetCore.Authorization;
 
     /// <summary>

@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Runtime {
         /// <summary>OPC twin service audience</summary>
         public string OpcUaTwinServiceResourceId => GetStringOrDefault(
             kOpcUaTwinServiceIdKey, GetStringOrDefault("OPC_TWIN_APP_ID",
-                GetStringOrDefault("PCS_AUTH_AUDIENCE", null)));
+                GetStringOrDefault(PcsVariable.PCS_AUTH_AUDIENCE, null)));
 
         /// <inheritdoc/>
         public TwinConfig(IConfiguration configuration) :

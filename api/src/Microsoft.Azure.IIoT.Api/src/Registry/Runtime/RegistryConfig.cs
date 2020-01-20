@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Runtime {
         /// <summary>OPC registry audience</summary>
         public string OpcUaRegistryServiceResourceId => GetStringOrDefault(
             kOpcUaRegistryServiceIdKey, GetStringOrDefault("OPC_REGISTRY_APP_ID",
-                GetStringOrDefault("PCS_AUTH_AUDIENCE", null)));
+                GetStringOrDefault(PcsVariable.PCS_AUTH_AUDIENCE, null)));
 
         /// <inheritdoc/>
         public RegistryConfig(IConfiguration configuration) :

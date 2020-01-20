@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services {
+namespace Microsoft.Azure.IIoT.AspNetCore {
     using Microsoft.AspNetCore.Builder;
 
     /// <summary>

@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Runtime {
         /// <summary>Jobs service audience</summary>
         public string JobServiceResourceId => GetStringOrDefault(
             kJobServiceIdKey, GetStringOrDefault("JOBS_APP_ID",
-                GetStringOrDefault("PCS_AUTH_AUDIENCE", null)));
+                GetStringOrDefault(PcsVariable.PCS_AUTH_AUDIENCE, null)));
 
         /// <inheritdoc/>
         public JobsServiceConfig(IConfiguration configuration) :

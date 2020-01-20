@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
     /// </summary>
     public class DiagnosticsConfig : ConfigBase, IDiagnosticsConfig {
 
-        private const string kInstrumentationKey = "PCS_APPINSIGHTS_INSTRUMENTATIONKEY";
+        private const string kInstrumentationKey = PcsVariable.PCS_APPINSIGHTS_INSTRUMENTATIONKEY;
 
         /// <inheritdoc/>
         public string InstrumentationKey => GetStringOrDefault(kInstrumentationKey);

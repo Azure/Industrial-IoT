@@ -1010,6 +1010,10 @@
                                 "value": "[variables('iothubConsumerGroup1')]"
                             },
                             {
+                                "key": "PCS_IOTHUB_EVENTHUBCONSUMERGROUP2",
+                                "value": "[variables('iothubConsumerGroup2')]"
+                            },
+                            {
                                 "key": "PCS_ADLSG2_ACCOUNT",
                                 "value": "[parameters('datalakeName')]"
                             },
@@ -1040,10 +1044,6 @@
                             {
                                 "key": "PCS_WORKSPACE_NAME",
                                 "value": "[parameters('workspaceName')]"
-                            },
-                            {
-                                "key": "PCS_APPINSIGHTS_NAME",
-                                "value": "[parameters('appInsightsName')]"
                             },
                             {
                                 "key": "PCS_APPINSIGHTS_INSTRUMENTATIONKEY",

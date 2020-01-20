@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Runtime {
 
         /// <inheritdoc/>
         public string DbConnectionString => GetStringOrDefault(kOpcVault_DbConnectionStringKey,
-            GetStringOrDefault("PCS_COSMOSDB_CONNSTRING",
+            GetStringOrDefault(PcsVariable.PCS_COSMOSDB_CONNSTRING,
                GetStringOrDefault("PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING",
                GetStringOrDefault("PCS_TELEMETRY_DOCUMENTDB_CONNSTRING",
                     GetStringOrDefault("_DB_CS", null)))));

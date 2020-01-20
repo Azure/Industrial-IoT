@@ -22,10 +22,10 @@ namespace Microsoft.Azure.IIoT.Messaging.EventHub.Runtime {
 
         /// <summary> Event hub connection string </summary>
         public string EventHubConnString => GetStringOrDefault(kEventHubConnStringKey,
-            GetStringOrDefault("PCS_EVENTHUB_CONNSTRING", null));
+            GetStringOrDefault(PcsVariable.PCS_EVENTHUB_CONNSTRING, null));
         /// <summary> Event hub path </summary>
         public string EventHubPath => GetStringOrDefault(kEventHubNameKey,
-            GetStringOrDefault("PCS_EVENTHUB_NAME", null));
+            GetStringOrDefault(PcsVariable.PCS_EVENTHUB_NAME, null));
         /// <summary> Whether use websockets to connect </summary>
         public bool UseWebsockets => GetBoolOrDefault(kUseWebsocketsKey,
             GetBoolOrDefault("PCS_EVENTHUB_USE_WEBSOCKET", GetBoolOrDefault("_WS", false)));

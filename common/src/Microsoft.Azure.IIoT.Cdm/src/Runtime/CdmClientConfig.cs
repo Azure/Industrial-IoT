@@ -24,9 +24,9 @@ namespace Microsoft.Azure.IIoT.Cdm.Runtime {
 
         /// <summary>ADLSg2 host's name </summary>
         public string ADLSg2HostName => GetStringOrDefault(kCdmAdDLS2HostName,
-            GetStringOrDefault("PCS_ADLSG2_ACCOUNT",
+            GetStringOrDefault(PcsVariable.PCS_ADLSG2_ACCOUNT,
             GetStringOrDefault("PCS_ASA_DATA_AZUREBLOB_ACCOUNT",
-            GetAccountNameFromConnectionString("PCS_STORAGE_CONNSTRING"))) +
+            GetAccountNameFromConnectionString(PcsVariable.PCS_STORAGE_CONNSTRING))) +
                 ".dfs.core.windows.net");
         /// <summary>Blob name to store data in the ADLSg2</summary>
         public string ADLSg2BlobName => GetStringOrDefault(kCdmADLSg2BlobName,

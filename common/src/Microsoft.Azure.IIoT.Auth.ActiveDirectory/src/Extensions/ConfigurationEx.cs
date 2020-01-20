@@ -16,6 +16,7 @@ namespace Microsoft.Extensions.Configuration {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT;
 
     /// <summary>
     /// Extension methods
@@ -49,14 +50,14 @@ namespace Microsoft.Extensions.Configuration {
         internal sealed class KeyVaultClientConfig : ConfigBase, IClientConfig {
 
             /// <summary>Application id</summary>
-            public string AppId => GetStringOrDefault("PCS_KEYVAULT_APPID",
-                Environment.GetEnvironmentVariable("PCS_KEYVAULT_APPID"))?.Trim();
+            public string AppId => GetStringOrDefault(PcsVariable.PCS_KEYVAULT_APPID,
+                Environment.GetEnvironmentVariable(PcsVariable.PCS_KEYVAULT_APPID))?.Trim();
             /// <summary>App secret</summary>
-            public string AppSecret => GetStringOrDefault("PCS_KEYVAULT_SECRET",
-                Environment.GetEnvironmentVariable("PCS_KEYVAULT_SECRET"))?.Trim();
+            public string AppSecret => GetStringOrDefault(PcsVariable.PCS_KEYVAULT_SECRET,
+                Environment.GetEnvironmentVariable(PcsVariable.PCS_KEYVAULT_SECRET))?.Trim();
             /// <summary>Optional tenant</summary>
-            public string TenantId => GetStringOrDefault("PCS_AUTH_TENANT",
-                Environment.GetEnvironmentVariable("PCS_AUTH_TENANT") ?? "common").Trim();
+            public string TenantId => GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT,
+                Environment.GetEnvironmentVariable(PcsVariable.PCS_AUTH_TENANT) ?? "common").Trim();
 
             /// <summary>Aad instance url</summary>
             public string InstanceUrl => null;
@@ -155,7 +156,7 @@ namespace Microsoft.Extensions.Configuration {
                 bool singleton, IConfigurationRoot configuration, string keyVaultUrlVarName,
                 bool allowDeveloperAccess) {
                 if (string.IsNullOrEmpty(keyVaultUrlVarName)) {
-                    keyVaultUrlVarName = "PCS_KEYVAULT_URL";
+                    keyVaultUrlVarName = PcsVariable.PCS_KEYVAULT_URL;
                 }
                 if (singleton) {
                     // Save singleton creation
@@ -239,15 +240,15 @@ namespace Microsoft.Extensions.Configuration {
                 }
 
                 // Try using aims
-                keyVault = TryCredentialsToReadSecretAsync("Managed Service Identity",
-                    vaultUri, variableName).Result;
+                keyVault = await TryCredentialsToReadSecretAsync("Managed Service Identity",
+                    vaultUri, variableName);
                 if (keyVault != null) {
                     return keyVault;
                 }
                 if (allowDeveloperAccess) {
                     // Try logged on user if we cannot get anywhere
-                    keyVault = TryCredentialsToReadSecretAsync("VisualStudio", vaultUri,
-                        variableName, "RunAs=Developer; DeveloperTool=VisualStudio").Result;
+                    keyVault = await TryCredentialsToReadSecretAsync("VisualStudio", vaultUri,
+                        variableName, "RunAs=Developer; DeveloperTool=VisualStudio");
                     if (keyVault != null) {
                         return keyVault;
                     }

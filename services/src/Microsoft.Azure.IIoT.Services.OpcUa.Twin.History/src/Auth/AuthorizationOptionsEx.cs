@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Auth;
-    using Microsoft.Azure.IIoT.Services.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.AspNetCore.Authorization;
 
     /// <summary>

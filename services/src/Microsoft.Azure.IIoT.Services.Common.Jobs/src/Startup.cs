@@ -5,8 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
     using Microsoft.Azure.IIoT.Services.Common.Jobs.Runtime;
-    using Microsoft.Azure.IIoT.Services.Auth;
-    using Microsoft.Azure.IIoT.Services.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.Correlation;
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
     using Microsoft.Azure.IIoT.Http.Default;

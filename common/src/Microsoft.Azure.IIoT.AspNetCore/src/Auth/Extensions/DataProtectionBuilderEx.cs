@@ -3,8 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.Auth {
-    using Microsoft.AspNetCore.DataProtection;
+namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Crypto.KeyVault;
     using Microsoft.Azure.IIoT.Crypto.KeyVault.Runtime;
@@ -19,6 +18,7 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
     using Microsoft.Azure.Storage.Blob;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.AspNetCore.DataProtection;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -123,8 +123,8 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
             }
 
             // Try using aims
-            keyVault = TryInititalizeKeyAsync("Managed Service Identity",
-                vaultUri, keyName).Result;
+            keyVault = await TryInititalizeKeyAsync("Managed Service Identity",
+                vaultUri, keyName);
             if (keyVault != null) {
                 return keyVault;
             }
@@ -172,20 +172,21 @@ namespace Microsoft.Azure.IIoT.Services.Auth {
         }
 
         /// <summary>
-        /// Dataprotection default configuration
+        /// Data protection default configuration
         /// </summary>
         internal sealed class DataProtectionConfig : ConfigBase, IClientConfig,
             IKeyVaultConfig, IStorageConfig {
 
             /// <summary>Application id</summary>
-            public string AppId => GetStringOrDefault("PCS_KEYVAULT_APPID",
-                Environment.GetEnvironmentVariable("PCS_KEYVAULT_APPID"))?.Trim();
+            public string AppId => GetStringOrDefault(PcsVariable.PCS_KEYVAULT_APPID,
+                Environment.GetEnvironmentVariable(PcsVariable.PCS_KEYVAULT_APPID))?.Trim();
             /// <summary>App secret</summary>
-            public string AppSecret => GetStringOrDefault("PCS_KEYVAULT_SECRET",
-                Environment.GetEnvironmentVariable("PCS_KEYVAULT_SECRET"))?.Trim();
+            public string AppSecret => GetStringOrDefault(PcsVariable.PCS_KEYVAULT_SECRET,
+                Environment.GetEnvironmentVariable(PcsVariable.PCS_KEYVAULT_SECRET))?.Trim();
             /// <summary>Optional tenant</summary>
-            public string TenantId => GetStringOrDefault("PCS_AUTH_TENANT",
-                Environment.GetEnvironmentVariable("PCS_AUTH_TENANT") ?? "common").Trim();
+            public string TenantId => GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT,
+                Environment.GetEnvironmentVariable(PcsVariable.PCS_AUTH_TENANT) ??
+                    "common").Trim();
 
             /// <summary>Aad instance url</summary>
             public string InstanceUrl => null;

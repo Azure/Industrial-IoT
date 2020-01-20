@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.Auth {
+namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Http;
