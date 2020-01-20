@@ -52,6 +52,7 @@ $metadata = Get-Content -Raw -Path (join-path $Path "container.json") `
     | ConvertFrom-Json
 
 # get and set build information from gitversion, git or version content
+$latestTag = "latest"
 $sourceTag = $env:Version_Prefix
 if ([string]::IsNullOrEmpty($sourceTag)) {
     try {
@@ -112,6 +113,7 @@ if ([string]::IsNullOrEmpty($branchName)) {
 }
 
 # Set namespace name based on branch name
+$releaseBuild = $false
 if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
     Write-Warning "Error - Branch '$($branchName)' invalid - using default."
     $namespace = "deletemesoon/"
@@ -124,13 +126,14 @@ else {
     }
     elseif ($namespace.StartsWith("release/") -or ($namespace -eq "master")) {
         $namespace = "public"
+        $releaseBuild = $true
     }
     $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
     $namespace = "$($namespace)/"
 
     if (![string]::IsNullOrEmpty($Registry) -and ($Registry -ne "industrialiot")) {
         # if we build from release or from master and registry is provided we leave namespace empty
-        if ($branchName.StartsWith("release/") -or ($branchName -eq "master")) {
+        if ($releaseBuild) {
             $namespace = ""
         }
     }
@@ -150,7 +153,9 @@ if (![string]::IsNullOrEmpty($Subscription)) {
 if ([string]::IsNullOrEmpty($Registry)) {
     $Registry = $env.BUILD_REGISTRY
     if ([string]::IsNullOrEmpty($Registry)) {
-        if ($namespace -eq "public") {
+        if ($releaseBuild) {
+            # Make sure we do not override latest in release builds - this is done manually later.
+            $latestTag = "preview"
             $Registry = "industrialiot"
         }
         else {
@@ -194,6 +199,7 @@ Write-Host "Full image name: $($fullImageName)"
 
 $manifest = @" 
 image: $($fullImageName)
+tags: [$($tagPrefix)$($latestTag)$($tagPostfix)]
 manifests:
 "@
 
