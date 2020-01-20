@@ -34,6 +34,7 @@ spec:
       containers:
       - name: jobs-service-container
         image: {{ .Values.Image.Registry }}/opc-jobs-service:{{ .Values.Image.Tag }}
+        imagePullPolicy: {{ .Values.Image.PullPolicy }}
         resources:
           requests:
             memory: "64Mi"

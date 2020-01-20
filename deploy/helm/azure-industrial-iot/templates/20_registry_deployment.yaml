@@ -34,6 +34,7 @@ spec:
       containers:
       - name: registry-service-container
         image: {{ .Values.Image.Registry }}/opc-registry-service:{{ .Values.Image.Tag }}
+        imagePullPolicy: {{ .Values.Image.PullPolicy }}
         resources:
           requests:
             memory: "64Mi"

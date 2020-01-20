@@ -34,6 +34,7 @@ spec:
       containers:
       - name: gateway-service-container
         image: {{ .Values.Image.Registry }}/opc-gateway-service:{{ .Values.Image.Tag }}
+        imagePullPolicy: {{ .Values.Image.PullPolicy }}
         resources:
           requests:
             memory: "64Mi"

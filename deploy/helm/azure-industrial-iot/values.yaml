@@ -1,6 +1,7 @@
 Image:
   Registry: mcr.microsoft.com/iot
   Tag: 2.5.2
+  PullPolicy: IfNotPresent
 
 Azure:
   TenantId: null

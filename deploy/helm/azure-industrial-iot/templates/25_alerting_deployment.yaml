@@ -34,6 +34,7 @@ spec:
       containers:
       - name: alerting-service-container
         image: {{ .Values.Image.Registry }}/opc-alerting-service:{{ .Values.Image.Tag }}
+        imagePullPolicy: {{ .Values.Image.PullPolicy }}
         resources:
           requests:
             memory: "64Mi"
