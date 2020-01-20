@@ -122,13 +122,13 @@ else {
     if ($namespace.StartsWith("feature/")) {
         $namespace = $namespace.Replace("feature/", "")
     }
-    elseif ($namespace.StartsWith("release/")) {
-        $namespace = "master"
+    elseif ($namespace.StartsWith("release/") -or ($namespace -eq "master")) {
+        $namespace = "public"
     }
     $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
     $namespace = "$($namespace)/"
 
-    if (![string]::IsNullOrEmpty($Registry)) {
+    if (![string]::IsNullOrEmpty($Registry) -and ($Registry -ne "industrialiot")) {
         # if we build from release or from master and registry is provided we leave namespace empty
         if ($branchName.StartsWith("release/") -or ($branchName -eq "master")) {
             $namespace = ""
@@ -150,7 +150,12 @@ if (![string]::IsNullOrEmpty($Subscription)) {
 if ([string]::IsNullOrEmpty($Registry)) {
     $Registry = $env.BUILD_REGISTRY
     if ([string]::IsNullOrEmpty($Registry)) {
-        $Registry = "industrialiotdev"
+        if ($namespace -eq "public") {
+            $Registry = "industrialiot"
+        }
+        else {
+            $Registry = "industrialiotdev"
+        }
         Write-Warning "No registry specified - using $($Registry).azurecr.io."
     }
 }
@@ -184,22 +189,11 @@ if (![string]::IsNullOrEmpty($metadata.tag)) {
     $tagPrefix = "$($metadata.tag)-"
 }
 
-# do not push latest during master / release builds - release to latest happens later
-if (![string]::IsNullOrEmpty($namespace)) {
-    Write-Host "Pushing '$($sourceTag)' build for $($branchName) to $($namespace)."
-    $topTag = "latest"
-}
-else {
-    Write-Host "Pushing '$($sourceTag)' build as preview build."
-    $topTag = "preview"
-}
-
-$fullImageName = "$($Registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)$($topTag)$($tagPostfix)"
+$fullImageName = "$($Registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)$($sourceTag)$($tagPostfix)"
 Write-Host "Full image name: $($fullImageName)"
 
 $manifest = @" 
 image: $($fullImageName)
-tags: [$($sourceTag)]
 manifests:
 "@
 
