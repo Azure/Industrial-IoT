@@ -2,68 +2,69 @@ Image:
   Registry: mcr.microsoft.com/iot
   Tag: 2.5.2
 
-TenantId: null
+Azure:
+  TenantId: null
 
-IoTHub:
-  Name: null
-
-  EventHub:
-    Endpoint: null
-    PartitionCount: null
-    ConsumerGroup: null
-
-  SharedAccessPolicies:
-    iothubowner:
-      ConnectionString: null
-
-CosmosDB:
-  ConnectionString: null
-
-StorageAccount:
-  Name: null
-  AccessKey: null
-  EndpointSuffix: core.windows.net
-
-EventHubNamespace:
-  SharedAccessPolicies:
-    RootManageSharedAccessKey:
-      ConnectionString: null  
-  
-  EventHub:
+  IoTHub:
     Name: null
 
-ServiceBusNamespace:
-  SharedAccessPolicies:
-    RootManageSharedAccessKey:
-      ConnectionString: null
+    EventHub:
+      Endpoint: null
+      PartitionCount: null
+      ConsumerGroup: null
 
-KeyVault:
-  URI: null
+    SharedAccessPolicies:
+      iothubowner:
+        ConnectionString: null
 
-LogAnalyticsWorkspace:
-  Name: null
+  CosmosDB:
+    ConnectionString: null
 
-ApplicationInsights:
-  Name: null
-  InstrumentationKey: null
+  StorageAccount:
+    Name: null
+    AccessKey: null
+    EndpointSuffix: core.windows.net
 
-AppService:
-  URL: null
+  EventHubNamespace:
+    SharedAccessPolicies:
+      RootManageSharedAccessKey:
+        ConnectionString: null
 
-SignalR:
-  ConnectionString: null
+    EventHub:
+      Name: null
 
-Services:
-  CorsWhitelist: '*'
-  Auth:
-    HttpsRedirectPort: 0
-    Required: true
-    Audience: null
+  ServiceBusNamespace:
+    SharedAccessPolicies:
+      RootManageSharedAccessKey:
+        ConnectionString: null
 
-Clients:
-  Auth:
-    AadAppId: null
-    Authority: https://login.microsoftonline.com/
+  KeyVault:
+    URI: null
+
+  LogAnalyticsWorkspace:
+    Name: null
+
+  ApplicationInsights:
+    Name: null
+    InstrumentationKey: null
+
+  AppService:
+    URL: null
+
+  SignalR:
+    ConnectionString: null
+
+  ServicesApp:
+    CorsWhitelist: '*'
+    Auth:
+      HttpsRedirectPort: 0
+      Required: true
+      Audience: null
+
+  ClientsApp:
+    Auth:
+      AadAppId: null
+      Authority: https://login.microsoftonline.com/
 
 Deployment:
   MicroServices:
