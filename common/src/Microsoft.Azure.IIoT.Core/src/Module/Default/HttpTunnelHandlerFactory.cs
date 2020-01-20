@@ -73,10 +73,13 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             var response = JsonConvertEx.DeserializeObject<HttpTunnelResponseModel>(result);
             if (_outstanding.TryRemove(response.RequestId, out var tcs)) {
                 var httpResponse = new HttpResponseMessage((HttpStatusCode)response.Status) {
-                    Content = new ByteArrayContent(response.Payload)
+                    Content = response.Payload == null ? null :
+                        new ByteArrayContent(response.Payload)
                 };
-                foreach (var header in response.Headers) {
-                    httpResponse.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                if (response.Headers != null) {
+                    foreach (var header in response.Headers) {
+                        httpResponse.Headers.TryAddWithoutValidation(header.Key, header.Value);
+                    }
                 }
                 tcs.TrySetResult(httpResponse);
             }
@@ -141,9 +144,8 @@ namespace Microsoft.Azure.IIoT.Module.Default {
 
                 // Remove on cancellation
                 ct.Register(() => {
-                    _outer._outstanding.TryRemove(requestId, out var completion);
-                    System.Diagnostics.Debug.Assert(tcs == completion);
-                    completion.TrySetCanceled();
+                    _outer._outstanding.TryRemove(requestId, out _);
+                    tcs.TrySetCanceled();
                 });
 
                 // Send headers

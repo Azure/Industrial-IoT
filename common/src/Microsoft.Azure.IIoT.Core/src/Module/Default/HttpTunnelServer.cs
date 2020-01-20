@@ -20,6 +20,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
     using System.Collections.Generic;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Http;
+    using System.Net.Http;
 
     /// <summary>
     /// Provides server side handling
@@ -183,7 +184,8 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                             foreach (var chunk in _payload) {
                                 stream.Write(chunk);
                             }
-                            request.SetContent(stream.ToArray().Unzip());
+                            var payload = stream.ToArray().Unzip();
+                            request.Content = new ByteArrayContent(payload);
                         }
                     }
 
@@ -209,7 +211,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
 
                     // Forward response back to caller
                     await _outer._client.CallMethodAsync(
-                        _deviceId, _moduleId, "response",
+                        _deviceId, _moduleId, MethodNames.Response,
                         JsonConvertEx.SerializeObject(new HttpTunnelResponseModel {
                             Headers = response.Headers?
                                 .ToDictionary(h => h.Key, h => h.Value.ToList()),
@@ -239,7 +241,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             /// <param name="payload"></param>
             /// <returns></returns>
             internal bool AddChunk(int id, byte[] payload) {
-                if (id < 1 || id >= _request.Chunks) {
+                if (id < 1 || id > _request.Chunks) {
                     return false;
                 }
                 _payload.Insert(id - 1, payload);
