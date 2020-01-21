@@ -34,8 +34,8 @@ spec:
       # serviceAccountName: industrial-iot-serviceaccount
       containers:
       - name: blob-notification-service-container
-        image: {{ .Values.Image.Registry }}/blob-notification-service:{{ .Values.Image.Tag }}
-        imagePullPolicy: {{ .Values.Image.PullPolicy }}
+        image: {{ .Values.image.registry }}/blob-notification-service:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         {{- if .Values.deployment.microServices.blobNotification.extraArgs }}
         args:
           {{- range .Values.deployment.microServices.blobNotification.extraArgs }}

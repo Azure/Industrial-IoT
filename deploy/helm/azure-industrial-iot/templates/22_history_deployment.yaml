@@ -34,8 +34,8 @@ spec:
       # serviceAccountName: industrial-iot-serviceaccount
       containers:
       - name: history-service-container
-        image: {{ .Values.Image.Registry }}/opc-history-service:{{ .Values.Image.Tag }}
-        imagePullPolicy: {{ .Values.Image.PullPolicy }}
+        image: {{ .Values.image.registry }}/opc-history-service:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         {{- if .Values.deployment.microServices.history.extraArgs }}
         args:
           {{- range .Values.deployment.microServices.history.extraArgs }}

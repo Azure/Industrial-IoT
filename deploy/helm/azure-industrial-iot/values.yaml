@@ -1,7 +1,13 @@
-Image:
-  Registry: mcr.microsoft.com/iot
-  Tag: 2.5.2
-  PullPolicy: IfNotPresent
+# Default values for Azure Industrial-IoT solution.
+
+# Details of Docker images.
+image:
+  # image.registry is URL of Docker registry from where images will be pulled.
+  registry: mcr.microsoft.com/iot
+  # image.tag defines which version of Docker images to pull.
+  tag: 2.5.2
+  # image.pullPolicy defines value of imagePullPolicy of deployments.
+  pullPolicy: IfNotPresent
 
 Azure:
   TenantId: null

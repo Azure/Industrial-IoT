@@ -34,8 +34,8 @@ spec:
       # serviceAccountName: industrial-iot-serviceaccount
       containers:
       - name: registry-service-container
-        image: {{ .Values.Image.Registry }}/opc-registry-service:{{ .Values.Image.Tag }}
-        imagePullPolicy: {{ .Values.Image.PullPolicy }}
+        image: {{ .Values.image.registry }}/opc-registry-service:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         {{- if .Values.deployment.microServices.registry.extraArgs }}
         args:
           {{- range .Values.deployment.microServices.registry.extraArgs }}

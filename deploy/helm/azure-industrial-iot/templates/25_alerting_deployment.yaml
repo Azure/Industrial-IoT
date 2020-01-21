@@ -34,8 +34,8 @@ spec:
       # serviceAccountName: industrial-iot-serviceaccount
       containers:
       - name: alerting-service-container
-        image: {{ .Values.Image.Registry }}/opc-alerting-service:{{ .Values.Image.Tag }}
-        imagePullPolicy: {{ .Values.Image.PullPolicy }}
+        image: {{ .Values.image.registry }}/opc-alerting-service:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         {{- if .Values.deployment.microServices.alerting.extraArgs }}
         args:
           {{- range .Values.deployment.microServices.alerting.extraArgs }}

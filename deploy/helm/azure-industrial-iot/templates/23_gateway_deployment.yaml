@@ -34,8 +34,8 @@ spec:
       # serviceAccountName: industrial-iot-serviceaccount
       containers:
       - name: gateway-service-container
-        image: {{ .Values.Image.Registry }}/opc-gateway-service:{{ .Values.Image.Tag }}
-        imagePullPolicy: {{ .Values.Image.PullPolicy }}
+        image: {{ .Values.image.registry }}/opc-gateway-service:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         {{- if .Values.deployment.microServices.gateway.extraArgs }}
         args:
           {{- range .Values.deployment.microServices.gateway.extraArgs }}

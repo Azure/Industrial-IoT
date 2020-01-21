@@ -34,8 +34,8 @@ spec:
       # serviceAccountName: industrial-iot-serviceaccount
       containers:
       - name: onboarding-service-container
-        image: {{ .Values.Image.Registry }}/opc-onboarding-service:{{ .Values.Image.Tag }}
-        imagePullPolicy: {{ .Values.Image.PullPolicy }}
+        image: {{ .Values.image.registry }}/opc-onboarding-service:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
         {{- if .Values.deployment.microServices.onboarding.extraArgs }}
         args:
           {{- range .Values.deployment.microServices.onboarding.extraArgs }}
