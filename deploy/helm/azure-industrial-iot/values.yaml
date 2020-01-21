@@ -106,6 +106,7 @@ azure:
 
 deployment:
   microServices:
+    # deployment.microServices.registry contains values specific to yaml definitions of deployment and service kubernetes resources for opc-registry-service .
     registry:
       enabled: true
       replicas: 1
@@ -115,8 +116,9 @@ deployment:
           memory: "64Mi"
           cpu: "50m"
         limits:
-          memory: "512Mi"
-          cpu: "250m"
+          memory: "256Mi"
+          cpu: "150m"
+    # deployment.microServices.twin contains values specific to yaml definitions of deployment and service kubernetes resources for opc-twin-service.
     twin:
       enabled: true
       replicas: 1
@@ -126,8 +128,9 @@ deployment:
           memory: "64Mi"
           cpu: "50m"
         limits:
-          memory: "512Mi"
-          cpu: "250m"
+          memory: "256Mi"
+          cpu: "150m"
+    # deployment.microServices.history contains values specific to yaml definitions of deployment and service kubernetes resources for opc-history-service.
     history:
       enabled: true
       replicas: 1
@@ -137,8 +140,9 @@ deployment:
           memory: "64Mi"
           cpu: "50m"
         limits:
-          memory: "512Mi"
-          cpu: "250m"
+          memory: "256Mi"
+          cpu: "150m"
+    # deployment.microServices.gateway contains values specific to yaml definitions of deployment and service kubernetes resources for opc-gateway-service.
     gateway:
       enabled: true
       replicas: 1
@@ -148,8 +152,9 @@ deployment:
           memory: "64Mi"
           cpu: "50m"
         limits:
-          memory: "512Mi"
-          cpu: "250m"
+          memory: "256Mi"
+          cpu: "150m"
+    # deployment.microServices.vault contains values specific to yaml definitions of deployment and service kubernetes resources for opc-vault-service.
     vault:
       enabled: true
       replicas: 1
@@ -159,8 +164,9 @@ deployment:
           memory: "64Mi"
           cpu: "50m"
         limits:
-          memory: "512Mi"
-          cpu: "250m"
+          memory: "256Mi"
+          cpu: "150m"
+    # deployment.microServices.alerting contains values specific to yaml definitions of deployment kubernetes resource for opc-alerting-service.
     alerting:
       enabled: true
       replicas: 1
@@ -170,8 +176,9 @@ deployment:
           memory: "64Mi"
           cpu: "50m"
         limits:
-          memory: "512Mi"
-          cpu: "250m"
+          memory: "256Mi"
+          cpu: "150m"
+    # deployment.microServices.onboarding contains values specific to yaml definitions of deployment kubernetes resource for opc-onboarding-service.
     onboarding:
       enabled: true
       replicas: 1
@@ -181,8 +188,9 @@ deployment:
           memory: "64Mi"
           cpu: "50m"
         limits:
-          memory: "512Mi"
-          cpu: "250m"
+          memory: "256Mi"
+          cpu: "150m"
+    # deployment.microServices.jobs contains values specific to yaml definitions of deployment kubernetes resource for opc-jobs-service.
     jobs:
       enabled: true
       replicas: 1
@@ -192,8 +200,9 @@ deployment:
           memory: "64Mi"
           cpu: "50m"
         limits:
-          memory: "512Mi"
-          cpu: "250m"
+          memory: "256Mi"
+          cpu: "150m"
+    # deployment.microServices.modelProcessor contains values specific to yaml definitions of deployment kubernetes resource for opc-processor-service.
     modelProcessor:
       enabled: true
       replicas: 1
@@ -203,8 +212,9 @@ deployment:
           memory: "64Mi"
           cpu: "50m"
         limits:
-          memory: "512Mi"
-          cpu: "250m"
+          memory: "256Mi"
+          cpu: "150m"
+    # deployment.microServices.blobNotification contains values specific to yaml definitions of deployment kubernetes resource for blob-notification-service.
     blobNotification:
       enabled: true
       replicas: 1
@@ -214,8 +224,8 @@ deployment:
           memory: "64Mi"
           cpu: "50m"
         limits:
-          memory: "512Mi"
-          cpu: "250m"
+          memory: "256Mi"
+          cpu: "150m"
 
   ingress:
     tls:
