@@ -29,8 +29,8 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// <summary>
         /// Initializes a new instance of the CredentialApiModel class.
         /// </summary>
-        /// <param name="type">Type of credential. Possible values include:
-        /// 'None', 'UserName', 'X509Certificate', 'JwtToken'</param>
+        /// <param name="type">Possible values include: 'None', 'UserName',
+        /// 'X509Certificate', 'JwtToken'</param>
         /// <param name="value">Value to pass to server</param>
         public CredentialApiModel(CredentialType? type = default(CredentialType?), object value = default(object))
         {
@@ -45,8 +45,8 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets type of credential. Possible values include: 'None',
-        /// 'UserName', 'X509Certificate', 'JwtToken'
+        /// Gets or sets possible values include: 'None', 'UserName',
+        /// 'X509Certificate', 'JwtToken'
         /// </summary>
         [JsonProperty(PropertyName = "type")]
         public CredentialType? Type { get; set; }

@@ -21,8 +21,8 @@ class ApplicationRecordQueryApiModel {
    * @property {number} [maxRecordsToReturn] Max records to return
    * @property {string} [applicationName] Application name
    * @property {string} [applicationUri] Application uri
-   * @property {string} [applicationType] Application type. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+   * @property {string} [applicationType] Possible values include: 'Server',
+   * 'Client', 'ClientAndServer', 'DiscoveryServer'
    * @property {string} [productUri] Product uri
    * @property {array} [serverCapabilities] Server capabilities
    */

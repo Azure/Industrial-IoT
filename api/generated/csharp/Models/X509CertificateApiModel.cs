@@ -10,7 +10,6 @@
 
 namespace Microsoft.Azure.IIoT.Opc.Vault.Models
 {
-    using Microsoft.Rest;
     using Newtonsoft.Json;
     using System.Linq;
 
@@ -30,13 +29,13 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// <summary>
         /// Initializes a new instance of the X509CertificateApiModel class.
         /// </summary>
-        /// <param name="certificate">Raw data</param>
         /// <param name="subject">Subject</param>
         /// <param name="thumbprint">Thumbprint</param>
         /// <param name="serialNumber">Serial number</param>
         /// <param name="notBeforeUtc">Not before validity</param>
         /// <param name="notAfterUtc">Not after validity</param>
-        public X509CertificateApiModel(object certificate, string subject = default(string), string thumbprint = default(string), string serialNumber = default(string), System.DateTime? notBeforeUtc = default(System.DateTime?), System.DateTime? notAfterUtc = default(System.DateTime?))
+        /// <param name="certificate">Raw data</param>
+        public X509CertificateApiModel(string subject = default(string), string thumbprint = default(string), string serialNumber = default(string), System.DateTime? notBeforeUtc = default(System.DateTime?), System.DateTime? notAfterUtc = default(System.DateTime?), object certificate = default(object))
         {
             Subject = subject;
             Thumbprint = thumbprint;
@@ -88,18 +87,5 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         [JsonProperty(PropertyName = "certificate")]
         public object Certificate { get; set; }
 
-        /// <summary>
-        /// Validate the object.
-        /// </summary>
-        /// <exception cref="ValidationException">
-        /// Thrown if validation fails
-        /// </exception>
-        public virtual void Validate()
-        {
-            if (Certificate == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "Certificate");
-            }
-        }
     }
 }

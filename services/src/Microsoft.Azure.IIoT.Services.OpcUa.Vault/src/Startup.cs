@@ -5,11 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.v2;
-    using Microsoft.Azure.IIoT.Services;
-    using Microsoft.Azure.IIoT.Services.Auth;
-    using Microsoft.Azure.IIoT.Services.Auth.Clients;
-    using Microsoft.Azure.IIoT.Services.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.Correlation;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2;
     using Microsoft.Azure.IIoT.OpcUa.Vault.Handler;
     using Microsoft.Azure.IIoT.OpcUa.Vault.Events;
@@ -28,20 +27,16 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
-    using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.KeyVault;
-    using Microsoft.Azure.Services.AppAuthentication;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.OpenApi.Models;
     using Newtonsoft.Json;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using AutofacSerilogIntegration;
-    using Serilog;
-    using Swashbuckle.AspNetCore.Swagger;
     using System;
     using ILogger = Serilog.ILogger;
 
@@ -58,73 +53,36 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
         /// <summary>
         /// Service info - Initialized in constructor
         /// </summary>
-        public ServiceInfo ServiceInfo { get; }
+        public ServiceInfo ServiceInfo { get; } = new ServiceInfo();
 
         /// <summary>
         /// Current hosting environment - Initialized in constructor
         /// </summary>
-        public IHostingEnvironment Environment { get; }
+        public IWebHostEnvironment Environment { get; }
 
         /// <summary>
-        /// Di container - Initialized in `ConfigureServices`
-        /// </summary>
-        public IContainer ApplicationContainer { get; private set; }
-
-        /// <summary>
-        /// Created through builder
+        /// Create startup
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IHostingEnvironment env, IConfiguration configuration) {
-            if (configuration == null) {
-                throw new ArgumentNullException(nameof(configuration));
-            }
-            Environment = env;
-            ServiceInfo = new ServiceInfo();
-
-            var configBuilder = new ConfigurationBuilder()
-                .SetBasePath(env.ContentRootPath)
+        public Startup(IWebHostEnvironment env, IConfiguration configuration) :
+            this(env, new Config(new ConfigurationBuilder()
                 .AddConfiguration(configuration)
-                .AddJsonFile("appsettings.json", true, true)
-                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", true, true)
+                .AddEnvironmentVariables()
+                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
                 .AddFromDotEnvFile()
-                .AddEnvironmentVariables();
+                .AddFromKeyVault()
+                .Build())) {
+        }
 
-            IConfigurationRoot config;
-            try {
-                var builtConfig = configBuilder.Build();
-                var keyVault = builtConfig["KeyVault"];
-                if (!string.IsNullOrWhiteSpace(keyVault)) {
-                    var appSecret = builtConfig["Auth:AppSecret"];
-                    if (string.IsNullOrWhiteSpace(appSecret)) {
-                        // try managed service identity
-                        var azureServiceTokenProvider = new AzureServiceTokenProvider();
-#pragma warning disable IDE0067 // Dispose objects before losing scope
-                        var keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
-#pragma warning restore IDE0067 // Dispose objects before losing scope
-                        configBuilder.AddAzureKeyVault(
-                            keyVault,
-                            keyVaultClient,
-                            new PrefixKeyVaultSecretManager("Service")
-                            );
-                    }
-                    else {
-                        // use AzureAD token
-                        configBuilder.AddAzureKeyVault(
-                            keyVault,
-                            builtConfig["Auth:AppId"],
-                            appSecret,
-                            new PrefixKeyVaultSecretManager("Service")
-                            );
-                    }
-                }
-            }
-#pragma warning disable RECS0022 // A catch clause that catches System.Exception and has an empty body
-            catch {
-#pragma warning restore RECS0022 // A catch clause that catches System.Exception and has an empty body
-            }
-            config = configBuilder.Build();
-            Config = new Config(config);
+        /// <summary>
+        /// Create startup
+        /// </summary>
+        /// <param name="env"></param>
+        /// <param name="configuration"></param>
+        public Startup(IWebHostEnvironment env, Config configuration) {
+            Environment = env;
+            Config = configuration;
         }
 
         /// <summary>
@@ -134,12 +92,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        public IServiceProvider ConfigureServices(IServiceCollection services) {
+        public void ConfigureServices(IServiceCollection services) {
 
             services.AddLogging(o => o.AddConsole().AddDebug());
 
             // Setup (not enabling yet) CORS
             services.AddCors();
+            services.AddHealthChecks();
+            services.AddDistributedMemoryCache();
 
             // Add authentication
             services.AddJwtBearerAuthentication(Config,
@@ -152,30 +112,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
             });
 
             // Add controllers as services so they'll be resolved.
-            services.AddMvc()
-                .AddApplicationPart(GetType().Assembly)
-                .AddControllersAsServices()
-                .AddJsonOptions(options => {
+            services.AddControllers()
+                .AddNewtonsoftJson(options => {
                     options.SerializerSettings.Formatting = Formatting.Indented;
                     options.SerializerSettings.Converters.Add(new ExceptionConverter(
                         Environment.IsDevelopment()));
                     options.SerializerSettings.MaxDepth = 10;
                 });
 
-            services.AddApplicationInsightsTelemetry(Config.Configuration);
-
-            services.AddSwagger(Config, new Info {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
-
-            // Prepare DI container
-            var builder = new ContainerBuilder();
-            builder.Populate(services);
-            ConfigureContainer(builder);
-            ApplicationContainer = builder.Build();
-            return new AutofacServiceProvider(ApplicationContainer);
+            services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 
 
@@ -185,31 +130,33 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="appLifetime"></param>
-        public void Configure(IApplicationBuilder app, IApplicationLifetime appLifetime) {
+        public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime) {
+            var applicationContainer = app.ApplicationServices.GetAutofacRoot();
+            var log = applicationContainer.Resolve<ILogger>();
 
-            var log = ApplicationContainer.Resolve<ILogger>();
+            app.UseRouting();
+            app.EnableCors();
 
             if (Config.AuthRequired) {
                 app.UseAuthentication();
             }
+            app.UseAuthorization();
             if (Config.HttpsRedirectPort > 0) {
-                // app.UseHsts();
+                app.UseHsts();
                 app.UseHttpsRedirection();
             }
 
-            app.EnableCors();
             app.UseCorrelation();
-            app.UseSwagger(Config, new Info {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
+            app.UseSwagger();
 
-            app.UseMvc();
+            app.UseEndpoints(endpoints => {
+                endpoints.MapControllers();
+                endpoints.MapHealthChecks("/healthz");
+            });
 
             // If you want to dispose of resources that have been resolved in the
             // application container, register for the "ApplicationStopped" event.
-            appLifetime.ApplicationStopped.Register(ApplicationContainer.Dispose);
+            appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
 
             // Print some useful information at bootstrap time
             log.Information("{service} web service started with id {id}", ServiceInfo.Name,
@@ -217,7 +164,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
         }
 
         /// <summary>
-        /// Autofac configuration. Find more information here:
+        /// Autofac configuration.
         /// </summary>
         /// <param name="builder"></param>
         public virtual void ConfigureContainer(ContainerBuilder builder) {
@@ -228,11 +175,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
             builder.RegisterInstance(Config)
                 .AsImplementedInterfaces().SingleInstance();
 
-            // register the serilog logger
-            builder.RegisterLogger(LogEx.ApplicationInsights(Config, Config.Configuration));
-            // Register metrics logger
-            builder.RegisterType<MetricLogger>()
-                .AsImplementedInterfaces().SingleInstance();
+            // Add diagnostics based on configuration
+            builder.AddDiagnostics(Config);
+
             // CORS setup
             builder.RegisterType<CorsSetup>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -261,7 +206,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
                 .AsImplementedInterfaces().SingleInstance();
 
             // ... subscribe to application events ...
-            builder.RegisterType<ApplicationEventSubscriber>()
+            builder.RegisterType<ApplicationEventBusSubscriber>()
                 .AsImplementedInterfaces().SingleInstance();
             // ... and auto start
             builder.RegisterType<HostAutoStart>()

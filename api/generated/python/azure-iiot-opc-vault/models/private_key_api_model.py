@@ -15,7 +15,7 @@ from msrest.serialization import Model
 class PrivateKeyApiModel(Model):
     """Private key.
 
-    :param kty: Key type. Possible values include: 'RSA', 'ECC', 'AES'
+    :param kty: Possible values include: 'RSA', 'ECC', 'AES'
     :type kty: str or ~azure-iiot-opc-vault.models.PrivateKeyType
     :param n: RSA modulus.
     :type n: bytearray
@@ -29,9 +29,9 @@ class PrivateKeyApiModel(Model):
     :type qi: bytearray
     :param p: RSA secret prime
     :type p: bytearray
-    :param q: RSA secret prime, with p &lt; q
+    :param q: RSA secret prime, with p < q
     :type q: bytearray
-    :param crv: The curve for ECC algorithms
+    :param crv:
     :type crv: str
     :param x: X coordinate for the Elliptic Curve point.
     :type x: bytearray
@@ -41,7 +41,7 @@ class PrivateKeyApiModel(Model):
     :type d: bytearray
     :param k: Symmetric key
     :type k: bytearray
-    :param key_hsm: HSM Token, used with "Bring Your Own Key"
+    :param key_hsm:
     :type key_hsm: bytearray
     """
 

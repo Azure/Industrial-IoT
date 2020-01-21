@@ -18,8 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<StatusResponseApiModel> GetServiceStatusAsync(
-            CancellationToken ct = default);
+        Task<string> GetServiceStatusAsync(CancellationToken ct = default);
 
         /// <summary>
         /// Browse node on endpoint
@@ -110,35 +109,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         /// <returns></returns>
         Task<WriteResponseApiModel> NodeWriteAsync(string endpointId,
             WriteRequestApiModel request, CancellationToken ct = default);
-
-        /// <summary>
-        /// Start publishing node values
-        /// </summary>
-        /// <param name="endpointId"></param>
-        /// <param name="request"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task<PublishStartResponseApiModel> NodePublishStartAsync(string endpointId,
-            PublishStartRequestApiModel request, CancellationToken ct = default);
-
-        /// <summary>
-        /// Start publishing node values
-        /// </summary>
-        /// <param name="endpointId"></param>
-        /// <param name="request"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task<PublishStopResponseApiModel> NodePublishStopAsync(string endpointId,
-            PublishStopRequestApiModel request, CancellationToken ct = default);
-
-        /// <summary>
-        /// Get all published nodes for endpoint.
-        /// </summary>
-        /// <param name="endpointId"></param>
-        /// <param name="request"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task<PublishedItemListResponseApiModel> NodePublishListAsync(string endpointId,
-            PublishedItemListRequestApiModel request, CancellationToken ct = default);
     }
 }

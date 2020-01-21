@@ -28,7 +28,6 @@
  * ======================================================================*/
 
 namespace Opc.Ua.Design.Resolver {
-    using Opc.Ua.Design;
     using Opc.Ua.Design.Schema;
     using Opc.Ua.Types.Resolver;
     using Opc.Ua.Types.Schema;

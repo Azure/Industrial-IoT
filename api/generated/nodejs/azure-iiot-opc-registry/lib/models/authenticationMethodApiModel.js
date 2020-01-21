@@ -18,9 +18,8 @@ class AuthenticationMethodApiModel {
   /**
    * Create a AuthenticationMethodApiModel.
    * @property {string} id Method id
-   * @property {string} [credentialType] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'. Default value:
-   * 'None' .
+   * @property {string} [credentialType] Possible values include: 'None',
+   * 'UserName', 'X509Certificate', 'JwtToken'
    * @property {string} [securityPolicy] Security policy to use when passing
    * credential.
    * @property {object} [configuration] Method specific configuration
@@ -52,7 +51,6 @@ class AuthenticationMethodApiModel {
           credentialType: {
             required: false,
             serializedName: 'credentialType',
-            defaultValue: 'None',
             type: {
               name: 'Enum',
               allowedValues: [ 'None', 'UserName', 'X509Certificate', 'JwtToken' ]

@@ -4,14 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
-    using Microsoft.Extensions.Configuration;
-    using Microsoft.AspNetCore;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
     using Autofac;
+    using Autofac.Extensions.Hosting;
     using System.Net.Http;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Startup class for tests
@@ -22,32 +21,19 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
         /// Create startup
         /// </summary>
         /// <param name="env"></param>
-        /// <param name="configuration"></param>
-        public TestStartup(IHostingEnvironment env, IConfiguration configuration) :
-            base(env, configuration) {
+        public TestStartup(IWebHostEnvironment env) : base(env, new Config(null)) {
         }
 
         /// <inheritdoc/>
         public override void ConfigureContainer(ContainerBuilder builder) {
-            base.ConfigureContainer(builder);
-
-            builder.RegisterType<JsonVariantEncoder>()
+            // Register service info and configuration interfaces
+            builder.RegisterInstance(ServiceInfo)
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<MockHost>()
+            builder.RegisterInstance(Config)
                 .AsImplementedInterfaces().SingleInstance();
-        }
 
-        public class MockHost : IHost {
-
-            /// <inheritdoc/>
-            public Task StartAsync() {
-                return Task.CompletedTask;
-            }
-
-            /// <inheritdoc/>
-            public Task StopAsync() {
-                return Task.CompletedTask;
-            }
+            // Add diagnostics based on configuration
+            builder.AddDiagnostics(Config);
         }
     }
 
@@ -55,14 +41,20 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     public class WebAppFixture : WebApplicationFactory<TestStartup>, IHttpClientFactory {
 
         /// <inheritdoc/>
-        protected override IWebHostBuilder CreateWebHostBuilder() {
-            return WebHost.CreateDefaultBuilder().UseStartup<TestStartup>();
+        protected override IHostBuilder CreateHostBuilder() {
+            return Host.CreateDefaultBuilder();
         }
 
         /// <inheritdoc/>
         protected override void ConfigureWebHost(IWebHostBuilder builder) {
-            builder.UseContentRoot(".");
+            builder.UseContentRoot(".").UseStartup<TestStartup>();
             base.ConfigureWebHost(builder);
+        }
+
+        /// <inheritdoc/>
+        protected override IHost CreateHost(IHostBuilder builder) {
+            builder.UseAutofac();
+            return base.CreateHost(builder);
         }
 
         /// <inheritdoc/>
@@ -76,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
         public T Resolve<T>() {
-            return (T)Server.Host.Services.GetService(typeof(T));
+            return (T)Server.Services.GetService(typeof(T));
         }
     }
 }

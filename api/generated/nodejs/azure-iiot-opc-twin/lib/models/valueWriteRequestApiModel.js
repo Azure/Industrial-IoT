@@ -17,7 +17,7 @@
 class ValueWriteRequestApiModel {
   /**
    * Create a ValueWriteRequestApiModel.
-   * @property {string} nodeId Node id to to write value to.
+   * @property {string} [nodeId] Node id to to write value to.
    * @property {array} [browsePath] An optional path from NodeId instance to
    * the actual node.
    * @property {object} value Value to write. The system tries to convert
@@ -29,18 +29,16 @@ class ValueWriteRequestApiModel {
    * type.
    * (default: best effort)
    * @property {string} [indexRange] Index range to write
-   * @property {object} [header] Optional request header
-   * @property {object} [header.elevation] Optional User elevation
-   * @property {string} [header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @property {object} [header]
+   * @property {object} [header.elevation]
+   * @property {string} [header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    * @property {object} [header.elevation.value] Value to pass to server
    * @property {array} [header.locales] Optional list of locales in preference
    * order.
-   * @property {object} [header.diagnostics] Optional diagnostics configuration
-   * @property {string} [header.diagnostics.level] Requested level of response
-   * diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status',
-   * 'Operations', 'Diagnostics', 'Verbose'
+   * @property {object} [header.diagnostics]
+   * @property {string} [header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    * @property {string} [header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    * @property {date} [header.diagnostics.timeStamp] Timestamp of request.
@@ -64,7 +62,7 @@ class ValueWriteRequestApiModel {
         className: 'ValueWriteRequestApiModel',
         modelProperties: {
           nodeId: {
-            required: true,
+            required: false,
             serializedName: 'nodeId',
             type: {
               name: 'String'

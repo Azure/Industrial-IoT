@@ -8,13 +8,13 @@
 // regenerated.
 // </auto-generated>
 
-namespace Microsoft.Azure.IIoT.Opc.Twin.Models
+namespace Microsoft.Azure.IIoT.Opc.Publisher.Models
 {
     using Newtonsoft.Json;
     using System.Linq;
 
     /// <summary>
-    /// Result of unpublish request
+    /// Result of publish stop request
     /// </summary>
     public partial class PublishStopResponseApiModel
     {
@@ -31,7 +31,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// Initializes a new instance of the PublishStopResponseApiModel
         /// class.
         /// </summary>
-        /// <param name="errorInfo">Service result in case of error</param>
         public PublishStopResponseApiModel(ServiceResultApiModel errorInfo = default(ServiceResultApiModel))
         {
             ErrorInfo = errorInfo;
@@ -44,7 +43,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets service result in case of error
         /// </summary>
         [JsonProperty(PropertyName = "errorInfo")]
         public ServiceResultApiModel ErrorInfo { get; set; }

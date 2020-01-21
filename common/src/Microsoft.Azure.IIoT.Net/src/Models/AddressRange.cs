@@ -50,9 +50,9 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// <summary>
         /// Create address range
         /// </summary>
-        /// <param name="nic"></param>
         /// <param name="address"></param>
         /// <param name="suffix"></param>
+        /// <param name="nic"></param>
         public AddressRange(IPAddress address, int suffix,
             string nic = "custom range") {
             if (address == null) {

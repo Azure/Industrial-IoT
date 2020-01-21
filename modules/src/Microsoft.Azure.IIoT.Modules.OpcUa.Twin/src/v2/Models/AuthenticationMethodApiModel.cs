@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using System;
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
             SecurityPolicy = model.SecurityPolicy;
             Configuration = model.Configuration;
             CredentialType = model.CredentialType ==
-                IIoT.OpcUa.Registry.Models.CredentialType.None ?
+                IIoT.OpcUa.Core.Models.CredentialType.None ?
                     null : model.CredentialType;
         }
 
@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
                 Id = Id,
                 SecurityPolicy = SecurityPolicy,
                 Configuration = Configuration,
-                CredentialType = CredentialType ?? IIoT.OpcUa.Registry.Models.CredentialType.None
+                CredentialType = CredentialType ?? IIoT.OpcUa.Core.Models.CredentialType.None
             };
         }
 

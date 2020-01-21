@@ -35,9 +35,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// ApplicationRegistrationRequestApiModel class.
         /// </summary>
         /// <param name="applicationUri">Unique application uri</param>
-        /// <param name="applicationType">Type of application. Possible values
-        /// include: 'Server', 'Client', 'ClientAndServer',
-        /// 'DiscoveryServer'</param>
+        /// <param name="applicationType">Possible values include: 'Server',
+        /// 'Client', 'ClientAndServer', 'DiscoveryServer'</param>
         /// <param name="productUri">Product uri of the application.</param>
         /// <param name="applicationName">Default name of the server or
         /// client.</param>
@@ -79,8 +78,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public string ApplicationUri { get; set; }
 
         /// <summary>
-        /// Gets or sets type of application. Possible values include:
-        /// 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+        /// Gets or sets possible values include: 'Server', 'Client',
+        /// 'ClientAndServer', 'DiscoveryServer'
         /// </summary>
         [JsonProperty(PropertyName = "applicationType")]
         public ApplicationType? ApplicationType { get; set; }

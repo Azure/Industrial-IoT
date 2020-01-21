@@ -10,54 +10,26 @@
 
 package com.microsoft.azure.iiot.opc.registry.models;
 
-import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Supervisor registration update request.
+ * Supervisor update request.
  */
 public class SupervisorUpdateApiModel {
     /**
-     * Site of the supervisor.
+     * Site the supervisor is part of.
      */
     @JsonProperty(value = "siteId")
     private String siteId;
 
     /**
-     * Whether the supervisor is in discovery mode.
-     * If null, does not change. Possible values include: 'Off', 'Local',
-     * 'Network', 'Fast', 'Scan'.
-     */
-    @JsonProperty(value = "discovery")
-    private DiscoveryMode discovery;
-
-    /**
-     * Supervisor discovery configuration.
-     */
-    @JsonProperty(value = "discoveryConfig")
-    private DiscoveryConfigApiModel discoveryConfig;
-
-    /**
-     * Callbacks to add or remove (see below).
-     */
-    @JsonProperty(value = "discoveryCallbacks")
-    private List<CallbackApiModel> discoveryCallbacks;
-
-    /**
-     * Whether to add or remove callbacks.
-     */
-    @JsonProperty(value = "removeDiscoveryCallbacks")
-    private Boolean removeDiscoveryCallbacks;
-
-    /**
-     * Current log level. Possible values include: 'Error', 'Information',
-     * 'Debug', 'Verbose'.
+     * Possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
      */
     @JsonProperty(value = "logLevel")
-    private SupervisorLogLevel logLevel;
+    private TraceLogLevel logLevel;
 
     /**
-     * Get site of the supervisor.
+     * Get site the supervisor is part of.
      *
      * @return the siteId value
      */
@@ -66,7 +38,7 @@ public class SupervisorUpdateApiModel {
     }
 
     /**
-     * Set site of the supervisor.
+     * Set site the supervisor is part of.
      *
      * @param siteId the siteId value to set
      * @return the SupervisorUpdateApiModel object itself.
@@ -77,103 +49,21 @@ public class SupervisorUpdateApiModel {
     }
 
     /**
-     * Get whether the supervisor is in discovery mode.
-     If null, does not change. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'.
-     *
-     * @return the discovery value
-     */
-    public DiscoveryMode discovery() {
-        return this.discovery;
-    }
-
-    /**
-     * Set whether the supervisor is in discovery mode.
-     If null, does not change. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'.
-     *
-     * @param discovery the discovery value to set
-     * @return the SupervisorUpdateApiModel object itself.
-     */
-    public SupervisorUpdateApiModel withDiscovery(DiscoveryMode discovery) {
-        this.discovery = discovery;
-        return this;
-    }
-
-    /**
-     * Get supervisor discovery configuration.
-     *
-     * @return the discoveryConfig value
-     */
-    public DiscoveryConfigApiModel discoveryConfig() {
-        return this.discoveryConfig;
-    }
-
-    /**
-     * Set supervisor discovery configuration.
-     *
-     * @param discoveryConfig the discoveryConfig value to set
-     * @return the SupervisorUpdateApiModel object itself.
-     */
-    public SupervisorUpdateApiModel withDiscoveryConfig(DiscoveryConfigApiModel discoveryConfig) {
-        this.discoveryConfig = discoveryConfig;
-        return this;
-    }
-
-    /**
-     * Get callbacks to add or remove (see below).
-     *
-     * @return the discoveryCallbacks value
-     */
-    public List<CallbackApiModel> discoveryCallbacks() {
-        return this.discoveryCallbacks;
-    }
-
-    /**
-     * Set callbacks to add or remove (see below).
-     *
-     * @param discoveryCallbacks the discoveryCallbacks value to set
-     * @return the SupervisorUpdateApiModel object itself.
-     */
-    public SupervisorUpdateApiModel withDiscoveryCallbacks(List<CallbackApiModel> discoveryCallbacks) {
-        this.discoveryCallbacks = discoveryCallbacks;
-        return this;
-    }
-
-    /**
-     * Get whether to add or remove callbacks.
-     *
-     * @return the removeDiscoveryCallbacks value
-     */
-    public Boolean removeDiscoveryCallbacks() {
-        return this.removeDiscoveryCallbacks;
-    }
-
-    /**
-     * Set whether to add or remove callbacks.
-     *
-     * @param removeDiscoveryCallbacks the removeDiscoveryCallbacks value to set
-     * @return the SupervisorUpdateApiModel object itself.
-     */
-    public SupervisorUpdateApiModel withRemoveDiscoveryCallbacks(Boolean removeDiscoveryCallbacks) {
-        this.removeDiscoveryCallbacks = removeDiscoveryCallbacks;
-        return this;
-    }
-
-    /**
-     * Get current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
+     * Get possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
      *
      * @return the logLevel value
      */
-    public SupervisorLogLevel logLevel() {
+    public TraceLogLevel logLevel() {
         return this.logLevel;
     }
 
     /**
-     * Set current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
+     * Set possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
      *
      * @param logLevel the logLevel value to set
      * @return the SupervisorUpdateApiModel object itself.
      */
-    public SupervisorUpdateApiModel withLogLevel(SupervisorLogLevel logLevel) {
+    public SupervisorUpdateApiModel withLogLevel(TraceLogLevel logLevel) {
         this.logLevel = logLevel;
         return this;
     }

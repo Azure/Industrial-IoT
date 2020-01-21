@@ -198,8 +198,8 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <summary>
         /// Convert to buffer
         /// </summary>
-        /// <param name="encoding"></param>
         /// <param name="data"></param>
+        /// <param name="encoding"></param>
         /// <param name="offset"></param>
         /// <returns></returns>
         public static string ToEncodedString(this byte[] data,
@@ -220,8 +220,8 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <summary>
         /// Convert uint to buffer
         /// </summary>
-        /// <param name="netOrder"></param>
         /// <param name="value"></param>
+        /// <param name="netOrder"></param>
         /// <returns></returns>
         public static byte[] ToBytes(this uint value, bool netOrder = false) {
             if (netOrder) {
@@ -233,8 +233,8 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <summary>
         /// Convert ushort to buffer
         /// </summary>
-        /// <param name="netOrder"></param>
         /// <param name="value"></param>
+        /// <param name="netOrder"></param>
         /// <returns></returns>
         public static byte[] ToBytes(this ushort value, bool netOrder = false) {
             if (netOrder) {
@@ -246,8 +246,8 @@ namespace Microsoft.Azure.IIoT.Net {
         /// <summary>
         /// Convert string to buffer
         /// </summary>
-        /// <param name="encoding"></param>
         /// <param name="value"></param>
+        /// <param name="encoding"></param>
         /// <returns></returns>
         public static byte[] ToBytes(this string value, Encoding encoding = null) {
             if (string.IsNullOrEmpty(value)) {

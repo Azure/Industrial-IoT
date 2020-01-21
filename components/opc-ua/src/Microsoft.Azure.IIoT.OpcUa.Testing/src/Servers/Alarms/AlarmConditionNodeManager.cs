@@ -244,9 +244,7 @@ namespace Alarms {
             var area = new AreaState(SystemContext, parent, areaId, configuration);
             _areas[areaPath] = area;
 
-            if (parent != null) {
-                parent.AddChild(area);
-            }
+            parent?.AddChild(area);
 
             // create an index any sub-areas defined for the area.
             if (configuration.SubAreas != null) {
@@ -421,9 +419,7 @@ namespace Alarms {
             }
             finally {
                 // store the node in the cache to optimize subsequent lookups.
-                if (cache != null) {
-                    cache.Add(handle.NodeId, target);
-                }
+                cache?.Add(handle.NodeId, target);
             }
         }
 

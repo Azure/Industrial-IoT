@@ -28,7 +28,6 @@
  * ======================================================================*/
 
 namespace MemoryBuffer {
-    using System;
     using System.Collections.Generic;
     using Opc.Ua;
 
@@ -51,14 +50,14 @@ namespace MemoryBuffer {
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
-            return Opc.Ua.NodeId.Create(MemoryBuffer.VariableTypes.MemoryTagType, MemoryBuffer.Namespaces.MemoryBuffer, namespaceUris);
+            return NodeId.Create(VariableTypes.MemoryTagType, Namespaces.MemoryBuffer, namespaceUris);
         }
 
         /// <summary>
         /// Returns the id of the default data type node for the instance.
         /// </summary>
         protected override NodeId GetDefaultDataTypeId(NamespaceTable namespaceUris) {
-            return Opc.Ua.NodeId.Create(Opc.Ua.DataTypes.BaseDataType, Opc.Ua.Namespaces.OpcUa, namespaceUris);
+            return NodeId.Create(DataTypes.BaseDataType, Opc.Ua.Namespaces.OpcUa, namespaceUris);
         }
 
         /// <summary>
@@ -183,7 +182,7 @@ namespace MemoryBuffer {
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
-            return Opc.Ua.NodeId.Create(MemoryBuffer.ObjectTypes.MemoryBufferType, MemoryBuffer.Namespaces.MemoryBuffer, namespaceUris);
+            return NodeId.Create(ObjectTypes.MemoryBufferType, Namespaces.MemoryBuffer, namespaceUris);
         }
 
 #if !OPCUA_EXCLUDE_InitializationStrings
@@ -228,7 +227,7 @@ namespace MemoryBuffer {
             get => m_startAddress;
 
             set {
-                if (!Object.ReferenceEquals(m_startAddress, value)) {
+                if (!object.ReferenceEquals(m_startAddress, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -243,7 +242,7 @@ namespace MemoryBuffer {
             get => m_sizeInBytes;
 
             set {
-                if (!Object.ReferenceEquals(m_sizeInBytes, value)) {
+                if (!object.ReferenceEquals(m_sizeInBytes, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -287,7 +286,7 @@ namespace MemoryBuffer {
             BaseInstanceState instance = null;
 
             switch (browseName.Name) {
-                case MemoryBuffer.BrowseNames.StartAddress: {
+                case BrowseNames.StartAddress: {
                         if (createOrReplace) {
                             if (StartAddress == null) {
                                 if (replacement == null) {
@@ -303,7 +302,7 @@ namespace MemoryBuffer {
                         break;
                     }
 
-                case MemoryBuffer.BrowseNames.SizeInBytes: {
+                case BrowseNames.SizeInBytes: {
                         if (createOrReplace) {
                             if (SizeInBytes == null) {
                                 if (replacement == null) {

@@ -17,7 +17,11 @@
 class InsertEventsDetailsApiModel {
   /**
    * Create a InsertEventsDetailsApiModel.
-   * @property {object} [filter] The filter to use to select the events
+   * @property {object} [filter]
+   * @property {array} [filter.selectClauses] Select statements
+   * @property {object} [filter.whereClause]
+   * @property {array} [filter.whereClause.elements] The flat list of elements
+   * in the filter AST
    * @property {array} events The new events to insert
    */
   constructor() {
@@ -41,7 +45,8 @@ class InsertEventsDetailsApiModel {
             required: false,
             serializedName: 'filter',
             type: {
-              name: 'Object'
+              name: 'Composite',
+              className: 'EventFilterApiModel'
             }
           },
           events: {

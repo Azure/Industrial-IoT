@@ -17,8 +17,8 @@ class AuthenticationMethodApiModel(Model):
 
     :param id: Method id
     :type id: str
-    :param credential_type: Type of credential. Possible values include:
-     'None', 'UserName', 'X509Certificate', 'JwtToken'. Default value: "None" .
+    :param credential_type: Possible values include: 'None', 'UserName',
+     'X509Certificate', 'JwtToken'
     :type credential_type: str or
      ~azure-iiot-opc-registry.models.CredentialType
     :param security_policy: Security policy to use when passing credential.
@@ -38,7 +38,7 @@ class AuthenticationMethodApiModel(Model):
         'configuration': {'key': 'configuration', 'type': 'object'},
     }
 
-    def __init__(self, id, credential_type="None", security_policy=None, configuration=None):
+    def __init__(self, id, credential_type=None, security_policy=None, configuration=None):
         super(AuthenticationMethodApiModel, self).__init__()
         self.id = id
         self.credential_type = credential_type

@@ -13,12 +13,12 @@ module azure.iiot.opc.twin
     # Defines values for NodeValueRank
     #
     module NodeValueRank
-      ScalarOrOneDimension = "ScalarOrOneDimension"
-      Any = "Any"
-      Scalar = "Scalar"
       OneOrMoreDimensions = "OneOrMoreDimensions"
       OneDimension = "OneDimension"
       TwoDimensions = "TwoDimensions"
+      ScalarOrOneDimension = "ScalarOrOneDimension"
+      Any = "Any"
+      Scalar = "Scalar"
     end
   end
 end

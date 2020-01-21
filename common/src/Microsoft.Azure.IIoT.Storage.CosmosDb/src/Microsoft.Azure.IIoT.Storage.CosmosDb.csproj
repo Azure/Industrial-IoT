@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Description>Azure Industrial IoT Core Azure Storage Implementations</Description>
+    <VersionSuffix>$(PrereleaseSuffix)</VersionSuffix>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Script\bulkDelete.js" />
+    <None Remove="Script\bulkUpdate.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Script\bulkDelete.js" />
+    <EmbeddedResource Include="Script\bulkUpdate.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Gremlin.Net" Version="3.4.4" />
+    <PackageReference Include="Gremlin.Net.CosmosDb" Version="0.3.4.4-rc1" />
+    <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.9.2" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.11.0" />
+    <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Core\src\Microsoft.Azure.IIoT.Core.csproj" />
+  </ItemGroup>
+</Project>

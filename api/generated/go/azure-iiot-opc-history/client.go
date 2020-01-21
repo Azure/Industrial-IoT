@@ -23,7 +23,7 @@ import (
 
 const (
 // DefaultBaseURI is the default URI used for the service Azureiiotopchistory
-DefaultBaseURI = "http://localhost")
+DefaultBaseURI = "http://localhost:9080")
 
 // BaseClient is the base client for Azureiiotopchistory.
 type BaseClient struct {
@@ -36,7 +36,9 @@ func New()BaseClient {
     return NewWithBaseURI(DefaultBaseURI, )
 }
 
-// NewWithBaseURI creates an instance of the BaseClient client.
+// NewWithBaseURI creates an instance of the BaseClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a
+// non-standard base URI (sovereign clouds, Azure stack).
 func NewWithBaseURI(baseURI string, ) BaseClient {
     return BaseClient{
         Client: autorest.NewClientWithUserAgent(UserAgent()),
@@ -44,75 +46,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
     }
 }
 
-    // GetStatus sends the get status request.
-    func (client BaseClient) GetStatus(ctx context.Context) (result StatusResponseAPIModel, err error) {
-        if tracing.IsEnabled() {
-            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetStatus")
-            defer func() {
-                sc := -1
-                if result.Response.Response != nil {
-                    sc = result.Response.Response.StatusCode
-                }
-                tracing.EndSpan(ctx, sc, err)
-            }()
-        }
-            req, err := client.GetStatusPreparer(ctx)
-        if err != nil {
-        err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "GetStatus", nil , "Failure preparing request")
-        return
-        }
-
-                resp, err := client.GetStatusSender(req)
-                if err != nil {
-                result.Response = autorest.Response{Response: resp}
-                err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "GetStatus", resp, "Failure sending request")
-                return
-                }
-
-                result, err = client.GetStatusResponder(resp)
-                if err != nil {
-                err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "GetStatus", resp, "Failure responding to request")
-                }
-
-        return
-        }
-
-        // GetStatusPreparer prepares the GetStatus request.
-        func (client BaseClient) GetStatusPreparer(ctx context.Context) (*http.Request, error) {
-            preparer := autorest.CreatePreparer(
-        autorest.AsGet(),
-        autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPath("/v2/status"))
-        return preparer.Prepare((&http.Request{}).WithContext(ctx))
-        }
-
-        // GetStatusSender sends the GetStatus request. The method will close the
-        // http.Response Body if it receives an error.
-        func (client BaseClient) GetStatusSender(req *http.Request) (*http.Response, error) {
-            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-                return autorest.SendWithSender(client, req, sd...)
-                }
-
-    // GetStatusResponder handles the response to the GetStatus request. The method always
-    // closes the http.Response Body.
-    func (client BaseClient) GetStatusResponder(resp *http.Response) (result StatusResponseAPIModel, err error) {
-        err = autorest.Respond(
-        resp,
-        client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK),
-        autorest.ByUnmarshallingJSON(&result),
-        autorest.ByClosing())
-        result.Response = autorest.Response{Response: resp}
-            return
-        }
-
-    // HistoryDeleteEvents delete historic events using historic access.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // HistoryDeleteEvents delete historic events using historic access. The
+    // endpoint must be activated and connected and the module client and server
+    // must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the history update request
-    func (client BaseClient) HistoryDeleteEvents(ctx context.Context, endpointID string, request HistoryUpdateRequestAPIModelDeleteEventsDetailsAPIModel) (result HistoryUpdateResponseAPIModel, err error) {
+            // body - the history update request
+    func (client BaseClient) HistoryDeleteEvents(ctx context.Context, endpointID string, body DeleteEventsDetailsAPIModelHistoryUpdateRequestAPIModel) (result HistoryUpdateResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.HistoryDeleteEvents")
             defer func() {
@@ -124,14 +64,14 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }()
         }
                 if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.Details", Name: validation.Null, Rule: true ,
-                Chain: []validation.Constraint{	{Target: "request.Details.EventIds", Name: validation.Null, Rule: true, Chain: nil },
+                { TargetValue: body,
+                 Constraints: []validation.Constraint{	{Target: "body.Details", Name: validation.Null, Rule: true ,
+                Chain: []validation.Constraint{	{Target: "body.Details.EventIds", Name: validation.Null, Rule: true, Chain: nil },
                 }}}}}); err != nil {
                 return result, validation.NewError("azureiiotopchistory.BaseClient", "HistoryDeleteEvents", err.Error())
                 }
 
-                    req, err := client.HistoryDeleteEventsPreparer(ctx, endpointID, request)
+                    req, err := client.HistoryDeleteEventsPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "HistoryDeleteEvents", nil , "Failure preparing request")
         return
@@ -153,7 +93,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // HistoryDeleteEventsPreparer prepares the HistoryDeleteEvents request.
-        func (client BaseClient) HistoryDeleteEventsPreparer(ctx context.Context, endpointID string, request HistoryUpdateRequestAPIModelDeleteEventsDetailsAPIModel) (*http.Request, error) {
+        func (client BaseClient) HistoryDeleteEventsPreparer(ctx context.Context, endpointID string, body DeleteEventsDetailsAPIModelHistoryUpdateRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -163,7 +103,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/delete/{endpointId}/events",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -188,12 +128,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
     // HistoryDeleteModifiedValues delete historic values using historic access.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // The endpoint must be activated and connected and the module client and
+    // server must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the history update request
-    func (client BaseClient) HistoryDeleteModifiedValues(ctx context.Context, endpointID string, request HistoryUpdateRequestAPIModelDeleteModifiedValuesDetailsAPIModel) (result HistoryUpdateResponseAPIModel, err error) {
+            // body - the history update request
+    func (client BaseClient) HistoryDeleteModifiedValues(ctx context.Context, endpointID string, body DeleteModifiedValuesDetailsAPIModelHistoryUpdateRequestAPIModel) (result HistoryUpdateResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.HistoryDeleteModifiedValues")
             defer func() {
@@ -205,12 +145,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }()
         }
                 if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.Details", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
+                { TargetValue: body,
+                 Constraints: []validation.Constraint{	{Target: "body.Details", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
                 return result, validation.NewError("azureiiotopchistory.BaseClient", "HistoryDeleteModifiedValues", err.Error())
                 }
 
-                    req, err := client.HistoryDeleteModifiedValuesPreparer(ctx, endpointID, request)
+                    req, err := client.HistoryDeleteModifiedValuesPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "HistoryDeleteModifiedValues", nil , "Failure preparing request")
         return
@@ -232,7 +172,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // HistoryDeleteModifiedValuesPreparer prepares the HistoryDeleteModifiedValues request.
-        func (client BaseClient) HistoryDeleteModifiedValuesPreparer(ctx context.Context, endpointID string, request HistoryUpdateRequestAPIModelDeleteModifiedValuesDetailsAPIModel) (*http.Request, error) {
+        func (client BaseClient) HistoryDeleteModifiedValuesPreparer(ctx context.Context, endpointID string, body DeleteModifiedValuesDetailsAPIModelHistoryUpdateRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -242,7 +182,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/delete/{endpointId}/values/modified",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -266,13 +206,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // HistoryDeleteValues delete historic values using historic access.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // HistoryDeleteValues delete historic values using historic access. The
+    // endpoint must be activated and connected and the module client and server
+    // must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the history update request
-    func (client BaseClient) HistoryDeleteValues(ctx context.Context, endpointID string, request HistoryUpdateRequestAPIModelDeleteValuesDetailsAPIModel) (result HistoryUpdateResponseAPIModel, err error) {
+            // body - the history update request
+    func (client BaseClient) HistoryDeleteValues(ctx context.Context, endpointID string, body DeleteValuesDetailsAPIModelHistoryUpdateRequestAPIModel) (result HistoryUpdateResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.HistoryDeleteValues")
             defer func() {
@@ -284,12 +224,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }()
         }
                 if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.Details", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
+                { TargetValue: body,
+                 Constraints: []validation.Constraint{	{Target: "body.Details", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
                 return result, validation.NewError("azureiiotopchistory.BaseClient", "HistoryDeleteValues", err.Error())
                 }
 
-                    req, err := client.HistoryDeleteValuesPreparer(ctx, endpointID, request)
+                    req, err := client.HistoryDeleteValuesPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "HistoryDeleteValues", nil , "Failure preparing request")
         return
@@ -311,7 +251,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // HistoryDeleteValuesPreparer prepares the HistoryDeleteValues request.
-        func (client BaseClient) HistoryDeleteValuesPreparer(ctx context.Context, endpointID string, request HistoryUpdateRequestAPIModelDeleteValuesDetailsAPIModel) (*http.Request, error) {
+        func (client BaseClient) HistoryDeleteValuesPreparer(ctx context.Context, endpointID string, body DeleteValuesDetailsAPIModelHistoryUpdateRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -321,7 +261,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/delete/{endpointId}/values",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -345,13 +285,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // HistoryDeleteValuesAtTimes delete value history using historic access.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // HistoryDeleteValuesAtTimes delete value history using historic access. The
+    // endpoint must be activated and connected and the module client and server
+    // must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the history update request
-    func (client BaseClient) HistoryDeleteValuesAtTimes(ctx context.Context, endpointID string, request HistoryUpdateRequestAPIModelDeleteValuesAtTimesDetailsAPIModel) (result HistoryUpdateResponseAPIModel, err error) {
+            // body - the history update request
+    func (client BaseClient) HistoryDeleteValuesAtTimes(ctx context.Context, endpointID string, body DeleteValuesAtTimesDetailsAPIModelHistoryUpdateRequestAPIModel) (result HistoryUpdateResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.HistoryDeleteValuesAtTimes")
             defer func() {
@@ -363,14 +303,14 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }()
         }
                 if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.Details", Name: validation.Null, Rule: true ,
-                Chain: []validation.Constraint{	{Target: "request.Details.ReqTimes", Name: validation.Null, Rule: true, Chain: nil },
+                { TargetValue: body,
+                 Constraints: []validation.Constraint{	{Target: "body.Details", Name: validation.Null, Rule: true ,
+                Chain: []validation.Constraint{	{Target: "body.Details.ReqTimes", Name: validation.Null, Rule: true, Chain: nil },
                 }}}}}); err != nil {
                 return result, validation.NewError("azureiiotopchistory.BaseClient", "HistoryDeleteValuesAtTimes", err.Error())
                 }
 
-                    req, err := client.HistoryDeleteValuesAtTimesPreparer(ctx, endpointID, request)
+                    req, err := client.HistoryDeleteValuesAtTimesPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "HistoryDeleteValuesAtTimes", nil , "Failure preparing request")
         return
@@ -392,7 +332,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // HistoryDeleteValuesAtTimesPreparer prepares the HistoryDeleteValuesAtTimes request.
-        func (client BaseClient) HistoryDeleteValuesAtTimesPreparer(ctx context.Context, endpointID string, request HistoryUpdateRequestAPIModelDeleteValuesAtTimesDetailsAPIModel) (*http.Request, error) {
+        func (client BaseClient) HistoryDeleteValuesAtTimesPreparer(ctx context.Context, endpointID string, body DeleteValuesAtTimesDetailsAPIModelHistoryUpdateRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -402,7 +342,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/delete/{endpointId}/values/pick",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -426,13 +366,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // HistoryInsertEvents insert historic events using historic access.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // HistoryInsertEvents insert historic events using historic access. The
+    // endpoint must be activated and connected and the module client and server
+    // must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the history insert request
-    func (client BaseClient) HistoryInsertEvents(ctx context.Context, endpointID string, request HistoryUpdateRequestAPIModelInsertEventsDetailsAPIModel) (result HistoryUpdateResponseAPIModel, err error) {
+            // body - the history insert request
+    func (client BaseClient) HistoryInsertEvents(ctx context.Context, endpointID string, body InsertEventsDetailsAPIModelHistoryUpdateRequestAPIModel) (result HistoryUpdateResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.HistoryInsertEvents")
             defer func() {
@@ -444,14 +384,14 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }()
         }
                 if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.Details", Name: validation.Null, Rule: true ,
-                Chain: []validation.Constraint{	{Target: "request.Details.Events", Name: validation.Null, Rule: true, Chain: nil },
+                { TargetValue: body,
+                 Constraints: []validation.Constraint{	{Target: "body.Details", Name: validation.Null, Rule: true ,
+                Chain: []validation.Constraint{	{Target: "body.Details.Events", Name: validation.Null, Rule: true, Chain: nil },
                 }}}}}); err != nil {
                 return result, validation.NewError("azureiiotopchistory.BaseClient", "HistoryInsertEvents", err.Error())
                 }
 
-                    req, err := client.HistoryInsertEventsPreparer(ctx, endpointID, request)
+                    req, err := client.HistoryInsertEventsPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "HistoryInsertEvents", nil , "Failure preparing request")
         return
@@ -473,7 +413,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // HistoryInsertEventsPreparer prepares the HistoryInsertEvents request.
-        func (client BaseClient) HistoryInsertEventsPreparer(ctx context.Context, endpointID string, request HistoryUpdateRequestAPIModelInsertEventsDetailsAPIModel) (*http.Request, error) {
+        func (client BaseClient) HistoryInsertEventsPreparer(ctx context.Context, endpointID string, body InsertEventsDetailsAPIModelHistoryUpdateRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -483,7 +423,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/insert/{endpointId}/events",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -507,13 +447,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // HistoryInsertValues insert historic values using historic access.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // HistoryInsertValues insert historic values using historic access. The
+    // endpoint must be activated and connected and the module client and server
+    // must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the history insert request
-    func (client BaseClient) HistoryInsertValues(ctx context.Context, endpointID string, request HistoryUpdateRequestAPIModelInsertValuesDetailsAPIModel) (result HistoryUpdateResponseAPIModel, err error) {
+            // body - the history insert request
+    func (client BaseClient) HistoryInsertValues(ctx context.Context, endpointID string, body InsertValuesDetailsAPIModelHistoryUpdateRequestAPIModel) (result HistoryUpdateResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.HistoryInsertValues")
             defer func() {
@@ -525,14 +465,14 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }()
         }
                 if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.Details", Name: validation.Null, Rule: true ,
-                Chain: []validation.Constraint{	{Target: "request.Details.Values", Name: validation.Null, Rule: true, Chain: nil },
+                { TargetValue: body,
+                 Constraints: []validation.Constraint{	{Target: "body.Details", Name: validation.Null, Rule: true ,
+                Chain: []validation.Constraint{	{Target: "body.Details.Values", Name: validation.Null, Rule: true, Chain: nil },
                 }}}}}); err != nil {
                 return result, validation.NewError("azureiiotopchistory.BaseClient", "HistoryInsertValues", err.Error())
                 }
 
-                    req, err := client.HistoryInsertValuesPreparer(ctx, endpointID, request)
+                    req, err := client.HistoryInsertValuesPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "HistoryInsertValues", nil , "Failure preparing request")
         return
@@ -554,7 +494,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // HistoryInsertValuesPreparer prepares the HistoryInsertValues request.
-        func (client BaseClient) HistoryInsertValuesPreparer(ctx context.Context, endpointID string, request HistoryUpdateRequestAPIModelInsertValuesDetailsAPIModel) (*http.Request, error) {
+        func (client BaseClient) HistoryInsertValuesPreparer(ctx context.Context, endpointID string, body InsertValuesDetailsAPIModelHistoryUpdateRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -564,7 +504,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/insert/{endpointId}/values",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -589,13 +529,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
     // HistoryReadEvents read historic events of a node if available using historic
-    // access.
-    // The endpoint must be activated and connected and the module client
+    // access. The endpoint must be activated and connected and the module client
     // and server must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the history read request
-    func (client BaseClient) HistoryReadEvents(ctx context.Context, endpointID string, request HistoryReadRequestAPIModelReadEventsDetailsAPIModel) (result HistoryReadResponseAPIModelHistoricEventAPIModel, err error) {
+            // body - the history read request
+    func (client BaseClient) HistoryReadEvents(ctx context.Context, endpointID string, body ReadEventsDetailsAPIModelHistoryReadRequestAPIModel) (result HistoricEventAPIModelHistoryReadResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.HistoryReadEvents")
             defer func() {
@@ -606,7 +545,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-            req, err := client.HistoryReadEventsPreparer(ctx, endpointID, request)
+            req, err := client.HistoryReadEventsPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "HistoryReadEvents", nil , "Failure preparing request")
         return
@@ -628,7 +567,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // HistoryReadEventsPreparer prepares the HistoryReadEvents request.
-        func (client BaseClient) HistoryReadEventsPreparer(ctx context.Context, endpointID string, request HistoryReadRequestAPIModelReadEventsDetailsAPIModel) (*http.Request, error) {
+        func (client BaseClient) HistoryReadEventsPreparer(ctx context.Context, endpointID string, body ReadEventsDetailsAPIModelHistoryReadRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -638,7 +577,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/read/{endpointId}/events",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -651,7 +590,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
     // HistoryReadEventsResponder handles the response to the HistoryReadEvents request. The method always
     // closes the http.Response Body.
-    func (client BaseClient) HistoryReadEventsResponder(resp *http.Response) (result HistoryReadResponseAPIModelHistoricEventAPIModel, err error) {
+    func (client BaseClient) HistoryReadEventsResponder(resp *http.Response) (result HistoricEventAPIModelHistoryReadResponseAPIModel, err error) {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
@@ -663,13 +602,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
     // HistoryReadEventsNext read next batch of historic events of a node using
-    // historic access.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // historic access. The endpoint must be activated and connected and the module
+    // client and server must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the history read next request
-    func (client BaseClient) HistoryReadEventsNext(ctx context.Context, endpointID string, request HistoryReadNextRequestAPIModel) (result HistoryReadNextResponseAPIModelHistoricEventAPIModel, err error) {
+            // body - the history read next request
+    func (client BaseClient) HistoryReadEventsNext(ctx context.Context, endpointID string, body HistoryReadNextRequestAPIModel) (result HistoricEventAPIModelHistoryReadNextResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.HistoryReadEventsNext")
             defer func() {
@@ -681,12 +619,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }()
         }
                 if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.ContinuationToken", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
+                { TargetValue: body,
+                 Constraints: []validation.Constraint{	{Target: "body.ContinuationToken", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
                 return result, validation.NewError("azureiiotopchistory.BaseClient", "HistoryReadEventsNext", err.Error())
                 }
 
-                    req, err := client.HistoryReadEventsNextPreparer(ctx, endpointID, request)
+                    req, err := client.HistoryReadEventsNextPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "HistoryReadEventsNext", nil , "Failure preparing request")
         return
@@ -708,7 +646,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // HistoryReadEventsNextPreparer prepares the HistoryReadEventsNext request.
-        func (client BaseClient) HistoryReadEventsNextPreparer(ctx context.Context, endpointID string, request HistoryReadNextRequestAPIModel) (*http.Request, error) {
+        func (client BaseClient) HistoryReadEventsNextPreparer(ctx context.Context, endpointID string, body HistoryReadNextRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -718,7 +656,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/read/{endpointId}/events/next",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -731,7 +669,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
     // HistoryReadEventsNextResponder handles the response to the HistoryReadEventsNext request. The method always
     // closes the http.Response Body.
-    func (client BaseClient) HistoryReadEventsNextResponder(resp *http.Response) (result HistoryReadNextResponseAPIModelHistoricEventAPIModel, err error) {
+    func (client BaseClient) HistoryReadEventsNextResponder(resp *http.Response) (result HistoricEventAPIModelHistoryReadNextResponseAPIModel, err error) {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
@@ -743,13 +681,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
     // HistoryReadModifiedValues read processed history values of a node if
-    // available using historic access.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // available using historic access. The endpoint must be activated and
+    // connected and the module client and server must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the history read request
-    func (client BaseClient) HistoryReadModifiedValues(ctx context.Context, endpointID string, request HistoryReadRequestAPIModelReadModifiedValuesDetailsAPIModel) (result HistoryReadResponseAPIModelHistoricValueAPIModel, err error) {
+            // body - the history read request
+    func (client BaseClient) HistoryReadModifiedValues(ctx context.Context, endpointID string, body ReadModifiedValuesDetailsAPIModelHistoryReadRequestAPIModel) (result HistoricValueAPIModelHistoryReadResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.HistoryReadModifiedValues")
             defer func() {
@@ -760,7 +697,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-            req, err := client.HistoryReadModifiedValuesPreparer(ctx, endpointID, request)
+            req, err := client.HistoryReadModifiedValuesPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "HistoryReadModifiedValues", nil , "Failure preparing request")
         return
@@ -782,7 +719,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // HistoryReadModifiedValuesPreparer prepares the HistoryReadModifiedValues request.
-        func (client BaseClient) HistoryReadModifiedValuesPreparer(ctx context.Context, endpointID string, request HistoryReadRequestAPIModelReadModifiedValuesDetailsAPIModel) (*http.Request, error) {
+        func (client BaseClient) HistoryReadModifiedValuesPreparer(ctx context.Context, endpointID string, body ReadModifiedValuesDetailsAPIModelHistoryReadRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -792,7 +729,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/read/{endpointId}/values/modified",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -805,7 +742,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
     // HistoryReadModifiedValuesResponder handles the response to the HistoryReadModifiedValues request. The method always
     // closes the http.Response Body.
-    func (client BaseClient) HistoryReadModifiedValuesResponder(resp *http.Response) (result HistoryReadResponseAPIModelHistoricValueAPIModel, err error) {
+    func (client BaseClient) HistoryReadModifiedValuesResponder(resp *http.Response) (result HistoricValueAPIModelHistoryReadResponseAPIModel, err error) {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
@@ -817,13 +754,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
     // HistoryReadProcessedValues read processed history values of a node if
-    // available using historic access.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // available using historic access. The endpoint must be activated and
+    // connected and the module client and server must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the history read request
-    func (client BaseClient) HistoryReadProcessedValues(ctx context.Context, endpointID string, request HistoryReadRequestAPIModelReadProcessedValuesDetailsAPIModel) (result HistoryReadResponseAPIModelHistoricValueAPIModel, err error) {
+            // body - the history read request
+    func (client BaseClient) HistoryReadProcessedValues(ctx context.Context, endpointID string, body ReadProcessedValuesDetailsAPIModelHistoryReadRequestAPIModel) (result HistoricValueAPIModelHistoryReadResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.HistoryReadProcessedValues")
             defer func() {
@@ -834,7 +770,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-            req, err := client.HistoryReadProcessedValuesPreparer(ctx, endpointID, request)
+            req, err := client.HistoryReadProcessedValuesPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "HistoryReadProcessedValues", nil , "Failure preparing request")
         return
@@ -856,7 +792,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // HistoryReadProcessedValuesPreparer prepares the HistoryReadProcessedValues request.
-        func (client BaseClient) HistoryReadProcessedValuesPreparer(ctx context.Context, endpointID string, request HistoryReadRequestAPIModelReadProcessedValuesDetailsAPIModel) (*http.Request, error) {
+        func (client BaseClient) HistoryReadProcessedValuesPreparer(ctx context.Context, endpointID string, body ReadProcessedValuesDetailsAPIModelHistoryReadRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -866,7 +802,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/read/{endpointId}/values/processed",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -879,7 +815,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
     // HistoryReadProcessedValuesResponder handles the response to the HistoryReadProcessedValues request. The method always
     // closes the http.Response Body.
-    func (client BaseClient) HistoryReadProcessedValuesResponder(resp *http.Response) (result HistoryReadResponseAPIModelHistoricValueAPIModel, err error) {
+    func (client BaseClient) HistoryReadProcessedValuesResponder(resp *http.Response) (result HistoricValueAPIModelHistoryReadResponseAPIModel, err error) {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
@@ -890,13 +826,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // HistoryReadRaw read node history if available using historic access.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // HistoryReadRaw read node history if available using historic access. The
+    // endpoint must be activated and connected and the module client and server
+    // must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the history read request
-    func (client BaseClient) HistoryReadRaw(ctx context.Context, endpointID string, request HistoryReadRequestAPIModelJToken) (result HistoryReadResponseAPIModelJToken, err error) {
+            // body - the history read request
+    func (client BaseClient) HistoryReadRaw(ctx context.Context, endpointID string, body JTokenHistoryReadRequestAPIModel) (result JTokenHistoryReadResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.HistoryReadRaw")
             defer func() {
@@ -907,7 +843,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-            req, err := client.HistoryReadRawPreparer(ctx, endpointID, request)
+            req, err := client.HistoryReadRawPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "HistoryReadRaw", nil , "Failure preparing request")
         return
@@ -929,7 +865,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // HistoryReadRawPreparer prepares the HistoryReadRaw request.
-        func (client BaseClient) HistoryReadRawPreparer(ctx context.Context, endpointID string, request HistoryReadRequestAPIModelJToken) (*http.Request, error) {
+        func (client BaseClient) HistoryReadRawPreparer(ctx context.Context, endpointID string, body JTokenHistoryReadRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -939,7 +875,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/history/read/{endpointId}",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -952,7 +888,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
     // HistoryReadRawResponder handles the response to the HistoryReadRaw request. The method always
     // closes the http.Response Body.
-    func (client BaseClient) HistoryReadRawResponder(resp *http.Response) (result HistoryReadResponseAPIModelJToken, err error) {
+    func (client BaseClient) HistoryReadRawResponder(resp *http.Response) (result JTokenHistoryReadResponseAPIModel, err error) {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
@@ -964,13 +900,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
     // HistoryReadRawNext read next batch of node history values using historic
-    // access.
-    // The endpoint must be activated and connected and the module client
+    // access. The endpoint must be activated and connected and the module client
     // and server must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the history read next request
-    func (client BaseClient) HistoryReadRawNext(ctx context.Context, endpointID string, request HistoryReadNextRequestAPIModel) (result HistoryReadNextResponseAPIModelJToken, err error) {
+            // body - the history read next request
+    func (client BaseClient) HistoryReadRawNext(ctx context.Context, endpointID string, body HistoryReadNextRequestAPIModel) (result JTokenHistoryReadNextResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.HistoryReadRawNext")
             defer func() {
@@ -982,12 +917,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }()
         }
                 if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.ContinuationToken", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
+                { TargetValue: body,
+                 Constraints: []validation.Constraint{	{Target: "body.ContinuationToken", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
                 return result, validation.NewError("azureiiotopchistory.BaseClient", "HistoryReadRawNext", err.Error())
                 }
 
-                    req, err := client.HistoryReadRawNextPreparer(ctx, endpointID, request)
+                    req, err := client.HistoryReadRawNextPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "HistoryReadRawNext", nil , "Failure preparing request")
         return
@@ -1009,7 +944,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // HistoryReadRawNextPreparer prepares the HistoryReadRawNext request.
-        func (client BaseClient) HistoryReadRawNextPreparer(ctx context.Context, endpointID string, request HistoryReadNextRequestAPIModel) (*http.Request, error) {
+        func (client BaseClient) HistoryReadRawNextPreparer(ctx context.Context, endpointID string, body HistoryReadNextRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -1019,7 +954,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/history/read/{endpointId}/next",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -1032,7 +967,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
     // HistoryReadRawNextResponder handles the response to the HistoryReadRawNext request. The method always
     // closes the http.Response Body.
-    func (client BaseClient) HistoryReadRawNextResponder(resp *http.Response) (result HistoryReadNextResponseAPIModelJToken, err error) {
+    func (client BaseClient) HistoryReadRawNextResponder(resp *http.Response) (result JTokenHistoryReadNextResponseAPIModel, err error) {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
@@ -1044,13 +979,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
     // HistoryReadValueNext read next batch of historic values of a node using
-    // historic access.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // historic access. The endpoint must be activated and connected and the module
+    // client and server must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the history read next request
-    func (client BaseClient) HistoryReadValueNext(ctx context.Context, endpointID string, request HistoryReadNextRequestAPIModel) (result HistoryReadNextResponseAPIModelHistoricValueAPIModel, err error) {
+            // body - the history read next request
+    func (client BaseClient) HistoryReadValueNext(ctx context.Context, endpointID string, body HistoryReadNextRequestAPIModel) (result HistoricValueAPIModelHistoryReadNextResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.HistoryReadValueNext")
             defer func() {
@@ -1062,12 +996,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }()
         }
                 if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.ContinuationToken", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
+                { TargetValue: body,
+                 Constraints: []validation.Constraint{	{Target: "body.ContinuationToken", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
                 return result, validation.NewError("azureiiotopchistory.BaseClient", "HistoryReadValueNext", err.Error())
                 }
 
-                    req, err := client.HistoryReadValueNextPreparer(ctx, endpointID, request)
+                    req, err := client.HistoryReadValueNextPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "HistoryReadValueNext", nil , "Failure preparing request")
         return
@@ -1089,7 +1023,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // HistoryReadValueNextPreparer prepares the HistoryReadValueNext request.
-        func (client BaseClient) HistoryReadValueNextPreparer(ctx context.Context, endpointID string, request HistoryReadNextRequestAPIModel) (*http.Request, error) {
+        func (client BaseClient) HistoryReadValueNextPreparer(ctx context.Context, endpointID string, body HistoryReadNextRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -1099,7 +1033,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/read/{endpointId}/values/next",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -1112,7 +1046,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
     // HistoryReadValueNextResponder handles the response to the HistoryReadValueNext request. The method always
     // closes the http.Response Body.
-    func (client BaseClient) HistoryReadValueNextResponder(resp *http.Response) (result HistoryReadNextResponseAPIModelHistoricValueAPIModel, err error) {
+    func (client BaseClient) HistoryReadValueNextResponder(resp *http.Response) (result HistoricValueAPIModelHistoryReadNextResponseAPIModel, err error) {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
@@ -1124,13 +1058,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
     // HistoryReadValues read processed history values of a node if available using
-    // historic access.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // historic access. The endpoint must be activated and connected and the module
+    // client and server must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the history read request
-    func (client BaseClient) HistoryReadValues(ctx context.Context, endpointID string, request HistoryReadRequestAPIModelReadValuesDetailsAPIModel) (result HistoryReadResponseAPIModelHistoricValueAPIModel, err error) {
+            // body - the history read request
+    func (client BaseClient) HistoryReadValues(ctx context.Context, endpointID string, body ReadValuesDetailsAPIModelHistoryReadRequestAPIModel) (result HistoricValueAPIModelHistoryReadResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.HistoryReadValues")
             defer func() {
@@ -1141,7 +1074,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-            req, err := client.HistoryReadValuesPreparer(ctx, endpointID, request)
+            req, err := client.HistoryReadValuesPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "HistoryReadValues", nil , "Failure preparing request")
         return
@@ -1163,7 +1096,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // HistoryReadValuesPreparer prepares the HistoryReadValues request.
-        func (client BaseClient) HistoryReadValuesPreparer(ctx context.Context, endpointID string, request HistoryReadRequestAPIModelReadValuesDetailsAPIModel) (*http.Request, error) {
+        func (client BaseClient) HistoryReadValuesPreparer(ctx context.Context, endpointID string, body ReadValuesDetailsAPIModelHistoryReadRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -1173,7 +1106,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/read/{endpointId}/values",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -1186,7 +1119,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
     // HistoryReadValuesResponder handles the response to the HistoryReadValues request. The method always
     // closes the http.Response Body.
-    func (client BaseClient) HistoryReadValuesResponder(resp *http.Response) (result HistoryReadResponseAPIModelHistoricValueAPIModel, err error) {
+    func (client BaseClient) HistoryReadValuesResponder(resp *http.Response) (result HistoricValueAPIModelHistoryReadResponseAPIModel, err error) {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
@@ -1198,13 +1131,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
     // HistoryReadValuesAtTimes read historic values of a node if available using
-    // historic access.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // historic access. The endpoint must be activated and connected and the module
+    // client and server must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the history read request
-    func (client BaseClient) HistoryReadValuesAtTimes(ctx context.Context, endpointID string, request HistoryReadRequestAPIModelReadValuesAtTimesDetailsAPIModel) (result HistoryReadResponseAPIModelHistoricValueAPIModel, err error) {
+            // body - the history read request
+    func (client BaseClient) HistoryReadValuesAtTimes(ctx context.Context, endpointID string, body ReadValuesAtTimesDetailsAPIModelHistoryReadRequestAPIModel) (result HistoricValueAPIModelHistoryReadResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.HistoryReadValuesAtTimes")
             defer func() {
@@ -1216,14 +1148,14 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }()
         }
                 if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.Details", Name: validation.Null, Rule: false ,
-                Chain: []validation.Constraint{	{Target: "request.Details.ReqTimes", Name: validation.Null, Rule: true, Chain: nil },
+                { TargetValue: body,
+                 Constraints: []validation.Constraint{	{Target: "body.Details", Name: validation.Null, Rule: false ,
+                Chain: []validation.Constraint{	{Target: "body.Details.ReqTimes", Name: validation.Null, Rule: true, Chain: nil },
                 }}}}}); err != nil {
                 return result, validation.NewError("azureiiotopchistory.BaseClient", "HistoryReadValuesAtTimes", err.Error())
                 }
 
-                    req, err := client.HistoryReadValuesAtTimesPreparer(ctx, endpointID, request)
+                    req, err := client.HistoryReadValuesAtTimesPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "HistoryReadValuesAtTimes", nil , "Failure preparing request")
         return
@@ -1245,7 +1177,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // HistoryReadValuesAtTimesPreparer prepares the HistoryReadValuesAtTimes request.
-        func (client BaseClient) HistoryReadValuesAtTimesPreparer(ctx context.Context, endpointID string, request HistoryReadRequestAPIModelReadValuesAtTimesDetailsAPIModel) (*http.Request, error) {
+        func (client BaseClient) HistoryReadValuesAtTimesPreparer(ctx context.Context, endpointID string, body ReadValuesAtTimesDetailsAPIModelHistoryReadRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -1255,7 +1187,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/read/{endpointId}/values/pick",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -1268,7 +1200,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
     // HistoryReadValuesAtTimesResponder handles the response to the HistoryReadValuesAtTimes request. The method always
     // closes the http.Response Body.
-    func (client BaseClient) HistoryReadValuesAtTimesResponder(resp *http.Response) (result HistoryReadResponseAPIModelHistoricValueAPIModel, err error) {
+    func (client BaseClient) HistoryReadValuesAtTimesResponder(resp *http.Response) (result HistoricValueAPIModelHistoryReadResponseAPIModel, err error) {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
@@ -1279,13 +1211,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // HistoryReplaceEvents replace historic events using historic access.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // HistoryReplaceEvents replace historic events using historic access. The
+    // endpoint must be activated and connected and the module client and server
+    // must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the history replace request
-    func (client BaseClient) HistoryReplaceEvents(ctx context.Context, endpointID string, request HistoryUpdateRequestAPIModelReplaceEventsDetailsAPIModel) (result HistoryUpdateResponseAPIModel, err error) {
+            // body - the history replace request
+    func (client BaseClient) HistoryReplaceEvents(ctx context.Context, endpointID string, body ReplaceEventsDetailsAPIModelHistoryUpdateRequestAPIModel) (result HistoryUpdateResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.HistoryReplaceEvents")
             defer func() {
@@ -1297,14 +1229,14 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }()
         }
                 if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.Details", Name: validation.Null, Rule: true ,
-                Chain: []validation.Constraint{	{Target: "request.Details.Events", Name: validation.Null, Rule: true, Chain: nil },
+                { TargetValue: body,
+                 Constraints: []validation.Constraint{	{Target: "body.Details", Name: validation.Null, Rule: true ,
+                Chain: []validation.Constraint{	{Target: "body.Details.Events", Name: validation.Null, Rule: true, Chain: nil },
                 }}}}}); err != nil {
                 return result, validation.NewError("azureiiotopchistory.BaseClient", "HistoryReplaceEvents", err.Error())
                 }
 
-                    req, err := client.HistoryReplaceEventsPreparer(ctx, endpointID, request)
+                    req, err := client.HistoryReplaceEventsPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "HistoryReplaceEvents", nil , "Failure preparing request")
         return
@@ -1326,7 +1258,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // HistoryReplaceEventsPreparer prepares the HistoryReplaceEvents request.
-        func (client BaseClient) HistoryReplaceEventsPreparer(ctx context.Context, endpointID string, request HistoryUpdateRequestAPIModelReplaceEventsDetailsAPIModel) (*http.Request, error) {
+        func (client BaseClient) HistoryReplaceEventsPreparer(ctx context.Context, endpointID string, body ReplaceEventsDetailsAPIModelHistoryUpdateRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -1336,7 +1268,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/replace/{endpointId}/events",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -1360,13 +1292,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // HistoryReplaceValues replace historic values using historic access.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // HistoryReplaceValues replace historic values using historic access. The
+    // endpoint must be activated and connected and the module client and server
+    // must trust each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the history replace request
-    func (client BaseClient) HistoryReplaceValues(ctx context.Context, endpointID string, request HistoryUpdateRequestAPIModelReplaceValuesDetailsAPIModel) (result HistoryUpdateResponseAPIModel, err error) {
+            // body - the history replace request
+    func (client BaseClient) HistoryReplaceValues(ctx context.Context, endpointID string, body ReplaceValuesDetailsAPIModelHistoryUpdateRequestAPIModel) (result HistoryUpdateResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.HistoryReplaceValues")
             defer func() {
@@ -1378,14 +1310,14 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }()
         }
                 if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.Details", Name: validation.Null, Rule: true ,
-                Chain: []validation.Constraint{	{Target: "request.Details.Values", Name: validation.Null, Rule: true, Chain: nil },
+                { TargetValue: body,
+                 Constraints: []validation.Constraint{	{Target: "body.Details", Name: validation.Null, Rule: true ,
+                Chain: []validation.Constraint{	{Target: "body.Details.Values", Name: validation.Null, Rule: true, Chain: nil },
                 }}}}}); err != nil {
                 return result, validation.NewError("azureiiotopchistory.BaseClient", "HistoryReplaceValues", err.Error())
                 }
 
-                    req, err := client.HistoryReplaceValuesPreparer(ctx, endpointID, request)
+                    req, err := client.HistoryReplaceValuesPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "HistoryReplaceValues", nil , "Failure preparing request")
         return
@@ -1407,7 +1339,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // HistoryReplaceValuesPreparer prepares the HistoryReplaceValues request.
-        func (client BaseClient) HistoryReplaceValuesPreparer(ctx context.Context, endpointID string, request HistoryUpdateRequestAPIModelReplaceValuesDetailsAPIModel) (*http.Request, error) {
+        func (client BaseClient) HistoryReplaceValuesPreparer(ctx context.Context, endpointID string, body ReplaceValuesDetailsAPIModelHistoryUpdateRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -1417,7 +1349,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/replace/{endpointId}/values",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -1441,13 +1373,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // HistoryUpdateRaw update node history using historic access.
-    // The endpoint must be activated and connected and the module client
-    // and server must trust each other.
+    // HistoryUpdateRaw update node history using historic access. The endpoint
+    // must be activated and connected and the module client and server must trust
+    // each other.
         // Parameters:
             // endpointID - the identifier of the activated endpoint.
-            // request - the history update request
-    func (client BaseClient) HistoryUpdateRaw(ctx context.Context, endpointID string, request HistoryUpdateRequestAPIModelJToken) (result HistoryUpdateResponseAPIModel, err error) {
+            // body - the history update request
+    func (client BaseClient) HistoryUpdateRaw(ctx context.Context, endpointID string, body JTokenHistoryUpdateRequestAPIModel) (result HistoryUpdateResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.HistoryUpdateRaw")
             defer func() {
@@ -1459,12 +1391,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }()
         }
                 if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.Details", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
+                { TargetValue: body,
+                 Constraints: []validation.Constraint{	{Target: "body.Details", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
                 return result, validation.NewError("azureiiotopchistory.BaseClient", "HistoryUpdateRaw", err.Error())
                 }
 
-                    req, err := client.HistoryUpdateRawPreparer(ctx, endpointID, request)
+                    req, err := client.HistoryUpdateRawPreparer(ctx, endpointID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopchistory.BaseClient", "HistoryUpdateRaw", nil , "Failure preparing request")
         return
@@ -1486,7 +1418,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // HistoryUpdateRawPreparer prepares the HistoryUpdateRaw request.
-        func (client BaseClient) HistoryUpdateRawPreparer(ctx context.Context, endpointID string, request HistoryUpdateRequestAPIModelJToken) (*http.Request, error) {
+        func (client BaseClient) HistoryUpdateRawPreparer(ctx context.Context, endpointID string, body JTokenHistoryUpdateRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "endpointId": autorest.Encode("path",endpointID),
                 }
@@ -1496,7 +1428,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/history/update/{endpointId}",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 

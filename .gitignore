@@ -26,7 +26,8 @@
 /TestResults/**
 /**/TestResults/**
 /**/packages/**
+/**/appsettings.*.json
 .env
 *.crt
 *.key
-
+*.user

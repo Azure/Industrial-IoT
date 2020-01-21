@@ -34,7 +34,7 @@ class AzureOpcTwinClientConfiguration(Configuration):
         if credentials is None:
             raise ValueError("Parameter 'credentials' must not be None.")
         if not base_url:
-            base_url = 'http://localhost'
+            base_url = 'http://localhost:9080'
 
         super(AzureOpcTwinClientConfiguration, self).__init__(base_url)
 
@@ -67,19 +67,78 @@ class AzureOpcTwinClient(object):
         self._deserialize = Deserializer(client_models)
 
 
+    def browse(
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
+        """Browse node references.
+
+        Browse a node on the specified endpoint. The endpoint must be activated
+        and connected and the module client and server must trust each other.
+
+        :param endpoint_id: The identifier of the activated endpoint.
+        :type endpoint_id: str
+        :param body: The browse request
+        :type body: ~azure-iiot-opc-twin.models.BrowseRequestApiModel
+        :param dict custom_headers: headers that will be added to the request
+        :param bool raw: returns the direct response alongside the
+         deserialized response
+        :param operation_config: :ref:`Operation configuration
+         overrides<msrest:optionsforoperations>`.
+        :return: BrowseResponseApiModel or ClientRawResponse if raw=true
+        :rtype: ~azure-iiot-opc-twin.models.BrowseResponseApiModel or
+         ~msrest.pipeline.ClientRawResponse
+        :raises:
+         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
+        """
+        # Construct URL
+        url = self.browse.metadata['url']
+        path_format_arguments = {
+            'endpointId': self._serialize.url("endpoint_id", endpoint_id, 'str')
+        }
+        url = self._client.format_url(url, **path_format_arguments)
+
+        # Construct parameters
+        query_parameters = {}
+
+        # Construct headers
+        header_parameters = {}
+        header_parameters['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+        if custom_headers:
+            header_parameters.update(custom_headers)
+
+        # Construct body
+        body_content = self._serialize.body(body, 'BrowseRequestApiModel')
+
+        # Construct and send request
+        request = self._client.post(url, query_parameters)
+        response = self._client.send(
+            request, header_parameters, body_content, stream=False, **operation_config)
+
+        if response.status_code not in [200]:
+            raise HttpOperationError(self._deserialize, response)
+
+        deserialized = None
+
+        if response.status_code == 200:
+            deserialized = self._deserialize('BrowseResponseApiModel', response)
+
+        if raw:
+            client_raw_response = ClientRawResponse(deserialized, response)
+            return client_raw_response
+
+        return deserialized
+    browse.metadata = {'url': '/v2/browse/{endpointId}'}
+
     def get_set_of_unique_nodes(
             self, endpoint_id, node_id=None, custom_headers=None, raw=False, **operation_config):
         """Browse set of unique target nodes.
 
         Browse the set of unique hierarchically referenced target nodes on the
-        endpoint.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
-        The root node id to browse from can be provided as part of the query
-        parameters.
-        If it is not provided, the RootFolder node is browsed. Note that this
-        is the same as the POST method with the model containing the node id
-        and the targetNodesOnly flag set to true.
+        endpoint. The endpoint must be activated and connected and the module
+        client and server must trust each other. The root node id to browse
+        from can be provided as part of the query parameters. If it is not
+        provided, the RootFolder node is browsed. Note that this is the same as
+        the POST method with the model containing the node id and the
+        targetNodesOnly flag set to true.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
@@ -134,31 +193,31 @@ class AzureOpcTwinClient(object):
         return deserialized
     get_set_of_unique_nodes.metadata = {'url': '/v2/browse/{endpointId}'}
 
-    def browse(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
-        """Browse node references.
+    def browse_next(
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
+        """Browse next set of references.
 
-        Browse a node on the specified endpoint.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Browse next set of references on the endpoint. The endpoint must be
+        activated and connected and the module client and server must trust
+        each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The browse request
-        :type request: ~azure-iiot-opc-twin.models.BrowseRequestApiModel
+        :param body: The request body with continuation token.
+        :type body: ~azure-iiot-opc-twin.models.BrowseNextRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
         :param operation_config: :ref:`Operation configuration
          overrides<msrest:optionsforoperations>`.
-        :return: BrowseResponseApiModel or ClientRawResponse if raw=true
-        :rtype: ~azure-iiot-opc-twin.models.BrowseResponseApiModel or
+        :return: BrowseNextResponseApiModel or ClientRawResponse if raw=true
+        :rtype: ~azure-iiot-opc-twin.models.BrowseNextResponseApiModel or
          ~msrest.pipeline.ClientRawResponse
         :raises:
          :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
         """
         # Construct URL
-        url = self.browse.metadata['url']
+        url = self.browse_next.metadata['url']
         path_format_arguments = {
             'endpointId': self._serialize.url("endpoint_id", endpoint_id, 'str')
         }
@@ -174,7 +233,7 @@ class AzureOpcTwinClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'BrowseRequestApiModel')
+        body_content = self._serialize.body(body, 'BrowseNextRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -187,26 +246,24 @@ class AzureOpcTwinClient(object):
         deserialized = None
 
         if response.status_code == 200:
-            deserialized = self._deserialize('BrowseResponseApiModel', response)
+            deserialized = self._deserialize('BrowseNextResponseApiModel', response)
 
         if raw:
             client_raw_response = ClientRawResponse(deserialized, response)
             return client_raw_response
 
         return deserialized
-    browse.metadata = {'url': '/v2/browse/{endpointId}'}
+    browse_next.metadata = {'url': '/v2/browse/{endpointId}/next'}
 
     def get_next_set_of_unique_nodes(
             self, endpoint_id, continuation_token, custom_headers=None, raw=False, **operation_config):
         """Browse next set of unique target nodes.
 
         Browse the next set of unique hierarchically referenced target nodes on
-        the
-        endpoint.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
-        Note that this is the same as the POST method with the model containing
-        the continuation token and the targetNodesOnly flag set to true.
+        the endpoint. The endpoint must be activated and connected and the
+        module client and server must trust each other. Note that this is the
+        same as the POST method with the model containing the continuation
+        token and the targetNodesOnly flag set to true.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
@@ -260,81 +317,19 @@ class AzureOpcTwinClient(object):
         return deserialized
     get_next_set_of_unique_nodes.metadata = {'url': '/v2/browse/{endpointId}/next'}
 
-    def browse_next(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
-        """Browse next set of references.
-
-        Browse next set of references on the endpoint.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
-
-        :param endpoint_id: The identifier of the activated endpoint.
-        :type endpoint_id: str
-        :param request: The request body with continuation token.
-        :type request: ~azure-iiot-opc-twin.models.BrowseNextRequestApiModel
-        :param dict custom_headers: headers that will be added to the request
-        :param bool raw: returns the direct response alongside the
-         deserialized response
-        :param operation_config: :ref:`Operation configuration
-         overrides<msrest:optionsforoperations>`.
-        :return: BrowseNextResponseApiModel or ClientRawResponse if raw=true
-        :rtype: ~azure-iiot-opc-twin.models.BrowseNextResponseApiModel or
-         ~msrest.pipeline.ClientRawResponse
-        :raises:
-         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
-        """
-        # Construct URL
-        url = self.browse_next.metadata['url']
-        path_format_arguments = {
-            'endpointId': self._serialize.url("endpoint_id", endpoint_id, 'str')
-        }
-        url = self._client.format_url(url, **path_format_arguments)
-
-        # Construct parameters
-        query_parameters = {}
-
-        # Construct headers
-        header_parameters = {}
-        header_parameters['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-        if custom_headers:
-            header_parameters.update(custom_headers)
-
-        # Construct body
-        body_content = self._serialize.body(request, 'BrowseNextRequestApiModel')
-
-        # Construct and send request
-        request = self._client.post(url, query_parameters)
-        response = self._client.send(
-            request, header_parameters, body_content, stream=False, **operation_config)
-
-        if response.status_code not in [200]:
-            raise HttpOperationError(self._deserialize, response)
-
-        deserialized = None
-
-        if response.status_code == 200:
-            deserialized = self._deserialize('BrowseNextResponseApiModel', response)
-
-        if raw:
-            client_raw_response = ClientRawResponse(deserialized, response)
-            return client_raw_response
-
-        return deserialized
-    browse_next.metadata = {'url': '/v2/browse/{endpointId}/next'}
-
     def browse_using_path(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Browse using a browse path.
 
-        Browse using a path from the specified node id.
-        This call uses TranslateBrowsePathsToNodeIds service under the hood.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Browse using a path from the specified node id. This call uses
+        TranslateBrowsePathsToNodeIds service under the hood. The endpoint must
+        be activated and connected and the module client and server must trust
+        each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The browse path request
-        :type request: ~azure-iiot-opc-twin.models.BrowsePathRequestApiModel
+        :param body: The browse path request
+        :type body: ~azure-iiot-opc-twin.models.BrowsePathRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
@@ -363,7 +358,7 @@ class AzureOpcTwinClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'BrowsePathRequestApiModel')
+        body_content = self._serialize.body(body, 'BrowsePathRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -386,19 +381,17 @@ class AzureOpcTwinClient(object):
     browse_using_path.metadata = {'url': '/v2/browse/{endpointId}/path'}
 
     def get_call_metadata(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Get method meta data.
 
         Return method meta data to support a user interface displaying forms to
-        input and output arguments.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        input and output arguments. The endpoint must be activated and
+        connected and the module client and server must trust each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The method metadata request
-        :type request:
-         ~azure-iiot-opc-twin.models.MethodMetadataRequestApiModel
+        :param body: The method metadata request
+        :type body: ~azure-iiot-opc-twin.models.MethodMetadataRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
@@ -428,7 +421,7 @@ class AzureOpcTwinClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'MethodMetadataRequestApiModel')
+        body_content = self._serialize.body(body, 'MethodMetadataRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -451,17 +444,17 @@ class AzureOpcTwinClient(object):
     get_call_metadata.metadata = {'url': '/v2/call/{endpointId}/metadata'}
 
     def call_method(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Call a method.
 
-        Invoke method node with specified input arguments.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Invoke method node with specified input arguments. The endpoint must be
+        activated and connected and the module client and server must trust
+        each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The method call request
-        :type request: ~azure-iiot-opc-twin.models.MethodCallRequestApiModel
+        :param body: The method call request
+        :type body: ~azure-iiot-opc-twin.models.MethodCallRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
@@ -490,7 +483,7 @@ class AzureOpcTwinClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'MethodCallRequestApiModel')
+        body_content = self._serialize.body(body, 'MethodCallRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -512,31 +505,30 @@ class AzureOpcTwinClient(object):
         return deserialized
     call_method.metadata = {'url': '/v2/call/{endpointId}'}
 
-    def start_publishing_values(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
-        """Start publishing node values.
+    def read_value(
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
+        """Read variable value.
 
-        Start publishing variable node values to IoT Hub.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Read a variable node's value. The endpoint must be activated and
+        connected and the module client and server must trust each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The publish request
-        :type request: ~azure-iiot-opc-twin.models.PublishStartRequestApiModel
+        :param body: The read value request
+        :type body: ~azure-iiot-opc-twin.models.ValueReadRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
         :param operation_config: :ref:`Operation configuration
          overrides<msrest:optionsforoperations>`.
-        :return: PublishStartResponseApiModel or ClientRawResponse if raw=true
-        :rtype: ~azure-iiot-opc-twin.models.PublishStartResponseApiModel or
+        :return: ValueReadResponseApiModel or ClientRawResponse if raw=true
+        :rtype: ~azure-iiot-opc-twin.models.ValueReadResponseApiModel or
          ~msrest.pipeline.ClientRawResponse
         :raises:
          :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
         """
         # Construct URL
-        url = self.start_publishing_values.metadata['url']
+        url = self.read_value.metadata['url']
         path_format_arguments = {
             'endpointId': self._serialize.url("endpoint_id", endpoint_id, 'str')
         }
@@ -552,7 +544,7 @@ class AzureOpcTwinClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'PublishStartRequestApiModel')
+        body_content = self._serialize.body(body, 'ValueReadRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -565,208 +557,22 @@ class AzureOpcTwinClient(object):
         deserialized = None
 
         if response.status_code == 200:
-            deserialized = self._deserialize('PublishStartResponseApiModel', response)
+            deserialized = self._deserialize('ValueReadResponseApiModel', response)
 
         if raw:
             client_raw_response = ClientRawResponse(deserialized, response)
             return client_raw_response
 
         return deserialized
-    start_publishing_values.metadata = {'url': '/v2/publish/{endpointId}/start'}
-
-    def stop_publishing_values(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
-        """Stop publishing node values.
-
-        Stop publishing variable node values to IoT Hub.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
-
-        :param endpoint_id: The identifier of the activated endpoint.
-        :type endpoint_id: str
-        :param request: The unpublish request
-        :type request: ~azure-iiot-opc-twin.models.PublishStopRequestApiModel
-        :param dict custom_headers: headers that will be added to the request
-        :param bool raw: returns the direct response alongside the
-         deserialized response
-        :param operation_config: :ref:`Operation configuration
-         overrides<msrest:optionsforoperations>`.
-        :return: PublishStopResponseApiModel or ClientRawResponse if raw=true
-        :rtype: ~azure-iiot-opc-twin.models.PublishStopResponseApiModel or
-         ~msrest.pipeline.ClientRawResponse
-        :raises:
-         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
-        """
-        # Construct URL
-        url = self.stop_publishing_values.metadata['url']
-        path_format_arguments = {
-            'endpointId': self._serialize.url("endpoint_id", endpoint_id, 'str')
-        }
-        url = self._client.format_url(url, **path_format_arguments)
-
-        # Construct parameters
-        query_parameters = {}
-
-        # Construct headers
-        header_parameters = {}
-        header_parameters['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-        if custom_headers:
-            header_parameters.update(custom_headers)
-
-        # Construct body
-        body_content = self._serialize.body(request, 'PublishStopRequestApiModel')
-
-        # Construct and send request
-        request = self._client.post(url, query_parameters)
-        response = self._client.send(
-            request, header_parameters, body_content, stream=False, **operation_config)
-
-        if response.status_code not in [200]:
-            raise HttpOperationError(self._deserialize, response)
-
-        deserialized = None
-
-        if response.status_code == 200:
-            deserialized = self._deserialize('PublishStopResponseApiModel', response)
-
-        if raw:
-            client_raw_response = ClientRawResponse(deserialized, response)
-            return client_raw_response
-
-        return deserialized
-    stop_publishing_values.metadata = {'url': '/v2/publish/{endpointId}/stop'}
-
-    def get_next_list_of_published_nodes(
-            self, endpoint_id, continuation_token, custom_headers=None, raw=False, **operation_config):
-        """Get next set of published nodes.
-
-        Returns next set of currently published node ids for an endpoint.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
-
-        :param endpoint_id: The identifier of the activated endpoint.
-        :type endpoint_id: str
-        :param continuation_token: The continuation token to continue with
-        :type continuation_token: str
-        :param dict custom_headers: headers that will be added to the request
-        :param bool raw: returns the direct response alongside the
-         deserialized response
-        :param operation_config: :ref:`Operation configuration
-         overrides<msrest:optionsforoperations>`.
-        :return: PublishedItemListResponseApiModel or ClientRawResponse if
-         raw=true
-        :rtype: ~azure-iiot-opc-twin.models.PublishedItemListResponseApiModel
-         or ~msrest.pipeline.ClientRawResponse
-        :raises:
-         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
-        """
-        # Construct URL
-        url = self.get_next_list_of_published_nodes.metadata['url']
-        path_format_arguments = {
-            'endpointId': self._serialize.url("endpoint_id", endpoint_id, 'str')
-        }
-        url = self._client.format_url(url, **path_format_arguments)
-
-        # Construct parameters
-        query_parameters = {}
-        query_parameters['continuationToken'] = self._serialize.query("continuation_token", continuation_token, 'str')
-
-        # Construct headers
-        header_parameters = {}
-        header_parameters['Content-Type'] = 'application/json; charset=utf-8'
-        if custom_headers:
-            header_parameters.update(custom_headers)
-
-        # Construct and send request
-        request = self._client.get(url, query_parameters)
-        response = self._client.send(request, header_parameters, stream=False, **operation_config)
-
-        if response.status_code not in [200]:
-            raise HttpOperationError(self._deserialize, response)
-
-        deserialized = None
-
-        if response.status_code == 200:
-            deserialized = self._deserialize('PublishedItemListResponseApiModel', response)
-
-        if raw:
-            client_raw_response = ClientRawResponse(deserialized, response)
-            return client_raw_response
-
-        return deserialized
-    get_next_list_of_published_nodes.metadata = {'url': '/v2/publish/{endpointId}'}
-
-    def get_first_list_of_published_nodes(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
-        """Get currently published nodes.
-
-        Returns currently published node ids for an endpoint.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
-
-        :param endpoint_id: The identifier of the activated endpoint.
-        :type endpoint_id: str
-        :param request: The list request
-        :type request:
-         ~azure-iiot-opc-twin.models.PublishedItemListRequestApiModel
-        :param dict custom_headers: headers that will be added to the request
-        :param bool raw: returns the direct response alongside the
-         deserialized response
-        :param operation_config: :ref:`Operation configuration
-         overrides<msrest:optionsforoperations>`.
-        :return: PublishedItemListResponseApiModel or ClientRawResponse if
-         raw=true
-        :rtype: ~azure-iiot-opc-twin.models.PublishedItemListResponseApiModel
-         or ~msrest.pipeline.ClientRawResponse
-        :raises:
-         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
-        """
-        # Construct URL
-        url = self.get_first_list_of_published_nodes.metadata['url']
-        path_format_arguments = {
-            'endpointId': self._serialize.url("endpoint_id", endpoint_id, 'str')
-        }
-        url = self._client.format_url(url, **path_format_arguments)
-
-        # Construct parameters
-        query_parameters = {}
-
-        # Construct headers
-        header_parameters = {}
-        header_parameters['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-        if custom_headers:
-            header_parameters.update(custom_headers)
-
-        # Construct body
-        body_content = self._serialize.body(request, 'PublishedItemListRequestApiModel')
-
-        # Construct and send request
-        request = self._client.post(url, query_parameters)
-        response = self._client.send(
-            request, header_parameters, body_content, stream=False, **operation_config)
-
-        if response.status_code not in [200]:
-            raise HttpOperationError(self._deserialize, response)
-
-        deserialized = None
-
-        if response.status_code == 200:
-            deserialized = self._deserialize('PublishedItemListResponseApiModel', response)
-
-        if raw:
-            client_raw_response = ClientRawResponse(deserialized, response)
-            return client_raw_response
-
-        return deserialized
-    get_first_list_of_published_nodes.metadata = {'url': '/v2/publish/{endpointId}'}
+    read_value.metadata = {'url': '/v2/read/{endpointId}'}
 
     def get_value(
             self, endpoint_id, node_id, custom_headers=None, raw=False, **operation_config):
         """Get variable value.
 
-        Get a variable node's value using its node id.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Get a variable node's value using its node id. The endpoint must be
+        activated and connected and the module client and server must trust
+        each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
@@ -819,80 +625,17 @@ class AzureOpcTwinClient(object):
         return deserialized
     get_value.metadata = {'url': '/v2/read/{endpointId}'}
 
-    def read_value(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
-        """Read variable value.
-
-        Read a variable node's value.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
-
-        :param endpoint_id: The identifier of the activated endpoint.
-        :type endpoint_id: str
-        :param request: The read value request
-        :type request: ~azure-iiot-opc-twin.models.ValueReadRequestApiModel
-        :param dict custom_headers: headers that will be added to the request
-        :param bool raw: returns the direct response alongside the
-         deserialized response
-        :param operation_config: :ref:`Operation configuration
-         overrides<msrest:optionsforoperations>`.
-        :return: ValueReadResponseApiModel or ClientRawResponse if raw=true
-        :rtype: ~azure-iiot-opc-twin.models.ValueReadResponseApiModel or
-         ~msrest.pipeline.ClientRawResponse
-        :raises:
-         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
-        """
-        # Construct URL
-        url = self.read_value.metadata['url']
-        path_format_arguments = {
-            'endpointId': self._serialize.url("endpoint_id", endpoint_id, 'str')
-        }
-        url = self._client.format_url(url, **path_format_arguments)
-
-        # Construct parameters
-        query_parameters = {}
-
-        # Construct headers
-        header_parameters = {}
-        header_parameters['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-        if custom_headers:
-            header_parameters.update(custom_headers)
-
-        # Construct body
-        body_content = self._serialize.body(request, 'ValueReadRequestApiModel')
-
-        # Construct and send request
-        request = self._client.post(url, query_parameters)
-        response = self._client.send(
-            request, header_parameters, body_content, stream=False, **operation_config)
-
-        if response.status_code not in [200]:
-            raise HttpOperationError(self._deserialize, response)
-
-        deserialized = None
-
-        if response.status_code == 200:
-            deserialized = self._deserialize('ValueReadResponseApiModel', response)
-
-        if raw:
-            client_raw_response = ClientRawResponse(deserialized, response)
-            return client_raw_response
-
-        return deserialized
-    read_value.metadata = {'url': '/v2/read/{endpointId}'}
-
     def read_attributes(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Read node attributes.
 
-        Read attributes of a node.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Read attributes of a node. The endpoint must be activated and connected
+        and the module client and server must trust each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The read request
-        :type request: ~azure-iiot-opc-twin.models.ReadRequestApiModel
+        :param body: The read request
+        :type body: ~azure-iiot-opc-twin.models.ReadRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
@@ -921,7 +664,7 @@ class AzureOpcTwinClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'ReadRequestApiModel')
+        body_content = self._serialize.body(body, 'ReadRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -943,65 +686,17 @@ class AzureOpcTwinClient(object):
         return deserialized
     read_attributes.metadata = {'url': '/v2/read/{endpointId}/attributes'}
 
-    def get_status(
-            self, custom_headers=None, raw=False, **operation_config):
-        """Return the service status in the form of the service status
-        api model.
-
-        :param dict custom_headers: headers that will be added to the request
-        :param bool raw: returns the direct response alongside the
-         deserialized response
-        :param operation_config: :ref:`Operation configuration
-         overrides<msrest:optionsforoperations>`.
-        :return: StatusResponseApiModel or ClientRawResponse if raw=true
-        :rtype: ~azure-iiot-opc-twin.models.StatusResponseApiModel or
-         ~msrest.pipeline.ClientRawResponse
-        :raises:
-         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
-        """
-        # Construct URL
-        url = self.get_status.metadata['url']
-
-        # Construct parameters
-        query_parameters = {}
-
-        # Construct headers
-        header_parameters = {}
-        header_parameters['Content-Type'] = 'application/json; charset=utf-8'
-        if custom_headers:
-            header_parameters.update(custom_headers)
-
-        # Construct and send request
-        request = self._client.get(url, query_parameters)
-        response = self._client.send(request, header_parameters, stream=False, **operation_config)
-
-        if response.status_code not in [200]:
-            raise HttpOperationError(self._deserialize, response)
-
-        deserialized = None
-
-        if response.status_code == 200:
-            deserialized = self._deserialize('StatusResponseApiModel', response)
-
-        if raw:
-            client_raw_response = ClientRawResponse(deserialized, response)
-            return client_raw_response
-
-        return deserialized
-    get_status.metadata = {'url': '/v2/status'}
-
     def write_value(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Write variable value.
 
-        Write variable node's value.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Write variable node's value. The endpoint must be activated and
+        connected and the module client and server must trust each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The write value request
-        :type request: ~azure-iiot-opc-twin.models.ValueWriteRequestApiModel
+        :param body: The write value request
+        :type body: ~azure-iiot-opc-twin.models.ValueWriteRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
@@ -1030,7 +725,7 @@ class AzureOpcTwinClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'ValueWriteRequestApiModel')
+        body_content = self._serialize.body(body, 'ValueWriteRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -1053,17 +748,16 @@ class AzureOpcTwinClient(object):
     write_value.metadata = {'url': '/v2/write/{endpointId}'}
 
     def write_attributes(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Write node attributes.
 
-        Write any attribute of a node.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Write any attribute of a node. The endpoint must be activated and
+        connected and the module client and server must trust each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The batch write request
-        :type request: ~azure-iiot-opc-twin.models.WriteRequestApiModel
+        :param body: The batch write request
+        :type body: ~azure-iiot-opc-twin.models.WriteRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
@@ -1092,7 +786,7 @@ class AzureOpcTwinClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'WriteRequestApiModel')
+        body_content = self._serialize.body(body, 'WriteRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)

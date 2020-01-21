@@ -10,17 +10,17 @@
 module azure.iiot.opc.registry
   module Models
     #
-    # Application with list of endpoints
+    # Application with optional list of endpoints
     #
     class ApplicationRegistrationApiModel
-      # @return [ApplicationInfoApiModel] Application information
+      # @return [ApplicationInfoApiModel]
       attr_accessor :application
 
       # @return [Array<EndpointRegistrationApiModel>] List of endpoint twins
       attr_accessor :endpoints
 
-      # @return [SecurityAssessment] Application security assessment. Possible
-      # values include: 'Unknown', 'Low', 'Medium', 'High'
+      # @return [SecurityAssessment] Possible values include: 'Low', 'Medium',
+      # 'High'
       attr_accessor :security_assessment
 
 

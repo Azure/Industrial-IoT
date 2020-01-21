@@ -26,21 +26,18 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
 
   /**
    * @summary Get Issuer CA Certificate chain.
-   * @param serialNumber the serial number of the
-   * Issuer CA Certificate
+   * @param serialNumber the serial number of the Issuer CA Certificate
    * @param [options] The optional parameters
    * @returns Promise<Models.GetIssuerCertificateChainResponse>
    */
   getIssuerCertificateChain(serialNumber: string, options?: msRest.RequestOptionsBase): Promise<Models.GetIssuerCertificateChainResponse>;
   /**
-   * @param serialNumber the serial number of the
-   * Issuer CA Certificate
+   * @param serialNumber the serial number of the Issuer CA Certificate
    * @param callback The callback
    */
   getIssuerCertificateChain(serialNumber: string, callback: msRest.ServiceCallback<Models.X509CertificateChainApiModel>): void;
   /**
-   * @param serialNumber the serial number of the
-   * Issuer CA Certificate
+   * @param serialNumber the serial number of the Issuer CA Certificate
    * @param options The optional parameters
    * @param callback The callback
    */
@@ -57,21 +54,18 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
 
   /**
    * @summary Get Issuer CA CRL chain.
-   * @param serialNumber the serial number of the Issuer
-   * CA Certificate
+   * @param serialNumber the serial number of the Issuer CA Certificate
    * @param [options] The optional parameters
    * @returns Promise<Models.GetIssuerCrlChainResponse>
    */
   getIssuerCrlChain(serialNumber: string, options?: msRest.RequestOptionsBase): Promise<Models.GetIssuerCrlChainResponse>;
   /**
-   * @param serialNumber the serial number of the Issuer
-   * CA Certificate
+   * @param serialNumber the serial number of the Issuer CA Certificate
    * @param callback The callback
    */
   getIssuerCrlChain(serialNumber: string, callback: msRest.ServiceCallback<Models.X509CrlChainApiModel>): void;
   /**
-   * @param serialNumber the serial number of the Issuer
-   * CA Certificate
+   * @param serialNumber the serial number of the Issuer CA Certificate
    * @param options The optional parameters
    * @param callback The callback
    */
@@ -91,82 +85,81 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
    * Access endpoint.
    * @param serialNumber
    * @param [options] The optional parameters
-   * @returns Promise<msRest.RestResponse>
+   * @returns Promise<Models.GetIssuerCertificateChain1Response>
    */
-  getIssuerCertificateChain1(serialNumber: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  getIssuerCertificateChain1(serialNumber: string, options?: msRest.RequestOptionsBase): Promise<Models.GetIssuerCertificateChain1Response>;
   /**
    * @param serialNumber
    * @param callback The callback
    */
-  getIssuerCertificateChain1(serialNumber: string, callback: msRest.ServiceCallback<void>): void;
+  getIssuerCertificateChain1(serialNumber: string, callback: msRest.ServiceCallback<string>): void;
   /**
    * @param serialNumber
    * @param options The optional parameters
    * @param callback The callback
    */
-  getIssuerCertificateChain1(serialNumber: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
-  getIssuerCertificateChain1(serialNumber: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+  getIssuerCertificateChain1(serialNumber: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<string>): void;
+  getIssuerCertificateChain1(serialNumber: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<string>, callback?: msRest.ServiceCallback<string>): Promise<Models.GetIssuerCertificateChain1Response> {
     return this.sendOperationRequest(
       {
         serialNumber,
         options
       },
       getIssuerCertificateChain1OperationSpec,
-      callback);
+      callback) as Promise<Models.GetIssuerCertificateChain1Response>;
   }
 
   /**
    * @summary Get Issuer CRL in CRL Distribution Endpoint.
    * @param serialNumber
    * @param [options] The optional parameters
-   * @returns Promise<msRest.RestResponse>
+   * @returns Promise<Models.GetIssuerCrlChain1Response>
    */
-  getIssuerCrlChain1(serialNumber: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  getIssuerCrlChain1(serialNumber: string, options?: msRest.RequestOptionsBase): Promise<Models.GetIssuerCrlChain1Response>;
   /**
    * @param serialNumber
    * @param callback The callback
    */
-  getIssuerCrlChain1(serialNumber: string, callback: msRest.ServiceCallback<void>): void;
+  getIssuerCrlChain1(serialNumber: string, callback: msRest.ServiceCallback<string>): void;
   /**
    * @param serialNumber
    * @param options The optional parameters
    * @param callback The callback
    */
-  getIssuerCrlChain1(serialNumber: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
-  getIssuerCrlChain1(serialNumber: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+  getIssuerCrlChain1(serialNumber: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<string>): void;
+  getIssuerCrlChain1(serialNumber: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<string>, callback?: msRest.ServiceCallback<string>): Promise<Models.GetIssuerCrlChain1Response> {
     return this.sendOperationRequest(
       {
         serialNumber,
         options
       },
       getIssuerCrlChain1OperationSpec,
-      callback);
+      callback) as Promise<Models.GetIssuerCrlChain1Response>;
   }
 
   /**
-   * The request is in the 'New' state after this call.
-   * Requires Writer or Manager role.
+   * The request is in the 'New' state after this call. Requires Writer or Manager role.
    * @summary Create a certificate request with a certificate signing request (CSR).
-   * @param signingRequest The signing request parameters
+   * @param body The signing request parameters
    * @param [options] The optional parameters
    * @returns Promise<Models.StartSigningRequestResponse>
    */
-  startSigningRequest(signingRequest: Models.StartSigningRequestApiModel, options?: msRest.RequestOptionsBase): Promise<Models.StartSigningRequestResponse>;
+  startSigningRequest(body: Models.StartSigningRequestApiModel, options?: msRest.RequestOptionsBase): Promise<Models.StartSigningRequestResponse>;
   /**
-   * @param signingRequest The signing request parameters
+   * @param body The signing request parameters
    * @param callback The callback
    */
-  startSigningRequest(signingRequest: Models.StartSigningRequestApiModel, callback: msRest.ServiceCallback<Models.StartSigningRequestResponseApiModel>): void;
+  startSigningRequest(body: Models.StartSigningRequestApiModel, callback: msRest.ServiceCallback<Models.StartSigningRequestResponseApiModel>): void;
   /**
-   * @param signingRequest The signing request parameters
+   * @param body The signing request parameters
    * @param options The optional parameters
    * @param callback The callback
    */
-  startSigningRequest(signingRequest: Models.StartSigningRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.StartSigningRequestResponseApiModel>): void;
-  startSigningRequest(signingRequest: Models.StartSigningRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.StartSigningRequestResponseApiModel>, callback?: msRest.ServiceCallback<Models.StartSigningRequestResponseApiModel>): Promise<Models.StartSigningRequestResponse> {
+  startSigningRequest(body: Models.StartSigningRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.StartSigningRequestResponseApiModel>): void;
+  startSigningRequest(body: Models.StartSigningRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.StartSigningRequestResponseApiModel>, callback?: msRest.ServiceCallback<Models.StartSigningRequestResponseApiModel>): Promise<Models.StartSigningRequestResponse> {
     return this.sendOperationRequest(
       {
-        signingRequest,
+        body,
         options
       },
       startSigningRequestOperationSpec,
@@ -174,10 +167,8 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
   }
 
   /**
-   * Can be called in any state.
-   * After a successful fetch in 'Completed' state, the request is
-   * moved into 'Accepted' state.
-   * Requires Writer role.
+   * Can be called in any state. After a successful fetch in 'Completed' state, the request is moved
+   * into 'Accepted' state. Requires Writer role.
    * @summary Fetch signing request results.
    * @param requestId
    * @param [options] The optional parameters
@@ -206,29 +197,28 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
   }
 
   /**
-   * The request is in the 'New' state after this call.
-   * Requires Writer or Manager role.
+   * The request is in the 'New' state after this call. Requires Writer or Manager role.
    * @summary Create a certificate request with a new key pair.
-   * @param newKeyPairRequest The new key pair request parameters
+   * @param body The new key pair request parameters
    * @param [options] The optional parameters
    * @returns Promise<Models.StartNewKeyPairRequestResponse>
    */
-  startNewKeyPairRequest(newKeyPairRequest: Models.StartNewKeyPairRequestApiModel, options?: msRest.RequestOptionsBase): Promise<Models.StartNewKeyPairRequestResponse>;
+  startNewKeyPairRequest(body: Models.StartNewKeyPairRequestApiModel, options?: msRest.RequestOptionsBase): Promise<Models.StartNewKeyPairRequestResponse>;
   /**
-   * @param newKeyPairRequest The new key pair request parameters
+   * @param body The new key pair request parameters
    * @param callback The callback
    */
-  startNewKeyPairRequest(newKeyPairRequest: Models.StartNewKeyPairRequestApiModel, callback: msRest.ServiceCallback<Models.StartNewKeyPairRequestResponseApiModel>): void;
+  startNewKeyPairRequest(body: Models.StartNewKeyPairRequestApiModel, callback: msRest.ServiceCallback<Models.StartNewKeyPairRequestResponseApiModel>): void;
   /**
-   * @param newKeyPairRequest The new key pair request parameters
+   * @param body The new key pair request parameters
    * @param options The optional parameters
    * @param callback The callback
    */
-  startNewKeyPairRequest(newKeyPairRequest: Models.StartNewKeyPairRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.StartNewKeyPairRequestResponseApiModel>): void;
-  startNewKeyPairRequest(newKeyPairRequest: Models.StartNewKeyPairRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.StartNewKeyPairRequestResponseApiModel>, callback?: msRest.ServiceCallback<Models.StartNewKeyPairRequestResponseApiModel>): Promise<Models.StartNewKeyPairRequestResponse> {
+  startNewKeyPairRequest(body: Models.StartNewKeyPairRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.StartNewKeyPairRequestResponseApiModel>): void;
+  startNewKeyPairRequest(body: Models.StartNewKeyPairRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.StartNewKeyPairRequestResponseApiModel>, callback?: msRest.ServiceCallback<Models.StartNewKeyPairRequestResponseApiModel>): Promise<Models.StartNewKeyPairRequestResponse> {
     return this.sendOperationRequest(
       {
-        newKeyPairRequest,
+        body,
         options
       },
       startNewKeyPairRequestOperationSpec,
@@ -236,11 +226,8 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
   }
 
   /**
-   * Can be called in any state.
-   * Fetches private key in 'Completed' state.
-   * After a successful fetch in 'Completed' state, the request is
-   * moved into 'Accepted' state.
-   * Requires Writer role.
+   * Can be called in any state. Fetches private key in 'Completed' state. After a successful fetch
+   * in 'Completed' state, the request is moved into 'Accepted' state. Requires Writer role.
    * @summary Fetch certificate request result.
    * @param requestId
    * @param [options] The optional parameters
@@ -269,16 +256,11 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
   }
 
   /**
-   * Validates the request with the application database.
-   * - If Approved:
-   * - New Key Pair request: Creates the new key pair
-   * in the requested format, signs the certificate and stores the
-   * private key for later securely in KeyVault.
-   * - Cert Signing Request: Creates and signs the certificate.
-   * Deletes the CSR from the database.
-   * Stores the signed certificate for later use in the Database.
-   * The request is in the 'Approved' or 'Rejected' state after this call.
-   * Requires Approver role.
+   * Validates the request with the application database. - If Approved: - New Key Pair request:
+   * Creates the new key pair in the requested format, signs the certificate and stores the private
+   * key for later securely in KeyVault. - Cert Signing Request: Creates and signs the certificate.
+   * Deletes the CSR from the database. Stores the signed certificate for later use in the Database.
+   * The request is in the 'Approved' or 'Rejected' state after this call. Requires Approver role.
    * Approver needs signing rights in KeyVault.
    * @summary Approve the certificate request.
    * @param requestId The certificate request id
@@ -308,9 +290,8 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
   }
 
   /**
-   * The request is in the 'Rejected' state after this call.
-   * Requires Approver role.
-   * Approver needs signing rights in KeyVault.
+   * The request is in the 'Rejected' state after this call. Requires Approver role. Approver needs
+   * signing rights in KeyVault.
    * @summary Reject the certificate request.
    * @param requestId The certificate request id
    * @param [options] The optional parameters
@@ -339,8 +320,7 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
   }
 
   /**
-   * The request is in the 'Accepted' state after this call.
-   * Requires Writer role.
+   * The request is in the 'Accepted' state after this call. Requires Writer role.
    * @summary Cancel request
    * @param requestId The certificate request id
    * @param [options] The optional parameters
@@ -365,6 +345,36 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
         options
       },
       acceptRequestOperationSpec,
+      callback);
+  }
+
+  /**
+   * By purging the request it is actually physically deleted from the database, including the public
+   * key and other information. Requires Manager role.
+   * @summary Delete request. Physically delete the request.
+   * @param requestId The certificate request id
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  deleteRequest(requestId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param requestId The certificate request id
+   * @param callback The callback
+   */
+  deleteRequest(requestId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param requestId The certificate request id
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  deleteRequest(requestId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  deleteRequest(requestId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        requestId,
+        options
+      },
+      deleteRequestOperationSpec,
       callback);
   }
 
@@ -397,40 +407,8 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
   }
 
   /**
-   * By purging the request it is actually physically deleted from the
-   * database, including the public key and other information.
-   * Requires Manager role.
-   * @summary Delete request. Physically delete the request.
-   * @param requestId The certificate request id
-   * @param [options] The optional parameters
-   * @returns Promise<msRest.RestResponse>
-   */
-  deleteRequest(requestId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
-  /**
-   * @param requestId The certificate request id
-   * @param callback The callback
-   */
-  deleteRequest(requestId: string, callback: msRest.ServiceCallback<void>): void;
-  /**
-   * @param requestId The certificate request id
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  deleteRequest(requestId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
-  deleteRequest(requestId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
-    return this.sendOperationRequest(
-      {
-        requestId,
-        options
-      },
-      deleteRequestOperationSpec,
-      callback);
-  }
-
-  /**
-   * Get all certificate requests in paged form.
-   * The returned model can contain a link to the next page if more results are
-   * available.  Use ListRequests to continue.
+   * Get all certificate requests in paged form. The returned model can contain a link to the next
+   * page if more results are available. Use ListRequests to continue.
    * @summary Query for certificate requests.
    * @param [options] The optional parameters
    * @returns Promise<Models.QueryRequestsResponse>
@@ -455,10 +433,8 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
   }
 
   /**
-   * Get all certificate requests in paged form or continue a current listing or
-   * query.
-   * The returned model can contain a link to the next page if more results are
-   * available.
+   * Get all certificate requests in paged form or continue a current listing or query. The returned
+   * model can contain a link to the next page if more results are available.
    * @summary Lists certificate requests.
    * @param [options] The optional parameters
    * @returns Promise<Models.ListRequestsResponse>
@@ -483,35 +459,9 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
   }
 
   /**
-   * @summary Return the service status in the form of the service status
-   * api model.
-   * @param [options] The optional parameters
-   * @returns Promise<Models.GetStatusResponse>
-   */
-  getStatus(options?: msRest.RequestOptionsBase): Promise<Models.GetStatusResponse>;
-  /**
-   * @param callback The callback
-   */
-  getStatus(callback: msRest.ServiceCallback<Models.StatusResponseApiModel>): void;
-  /**
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  getStatus(options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.StatusResponseApiModel>): void;
-  getStatus(options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.StatusResponseApiModel>, callback?: msRest.ServiceCallback<Models.StatusResponseApiModel>): Promise<Models.GetStatusResponse> {
-    return this.sendOperationRequest(
-      {
-        options
-      },
-      getStatusOperationSpec,
-      callback) as Promise<Models.GetStatusResponse>;
-  }
-
-  /**
-   * A trust group has a root certificate which issues certificates
-   * to entities.  Entities can be part of a trust group and thus
-   * trust the root certificate and all entities that the root has
-   * issued certificates for.
+   * A trust group has a root certificate which issues certificates to entities. Entities can be part
+   * of a trust group and thus trust the root certificate and all entities that the root has issued
+   * certificates for.
    * @summary Get information about all groups.
    * @param [options] The optional parameters
    * @returns Promise<Models.ListGroupsResponse>
@@ -538,26 +488,26 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
   /**
    * Requires manager role.
    * @summary Create new sub-group of an existing group.
-   * @param request The create request
+   * @param body The create request
    * @param [options] The optional parameters
    * @returns Promise<Models.CreateGroupResponse>
    */
-  createGroup(request: Models.TrustGroupRegistrationRequestApiModel, options?: msRest.RequestOptionsBase): Promise<Models.CreateGroupResponse>;
+  createGroup(body: Models.TrustGroupRegistrationRequestApiModel, options?: msRest.RequestOptionsBase): Promise<Models.CreateGroupResponse>;
   /**
-   * @param request The create request
+   * @param body The create request
    * @param callback The callback
    */
-  createGroup(request: Models.TrustGroupRegistrationRequestApiModel, callback: msRest.ServiceCallback<Models.TrustGroupRegistrationResponseApiModel>): void;
+  createGroup(body: Models.TrustGroupRegistrationRequestApiModel, callback: msRest.ServiceCallback<Models.TrustGroupRegistrationResponseApiModel>): void;
   /**
-   * @param request The create request
+   * @param body The create request
    * @param options The optional parameters
    * @param callback The callback
    */
-  createGroup(request: Models.TrustGroupRegistrationRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.TrustGroupRegistrationResponseApiModel>): void;
-  createGroup(request: Models.TrustGroupRegistrationRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.TrustGroupRegistrationResponseApiModel>, callback?: msRest.ServiceCallback<Models.TrustGroupRegistrationResponseApiModel>): Promise<Models.CreateGroupResponse> {
+  createGroup(body: Models.TrustGroupRegistrationRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.TrustGroupRegistrationResponseApiModel>): void;
+  createGroup(body: Models.TrustGroupRegistrationRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.TrustGroupRegistrationResponseApiModel>, callback?: msRest.ServiceCallback<Models.TrustGroupRegistrationResponseApiModel>): Promise<Models.CreateGroupResponse> {
     return this.sendOperationRequest(
       {
-        request,
+        body,
         options
       },
       createGroupOperationSpec,
@@ -565,10 +515,9 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
   }
 
   /**
-   * A trust group has a root certificate which issues certificates
-   * to entities.  Entities can be part of a trust group and thus
-   * trust the root certificate and all entities that the root has
-   * issued certificates for.
+   * A trust group has a root certificate which issues certificates to entities. Entities can be part
+   * of a trust group and thus trust the root certificate and all entities that the root has issued
+   * certificates for.
    * @summary Get group information.
    * @param groupId The group id
    * @param [options] The optional parameters
@@ -597,34 +546,33 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
   }
 
   /**
-   * Use this function with care and only if you are aware of
-   * the security implications.
-   * Requires manager role.
+   * Use this function with care and only if you are aware of the security implications. Requires
+   * manager role.
    * @summary Update group registration.
    * @param groupId The group id
-   * @param request The group configuration
+   * @param body The group configuration
    * @param [options] The optional parameters
    * @returns Promise<msRest.RestResponse>
    */
-  updateGroup(groupId: string, request: Models.TrustGroupUpdateRequestApiModel, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  updateGroup(groupId: string, body: Models.TrustGroupUpdateRequestApiModel, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
   /**
    * @param groupId The group id
-   * @param request The group configuration
+   * @param body The group configuration
    * @param callback The callback
    */
-  updateGroup(groupId: string, request: Models.TrustGroupUpdateRequestApiModel, callback: msRest.ServiceCallback<void>): void;
+  updateGroup(groupId: string, body: Models.TrustGroupUpdateRequestApiModel, callback: msRest.ServiceCallback<void>): void;
   /**
    * @param groupId The group id
-   * @param request The group configuration
+   * @param body The group configuration
    * @param options The optional parameters
    * @param callback The callback
    */
-  updateGroup(groupId: string, request: Models.TrustGroupUpdateRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
-  updateGroup(groupId: string, request: Models.TrustGroupUpdateRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+  updateGroup(groupId: string, body: Models.TrustGroupUpdateRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  updateGroup(groupId: string, body: Models.TrustGroupUpdateRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
     return this.sendOperationRequest(
       {
         groupId,
-        request,
+        body,
         options
       },
       updateGroupOperationSpec,
@@ -632,9 +580,8 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
   }
 
   /**
-   * After this operation the Issuer CA, CRLs and keys become inaccessible.
-   * Use this function with extreme caution.
-   * Requires manager role.
+   * After this operation the Issuer CA, CRLs and keys become inaccessible. Use this function with
+   * extreme caution. Requires manager role.
    * @summary Delete a group.
    * @param groupId The group id
    * @param [options] The optional parameters
@@ -665,26 +612,26 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
   /**
    * Requires manager role.
    * @summary Create new root group.
-   * @param request The create request
+   * @param body The create request
    * @param [options] The optional parameters
    * @returns Promise<Models.CreateRootResponse>
    */
-  createRoot(request: Models.TrustGroupRootCreateRequestApiModel, options?: msRest.RequestOptionsBase): Promise<Models.CreateRootResponse>;
+  createRoot(body: Models.TrustGroupRootCreateRequestApiModel, options?: msRest.RequestOptionsBase): Promise<Models.CreateRootResponse>;
   /**
-   * @param request The create request
+   * @param body The create request
    * @param callback The callback
    */
-  createRoot(request: Models.TrustGroupRootCreateRequestApiModel, callback: msRest.ServiceCallback<Models.TrustGroupRegistrationResponseApiModel>): void;
+  createRoot(body: Models.TrustGroupRootCreateRequestApiModel, callback: msRest.ServiceCallback<Models.TrustGroupRegistrationResponseApiModel>): void;
   /**
-   * @param request The create request
+   * @param body The create request
    * @param options The optional parameters
    * @param callback The callback
    */
-  createRoot(request: Models.TrustGroupRootCreateRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.TrustGroupRegistrationResponseApiModel>): void;
-  createRoot(request: Models.TrustGroupRootCreateRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.TrustGroupRegistrationResponseApiModel>, callback?: msRest.ServiceCallback<Models.TrustGroupRegistrationResponseApiModel>): Promise<Models.CreateRootResponse> {
+  createRoot(body: Models.TrustGroupRootCreateRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.TrustGroupRegistrationResponseApiModel>): void;
+  createRoot(body: Models.TrustGroupRootCreateRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.TrustGroupRegistrationResponseApiModel>, callback?: msRest.ServiceCallback<Models.TrustGroupRegistrationResponseApiModel>): Promise<Models.CreateRootResponse> {
     return this.sendOperationRequest(
       {
-        request,
+        body,
         options
       },
       createRootOperationSpec,
@@ -720,8 +667,8 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
   }
 
   /**
-   * Define trust between two entities.  The entities are identifiers
-   * of application, groups, or endpoints.
+   * Define trust between two entities. The entities are identifiers of application, groups, or
+   * endpoints.
    * @summary Add trust relationship
    * @param entityId The entity identifier, e.g. group, etc.
    * @param trustedEntityId The trusted entity identifier
@@ -754,8 +701,7 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
   }
 
   /**
-   * Returns all certificates the entity should trust based on the
-   * applied trust configuration.
+   * Returns all certificates the entity should trust based on the applied trust configuration.
    * @summary List trusted certificates
    * @param entityId
    * @param [options] The optional parameters
@@ -784,8 +730,8 @@ class AzureOpcVaultClient extends AzureOpcVaultClientContext {
   }
 
   /**
-   * Removes trust between two entities.  The entities are identifiers
-   * of application, groups, or endpoints.
+   * Removes trust between two entities. The entities are identifiers of application, groups, or
+   * endpoints.
    * @summary Remove a trust relationship
    * @param entityId The entity identifier, e.g. group, etc.
    * @param untrustedEntityId The trusted entity identifier
@@ -857,7 +803,14 @@ const getIssuerCertificateChain1OperationSpec: msRest.OperationSpec = {
     Parameters.serialNumber
   ],
   responses: {
-    200: {},
+    200: {
+      bodyMapper: {
+        serializedName: "parsedResponse",
+        type: {
+          name: "String"
+        }
+      }
+    },
     default: {}
   },
   serializer
@@ -870,7 +823,14 @@ const getIssuerCrlChain1OperationSpec: msRest.OperationSpec = {
     Parameters.serialNumber
   ],
   responses: {
-    200: {},
+    200: {
+      bodyMapper: {
+        serializedName: "parsedResponse",
+        type: {
+          name: "String"
+        }
+      }
+    },
     default: {}
   },
   serializer
@@ -880,7 +840,7 @@ const startSigningRequestOperationSpec: msRest.OperationSpec = {
   httpMethod: "PUT",
   path: "v2/requests/sign",
   requestBody: {
-    parameterPath: "signingRequest",
+    parameterPath: "body",
     mapper: {
       ...Mappers.StartSigningRequestApiModel,
       required: true
@@ -915,7 +875,7 @@ const startNewKeyPairRequestOperationSpec: msRest.OperationSpec = {
   httpMethod: "PUT",
   path: "v2/requests/keypair",
   requestBody: {
-    parameterPath: "newKeyPairRequest",
+    parameterPath: "body",
     mapper: {
       ...Mappers.StartNewKeyPairRequestApiModel,
       required: true
@@ -985,6 +945,19 @@ const acceptRequestOperationSpec: msRest.OperationSpec = {
   serializer
 };
 
+const deleteRequestOperationSpec: msRest.OperationSpec = {
+  httpMethod: "DELETE",
+  path: "v2/requests/{requestId}",
+  urlParameters: [
+    Parameters.requestId
+  ],
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
 const getRequestOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
   path: "v2/requests/{requestId}",
@@ -1000,19 +973,6 @@ const getRequestOperationSpec: msRest.OperationSpec = {
   serializer
 };
 
-const deleteRequestOperationSpec: msRest.OperationSpec = {
-  httpMethod: "DELETE",
-  path: "v2/requests/{requestId}",
-  urlParameters: [
-    Parameters.requestId
-  ],
-  responses: {
-    200: {},
-    default: {}
-  },
-  serializer
-};
-
 const queryRequestsOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
   path: "v2/requests/query",
@@ -1022,7 +982,7 @@ const queryRequestsOperationSpec: msRest.OperationSpec = {
   requestBody: {
     parameterPath: [
       "options",
-      "query"
+      "body"
     ],
     mapper: Mappers.CertificateRequestQueryRequestApiModel
   },
@@ -1052,18 +1012,6 @@ const listRequestsOperationSpec: msRest.OperationSpec = {
   serializer
 };
 
-const getStatusOperationSpec: msRest.OperationSpec = {
-  httpMethod: "GET",
-  path: "v2/status",
-  responses: {
-    200: {
-      bodyMapper: Mappers.StatusResponseApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
 const listGroupsOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
   path: "v2/groups",
@@ -1084,7 +1032,7 @@ const createGroupOperationSpec: msRest.OperationSpec = {
   httpMethod: "PUT",
   path: "v2/groups",
   requestBody: {
-    parameterPath: "request",
+    parameterPath: "body",
     mapper: {
       ...Mappers.TrustGroupRegistrationRequestApiModel,
       required: true
@@ -1122,7 +1070,7 @@ const updateGroupOperationSpec: msRest.OperationSpec = {
     Parameters.groupId
   ],
   requestBody: {
-    parameterPath: "request",
+    parameterPath: "body",
     mapper: {
       ...Mappers.TrustGroupUpdateRequestApiModel,
       required: true
@@ -1153,7 +1101,7 @@ const createRootOperationSpec: msRest.OperationSpec = {
   httpMethod: "PUT",
   path: "v2/groups/root",
   requestBody: {
-    parameterPath: "request",
+    parameterPath: "body",
     mapper: {
       ...Mappers.TrustGroupRootCreateRequestApiModel,
       required: true

@@ -10,7 +10,7 @@
 module azure.iiot.opc.registry
   module Models
     #
-    # Discovery configuration
+    # Discovery configuration api model
     #
     class DiscoveryConfigApiModel
       # @return [String] Address ranges to scan (null == all wired nics)
@@ -43,12 +43,7 @@ module azure.iiot.opc.registry
       # @return [Array<String>] List of locales to filter with during discovery
       attr_accessor :locales
 
-      # @return [Array<CallbackApiModel>] Callbacks to invoke once onboarding
-      # finishes
-      attr_accessor :callbacks
-
-      # @return [EndpointActivationFilterApiModel] Activate all twins with this
-      # filter during onboarding.
+      # @return [EndpointActivationFilterApiModel]
       attr_accessor :activation_filter
 
 
@@ -157,23 +152,6 @@ module azure.iiot.opc.registry
                       serialized_name: 'StringElementType',
                       type: {
                         name: 'String'
-                      }
-                  }
-                }
-              },
-              callbacks: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'callbacks',
-                type: {
-                  name: 'Sequence',
-                  element: {
-                      client_side_validation: true,
-                      required: false,
-                      serialized_name: 'CallbackApiModelElementType',
-                      type: {
-                        name: 'Composite',
-                        class_name: 'CallbackApiModel'
                       }
                   }
                 }

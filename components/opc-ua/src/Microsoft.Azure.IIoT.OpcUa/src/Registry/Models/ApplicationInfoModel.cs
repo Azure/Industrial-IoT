@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System;
     using System.Collections.Generic;
 
@@ -83,9 +84,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Supervisor that registered the application
+        /// Discoverer that registered the application
         /// </summary>
-        public string SupervisorId { get; set; }
+        public string DiscovererId { get; set; }
 
         /// <summary>
         /// Last time application was seen

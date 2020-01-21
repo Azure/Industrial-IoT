@@ -19,8 +19,8 @@ namespace Microsoft.Azure.IIoT.Crypto {
         /// the repository.
         /// </summary>
         /// <param name="certificateName"></param>
-        /// <param name="id"></param>
         /// <param name="certificate"></param>
+        /// <param name="id"></param>
         /// <param name="ct"></param>
         /// <returns>Id of the certificate</returns>
         Task AddCertificateAsync(string certificateName,

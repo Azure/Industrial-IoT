@@ -6,6 +6,8 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
     using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Endpoint registration model
@@ -16,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// Registered identifier of the endpoint
         /// </summary>
         [JsonProperty(PropertyName = "id")]
+        [Required]
         public string Id { get; set; }
 
         /// <summary>
@@ -30,12 +33,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "siteId",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string SiteId { get; set; }
+
+        /// <summary>
+        /// Supervisor that manages the endpoint.
+        /// </summary>
+        [JsonProperty(PropertyName = "supervisorId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public string SupervisorId { get; set; }
+
+        /// <summary>
+        /// Discoverer that registered the endpoint
+        /// </summary>
+        [JsonProperty(PropertyName = "discovererId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public string DiscovererId { get; set; }
 
         /// <summary>
         /// Endpoint information of the registration
         /// </summary>
         [JsonProperty(PropertyName = "endpoint")]
+        [Required]
         public EndpointApiModel Endpoint { get; set; }
 
         /// <summary>
@@ -43,10 +64,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "securityLevel",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public int? SecurityLevel { get; set; }
 
         /// <summary>
-        /// Supported authentication methods for the endpoint.
+        /// Supported authentication methods that can be selected to
+        /// obtain a credential and used to interact with the endpoint.
         /// </summary>
         [JsonProperty(PropertyName = "authenticationMethods",
             NullValueHandling = NullValueHandling.Ignore)]

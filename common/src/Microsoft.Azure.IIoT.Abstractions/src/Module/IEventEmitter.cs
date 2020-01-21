@@ -20,14 +20,14 @@ namespace Microsoft.Azure.IIoT.Module {
         /// <param name="propertyId">property id</param>
         /// <param name="value">property value</param>
         /// <returns></returns>
-        Task SendAsync(string propertyId, dynamic value);
+        Task ReportAsync(string propertyId, dynamic value);
 
         /// <summary>
         /// Send property changed notifications
         /// </summary>
         /// <param name="properties">property id</param>
         /// <returns></returns>
-        Task SendAsync(IEnumerable<KeyValuePair<string,
+        Task ReportAsync(IEnumerable<KeyValuePair<string,
             dynamic>> properties);
     }
 }

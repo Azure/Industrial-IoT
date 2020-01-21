@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Auth.Clients {
 
     /// <summary>
-    /// Configuration for AAD auth
+    /// Configuration for AAD application registration
     /// </summary>
     public interface IClientConfig {
 
@@ -27,17 +27,16 @@ namespace Microsoft.Azure.IIoT.Auth.Clients {
         string TenantId { get; }
 
         /// <summary>
+        /// The AAD tenant domain name
+        /// </summary>
+        string Domain { get; }
+
+        /// <summary>
         /// Instance url (This is optional as it
         /// defaults to Azure global cloud, i.e.
         /// https://login.microsoftonline.com/, but can
         /// be set to another azure cloud as well.)
         /// </summary>
         string InstanceUrl { get; }
-
-        /// <summary>
-        /// Audience is the resource for which the
-        /// client requests a token.
-        /// </summary>
-        string Audience { get; }
     }
 }

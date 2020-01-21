@@ -34,14 +34,11 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// <param name="requestId">Request id</param>
         /// <param name="entityId">Application id</param>
         /// <param name="groupId">Trust group</param>
-        /// <param name="state">Request state. Possible values include: 'New',
-        /// 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'</param>
-        /// <param name="type">Request type. Possible values include:
-        /// 'SigningRequest', 'KeyPairRequest'</param>
+        /// <param name="state">Possible values include: 'New', 'Approved',
+        /// 'Rejected', 'Failure', 'Completed', 'Accepted'</param>
+        /// <param name="type">Possible values include: 'SigningRequest',
+        /// 'KeyPairRequest'</param>
         /// <param name="errorInfo">Error diagnostics</param>
-        /// <param name="submitted">Request time</param>
-        /// <param name="approved">Approved or rejected</param>
-        /// <param name="accepted">Finished</param>
         public CertificateRequestRecordApiModel(string requestId = default(string), string entityId = default(string), string groupId = default(string), CertificateRequestState? state = default(CertificateRequestState?), CertificateRequestType? type = default(CertificateRequestType?), object errorInfo = default(object), VaultOperationContextApiModel submitted = default(VaultOperationContextApiModel), VaultOperationContextApiModel approved = default(VaultOperationContextApiModel), VaultOperationContextApiModel accepted = default(VaultOperationContextApiModel))
         {
             RequestId = requestId;
@@ -80,15 +77,15 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         public string GroupId { get; set; }
 
         /// <summary>
-        /// Gets or sets request state. Possible values include: 'New',
-        /// 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'
+        /// Gets or sets possible values include: 'New', 'Approved',
+        /// 'Rejected', 'Failure', 'Completed', 'Accepted'
         /// </summary>
         [JsonProperty(PropertyName = "state")]
         public CertificateRequestState? State { get; set; }
 
         /// <summary>
-        /// Gets or sets request type. Possible values include:
-        /// 'SigningRequest', 'KeyPairRequest'
+        /// Gets or sets possible values include: 'SigningRequest',
+        /// 'KeyPairRequest'
         /// </summary>
         [JsonProperty(PropertyName = "type")]
         public CertificateRequestType? Type { get; set; }
@@ -100,43 +97,19 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         public object ErrorInfo { get; set; }
 
         /// <summary>
-        /// Gets or sets request time
         /// </summary>
         [JsonProperty(PropertyName = "submitted")]
         public VaultOperationContextApiModel Submitted { get; set; }
 
         /// <summary>
-        /// Gets or sets approved or rejected
         /// </summary>
         [JsonProperty(PropertyName = "approved")]
         public VaultOperationContextApiModel Approved { get; set; }
 
         /// <summary>
-        /// Gets or sets finished
         /// </summary>
         [JsonProperty(PropertyName = "accepted")]
         public VaultOperationContextApiModel Accepted { get; set; }
 
-        /// <summary>
-        /// Validate the object.
-        /// </summary>
-        /// <exception cref="Rest.ValidationException">
-        /// Thrown if validation fails
-        /// </exception>
-        public virtual void Validate()
-        {
-            if (Submitted != null)
-            {
-                Submitted.Validate();
-            }
-            if (Approved != null)
-            {
-                Approved.Validate();
-            }
-            if (Accepted != null)
-            {
-                Accepted.Validate();
-            }
-        }
     }
 }

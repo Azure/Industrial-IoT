@@ -10,7 +10,6 @@ package azureiiotopcvault
 
 import (
     "context"
-    "encoding/json"
     "github.com/Azure/go-autorest/autorest"
     "github.com/Azure/go-autorest/autorest/date"
     "github.com/Azure/go-autorest/autorest/to"
@@ -118,7 +117,7 @@ const fqdn = "go/azure-iiot-opc-vault"
             type CertificateRequestQueryRequestAPIModel struct {
             // EntityID - The entity id to filter with
             EntityID *string `json:"entityId,omitempty"`
-            // State - The certificate request state. Possible values include: 'CertificateRequestStateNew', 'CertificateRequestStateApproved', 'CertificateRequestStateRejected', 'CertificateRequestStateFailure', 'CertificateRequestStateCompleted', 'CertificateRequestStateAccepted'
+            // State - Possible values include: 'CertificateRequestStateNew', 'CertificateRequestStateApproved', 'CertificateRequestStateRejected', 'CertificateRequestStateFailure', 'CertificateRequestStateCompleted', 'CertificateRequestStateAccepted'
             State CertificateRequestState `json:"state,omitempty"`
             }
 
@@ -272,43 +271,41 @@ const fqdn = "go/azure-iiot-opc-vault"
             EntityID *string `json:"entityId,omitempty"`
             // GroupID - Trust group
             GroupID *string `json:"groupId,omitempty"`
-            // State - Request state. Possible values include: 'CertificateRequestStateNew', 'CertificateRequestStateApproved', 'CertificateRequestStateRejected', 'CertificateRequestStateFailure', 'CertificateRequestStateCompleted', 'CertificateRequestStateAccepted'
+            // State - Possible values include: 'CertificateRequestStateNew', 'CertificateRequestStateApproved', 'CertificateRequestStateRejected', 'CertificateRequestStateFailure', 'CertificateRequestStateCompleted', 'CertificateRequestStateAccepted'
             State CertificateRequestState `json:"state,omitempty"`
-            // Type - Request type. Possible values include: 'SigningRequest', 'KeyPairRequest'
+            // Type - Possible values include: 'SigningRequest', 'KeyPairRequest'
             Type CertificateRequestType `json:"type,omitempty"`
             // ErrorInfo - Error diagnostics
             ErrorInfo interface{} `json:"errorInfo,omitempty"`
-            // Submitted - Request time
             Submitted *VaultOperationContextAPIModel `json:"submitted,omitempty"`
-            // Approved - Approved or rejected
             Approved *VaultOperationContextAPIModel `json:"approved,omitempty"`
-            // Accepted - Finished
             Accepted *VaultOperationContextAPIModel `json:"accepted,omitempty"`
             }
 
             // FinishNewKeyPairRequestResponseAPIModel finish request results
             type FinishNewKeyPairRequestResponseAPIModel struct {
             autorest.Response `json:"-"`
-            // Request - Request
             Request *CertificateRequestRecordAPIModel `json:"request,omitempty"`
-            // Certificate - Signed certificate
             Certificate *X509CertificateAPIModel `json:"certificate,omitempty"`
-            // PrivateKey - Private key
             PrivateKey *PrivateKeyAPIModel `json:"privateKey,omitempty"`
             }
 
             // FinishSigningRequestResponseAPIModel finish request results
             type FinishSigningRequestResponseAPIModel struct {
             autorest.Response `json:"-"`
-            // Request - Request
             Request *CertificateRequestRecordAPIModel `json:"request,omitempty"`
-            // Certificate - Signed certificate
             Certificate *X509CertificateAPIModel `json:"certificate,omitempty"`
+            }
+
+            // NotFoundResult ...
+            type NotFoundResult struct {
+            // StatusCode - READ-ONLY
+            StatusCode *int32 `json:"statusCode,omitempty"`
             }
 
             // PrivateKeyAPIModel private key
             type PrivateKeyAPIModel struct {
-            // Kty - Key type. Possible values include: 'RSA', 'ECC', 'AES'
+            // Kty - Possible values include: 'RSA', 'ECC', 'AES'
             Kty PrivateKeyType `json:"kty,omitempty"`
             // N - RSA modulus.
             N *[]byte `json:"n,omitempty"`
@@ -322,9 +319,8 @@ const fqdn = "go/azure-iiot-opc-vault"
             Qi *[]byte `json:"qi,omitempty"`
             // P - RSA secret prime
             P *[]byte `json:"p,omitempty"`
-            // Q - RSA secret prime, with p &lt; q
+            // Q - RSA secret prime, with p < q
             Q *[]byte `json:"q,omitempty"`
-            // Crv - The curve for ECC algorithms
             Crv *string `json:"crv,omitempty"`
             // X - X coordinate for the Elliptic Curve point.
             X *[]byte `json:"x,omitempty"`
@@ -334,7 +330,6 @@ const fqdn = "go/azure-iiot-opc-vault"
             D *[]byte `json:"d,omitempty"`
             // K - Symmetric key
             K *[]byte `json:"k,omitempty"`
-            // KeyHsm - HSM Token, used with "Bring Your Own Key"
             KeyHsm *[]byte `json:"key_hsm,omitempty"`
             }
 
@@ -344,7 +339,7 @@ const fqdn = "go/azure-iiot-opc-vault"
             EntityID *string `json:"entityId,omitempty"`
             // GroupID - Certificate group
             GroupID *string `json:"groupId,omitempty"`
-            // CertificateType - Type. Possible values include: 'ApplicationInstanceCertificate', 'HTTPSCertificate', 'UserCredentialCertificate'
+            // CertificateType - Possible values include: 'ApplicationInstanceCertificate', 'HTTPSCertificate', 'UserCredentialCertificate'
             CertificateType TrustGroupType `json:"certificateType,omitempty"`
             // SubjectName - Subject name
             SubjectName *string `json:"subjectName,omitempty"`
@@ -376,42 +371,11 @@ const fqdn = "go/azure-iiot-opc-vault"
             RequestID *string `json:"requestId,omitempty"`
             }
 
-            // StatusResponseAPIModel status model
-            type StatusResponseAPIModel struct {
+            // String ...
+            type String struct {
             autorest.Response `json:"-"`
-            // Name - Name of this service
-            Name *string `json:"name,omitempty"`
-            // Status - Operational status
-            Status *string `json:"status,omitempty"`
-            // CurrentTime - READ-ONLY; Current time
-            CurrentTime *string `json:"currentTime,omitempty"`
-            // StartTime - READ-ONLY; Start time of service
-            StartTime *string `json:"startTime,omitempty"`
-            // UpTime - READ-ONLY; Up time of service
-            UpTime *int64 `json:"upTime,omitempty"`
-            // UID - READ-ONLY; Value generated at bootstrap by each instance of the service and
-            // used to correlate logs coming from the same instance. The value
-            // changes every time the service starts.
-            UID *string `json:"uid,omitempty"`
-            // Properties - READ-ONLY; A property bag with details about the service
-            Properties map[string]*string `json:"properties"`
-            // Dependencies - READ-ONLY; A property bag with details about the internal dependencies
-            Dependencies map[string]*string `json:"dependencies"`
-            // Metadata - READ-ONLY; Optional meta data.
-            Metadata map[string]*string `json:"$metadata"`
+            Value *string `json:"value,omitempty"`
             }
-
-        // MarshalJSON is the custom marshaler for StatusResponseAPIModel.
-        func (sram StatusResponseAPIModel)MarshalJSON() ([]byte, error){
-        objectMap := make(map[string]interface{})
-                if(sram.Name != nil) {
-                objectMap["name"] = sram.Name
-                }
-                if(sram.Status != nil) {
-                objectMap["status"] = sram.Status
-                }
-                return json.Marshal(objectMap)
-        }
 
             // TrustGroupAPIModel trust group model
             type TrustGroupAPIModel struct {
@@ -419,7 +383,7 @@ const fqdn = "go/azure-iiot-opc-vault"
             Name *string `json:"name,omitempty"`
             // ParentID - The identifer of the parent trust group.
             ParentID *string `json:"parentId,omitempty"`
-            // Type - The trust group type. Possible values include: 'ApplicationInstanceCertificate', 'HTTPSCertificate', 'UserCredentialCertificate'
+            // Type - Possible values include: 'ApplicationInstanceCertificate', 'HTTPSCertificate', 'UserCredentialCertificate'
             Type TrustGroupType `json:"type,omitempty"`
             // SubjectName - The subject name of the group as distinguished name.
             SubjectName *string `json:"subjectName,omitempty"`
@@ -427,13 +391,13 @@ const fqdn = "go/azure-iiot-opc-vault"
             Lifetime *string `json:"lifetime,omitempty"`
             // KeySize - The trust group certificate key size in bits.
             KeySize *int32 `json:"keySize,omitempty"`
-            // SignatureAlgorithm - The certificate signature algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+            // SignatureAlgorithm - Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
             SignatureAlgorithm SignatureAlgorithm `json:"signatureAlgorithm,omitempty"`
             // IssuedLifetime - The issued certificate lifetime in months.
             IssuedLifetime *string `json:"issuedLifetime,omitempty"`
             // IssuedKeySize - The issued certificate key size in bits.
             IssuedKeySize *int32 `json:"issuedKeySize,omitempty"`
-            // IssuedSignatureAlgorithm - The Signature algorithm for issued certificates. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+            // IssuedSignatureAlgorithm - Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
             IssuedSignatureAlgorithm SignatureAlgorithm `json:"issuedSignatureAlgorithm,omitempty"`
             }
 
@@ -442,7 +406,6 @@ const fqdn = "go/azure-iiot-opc-vault"
             autorest.Response `json:"-"`
             // ID - The registered id of the trust group
             ID *string `json:"id,omitempty"`
-            // Group - Trust group
             Group *TrustGroupAPIModel `json:"group,omitempty"`
             }
 
@@ -599,7 +562,7 @@ const fqdn = "go/azure-iiot-opc-vault"
             IssuedLifetime *string `json:"issuedLifetime,omitempty"`
             // IssuedKeySize - The issued certificate key size in bits.
             IssuedKeySize *int32 `json:"issuedKeySize,omitempty"`
-            // IssuedSignatureAlgorithm - The issued certificate signature algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+            // IssuedSignatureAlgorithm - Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
             IssuedSignatureAlgorithm SignatureAlgorithm `json:"issuedSignatureAlgorithm,omitempty"`
             }
 
@@ -616,7 +579,7 @@ const fqdn = "go/azure-iiot-opc-vault"
             type TrustGroupRootCreateRequestAPIModel struct {
             // Name - The new name of the trust group root
             Name *string `json:"name,omitempty"`
-            // Type - The trust group type. Possible values include: 'ApplicationInstanceCertificate', 'HTTPSCertificate', 'UserCredentialCertificate'
+            // Type - Possible values include: 'ApplicationInstanceCertificate', 'HTTPSCertificate', 'UserCredentialCertificate'
             Type TrustGroupType `json:"type,omitempty"`
             // SubjectName - The subject name of the group as distinguished name.
             SubjectName *string `json:"subjectName,omitempty"`
@@ -624,13 +587,13 @@ const fqdn = "go/azure-iiot-opc-vault"
             Lifetime *string `json:"lifetime,omitempty"`
             // KeySize - The certificate key size in bits.
             KeySize *int32 `json:"keySize,omitempty"`
-            // SignatureAlgorithm - The certificate signature algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+            // SignatureAlgorithm - Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
             SignatureAlgorithm SignatureAlgorithm `json:"signatureAlgorithm,omitempty"`
             // IssuedLifetime - The issued certificate lifetime.
             IssuedLifetime *string `json:"issuedLifetime,omitempty"`
             // IssuedKeySize - The issued certificate key size in bits.
             IssuedKeySize *int32 `json:"issuedKeySize,omitempty"`
-            // IssuedSignatureAlgorithm - The issued certificate signature algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+            // IssuedSignatureAlgorithm - Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
             IssuedSignatureAlgorithm SignatureAlgorithm `json:"issuedSignatureAlgorithm,omitempty"`
             }
 
@@ -642,7 +605,7 @@ const fqdn = "go/azure-iiot-opc-vault"
             IssuedLifetime *string `json:"issuedLifetime,omitempty"`
             // IssuedKeySize - The issued certificate key size in bits.
             IssuedKeySize *int32 `json:"issuedKeySize,omitempty"`
-            // IssuedSignatureAlgorithm - The issued certificate key size in bits. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+            // IssuedSignatureAlgorithm - Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
             IssuedSignatureAlgorithm SignatureAlgorithm `json:"issuedSignatureAlgorithm,omitempty"`
             }
 
@@ -954,7 +917,7 @@ const fqdn = "go/azure-iiot-opc-vault"
             Crl interface{} `json:"crl,omitempty"`
             }
 
-            // X509CrlChainAPIModel crl collection model
+            // X509CrlChainAPIModel crl chain model
             type X509CrlChainAPIModel struct {
             autorest.Response `json:"-"`
             // Chain - Chain

@@ -42,7 +42,7 @@ module azure.iiot.opc.vault
       # internal dependencies
       attr_accessor :dependencies
 
-      # @return [Hash{String => String}] Optional meta data.
+      # @return [Hash{String => String}]
       attr_accessor :metadata
 
 

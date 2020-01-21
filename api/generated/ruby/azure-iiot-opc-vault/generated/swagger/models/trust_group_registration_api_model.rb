@@ -16,7 +16,7 @@ module azure.iiot.opc.vault
       # @return [String] The registered id of the trust group
       attr_accessor :id
 
-      # @return [TrustGroupApiModel] Trust group
+      # @return [TrustGroupApiModel]
       attr_accessor :group
 
 
@@ -35,7 +35,7 @@ module azure.iiot.opc.vault
             model_properties: {
               id: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'id',
                 type: {
                   name: 'String'
@@ -43,7 +43,7 @@ module azure.iiot.opc.vault
               },
               group: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'group',
                 type: {
                   name: 'Composite',

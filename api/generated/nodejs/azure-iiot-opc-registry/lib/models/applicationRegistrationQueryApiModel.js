@@ -17,8 +17,8 @@
 class ApplicationRegistrationQueryApiModel {
   /**
    * Create a ApplicationRegistrationQueryApiModel.
-   * @property {string} [applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+   * @property {string} [applicationType] Possible values include: 'Server',
+   * 'Client', 'ClientAndServer', 'DiscoveryServer'
    * @property {string} [applicationUri] Application uri
    * @property {string} [productUri] Product uri
    * @property {string} [applicationName] Name of application
@@ -26,10 +26,11 @@ class ApplicationRegistrationQueryApiModel {
    * @property {string} [capability] Application capability to query with
    * @property {string} [discoveryProfileUri] Discovery profile uri
    * @property {string} [gatewayServerUri] Gateway server uri
-   * @property {string} [siteOrSupervisorId] Supervisor or site the application
+   * @property {string} [siteOrGatewayId] Supervisor or site the application
    * belongs to.
    * @property {boolean} [includeNotSeenSince] Whether to include apps that
    * were soft deleted
+   * @property {string} [discovererId] Discoverer id to filter with
    */
   constructor() {
   }
@@ -105,9 +106,9 @@ class ApplicationRegistrationQueryApiModel {
               name: 'String'
             }
           },
-          siteOrSupervisorId: {
+          siteOrGatewayId: {
             required: false,
-            serializedName: 'siteOrSupervisorId',
+            serializedName: 'siteOrGatewayId',
             type: {
               name: 'String'
             }
@@ -117,6 +118,13 @@ class ApplicationRegistrationQueryApiModel {
             serializedName: 'includeNotSeenSince',
             type: {
               name: 'Boolean'
+            }
+          },
+          discovererId: {
+            required: false,
+            serializedName: 'discovererId',
+            type: {
+              name: 'String'
             }
           }
         }

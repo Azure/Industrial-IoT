@@ -23,11 +23,10 @@ public class AttributeWriteRequestApiModel {
     private String nodeId;
 
     /**
-     * Attribute to write (mandatory). Possible values include: 'NodeClass',
-     * 'BrowseName', 'DisplayName', 'Description', 'WriteMask',
-     * 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
-     * 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank',
-     * 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
+     * Possible values include: 'NodeClass', 'BrowseName', 'DisplayName',
+     * 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric',
+     * 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType',
+     * 'ValueRank', 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
      * 'MinimumSamplingInterval', 'Historizing', 'Executable',
      * 'UserExecutable', 'DataTypeDefinition', 'RolePermissions',
      * 'UserRolePermissions', 'AccessRestrictions'.
@@ -62,7 +61,7 @@ public class AttributeWriteRequestApiModel {
     }
 
     /**
-     * Get attribute to write (mandatory). Possible values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank', 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel', 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable', 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions', 'AccessRestrictions'.
+     * Get possible values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank', 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel', 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable', 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions', 'AccessRestrictions'.
      *
      * @return the attribute value
      */
@@ -71,7 +70,7 @@ public class AttributeWriteRequestApiModel {
     }
 
     /**
-     * Set attribute to write (mandatory). Possible values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank', 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel', 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable', 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions', 'AccessRestrictions'.
+     * Set possible values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank', 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel', 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable', 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions', 'AccessRestrictions'.
      *
      * @param attribute the attribute value to set
      * @return the AttributeWriteRequestApiModel object itself.

@@ -17,14 +17,13 @@ class AttributeReadRequestApiModel(Model):
 
     :param node_id: Node to read from or write to (mandatory)
     :type node_id: str
-    :param attribute: Attribute to read or write. Possible values include:
-     'NodeClass', 'BrowseName', 'DisplayName', 'Description', 'WriteMask',
-     'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
-     'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank',
-     'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
-     'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable',
-     'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions',
-     'AccessRestrictions'
+    :param attribute: Possible values include: 'NodeClass', 'BrowseName',
+     'DisplayName', 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract',
+     'Symmetric', 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value',
+     'DataType', 'ValueRank', 'ArrayDimensions', 'AccessLevel',
+     'UserAccessLevel', 'MinimumSamplingInterval', 'Historizing', 'Executable',
+     'UserExecutable', 'DataTypeDefinition', 'RolePermissions',
+     'UserRolePermissions', 'AccessRestrictions'
     :type attribute: str or ~azure-iiot-opc-twin.models.NodeAttribute
     """
 

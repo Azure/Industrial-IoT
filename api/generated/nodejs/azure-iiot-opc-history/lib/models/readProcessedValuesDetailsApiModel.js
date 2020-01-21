@@ -21,8 +21,7 @@ class ReadProcessedValuesDetailsApiModel {
    * @property {date} [endTime] End time to read until
    * @property {number} [processingInterval] Interval to process
    * @property {string} [aggregateTypeId] The aggregate type node ids
-   * @property {object} [aggregateConfiguration] A configuration for the
-   * aggregate
+   * @property {object} [aggregateConfiguration]
    * @property {boolean} [aggregateConfiguration.useServerCapabilitiesDefaults]
    * Whether to use the default server caps
    * @property {boolean} [aggregateConfiguration.treatUncertainAsBad] Whether
@@ -84,7 +83,7 @@ class ReadProcessedValuesDetailsApiModel {
             serializedName: 'aggregateConfiguration',
             type: {
               name: 'Composite',
-              className: 'AggregateConfigApiModel'
+              className: 'AggregateConfigurationApiModel'
             }
           }
         }

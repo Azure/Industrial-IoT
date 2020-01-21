@@ -18,9 +18,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class DiagnosticsApiModel {
     /**
-     * Requested level of response diagnostics.
-     * (default: Status). Possible values include: 'None', 'Status',
-     * 'Operations', 'Diagnostics', 'Verbose'.
+     * Possible values include: 'None', 'Status', 'Operations', 'Diagnostics',
+     * 'Verbose'.
      */
     @JsonProperty(value = "level")
     private DiagnosticsLevel level;
@@ -40,8 +39,7 @@ public class DiagnosticsApiModel {
     private DateTime timeStamp;
 
     /**
-     * Get requested level of response diagnostics.
-     (default: Status). Possible values include: 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'.
+     * Get possible values include: 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'.
      *
      * @return the level value
      */
@@ -50,8 +48,7 @@ public class DiagnosticsApiModel {
     }
 
     /**
-     * Set requested level of response diagnostics.
-     (default: Status). Possible values include: 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'.
+     * Set possible values include: 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'.
      *
      * @param level the level value to set
      * @return the DiagnosticsApiModel object itself.

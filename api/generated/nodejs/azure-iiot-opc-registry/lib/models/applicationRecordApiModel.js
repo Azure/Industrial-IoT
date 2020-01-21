@@ -18,11 +18,10 @@ class ApplicationRecordApiModel {
   /**
    * Create a ApplicationRecordApiModel.
    * @property {number} recordId Record id
-   * @property {object} application Application information
+   * @property {object} application
    * @property {string} [application.applicationId] Unique application id
-   * @property {string} [application.applicationType] Type of application.
-   * Possible values include: 'Server', 'Client', 'ClientAndServer',
-   * 'DiscoveryServer'
+   * @property {string} [application.applicationType] Possible values include:
+   * 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
    * @property {string} [application.applicationUri] Unique application uri
    * @property {string} [application.productUri] Product uri
    * @property {string} [application.applicationName] Default name of
@@ -40,13 +39,13 @@ class ApplicationRecordApiModel {
    * @property {array} [application.hostAddresses] Host addresses of server
    * application or null
    * @property {string} [application.siteId] Site of the application
-   * @property {string} [application.supervisorId] Supervisor having registered
+   * @property {string} [application.discovererId] Discoverer that registered
    * the application
    * @property {date} [application.notSeenSince] Last time application was seen
-   * @property {object} [application.created] Created
+   * @property {object} [application.created]
    * @property {string} [application.created.authorityId] Operation User
    * @property {date} [application.created.time] Operation time
-   * @property {object} [application.updated] Updated
+   * @property {object} [application.updated]
    * @property {string} [application.updated.authorityId] Operation User
    * @property {date} [application.updated.time] Operation time
    */

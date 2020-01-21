@@ -38,7 +38,7 @@ module azure.iiot.opc.vault
             model_properties: {
               entity_id: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'entityId',
                 type: {
                   name: 'String'
@@ -46,7 +46,7 @@ module azure.iiot.opc.vault
               },
               group_id: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'groupId',
                 type: {
                   name: 'String'
@@ -54,7 +54,7 @@ module azure.iiot.opc.vault
               },
               certificate_request: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'certificateRequest',
                 type: {
                   name: 'Object'

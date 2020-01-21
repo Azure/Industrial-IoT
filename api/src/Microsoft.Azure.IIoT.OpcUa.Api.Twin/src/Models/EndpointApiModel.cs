@@ -5,35 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
     using System.Collections.Generic;
-
-    /// <summary>
-    /// Security mode of endpoint
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum SecurityMode {
-
-        /// <summary>
-        /// Best
-        /// </summary>
-        Best,
-
-        /// <summary>
-        /// Sign
-        /// </summary>
-        Sign,
-
-        /// <summary>
-        /// Sign and Encrypt
-        /// </summary>
-        SignAndEncrypt,
-
-        /// <summary>
-        /// No security
-        /// </summary>
-        None
-    }
+    using System.ComponentModel;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Endpoint model
@@ -44,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// Endpoint url to use to connect with
         /// </summary>
         [JsonProperty(PropertyName = "url")]
+        [Required]
         public string Url { get; set; }
 
         /// <summary>
@@ -55,26 +30,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         public HashSet<string> AlternativeUrls { get; set; }
 
         /// <summary>
-        /// User Authentication
-        /// </summary>
-        [JsonProperty(PropertyName = "user",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public CredentialApiModel User { get; set; }
-
-        /// <summary>
-        /// Security Mode to use for communication.
+        /// Security Mode to use for communication
         /// default to best.
         /// </summary>
         [JsonProperty(PropertyName = "securityMode",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(Models.SecurityMode.Best)]
         public SecurityMode? SecurityMode { get; set; }
 
         /// <summary>
-        /// Security policy uri to use for communication.
+        /// Security policy uri to use for communication
         /// default to best.
         /// </summary>
         [JsonProperty(PropertyName = "securityPolicy",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string SecurityPolicy { get; set; }
 
         /// <summary>

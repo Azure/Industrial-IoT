@@ -76,7 +76,7 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
         /// In memory container
         /// </summary>
         private class ItemContainer : IItemContainer, IDocuments, IGraph,
-            ISqlClient, IGremlinClient {
+            ISqlClient, IGraphQueryClient {
 
             /// <inheritdoc/>
             public string Name { get; }
@@ -235,7 +235,7 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
             }
 
             /// <inheritdoc/>
-            public IGremlinClient OpenGremlinClient() {
+            public IGraphQueryClient OpenGremlinClient() {
                 return this;
             }
 
@@ -329,8 +329,8 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
                 /// <summary>
                 /// Create memory document
                 /// </summary>
-                /// <param name="id"></param>
                 /// <param name="value"></param>
+                /// <param name="id"></param>
                 /// <param name="partitionKey"></param>
                 protected MemoryDocument(JObject value, string id, string partitionKey) {
                     Value = value;

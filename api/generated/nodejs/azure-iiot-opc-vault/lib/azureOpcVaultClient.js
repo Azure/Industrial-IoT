@@ -24,8 +24,7 @@ const models = require('./models');
 /**
  * @summary Get Issuer CA Certificate chain.
  *
- * @param {string} serialNumber the serial number of the
- * Issuer CA Certificate
+ * @param {string} serialNumber the serial number of the Issuer CA Certificate
  *
  * @param {object} [options] Optional Parameters.
  *
@@ -141,8 +140,7 @@ function _getIssuerCertificateChain(serialNumber, options, callback) {
 /**
  * @summary Get Issuer CA CRL chain.
  *
- * @param {string} serialNumber the serial number of the Issuer
- * CA Certificate
+ * @param {string} serialNumber the serial number of the Issuer CA Certificate
  *
  * @param {object} [options] Optional Parameters.
  *
@@ -271,7 +269,7 @@ function _getIssuerCrlChain(serialNumber, options, callback) {
  *
  *                      {Error}  err        - The Error object if an error occurred, null otherwise.
  *
- *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *                      {string} [result]   - The deserialized result object if an error did not occur.
  *
  *                      {object} [request]  - The HTTP Request object if an error did not occur.
  *
@@ -347,6 +345,29 @@ function _getIssuerCertificateChain1(serialNumber, options, callback) {
     // Create Result
     let result = null;
     if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = {
+            required: false,
+            serializedName: 'parsedResponse',
+            type: {
+              name: 'String'
+            }
+          };
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
 
     return callback(null, result, httpRequest, response);
   });
@@ -368,7 +389,7 @@ function _getIssuerCertificateChain1(serialNumber, options, callback) {
  *
  *                      {Error}  err        - The Error object if an error occurred, null otherwise.
  *
- *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *                      {string} [result]   - The deserialized result object if an error did not occur.
  *
  *                      {object} [request]  - The HTTP Request object if an error did not occur.
  *
@@ -444,6 +465,29 @@ function _getIssuerCrlChain1(serialNumber, options, callback) {
     // Create Result
     let result = null;
     if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = {
+            required: false,
+            serializedName: 'parsedResponse',
+            type: {
+              name: 'String'
+            }
+          };
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
 
     return callback(null, result, httpRequest, response);
   });
@@ -453,17 +497,16 @@ function _getIssuerCrlChain1(serialNumber, options, callback) {
  * @summary Create a certificate request with a certificate signing request
  * (CSR).
  *
- * The request is in the 'New' state after this call.
- * Requires Writer or Manager role.
+ * The request is in the 'New' state after this call. Requires Writer or
+ * Manager role.
  *
- * @param {object} signingRequest The signing request parameters
+ * @param {object} body The signing request parameters
  *
- * @param {string} signingRequest.entityId Id of entity to sign a certificate
- * for
+ * @param {string} [body.entityId] Id of entity to sign a certificate for
  *
- * @param {string} signingRequest.groupId Certificate group id
+ * @param {string} [body.groupId] Certificate group id
  *
- * @param {object} signingRequest.certificateRequest Request
+ * @param {object} [body.certificateRequest] Request
  *
  * @param {object} [options] Optional Parameters.
  *
@@ -484,7 +527,7 @@ function _getIssuerCrlChain1(serialNumber, options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _startSigningRequest(signingRequest, options, callback) {
+function _startSigningRequest(body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -496,8 +539,8 @@ function _startSigningRequest(signingRequest, options, callback) {
   }
   // Validate
   try {
-    if (signingRequest === null || signingRequest === undefined) {
-      throw new Error('signingRequest cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -525,14 +568,14 @@ function _startSigningRequest(signingRequest, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (signingRequest !== null && signingRequest !== undefined) {
+    if (body !== null && body !== undefined) {
       let requestModelMapper = new client.models['StartSigningRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, signingRequest, 'signingRequest');
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(signingRequest, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -592,10 +635,8 @@ function _startSigningRequest(signingRequest, options, callback) {
 /**
  * @summary Fetch signing request results.
  *
- * Can be called in any state.
- * After a successful fetch in 'Completed' state, the request is
- * moved into 'Accepted' state.
- * Requires Writer role.
+ * Can be called in any state. After a successful fetch in 'Completed' state,
+ * the request is moved into 'Accepted' state. Requires Writer role.
  *
  * @param {string} requestId
  *
@@ -713,22 +754,22 @@ function _finishSigningRequest(requestId, options, callback) {
 /**
  * @summary Create a certificate request with a new key pair.
  *
- * The request is in the 'New' state after this call.
- * Requires Writer or Manager role.
+ * The request is in the 'New' state after this call. Requires Writer or
+ * Manager role.
  *
- * @param {object} newKeyPairRequest The new key pair request parameters
+ * @param {object} body The new key pair request parameters
  *
- * @param {string} newKeyPairRequest.entityId Entity id
+ * @param {string} [body.entityId] Entity id
  *
- * @param {string} newKeyPairRequest.groupId Certificate group
+ * @param {string} [body.groupId] Certificate group
  *
- * @param {string} newKeyPairRequest.certificateType Type. Possible values
- * include: 'ApplicationInstanceCertificate', 'HttpsCertificate',
+ * @param {string} [body.certificateType] Possible values include:
+ * 'ApplicationInstanceCertificate', 'HttpsCertificate',
  * 'UserCredentialCertificate'
  *
- * @param {string} newKeyPairRequest.subjectName Subject name
+ * @param {string} [body.subjectName] Subject name
  *
- * @param {array} [newKeyPairRequest.domainNames] Domain names
+ * @param {array} [body.domainNames] Domain names
  *
  * @param {object} [options] Optional Parameters.
  *
@@ -749,7 +790,7 @@ function _finishSigningRequest(requestId, options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _startNewKeyPairRequest(newKeyPairRequest, options, callback) {
+function _startNewKeyPairRequest(body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -761,8 +802,8 @@ function _startNewKeyPairRequest(newKeyPairRequest, options, callback) {
   }
   // Validate
   try {
-    if (newKeyPairRequest === null || newKeyPairRequest === undefined) {
-      throw new Error('newKeyPairRequest cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -790,14 +831,14 @@ function _startNewKeyPairRequest(newKeyPairRequest, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (newKeyPairRequest !== null && newKeyPairRequest !== undefined) {
+    if (body !== null && body !== undefined) {
       let requestModelMapper = new client.models['StartNewKeyPairRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, newKeyPairRequest, 'newKeyPairRequest');
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(newKeyPairRequest, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -857,11 +898,9 @@ function _startNewKeyPairRequest(newKeyPairRequest, options, callback) {
 /**
  * @summary Fetch certificate request result.
  *
- * Can be called in any state.
- * Fetches private key in 'Completed' state.
- * After a successful fetch in 'Completed' state, the request is
- * moved into 'Accepted' state.
- * Requires Writer role.
+ * Can be called in any state. Fetches private key in 'Completed' state. After
+ * a successful fetch in 'Completed' state, the request is moved into
+ * 'Accepted' state. Requires Writer role.
  *
  * @param {string} requestId
  *
@@ -979,17 +1018,13 @@ function _finishNewKeyPairRequest(requestId, options, callback) {
 /**
  * @summary Approve the certificate request.
  *
- * Validates the request with the application database.
- * - If Approved:
- * - New Key Pair request: Creates the new key pair
- * in the requested format, signs the certificate and stores the
- * private key for later securely in KeyVault.
- * - Cert Signing Request: Creates and signs the certificate.
- * Deletes the CSR from the database.
- * Stores the signed certificate for later use in the Database.
- * The request is in the 'Approved' or 'Rejected' state after this call.
- * Requires Approver role.
- * Approver needs signing rights in KeyVault.
+ * Validates the request with the application database. - If Approved: - New
+ * Key Pair request: Creates the new key pair in the requested format, signs
+ * the certificate and stores the private key for later securely in KeyVault. -
+ * Cert Signing Request: Creates and signs the certificate. Deletes the CSR
+ * from the database. Stores the signed certificate for later use in the
+ * Database. The request is in the 'Approved' or 'Rejected' state after this
+ * call. Requires Approver role. Approver needs signing rights in KeyVault.
  *
  * @param {string} requestId The certificate request id
  *
@@ -1088,9 +1123,8 @@ function _approveRequest(requestId, options, callback) {
 /**
  * @summary Reject the certificate request.
  *
- * The request is in the 'Rejected' state after this call.
- * Requires Approver role.
- * Approver needs signing rights in KeyVault.
+ * The request is in the 'Rejected' state after this call. Requires Approver
+ * role. Approver needs signing rights in KeyVault.
  *
  * @param {string} requestId The certificate request id
  *
@@ -1189,8 +1223,8 @@ function _rejectRequest(requestId, options, callback) {
 /**
  * @summary Cancel request
  *
- * The request is in the 'Accepted' state after this call.
- * Requires Writer role.
+ * The request is in the 'Accepted' state after this call. Requires Writer
+ * role.
  *
  * @param {string} requestId The certificate request id
  *
@@ -1238,6 +1272,106 @@ function _acceptRequest(requestId, options, callback) {
   // Create HTTP transport objects
   let httpRequest = new WebResource();
   httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Delete request. Physically delete the request.
+ *
+ * By purging the request it is actually physically deleted from the database,
+ * including the public key and other information. Requires Manager role.
+ *
+ * @param {string} requestId The certificate request id
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _deleteRequest(requestId, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (requestId === null || requestId === undefined || typeof requestId.valueOf() !== 'string') {
+      throw new Error('requestId cannot be null or undefined and it must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/requests/{requestId}';
+  requestUrl = requestUrl.replace('{requestId}', encodeURIComponent(requestId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'DELETE';
   httpRequest.url = requestUrl;
   httpRequest.headers = {};
   // Set Headers
@@ -1403,125 +1537,23 @@ function _getRequest(requestId, options, callback) {
 }
 
 /**
- * @summary Delete request. Physically delete the request.
- *
- * By purging the request it is actually physically deleted from the
- * database, including the public key and other information.
- * Requires Manager role.
- *
- * @param {string} requestId The certificate request id
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {null} [result]   - The deserialized result object if an error did not occur.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _deleteRequest(requestId, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  // Validate
-  try {
-    if (requestId === null || requestId === undefined || typeof requestId.valueOf() !== 'string') {
-      throw new Error('requestId cannot be null or undefined and it must be of type string.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/requests/{requestId}';
-  requestUrl = requestUrl.replace('{requestId}', encodeURIComponent(requestId));
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'DELETE';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  httpRequest.body = null;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
  * @summary Query for certificate requests.
  *
- * Get all certificate requests in paged form.
- * The returned model can contain a link to the next page if more results are
- * available.  Use ListRequests to continue.
+ * Get all certificate requests in paged form. The returned model can contain a
+ * link to the next page if more results are available. Use ListRequests to
+ * continue.
  *
  * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.query] optional, query filter
- *
- * @param {string} [options.query.entityId] The entity id to filter with
- *
- * @param {string} [options.query.state] The certificate request state.
- * Possible values include: 'New', 'Approved', 'Rejected', 'Failure',
- * 'Completed', 'Accepted'
  *
  * @param {number} [options.pageSize] optional, the maximum number of result
  * per page
+ *
+ * @param {object} [options.body] optional, query filter
+ *
+ * @param {string} [options.body.entityId] The entity id to filter with
+ *
+ * @param {string} [options.body.state] Possible values include: 'New',
+ * 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'
  *
  * @param {object} [options.customHeaders] Headers that will be added to the
  * request
@@ -1550,8 +1582,8 @@ function _queryRequests(options, callback) {
   if (!callback) {
     throw new Error('callback cannot be null.');
   }
-  let query = (options && options.query !== undefined) ? options.query : undefined;
   let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
+  let body = (options && options.body !== undefined) ? options.body : undefined;
   // Validate
   try {
     if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
@@ -1590,14 +1622,14 @@ function _queryRequests(options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (query !== null && query !== undefined) {
+    if (body !== null && body !== undefined) {
       let requestModelMapper = new client.models['CertificateRequestQueryRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, query, 'query');
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(query, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -1658,9 +1690,8 @@ function _queryRequests(options, callback) {
  * @summary Lists certificate requests.
  *
  * Get all certificate requests in paged form or continue a current listing or
- * query.
- * The returned model can contain a link to the next page if more results are
- * available.
+ * query. The returned model can contain a link to the next page if more
+ * results are available.
  *
  * @param {object} [options] Optional Parameters.
  *
@@ -1793,118 +1824,11 @@ function _listRequests(options, callback) {
 }
 
 /**
- * @summary Return the service status in the form of the service status
- * api model.
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link StatusResponseApiModel} for more
- *                      information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _getStatus(options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/status';
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'GET';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  httpRequest.body = null;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['StatusResponseApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
  * @summary Get information about all groups.
  *
- * A trust group has a root certificate which issues certificates
- * to entities.  Entities can be part of a trust group and thus
- * trust the root certificate and all entities that the root has
- * issued certificates for.
+ * A trust group has a root certificate which issues certificates to entities.
+ * Entities can be part of a trust group and thus trust the root certificate
+ * and all entities that the root has issued certificates for.
  *
  * @param {object} [options] Optional Parameters.
  *
@@ -2041,24 +1965,23 @@ function _listGroups(options, callback) {
  *
  * Requires manager role.
  *
- * @param {object} request The create request
+ * @param {object} body The create request
  *
- * @param {string} request.name The new name of the trust group
+ * @param {string} [body.name] The new name of the trust group
  *
- * @param {string} request.parentId The identifer of the parent trust group.
+ * @param {string} [body.parentId] The identifer of the parent trust group.
  *
- * @param {string} request.subjectName The subject name of the group as
+ * @param {string} [body.subjectName] The subject name of the group as
  * distinguished name.
  *
- * @param {string} [request.issuedLifetime] The lifetime of certificates issued
- * in the group.
+ * @param {string} [body.issuedLifetime] The lifetime of certificates issued in
+ * the group.
  *
- * @param {number} [request.issuedKeySize] The issued certificate key size in
+ * @param {number} [body.issuedKeySize] The issued certificate key size in
  * bits.
  *
- * @param {string} [request.issuedSignatureAlgorithm] The issued certificate
- * signature algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
- * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+ * @param {string} [body.issuedSignatureAlgorithm] Possible values include:
+ * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
  *
  * @param {object} [options] Optional Parameters.
  *
@@ -2079,7 +2002,7 @@ function _listGroups(options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _createGroup(request, options, callback) {
+function _createGroup(body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -2091,8 +2014,8 @@ function _createGroup(request, options, callback) {
   }
   // Validate
   try {
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -2120,14 +2043,14 @@ function _createGroup(request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
+    if (body !== null && body !== undefined) {
       let requestModelMapper = new client.models['TrustGroupRegistrationRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -2187,10 +2110,9 @@ function _createGroup(request, options, callback) {
 /**
  * @summary Get group information.
  *
- * A trust group has a root certificate which issues certificates
- * to entities.  Entities can be part of a trust group and thus
- * trust the root certificate and all entities that the root has
- * issued certificates for.
+ * A trust group has a root certificate which issues certificates to entities.
+ * Entities can be part of a trust group and thus trust the root certificate
+ * and all entities that the root has issued certificates for.
  *
  * @param {string} groupId The group id
  *
@@ -2308,24 +2230,22 @@ function _getGroup(groupId, options, callback) {
 /**
  * @summary Update group registration.
  *
- * Use this function with care and only if you are aware of
- * the security implications.
- * Requires manager role.
+ * Use this function with care and only if you are aware of the security
+ * implications. Requires manager role.
  *
  * @param {string} groupId The group id
  *
- * @param {object} request The group configuration
+ * @param {object} body The group configuration
  *
- * @param {string} [request.name] The name of the trust group
+ * @param {string} [body.name] The name of the trust group
  *
- * @param {string} [request.issuedLifetime] The issued certificate lifetime.
+ * @param {string} [body.issuedLifetime] The issued certificate lifetime.
  *
- * @param {number} [request.issuedKeySize] The issued certificate key size in
+ * @param {number} [body.issuedKeySize] The issued certificate key size in
  * bits.
  *
- * @param {string} [request.issuedSignatureAlgorithm] The issued certificate
- * key size in bits. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
- * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+ * @param {string} [body.issuedSignatureAlgorithm] Possible values include:
+ * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
  *
  * @param {object} [options] Optional Parameters.
  *
@@ -2344,7 +2264,7 @@ function _getGroup(groupId, options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _updateGroup(groupId, request, options, callback) {
+function _updateGroup(groupId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -2359,8 +2279,8 @@ function _updateGroup(groupId, request, options, callback) {
     if (groupId === null || groupId === undefined || typeof groupId.valueOf() !== 'string') {
       throw new Error('groupId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -2389,14 +2309,14 @@ function _updateGroup(groupId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
+    if (body !== null && body !== undefined) {
       let requestModelMapper = new client.models['TrustGroupUpdateRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -2439,9 +2359,8 @@ function _updateGroup(groupId, request, options, callback) {
 /**
  * @summary Delete a group.
  *
- * After this operation the Issuer CA, CRLs and keys become inaccessible.
- * Use this function with extreme caution.
- * Requires manager role.
+ * After this operation the Issuer CA, CRLs and keys become inaccessible. Use
+ * this function with extreme caution. Requires manager role.
  *
  * @param {string} groupId The group id
  *
@@ -2542,34 +2461,32 @@ function _deleteGroup(groupId, options, callback) {
  *
  * Requires manager role.
  *
- * @param {object} request The create request
+ * @param {object} body The create request
  *
- * @param {string} request.name The new name of the trust group root
+ * @param {string} [body.name] The new name of the trust group root
  *
- * @param {string} [request.type] The trust group type. Possible values
- * include: 'ApplicationInstanceCertificate', 'HttpsCertificate',
+ * @param {string} [body.type] Possible values include:
+ * 'ApplicationInstanceCertificate', 'HttpsCertificate',
  * 'UserCredentialCertificate'
  *
- * @param {string} request.subjectName The subject name of the group as
+ * @param {string} [body.subjectName] The subject name of the group as
  * distinguished name.
  *
- * @param {string} request.lifetime The lifetime of the trust group root
+ * @param {string} [body.lifetime] The lifetime of the trust group root
  * certificate.
  *
- * @param {number} [request.keySize] The certificate key size in bits.
+ * @param {number} [body.keySize] The certificate key size in bits.
  *
- * @param {string} [request.signatureAlgorithm] The certificate signature
- * algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
- * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+ * @param {string} [body.signatureAlgorithm] Possible values include: 'Rsa256',
+ * 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
  *
- * @param {string} [request.issuedLifetime] The issued certificate lifetime.
+ * @param {string} [body.issuedLifetime] The issued certificate lifetime.
  *
- * @param {number} [request.issuedKeySize] The issued certificate key size in
+ * @param {number} [body.issuedKeySize] The issued certificate key size in
  * bits.
  *
- * @param {string} [request.issuedSignatureAlgorithm] The issued certificate
- * signature algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
- * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+ * @param {string} [body.issuedSignatureAlgorithm] Possible values include:
+ * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
  *
  * @param {object} [options] Optional Parameters.
  *
@@ -2590,7 +2507,7 @@ function _deleteGroup(groupId, options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _createRoot(request, options, callback) {
+function _createRoot(body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -2602,8 +2519,8 @@ function _createRoot(request, options, callback) {
   }
   // Validate
   try {
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -2631,14 +2548,14 @@ function _createRoot(request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
+    if (body !== null && body !== undefined) {
       let requestModelMapper = new client.models['TrustGroupRootCreateRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -2795,8 +2712,8 @@ function _renewIssuerCertificate(groupId, options, callback) {
 /**
  * @summary Add trust relationship
  *
- * Define trust between two entities.  The entities are identifiers
- * of application, groups, or endpoints.
+ * Define trust between two entities. The entities are identifiers of
+ * application, groups, or endpoints.
  *
  * @param {string} entityId The entity identifier, e.g. group, etc.
  *
@@ -2901,8 +2818,8 @@ function _addTrustRelationship(entityId, trustedEntityId, options, callback) {
 /**
  * @summary List trusted certificates
  *
- * Returns all certificates the entity should trust based on the
- * applied trust configuration.
+ * Returns all certificates the entity should trust based on the applied trust
+ * configuration.
  *
  * @param {string} entityId
  *
@@ -3043,8 +2960,8 @@ function _listTrustedCertificates(entityId, options, callback) {
 /**
  * @summary Remove a trust relationship
  *
- * Removes trust between two entities.  The entities are identifiers
- * of application, groups, or endpoints.
+ * Removes trust between two entities. The entities are identifiers of
+ * application, groups, or endpoints.
  *
  * @param {string} entityId The entity identifier, e.g. group, etc.
  *
@@ -3169,7 +3086,7 @@ class AzureOpcVaultClient extends ServiceClient {
 
     this.baseUri = baseUri;
     if (!this.baseUri) {
-      this.baseUri = 'http://localhost';
+      this.baseUri = 'http://localhost:9080';
     }
     this.credentials = credentials;
 
@@ -3187,11 +3104,10 @@ class AzureOpcVaultClient extends ServiceClient {
     this._approveRequest = _approveRequest;
     this._rejectRequest = _rejectRequest;
     this._acceptRequest = _acceptRequest;
-    this._getRequest = _getRequest;
     this._deleteRequest = _deleteRequest;
+    this._getRequest = _getRequest;
     this._queryRequests = _queryRequests;
     this._listRequests = _listRequests;
-    this._getStatus = _getStatus;
     this._listGroups = _listGroups;
     this._createGroup = _createGroup;
     this._getGroup = _getGroup;
@@ -3208,8 +3124,7 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Get Issuer CA Certificate chain.
    *
-   * @param {string} serialNumber the serial number of the
-   * Issuer CA Certificate
+   * @param {string} serialNumber the serial number of the Issuer CA Certificate
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -3239,8 +3154,7 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Get Issuer CA Certificate chain.
    *
-   * @param {string} serialNumber the serial number of the
-   * Issuer CA Certificate
+   * @param {string} serialNumber the serial number of the Issuer CA Certificate
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -3293,8 +3207,7 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Get Issuer CA CRL chain.
    *
-   * @param {string} serialNumber the serial number of the Issuer
-   * CA Certificate
+   * @param {string} serialNumber the serial number of the Issuer CA Certificate
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -3324,8 +3237,7 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Get Issuer CA CRL chain.
    *
-   * @param {string} serialNumber the serial number of the Issuer
-   * CA Certificate
+   * @param {string} serialNumber the serial number of the Issuer CA Certificate
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -3387,7 +3299,7 @@ class AzureOpcVaultClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<String>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
@@ -3423,7 +3335,7 @@ class AzureOpcVaultClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {null} - The deserialized result object.
+   *                      @resolve {String} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -3431,7 +3343,7 @@ class AzureOpcVaultClient extends ServiceClient {
    *
    *                      {Error}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *                      {string} [result]   - The deserialized result object if an error did not occur.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
@@ -3469,7 +3381,7 @@ class AzureOpcVaultClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<String>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
@@ -3504,7 +3416,7 @@ class AzureOpcVaultClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {null} - The deserialized result object.
+   *                      @resolve {String} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -3512,7 +3424,7 @@ class AzureOpcVaultClient extends ServiceClient {
    *
    *                      {Error}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *                      {string} [result]   - The deserialized result object if an error did not occur.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
@@ -3542,17 +3454,16 @@ class AzureOpcVaultClient extends ServiceClient {
    * @summary Create a certificate request with a certificate signing request
    * (CSR).
    *
-   * The request is in the 'New' state after this call.
-   * Requires Writer or Manager role.
+   * The request is in the 'New' state after this call. Requires Writer or
+   * Manager role.
    *
-   * @param {object} signingRequest The signing request parameters
+   * @param {object} body The signing request parameters
    *
-   * @param {string} signingRequest.entityId Id of entity to sign a certificate
-   * for
+   * @param {string} [body.entityId] Id of entity to sign a certificate for
    *
-   * @param {string} signingRequest.groupId Certificate group id
+   * @param {string} [body.groupId] Certificate group id
    *
-   * @param {object} signingRequest.certificateRequest Request
+   * @param {object} [body.certificateRequest] Request
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -3565,11 +3476,11 @@ class AzureOpcVaultClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  startSigningRequestWithHttpOperationResponse(signingRequest, options) {
+  startSigningRequestWithHttpOperationResponse(body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._startSigningRequest(signingRequest, options, (err, result, request, response) => {
+      self._startSigningRequest(body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -3583,17 +3494,16 @@ class AzureOpcVaultClient extends ServiceClient {
    * @summary Create a certificate request with a certificate signing request
    * (CSR).
    *
-   * The request is in the 'New' state after this call.
-   * Requires Writer or Manager role.
+   * The request is in the 'New' state after this call. Requires Writer or
+   * Manager role.
    *
-   * @param {object} signingRequest The signing request parameters
+   * @param {object} body The signing request parameters
    *
-   * @param {string} signingRequest.entityId Id of entity to sign a certificate
-   * for
+   * @param {string} [body.entityId] Id of entity to sign a certificate for
    *
-   * @param {string} signingRequest.groupId Certificate group id
+   * @param {string} [body.groupId] Certificate group id
    *
-   * @param {object} signingRequest.certificateRequest Request
+   * @param {object} [body.certificateRequest] Request
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -3623,7 +3533,7 @@ class AzureOpcVaultClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  startSigningRequest(signingRequest, options, optionalCallback) {
+  startSigningRequest(body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -3632,24 +3542,22 @@ class AzureOpcVaultClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._startSigningRequest(signingRequest, options, (err, result, request, response) => {
+        self._startSigningRequest(body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._startSigningRequest(signingRequest, options, optionalCallback);
+      return self._startSigningRequest(body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Fetch signing request results.
    *
-   * Can be called in any state.
-   * After a successful fetch in 'Completed' state, the request is
-   * moved into 'Accepted' state.
-   * Requires Writer role.
+   * Can be called in any state. After a successful fetch in 'Completed' state,
+   * the request is moved into 'Accepted' state. Requires Writer role.
    *
    * @param {string} requestId
    *
@@ -3681,10 +3589,8 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Fetch signing request results.
    *
-   * Can be called in any state.
-   * After a successful fetch in 'Completed' state, the request is
-   * moved into 'Accepted' state.
-   * Requires Writer role.
+   * Can be called in any state. After a successful fetch in 'Completed' state,
+   * the request is moved into 'Accepted' state. Requires Writer role.
    *
    * @param {string} requestId
    *
@@ -3739,22 +3645,22 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Create a certificate request with a new key pair.
    *
-   * The request is in the 'New' state after this call.
-   * Requires Writer or Manager role.
+   * The request is in the 'New' state after this call. Requires Writer or
+   * Manager role.
    *
-   * @param {object} newKeyPairRequest The new key pair request parameters
+   * @param {object} body The new key pair request parameters
    *
-   * @param {string} newKeyPairRequest.entityId Entity id
+   * @param {string} [body.entityId] Entity id
    *
-   * @param {string} newKeyPairRequest.groupId Certificate group
+   * @param {string} [body.groupId] Certificate group
    *
-   * @param {string} newKeyPairRequest.certificateType Type. Possible values
-   * include: 'ApplicationInstanceCertificate', 'HttpsCertificate',
+   * @param {string} [body.certificateType] Possible values include:
+   * 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
    *
-   * @param {string} newKeyPairRequest.subjectName Subject name
+   * @param {string} [body.subjectName] Subject name
    *
-   * @param {array} [newKeyPairRequest.domainNames] Domain names
+   * @param {array} [body.domainNames] Domain names
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -3767,11 +3673,11 @@ class AzureOpcVaultClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  startNewKeyPairRequestWithHttpOperationResponse(newKeyPairRequest, options) {
+  startNewKeyPairRequestWithHttpOperationResponse(body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._startNewKeyPairRequest(newKeyPairRequest, options, (err, result, request, response) => {
+      self._startNewKeyPairRequest(body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -3784,22 +3690,22 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Create a certificate request with a new key pair.
    *
-   * The request is in the 'New' state after this call.
-   * Requires Writer or Manager role.
+   * The request is in the 'New' state after this call. Requires Writer or
+   * Manager role.
    *
-   * @param {object} newKeyPairRequest The new key pair request parameters
+   * @param {object} body The new key pair request parameters
    *
-   * @param {string} newKeyPairRequest.entityId Entity id
+   * @param {string} [body.entityId] Entity id
    *
-   * @param {string} newKeyPairRequest.groupId Certificate group
+   * @param {string} [body.groupId] Certificate group
    *
-   * @param {string} newKeyPairRequest.certificateType Type. Possible values
-   * include: 'ApplicationInstanceCertificate', 'HttpsCertificate',
+   * @param {string} [body.certificateType] Possible values include:
+   * 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
    *
-   * @param {string} newKeyPairRequest.subjectName Subject name
+   * @param {string} [body.subjectName] Subject name
    *
-   * @param {array} [newKeyPairRequest.domainNames] Domain names
+   * @param {array} [body.domainNames] Domain names
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -3829,7 +3735,7 @@ class AzureOpcVaultClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  startNewKeyPairRequest(newKeyPairRequest, options, optionalCallback) {
+  startNewKeyPairRequest(body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -3838,25 +3744,23 @@ class AzureOpcVaultClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._startNewKeyPairRequest(newKeyPairRequest, options, (err, result, request, response) => {
+        self._startNewKeyPairRequest(body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._startNewKeyPairRequest(newKeyPairRequest, options, optionalCallback);
+      return self._startNewKeyPairRequest(body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Fetch certificate request result.
    *
-   * Can be called in any state.
-   * Fetches private key in 'Completed' state.
-   * After a successful fetch in 'Completed' state, the request is
-   * moved into 'Accepted' state.
-   * Requires Writer role.
+   * Can be called in any state. Fetches private key in 'Completed' state. After
+   * a successful fetch in 'Completed' state, the request is moved into
+   * 'Accepted' state. Requires Writer role.
    *
    * @param {string} requestId
    *
@@ -3888,11 +3792,9 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Fetch certificate request result.
    *
-   * Can be called in any state.
-   * Fetches private key in 'Completed' state.
-   * After a successful fetch in 'Completed' state, the request is
-   * moved into 'Accepted' state.
-   * Requires Writer role.
+   * Can be called in any state. Fetches private key in 'Completed' state. After
+   * a successful fetch in 'Completed' state, the request is moved into
+   * 'Accepted' state. Requires Writer role.
    *
    * @param {string} requestId
    *
@@ -3947,17 +3849,13 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Approve the certificate request.
    *
-   * Validates the request with the application database.
-   * - If Approved:
-   * - New Key Pair request: Creates the new key pair
-   * in the requested format, signs the certificate and stores the
-   * private key for later securely in KeyVault.
-   * - Cert Signing Request: Creates and signs the certificate.
-   * Deletes the CSR from the database.
-   * Stores the signed certificate for later use in the Database.
-   * The request is in the 'Approved' or 'Rejected' state after this call.
-   * Requires Approver role.
-   * Approver needs signing rights in KeyVault.
+   * Validates the request with the application database. - If Approved: - New
+   * Key Pair request: Creates the new key pair in the requested format, signs
+   * the certificate and stores the private key for later securely in KeyVault. -
+   * Cert Signing Request: Creates and signs the certificate. Deletes the CSR
+   * from the database. Stores the signed certificate for later use in the
+   * Database. The request is in the 'Approved' or 'Rejected' state after this
+   * call. Requires Approver role. Approver needs signing rights in KeyVault.
    *
    * @param {string} requestId The certificate request id
    *
@@ -3989,17 +3887,13 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Approve the certificate request.
    *
-   * Validates the request with the application database.
-   * - If Approved:
-   * - New Key Pair request: Creates the new key pair
-   * in the requested format, signs the certificate and stores the
-   * private key for later securely in KeyVault.
-   * - Cert Signing Request: Creates and signs the certificate.
-   * Deletes the CSR from the database.
-   * Stores the signed certificate for later use in the Database.
-   * The request is in the 'Approved' or 'Rejected' state after this call.
-   * Requires Approver role.
-   * Approver needs signing rights in KeyVault.
+   * Validates the request with the application database. - If Approved: - New
+   * Key Pair request: Creates the new key pair in the requested format, signs
+   * the certificate and stores the private key for later securely in KeyVault. -
+   * Cert Signing Request: Creates and signs the certificate. Deletes the CSR
+   * from the database. Stores the signed certificate for later use in the
+   * Database. The request is in the 'Approved' or 'Rejected' state after this
+   * call. Requires Approver role. Approver needs signing rights in KeyVault.
    *
    * @param {string} requestId The certificate request id
    *
@@ -4052,9 +3946,8 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Reject the certificate request.
    *
-   * The request is in the 'Rejected' state after this call.
-   * Requires Approver role.
-   * Approver needs signing rights in KeyVault.
+   * The request is in the 'Rejected' state after this call. Requires Approver
+   * role. Approver needs signing rights in KeyVault.
    *
    * @param {string} requestId The certificate request id
    *
@@ -4086,9 +3979,8 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Reject the certificate request.
    *
-   * The request is in the 'Rejected' state after this call.
-   * Requires Approver role.
-   * Approver needs signing rights in KeyVault.
+   * The request is in the 'Rejected' state after this call. Requires Approver
+   * role. Approver needs signing rights in KeyVault.
    *
    * @param {string} requestId The certificate request id
    *
@@ -4141,8 +4033,8 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Cancel request
    *
-   * The request is in the 'Accepted' state after this call.
-   * Requires Writer role.
+   * The request is in the 'Accepted' state after this call. Requires Writer
+   * role.
    *
    * @param {string} requestId The certificate request id
    *
@@ -4174,8 +4066,8 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Cancel request
    *
-   * The request is in the 'Accepted' state after this call.
-   * Requires Writer role.
+   * The request is in the 'Accepted' state after this call. Requires Writer
+   * role.
    *
    * @param {string} requestId The certificate request id
    *
@@ -4222,6 +4114,93 @@ class AzureOpcVaultClient extends ServiceClient {
       });
     } else {
       return self._acceptRequest(requestId, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Delete request. Physically delete the request.
+   *
+   * By purging the request it is actually physically deleted from the database,
+   * including the public key and other information. Requires Manager role.
+   *
+   * @param {string} requestId The certificate request id
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  deleteRequestWithHttpOperationResponse(requestId, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._deleteRequest(requestId, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Delete request. Physically delete the request.
+   *
+   * By purging the request it is actually physically deleted from the database,
+   * including the public key and other information. Requires Manager role.
+   *
+   * @param {string} requestId The certificate request id
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  deleteRequest(requestId, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._deleteRequest(requestId, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._deleteRequest(requestId, options, optionalCallback);
     }
   }
 
@@ -4309,113 +4288,23 @@ class AzureOpcVaultClient extends ServiceClient {
   }
 
   /**
-   * @summary Delete request. Physically delete the request.
-   *
-   * By purging the request it is actually physically deleted from the
-   * database, including the public key and other information.
-   * Requires Manager role.
-   *
-   * @param {string} requestId The certificate request id
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  deleteRequestWithHttpOperationResponse(requestId, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._deleteRequest(requestId, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Delete request. Physically delete the request.
-   *
-   * By purging the request it is actually physically deleted from the
-   * database, including the public key and other information.
-   * Requires Manager role.
-   *
-   * @param {string} requestId The certificate request id
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  deleteRequest(requestId, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._deleteRequest(requestId, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._deleteRequest(requestId, options, optionalCallback);
-    }
-  }
-
-  /**
    * @summary Query for certificate requests.
    *
-   * Get all certificate requests in paged form.
-   * The returned model can contain a link to the next page if more results are
-   * available.  Use ListRequests to continue.
+   * Get all certificate requests in paged form. The returned model can contain a
+   * link to the next page if more results are available. Use ListRequests to
+   * continue.
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.query] optional, query filter
-   *
-   * @param {string} [options.query.entityId] The entity id to filter with
-   *
-   * @param {string} [options.query.state] The certificate request state.
-   * Possible values include: 'New', 'Approved', 'Rejected', 'Failure',
-   * 'Completed', 'Accepted'
    *
    * @param {number} [options.pageSize] optional, the maximum number of result
    * per page
+   *
+   * @param {object} [options.body] optional, query filter
+   *
+   * @param {string} [options.body.entityId] The entity id to filter with
+   *
+   * @param {string} [options.body.state] Possible values include: 'New',
+   * 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -4443,22 +4332,21 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Query for certificate requests.
    *
-   * Get all certificate requests in paged form.
-   * The returned model can contain a link to the next page if more results are
-   * available.  Use ListRequests to continue.
+   * Get all certificate requests in paged form. The returned model can contain a
+   * link to the next page if more results are available. Use ListRequests to
+   * continue.
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {object} [options.query] optional, query filter
-   *
-   * @param {string} [options.query.entityId] The entity id to filter with
-   *
-   * @param {string} [options.query.state] The certificate request state.
-   * Possible values include: 'New', 'Approved', 'Rejected', 'Failure',
-   * 'Completed', 'Accepted'
-   *
    * @param {number} [options.pageSize] optional, the maximum number of result
    * per page
+   *
+   * @param {object} [options.body] optional, query filter
+   *
+   * @param {string} [options.body.entityId] The entity id to filter with
+   *
+   * @param {string} [options.body.state] Possible values include: 'New',
+   * 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -4510,9 +4398,8 @@ class AzureOpcVaultClient extends ServiceClient {
    * @summary Lists certificate requests.
    *
    * Get all certificate requests in paged form or continue a current listing or
-   * query.
-   * The returned model can contain a link to the next page if more results are
-   * available.
+   * query. The returned model can contain a link to the next page if more
+   * results are available.
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -4548,9 +4435,8 @@ class AzureOpcVaultClient extends ServiceClient {
    * @summary Lists certificate requests.
    *
    * Get all certificate requests in paged form or continue a current listing or
-   * query.
-   * The returned model can contain a link to the next page if more results are
-   * available.
+   * query. The returned model can contain a link to the next page if more
+   * results are available.
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -4606,93 +4492,11 @@ class AzureOpcVaultClient extends ServiceClient {
   }
 
   /**
-   * @summary Return the service status in the form of the service status
-   * api model.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<StatusResponseApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  getStatusWithHttpOperationResponse(options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._getStatus(options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Return the service status in the form of the service status
-   * api model.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {StatusResponseApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link StatusResponseApiModel} for more
-   *                      information.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getStatus(options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._getStatus(options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._getStatus(options, optionalCallback);
-    }
-  }
-
-  /**
    * @summary Get information about all groups.
    *
-   * A trust group has a root certificate which issues certificates
-   * to entities.  Entities can be part of a trust group and thus
-   * trust the root certificate and all entities that the root has
-   * issued certificates for.
+   * A trust group has a root certificate which issues certificates to entities.
+   * Entities can be part of a trust group and thus trust the root certificate
+   * and all entities that the root has issued certificates for.
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -4727,10 +4531,9 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Get information about all groups.
    *
-   * A trust group has a root certificate which issues certificates
-   * to entities.  Entities can be part of a trust group and thus
-   * trust the root certificate and all entities that the root has
-   * issued certificates for.
+   * A trust group has a root certificate which issues certificates to entities.
+   * Entities can be part of a trust group and thus trust the root certificate
+   * and all entities that the root has issued certificates for.
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -4790,24 +4593,23 @@ class AzureOpcVaultClient extends ServiceClient {
    *
    * Requires manager role.
    *
-   * @param {object} request The create request
+   * @param {object} body The create request
    *
-   * @param {string} request.name The new name of the trust group
+   * @param {string} [body.name] The new name of the trust group
    *
-   * @param {string} request.parentId The identifer of the parent trust group.
+   * @param {string} [body.parentId] The identifer of the parent trust group.
    *
-   * @param {string} request.subjectName The subject name of the group as
+   * @param {string} [body.subjectName] The subject name of the group as
    * distinguished name.
    *
-   * @param {string} [request.issuedLifetime] The lifetime of certificates issued
-   * in the group.
+   * @param {string} [body.issuedLifetime] The lifetime of certificates issued in
+   * the group.
    *
-   * @param {number} [request.issuedKeySize] The issued certificate key size in
+   * @param {number} [body.issuedKeySize] The issued certificate key size in
    * bits.
    *
-   * @param {string} [request.issuedSignatureAlgorithm] The issued certificate
-   * signature algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-   * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @param {string} [body.issuedSignatureAlgorithm] Possible values include:
+   * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -4820,11 +4622,11 @@ class AzureOpcVaultClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  createGroupWithHttpOperationResponse(request, options) {
+  createGroupWithHttpOperationResponse(body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._createGroup(request, options, (err, result, request, response) => {
+      self._createGroup(body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -4839,24 +4641,23 @@ class AzureOpcVaultClient extends ServiceClient {
    *
    * Requires manager role.
    *
-   * @param {object} request The create request
+   * @param {object} body The create request
    *
-   * @param {string} request.name The new name of the trust group
+   * @param {string} [body.name] The new name of the trust group
    *
-   * @param {string} request.parentId The identifer of the parent trust group.
+   * @param {string} [body.parentId] The identifer of the parent trust group.
    *
-   * @param {string} request.subjectName The subject name of the group as
+   * @param {string} [body.subjectName] The subject name of the group as
    * distinguished name.
    *
-   * @param {string} [request.issuedLifetime] The lifetime of certificates issued
-   * in the group.
+   * @param {string} [body.issuedLifetime] The lifetime of certificates issued in
+   * the group.
    *
-   * @param {number} [request.issuedKeySize] The issued certificate key size in
+   * @param {number} [body.issuedKeySize] The issued certificate key size in
    * bits.
    *
-   * @param {string} [request.issuedSignatureAlgorithm] The issued certificate
-   * signature algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-   * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @param {string} [body.issuedSignatureAlgorithm] Possible values include:
+   * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -4886,7 +4687,7 @@ class AzureOpcVaultClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  createGroup(request, options, optionalCallback) {
+  createGroup(body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -4895,24 +4696,23 @@ class AzureOpcVaultClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._createGroup(request, options, (err, result, request, response) => {
+        self._createGroup(body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._createGroup(request, options, optionalCallback);
+      return self._createGroup(body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Get group information.
    *
-   * A trust group has a root certificate which issues certificates
-   * to entities.  Entities can be part of a trust group and thus
-   * trust the root certificate and all entities that the root has
-   * issued certificates for.
+   * A trust group has a root certificate which issues certificates to entities.
+   * Entities can be part of a trust group and thus trust the root certificate
+   * and all entities that the root has issued certificates for.
    *
    * @param {string} groupId The group id
    *
@@ -4944,10 +4744,9 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Get group information.
    *
-   * A trust group has a root certificate which issues certificates
-   * to entities.  Entities can be part of a trust group and thus
-   * trust the root certificate and all entities that the root has
-   * issued certificates for.
+   * A trust group has a root certificate which issues certificates to entities.
+   * Entities can be part of a trust group and thus trust the root certificate
+   * and all entities that the root has issued certificates for.
    *
    * @param {string} groupId The group id
    *
@@ -5002,24 +4801,22 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Update group registration.
    *
-   * Use this function with care and only if you are aware of
-   * the security implications.
-   * Requires manager role.
+   * Use this function with care and only if you are aware of the security
+   * implications. Requires manager role.
    *
    * @param {string} groupId The group id
    *
-   * @param {object} request The group configuration
+   * @param {object} body The group configuration
    *
-   * @param {string} [request.name] The name of the trust group
+   * @param {string} [body.name] The name of the trust group
    *
-   * @param {string} [request.issuedLifetime] The issued certificate lifetime.
+   * @param {string} [body.issuedLifetime] The issued certificate lifetime.
    *
-   * @param {number} [request.issuedKeySize] The issued certificate key size in
+   * @param {number} [body.issuedKeySize] The issued certificate key size in
    * bits.
    *
-   * @param {string} [request.issuedSignatureAlgorithm] The issued certificate
-   * key size in bits. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-   * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @param {string} [body.issuedSignatureAlgorithm] Possible values include:
+   * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -5032,11 +4829,11 @@ class AzureOpcVaultClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  updateGroupWithHttpOperationResponse(groupId, request, options) {
+  updateGroupWithHttpOperationResponse(groupId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._updateGroup(groupId, request, options, (err, result, request, response) => {
+      self._updateGroup(groupId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -5049,24 +4846,22 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Update group registration.
    *
-   * Use this function with care and only if you are aware of
-   * the security implications.
-   * Requires manager role.
+   * Use this function with care and only if you are aware of the security
+   * implications. Requires manager role.
    *
    * @param {string} groupId The group id
    *
-   * @param {object} request The group configuration
+   * @param {object} body The group configuration
    *
-   * @param {string} [request.name] The name of the trust group
+   * @param {string} [body.name] The name of the trust group
    *
-   * @param {string} [request.issuedLifetime] The issued certificate lifetime.
+   * @param {string} [body.issuedLifetime] The issued certificate lifetime.
    *
-   * @param {number} [request.issuedKeySize] The issued certificate key size in
+   * @param {number} [body.issuedKeySize] The issued certificate key size in
    * bits.
    *
-   * @param {string} [request.issuedSignatureAlgorithm] The issued certificate
-   * key size in bits. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-   * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @param {string} [body.issuedSignatureAlgorithm] Possible values include:
+   * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -5094,7 +4889,7 @@ class AzureOpcVaultClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  updateGroup(groupId, request, options, optionalCallback) {
+  updateGroup(groupId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -5103,23 +4898,22 @@ class AzureOpcVaultClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._updateGroup(groupId, request, options, (err, result, request, response) => {
+        self._updateGroup(groupId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._updateGroup(groupId, request, options, optionalCallback);
+      return self._updateGroup(groupId, body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Delete a group.
    *
-   * After this operation the Issuer CA, CRLs and keys become inaccessible.
-   * Use this function with extreme caution.
-   * Requires manager role.
+   * After this operation the Issuer CA, CRLs and keys become inaccessible. Use
+   * this function with extreme caution. Requires manager role.
    *
    * @param {string} groupId The group id
    *
@@ -5151,9 +4945,8 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Delete a group.
    *
-   * After this operation the Issuer CA, CRLs and keys become inaccessible.
-   * Use this function with extreme caution.
-   * Requires manager role.
+   * After this operation the Issuer CA, CRLs and keys become inaccessible. Use
+   * this function with extreme caution. Requires manager role.
    *
    * @param {string} groupId The group id
    *
@@ -5208,34 +5001,32 @@ class AzureOpcVaultClient extends ServiceClient {
    *
    * Requires manager role.
    *
-   * @param {object} request The create request
+   * @param {object} body The create request
    *
-   * @param {string} request.name The new name of the trust group root
+   * @param {string} [body.name] The new name of the trust group root
    *
-   * @param {string} [request.type] The trust group type. Possible values
-   * include: 'ApplicationInstanceCertificate', 'HttpsCertificate',
+   * @param {string} [body.type] Possible values include:
+   * 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
    *
-   * @param {string} request.subjectName The subject name of the group as
+   * @param {string} [body.subjectName] The subject name of the group as
    * distinguished name.
    *
-   * @param {string} request.lifetime The lifetime of the trust group root
+   * @param {string} [body.lifetime] The lifetime of the trust group root
    * certificate.
    *
-   * @param {number} [request.keySize] The certificate key size in bits.
+   * @param {number} [body.keySize] The certificate key size in bits.
    *
-   * @param {string} [request.signatureAlgorithm] The certificate signature
-   * algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-   * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @param {string} [body.signatureAlgorithm] Possible values include: 'Rsa256',
+   * 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    *
-   * @param {string} [request.issuedLifetime] The issued certificate lifetime.
+   * @param {string} [body.issuedLifetime] The issued certificate lifetime.
    *
-   * @param {number} [request.issuedKeySize] The issued certificate key size in
+   * @param {number} [body.issuedKeySize] The issued certificate key size in
    * bits.
    *
-   * @param {string} [request.issuedSignatureAlgorithm] The issued certificate
-   * signature algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-   * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @param {string} [body.issuedSignatureAlgorithm] Possible values include:
+   * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -5248,11 +5039,11 @@ class AzureOpcVaultClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  createRootWithHttpOperationResponse(request, options) {
+  createRootWithHttpOperationResponse(body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._createRoot(request, options, (err, result, request, response) => {
+      self._createRoot(body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -5267,34 +5058,32 @@ class AzureOpcVaultClient extends ServiceClient {
    *
    * Requires manager role.
    *
-   * @param {object} request The create request
+   * @param {object} body The create request
    *
-   * @param {string} request.name The new name of the trust group root
+   * @param {string} [body.name] The new name of the trust group root
    *
-   * @param {string} [request.type] The trust group type. Possible values
-   * include: 'ApplicationInstanceCertificate', 'HttpsCertificate',
+   * @param {string} [body.type] Possible values include:
+   * 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
    *
-   * @param {string} request.subjectName The subject name of the group as
+   * @param {string} [body.subjectName] The subject name of the group as
    * distinguished name.
    *
-   * @param {string} request.lifetime The lifetime of the trust group root
+   * @param {string} [body.lifetime] The lifetime of the trust group root
    * certificate.
    *
-   * @param {number} [request.keySize] The certificate key size in bits.
+   * @param {number} [body.keySize] The certificate key size in bits.
    *
-   * @param {string} [request.signatureAlgorithm] The certificate signature
-   * algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-   * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @param {string} [body.signatureAlgorithm] Possible values include: 'Rsa256',
+   * 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    *
-   * @param {string} [request.issuedLifetime] The issued certificate lifetime.
+   * @param {string} [body.issuedLifetime] The issued certificate lifetime.
    *
-   * @param {number} [request.issuedKeySize] The issued certificate key size in
+   * @param {number} [body.issuedKeySize] The issued certificate key size in
    * bits.
    *
-   * @param {string} [request.issuedSignatureAlgorithm] The issued certificate
-   * signature algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-   * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @param {string} [body.issuedSignatureAlgorithm] Possible values include:
+   * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -5324,7 +5113,7 @@ class AzureOpcVaultClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  createRoot(request, options, optionalCallback) {
+  createRoot(body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -5333,14 +5122,14 @@ class AzureOpcVaultClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._createRoot(request, options, (err, result, request, response) => {
+        self._createRoot(body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._createRoot(request, options, optionalCallback);
+      return self._createRoot(body, options, optionalCallback);
     }
   }
 
@@ -5428,8 +5217,8 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Add trust relationship
    *
-   * Define trust between two entities.  The entities are identifiers
-   * of application, groups, or endpoints.
+   * Define trust between two entities. The entities are identifiers of
+   * application, groups, or endpoints.
    *
    * @param {string} entityId The entity identifier, e.g. group, etc.
    *
@@ -5463,8 +5252,8 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Add trust relationship
    *
-   * Define trust between two entities.  The entities are identifiers
-   * of application, groups, or endpoints.
+   * Define trust between two entities. The entities are identifiers of
+   * application, groups, or endpoints.
    *
    * @param {string} entityId The entity identifier, e.g. group, etc.
    *
@@ -5519,8 +5308,8 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary List trusted certificates
    *
-   * Returns all certificates the entity should trust based on the
-   * applied trust configuration.
+   * Returns all certificates the entity should trust based on the applied trust
+   * configuration.
    *
    * @param {string} entityId
    *
@@ -5557,8 +5346,8 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary List trusted certificates
    *
-   * Returns all certificates the entity should trust based on the
-   * applied trust configuration.
+   * Returns all certificates the entity should trust based on the applied trust
+   * configuration.
    *
    * @param {string} entityId
    *
@@ -5618,8 +5407,8 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Remove a trust relationship
    *
-   * Removes trust between two entities.  The entities are identifiers
-   * of application, groups, or endpoints.
+   * Removes trust between two entities. The entities are identifiers of
+   * application, groups, or endpoints.
    *
    * @param {string} entityId The entity identifier, e.g. group, etc.
    *
@@ -5653,8 +5442,8 @@ class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Remove a trust relationship
    *
-   * Removes trust between two entities.  The entities are identifiers
-   * of application, groups, or endpoints.
+   * Removes trust between two entities. The entities are identifiers of
+   * application, groups, or endpoints.
    *
    * @param {string} entityId The entity identifier, e.g. group, etc.
    *

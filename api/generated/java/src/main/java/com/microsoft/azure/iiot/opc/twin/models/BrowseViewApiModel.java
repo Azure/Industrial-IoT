@@ -14,7 +14,7 @@ import org.joda.time.DateTime;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * browse view model.
+ * Browse view model.
  */
 public class BrowseViewApiModel {
     /**

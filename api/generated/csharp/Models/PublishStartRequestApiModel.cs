@@ -8,7 +8,7 @@
 // regenerated.
 // </auto-generated>
 
-namespace Microsoft.Azure.IIoT.Opc.Twin.Models
+namespace Microsoft.Azure.IIoT.Opc.Publisher.Models
 {
     using Microsoft.Rest;
     using Newtonsoft.Json;
@@ -32,8 +32,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// Initializes a new instance of the PublishStartRequestApiModel
         /// class.
         /// </summary>
-        /// <param name="item">Item to publish</param>
-        /// <param name="header">Optional request header</param>
         public PublishStartRequestApiModel(PublishedItemApiModel item, RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             Item = item;
@@ -47,13 +45,11 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets item to publish
         /// </summary>
         [JsonProperty(PropertyName = "item")]
         public PublishedItemApiModel Item { get; set; }
 
         /// <summary>
-        /// Gets or sets optional request header
         /// </summary>
         [JsonProperty(PropertyName = "header")]
         public RequestHeaderApiModel Header { get; set; }

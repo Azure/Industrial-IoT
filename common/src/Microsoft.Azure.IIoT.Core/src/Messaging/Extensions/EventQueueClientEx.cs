@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Messaging {
             string contentType, string partitionKey) {
             return client.SendAsync(payload,
                 new Dictionary<string, string> {
-                    [CommonProperties.kContentType] = contentType
+                    [CommonProperties.EventSchemaType] = contentType
                 }, partitionKey);
         }
 

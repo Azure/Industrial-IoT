@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     public interface IVariantEncoder {
 
         /// <summary>
-        /// Encoder scoped context
+        /// Get context
         /// </summary>
         ServiceMessageContext Context { get; }
 
@@ -22,19 +22,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="value"></param>
         /// <param name="builtinType"></param>
-        /// <param name="context"></param>
         /// <returns></returns>
-        JToken Encode(Variant value, out BuiltInType builtinType,
-            ServiceMessageContext context = null);
+        JToken Encode(Variant value, out BuiltInType builtinType);
 
         /// <summary>
         /// Parse token to variant
         /// </summary>
         /// <param name="value"></param>
         /// <param name="builtinType"></param>
-        /// <param name="context"></param>
         /// <returns></returns>
-        Variant Decode(JToken value, BuiltInType builtinType,
-            ServiceMessageContext context = null);
+        Variant Decode(JToken value, BuiltInType builtinType);
     }
 }

@@ -10,7 +10,7 @@ Certificate request query model
 |Name|Description|Schema|
 |---|---|---|
 |**entityId**  <br>*optional*|The entity id to filter with|string|
-|**state**  <br>*optional*|The certificate request state|enum (New, Approved, Rejected, Failure, Completed, Accepted)|
+|**state**  <br>*optional*||[CertificateRequestStateNullable](definitions.md#certificaterequeststatenullable)|
 
 
 <a name="certificaterequestqueryresponseapimodel"></a>
@@ -31,15 +31,34 @@ Certificate request record model
 
 |Name|Description|Schema|
 |---|---|---|
-|**accepted**  <br>*optional*|Finished|[VaultOperationContextApiModel](definitions.md#vaultoperationcontextapimodel)|
-|**approved**  <br>*optional*|Approved or rejected|[VaultOperationContextApiModel](definitions.md#vaultoperationcontextapimodel)|
+|**accepted**  <br>*optional*||[VaultOperationContextApiModel](definitions.md#vaultoperationcontextapimodel)|
+|**approved**  <br>*optional*||[VaultOperationContextApiModel](definitions.md#vaultoperationcontextapimodel)|
 |**entityId**  <br>*optional*|Application id|string|
 |**errorInfo**  <br>*optional*|Error diagnostics|object|
 |**groupId**  <br>*optional*|Trust group|string|
 |**requestId**  <br>*optional*|Request id|string|
-|**state**  <br>*optional*|Request state|enum (New, Approved, Rejected, Failure, Completed, Accepted)|
-|**submitted**  <br>*optional*|Request time|[VaultOperationContextApiModel](definitions.md#vaultoperationcontextapimodel)|
-|**type**  <br>*optional*|Request type|enum (SigningRequest, KeyPairRequest)|
+|**state**  <br>*optional*||[CertificateRequestState](definitions.md#certificaterequeststate)|
+|**submitted**  <br>*optional*||[VaultOperationContextApiModel](definitions.md#vaultoperationcontextapimodel)|
+|**type**  <br>*optional*||[CertificateRequestType](definitions.md#certificaterequesttype)|
+
+
+<a name="certificaterequeststate"></a>
+### CertificateRequestState
+The certificate request states.
+
+*Type* : enum (New, Approved, Rejected, Failure, Completed, Accepted)
+
+
+<a name="certificaterequeststatenullable"></a>
+### CertificateRequestStateNullable
+*Type* : enum (New, Approved, Rejected, Failure, Completed, Accepted)
+
+
+<a name="certificaterequesttype"></a>
+### CertificateRequestType
+The certificate request type.
+
+*Type* : enum (SigningRequest, KeyPairRequest)
 
 
 <a name="finishnewkeypairrequestresponseapimodel"></a>
@@ -47,11 +66,11 @@ Certificate request record model
 Finish request results
 
 
-|Name|Description|Schema|
-|---|---|---|
-|**certificate**  <br>*optional*|Signed certificate|[X509CertificateApiModel](definitions.md#x509certificateapimodel)|
-|**privateKey**  <br>*optional*|Private key|[PrivateKeyApiModel](definitions.md#privatekeyapimodel)|
-|**request**  <br>*optional*|Request|[CertificateRequestRecordApiModel](definitions.md#certificaterequestrecordapimodel)|
+|Name|Schema|
+|---|---|
+|**certificate**  <br>*optional*|[X509CertificateApiModel](definitions.md#x509certificateapimodel)|
+|**privateKey**  <br>*optional*|[PrivateKeyApiModel](definitions.md#privatekeyapimodel)|
+|**request**  <br>*optional*|[CertificateRequestRecordApiModel](definitions.md#certificaterequestrecordapimodel)|
 
 
 <a name="finishsigningrequestresponseapimodel"></a>
@@ -59,10 +78,18 @@ Finish request results
 Finish request results
 
 
-|Name|Description|Schema|
-|---|---|---|
-|**certificate**  <br>*optional*|Signed certificate|[X509CertificateApiModel](definitions.md#x509certificateapimodel)|
-|**request**  <br>*optional*|Request|[CertificateRequestRecordApiModel](definitions.md#certificaterequestrecordapimodel)|
+|Name|Schema|
+|---|---|
+|**certificate**  <br>*optional*|[X509CertificateApiModel](definitions.md#x509certificateapimodel)|
+|**request**  <br>*optional*|[CertificateRequestRecordApiModel](definitions.md#certificaterequestrecordapimodel)|
+
+
+<a name="notfoundresult"></a>
+### NotFoundResult
+
+|Name|Schema|
+|---|---|
+|**statusCode**  <br>*optional*  <br>*read-only*|integer (int32)|
 
 
 <a name="privatekeyapimodel"></a>
@@ -72,20 +99,39 @@ Private key
 
 |Name|Description|Schema|
 |---|---|---|
-|**crv**  <br>*optional*|The curve for ECC algorithms|string|
+|**crv**  <br>*optional*||string|
 |**d**  <br>*optional*|RSA private exponent or ECC private key.  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
 |**dp**  <br>*optional*|RSA Private Key Parameter  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
 |**dq**  <br>*optional*|RSA Private Key Parameter  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
 |**e**  <br>*optional*|RSA public exponent, in Base64.  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
 |**k**  <br>*optional*|Symmetric key  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
-|**key_hsm**  <br>*optional*|HSM Token, used with "Bring Your Own Key"  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
-|**kty**  <br>*optional*|Key type|enum (RSA, ECC, AES)|
+|**key_hsm**  <br>*optional*|**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
+|**kty**  <br>*optional*||[PrivateKeyType](definitions.md#privatekeytype)|
 |**n**  <br>*optional*|RSA modulus.  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
 |**p**  <br>*optional*|RSA secret prime  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
-|**q**  <br>*optional*|RSA secret prime, with p &lt; q  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
+|**q**  <br>*optional*|RSA secret prime, with p < q  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
 |**qi**  <br>*optional*|RSA Private Key Parameter  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
 |**x**  <br>*optional*|X coordinate for the Elliptic Curve point.  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
 |**y**  <br>*optional*|Y coordinate for the Elliptic Curve point.  <br>**Pattern** : `"^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==\|[A-Za-z0-9+/]{3}=)?$"`|string (byte)|
+
+
+<a name="privatekeytype"></a>
+### PrivateKeyType
+Key type
+
+*Type* : enum (RSA, ECC, AES)
+
+
+<a name="signaturealgorithm"></a>
+### SignatureAlgorithm
+Signature algorithm
+
+*Type* : enum (Rsa256, Rsa384, Rsa512, Rsa256Pss, Rsa384Pss, Rsa512Pss)
+
+
+<a name="signaturealgorithmnullable"></a>
+### SignatureAlgorithmNullable
+*Type* : enum (Rsa256, Rsa384, Rsa512, Rsa256Pss, Rsa384Pss, Rsa512Pss)
 
 
 <a name="startnewkeypairrequestapimodel"></a>
@@ -95,11 +141,11 @@ New key pair request
 
 |Name|Description|Schema|
 |---|---|---|
-|**certificateType**  <br>*required*|Type|enum (ApplicationInstanceCertificate, HttpsCertificate, UserCredentialCertificate)|
+|**certificateType**  <br>*optional*||[TrustGroupType](definitions.md#trustgrouptype)|
 |**domainNames**  <br>*optional*|Domain names|< string > array|
-|**entityId**  <br>*required*|Entity id|string|
-|**groupId**  <br>*required*|Certificate group|string|
-|**subjectName**  <br>*required*|Subject name|string|
+|**entityId**  <br>*optional*|Entity id|string|
+|**groupId**  <br>*optional*|Certificate group|string|
+|**subjectName**  <br>*optional*|Subject name|string|
 
 
 <a name="startnewkeypairrequestresponseapimodel"></a>
@@ -109,7 +155,7 @@ New key pair response
 
 |Name|Description|Schema|
 |---|---|---|
-|**requestId**  <br>*required*|Request id|string|
+|**requestId**  <br>*optional*|Request id|string|
 
 
 <a name="startsigningrequestapimodel"></a>
@@ -119,9 +165,9 @@ Signing request
 
 |Name|Description|Schema|
 |---|---|---|
-|**certificateRequest**  <br>*required*|Request|object|
-|**entityId**  <br>*required*|Id of entity to sign a certificate for|string|
-|**groupId**  <br>*required*|Certificate group id|string|
+|**certificateRequest**  <br>*optional*|Request|object|
+|**entityId**  <br>*optional*|Id of entity to sign a certificate for|string|
+|**groupId**  <br>*optional*|Certificate group id|string|
 
 
 <a name="startsigningrequestresponseapimodel"></a>
@@ -131,25 +177,7 @@ Signing request response
 
 |Name|Description|Schema|
 |---|---|---|
-|**requestId**  <br>*required*|Request id|string|
-
-
-<a name="statusresponseapimodel"></a>
-### StatusResponseApiModel
-Status model
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**$metadata**  <br>*optional*  <br>*read-only*|Optional meta data.|< string, string > map|
-|**currentTime**  <br>*optional*  <br>*read-only*|Current time|string|
-|**dependencies**  <br>*optional*  <br>*read-only*|A property bag with details about the internal dependencies|< string, string > map|
-|**name**  <br>*optional*|Name of this service|string|
-|**properties**  <br>*optional*  <br>*read-only*|A property bag with details about the service|< string, string > map|
-|**startTime**  <br>*optional*  <br>*read-only*|Start time of service|string|
-|**status**  <br>*optional*|Operational status|string|
-|**uid**  <br>*optional*  <br>*read-only*|Value generated at bootstrap by each instance of the service and<br>used to correlate logs coming from the same instance. The value<br>changes every time the service starts.|string|
-|**upTime**  <br>*optional*  <br>*read-only*|Up time of service|integer (int64)|
+|**requestId**  <br>*optional*|Request id|string|
 
 
 <a name="trustgroupapimodel"></a>
@@ -160,15 +188,15 @@ Trust group model
 |Name|Description|Schema|
 |---|---|---|
 |**issuedKeySize**  <br>*optional*|The issued certificate key size in bits.|integer (int32)|
-|**issuedLifetime**  <br>*optional*|The issued certificate lifetime in months.|string|
-|**issuedSignatureAlgorithm**  <br>*optional*|The Signature algorithm for issued certificates|enum (Rsa256, Rsa384, Rsa512, Rsa256Pss, Rsa384Pss, Rsa512Pss)|
+|**issuedLifetime**  <br>*optional*|The issued certificate lifetime in months.|string (date-span)|
+|**issuedSignatureAlgorithm**  <br>*optional*||[SignatureAlgorithm](definitions.md#signaturealgorithm)|
 |**keySize**  <br>*optional*|The trust group certificate key size in bits.|integer (int32)|
-|**lifetime**  <br>*optional*|The lifetime of the trust group certificate.|string|
-|**name**  <br>*required*|The name of the trust group.|string|
+|**lifetime**  <br>*optional*|The lifetime of the trust group certificate.|string (date-span)|
+|**name**  <br>*optional*|The name of the trust group.|string|
 |**parentId**  <br>*optional*|The identifer of the parent trust group.|string|
-|**signatureAlgorithm**  <br>*optional*|The certificate signature algorithm.|enum (Rsa256, Rsa384, Rsa512, Rsa256Pss, Rsa384Pss, Rsa512Pss)|
-|**subjectName**  <br>*required*|The subject name of the group as distinguished name.|string|
-|**type**  <br>*optional*|The trust group type  <br>**Default** : `"ApplicationInstanceCertificate"`|enum (ApplicationInstanceCertificate, HttpsCertificate, UserCredentialCertificate)|
+|**signatureAlgorithm**  <br>*optional*||[SignatureAlgorithm](definitions.md#signaturealgorithm)|
+|**subjectName**  <br>*optional*|The subject name of the group as distinguished name.|string|
+|**type**  <br>*optional*||[TrustGroupType](definitions.md#trustgrouptype)|
 
 
 <a name="trustgroupregistrationapimodel"></a>
@@ -178,8 +206,8 @@ Trust group registration model
 
 |Name|Description|Schema|
 |---|---|---|
-|**group**  <br>*required*|Trust group|[TrustGroupApiModel](definitions.md#trustgroupapimodel)|
-|**id**  <br>*required*|The registered id of the trust group|string|
+|**group**  <br>*optional*||[TrustGroupApiModel](definitions.md#trustgroupapimodel)|
+|**id**  <br>*optional*|The registered id of the trust group|string|
 
 
 <a name="trustgroupregistrationlistapimodel"></a>
@@ -201,11 +229,11 @@ Trust group registration request model
 |Name|Description|Schema|
 |---|---|---|
 |**issuedKeySize**  <br>*optional*|The issued certificate key size in bits.|integer (int32)|
-|**issuedLifetime**  <br>*optional*|The lifetime of certificates issued in the group.|string|
-|**issuedSignatureAlgorithm**  <br>*optional*|The issued certificate signature algorithm.|enum (Rsa256, Rsa384, Rsa512, Rsa256Pss, Rsa384Pss, Rsa512Pss)|
-|**name**  <br>*required*|The new name of the trust group|string|
-|**parentId**  <br>*required*|The identifer of the parent trust group.|string|
-|**subjectName**  <br>*required*|The subject name of the group as distinguished name.|string|
+|**issuedLifetime**  <br>*optional*|The lifetime of certificates issued in the group.|string (date-span)|
+|**issuedSignatureAlgorithm**  <br>*optional*||[SignatureAlgorithmNullable](definitions.md#signaturealgorithmnullable)|
+|**name**  <br>*optional*|The new name of the trust group|string|
+|**parentId**  <br>*optional*|The identifer of the parent trust group.|string|
+|**subjectName**  <br>*optional*|The subject name of the group as distinguished name.|string|
 
 
 <a name="trustgroupregistrationresponseapimodel"></a>
@@ -215,7 +243,7 @@ Trust group registration response model
 
 |Name|Description|Schema|
 |---|---|---|
-|**id**  <br>*required*|The id of the trust group|string|
+|**id**  <br>*optional*|The id of the trust group|string|
 
 
 <a name="trustgrouprootcreaterequestapimodel"></a>
@@ -226,14 +254,21 @@ Trust group root registration model
 |Name|Description|Schema|
 |---|---|---|
 |**issuedKeySize**  <br>*optional*|The issued certificate key size in bits.|integer (int32)|
-|**issuedLifetime**  <br>*optional*|The issued certificate lifetime.|string|
-|**issuedSignatureAlgorithm**  <br>*optional*|The issued certificate signature algorithm.|enum (Rsa256, Rsa384, Rsa512, Rsa256Pss, Rsa384Pss, Rsa512Pss)|
+|**issuedLifetime**  <br>*optional*|The issued certificate lifetime.|string (date-span)|
+|**issuedSignatureAlgorithm**  <br>*optional*||[SignatureAlgorithmNullable](definitions.md#signaturealgorithmnullable)|
 |**keySize**  <br>*optional*|The certificate key size in bits.|integer (int32)|
-|**lifetime**  <br>*required*|The lifetime of the trust group root certificate.|string|
-|**name**  <br>*required*|The new name of the trust group root|string|
-|**signatureAlgorithm**  <br>*optional*|The certificate signature algorithm.|enum (Rsa256, Rsa384, Rsa512, Rsa256Pss, Rsa384Pss, Rsa512Pss)|
-|**subjectName**  <br>*required*|The subject name of the group as distinguished name.|string|
-|**type**  <br>*optional*|The trust group type.  <br>**Default** : `"ApplicationInstanceCertificate"`|enum (ApplicationInstanceCertificate, HttpsCertificate, UserCredentialCertificate)|
+|**lifetime**  <br>*optional*|The lifetime of the trust group root certificate.|string (date-span)|
+|**name**  <br>*optional*|The new name of the trust group root|string|
+|**signatureAlgorithm**  <br>*optional*||[SignatureAlgorithmNullable](definitions.md#signaturealgorithmnullable)|
+|**subjectName**  <br>*optional*|The subject name of the group as distinguished name.|string|
+|**type**  <br>*optional*||[TrustGroupType](definitions.md#trustgrouptype)|
+
+
+<a name="trustgrouptype"></a>
+### TrustGroupType
+Trust group types
+
+*Type* : enum (ApplicationInstanceCertificate, HttpsCertificate, UserCredentialCertificate)
 
 
 <a name="trustgroupupdaterequestapimodel"></a>
@@ -244,8 +279,8 @@ Trust group update model
 |Name|Description|Schema|
 |---|---|---|
 |**issuedKeySize**  <br>*optional*|The issued certificate key size in bits.|integer (int32)|
-|**issuedLifetime**  <br>*optional*|The issued certificate lifetime.|string|
-|**issuedSignatureAlgorithm**  <br>*optional*|The issued certificate key size in bits.|enum (Rsa256, Rsa384, Rsa512, Rsa256Pss, Rsa384Pss, Rsa512Pss)|
+|**issuedLifetime**  <br>*optional*|The issued certificate lifetime.|string (date-span)|
+|**issuedSignatureAlgorithm**  <br>*optional*||[SignatureAlgorithmNullable](definitions.md#signaturealgorithmnullable)|
 |**name**  <br>*optional*|The name of the trust group|string|
 
 
@@ -257,7 +292,7 @@ Vault operation log model
 |Name|Description|Schema|
 |---|---|---|
 |**authorityId**  <br>*optional*|User|string|
-|**time**  <br>*required*|Operation time|string (date-time)|
+|**time**  <br>*optional*|Operation time|string (date-time)|
 
 
 <a name="x509certificateapimodel"></a>
@@ -267,7 +302,7 @@ Certificate model
 
 |Name|Description|Schema|
 |---|---|---|
-|**certificate**  <br>*required*|Raw data|object|
+|**certificate**  <br>*optional*|Raw data|object|
 |**notAfterUtc**  <br>*optional*|Not after validity|string (date-time)|
 |**notBeforeUtc**  <br>*optional*|Not before validity|string (date-time)|
 |**serialNumber**  <br>*optional*|Serial number|string|
@@ -303,13 +338,13 @@ A X509 certificate revocation list.
 
 |Name|Description|Schema|
 |---|---|---|
-|**crl**  <br>*required*|The certificate revocation list.|object|
+|**crl**  <br>*optional*|The certificate revocation list.|object|
 |**issuer**  <br>*optional*|The Issuer name of the revocation list.|string|
 
 
 <a name="x509crlchainapimodel"></a>
 ### X509CrlChainApiModel
-Crl collection model
+Crl chain model
 
 
 |Name|Description|Schema|

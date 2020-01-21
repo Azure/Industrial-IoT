@@ -11,7 +11,7 @@
 'use strict';
 
 /**
- * Application registration request
+ * Server registration request
  *
  */
 class ServerRegistrationRequestApiModel {
@@ -19,16 +19,7 @@ class ServerRegistrationRequestApiModel {
    * Create a ServerRegistrationRequestApiModel.
    * @property {string} discoveryUrl Discovery url to use for registration
    * @property {string} [id] Registration id
-   * @property {object} [callback] An optional callback hook to register.
-   * @property {string} [callback.uri] Uri to call - should use https scheme in
-   * which
-   * case security is enforced.
-   * @property {string} [callback.method] Http Method to use for callback.
-   * Possible values include: 'Get', 'Post', 'Put', 'Delete'
-   * @property {string} [callback.authenticationHeader] Authentication header
-   * to add or null if not needed
-   * @property {object} [activationFilter] Upon discovery, activate all
-   * endpoints with this filter.
+   * @property {object} [activationFilter]
    * @property {array} [activationFilter.trustLists] Certificate trust list
    * identifiers to use for
    * activation, if null, all certificates are
@@ -37,10 +28,8 @@ class ServerRegistrationRequestApiModel {
    * @property {array} [activationFilter.securityPolicies] Endpoint security
    * policies to filter against.
    * If set to null, all policies are in scope.
-   * @property {string} [activationFilter.securityMode] Security mode level to
-   * activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   * @property {string} [activationFilter.securityMode] Possible values
+   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
    */
   constructor() {
   }
@@ -71,14 +60,6 @@ class ServerRegistrationRequestApiModel {
             serializedName: 'id',
             type: {
               name: 'String'
-            }
-          },
-          callback: {
-            required: false,
-            serializedName: 'callback',
-            type: {
-              name: 'Composite',
-              className: 'CallbackApiModel'
             }
           },
           activationFilter: {

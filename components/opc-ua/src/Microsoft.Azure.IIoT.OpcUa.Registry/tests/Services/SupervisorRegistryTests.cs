@@ -87,24 +87,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         [Fact]
-        public void QuerySupervisorsByDiscoveryMode() {
-            CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
-
-            using (var mock = AutoMock.GetLoose()) {
-                mock.Provide<IIoTHubTwinServices>(IoTHubServices.Create(modules));
-                ISupervisorRegistry service = mock.Create<SupervisorRegistry>();
-
-                // Run
-                var records = service.QuerySupervisorsAsync(new SupervisorQueryModel {
-                    Discovery = DiscoveryMode.Network
-                }, false, null).Result;
-
-                // Assert
-                Assert.True(records.Items.Count == supervisors.Count(x => x.Discovery == DiscoveryMode.Network));
-            }
-        }
-
-        [Fact]
         public void QuerySupervisorsBySiteId() {
             CreateSupervisorFixtures(out var site, out var supervisors, out var modules);
 
@@ -167,7 +149,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 .Select(a => a.ToDeviceTwin())
                 .Select(t => {
                     t.Properties.Reported = new Dictionary<string, JToken> {
-                        [TwinProperty.kType] = "supervisor"
+                        [TwinProperty.Type] = IdentityType.Supervisor
                     };
                     return t;
                 })

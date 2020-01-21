@@ -1,0 +1,159 @@
+﻿@page "/endpoints"
+@page "/endpoints/{page}"
+@page "/endpoints/{discovererId}/{applicationId}"
+@page "/endpoints/{discovererId}/{applicationId}/{page}"
+
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.Azure.IIoT.App.Services
+@using Microsoft.Azure.IIoT.App.Components.Pager
+@using Microsoft.Azure.IIoT.App.Data
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
+
+@inject NavigationManager NavigationManager
+@inject IRegistryServiceApi RegistryService
+@inject Registry RegistryHelper
+
+<h1>Endpoints</h1>
+
+<div>
+    @{ string discover = DiscovererId == RegistryHelper.PathAll ? string.Empty : DiscovererId; }
+    @discover
+</div>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Endpoint Url</th>
+            <th>Security Mode</th>
+            <th>Security Policy</th>
+            <th>Security Level</th>
+            <th>Activation Status</th>
+            <th>
+                @if ((DiscovererId != null) && (DiscovererId != @RegistryHelper.PathAll)) {
+                    <a href="/discoverers/">
+                        <span class="oi oi-arrow-left"></span>
+                    </a>
+                }
+                else if ((ApplicationId != null) && (ApplicationId != @RegistryHelper.PathAll)) {
+                    <a href="/applications/">
+                        <span class="oi oi-arrow-left"></span>
+                    </a>
+                }
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var endpoint in pagedendpointList.Results) {
+            <tr>
+                @if (endpoint.ActivationState == EndpointActivationState.ActivatedAndConnected ||
+                     endpoint.ActivationState == EndpointActivationState.Activated) {
+                <td>
+                    @{ discover = DiscovererId == null ? RegistryHelper.PathAll : DiscovererId; } 
+                    @{ string application = ApplicationId == null ? RegistryHelper.PathAll : ApplicationId; }
+                    <a href='browser/@discover/@application/@endpoint.Registration.Id'>
+                        @endpoint.Registration.Endpoint.Url
+                    </a>
+                </td>
+                }
+                else {
+                    <td>@endpoint.Registration.Endpoint.Url</td>
+                }
+                <td>@endpoint.Registration.Endpoint.SecurityMode</td>
+                <td>@endpoint.Registration.Endpoint.SecurityPolicy</td>
+                <td>@endpoint.Registration.SecurityLevel</td>
+
+                <td>
+                    @if (endpoint.ActivationState == EndpointActivationState.ActivatedAndConnected ||
+                        endpoint.ActivationState == EndpointActivationState.Activated) {
+                        <input type="checkbox" checked
+                               @onchange="async eventArgs => { await SetActivation(endpoint.Registration.Id, eventArgs.Value); }" />
+                        @endpoint.ActivationState.ToString()
+                    }
+                    else {
+                        <input type="checkbox"
+                               @onchange="async eventArgs => { await SetActivation(endpoint.Registration.Id, eventArgs.Value); }" />
+                        @endpoint.ActivationState.ToString()
+                    }
+
+                </td>
+                <td></td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<Pager Result=@endpointList PageChanged=@((Page) => PagerPageChanged(Page)) />
+
+@code {
+
+    [Parameter]
+    public string Page { get; set; } = "1";
+
+    [Parameter]
+    public string DiscovererId { get; set; } = string.Empty;
+
+    [Parameter]
+    public string ApplicationId { get; set; } = string.Empty;
+
+    public const int PageLength = 10;
+
+    /// <summary>
+    /// Notify page change
+    /// </summary>
+    /// <param name="page"></param>
+    public void PagerPageChanged(int page) {
+        pagedendpointList = endpointList.GetPaged(page, PageLength);
+        NavigationManager.NavigateTo("/endpoints/" + page);
+    }
+
+    /// <inheritdoc/>
+    protected override async Task OnInitializedAsync() {
+        endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId);
+        Page = "1";
+        pagedendpointList = endpointList.GetPaged(Int32.Parse(Page), PageLength);
+    }
+
+    /// <summary>
+    /// Activate or deactivate an endpoint
+    /// </summary>
+    /// <param name="endpointId"></param>
+    /// <param name="checkedValue"></param>
+    /// <returns></returns>
+    private async Task SetActivation(string endpointId, object checkedValue) {
+        if ((bool)checkedValue) {
+
+            await RegistryService.ActivateEndpointAsync(endpointId);
+        }
+        else {
+            await RegistryService.DeactivateEndpointAsync(endpointId);
+        }
+
+        endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId);
+        pagedendpointList = endpointList.GetPaged(Int32.Parse(Page), PageLength);
+        await Task.CompletedTask;
+        this.StateHasChanged();
+    }
+
+    /// <summary>
+    /// Activate or deactivate
+    /// </summary>
+    /// <param name="endpointId"></param>
+    /// <param name="isActivated"></param>
+    /// <returns></returns>
+    private async Task SetActivation1(string endpointId, EndpointActivationState? state) {
+        if (state == EndpointActivationState.Activated ||
+            state == EndpointActivationState.ActivatedAndConnected) {
+            await RegistryService.DeactivateEndpointAsync(endpointId);
+        }
+        else {
+            await RegistryService.ActivateEndpointAsync(endpointId);
+        }
+
+    }
+
+    public PagedResult<EndpointInfoApiModel> endpointList =
+        new PagedResult<EndpointInfoApiModel>();
+    public PagedResult<EndpointInfoApiModel> pagedendpointList =
+        new PagedResult<EndpointInfoApiModel>();
+}

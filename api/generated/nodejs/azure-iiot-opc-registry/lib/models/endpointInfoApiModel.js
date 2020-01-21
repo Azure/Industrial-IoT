@@ -17,27 +17,23 @@
 class EndpointInfoApiModel {
   /**
    * Create a EndpointInfoApiModel.
-   * @property {object} registration Endpoint registration
+   * @property {object} registration
    * @property {string} [registration.id] Registered identifier of the endpoint
    * @property {string} [registration.endpointUrl] Original endpoint url of the
    * endpoint
    * @property {string} [registration.siteId] Registered site of the endpoint
-   * @property {object} [registration.endpoint] Endpoint information of the
-   * registration
+   * @property {string} [registration.supervisorId] Supervisor that manages the
+   * endpoint.
+   * @property {string} [registration.discovererId] Discoverer that registered
+   * the endpoint
+   * @property {object} [registration.endpoint]
    * @property {string} [registration.endpoint.url] Endpoint url to use to
    * connect with
    * @property {array} [registration.endpoint.alternativeUrls] Alternative
    * endpoint urls that can be used for
    * accessing and validating the server
-   * @property {object} [registration.endpoint.user] User Authentication
-   * @property {string} [registration.endpoint.user.type] Type of credential.
-   * Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   * @property {object} [registration.endpoint.user.value] Value to pass to
-   * server
-   * @property {string} [registration.endpoint.securityMode] Security Mode to
-   * use for communication
-   * default to best. Possible values include: 'Best', 'Sign',
-   * 'SignAndEncrypt', 'None'
+   * @property {string} [registration.endpoint.securityMode] Possible values
+   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
    * @property {string} [registration.endpoint.securityPolicy] Security policy
    * uri to use for communication
    * default to best.
@@ -50,12 +46,10 @@ class EndpointInfoApiModel {
    * obtain a credential and used to interact with the endpoint.
    * @property {string} applicationId Application id endpoint is registered
    * under.
-   * @property {string} [activationState] Activation state of endpoint.
-   * Possible values include: 'Deactivated', 'Activated',
-   * 'ActivatedAndConnected'
-   * @property {string} [endpointState] Last state of the activated endpoint.
-   * Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust',
-   * 'CertificateInvalid', 'Ready', 'Error'
+   * @property {string} [activationState] Possible values include:
+   * 'Deactivated', 'Activated', 'ActivatedAndConnected'
+   * @property {string} [endpointState] Possible values include: 'Connecting',
+   * 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
    * @property {boolean} [outOfSync] Whether the registration is out of sync
    * @property {date} [notSeenSince] Last time endpoint was seen
    */

@@ -17,17 +17,16 @@
 class NodeApiModel {
   /**
    * Create a NodeApiModel.
-   * @property {string} [nodeClass] Type of node. Possible values include:
-   * 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType',
-   * 'ReferenceType', 'DataType', 'View'
+   * @property {string} [nodeClass] Possible values include: 'Object',
+   * 'Variable', 'Method', 'ObjectType', 'VariableType', 'ReferenceType',
+   * 'DataType', 'View'
    * @property {string} [displayName] Display name
    * @property {string} nodeId Id of node.
    * (Mandatory).
    * @property {string} [description] Description if any
    * @property {string} [browseName] Browse name
-   * @property {string} [accessRestrictions] Node access restrictions if any.
-   * (default: none). Possible values include: 'SigningRequired',
-   * 'EncryptionRequired', 'SessionRequired'
+   * @property {string} [accessRestrictions] Possible values include:
+   * 'SigningRequired', 'EncryptionRequired', 'SessionRequired'
    * @property {number} [writeMask] Default write mask for the node
    * (default: 0)
    * @property {number} [userWriteMask] User write mask for the node
@@ -38,10 +37,7 @@ class NodeApiModel {
    * @property {boolean} [containsNoLoops] Whether a view contains loops. Null
    * if
    * not a view.
-   * @property {string} [eventNotifier] If object or view and eventing, event
-   * notifier
-   * to subscribe to.
-   * (default: no events supported). Possible values include:
+   * @property {string} [eventNotifier] Possible values include:
    * 'SubscribeToEvents', 'HistoryRead', 'HistoryWrite'
    * @property {boolean} [executable] If method node class, whether method can
    * be called.
@@ -53,22 +49,19 @@ class NodeApiModel {
    * is a
    * data type node and definition is available,
    * otherwise null.
-   * @property {string} [accessLevel] Default access level for variable node.
-   * (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite',
-   * 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite',
-   * 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'
-   * @property {string} [userAccessLevel] User access level for variable node
-   * or null.
-   * (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite',
-   * 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite',
-   * 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'
+   * @property {string} [accessLevel] Possible values include: 'CurrentRead',
+   * 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange',
+   * 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite',
+   * 'WriteFullArrayOnly'
+   * @property {string} [userAccessLevel] Possible values include:
+   * 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite',
+   * 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead',
+   * 'NonatomicWrite', 'WriteFullArrayOnly'
    * @property {string} [dataType] If variable the datatype of the variable.
    * (default: null)
-   * @property {string} [valueRank] Value rank of the variable data of a
-   * variable
-   * or variable type, otherwise null.
-   * (default: scalar = -1). Possible values include: 'ScalarOrOneDimension',
-   * 'Any', 'Scalar', 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions'
+   * @property {string} [valueRank] Possible values include:
+   * 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions',
+   * 'ScalarOrOneDimension', 'Any', 'Scalar'
    * @property {array} [arrayDimensions] Array dimensions of variable or
    * variable type.
    * (default: empty array)
@@ -242,7 +235,7 @@ class NodeApiModel {
             serializedName: 'valueRank',
             type: {
               name: 'Enum',
-              allowedValues: [ 'ScalarOrOneDimension', 'Any', 'Scalar', 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions' ]
+              allowedValues: [ 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions', 'ScalarOrOneDimension', 'Any', 'Scalar' ]
             }
           },
           arrayDimensions: {

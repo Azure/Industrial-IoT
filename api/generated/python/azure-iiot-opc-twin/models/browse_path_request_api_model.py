@@ -25,7 +25,7 @@ class BrowsePathRequestApiModel(Model):
      nodes.
      (default is false). Default value: False .
     :type read_variable_values: bool
-    :param header: Optional request header
+    :param header:
     :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
 

@@ -8,7 +8,7 @@
 
 Azure Industrial IoT allows plant operators to discover OPC UA enabled servers in a factory network and register them in Azure IoT Hub.  
 
-### Analyze, react to events, and control equipment from anywhere
+### Analyze, react to events, and control factory equipment from anywhere
 
 Operations personnel can subscribe to and react to events on the factory floor from anywhere in the world.  The Microservices' REST APIs mirror the OPC UA services edge-side and are secured using OAUTH authentication and authorization backed by Azure Active Directory (AAD).  This enables your cloud applications to browse server address spaces or read/write variables and execute methods using HTTPS and simple OPC UA JSON payloads.  
 
@@ -16,40 +16,25 @@ Operations personnel can subscribe to and react to events on the factory floor f
 
 The [REST API](docs/api/readme.md) can be used with any programming language through its exposed Open API specification (Swagger). This means when integrating OPC UA into cloud management solutions, developers are free to choose technology that matches their skills, interests, and architecture choices.  For example, a full stack web developer who develops an application for an alarm and event dashboard can write logic to respond to events in JavaScript or TypeScript without ramping up on a OPC UA SDK, C, C++, Java or C#.
 
-### Manage certificates and trust groups
+## Getting started
 
-Azure Industrial IoT manages OPC UA Application Certificates and Trust Lists of factory floor machinery and control systems to keep OPC UA client to server communication secure. It restricts which client is allowed to talk to which server.  Storage of private keys and signing of certificates is backed by Azure Key Vault, which supports hardware based security (HSM).
+- [Deploy the platform components and Edge Gateway](docs/deploy/readme.md)
+- Discover and register Industrial Assets
+  - [Discover a server and browse its address space using the CLI](docs/howto-use-cli.md).
+  - [Discover a server and browse its address space using Postman](docs/howto-use-postman.md).
+- Subscribe to data and visualize the data (COMING SOON)
+- [Read the docs](https://azure.github.io/Industrial-IoT/)
+- Explore Industrial IoT projects using this platform
+  - [Connected Factory](https://github.com/Azure/Azure-IoT-Connected-Factory) Solution Accelerator which you can try out [here](https://www.azureiotsolutions.com/Accelerators).
+  - [OPC Vault Dashboard](https://github.com/Azure/azure-iiot-opc-vault-service/tree/master/app)
 
-## Architecture and Components
-
-This repository includes the Industrial IoT Microservices as well as Azure IoT Edge modules, including:
-
-- [OPC Twin module](docs/modules/twin.md)
-
-* [OPC Publisher module](docs/modules/publisher.md)
-
-These are all part of the Azure Industrial IoT platform architecture.
-
-![architecture](docs/media/architecture.PNG)
-
-Details on how things work together can be found in the [architectural flow](docs/architecture.md) document.
-
-### Learn more
-
-* [Deploy Azure Industrial IoT](docs/readme.md)
-* [Read the docs](https://azure.github.io/Industrial-IoT/)
-* Explore the samples
-  * [Connected Factory](https://github.com/Azure/Azure-IoT-Connected-Factory) Solution Accelerator which you can try out [here](https://www.azureiotsolutions.com/Accelerators).
-  * [OPC Vault Dashboard](https://github.com/Azure/azure-iiot-opc-vault-service/tree/master/app)
-  * [OPC Twin Browser](https://github.com/Azure/azure-iiot-opc-twin-webui)
-
-### Give feedback and report bugs
+## Give feedback and report bugs
 
 Please report any security related issues by following our [Security](security.md) process.
 
-Please enter all other bugs, documentation issues, or suggestions as GitHub Issues [here](https://github.com/Azure/Industrial-IoT/issues).   
+Please enter all other bugs, feature requests, documentation issues, or suggestions as GitHub Issues [here](https://github.com/Azure/Industrial-IoT/issues).
 
-### Contribute
+## Contribute
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct).  For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
@@ -59,4 +44,3 @@ If you want/plan to contribute, we ask you to sign a [CLA](https://cla.microsoft
 
 Copyright (c) Microsoft Corporation. All rights reserved.
 Licensed under the [MIT](LICENSE) License.  
-

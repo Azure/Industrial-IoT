@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Hub;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
@@ -14,15 +15,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     /// Twin (endpoint) registration persisted and comparable
     /// </summary>
     [Serializable]
-    public sealed class EndpointRegistration : BaseRegistration {
+    public sealed class EndpointRegistration : EntityRegistration {
 
         /// <inheritdoc/>
-        public override string DeviceType => "Endpoint";
+        public override string DeviceType => IdentityType.Endpoint;
 
         /// <summary>
         /// Device id is twin id
         /// </summary>
         public override string DeviceId => base.DeviceId ?? Id;
+
+        /// <summary>
+        /// Site or gateway id
+        /// </summary>
+        public override string SiteOrGatewayId => this.GetSiteOrGatewayId();
+
+        /// <summary>
+        /// Identity that owns the twin.
+        /// </summary>
+        public string DiscovererId { get; set; }
+
+        /// <summary>
+        /// Identity that manages the endpoint twin.
+        /// </summary>
+        public string SupervisorId { get; set; }
+
+        /// <summary>
+        /// Application id of twin
+        /// </summary>
+        public string ApplicationId { get; set; }
 
         /// <summary>
         /// Lower case endpoint url
@@ -60,16 +81,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Alternative urls
         /// </summary>
         public Dictionary<string, string> AlternativeUrls { get; set; }
-
-        /// <summary>
-        /// Default user authentication credential type
-        /// </summary>
-        public CredentialType? CredentialType { get; set; }
-
-        /// <summary>
-        /// Default user authentication credential to use on endpoint
-        /// </summary>
-        public JToken Credential { get; set; }
 
         /// <summary>
         /// Endpoint security policy to use.
@@ -124,12 +135,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public override bool Equals(object obj) {
             var registration = obj as EndpointRegistration;
             return base.Equals(registration) &&
+                DiscovererId == registration.DiscovererId &&
+                SupervisorId == registration.SupervisorId &&
+                ApplicationId == registration.ApplicationId &&
                 (Activated ?? false) == (registration.Activated ?? false) &&
                 EndpointUrlLC == registration.EndpointUrlLC &&
                 SupervisorId == registration.SupervisorId &&
-                JToken.DeepEquals(Credential, registration.Credential) &&
                 State == registration.State &&
-                CredentialType == registration.CredentialType &&
                 SecurityLevel == registration.SecurityLevel &&
                 SecurityPolicy == registration.SecurityPolicy &&
                 SecurityMode == registration.SecurityMode &&
@@ -152,15 +164,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(EndpointUrlLC);
             hashCode = (hashCode * -1521134295) +
+                EqualityComparer<string>.Default.GetHashCode(DiscovererId);
+            hashCode = (hashCode * -1521134295) +
+                EqualityComparer<string>.Default.GetHashCode(SupervisorId);
+            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(ApplicationId);
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<bool>.Default.GetHashCode(Activated ?? false);
             hashCode = (hashCode * -1521134295) +
-                JToken.EqualityComparer.GetHashCode(Credential);
-            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<int?>.Default.GetHashCode(SecurityLevel);
-            hashCode = (hashCode * -1521134295) +
-                EqualityComparer<CredentialType?>.Default.GetHashCode(CredentialType);
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<EndpointConnectivityState?>.Default.GetHashCode(State);
             hashCode = (hashCode * -1521134295) +

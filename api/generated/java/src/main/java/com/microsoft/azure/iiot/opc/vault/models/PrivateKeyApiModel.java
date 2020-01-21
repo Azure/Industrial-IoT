@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class PrivateKeyApiModel {
     /**
-     * Key type. Possible values include: 'RSA', 'ECC', 'AES'.
+     * Possible values include: 'RSA', 'ECC', 'AES'.
      */
     @JsonProperty(value = "kty")
     private PrivateKeyType kty;
@@ -59,13 +59,13 @@ public class PrivateKeyApiModel {
     private byte[] p;
 
     /**
-     * RSA secret prime, with p &amp;lt; q.
+     * RSA secret prime, with p &lt; q.
      */
     @JsonProperty(value = "q")
     private byte[] q;
 
     /**
-     * The curve for ECC algorithms.
+     * The crv property.
      */
     @JsonProperty(value = "crv")
     private String crv;
@@ -95,13 +95,13 @@ public class PrivateKeyApiModel {
     private byte[] k;
 
     /**
-     * HSM Token, used with "Bring Your Own Key".
+     * The keyHsm property.
      */
     @JsonProperty(value = "key_hsm")
     private byte[] keyHsm;
 
     /**
-     * Get key type. Possible values include: 'RSA', 'ECC', 'AES'.
+     * Get possible values include: 'RSA', 'ECC', 'AES'.
      *
      * @return the kty value
      */
@@ -110,7 +110,7 @@ public class PrivateKeyApiModel {
     }
 
     /**
-     * Set key type. Possible values include: 'RSA', 'ECC', 'AES'.
+     * Set possible values include: 'RSA', 'ECC', 'AES'.
      *
      * @param kty the kty value to set
      * @return the PrivateKeyApiModel object itself.
@@ -241,7 +241,7 @@ public class PrivateKeyApiModel {
     }
 
     /**
-     * Get rSA secret prime, with p &amp;lt; q.
+     * Get rSA secret prime, with p &lt; q.
      *
      * @return the q value
      */
@@ -250,7 +250,7 @@ public class PrivateKeyApiModel {
     }
 
     /**
-     * Set rSA secret prime, with p &amp;lt; q.
+     * Set rSA secret prime, with p &lt; q.
      *
      * @param q the q value to set
      * @return the PrivateKeyApiModel object itself.
@@ -261,7 +261,7 @@ public class PrivateKeyApiModel {
     }
 
     /**
-     * Get the curve for ECC algorithms.
+     * Get the crv value.
      *
      * @return the crv value
      */
@@ -270,7 +270,7 @@ public class PrivateKeyApiModel {
     }
 
     /**
-     * Set the curve for ECC algorithms.
+     * Set the crv value.
      *
      * @param crv the crv value to set
      * @return the PrivateKeyApiModel object itself.
@@ -361,7 +361,7 @@ public class PrivateKeyApiModel {
     }
 
     /**
-     * Get hSM Token, used with "Bring Your Own Key".
+     * Get the keyHsm value.
      *
      * @return the keyHsm value
      */
@@ -370,7 +370,7 @@ public class PrivateKeyApiModel {
     }
 
     /**
-     * Set hSM Token, used with "Bring Your Own Key".
+     * Set the keyHsm value.
      *
      * @param keyHsm the keyHsm value to set
      * @return the PrivateKeyApiModel object itself.

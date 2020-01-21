@@ -1,0 +1,4 @@
+{
+    "name": "iotedge/discovery",
+    "buildAlways": true
+}

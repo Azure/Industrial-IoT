@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "OpcUaTwinCtrl": {
-      "commandName": "Project",
-      "commandLineArgs": "console"
-    }
-  }
-}

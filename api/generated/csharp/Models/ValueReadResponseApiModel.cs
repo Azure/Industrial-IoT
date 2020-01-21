@@ -40,7 +40,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// read at server.</param>
         /// <param name="serverTimestamp">Timestamp of when value was read at
         /// server.</param>
-        /// <param name="errorInfo">Service result in case of error</param>
         public ValueReadResponseApiModel(object value = default(object), string dataType = default(string), int? sourcePicoseconds = default(int?), System.DateTime? sourceTimestamp = default(System.DateTime?), int? serverPicoseconds = default(int?), System.DateTime? serverTimestamp = default(System.DateTime?), ServiceResultApiModel errorInfo = default(ServiceResultApiModel))
         {
             Value = value;
@@ -95,7 +94,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public System.DateTime? ServerTimestamp { get; set; }
 
         /// <summary>
-        /// Gets or sets service result in case of error
         /// </summary>
         [JsonProperty(PropertyName = "errorInfo")]
         public ServiceResultApiModel ErrorInfo { get; set; }

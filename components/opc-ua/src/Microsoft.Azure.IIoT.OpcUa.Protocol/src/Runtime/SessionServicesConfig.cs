@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public SessionServicesConfig(IConfigurationRoot configuration) :
+        public SessionServicesConfig(IConfiguration configuration) :
             base(configuration) {
         }
     }

@@ -23,7 +23,7 @@ public class EndpointActivationStatusApiModel {
     private String id;
 
     /**
-     * Activation state. Possible values include: 'Deactivated', 'Activated',
+     * Possible values include: 'Deactivated', 'Activated',
      * 'ActivatedAndConnected'.
      */
     @JsonProperty(value = "activationState")
@@ -50,7 +50,7 @@ public class EndpointActivationStatusApiModel {
     }
 
     /**
-     * Get activation state. Possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'.
+     * Get possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'.
      *
      * @return the activationState value
      */
@@ -59,7 +59,7 @@ public class EndpointActivationStatusApiModel {
     }
 
     /**
-     * Set activation state. Possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'.
+     * Set possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'.
      *
      * @param activationState the activationState value to set
      * @return the EndpointActivationStatusApiModel object itself.

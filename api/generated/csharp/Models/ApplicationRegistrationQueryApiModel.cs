@@ -31,9 +31,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// Initializes a new instance of the
         /// ApplicationRegistrationQueryApiModel class.
         /// </summary>
-        /// <param name="applicationType">Type of application. Possible values
-        /// include: 'Server', 'Client', 'ClientAndServer',
-        /// 'DiscoveryServer'</param>
+        /// <param name="applicationType">Possible values include: 'Server',
+        /// 'Client', 'ClientAndServer', 'DiscoveryServer'</param>
         /// <param name="applicationUri">Application uri</param>
         /// <param name="productUri">Product uri</param>
         /// <param name="applicationName">Name of application</param>
@@ -43,11 +42,12 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// with</param>
         /// <param name="discoveryProfileUri">Discovery profile uri</param>
         /// <param name="gatewayServerUri">Gateway server uri</param>
-        /// <param name="siteOrSupervisorId">Supervisor or site the application
+        /// <param name="siteOrGatewayId">Supervisor or site the application
         /// belongs to.</param>
         /// <param name="includeNotSeenSince">Whether to include apps that were
         /// soft deleted</param>
-        public ApplicationRegistrationQueryApiModel(ApplicationType? applicationType = default(ApplicationType?), string applicationUri = default(string), string productUri = default(string), string applicationName = default(string), string locale = default(string), string capability = default(string), string discoveryProfileUri = default(string), string gatewayServerUri = default(string), string siteOrSupervisorId = default(string), bool? includeNotSeenSince = default(bool?))
+        /// <param name="discovererId">Discoverer id to filter with</param>
+        public ApplicationRegistrationQueryApiModel(ApplicationType? applicationType = default(ApplicationType?), string applicationUri = default(string), string productUri = default(string), string applicationName = default(string), string locale = default(string), string capability = default(string), string discoveryProfileUri = default(string), string gatewayServerUri = default(string), string siteOrGatewayId = default(string), bool? includeNotSeenSince = default(bool?), string discovererId = default(string))
         {
             ApplicationType = applicationType;
             ApplicationUri = applicationUri;
@@ -57,8 +57,9 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
             Capability = capability;
             DiscoveryProfileUri = discoveryProfileUri;
             GatewayServerUri = gatewayServerUri;
-            SiteOrSupervisorId = siteOrSupervisorId;
+            SiteOrGatewayId = siteOrGatewayId;
             IncludeNotSeenSince = includeNotSeenSince;
+            DiscovererId = discovererId;
             CustomInit();
         }
 
@@ -68,8 +69,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets type of application. Possible values include:
-        /// 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+        /// Gets or sets possible values include: 'Server', 'Client',
+        /// 'ClientAndServer', 'DiscoveryServer'
         /// </summary>
         [JsonProperty(PropertyName = "applicationType")]
         public ApplicationType? ApplicationType { get; set; }
@@ -119,14 +120,20 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// <summary>
         /// Gets or sets supervisor or site the application belongs to.
         /// </summary>
-        [JsonProperty(PropertyName = "siteOrSupervisorId")]
-        public string SiteOrSupervisorId { get; set; }
+        [JsonProperty(PropertyName = "siteOrGatewayId")]
+        public string SiteOrGatewayId { get; set; }
 
         /// <summary>
         /// Gets or sets whether to include apps that were soft deleted
         /// </summary>
         [JsonProperty(PropertyName = "includeNotSeenSince")]
         public bool? IncludeNotSeenSince { get; set; }
+
+        /// <summary>
+        /// Gets or sets discoverer id to filter with
+        /// </summary>
+        [JsonProperty(PropertyName = "discovererId")]
+        public string DiscovererId { get; set; }
 
     }
 }

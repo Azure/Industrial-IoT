@@ -20,7 +20,11 @@ class ReadEventsDetailsApiModel {
    * @property {date} [startTime] Start time to read from
    * @property {date} [endTime] End time to read to
    * @property {number} [numEvents] Number of events to read
-   * @property {object} [filter] The filter to use to select the event fields
+   * @property {object} [filter]
+   * @property {array} [filter.selectClauses] Select statements
+   * @property {object} [filter.whereClause]
+   * @property {array} [filter.whereClause.elements] The flat list of elements
+   * in the filter AST
    */
   constructor() {
   }
@@ -64,7 +68,8 @@ class ReadEventsDetailsApiModel {
             required: false,
             serializedName: 'filter',
             type: {
-              name: 'Object'
+              name: 'Composite',
+              className: 'EventFilterApiModel'
             }
           }
         }

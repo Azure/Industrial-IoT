@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
-    using MemoryBuffer;
-    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin;
+    using MemoryBuffer;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Threading.Tasks;
@@ -634,41 +634,76 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10239";
 
-            var expected = JToken.Parse(
-                "{\"TypeId\":\"http://test.org/UA/Data/#i=11437\",\"Body\":\"" +
-                "AGUQXsNmdlUwInNr0otvwr+yCEpoQ/kkwUqSIrVQBk7lzusAAADA8Jc+P18A" +
-                "AADpu4ToibIpIOm7hOiJsl0g5qGD5a2QeyDpu5HoibIg54uXWyDntKvoibIg" +
-                "5qGD5a2QXSDni5cg57qi6ImyIOiRoeiQhCUg5qGD5a2QPyDnjKsg54y05a2Q" +
-                "IOe7tee+ipPWICpktd0BwVWgZGAeoWfoAfmW/s4+7BAAAABeYho5zNYZ6t29" +
-                "Pj5jUE65awQAADxuMDpNYW5nbyBNb25rZXk9Ik1vbmtleSIgU25ha2U9IkNv" +
-                "dyIgUmVkPSJXaGl0ZSIgR3JhcGU9IkxlbW9uIiBCYW5hbmE9IkdyZWVuIiBM" +
-                "aW1lPSJTaGVlcCIgU3RyYXdiZXJyeT0iTWFuZ28iIEVsZXBoYW50PSJTdHJh" +
-                "d2JlcnJ5IiBQdXJwbGU9IkdyZWVuIiBTaGVlcD0iTGVtb24iIHhtbG5zOm4w" +
-                "PSJodHRwOi8vUGVhY2giPjxuMDpHcmFwZT5ZZWxsb3crIEVsZXBoYW50IEVs" +
-                "ZXBoYW50JSBEcmFnb257IFBpbmVhcHBsZSggUmVkKiBQaW5lYXBwbGUnIFdo" +
-                "aXRlIEJsYWNrPyBQaWcgV2hpdGU8L24wOkdyYXBlPjxuMDpXaGl0ZT5QaW5l" +
-                "YXBwbGUgQmx1ZXsgRG9nIExlbW9uIENhdCBMaW1lIFBpbmVhcHBsZTsgQmxh" +
-                "Y2ssIFJhdCBNYW5nbzwvbjA6V2hpdGU+PG4wOlJlZD5QaW5lYXBwbGUgU2hl" +
-                "ZXAgQmFuYW5hIE1hbmdvfiBQZWFjaF0gR3JlZW4mbHQ7IEJsYWNrLiBHcmVl" +
-                "biBCbGFjay4gTWFuZ28gUGluZWFwcGxlIENvdzsgUGluZWFwcGxlIFJlZD08" +
-                "L24wOlJlZD48bjA6UmVkPldoaXRlJmd0OyBCYW5hbmEgQmxhY2smZ3Q7IFB1" +
-                "cnBsZSBTbmFrZTogUmVkYCBHcmVlbiBCbHVlXiBFbGVwaGFudCBXaGl0ZSBC" +
-                "bHVlYmVycnkgQ2F0IFNoZWVwPC9uMDpSZWQ+PG4wOlBpbmVhcHBsZT5HcmVl" +
-                "biBZZWxsb3cgQ2F0IEJsYWNrIFB1cnBsZSwgTW9ua2V5IENvdyogTGltZSBQ" +
-                "dXJwbGV7IFB1cnBsZSogUGlnKCBMZW1vbicgQmFuYW5hLSBTaGVlcCM8L24w" +
-                "OlBpbmVhcHBsZT48bjA6R3JhcGU+TW9ua2V5IEdyYXBlIE1hbmdvKyBQaW5l" +
-                "YXBwbGUgU25ha2UgRG9nIFJlZCBNYW5nb30gUGluZWFwcGxlJyBQaW5lYXBw" +
-                "bGUgUGlnXSBFbGVwaGFudDwvbjA6R3JhcGU+PG4wOlNuYWtlPkhvcnNlIEJs" +
-                "dWViZXJyeSZndDsgQmxhY2sgV2hpdGUlIEhvcnNlIFJlZEAgR3JhcGUkIFdo" +
-                "aXRlIFB1cnBsZTwvbjA6U25ha2U+PG4wOkdyYXBlPlJhdCBQdXJwbGU6IFN0" +
-                "cmF3YmVycnktIFBlYWNoIEJsYWNrIiBZZWxsb3ddIFN0cmF3YmVycnkgQmxh" +
-                "Y2sgQmFuYW5hIyBIb3JzZSggUGVhY2g/PC9uMDpHcmFwZT48bjA6TWFuZ28+" +
-                "TGltZSEgQmFuYW5hJmd0OyBTdHJhd2JlcnJ5IFNoZWVwfiBCbHVlYmVycnkl" +
-                "IE1vbmtleSIgR3JlZW4vIFNoZWVwIEhvcnNlXiBTbmFrZSBSZWRAPC9uMDpN" +
-                "YW5nbz48L24wOk1hbmdvPgMFAAkAAADni5fnu7XnvoqFAAABAAAApSEAAABo" +
-                "dHRwOi8vdGVzdC5vcmcvVUEvRGF0YS8vSW5zdGFuY2UCAAYAAADjg5jjg5MD" +
-                "BQAAAHpoLUNOHAAAAOiTneiJsiDntKvoibIg6JOd6ImyIOe6ouiJsiQAABwA" +
-                "BifC2W0AAAAAAAAACwAAAAAAAAAACAAAAAAAAAAACQAAAAAAAAAA\"}");
+            var expected = JToken.Parse(@"
+{
+    ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+    ""Encoding"": ""Json"",
+    ""Body"": {
+        ""BooleanValue"": false,
+        ""SByteValue"": 101,
+        ""ByteValue"": 16,
+        ""Int16Value"": -15522,
+        ""UInt16Value"": 30310,
+        ""Int32Value"": 1931620437,
+        ""UInt32Value"": 1871434347,
+        ""Int64Value"": -485429667643080766,
+        ""UInt64Value"": 455062722452308260,
+        ""FloatValue"": -5.00243E+26,
+        ""DoubleValue"": 0.00046682002721354365,
+        ""StringValue"": ""黄色) 黄色] 桃子{ 黑色 狗[ 紫色 桃子] 狗 红色 葡萄% 桃子? 猫 猴子 绵羊"",
+        ""DateTimeValue"": ""2027-02-05T11:29:29.9135123Z"",
+        ""GuidValue"": ""64a055c1-1e60-67a1-e801-f996fece3eec"",
+        ""ByteStringValue"": [ 94, 98, 26, 57, 204, 214, 25, 234, 221, 189, 62, 62, 99, 80, 78, 185 ],
+        ""XmlElementValue"": {
+            ""n0:Mango"": {
+                ""@Monkey"": ""Monkey"",
+                ""@Snake"": ""Cow"",
+                ""@Red"": ""White"",
+                ""@Grape"": ""Lemon"",
+                ""@Banana"": ""Green"",
+                ""@Lime"": ""Sheep"",
+                ""@Strawberry"": ""Mangod"",
+                ""@Elephant"": ""Strawberry"",
+                ""@Purple"": ""Greend"",
+                ""@Sheep"": ""Lemond"",
+                ""@xmlns:n0"": ""http://Peach"",
+                ""n0:Grape"": [ ""Yellow+ Elephant Elephant% Dragon{ Pineapple( Red* Pineapple' White Black? Pig White"", ""Monkey Grape Mango+ Pineapple Snake Dog Red Mango} Pineapple' Pineapple Pig] Elephant"", ""Rat Purple: Strawberry- Peach Black\"" Yellow] Strawberry Black Banana# Horse( Peach?"" ],
+                ""n0:White"": ""Pineapple Blue{ Dog Lemon Cat Lime Pineapple; Black, Rat Mango"",
+                ""n0:Red"": [ ""Pineapple Sheep Banana Mango~ Peach] Green< Black. Green Black. Mango Pineapple Cow; Pineapple Red="", ""White> Banana Black> Purple Snake: Red` Green Blue^ Elephant White Blueberry Cat Sheep"" ],
+                ""n0:Pineapple"": ""Green Yellow Cat Black Purple, Monkey Cow* Lime Purple{ Purple* Pig( Lemon' Banana- Sheep#"",
+                ""n0:Snake"": ""Horse Blueberry> Black White% Horse Red@ Grape$ White Purple"",
+                ""n0:Mango"": ""Lime! Banana> Strawberry Sheep~ Blueberry% Monkey\"" Green/ Sheep Horse^ Snake Red@""
+            }
+        },
+        ""NodeIdValue"": ""nsu=DataAccess;s=狗绵羊"",
+        ""ExpandedNodeIdValue"": ""http://test.org/UA/Data//Instance#b=pQ%3d%3d"",
+        ""QualifiedNameValue"": ""http://test.org/UA/Data/#%e3%83%98%e3%83%93"",
+        ""LocalizedTextValue"": {
+            ""Text"": ""蓝色 紫色 蓝色 红色$"",
+            ""Locale"": ""zh-CN""
+        },
+        ""StatusCodeValue"": 1835008,
+        ""VariantValue"": {
+            ""Type"": ""Int32"",
+            ""Body"": 184297559
+        },
+        ""EnumerationValue"": 0,
+        ""StructureValue"": { ""TypeId"": null },
+        ""Number"": {
+            ""Type"": ""Double"",
+            ""Body"": 0.0
+        },
+        ""Integer"": {
+            ""Type"": ""Int64"",
+            ""Body"": 5
+        },
+        ""UInteger"": {
+            ""Type"": ""UInt64"",
+            ""Body"": 0
+        }
+    }
+}
+");
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -676,7 +711,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     NodeId = node,
                     Value = expected,
                     DataType = "ExtensionObject"
-                    // TODO: Assert.Equal("Structure", result.DataType);
                 });
 
             // Assert
@@ -751,6 +785,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var value = await _readExpected(_endpoint, node);
             Assert.NotNull(value);
             Assert.Null(result.ErrorInfo);
+            System.Diagnostics.Trace.WriteLine(value.ToString(Newtonsoft.Json.Formatting.None));
             Assert.True(JToken.DeepEquals(expected, value),
                 $"Expected: {expected} != Actual: {value}");
         }

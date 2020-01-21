@@ -5,10 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
     using Microsoft.AspNetCore.Hosting;
-    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Hosting;
+    using Autofac.Extensions.Hosting;
     using Serilog;
-    using System.IO;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Main entry point
@@ -16,34 +15,26 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
     public static class Program {
 
         /// <summary>
-        /// Main entry point to run the micro service process
+        /// Main entry point
         /// </summary>
         /// <param name="args"></param>
         public static void Main(string[] args) {
+            CreateHostBuilder(args).Build().Run();
+        }
 
-            // Build host
-            var host = new WebHostBuilder()
-                .UseConfiguration(new ConfigurationBuilder()
-                    .SetBasePath(Directory.GetCurrentDirectory())
-                    .AddJsonFile("hosting.json", true)
-                    .AddEnvironmentVariables("ASPNETCORE_")
-                    .AddInMemoryCollection(new Dictionary<string, string> {
-                        { "urls", "http://*:9042" }
-                    })
-                    .AddCommandLine(args)
-                    .Build())
-                .ConfigureAppConfiguration((_, b) => b
-                    .AddFromDotEnvFile()
-                    .AddEnvironmentVariables()
-                    .AddCommandLine(args))
-                .UseKestrel(o => o.AddServerHeader = false)
-                .UseIISIntegration()
-                .UseStartup<Startup>()
-                .UseSerilog(SerilogEx.ApplicationInsights)
-                .Build();
-
-            // Run endpoint
-            host.Run();
+        /// <summary>
+        /// Create host builder
+        /// </summary>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public static IHostBuilder CreateHostBuilder(string[] args) {
+            return Host.CreateDefaultBuilder(args)
+                .UseAutofac()
+                .ConfigureWebHostDefaults(builder => builder
+                    .UseUrls("http://*:9042")
+                    .UseSerilog()
+                    .UseStartup<Startup>()
+                    .UseKestrel(o => o.AddServerHeader = false));
         }
     }
 }

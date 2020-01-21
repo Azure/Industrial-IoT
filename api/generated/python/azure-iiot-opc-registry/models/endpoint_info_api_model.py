@@ -15,18 +15,17 @@ from msrest.serialization import Model
 class EndpointInfoApiModel(Model):
     """Endpoint registration model.
 
-    :param registration: Endpoint registration
+    :param registration:
     :type registration:
      ~azure-iiot-opc-registry.models.EndpointRegistrationApiModel
     :param application_id: Application id endpoint is registered under.
     :type application_id: str
-    :param activation_state: Activation state of endpoint. Possible values
-     include: 'Deactivated', 'Activated', 'ActivatedAndConnected'
+    :param activation_state: Possible values include: 'Deactivated',
+     'Activated', 'ActivatedAndConnected'
     :type activation_state: str or
      ~azure-iiot-opc-registry.models.EndpointActivationState
-    :param endpoint_state: Last state of the activated endpoint. Possible
-     values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust',
-     'CertificateInvalid', 'Ready', 'Error'
+    :param endpoint_state: Possible values include: 'Connecting',
+     'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
     :type endpoint_state: str or
      ~azure-iiot-opc-registry.models.EndpointConnectivityState
     :param out_of_sync: Whether the registration is out of sync

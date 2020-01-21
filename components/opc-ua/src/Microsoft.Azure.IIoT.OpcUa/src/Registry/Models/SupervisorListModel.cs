@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string ContinuationToken { get; set; }
 
         /// <summary>
-        /// Endpoint information of the server to register
+        /// Supervisor items
         /// </summary>
         public List<SupervisorModel> Items { get; set; }
     }

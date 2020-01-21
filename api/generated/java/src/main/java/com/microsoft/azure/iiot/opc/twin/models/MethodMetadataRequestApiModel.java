@@ -21,7 +21,7 @@ public class MethodMetadataRequestApiModel {
      * Method id of method to call.
      * (Required).
      */
-    @JsonProperty(value = "methodId", required = true)
+    @JsonProperty(value = "methodId")
     private String methodId;
 
     /**
@@ -32,7 +32,7 @@ public class MethodMetadataRequestApiModel {
     private List<String> methodBrowsePath;
 
     /**
-     * Optional request header.
+     * The headerProperty property.
      */
     @JsonProperty(value = "header")
     private RequestHeaderApiModel headerProperty;
@@ -82,7 +82,7 @@ public class MethodMetadataRequestApiModel {
     }
 
     /**
-     * Get optional request header.
+     * Get the headerProperty value.
      *
      * @return the headerProperty value
      */
@@ -91,7 +91,7 @@ public class MethodMetadataRequestApiModel {
     }
 
     /**
-     * Set optional request header.
+     * Set the headerProperty value.
      *
      * @param headerProperty the headerProperty value to set
      * @return the MethodMetadataRequestApiModel object itself.

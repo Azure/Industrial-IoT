@@ -29,7 +29,7 @@ module azure.iiot.opc.vault
     #
     def initialize(credentials = nil, base_url = nil, options = nil)
       super(credentials, options)
-      @base_url = base_url || 'http://localhost'
+      @base_url = base_url || 'http://localhost:9080'
 
       fail ArgumentError, 'invalid type of credentials input parameter' unless credentials.is_a?(MsRest::ServiceClientCredentials) unless credentials.nil?
       @credentials = credentials
@@ -97,8 +97,7 @@ module azure.iiot.opc.vault
     #
     # Get Issuer CA Certificate chain.
     #
-    # @param serial_number [String] the serial number of the
-    # Issuer CA Certificate
+    # @param serial_number [String] the serial number of the Issuer CA Certificate
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -112,8 +111,7 @@ module azure.iiot.opc.vault
     #
     # Get Issuer CA Certificate chain.
     #
-    # @param serial_number [String] the serial number of the
-    # Issuer CA Certificate
+    # @param serial_number [String] the serial number of the Issuer CA Certificate
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -126,8 +124,7 @@ module azure.iiot.opc.vault
     #
     # Get Issuer CA Certificate chain.
     #
-    # @param serial_number [String] the serial number of the
-    # Issuer CA Certificate
+    # @param serial_number [String] the serial number of the Issuer CA Certificate
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
@@ -180,8 +177,7 @@ module azure.iiot.opc.vault
     #
     # Get Issuer CA CRL chain.
     #
-    # @param serial_number [String] the serial number of the Issuer
-    # CA Certificate
+    # @param serial_number [String] the serial number of the Issuer CA Certificate
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -195,8 +191,7 @@ module azure.iiot.opc.vault
     #
     # Get Issuer CA CRL chain.
     #
-    # @param serial_number [String] the serial number of the Issuer
-    # CA Certificate
+    # @param serial_number [String] the serial number of the Issuer CA Certificate
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -209,8 +204,7 @@ module azure.iiot.opc.vault
     #
     # Get Issuer CA CRL chain.
     #
-    # @param serial_number [String] the serial number of the Issuer
-    # CA Certificate
+    # @param serial_number [String] the serial number of the Issuer CA Certificate
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
@@ -268,10 +262,11 @@ module azure.iiot.opc.vault
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
+    # @return [String] operation results.
     #
     def get_issuer_certificate_chain1(serial_number, custom_headers:nil)
       response = get_issuer_certificate_chain1_async(serial_number, custom_headers:custom_headers).value!
-      nil
+      response.body unless response.nil?
     end
 
     #
@@ -325,6 +320,23 @@ module azure.iiot.opc.vault
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
 
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = {
+              client_side_validation: true,
+              required: false,
+              serialized_name: 'parsed_response',
+              type: {
+                name: 'String'
+              }
+            }
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
 
         result
       end
@@ -339,10 +351,11 @@ module azure.iiot.opc.vault
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
+    # @return [String] operation results.
     #
     def get_issuer_crl_chain1(serial_number, custom_headers:nil)
       response = get_issuer_crl_chain1_async(serial_number, custom_headers:custom_headers).value!
-      nil
+      response.body unless response.nil?
     end
 
     #
@@ -394,6 +407,23 @@ module azure.iiot.opc.vault
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
 
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = {
+              client_side_validation: true,
+              required: false,
+              serialized_name: 'parsed_response',
+              type: {
+                name: 'String'
+              }
+            }
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
 
         result
       end
@@ -404,53 +434,50 @@ module azure.iiot.opc.vault
     #
     # Create a certificate request with a certificate signing request (CSR).
     #
-    # The request is in the 'New' state after this call.
-    # Requires Writer or Manager role.
+    # The request is in the 'New' state after this call. Requires Writer or Manager
+    # role.
     #
-    # @param signing_request [StartSigningRequestApiModel] The signing request
-    # parameters
+    # @param body [StartSigningRequestApiModel] The signing request parameters
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [StartSigningRequestResponseApiModel] operation results.
     #
-    def start_signing_request(signing_request, custom_headers:nil)
-      response = start_signing_request_async(signing_request, custom_headers:custom_headers).value!
+    def start_signing_request(body, custom_headers:nil)
+      response = start_signing_request_async(body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Create a certificate request with a certificate signing request (CSR).
     #
-    # The request is in the 'New' state after this call.
-    # Requires Writer or Manager role.
+    # The request is in the 'New' state after this call. Requires Writer or Manager
+    # role.
     #
-    # @param signing_request [StartSigningRequestApiModel] The signing request
-    # parameters
+    # @param body [StartSigningRequestApiModel] The signing request parameters
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def start_signing_request_with_http_info(signing_request, custom_headers:nil)
-      start_signing_request_async(signing_request, custom_headers:custom_headers).value!
+    def start_signing_request_with_http_info(body, custom_headers:nil)
+      start_signing_request_async(body, custom_headers:custom_headers).value!
     end
 
     #
     # Create a certificate request with a certificate signing request (CSR).
     #
-    # The request is in the 'New' state after this call.
-    # Requires Writer or Manager role.
+    # The request is in the 'New' state after this call. Requires Writer or Manager
+    # role.
     #
-    # @param signing_request [StartSigningRequestApiModel] The signing request
-    # parameters
+    # @param body [StartSigningRequestApiModel] The signing request parameters
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def start_signing_request_async(signing_request, custom_headers:nil)
-      fail ArgumentError, 'signing_request is nil' if signing_request.nil?
+    def start_signing_request_async(body, custom_headers:nil)
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
@@ -458,7 +485,7 @@ module azure.iiot.opc.vault
 
       # Serialize Request
       request_mapper = azure.iiot.opc.vault::Models::StartSigningRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  signing_request)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/requests/sign'
@@ -502,10 +529,8 @@ module azure.iiot.opc.vault
     #
     # Fetch signing request results.
     #
-    # Can be called in any state.
-    # After a successful fetch in 'Completed' state, the request is
-    # moved into 'Accepted' state.
-    # Requires Writer role.
+    # Can be called in any state. After a successful fetch in 'Completed' state,
+    # the request is moved into 'Accepted' state. Requires Writer role.
     #
     # @param request_id [String]
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -521,10 +546,8 @@ module azure.iiot.opc.vault
     #
     # Fetch signing request results.
     #
-    # Can be called in any state.
-    # After a successful fetch in 'Completed' state, the request is
-    # moved into 'Accepted' state.
-    # Requires Writer role.
+    # Can be called in any state. After a successful fetch in 'Completed' state,
+    # the request is moved into 'Accepted' state. Requires Writer role.
     #
     # @param request_id [String]
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -539,10 +562,8 @@ module azure.iiot.opc.vault
     #
     # Fetch signing request results.
     #
-    # Can be called in any state.
-    # After a successful fetch in 'Completed' state, the request is
-    # moved into 'Accepted' state.
-    # Requires Writer role.
+    # Can be called in any state. After a successful fetch in 'Completed' state,
+    # the request is moved into 'Accepted' state. Requires Writer role.
     #
     # @param request_id [String]
     # @param [Hash{String => String}] A hash of custom headers that will be added
@@ -597,53 +618,53 @@ module azure.iiot.opc.vault
     #
     # Create a certificate request with a new key pair.
     #
-    # The request is in the 'New' state after this call.
-    # Requires Writer or Manager role.
+    # The request is in the 'New' state after this call. Requires Writer or Manager
+    # role.
     #
-    # @param new_key_pair_request [StartNewKeyPairRequestApiModel] The new key pair
-    # request parameters
+    # @param body [StartNewKeyPairRequestApiModel] The new key pair request
+    # parameters
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [StartNewKeyPairRequestResponseApiModel] operation results.
     #
-    def start_new_key_pair_request(new_key_pair_request, custom_headers:nil)
-      response = start_new_key_pair_request_async(new_key_pair_request, custom_headers:custom_headers).value!
+    def start_new_key_pair_request(body, custom_headers:nil)
+      response = start_new_key_pair_request_async(body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Create a certificate request with a new key pair.
     #
-    # The request is in the 'New' state after this call.
-    # Requires Writer or Manager role.
+    # The request is in the 'New' state after this call. Requires Writer or Manager
+    # role.
     #
-    # @param new_key_pair_request [StartNewKeyPairRequestApiModel] The new key pair
-    # request parameters
+    # @param body [StartNewKeyPairRequestApiModel] The new key pair request
+    # parameters
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def start_new_key_pair_request_with_http_info(new_key_pair_request, custom_headers:nil)
-      start_new_key_pair_request_async(new_key_pair_request, custom_headers:custom_headers).value!
+    def start_new_key_pair_request_with_http_info(body, custom_headers:nil)
+      start_new_key_pair_request_async(body, custom_headers:custom_headers).value!
     end
 
     #
     # Create a certificate request with a new key pair.
     #
-    # The request is in the 'New' state after this call.
-    # Requires Writer or Manager role.
+    # The request is in the 'New' state after this call. Requires Writer or Manager
+    # role.
     #
-    # @param new_key_pair_request [StartNewKeyPairRequestApiModel] The new key pair
-    # request parameters
+    # @param body [StartNewKeyPairRequestApiModel] The new key pair request
+    # parameters
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def start_new_key_pair_request_async(new_key_pair_request, custom_headers:nil)
-      fail ArgumentError, 'new_key_pair_request is nil' if new_key_pair_request.nil?
+    def start_new_key_pair_request_async(body, custom_headers:nil)
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
@@ -651,7 +672,7 @@ module azure.iiot.opc.vault
 
       # Serialize Request
       request_mapper = azure.iiot.opc.vault::Models::StartNewKeyPairRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  new_key_pair_request)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/requests/keypair'
@@ -695,11 +716,9 @@ module azure.iiot.opc.vault
     #
     # Fetch certificate request result.
     #
-    # Can be called in any state.
-    # Fetches private key in 'Completed' state.
-    # After a successful fetch in 'Completed' state, the request is
-    # moved into 'Accepted' state.
-    # Requires Writer role.
+    # Can be called in any state. Fetches private key in 'Completed' state. After a
+    # successful fetch in 'Completed' state, the request is moved into 'Accepted'
+    # state. Requires Writer role.
     #
     # @param request_id [String]
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -715,11 +734,9 @@ module azure.iiot.opc.vault
     #
     # Fetch certificate request result.
     #
-    # Can be called in any state.
-    # Fetches private key in 'Completed' state.
-    # After a successful fetch in 'Completed' state, the request is
-    # moved into 'Accepted' state.
-    # Requires Writer role.
+    # Can be called in any state. Fetches private key in 'Completed' state. After a
+    # successful fetch in 'Completed' state, the request is moved into 'Accepted'
+    # state. Requires Writer role.
     #
     # @param request_id [String]
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -734,11 +751,9 @@ module azure.iiot.opc.vault
     #
     # Fetch certificate request result.
     #
-    # Can be called in any state.
-    # Fetches private key in 'Completed' state.
-    # After a successful fetch in 'Completed' state, the request is
-    # moved into 'Accepted' state.
-    # Requires Writer role.
+    # Can be called in any state. Fetches private key in 'Completed' state. After a
+    # successful fetch in 'Completed' state, the request is moved into 'Accepted'
+    # state. Requires Writer role.
     #
     # @param request_id [String]
     # @param [Hash{String => String}] A hash of custom headers that will be added
@@ -793,17 +808,13 @@ module azure.iiot.opc.vault
     #
     # Approve the certificate request.
     #
-    # Validates the request with the application database.
-    # - If Approved:
-    # - New Key Pair request: Creates the new key pair
-    # in the requested format, signs the certificate and stores the
-    # private key for later securely in KeyVault.
-    # - Cert Signing Request: Creates and signs the certificate.
-    # Deletes the CSR from the database.
-    # Stores the signed certificate for later use in the Database.
-    # The request is in the 'Approved' or 'Rejected' state after this call.
-    # Requires Approver role.
-    # Approver needs signing rights in KeyVault.
+    # Validates the request with the application database. - If Approved: - New Key
+    # Pair request: Creates the new key pair in the requested format, signs the
+    # certificate and stores the private key for later securely in KeyVault. - Cert
+    # Signing Request: Creates and signs the certificate. Deletes the CSR from the
+    # database. Stores the signed certificate for later use in the Database. The
+    # request is in the 'Approved' or 'Rejected' state after this call. Requires
+    # Approver role. Approver needs signing rights in KeyVault.
     #
     # @param request_id [String] The certificate request id
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -818,17 +829,13 @@ module azure.iiot.opc.vault
     #
     # Approve the certificate request.
     #
-    # Validates the request with the application database.
-    # - If Approved:
-    # - New Key Pair request: Creates the new key pair
-    # in the requested format, signs the certificate and stores the
-    # private key for later securely in KeyVault.
-    # - Cert Signing Request: Creates and signs the certificate.
-    # Deletes the CSR from the database.
-    # Stores the signed certificate for later use in the Database.
-    # The request is in the 'Approved' or 'Rejected' state after this call.
-    # Requires Approver role.
-    # Approver needs signing rights in KeyVault.
+    # Validates the request with the application database. - If Approved: - New Key
+    # Pair request: Creates the new key pair in the requested format, signs the
+    # certificate and stores the private key for later securely in KeyVault. - Cert
+    # Signing Request: Creates and signs the certificate. Deletes the CSR from the
+    # database. Stores the signed certificate for later use in the Database. The
+    # request is in the 'Approved' or 'Rejected' state after this call. Requires
+    # Approver role. Approver needs signing rights in KeyVault.
     #
     # @param request_id [String] The certificate request id
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -843,17 +850,13 @@ module azure.iiot.opc.vault
     #
     # Approve the certificate request.
     #
-    # Validates the request with the application database.
-    # - If Approved:
-    # - New Key Pair request: Creates the new key pair
-    # in the requested format, signs the certificate and stores the
-    # private key for later securely in KeyVault.
-    # - Cert Signing Request: Creates and signs the certificate.
-    # Deletes the CSR from the database.
-    # Stores the signed certificate for later use in the Database.
-    # The request is in the 'Approved' or 'Rejected' state after this call.
-    # Requires Approver role.
-    # Approver needs signing rights in KeyVault.
+    # Validates the request with the application database. - If Approved: - New Key
+    # Pair request: Creates the new key pair in the requested format, signs the
+    # certificate and stores the private key for later securely in KeyVault. - Cert
+    # Signing Request: Creates and signs the certificate. Deletes the CSR from the
+    # database. Stores the signed certificate for later use in the Database. The
+    # request is in the 'Approved' or 'Rejected' state after this call. Requires
+    # Approver role. Approver needs signing rights in KeyVault.
     #
     # @param request_id [String] The certificate request id
     # @param [Hash{String => String}] A hash of custom headers that will be added
@@ -898,9 +901,8 @@ module azure.iiot.opc.vault
     #
     # Reject the certificate request.
     #
-    # The request is in the 'Rejected' state after this call.
-    # Requires Approver role.
-    # Approver needs signing rights in KeyVault.
+    # The request is in the 'Rejected' state after this call. Requires Approver
+    # role. Approver needs signing rights in KeyVault.
     #
     # @param request_id [String] The certificate request id
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -915,9 +917,8 @@ module azure.iiot.opc.vault
     #
     # Reject the certificate request.
     #
-    # The request is in the 'Rejected' state after this call.
-    # Requires Approver role.
-    # Approver needs signing rights in KeyVault.
+    # The request is in the 'Rejected' state after this call. Requires Approver
+    # role. Approver needs signing rights in KeyVault.
     #
     # @param request_id [String] The certificate request id
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -932,9 +933,8 @@ module azure.iiot.opc.vault
     #
     # Reject the certificate request.
     #
-    # The request is in the 'Rejected' state after this call.
-    # Requires Approver role.
-    # Approver needs signing rights in KeyVault.
+    # The request is in the 'Rejected' state after this call. Requires Approver
+    # role. Approver needs signing rights in KeyVault.
     #
     # @param request_id [String] The certificate request id
     # @param [Hash{String => String}] A hash of custom headers that will be added
@@ -979,8 +979,7 @@ module azure.iiot.opc.vault
     #
     # Cancel request
     #
-    # The request is in the 'Accepted' state after this call.
-    # Requires Writer role.
+    # The request is in the 'Accepted' state after this call. Requires Writer role.
     #
     # @param request_id [String] The certificate request id
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -995,8 +994,7 @@ module azure.iiot.opc.vault
     #
     # Cancel request
     #
-    # The request is in the 'Accepted' state after this call.
-    # Requires Writer role.
+    # The request is in the 'Accepted' state after this call. Requires Writer role.
     #
     # @param request_id [String] The certificate request id
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -1011,8 +1009,7 @@ module azure.iiot.opc.vault
     #
     # Cancel request
     #
-    # The request is in the 'Accepted' state after this call.
-    # Requires Writer role.
+    # The request is in the 'Accepted' state after this call. Requires Writer role.
     #
     # @param request_id [String] The certificate request id
     # @param [Hash{String => String}] A hash of custom headers that will be added
@@ -1037,6 +1034,84 @@ module azure.iiot.opc.vault
           base_url: request_url
       }
       promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Delete request. Physically delete the request.
+    #
+    # By purging the request it is actually physically deleted from the database,
+    # including the public key and other information. Requires Manager role.
+    #
+    # @param request_id [String] The certificate request id
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def delete_request(request_id, custom_headers:nil)
+      response = delete_request_async(request_id, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Delete request. Physically delete the request.
+    #
+    # By purging the request it is actually physically deleted from the database,
+    # including the public key and other information. Requires Manager role.
+    #
+    # @param request_id [String] The certificate request id
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def delete_request_with_http_info(request_id, custom_headers:nil)
+      delete_request_async(request_id, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Delete request. Physically delete the request.
+    #
+    # By purging the request it is actually physically deleted from the database,
+    # including the public key and other information. Requires Manager role.
+    #
+    # @param request_id [String] The certificate request id
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def delete_request_async(request_id, custom_headers:nil)
+      fail ArgumentError, 'request_id is nil' if request_id.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/requests/{requestId}'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'requestId' => request_id},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:delete, path_template, options)
 
       promise = promise.then do |result|
         http_response = result.response
@@ -1135,138 +1210,57 @@ module azure.iiot.opc.vault
     end
 
     #
-    # Delete request. Physically delete the request.
-    #
-    # By purging the request it is actually physically deleted from the
-    # database, including the public key and other information.
-    # Requires Manager role.
-    #
-    # @param request_id [String] The certificate request id
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    #
-    def delete_request(request_id, custom_headers:nil)
-      response = delete_request_async(request_id, custom_headers:custom_headers).value!
-      nil
-    end
-
-    #
-    # Delete request. Physically delete the request.
-    #
-    # By purging the request it is actually physically deleted from the
-    # database, including the public key and other information.
-    # Requires Manager role.
-    #
-    # @param request_id [String] The certificate request id
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def delete_request_with_http_info(request_id, custom_headers:nil)
-      delete_request_async(request_id, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Delete request. Physically delete the request.
-    #
-    # By purging the request it is actually physically deleted from the
-    # database, including the public key and other information.
-    # Requires Manager role.
-    #
-    # @param request_id [String] The certificate request id
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def delete_request_async(request_id, custom_headers:nil)
-      fail ArgumentError, 'request_id is nil' if request_id.nil?
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v2/requests/{requestId}'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          path_params: {'requestId' => request_id},
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:delete, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
     # Query for certificate requests.
     #
-    # Get all certificate requests in paged form.
-    # The returned model can contain a link to the next page if more results are
-    # available.  Use ListRequests to continue.
+    # Get all certificate requests in paged form. The returned model can contain a
+    # link to the next page if more results are available. Use ListRequests to
+    # continue.
     #
-    # @param query [CertificateRequestQueryRequestApiModel] optional, query filter
     # @param page_size [Integer] optional, the maximum number of result per page
+    # @param body [CertificateRequestQueryRequestApiModel] optional, query filter
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [CertificateRequestQueryResponseApiModel] operation results.
     #
-    def query_requests(query:nil, page_size:nil, custom_headers:nil)
-      response = query_requests_async(query:query, page_size:page_size, custom_headers:custom_headers).value!
+    def query_requests(page_size:nil, body:nil, custom_headers:nil)
+      response = query_requests_async(page_size:page_size, body:body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Query for certificate requests.
     #
-    # Get all certificate requests in paged form.
-    # The returned model can contain a link to the next page if more results are
-    # available.  Use ListRequests to continue.
+    # Get all certificate requests in paged form. The returned model can contain a
+    # link to the next page if more results are available. Use ListRequests to
+    # continue.
     #
-    # @param query [CertificateRequestQueryRequestApiModel] optional, query filter
     # @param page_size [Integer] optional, the maximum number of result per page
+    # @param body [CertificateRequestQueryRequestApiModel] optional, query filter
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def query_requests_with_http_info(query:nil, page_size:nil, custom_headers:nil)
-      query_requests_async(query:query, page_size:page_size, custom_headers:custom_headers).value!
+    def query_requests_with_http_info(page_size:nil, body:nil, custom_headers:nil)
+      query_requests_async(page_size:page_size, body:body, custom_headers:custom_headers).value!
     end
 
     #
     # Query for certificate requests.
     #
-    # Get all certificate requests in paged form.
-    # The returned model can contain a link to the next page if more results are
-    # available.  Use ListRequests to continue.
+    # Get all certificate requests in paged form. The returned model can contain a
+    # link to the next page if more results are available. Use ListRequests to
+    # continue.
     #
-    # @param query [CertificateRequestQueryRequestApiModel] optional, query filter
     # @param page_size [Integer] optional, the maximum number of result per page
+    # @param body [CertificateRequestQueryRequestApiModel] optional, query filter
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def query_requests_async(query:nil, page_size:nil, custom_headers:nil)
+    def query_requests_async(page_size:nil, body:nil, custom_headers:nil)
 
 
       request_headers = {}
@@ -1274,7 +1268,7 @@ module azure.iiot.opc.vault
 
       # Serialize Request
       request_mapper = azure.iiot.opc.vault::Models::CertificateRequestQueryRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  query)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/requests/query'
@@ -1320,9 +1314,8 @@ module azure.iiot.opc.vault
     # Lists certificate requests.
     #
     # Get all certificate requests in paged form or continue a current listing or
-    # query.
-    # The returned model can contain a link to the next page if more results are
-    # available.
+    # query. The returned model can contain a link to the next page if more results
+    # are available.
     #
     # @param next_page_link [String] optional, link to next page
     # @param page_size [Integer] optional, the maximum number of result per page
@@ -1340,9 +1333,8 @@ module azure.iiot.opc.vault
     # Lists certificate requests.
     #
     # Get all certificate requests in paged form or continue a current listing or
-    # query.
-    # The returned model can contain a link to the next page if more results are
-    # available.
+    # query. The returned model can contain a link to the next page if more results
+    # are available.
     #
     # @param next_page_link [String] optional, link to next page
     # @param page_size [Integer] optional, the maximum number of result per page
@@ -1359,9 +1351,8 @@ module azure.iiot.opc.vault
     # Lists certificate requests.
     #
     # Get all certificate requests in paged form or continue a current listing or
-    # query.
-    # The returned model can contain a link to the next page if more results are
-    # available.
+    # query. The returned model can contain a link to the next page if more results
+    # are available.
     #
     # @param next_page_link [String] optional, link to next page
     # @param page_size [Integer] optional, the maximum number of result per page
@@ -1414,90 +1405,11 @@ module azure.iiot.opc.vault
     end
 
     #
-    # Return the service status in the form of the service status
-    # api model.
-    #
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [StatusResponseApiModel] operation results.
-    #
-    def get_status(custom_headers:nil)
-      response = get_status_async(custom_headers:custom_headers).value!
-      response.body unless response.nil?
-    end
-
-    #
-    # Return the service status in the form of the service status
-    # api model.
-    #
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def get_status_with_http_info(custom_headers:nil)
-      get_status_async(custom_headers:custom_headers).value!
-    end
-
-    #
-    # Return the service status in the form of the service status
-    # api model.
-    #
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def get_status_async(custom_headers:nil)
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v2/status'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:get, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-        # Deserialize Response
-        if status_code == 200
-          begin
-            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.vault::Models::StatusResponseApiModel.mapper()
-            result.body = self.deserialize(result_mapper, parsed_response)
-          rescue Exception => e
-            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
-          end
-        end
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
     # Get information about all groups.
     #
-    # A trust group has a root certificate which issues certificates
-    # to entities.  Entities can be part of a trust group and thus
-    # trust the root certificate and all entities that the root has
-    # issued certificates for.
+    # A trust group has a root certificate which issues certificates to entities.
+    # Entities can be part of a trust group and thus trust the root certificate and
+    # all entities that the root has issued certificates for.
     #
     # @param next_page_link [String] optional, link to next page
     # @param page_size [Integer] optional, the maximum number of result per page
@@ -1514,10 +1426,9 @@ module azure.iiot.opc.vault
     #
     # Get information about all groups.
     #
-    # A trust group has a root certificate which issues certificates
-    # to entities.  Entities can be part of a trust group and thus
-    # trust the root certificate and all entities that the root has
-    # issued certificates for.
+    # A trust group has a root certificate which issues certificates to entities.
+    # Entities can be part of a trust group and thus trust the root certificate and
+    # all entities that the root has issued certificates for.
     #
     # @param next_page_link [String] optional, link to next page
     # @param page_size [Integer] optional, the maximum number of result per page
@@ -1533,10 +1444,9 @@ module azure.iiot.opc.vault
     #
     # Get information about all groups.
     #
-    # A trust group has a root certificate which issues certificates
-    # to entities.  Entities can be part of a trust group and thus
-    # trust the root certificate and all entities that the root has
-    # issued certificates for.
+    # A trust group has a root certificate which issues certificates to entities.
+    # Entities can be part of a trust group and thus trust the root certificate and
+    # all entities that the root has issued certificates for.
     #
     # @param next_page_link [String] optional, link to next page
     # @param page_size [Integer] optional, the maximum number of result per page
@@ -1593,14 +1503,14 @@ module azure.iiot.opc.vault
     #
     # Requires manager role.
     #
-    # @param request [TrustGroupRegistrationRequestApiModel] The create request
+    # @param body [TrustGroupRegistrationRequestApiModel] The create request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [TrustGroupRegistrationResponseApiModel] operation results.
     #
-    def create_group(request, custom_headers:nil)
-      response = create_group_async(request, custom_headers:custom_headers).value!
+    def create_group(body, custom_headers:nil)
+      response = create_group_async(body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
@@ -1609,14 +1519,14 @@ module azure.iiot.opc.vault
     #
     # Requires manager role.
     #
-    # @param request [TrustGroupRegistrationRequestApiModel] The create request
+    # @param body [TrustGroupRegistrationRequestApiModel] The create request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def create_group_with_http_info(request, custom_headers:nil)
-      create_group_async(request, custom_headers:custom_headers).value!
+    def create_group_with_http_info(body, custom_headers:nil)
+      create_group_async(body, custom_headers:custom_headers).value!
     end
 
     #
@@ -1624,14 +1534,14 @@ module azure.iiot.opc.vault
     #
     # Requires manager role.
     #
-    # @param request [TrustGroupRegistrationRequestApiModel] The create request
+    # @param body [TrustGroupRegistrationRequestApiModel] The create request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def create_group_async(request, custom_headers:nil)
-      fail ArgumentError, 'request is nil' if request.nil?
+    def create_group_async(body, custom_headers:nil)
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
@@ -1639,7 +1549,7 @@ module azure.iiot.opc.vault
 
       # Serialize Request
       request_mapper = azure.iiot.opc.vault::Models::TrustGroupRegistrationRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/groups'
@@ -1683,10 +1593,9 @@ module azure.iiot.opc.vault
     #
     # Get group information.
     #
-    # A trust group has a root certificate which issues certificates
-    # to entities.  Entities can be part of a trust group and thus
-    # trust the root certificate and all entities that the root has
-    # issued certificates for.
+    # A trust group has a root certificate which issues certificates to entities.
+    # Entities can be part of a trust group and thus trust the root certificate and
+    # all entities that the root has issued certificates for.
     #
     # @param group_id [String] The group id
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -1702,10 +1611,9 @@ module azure.iiot.opc.vault
     #
     # Get group information.
     #
-    # A trust group has a root certificate which issues certificates
-    # to entities.  Entities can be part of a trust group and thus
-    # trust the root certificate and all entities that the root has
-    # issued certificates for.
+    # A trust group has a root certificate which issues certificates to entities.
+    # Entities can be part of a trust group and thus trust the root certificate and
+    # all entities that the root has issued certificates for.
     #
     # @param group_id [String] The group id
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -1720,10 +1628,9 @@ module azure.iiot.opc.vault
     #
     # Get group information.
     #
-    # A trust group has a root certificate which issues certificates
-    # to entities.  Entities can be part of a trust group and thus
-    # trust the root certificate and all entities that the root has
-    # issued certificates for.
+    # A trust group has a root certificate which issues certificates to entities.
+    # Entities can be part of a trust group and thus trust the root certificate and
+    # all entities that the root has issued certificates for.
     #
     # @param group_id [String] The group id
     # @param [Hash{String => String}] A hash of custom headers that will be added
@@ -1778,56 +1685,53 @@ module azure.iiot.opc.vault
     #
     # Update group registration.
     #
-    # Use this function with care and only if you are aware of
-    # the security implications.
-    # Requires manager role.
+    # Use this function with care and only if you are aware of the security
+    # implications. Requires manager role.
     #
     # @param group_id [String] The group id
-    # @param request [TrustGroupUpdateRequestApiModel] The group configuration
+    # @param body [TrustGroupUpdateRequestApiModel] The group configuration
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     #
-    def update_group(group_id, request, custom_headers:nil)
-      response = update_group_async(group_id, request, custom_headers:custom_headers).value!
+    def update_group(group_id, body, custom_headers:nil)
+      response = update_group_async(group_id, body, custom_headers:custom_headers).value!
       nil
     end
 
     #
     # Update group registration.
     #
-    # Use this function with care and only if you are aware of
-    # the security implications.
-    # Requires manager role.
+    # Use this function with care and only if you are aware of the security
+    # implications. Requires manager role.
     #
     # @param group_id [String] The group id
-    # @param request [TrustGroupUpdateRequestApiModel] The group configuration
+    # @param body [TrustGroupUpdateRequestApiModel] The group configuration
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def update_group_with_http_info(group_id, request, custom_headers:nil)
-      update_group_async(group_id, request, custom_headers:custom_headers).value!
+    def update_group_with_http_info(group_id, body, custom_headers:nil)
+      update_group_async(group_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Update group registration.
     #
-    # Use this function with care and only if you are aware of
-    # the security implications.
-    # Requires manager role.
+    # Use this function with care and only if you are aware of the security
+    # implications. Requires manager role.
     #
     # @param group_id [String] The group id
-    # @param request [TrustGroupUpdateRequestApiModel] The group configuration
+    # @param body [TrustGroupUpdateRequestApiModel] The group configuration
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def update_group_async(group_id, request, custom_headers:nil)
+    def update_group_async(group_id, body, custom_headers:nil)
       fail ArgumentError, 'group_id is nil' if group_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
@@ -1835,7 +1739,7 @@ module azure.iiot.opc.vault
 
       # Serialize Request
       request_mapper = azure.iiot.opc.vault::Models::TrustGroupUpdateRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/groups/{groupId}'
@@ -1870,9 +1774,8 @@ module azure.iiot.opc.vault
     #
     # Delete a group.
     #
-    # After this operation the Issuer CA, CRLs and keys become inaccessible.
-    # Use this function with extreme caution.
-    # Requires manager role.
+    # After this operation the Issuer CA, CRLs and keys become inaccessible. Use
+    # this function with extreme caution. Requires manager role.
     #
     # @param group_id [String] The group id
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -1887,9 +1790,8 @@ module azure.iiot.opc.vault
     #
     # Delete a group.
     #
-    # After this operation the Issuer CA, CRLs and keys become inaccessible.
-    # Use this function with extreme caution.
-    # Requires manager role.
+    # After this operation the Issuer CA, CRLs and keys become inaccessible. Use
+    # this function with extreme caution. Requires manager role.
     #
     # @param group_id [String] The group id
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -1904,9 +1806,8 @@ module azure.iiot.opc.vault
     #
     # Delete a group.
     #
-    # After this operation the Issuer CA, CRLs and keys become inaccessible.
-    # Use this function with extreme caution.
-    # Requires manager role.
+    # After this operation the Issuer CA, CRLs and keys become inaccessible. Use
+    # this function with extreme caution. Requires manager role.
     #
     # @param group_id [String] The group id
     # @param [Hash{String => String}] A hash of custom headers that will be added
@@ -1953,14 +1854,14 @@ module azure.iiot.opc.vault
     #
     # Requires manager role.
     #
-    # @param request [TrustGroupRootCreateRequestApiModel] The create request
+    # @param body [TrustGroupRootCreateRequestApiModel] The create request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [TrustGroupRegistrationResponseApiModel] operation results.
     #
-    def create_root(request, custom_headers:nil)
-      response = create_root_async(request, custom_headers:custom_headers).value!
+    def create_root(body, custom_headers:nil)
+      response = create_root_async(body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
@@ -1969,14 +1870,14 @@ module azure.iiot.opc.vault
     #
     # Requires manager role.
     #
-    # @param request [TrustGroupRootCreateRequestApiModel] The create request
+    # @param body [TrustGroupRootCreateRequestApiModel] The create request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def create_root_with_http_info(request, custom_headers:nil)
-      create_root_async(request, custom_headers:custom_headers).value!
+    def create_root_with_http_info(body, custom_headers:nil)
+      create_root_async(body, custom_headers:custom_headers).value!
     end
 
     #
@@ -1984,14 +1885,14 @@ module azure.iiot.opc.vault
     #
     # Requires manager role.
     #
-    # @param request [TrustGroupRootCreateRequestApiModel] The create request
+    # @param body [TrustGroupRootCreateRequestApiModel] The create request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def create_root_async(request, custom_headers:nil)
-      fail ArgumentError, 'request is nil' if request.nil?
+    def create_root_async(body, custom_headers:nil)
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
@@ -1999,7 +1900,7 @@ module azure.iiot.opc.vault
 
       # Serialize Request
       request_mapper = azure.iiot.opc.vault::Models::TrustGroupRootCreateRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/groups/root'
@@ -2112,8 +2013,8 @@ module azure.iiot.opc.vault
     #
     # Add trust relationship
     #
-    # Define trust between two entities.  The entities are identifiers
-    # of application, groups, or endpoints.
+    # Define trust between two entities. The entities are identifiers of
+    # application, groups, or endpoints.
     #
     # @param entity_id [String] The entity identifier, e.g. group, etc.
     # @param trusted_entity_id [String] The trusted entity identifier
@@ -2129,8 +2030,8 @@ module azure.iiot.opc.vault
     #
     # Add trust relationship
     #
-    # Define trust between two entities.  The entities are identifiers
-    # of application, groups, or endpoints.
+    # Define trust between two entities. The entities are identifiers of
+    # application, groups, or endpoints.
     #
     # @param entity_id [String] The entity identifier, e.g. group, etc.
     # @param trusted_entity_id [String] The trusted entity identifier
@@ -2146,8 +2047,8 @@ module azure.iiot.opc.vault
     #
     # Add trust relationship
     #
-    # Define trust between two entities.  The entities are identifiers
-    # of application, groups, or endpoints.
+    # Define trust between two entities. The entities are identifiers of
+    # application, groups, or endpoints.
     #
     # @param entity_id [String] The entity identifier, e.g. group, etc.
     # @param trusted_entity_id [String] The trusted entity identifier
@@ -2194,8 +2095,8 @@ module azure.iiot.opc.vault
     #
     # List trusted certificates
     #
-    # Returns all certificates the entity should trust based on the
-    # applied trust configuration.
+    # Returns all certificates the entity should trust based on the applied trust
+    # configuration.
     #
     # @param entity_id [String]
     # @param next_page_link [String] optional, link to next page
@@ -2213,8 +2114,8 @@ module azure.iiot.opc.vault
     #
     # List trusted certificates
     #
-    # Returns all certificates the entity should trust based on the
-    # applied trust configuration.
+    # Returns all certificates the entity should trust based on the applied trust
+    # configuration.
     #
     # @param entity_id [String]
     # @param next_page_link [String] optional, link to next page
@@ -2231,8 +2132,8 @@ module azure.iiot.opc.vault
     #
     # List trusted certificates
     #
-    # Returns all certificates the entity should trust based on the
-    # applied trust configuration.
+    # Returns all certificates the entity should trust based on the applied trust
+    # configuration.
     #
     # @param entity_id [String]
     # @param next_page_link [String] optional, link to next page
@@ -2290,8 +2191,8 @@ module azure.iiot.opc.vault
     #
     # Remove a trust relationship
     #
-    # Removes trust between two entities.  The entities are identifiers
-    # of application, groups, or endpoints.
+    # Removes trust between two entities. The entities are identifiers of
+    # application, groups, or endpoints.
     #
     # @param entity_id [String] The entity identifier, e.g. group, etc.
     # @param untrusted_entity_id [String] The trusted entity identifier
@@ -2307,8 +2208,8 @@ module azure.iiot.opc.vault
     #
     # Remove a trust relationship
     #
-    # Removes trust between two entities.  The entities are identifiers
-    # of application, groups, or endpoints.
+    # Removes trust between two entities. The entities are identifiers of
+    # application, groups, or endpoints.
     #
     # @param entity_id [String] The entity identifier, e.g. group, etc.
     # @param untrusted_entity_id [String] The trusted entity identifier
@@ -2324,8 +2225,8 @@ module azure.iiot.opc.vault
     #
     # Remove a trust relationship
     #
-    # Removes trust between two entities.  The entities are identifiers
-    # of application, groups, or endpoints.
+    # Removes trust between two entities. The entities are identifiers of
+    # application, groups, or endpoints.
     #
     # @param entity_id [String] The entity identifier, e.g. group, etc.
     # @param untrusted_entity_id [String] The trusted entity identifier

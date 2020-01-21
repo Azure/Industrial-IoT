@@ -32,9 +32,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// CertificateRequestQueryRequestApiModel class.
         /// </summary>
         /// <param name="entityId">The entity id to filter with</param>
-        /// <param name="state">The certificate request state. Possible values
-        /// include: 'New', 'Approved', 'Rejected', 'Failure', 'Completed',
-        /// 'Accepted'</param>
+        /// <param name="state">Possible values include: 'New', 'Approved',
+        /// 'Rejected', 'Failure', 'Completed', 'Accepted'</param>
         public CertificateRequestQueryRequestApiModel(string entityId = default(string), CertificateRequestState? state = default(CertificateRequestState?))
         {
             EntityId = entityId;
@@ -54,9 +53,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         public string EntityId { get; set; }
 
         /// <summary>
-        /// Gets or sets the certificate request state. Possible values
-        /// include: 'New', 'Approved', 'Rejected', 'Failure', 'Completed',
-        /// 'Accepted'
+        /// Gets or sets possible values include: 'New', 'Approved',
+        /// 'Rejected', 'Failure', 'Completed', 'Accepted'
         /// </summary>
         [JsonProperty(PropertyName = "state")]
         public CertificateRequestState? State { get; set; }

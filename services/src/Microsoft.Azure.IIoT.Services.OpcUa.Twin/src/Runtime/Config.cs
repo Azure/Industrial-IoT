@@ -4,37 +4,38 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime {
-    using Microsoft.Azure.IIoT.Services.Swagger;
-    using Microsoft.Azure.IIoT.Services.Swagger.Runtime;
-    using Microsoft.Azure.IIoT.Services.Cors;
-    using Microsoft.Azure.IIoT.Services.Cors.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
-    using Microsoft.Azure.IIoT.Messaging.EventHub;
-    using Microsoft.Azure.IIoT.Messaging.EventHub.Runtime;
     using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth.Clients;
-    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
     using System;
-    using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.ApplicationInsights.Extensibility;
 
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
-    public class Config : ConfigBase, IAuthConfig, IIoTHubConfig,
-        ICorsConfig, IClientConfig, ISwaggerConfig, IEventHubConfig, IApplicationInsightsConfig {
+    public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig,
+        ICorsConfig, IClientConfig, IOpenApiConfig {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
         /// <inheritdoc/>
         public string IoTHubResourceId => _hub.IoTHubResourceId;
+
         /// <inheritdoc/>
         public string CorsWhitelist => _cors.CorsWhitelist;
         /// <inheritdoc/>
         public bool CorsEnabled => _cors.CorsEnabled;
+
+        /// <inheritdoc/>
+        public int HttpsRedirectPort => _host.HttpsRedirectPort;
+
         /// <inheritdoc/>
         public string AppId => _auth.AppId;
         /// <inheritdoc/>
@@ -46,59 +47,48 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime {
         /// <inheritdoc/>
         public string Audience => _auth.Audience;
         /// <inheritdoc/>
-        public int HttpsRedirectPort => _auth.HttpsRedirectPort;
+        public string Domain => _auth.Domain;
         /// <inheritdoc/>
         public bool AuthRequired => _auth.AuthRequired;
         /// <inheritdoc/>
         public string TrustedIssuer => _auth.TrustedIssuer;
         /// <inheritdoc/>
         public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
+
         /// <inheritdoc/>
-        public bool UIEnabled => _swagger.UIEnabled;
+        public bool UIEnabled => _openApi.UIEnabled;
         /// <inheritdoc/>
-        public bool WithAuth => _swagger.WithAuth;
+        public bool WithAuth => _openApi.WithAuth;
         /// <inheritdoc/>
-        public bool WithHttpScheme => _swagger.WithHttpScheme;
+        public string OpenApiAppId => _openApi.OpenApiAppId;
         /// <inheritdoc/>
-        public string SwaggerAppId => _swagger.SwaggerAppId;
+        public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
         /// <inheritdoc/>
-        public string SwaggerAppSecret => _swagger.SwaggerAppSecret;
-        /// <inheritdoc/>
-        public string EventHubConnString => _eh.EventHubConnString;
-        /// <inheritdoc/>
-        public string EventHubPath => _eh.EventHubPath;
-        /// <inheritdoc/>
-        public bool UseWebsockets => _eh.UseWebsockets;
-        /// <inheritdoc/>
-        public string ConsumerGroup => _eh.ConsumerGroup;
+        public bool UseV2 => _openApi.UseV2;
 
         /// <summary>
         /// Whether to use role based access
         /// </summary>
         public bool UseRoles => GetBoolOrDefault("PCS_AUTH_ROLES");
-        /// <inheritdoc/>
-        public TelemetryConfiguration TelemetryConfiguration => _ai.TelemetryConfiguration;
 
         /// <summary>
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public Config(IConfigurationRoot configuration) :
+        public Config(IConfiguration configuration) :
             base(configuration) {
 
-            _swagger = new SwaggerConfig(configuration);
+            _openApi = new OpenApiConfig(configuration);
             _auth = new AuthConfig(configuration);
+            _host = new HostConfig(configuration);
             _hub = new IoTHubConfig(configuration);
             _cors = new CorsConfig(configuration);
-            _eh = new EventHubConfig(configuration);
-            _ai = new ApplicationInsightsConfig(configuration);
         }
 
-        private readonly SwaggerConfig _swagger;
+        private readonly OpenApiConfig _openApi;
         private readonly AuthConfig _auth;
+        private readonly HostConfig _host;
         private readonly CorsConfig _cors;
-        private readonly EventHubConfig _eh;
-        private readonly ApplicationInsightsConfig _ai;
         private readonly IoTHubConfig _hub;
     }
 }

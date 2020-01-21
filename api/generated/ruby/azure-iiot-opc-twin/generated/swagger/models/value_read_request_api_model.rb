@@ -26,7 +26,7 @@ module azure.iiot.opc.twin
       # See 7.22 of part 4: NumericRange.
       attr_accessor :index_range
 
-      # @return [RequestHeaderApiModel] Optional request header
+      # @return [RequestHeaderApiModel]
       attr_accessor :header
 
 
@@ -45,7 +45,7 @@ module azure.iiot.opc.twin
             model_properties: {
               node_id: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'nodeId',
                 type: {
                   name: 'String'

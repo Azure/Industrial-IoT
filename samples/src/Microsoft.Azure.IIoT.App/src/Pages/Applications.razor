@@ -1,0 +1,68 @@
+﻿@page "/applications"
+@page "/applications/{page}"
+
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.Azure.IIoT.App.Services
+@using Microsoft.Azure.IIoT.App.Components.Pager
+@using Microsoft.Azure.IIoT.App.Data
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
+
+@inject NavigationManager NavigationManager
+@inject Registry RegistryHelper
+
+<h1>Assets</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Id</th>
+            <th>Site</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var application in pagedapplicationList.Results) {
+        <tr>
+            <td>
+                <a href='endpoints/@RegistryHelper.PathAll/@application.ApplicationId'>
+                    @application.ApplicationName
+                </a>
+            </td>
+            <td>@application.ApplicationUri</td>
+            <td>@application.SiteId</td>
+        </tr>
+        }
+    </tbody>
+</table>
+
+<Pager Result=@applicationList PageChanged=@((Page) => PagerPageChanged(Page)) />
+
+@code {
+
+    [Parameter]
+    public string Page { get; set; } = "1";
+
+    public const int PageLength = 10;
+
+    /// <summary>
+    /// Notify page change
+    /// </summary>
+    /// <param name="page"></param>
+    public void PagerPageChanged(int page) {
+        pagedapplicationList = applicationList.GetPaged(page, PageLength);
+        NavigationManager.NavigateTo("/applications/" + page);
+    }
+
+    /// <inheritdoc/>
+    protected override async Task OnInitializedAsync() {
+        applicationList = await RegistryHelper.GetApplicationListAsync();
+        Page = "1";
+        pagedapplicationList = applicationList.GetPaged(Int32.Parse(Page), PageLength);
+    }
+
+    private PagedResult<ApplicationInfoApiModel> applicationList =
+        new PagedResult<ApplicationInfoApiModel>();
+    private PagedResult<ApplicationInfoApiModel> pagedapplicationList =
+        new PagedResult<ApplicationInfoApiModel>();
+}

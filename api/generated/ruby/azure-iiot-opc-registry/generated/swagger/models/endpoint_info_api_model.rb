@@ -13,20 +13,19 @@ module azure.iiot.opc.registry
     # Endpoint registration model
     #
     class EndpointInfoApiModel
-      # @return [EndpointRegistrationApiModel] Endpoint registration
+      # @return [EndpointRegistrationApiModel]
       attr_accessor :registration
 
       # @return [String] Application id endpoint is registered under.
       attr_accessor :application_id
 
-      # @return [EndpointActivationState] Activation state of endpoint.
-      # Possible values include: 'Deactivated', 'Activated',
-      # 'ActivatedAndConnected'
+      # @return [EndpointActivationState] Possible values include:
+      # 'Deactivated', 'Activated', 'ActivatedAndConnected'
       attr_accessor :activation_state
 
-      # @return [EndpointConnectivityState] Last state of the activated
-      # endpoint. Possible values include: 'Connecting', 'NotReachable',
-      # 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+      # @return [EndpointConnectivityState] Possible values include:
+      # 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid',
+      # 'Ready', 'Error'
       attr_accessor :endpoint_state
 
       # @return [Boolean] Whether the registration is out of sync

@@ -103,7 +103,7 @@ namespace MemoryBuffer {
                 // create the nodes from configuration.
                 namespaceIndex = Server.NamespaceUris.GetIndexOrAppend(Namespaces.MemoryBuffer + "/Instance");
 
-                if (_configuration != null && _configuration.Buffers != null) {
+                if (_configuration?.Buffers != null) {
                     for (var ii = 0; ii < _configuration.Buffers.Count; ii++) {
                         var instance = _configuration.Buffers[ii];
 

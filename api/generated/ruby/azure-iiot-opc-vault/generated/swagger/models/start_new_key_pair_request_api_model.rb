@@ -19,7 +19,7 @@ module azure.iiot.opc.vault
       # @return [String] Certificate group
       attr_accessor :group_id
 
-      # @return [TrustGroupType] Type. Possible values include:
+      # @return [TrustGroupType] Possible values include:
       # 'ApplicationInstanceCertificate', 'HttpsCertificate',
       # 'UserCredentialCertificate'
       attr_accessor :certificate_type
@@ -46,7 +46,7 @@ module azure.iiot.opc.vault
             model_properties: {
               entity_id: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'entityId',
                 type: {
                   name: 'String'
@@ -54,7 +54,7 @@ module azure.iiot.opc.vault
               },
               group_id: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'groupId',
                 type: {
                   name: 'String'
@@ -62,7 +62,7 @@ module azure.iiot.opc.vault
               },
               certificate_type: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'certificateType',
                 type: {
                   name: 'Enum',
@@ -71,7 +71,7 @@ module azure.iiot.opc.vault
               },
               subject_name: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'subjectName',
                 type: {
                   name: 'String'

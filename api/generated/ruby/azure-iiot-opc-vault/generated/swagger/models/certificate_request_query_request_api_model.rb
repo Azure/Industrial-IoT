@@ -16,9 +16,8 @@ module azure.iiot.opc.vault
       # @return [String] The entity id to filter with
       attr_accessor :entity_id
 
-      # @return [CertificateRequestState] The certificate request state.
-      # Possible values include: 'New', 'Approved', 'Rejected', 'Failure',
-      # 'Completed', 'Accepted'
+      # @return [CertificateRequestState] Possible values include: 'New',
+      # 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'
       attr_accessor :state
 
 

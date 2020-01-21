@@ -40,9 +40,9 @@ export interface X509CertificateApiModel {
    */
   notAfterUtc?: Date;
   /**
-   * @member {any} certificate Raw data
+   * @member {any} [certificate] Raw data
    */
-  certificate: any;
+  certificate?: any;
 }
 
 /**
@@ -70,15 +70,15 @@ export interface X509CrlApiModel {
    */
   issuer?: string;
   /**
-   * @member {any} crl The certificate revocation list.
+   * @member {any} [crl] The certificate revocation list.
    */
-  crl: any;
+  crl?: any;
 }
 
 /**
  * @interface
  * An interface representing X509CrlChainApiModel.
- * Crl collection model
+ * Crl chain model
  *
  */
 export interface X509CrlChainApiModel {
@@ -90,23 +90,35 @@ export interface X509CrlChainApiModel {
 
 /**
  * @interface
+ * An interface representing NotFoundResult.
+ */
+export interface NotFoundResult {
+  /**
+   * @member {number} [statusCode] **NOTE: This property will not be
+   * serialized. It can only be populated by the server.**
+   */
+  readonly statusCode?: number;
+}
+
+/**
+ * @interface
  * An interface representing StartSigningRequestApiModel.
  * Signing request
  *
  */
 export interface StartSigningRequestApiModel {
   /**
-   * @member {string} entityId Id of entity to sign a certificate for
+   * @member {string} [entityId] Id of entity to sign a certificate for
    */
-  entityId: string;
+  entityId?: string;
   /**
-   * @member {string} groupId Certificate group id
+   * @member {string} [groupId] Certificate group id
    */
-  groupId: string;
+  groupId?: string;
   /**
-   * @member {any} certificateRequest Request
+   * @member {any} [certificateRequest] Request
    */
-  certificateRequest: any;
+  certificateRequest?: any;
 }
 
 /**
@@ -117,9 +129,9 @@ export interface StartSigningRequestApiModel {
  */
 export interface StartSigningRequestResponseApiModel {
   /**
-   * @member {string} requestId Request id
+   * @member {string} [requestId] Request id
    */
-  requestId: string;
+  requestId?: string;
 }
 
 /**
@@ -134,9 +146,9 @@ export interface VaultOperationContextApiModel {
    */
   authorityId?: string;
   /**
-   * @member {Date} time Operation time
+   * @member {Date} [time] Operation time
    */
-  time: Date;
+  time?: Date;
 }
 
 /**
@@ -159,13 +171,13 @@ export interface CertificateRequestRecordApiModel {
    */
   groupId?: string;
   /**
-   * @member {CertificateRequestState} [state] Request state. Possible values
-   * include: 'New', 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'
+   * @member {CertificateRequestState} [state] Possible values include: 'New',
+   * 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'
    */
   state?: CertificateRequestState;
   /**
-   * @member {CertificateRequestType} [type] Request type. Possible values
-   * include: 'SigningRequest', 'KeyPairRequest'
+   * @member {CertificateRequestType} [type] Possible values include:
+   * 'SigningRequest', 'KeyPairRequest'
    */
   type?: CertificateRequestType;
   /**
@@ -173,15 +185,15 @@ export interface CertificateRequestRecordApiModel {
    */
   errorInfo?: any;
   /**
-   * @member {VaultOperationContextApiModel} [submitted] Request time
+   * @member {VaultOperationContextApiModel} [submitted]
    */
   submitted?: VaultOperationContextApiModel;
   /**
-   * @member {VaultOperationContextApiModel} [approved] Approved or rejected
+   * @member {VaultOperationContextApiModel} [approved]
    */
   approved?: VaultOperationContextApiModel;
   /**
-   * @member {VaultOperationContextApiModel} [accepted] Finished
+   * @member {VaultOperationContextApiModel} [accepted]
    */
   accepted?: VaultOperationContextApiModel;
 }
@@ -194,11 +206,11 @@ export interface CertificateRequestRecordApiModel {
  */
 export interface FinishSigningRequestResponseApiModel {
   /**
-   * @member {CertificateRequestRecordApiModel} [request] Request
+   * @member {CertificateRequestRecordApiModel} [request]
    */
   request?: CertificateRequestRecordApiModel;
   /**
-   * @member {X509CertificateApiModel} [certificate] Signed certificate
+   * @member {X509CertificateApiModel} [certificate]
    */
   certificate?: X509CertificateApiModel;
 }
@@ -211,23 +223,23 @@ export interface FinishSigningRequestResponseApiModel {
  */
 export interface StartNewKeyPairRequestApiModel {
   /**
-   * @member {string} entityId Entity id
+   * @member {string} [entityId] Entity id
    */
-  entityId: string;
+  entityId?: string;
   /**
-   * @member {string} groupId Certificate group
+   * @member {string} [groupId] Certificate group
    */
-  groupId: string;
+  groupId?: string;
   /**
-   * @member {TrustGroupType} certificateType Type. Possible values include:
+   * @member {TrustGroupType} [certificateType] Possible values include:
    * 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
    */
-  certificateType: TrustGroupType;
+  certificateType?: TrustGroupType;
   /**
-   * @member {string} subjectName Subject name
+   * @member {string} [subjectName] Subject name
    */
-  subjectName: string;
+  subjectName?: string;
   /**
    * @member {string[]} [domainNames] Domain names
    */
@@ -242,9 +254,9 @@ export interface StartNewKeyPairRequestApiModel {
  */
 export interface StartNewKeyPairRequestResponseApiModel {
   /**
-   * @member {string} requestId Request id
+   * @member {string} [requestId] Request id
    */
-  requestId: string;
+  requestId?: string;
 }
 
 /**
@@ -255,8 +267,8 @@ export interface StartNewKeyPairRequestResponseApiModel {
  */
 export interface PrivateKeyApiModel {
   /**
-   * @member {PrivateKeyType} [kty] Key type. Possible values include: 'RSA',
-   * 'ECC', 'AES'
+   * @member {PrivateKeyType} [kty] Possible values include: 'RSA', 'ECC',
+   * 'AES'
    */
   kty?: PrivateKeyType;
   /**
@@ -284,11 +296,11 @@ export interface PrivateKeyApiModel {
    */
   p?: Uint8Array;
   /**
-   * @member {Uint8Array} [q] RSA secret prime, with p &lt; q
+   * @member {Uint8Array} [q] RSA secret prime, with p < q
    */
   q?: Uint8Array;
   /**
-   * @member {string} [crv] The curve for ECC algorithms
+   * @member {string} [crv]
    */
   crv?: string;
   /**
@@ -308,7 +320,7 @@ export interface PrivateKeyApiModel {
    */
   k?: Uint8Array;
   /**
-   * @member {Uint8Array} [keyHsm] HSM Token, used with "Bring Your Own Key"
+   * @member {Uint8Array} [keyHsm]
    */
   keyHsm?: Uint8Array;
 }
@@ -321,15 +333,15 @@ export interface PrivateKeyApiModel {
  */
 export interface FinishNewKeyPairRequestResponseApiModel {
   /**
-   * @member {CertificateRequestRecordApiModel} [request] Request
+   * @member {CertificateRequestRecordApiModel} [request]
    */
   request?: CertificateRequestRecordApiModel;
   /**
-   * @member {X509CertificateApiModel} [certificate] Signed certificate
+   * @member {X509CertificateApiModel} [certificate]
    */
   certificate?: X509CertificateApiModel;
   /**
-   * @member {PrivateKeyApiModel} [privateKey] Private key
+   * @member {PrivateKeyApiModel} [privateKey]
    */
   privateKey?: PrivateKeyApiModel;
 }
@@ -346,9 +358,8 @@ export interface CertificateRequestQueryRequestApiModel {
    */
   entityId?: string;
   /**
-   * @member {CertificateRequestState} [state] The certificate request state.
-   * Possible values include: 'New', 'Approved', 'Rejected', 'Failure',
-   * 'Completed', 'Accepted'
+   * @member {CertificateRequestState} [state] Possible values include: 'New',
+   * 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'
    */
   state?: CertificateRequestState;
 }
@@ -372,96 +383,30 @@ export interface CertificateRequestQueryResponseApiModel {
 
 /**
  * @interface
- * An interface representing StatusResponseApiModel.
- * Status model
- *
- */
-export interface StatusResponseApiModel {
-  /**
-   * @member {string} [name] Name of this service
-   */
-  name?: string;
-  /**
-   * @member {string} [status] Operational status
-   */
-  status?: string;
-  /**
-   * @member {string} [currentTime] Current time
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly currentTime?: string;
-  /**
-   * @member {string} [startTime] Start time of service
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly startTime?: string;
-  /**
-   * @member {number} [upTime] Up time of service
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly upTime?: number;
-  /**
-   * @member {string} [uid] Value generated at bootstrap by each instance of
-   * the service and
-   * used to correlate logs coming from the same instance. The value
-   * changes every time the service starts.
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly uid?: string;
-  /**
-   * @member {{ [propertyName: string]: string }} [properties] A property bag
-   * with details about the service
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly properties?: { [propertyName: string]: string };
-  /**
-   * @member {{ [propertyName: string]: string }} [dependencies] A property bag
-   * with details about the internal dependencies
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly dependencies?: { [propertyName: string]: string };
-  /**
-   * @member {{ [propertyName: string]: string }} [metadata] Optional meta
-   * data.
-   * **NOTE: This property will not be serialized. It can only be populated by
-   * the server.**
-   */
-  readonly metadata?: { [propertyName: string]: string };
-}
-
-/**
- * @interface
  * An interface representing TrustGroupApiModel.
  * Trust group model
  *
  */
 export interface TrustGroupApiModel {
   /**
-   * @member {string} name The name of the trust group.
+   * @member {string} [name] The name of the trust group.
    */
-  name: string;
+  name?: string;
   /**
    * @member {string} [parentId] The identifer of the parent trust group.
    */
   parentId?: string;
   /**
-   * @member {TrustGroupType} [type] The trust group type. Possible values
-   * include: 'ApplicationInstanceCertificate', 'HttpsCertificate',
-   * 'UserCredentialCertificate'. Default value:
-   * 'ApplicationInstanceCertificate' .
+   * @member {TrustGroupType} [type] Possible values include:
+   * 'ApplicationInstanceCertificate', 'HttpsCertificate',
+   * 'UserCredentialCertificate'
    */
   type?: TrustGroupType;
   /**
-   * @member {string} subjectName The subject name of the group as
+   * @member {string} [subjectName] The subject name of the group as
    * distinguished name.
    */
-  subjectName: string;
+  subjectName?: string;
   /**
    * @member {string} [lifetime] The lifetime of the trust group certificate.
    */
@@ -471,9 +416,8 @@ export interface TrustGroupApiModel {
    */
   keySize?: number;
   /**
-   * @member {SignatureAlgorithm} [signatureAlgorithm] The certificate
-   * signature algorithm. Possible values include: 'Rsa256', 'Rsa384',
-   * 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @member {SignatureAlgorithm} [signatureAlgorithm] Possible values include:
+   * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    */
   signatureAlgorithm?: SignatureAlgorithm;
   /**
@@ -486,9 +430,9 @@ export interface TrustGroupApiModel {
    */
   issuedKeySize?: number;
   /**
-   * @member {SignatureAlgorithm} [issuedSignatureAlgorithm] The Signature
-   * algorithm for issued certificates. Possible values include: 'Rsa256',
-   * 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @member {SignatureAlgorithm} [issuedSignatureAlgorithm] Possible values
+   * include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss',
+   * 'Rsa512Pss'
    */
   issuedSignatureAlgorithm?: SignatureAlgorithm;
 }
@@ -501,13 +445,13 @@ export interface TrustGroupApiModel {
  */
 export interface TrustGroupRegistrationApiModel {
   /**
-   * @member {string} id The registered id of the trust group
+   * @member {string} [id] The registered id of the trust group
    */
-  id: string;
+  id?: string;
   /**
-   * @member {TrustGroupApiModel} group Trust group
+   * @member {TrustGroupApiModel} [group]
    */
-  group: TrustGroupApiModel;
+  group?: TrustGroupApiModel;
 }
 
 /**
@@ -536,18 +480,18 @@ export interface TrustGroupRegistrationListApiModel {
  */
 export interface TrustGroupRegistrationRequestApiModel {
   /**
-   * @member {string} name The new name of the trust group
+   * @member {string} [name] The new name of the trust group
    */
-  name: string;
+  name?: string;
   /**
-   * @member {string} parentId The identifer of the parent trust group.
+   * @member {string} [parentId] The identifer of the parent trust group.
    */
-  parentId: string;
+  parentId?: string;
   /**
-   * @member {string} subjectName The subject name of the group as
+   * @member {string} [subjectName] The subject name of the group as
    * distinguished name.
    */
-  subjectName: string;
+  subjectName?: string;
   /**
    * @member {string} [issuedLifetime] The lifetime of certificates issued in
    * the group.
@@ -558,9 +502,9 @@ export interface TrustGroupRegistrationRequestApiModel {
    */
   issuedKeySize?: number;
   /**
-   * @member {SignatureAlgorithm} [issuedSignatureAlgorithm] The issued
-   * certificate signature algorithm. Possible values include: 'Rsa256',
-   * 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @member {SignatureAlgorithm} [issuedSignatureAlgorithm] Possible values
+   * include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss',
+   * 'Rsa512Pss'
    */
   issuedSignatureAlgorithm?: SignatureAlgorithm;
 }
@@ -573,9 +517,9 @@ export interface TrustGroupRegistrationRequestApiModel {
  */
 export interface TrustGroupRegistrationResponseApiModel {
   /**
-   * @member {string} id The id of the trust group
+   * @member {string} [id] The id of the trust group
    */
-  id: string;
+  id?: string;
 }
 
 /**
@@ -598,9 +542,9 @@ export interface TrustGroupUpdateRequestApiModel {
    */
   issuedKeySize?: number;
   /**
-   * @member {SignatureAlgorithm} [issuedSignatureAlgorithm] The issued
-   * certificate key size in bits. Possible values include: 'Rsa256', 'Rsa384',
-   * 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @member {SignatureAlgorithm} [issuedSignatureAlgorithm] Possible values
+   * include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss',
+   * 'Rsa512Pss'
    */
   issuedSignatureAlgorithm?: SignatureAlgorithm;
 }
@@ -613,34 +557,32 @@ export interface TrustGroupUpdateRequestApiModel {
  */
 export interface TrustGroupRootCreateRequestApiModel {
   /**
-   * @member {string} name The new name of the trust group root
+   * @member {string} [name] The new name of the trust group root
    */
-  name: string;
+  name?: string;
   /**
-   * @member {TrustGroupType} [type] The trust group type. Possible values
-   * include: 'ApplicationInstanceCertificate', 'HttpsCertificate',
-   * 'UserCredentialCertificate'. Default value:
-   * 'ApplicationInstanceCertificate' .
+   * @member {TrustGroupType} [type] Possible values include:
+   * 'ApplicationInstanceCertificate', 'HttpsCertificate',
+   * 'UserCredentialCertificate'
    */
   type?: TrustGroupType;
   /**
-   * @member {string} subjectName The subject name of the group as
+   * @member {string} [subjectName] The subject name of the group as
    * distinguished name.
    */
-  subjectName: string;
+  subjectName?: string;
   /**
-   * @member {string} lifetime The lifetime of the trust group root
+   * @member {string} [lifetime] The lifetime of the trust group root
    * certificate.
    */
-  lifetime: string;
+  lifetime?: string;
   /**
    * @member {number} [keySize] The certificate key size in bits.
    */
   keySize?: number;
   /**
-   * @member {SignatureAlgorithm} [signatureAlgorithm] The certificate
-   * signature algorithm. Possible values include: 'Rsa256', 'Rsa384',
-   * 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @member {SignatureAlgorithm} [signatureAlgorithm] Possible values include:
+   * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    */
   signatureAlgorithm?: SignatureAlgorithm;
   /**
@@ -652,9 +594,9 @@ export interface TrustGroupRootCreateRequestApiModel {
    */
   issuedKeySize?: number;
   /**
-   * @member {SignatureAlgorithm} [issuedSignatureAlgorithm] The issued
-   * certificate signature algorithm. Possible values include: 'Rsa256',
-   * 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @member {SignatureAlgorithm} [issuedSignatureAlgorithm] Possible values
+   * include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss',
+   * 'Rsa512Pss'
    */
   issuedSignatureAlgorithm?: SignatureAlgorithm;
 }
@@ -697,15 +639,15 @@ export interface AzureOpcVaultClientOptions extends ServiceClientOptions {
  */
 export interface AzureOpcVaultClientQueryRequestsOptionalParams extends msRest.RequestOptionsBase {
   /**
-   * @member {CertificateRequestQueryRequestApiModel} [query] optional, query
-   * filter
-   */
-  query?: CertificateRequestQueryRequestApiModel;
-  /**
    * @member {number} [pageSize] optional, the maximum number of result per
    * page
    */
   pageSize?: number;
+  /**
+   * @member {CertificateRequestQueryRequestApiModel} [body] optional, query
+   * filter
+   */
+  body?: CertificateRequestQueryRequestApiModel;
 }
 
 /**
@@ -845,6 +787,52 @@ export type GetIssuerCrlChainResponse = X509CrlChainApiModel & {
 };
 
 /**
+ * Contains response data for the getIssuerCertificateChain1 operation.
+ */
+export type GetIssuerCertificateChain1Response = {
+  /**
+   * The parsed response body.
+   */
+  body: string;
+  /**
+   * The underlying HTTP response.
+   */
+  _response: msRest.HttpResponse & {
+      /**
+       * The response body as text (string format)
+       */
+      bodyAsText: string;
+      /**
+       * The response body as parsed JSON or XML
+       */
+      parsedBody: string;
+    };
+};
+
+/**
+ * Contains response data for the getIssuerCrlChain1 operation.
+ */
+export type GetIssuerCrlChain1Response = {
+  /**
+   * The parsed response body.
+   */
+  body: string;
+  /**
+   * The underlying HTTP response.
+   */
+  _response: msRest.HttpResponse & {
+      /**
+       * The response body as text (string format)
+       */
+      bodyAsText: string;
+      /**
+       * The response body as parsed JSON or XML
+       */
+      parsedBody: string;
+    };
+};
+
+/**
  * Contains response data for the startSigningRequest operation.
  */
 export type StartSigningRequestResponse = StartSigningRequestResponseApiModel & {
@@ -974,25 +962,6 @@ export type ListRequestsResponse = CertificateRequestQueryResponseApiModel & {
        * The response body as parsed JSON or XML
        */
       parsedBody: CertificateRequestQueryResponseApiModel;
-    };
-};
-
-/**
- * Contains response data for the getStatus operation.
- */
-export type GetStatusResponse = StatusResponseApiModel & {
-  /**
-   * The underlying HTTP response.
-   */
-  _response: msRest.HttpResponse & {
-      /**
-       * The response body as text (string format)
-       */
-      bodyAsText: string;
-      /**
-       * The response body as parsed JSON or XML
-       */
-      parsedBody: StatusResponseApiModel;
     };
 };
 

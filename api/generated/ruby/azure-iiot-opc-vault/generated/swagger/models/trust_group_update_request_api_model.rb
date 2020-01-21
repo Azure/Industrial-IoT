@@ -22,9 +22,8 @@ module azure.iiot.opc.vault
       # @return [Integer] The issued certificate key size in bits.
       attr_accessor :issued_key_size
 
-      # @return [SignatureAlgorithm] The issued certificate key size in bits.
-      # Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss',
-      # 'Rsa384Pss', 'Rsa512Pss'
+      # @return [SignatureAlgorithm] Possible values include: 'Rsa256',
+      # 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
       attr_accessor :issued_signature_algorithm
 
 

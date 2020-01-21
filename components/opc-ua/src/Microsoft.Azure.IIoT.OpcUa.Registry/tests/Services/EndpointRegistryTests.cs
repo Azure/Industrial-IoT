@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Mock;
@@ -270,14 +271,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     var r = a.ToEndpointRegistration();
                     var t = r.ToDeviceTwin();
                     t.Properties.Reported = new Dictionary<string, JToken> {
-                        [TwinProperty.kType] = "Twin"
+                        [TwinProperty.Type] = "Twin"
                     };
                     if (a.Registration.SiteId != null) {
-                        t.Properties.Reported.Add(TwinProperty.kSiteId, a.Registration.SiteId);
+                        t.Properties.Reported.Add(TwinProperty.SiteId, a.Registration.SiteId);
                     }
                     if (a.IsTwinConnected()) {
                         t.ConnectionState = "Connected";
-                        t.Properties.Reported.Add(TwinProperty.kConnected, true);
+                        t.Properties.Reported.Add(TwinProperty.Connected, true);
                     }
                     return t;
                 })

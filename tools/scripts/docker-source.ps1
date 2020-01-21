@@ -3,7 +3,7 @@
     Builds csproj file and returns buildable dockerfile build definitions
 
  .PARAMETER Path
-    The folder containing the mcr.json file.
+    The folder containing the container.json file.
 
  .PARAMETER Configuration
     Whether to build Release or Debug - default to Release.  
@@ -28,7 +28,7 @@ $configuration = "Release"
 if ($Debug.IsPresent) {
     $configuration = "Debug"
 }
-$metadata = Get-Content -Raw -Path (Join-Path $Path "mcr.json") `
+$metadata = Get-Content -Raw -Path (Join-Path $Path "container.json") `
     | ConvertFrom-Json
 
 $definitions = @()
@@ -38,7 +38,7 @@ $projFile = Get-ChildItem $Path -Filter *.csproj | Select-Object -First 1
 if ($projFile -ne $null) {
 
     $output = (Join-Path $Path (Join-Path "bin" (Join-Path "publish" $configuration)))
-    $runtimes = @("linux-arm", "linux-x64", "win-x64", "win-arm", "win-arm64", "")
+    $runtimes = @("linux-arm", "linux-x64", "win-x64", "win-arm", "")
     if (![string]::IsNullOrEmpty($metadata.base)) {
         # Shortcut - only build portable
         $runtimes = @("")
@@ -51,6 +51,7 @@ if ($projFile -ne $null) {
         if (![string]::IsNullOrEmpty($runtimeId)) {
             $argumentList += "-r"
             $argumentList += $runtimeId
+            $argumentList += "/p:TargetLatestRuntimePatch=true"
         }
         else {
             $runtimeId = "portable"
@@ -85,7 +86,7 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
     $platforms = @{
         "linux/arm/v7" = @{
             runtimeId = "linux-arm"
-            image = "mcr.microsoft.com/dotnet/core/runtime-deps:2.2"
+            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1"
             platformTag = "linux-arm32v7"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
             debugger = $installLinuxDebugger
@@ -93,7 +94,7 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
         }
         "linux/amd64" = @{
             runtimeId = "linux-x64"
-            image = "mcr.microsoft.com/dotnet/core/runtime-deps:2.2"
+            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1"
             platformTag = "linux-amd64"
             runtimeOnly = "RUN chmod +x $($assemblyName)"
             debugger = $installLinuxDebugger
@@ -137,6 +138,7 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
         $baseImage = $platformInfo.image
         $platformTag = $platformInfo.platformTag
         $entryPoint = $platformInfo.entryPoint
+        $environmentVars = @("ENV DOTNET_RUNNING_IN_CONTAINER=true")
 
         #
         # Check for overridden base image name - e.g. aspnet core images
@@ -173,24 +175,30 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
             $metadata.exposes | ForEach-Object {
                 $exposes = "$("EXPOSE $($_)" | Out-String)$($exposes)"
             }
+            $environmentVars += "ENV ASPNETCORE_FORWARDEDHEADERS_ENABLED=true"
         }
         $workdir = ""
         if ($metadata.workdir -ne $null) {
             $workdir = "WORKDIR /$($metadata.workdir)"
         }
+        if ([string]::IsNullOrEmpty($workdir)) {
+            $workdir = "WORKDIR /app"
+        }
         $dockerFileContent = @"
 FROM $($baseImage)
+
 $($exposes)
 
-WORKDIR /app
+$($workdir)
 COPY . .
 $($runtimeOnly)
 
 $($debugger)
 
+$($environmentVars | Out-String)
+
 ENTRYPOINT $($entryPoint)
 
-$($workdir)
 "@ 
         $imageContent = (Join-Path $output $runtimeId)
         $dockerFile = (Join-Path $imageContent "Dockerfile.$($platformTag)")

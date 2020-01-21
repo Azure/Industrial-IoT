@@ -13,9 +13,8 @@ module azure.iiot.opc.twin
     # Credential model
     #
     class CredentialApiModel
-      # @return [CredentialType] Type of credential. Possible values include:
-      # 'None', 'UserName', 'X509Certificate', 'JwtToken'. Default value:
-      # 'None' .
+      # @return [CredentialType] Possible values include: 'None', 'UserName',
+      # 'X509Certificate', 'JwtToken'
       attr_accessor :type
 
       # @return Value to pass to server
@@ -39,7 +38,6 @@ module azure.iiot.opc.twin
                 client_side_validation: true,
                 required: false,
                 serialized_name: 'type',
-                default_value: 'None',
                 type: {
                   name: 'Enum',
                   module: 'CredentialType'

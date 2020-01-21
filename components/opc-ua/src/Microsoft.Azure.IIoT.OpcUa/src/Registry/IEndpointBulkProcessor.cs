@@ -17,14 +17,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// Add new endpoints, or merge newly found endpoints with the ones
         /// under the specified application id if id is not null.
         /// </summary>
-        /// <param name="supervisorId"></param>
-        /// <param name="context"></param>
         /// <param name="found"></param>
+        /// <param name="context"></param>
+        /// <param name="discovererId"></param>
+        /// <param name="supervisorId"></param>
         /// <param name="applicationId"></param>
         /// <param name="hardDelete"></param>
         /// <returns></returns>
         Task ProcessDiscoveryEventsAsync(IEnumerable<EndpointInfoModel> found,
-            DiscoveryResultModel context, string supervisorId,
+            DiscoveryResultModel context, string discovererId, string supervisorId,
             string applicationId = null, bool hardDelete = false);
     }
 }

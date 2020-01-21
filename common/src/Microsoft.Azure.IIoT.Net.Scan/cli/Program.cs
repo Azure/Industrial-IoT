@@ -4,11 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Net.Cli {
-    using Microsoft.Azure.IIoT.Net;
-    using Serilog;
     using Microsoft.Azure.IIoT.Net.Scanner;
     using Microsoft.Azure.IIoT.Net.Models;
-    using Microsoft.Extensions.Configuration;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using System;
     using System.Diagnostics;
     using System.Threading.Tasks;
@@ -34,10 +32,6 @@ namespace Microsoft.Azure.IIoT.Net.Cli {
             var op = Op.None;
             var host = Dns.GetHostName();
 
-            var configuration = new ConfigurationBuilder()
-                .AddFromDotEnvFile()
-                .AddEnvironmentVariables()
-                .Build();
             try {
                 for (var i = 0; i < args.Length; i++) {
                     switch (args[i]) {
@@ -100,11 +94,11 @@ Operations (Mutually exclusive):
                 Console.WriteLine($"Running {op}...");
                 switch (op) {
                     case Op.TestNetworkScanner:
-                        TestNetworkScanner().Wait();
+                        TestNetworkScannerAsync().Wait();
                         break;
                     case Op.TestPortScanner:
                         while (true) {
-                            TestPortScanner(host).Wait();
+                            TestPortScannerAsync(host).Wait();
                         }
                     //break;
                     default:
@@ -126,8 +120,8 @@ Operations (Mutually exclusive):
         /// </summary>
         /// <param name="host"></param>
         /// <returns></returns>
-        private static async Task TestPortScanner(string host) {
-            var logger = LogEx.ConsoleOut();
+        private static async Task TestPortScannerAsync(string host) {
+            var logger = ConsoleOutLogger.Create();
             var addresses = await Dns.GetHostAddressesAsync(host);
             using (var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10))) {
                 var watch = Stopwatch.StartNew();
@@ -148,8 +142,8 @@ Operations (Mutually exclusive):
         /// Test network scanning
         /// </summary>
         /// <returns></returns>
-        private static async Task TestNetworkScanner() {
-            var logger = LogEx.ConsoleOut();
+        private static async Task TestNetworkScannerAsync() {
+            var logger = ConsoleOutLogger.Create();
             using (var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10))) {
                 var watch = Stopwatch.StartNew();
                 var scanning = new ScanServices(logger);

@@ -51,7 +51,7 @@ namespace Boiler {
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
-            return Opc.Ua.NodeId.Create(Boiler.ObjectTypes.GenericControllerType, Boiler.Namespaces.Boiler, namespaceUris);
+            return NodeId.Create(ObjectTypes.GenericControllerType, Namespaces.Boiler, namespaceUris);
         }
 
 #if !OPCUA_EXCLUDE_InitializationStrings
@@ -99,7 +99,7 @@ namespace Boiler {
             }
 
             set {
-                if (!Object.ReferenceEquals(m_measurement, value)) {
+                if (!object.ReferenceEquals(m_measurement, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -116,7 +116,7 @@ namespace Boiler {
             }
 
             set {
-                if (!Object.ReferenceEquals(m_setPoint, value)) {
+                if (!object.ReferenceEquals(m_setPoint, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -133,7 +133,7 @@ namespace Boiler {
             }
 
             set {
-                if (!Object.ReferenceEquals(m_controlOut, value)) {
+                if (!object.ReferenceEquals(m_controlOut, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -181,7 +181,7 @@ namespace Boiler {
             BaseInstanceState instance = null;
 
             switch (browseName.Name) {
-                case Boiler.BrowseNames.Measurement: {
+                case BrowseNames.Measurement: {
                         if (createOrReplace) {
                             if (Measurement == null) {
                                 if (replacement == null) {
@@ -197,7 +197,7 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.SetPoint: {
+                case BrowseNames.SetPoint: {
                         if (createOrReplace) {
                             if (SetPoint == null) {
                                 if (replacement == null) {
@@ -213,7 +213,7 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.ControlOut: {
+                case BrowseNames.ControlOut: {
                         if (createOrReplace) {
                             if (ControlOut == null) {
                                 if (replacement == null) {
@@ -1177,7 +1177,7 @@ namespace Boiler {
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
-            return Opc.Ua.NodeId.Create(Boiler.ObjectTypes.BoilerStateMachineType, Boiler.Namespaces.Boiler, namespaceUris);
+            return NodeId.Create(ObjectTypes.BoilerStateMachineType, Namespaces.Boiler, namespaceUris);
         }
 
 #if !OPCUA_EXCLUDE_InitializationStrings
@@ -1244,7 +1244,7 @@ namespace Boiler {
             }
 
             set {
-                if (!Object.ReferenceEquals(m_updateRate, value)) {
+                if (!object.ReferenceEquals(m_updateRate, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1261,7 +1261,7 @@ namespace Boiler {
             }
 
             set {
-                if (!Object.ReferenceEquals(m_startMethod, value)) {
+                if (!object.ReferenceEquals(m_startMethod, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1278,7 +1278,7 @@ namespace Boiler {
             }
 
             set {
-                if (!Object.ReferenceEquals(m_suspendMethod, value)) {
+                if (!object.ReferenceEquals(m_suspendMethod, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1295,7 +1295,7 @@ namespace Boiler {
             }
 
             set {
-                if (!Object.ReferenceEquals(m_resumeMethod, value)) {
+                if (!object.ReferenceEquals(m_resumeMethod, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1312,7 +1312,7 @@ namespace Boiler {
             }
 
             set {
-                if (!Object.ReferenceEquals(m_haltMethod, value)) {
+                if (!object.ReferenceEquals(m_haltMethod, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1329,7 +1329,7 @@ namespace Boiler {
             }
 
             set {
-                if (!Object.ReferenceEquals(m_resetMethod, value)) {
+                if (!object.ReferenceEquals(m_resetMethod, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1389,7 +1389,7 @@ namespace Boiler {
             BaseInstanceState instance = null;
 
             switch (browseName.Name) {
-                case Boiler.BrowseNames.UpdateRate: {
+                case BrowseNames.UpdateRate: {
                         if (createOrReplace) {
                             if (UpdateRate == null) {
                                 if (replacement == null) {
@@ -1405,7 +1405,7 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.Start: {
+                case BrowseNames.Start: {
                         if (createOrReplace) {
                             if (Start == null) {
                                 if (replacement == null) {
@@ -1421,7 +1421,7 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.Suspend: {
+                case BrowseNames.Suspend: {
                         if (createOrReplace) {
                             if (Suspend == null) {
                                 if (replacement == null) {
@@ -1437,7 +1437,7 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.Resume: {
+                case BrowseNames.Resume: {
                         if (createOrReplace) {
                             if (Resume == null) {
                                 if (replacement == null) {
@@ -1453,7 +1453,7 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.Halt: {
+                case BrowseNames.Halt: {
                         if (createOrReplace) {
                             if (Halt == null) {
                                 if (replacement == null) {
@@ -1469,7 +1469,7 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.Reset: {
+                case BrowseNames.Reset: {
                         if (createOrReplace) {
                             if (Reset == null) {
                                 if (replacement == null) {
@@ -1983,7 +1983,7 @@ namespace Boiler {
         /// Returns the id of the default type definition node for the instance.
         /// </summary>
         protected override NodeId GetDefaultTypeDefinitionId(NamespaceTable namespaceUris) {
-            return Opc.Ua.NodeId.Create(Boiler.ObjectTypes.BoilerType, Boiler.Namespaces.Boiler, namespaceUris);
+            return NodeId.Create(ObjectTypes.BoilerType, Namespaces.Boiler, namespaceUris);
         }
 
 #if !OPCUA_EXCLUDE_InitializationStrings
@@ -2081,7 +2081,7 @@ namespace Boiler {
             }
 
             set {
-                if (!Object.ReferenceEquals(m_inputPipe, value)) {
+                if (!object.ReferenceEquals(m_inputPipe, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2098,7 +2098,7 @@ namespace Boiler {
             }
 
             set {
-                if (!Object.ReferenceEquals(m_drum, value)) {
+                if (!object.ReferenceEquals(m_drum, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2115,7 +2115,7 @@ namespace Boiler {
             }
 
             set {
-                if (!Object.ReferenceEquals(m_outputPipe, value)) {
+                if (!object.ReferenceEquals(m_outputPipe, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2132,7 +2132,7 @@ namespace Boiler {
             }
 
             set {
-                if (!Object.ReferenceEquals(m_flowController, value)) {
+                if (!object.ReferenceEquals(m_flowController, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2149,7 +2149,7 @@ namespace Boiler {
             }
 
             set {
-                if (!Object.ReferenceEquals(m_levelController, value)) {
+                if (!object.ReferenceEquals(m_levelController, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2166,7 +2166,7 @@ namespace Boiler {
             }
 
             set {
-                if (!Object.ReferenceEquals(m_customController, value)) {
+                if (!object.ReferenceEquals(m_customController, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2183,7 +2183,7 @@ namespace Boiler {
             }
 
             set {
-                if (!Object.ReferenceEquals(m_simulation, value)) {
+                if (!object.ReferenceEquals(m_simulation, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2247,7 +2247,7 @@ namespace Boiler {
             BaseInstanceState instance = null;
 
             switch (browseName.Name) {
-                case Boiler.BrowseNames.InputPipe: {
+                case BrowseNames.InputPipe: {
                         if (createOrReplace) {
                             if (InputPipe == null) {
                                 if (replacement == null) {
@@ -2263,7 +2263,7 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.Drum: {
+                case BrowseNames.Drum: {
                         if (createOrReplace) {
                             if (Drum == null) {
                                 if (replacement == null) {
@@ -2279,7 +2279,7 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.OutputPipe: {
+                case BrowseNames.OutputPipe: {
                         if (createOrReplace) {
                             if (OutputPipe == null) {
                                 if (replacement == null) {
@@ -2295,7 +2295,7 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.FlowController: {
+                case BrowseNames.FlowController: {
                         if (createOrReplace) {
                             if (FlowController == null) {
                                 if (replacement == null) {
@@ -2311,7 +2311,7 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.LevelController: {
+                case BrowseNames.LevelController: {
                         if (createOrReplace) {
                             if (LevelController == null) {
                                 if (replacement == null) {
@@ -2327,7 +2327,7 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.CustomController: {
+                case BrowseNames.CustomController: {
                         if (createOrReplace) {
                             if (CustomController == null) {
                                 if (replacement == null) {
@@ -2343,7 +2343,7 @@ namespace Boiler {
                         break;
                     }
 
-                case Boiler.BrowseNames.Simulation: {
+                case BrowseNames.Simulation: {
                         if (createOrReplace) {
                             if (Simulation == null) {
                                 if (replacement == null) {

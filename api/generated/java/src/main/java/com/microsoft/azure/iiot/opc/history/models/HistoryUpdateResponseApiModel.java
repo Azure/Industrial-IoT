@@ -24,7 +24,7 @@ public class HistoryUpdateResponseApiModel {
     private List<ServiceResultApiModel> results;
 
     /**
-     * Service result in case of service call error.
+     * The errorInfo property.
      */
     @JsonProperty(value = "errorInfo")
     private ServiceResultApiModel errorInfo;
@@ -50,7 +50,7 @@ public class HistoryUpdateResponseApiModel {
     }
 
     /**
-     * Get service result in case of service call error.
+     * Get the errorInfo value.
      *
      * @return the errorInfo value
      */
@@ -59,7 +59,7 @@ public class HistoryUpdateResponseApiModel {
     }
 
     /**
-     * Set service result in case of service call error.
+     * Set the errorInfo value.
      *
      * @param errorInfo the errorInfo value to set
      * @return the HistoryUpdateResponseApiModel object itself.

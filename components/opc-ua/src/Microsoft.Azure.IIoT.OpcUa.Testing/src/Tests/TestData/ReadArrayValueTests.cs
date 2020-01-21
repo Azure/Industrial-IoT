@@ -4,8 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
-    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
@@ -46,7 +47,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
                             AuditId = nameof(NodeReadAllStaticArrayVariableNodeClassTest1Async),
-                            TimeStamp = System.DateTime.Now
+                            TimeStamp = DateTime.Now
                         }
                     },
                     Attributes = attributes
@@ -79,7 +80,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
                             AuditId = nameof(NodeReadAllStaticArrayVariableAccessLevelTest1Async),
-                            TimeStamp = System.DateTime.Now
+                            TimeStamp = DateTime.Now
                         }
                     },
                     Attributes = attributes
@@ -112,7 +113,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
                             AuditId = nameof(NodeReadAllStaticArrayVariableWriteMaskTest1Async),
-                            TimeStamp = System.DateTime.Now
+                            TimeStamp = DateTime.Now
                         }
                     },
                     Attributes = attributes
@@ -145,7 +146,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Header = new RequestHeaderModel {
                         Diagnostics = new DiagnosticsModel {
                             AuditId = nameof(NodeReadAllStaticArrayVariableWriteMaskTest2Async),
-                            TimeStamp = System.DateTime.Now
+                            TimeStamp = DateTime.Now
                         }
                     },
                     Attributes = attributes
@@ -451,7 +452,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 return;
             }
 
-            Assert.True(((JArray)result.Value)[0].IsFloatValue());
+            Assert.True(((JArray)result.Value)[0].IsFloatValue(), $"First is {result.Value}");
             Assert.Equal("Float", result.DataType);
         }
 
@@ -893,7 +894,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 return;
             }
             var type = ((JArray)result.Value)[0].Type;
-            Assert.True(type == JTokenType.Integer || type == JTokenType.Float);
+            Assert.True(type == JTokenType.Integer ||
+                ((JArray)result.Value)[0].IsFloatValue(), $"Got bad type {type}");
         }
 
 

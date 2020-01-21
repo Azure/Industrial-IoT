@@ -28,9 +28,9 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// </summary>
         /// <param name="key"></param>
         /// <param name="value"></param>
-        /// <param name="contentType"></param>
         /// <param name="notBefore"></param>
         /// <param name="notAfter"></param>
+        /// <param name="contentType"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task SetKeyValueAsync(string key, string value, DateTime? notBefore = null,

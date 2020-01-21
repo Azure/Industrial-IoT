@@ -255,58 +255,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         }
 
         /// <summary>
-        /// Validate user identity
-        /// </summary>
-        /// <param name="newIdentity"></param>
-        /// <param name="userTokenPolicy"></param>
-        /// <returns></returns>
-        private static IUserIdentity ValidateUserIdentity(UserIdentityToken newIdentity,
-            UserTokenPolicy userTokenPolicy) {
-            System.Diagnostics.Contracts.Contract.Ensures(userTokenPolicy != null);
-            try {
-                IUserIdentity identity = null;
-                IUserIdentity effectiveIdentity = null;
-
-                // Validate the identity token and impersonate user.
-
-                // TODO
-
-                // lock (_eventLock) {
-                // if (_impersonateUser != null) {
-                //
-                //     var args = new ImpersonateEventArgs(newIdentity, userTokenPolicy);
-                //     _impersonateUser(session, args);
-                //
-                //     if (ServiceResult.IsBad(args.IdentityValidationError)) {
-                //         error = args.IdentityValidationError;
-                // if (ServiceResult.IsBad(error)) {
-                //     throw new ServiceResultException(error);
-                // }
-                //     }
-                //     else {
-                //         identity = args.Identity;
-                //         return args.EffectiveIdentity;
-                //     }
-                // }
-                // }
-
-                // check for validation error.
-                if (identity == null) {
-                    identity = new UserIdentity(newIdentity);
-                }
-                // use the identity as the effectiveIdentity if not provided.
-                return effectiveIdentity ?? identity;
-            }
-            catch (ServiceResultException) {
-                throw;
-            }
-            catch (Exception e) {
-                throw ServiceResultException.Create(StatusCodes.BadIdentityTokenInvalid,
-                    e, "Could not validate user identity token: {0}", newIdentity);
-            }
-        }
-
-        /// <summary>
         /// Represents the session
         /// </summary>
         private class GatewaySession : IServerSession, IDisposable {
@@ -341,11 +289,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <param name="context"></param>
             /// <param name="id"></param>
             /// <param name="endpoint"></param>
-            /// <param name="serverCertificate"></param>
-            /// <param name="clientNonce"></param>
-            /// <param name="timeout"></param>
-            /// <param name="serverNonce"></param>
             /// <param name="clientCertificate"></param>
+            /// <param name="clientNonce"></param>
+            /// <param name="serverCertificate"></param>
+            /// <param name="serverNonce"></param>
+            /// <param name="timeout"></param>
             /// <param name="maxRequestAge"></param>
             /// <param name="validator"></param>
             public GatewaySession(SessionServices manager,
@@ -730,7 +678,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private readonly ManualResetEvent _shutdownEvent =
             new ManualResetEvent(true);
         private readonly ISessionServicesConfig _configuration;
+#pragma warning disable IDE0052 // Remove unread private members
         private readonly ILogger _logger;
+#pragma warning restore IDE0052 // Remove unread private members
 #pragma warning disable IDE1006 // Naming Styles
         private event EventHandler _sessionCreated;
         private event EventHandler _sessionActivated;

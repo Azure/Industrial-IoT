@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
 
     /// <summary>
     /// Application information
@@ -53,12 +54,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Supervisor or site the application belongs to.
         /// </summary>
-        public string SiteOrSupervisorId { get; set; }
+        public string SiteOrGatewayId { get; set; }
 
         /// <summary>
         /// Whether to include applications that were soft deleted
         /// </summary>
         public bool? IncludeNotSeenSince { get; set; }
+
+        /// <summary>
+        /// Discoverer id to filter with
+        /// </summary>
+        public string DiscovererId { get; set; }
     }
 }
 

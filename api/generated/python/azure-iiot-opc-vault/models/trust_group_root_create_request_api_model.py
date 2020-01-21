@@ -17,10 +17,8 @@ class TrustGroupRootCreateRequestApiModel(Model):
 
     :param name: The new name of the trust group root
     :type name: str
-    :param type: The trust group type. Possible values include:
-     'ApplicationInstanceCertificate', 'HttpsCertificate',
-     'UserCredentialCertificate'. Default value:
-     "ApplicationInstanceCertificate" .
+    :param type: Possible values include: 'ApplicationInstanceCertificate',
+     'HttpsCertificate', 'UserCredentialCertificate'
     :type type: str or ~azure-iiot-opc-vault.models.TrustGroupType
     :param subject_name: The subject name of the group as distinguished name.
     :type subject_name: str
@@ -28,27 +26,19 @@ class TrustGroupRootCreateRequestApiModel(Model):
     :type lifetime: str
     :param key_size: The certificate key size in bits.
     :type key_size: int
-    :param signature_algorithm: The certificate signature algorithm. Possible
-     values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss',
-     'Rsa512Pss'
+    :param signature_algorithm: Possible values include: 'Rsa256', 'Rsa384',
+     'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
     :type signature_algorithm: str or
      ~azure-iiot-opc-vault.models.SignatureAlgorithm
     :param issued_lifetime: The issued certificate lifetime.
     :type issued_lifetime: str
     :param issued_key_size: The issued certificate key size in bits.
     :type issued_key_size: int
-    :param issued_signature_algorithm: The issued certificate signature
-     algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-     'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+    :param issued_signature_algorithm: Possible values include: 'Rsa256',
+     'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
     :type issued_signature_algorithm: str or
      ~azure-iiot-opc-vault.models.SignatureAlgorithm
     """
-
-    _validation = {
-        'name': {'required': True},
-        'subject_name': {'required': True},
-        'lifetime': {'required': True},
-    }
 
     _attribute_map = {
         'name': {'key': 'name', 'type': 'str'},
@@ -62,7 +52,7 @@ class TrustGroupRootCreateRequestApiModel(Model):
         'issued_signature_algorithm': {'key': 'issuedSignatureAlgorithm', 'type': 'SignatureAlgorithm'},
     }
 
-    def __init__(self, name, subject_name, lifetime, type="ApplicationInstanceCertificate", key_size=None, signature_algorithm=None, issued_lifetime=None, issued_key_size=None, issued_signature_algorithm=None):
+    def __init__(self, name=None, type=None, subject_name=None, lifetime=None, key_size=None, signature_algorithm=None, issued_lifetime=None, issued_key_size=None, issued_signature_algorithm=None):
         super(TrustGroupRootCreateRequestApiModel, self).__init__()
         self.name = name
         self.type = type

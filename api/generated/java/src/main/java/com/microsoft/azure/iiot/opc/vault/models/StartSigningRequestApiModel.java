@@ -19,19 +19,19 @@ public class StartSigningRequestApiModel {
     /**
      * Id of entity to sign a certificate for.
      */
-    @JsonProperty(value = "entityId", required = true)
+    @JsonProperty(value = "entityId")
     private String entityId;
 
     /**
      * Certificate group id.
      */
-    @JsonProperty(value = "groupId", required = true)
+    @JsonProperty(value = "groupId")
     private String groupId;
 
     /**
      * Request.
      */
-    @JsonProperty(value = "certificateRequest", required = true)
+    @JsonProperty(value = "certificateRequest")
     private Object certificateRequest;
 
     /**

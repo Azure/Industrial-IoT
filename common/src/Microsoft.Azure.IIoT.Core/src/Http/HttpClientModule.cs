@@ -4,11 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Http.Default {
-    using Microsoft.Azure.IIoT.Http;
     using Autofac;
 
     /// <summary>
-    /// Injected module framework module
+    /// Injected http client framework module
     /// </summary>
     public sealed class HttpClientModule : Module {
 

@@ -109,8 +109,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
             /// <summary>
             /// Create handler entry
             /// </summary>
-            /// <param name="name"></param>
             /// <param name="factory"></param>
+            /// <param name="name"></param>
             /// <param name="expirationCallback"></param>
             /// <returns></returns>
             public static ActiveHandlerEntry Create(IHttpHandlerFactory factory,
@@ -222,7 +222,7 @@ namespace Microsoft.Azure.IIoT.Http.Default {
 
         private Timer _cleanupTimer;
         private readonly ILogger _logger;
-        private readonly SemaphoreSlim _cleanupTimerLock = new SemaphoreSlim(1);
+        private readonly SemaphoreSlim _cleanupTimerLock = new SemaphoreSlim(1, 1);
         private readonly object _cleanupActiveLock = new object();
         private readonly ConcurrentDictionary<string, ActiveHandlerEntry> _activeHandlers;
         private readonly ConcurrentQueue<ExpiredHandlerEntry> _expiredHandlers;

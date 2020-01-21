@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Processor.Runtime {
-    using Microsoft.Azure.IIoT.Hub.Processor;
     using Microsoft.Azure.IIoT.Storage.Blob.Runtime;
     using Microsoft.Extensions.Configuration;
     using System;
@@ -34,7 +33,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Runtime {
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public EventProcessorConfig(IConfigurationRoot configuration) :
+        public EventProcessorConfig(IConfiguration configuration) :
             base(configuration) {
         }
     }

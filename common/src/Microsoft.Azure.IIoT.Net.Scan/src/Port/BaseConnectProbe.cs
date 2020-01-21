@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
             _probe = probe ?? throw new ArgumentNullException(nameof(probe));
             _index = index;
             _logger = logger;
-            _lock = new SemaphoreSlim(1);
+            _lock = new SemaphoreSlim(1, 1);
             _arg = new AsyncConnect(this);
         }
 
@@ -244,7 +244,7 @@ namespace Microsoft.Azure.IIoT.Net.Scanner {
             public AsyncConnect(BaseConnectProbe outer) {
                 _outer = outer;
                 _timer = new Timer(OnTimerTimeout);
-                _lock = new SemaphoreSlim(1);
+                _lock = new SemaphoreSlim(1, 1);
                 _arg = new SocketAsyncEventArgs();
                 _arg.Completed += OnComplete;
                 _arg.UserToken = this;

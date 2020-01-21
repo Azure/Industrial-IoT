@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
+    using System.ComponentModel;
 
     /// <summary>
     /// Supervisor registration query
@@ -16,20 +17,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "siteId",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string SiteId { get; set; }
-
-        /// <summary>
-        /// Discovery mode of supervisor
-        /// </summary>
-        [JsonProperty(PropertyName = "discovery",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public DiscoveryMode? Discovery { get; set; }
 
         /// <summary>
         /// Included connected or disconnected
         /// </summary>
         [JsonProperty(PropertyName = "connected",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public bool? Connected { get; set; }
     }
 }

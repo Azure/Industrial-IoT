@@ -1,0 +1,4 @@
+{
+    "name": "iot/opc-ua-test-server",
+    "buildAlways": true
+}

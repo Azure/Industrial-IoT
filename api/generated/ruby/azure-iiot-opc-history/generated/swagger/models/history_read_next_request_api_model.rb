@@ -20,7 +20,7 @@ module azure.iiot.opc.history
       # @return [Boolean] Abort reading after this read. Default value: false .
       attr_accessor :abort
 
-      # @return [RequestHeaderApiModel] Optional request header
+      # @return [RequestHeaderApiModel]
       attr_accessor :header
 
 

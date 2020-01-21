@@ -17,7 +17,7 @@ class BrowsePathResponseApiModel(Model):
 
     :param targets: Targets
     :type targets: list[~azure-iiot-opc-twin.models.NodePathTargetApiModel]
-    :param error_info: Service result in case of error
+    :param error_info:
     :type error_info: ~azure-iiot-opc-twin.models.ServiceResultApiModel
     """
 

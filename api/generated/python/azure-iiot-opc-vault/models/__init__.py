@@ -13,6 +13,7 @@ from .x509_certificate_api_model import X509CertificateApiModel
 from .x509_certificate_chain_api_model import X509CertificateChainApiModel
 from .x509_crl_api_model import X509CrlApiModel
 from .x509_crl_chain_api_model import X509CrlChainApiModel
+from .not_found_result import NotFoundResult
 from .start_signing_request_api_model import StartSigningRequestApiModel
 from .start_signing_request_response_api_model import StartSigningRequestResponseApiModel
 from .vault_operation_context_api_model import VaultOperationContextApiModel
@@ -24,7 +25,6 @@ from .private_key_api_model import PrivateKeyApiModel
 from .finish_new_key_pair_request_response_api_model import FinishNewKeyPairRequestResponseApiModel
 from .certificate_request_query_request_api_model import CertificateRequestQueryRequestApiModel
 from .certificate_request_query_response_api_model import CertificateRequestQueryResponseApiModel
-from .status_response_api_model import StatusResponseApiModel
 from .trust_group_api_model import TrustGroupApiModel
 from .trust_group_registration_api_model import TrustGroupRegistrationApiModel
 from .trust_group_registration_list_api_model import TrustGroupRegistrationListApiModel
@@ -46,6 +46,7 @@ __all__ = [
     'X509CertificateChainApiModel',
     'X509CrlApiModel',
     'X509CrlChainApiModel',
+    'NotFoundResult',
     'StartSigningRequestApiModel',
     'StartSigningRequestResponseApiModel',
     'VaultOperationContextApiModel',
@@ -57,7 +58,6 @@ __all__ = [
     'FinishNewKeyPairRequestResponseApiModel',
     'CertificateRequestQueryRequestApiModel',
     'CertificateRequestQueryResponseApiModel',
-    'StatusResponseApiModel',
     'TrustGroupApiModel',
     'TrustGroupRegistrationApiModel',
     'TrustGroupRegistrationListApiModel',

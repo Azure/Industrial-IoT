@@ -10,17 +10,22 @@ Azure Industrial IoT OPC UA Twin Service
 *Version* : v2
 
 
+### License information
+*License* : MIT LICENSE  
+*License URL* : https://opensource.org/licenses/MIT  
+*Terms of service* : null
+
+
 ### URI scheme
-*Schemes* : HTTPS, HTTP
+*Host* : localhost:9080  
+*Schemes* : HTTP, HTTPS
 
 
 ### Tags
 
 * Browse : Browse nodes services
 * Call : Call node method services
-* Publish : Value and Event publishing services
 * Read : Node read services
-* Status : Status checks
 * Write : Node writing services
 
 
@@ -42,9 +47,7 @@ POST /v2/browse/{endpointId}
 
 
 ##### Description
-Browse a node on the specified endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Browse a node on the specified endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -52,7 +55,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The browse request|[BrowseRequestApiModel](definitions.md#browserequestapimodel)|
+|**Body**|**body**  <br>*required*|The browse request|[BrowseRequestApiModel](definitions.md#browserequestapimodel)|
 
 
 ##### Responses
@@ -90,14 +93,7 @@ GET /v2/browse/{endpointId}
 
 
 ##### Description
-Browse the set of unique hierarchically referenced target nodes on the endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-The root node id to browse from can be provided as part of the query
-parameters.
-If it is not provided, the RootFolder node is browsed. Note that this
-is the same as the POST method with the model containing the node id
-and the targetNodesOnly flag set to true.
+Browse the set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. The root node id to browse from can be provided as part of the query parameters. If it is not provided, the RootFolder node is browsed. Note that this is the same as the POST method with the model containing the node id and the targetNodesOnly flag set to true.
 
 
 ##### Parameters
@@ -135,9 +131,7 @@ POST /v2/browse/{endpointId}/next
 
 
 ##### Description
-Browse next set of references on the endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Browse next set of references on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -145,7 +139,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The request body with continuation token.|[BrowseNextRequestApiModel](definitions.md#browsenextrequestapimodel)|
+|**Body**|**body**  <br>*required*|The request body with continuation token.|[BrowseNextRequestApiModel](definitions.md#browsenextrequestapimodel)|
 
 
 ##### Responses
@@ -183,12 +177,7 @@ GET /v2/browse/{endpointId}/next
 
 
 ##### Description
-Browse the next set of unique hierarchically referenced target nodes on the
-endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-Note that this is the same as the POST method with the model containing
-the continuation token and the targetNodesOnly flag set to true.
+Browse the next set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. Note that this is the same as the POST method with the model containing the continuation token and the targetNodesOnly flag set to true.
 
 
 ##### Parameters
@@ -226,10 +215,7 @@ POST /v2/browse/{endpointId}/path
 
 
 ##### Description
-Browse using a path from the specified node id.
-This call uses TranslateBrowsePathsToNodeIds service under the hood.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Browse using a path from the specified node id. This call uses TranslateBrowsePathsToNodeIds service under the hood. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -237,7 +223,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The browse path request|[BrowsePathRequestApiModel](definitions.md#browsepathrequestapimodel)|
+|**Body**|**body**  <br>*required*|The browse path request|[BrowsePathRequestApiModel](definitions.md#browsepathrequestapimodel)|
 
 
 ##### Responses
@@ -280,9 +266,7 @@ POST /v2/call/{endpointId}
 
 
 ##### Description
-Invoke method node with specified input arguments.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Invoke method node with specified input arguments. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -290,7 +274,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The method call request|[MethodCallRequestApiModel](definitions.md#methodcallrequestapimodel)|
+|**Body**|**body**  <br>*required*|The method call request|[MethodCallRequestApiModel](definitions.md#methodcallrequestapimodel)|
 
 
 ##### Responses
@@ -328,10 +312,7 @@ POST /v2/call/{endpointId}/metadata
 
 
 ##### Description
-Return method meta data to support a user interface displaying forms to
-input and output arguments.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Return method meta data to support a user interface displaying forms to input and output arguments. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -339,7 +320,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The method metadata request|[MethodMetadataRequestApiModel](definitions.md#methodmetadatarequestapimodel)|
+|**Body**|**body**  <br>*required*|The method metadata request|[MethodMetadataRequestApiModel](definitions.md#methodmetadatarequestapimodel)|
 
 
 ##### Responses
@@ -347,195 +328,6 @@ and server must trust each other.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|[MethodMetadataResponseApiModel](definitions.md#methodmetadataresponseapimodel)|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
-
-
-##### Produces
-
-* `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
-<a name="publish_resource"></a>
-### Publish
-Value and Event publishing services
-
-
-<a name="getfirstlistofpublishednodes"></a>
-#### Get currently published nodes
-```
-POST /v2/publish/{endpointId}
-```
-
-
-##### Description
-Returns currently published node ids for an endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The list request|[PublishedItemListRequestApiModel](definitions.md#publisheditemlistrequestapimodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedItemListResponseApiModel](definitions.md#publisheditemlistresponseapimodel)|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
-
-
-##### Produces
-
-* `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
-<a name="getnextlistofpublishednodes"></a>
-#### Get next set of published nodes
-```
-GET /v2/publish/{endpointId}
-```
-
-
-##### Description
-Returns next set of currently published node ids for an endpoint.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Query**|**continuationToken**  <br>*required*|The continuation token to continue with|string|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishedItemListResponseApiModel](definitions.md#publisheditemlistresponseapimodel)|
-
-
-##### Produces
-
-* `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
-<a name="startpublishingvalues"></a>
-#### Start publishing node values
-```
-POST /v2/publish/{endpointId}/start
-```
-
-
-##### Description
-Start publishing variable node values to IoT Hub.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The publish request|[PublishStartRequestApiModel](definitions.md#publishstartrequestapimodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishStartResponseApiModel](definitions.md#publishstartresponseapimodel)|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
-
-
-##### Produces
-
-* `application/json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
-<a name="stoppublishingvalues"></a>
-#### Stop publishing node values
-```
-POST /v2/publish/{endpointId}/stop
-```
-
-
-##### Description
-Stop publishing variable node values to IoT Hub.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The unpublish request|[PublishStopRequestApiModel](definitions.md#publishstoprequestapimodel)|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[PublishStopResponseApiModel](definitions.md#publishstopresponseapimodel)|
 
 
 ##### Consumes
@@ -571,9 +363,7 @@ POST /v2/read/{endpointId}
 
 
 ##### Description
-Read a variable node's value.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Read a variable node's value. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -581,7 +371,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The read value request|[ValueReadRequestApiModel](definitions.md#valuereadrequestapimodel)|
+|**Body**|**body**  <br>*required*|The read value request|[ValueReadRequestApiModel](definitions.md#valuereadrequestapimodel)|
 
 
 ##### Responses
@@ -619,9 +409,7 @@ GET /v2/read/{endpointId}
 
 
 ##### Description
-Get a variable node's value using its node id.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Get a variable node's value using its node id. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -659,9 +447,7 @@ POST /v2/read/{endpointId}/attributes
 
 
 ##### Description
-Read attributes of a node.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Read attributes of a node. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -669,7 +455,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The read request|[ReadRequestApiModel](definitions.md#readrequestapimodel)|
+|**Body**|**body**  <br>*required*|The read request|[ReadRequestApiModel](definitions.md#readrequestapimodel)|
 
 
 ##### Responses
@@ -699,30 +485,6 @@ and server must trust each other.
 |**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
-<a name="status_resource"></a>
-### Status
-Status checks
-
-
-<a name="getstatus"></a>
-#### Return the service status in the form of the service status api model.
-```
-GET /v2/status
-```
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[StatusResponseApiModel](definitions.md#statusresponseapimodel)|
-
-
-##### Produces
-
-* `application/json`
-
-
 <a name="write_resource"></a>
 ### Write
 Node writing services
@@ -736,9 +498,7 @@ POST /v2/write/{endpointId}
 
 
 ##### Description
-Write variable node's value.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Write variable node's value. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -746,7 +506,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The write value request|[ValueWriteRequestApiModel](definitions.md#valuewriterequestapimodel)|
+|**Body**|**body**  <br>*required*|The write value request|[ValueWriteRequestApiModel](definitions.md#valuewriterequestapimodel)|
 
 
 ##### Responses
@@ -784,9 +544,7 @@ POST /v2/write/{endpointId}/attributes
 
 
 ##### Description
-Write any attribute of a node.
-The endpoint must be activated and connected and the module client
-and server must trust each other.
+Write any attribute of a node. The endpoint must be activated and connected and the module client and server must trust each other.
 
 
 ##### Parameters
@@ -794,7 +552,7 @@ and server must trust each other.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**endpointId**  <br>*required*|The identifier of the activated endpoint.|string|
-|**Body**|**request**  <br>*required*|The batch write request|[WriteRequestApiModel](definitions.md#writerequestapimodel)|
+|**Body**|**body**  <br>*required*|The batch write request|[WriteRequestApiModel](definitions.md#writerequestapimodel)|
 
 
 ##### Responses

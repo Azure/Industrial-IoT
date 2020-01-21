@@ -34,7 +34,7 @@ class AzureOpcHistoryClientConfiguration(Configuration):
         if credentials is None:
             raise ValueError("Parameter 'credentials' must not be None.")
         if not base_url:
-            base_url = 'http://localhost'
+            base_url = 'http://localhost:9080'
 
         super(AzureOpcHistoryClientConfiguration, self).__init__(base_url)
 
@@ -68,18 +68,18 @@ class AzureOpcHistoryClient(object):
 
 
     def history_delete_values_at_times(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Delete value history at specified times.
 
-        Delete value history using historic access.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Delete value history using historic access. The endpoint must be
+        activated and connected and the module client and server must trust
+        each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The history update request
-        :type request:
-         ~azure-iiot-opc-history.models.HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel
+        :param body: The history update request
+        :type body:
+         ~azure-iiot-opc-history.models.DeleteValuesAtTimesDetailsApiModelHistoryUpdateRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
@@ -109,7 +109,7 @@ class AzureOpcHistoryClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel')
+        body_content = self._serialize.body(body, 'DeleteValuesAtTimesDetailsApiModelHistoryUpdateRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -132,18 +132,18 @@ class AzureOpcHistoryClient(object):
     history_delete_values_at_times.metadata = {'url': '/v2/delete/{endpointId}/values/pick'}
 
     def history_delete_values(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Delete historic values.
 
-        Delete historic values using historic access.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Delete historic values using historic access. The endpoint must be
+        activated and connected and the module client and server must trust
+        each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The history update request
-        :type request:
-         ~azure-iiot-opc-history.models.HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel
+        :param body: The history update request
+        :type body:
+         ~azure-iiot-opc-history.models.DeleteValuesDetailsApiModelHistoryUpdateRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
@@ -173,7 +173,7 @@ class AzureOpcHistoryClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel')
+        body_content = self._serialize.body(body, 'DeleteValuesDetailsApiModelHistoryUpdateRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -196,18 +196,18 @@ class AzureOpcHistoryClient(object):
     history_delete_values.metadata = {'url': '/v2/delete/{endpointId}/values'}
 
     def history_delete_modified_values(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Delete historic values.
 
-        Delete historic values using historic access.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Delete historic values using historic access. The endpoint must be
+        activated and connected and the module client and server must trust
+        each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The history update request
-        :type request:
-         ~azure-iiot-opc-history.models.HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel
+        :param body: The history update request
+        :type body:
+         ~azure-iiot-opc-history.models.DeleteModifiedValuesDetailsApiModelHistoryUpdateRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
@@ -237,7 +237,7 @@ class AzureOpcHistoryClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel')
+        body_content = self._serialize.body(body, 'DeleteModifiedValuesDetailsApiModelHistoryUpdateRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -260,18 +260,18 @@ class AzureOpcHistoryClient(object):
     history_delete_modified_values.metadata = {'url': '/v2/delete/{endpointId}/values/modified'}
 
     def history_delete_events(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Delete historic events.
 
-        Delete historic events using historic access.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Delete historic events using historic access. The endpoint must be
+        activated and connected and the module client and server must trust
+        each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The history update request
-        :type request:
-         ~azure-iiot-opc-history.models.HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel
+        :param body: The history update request
+        :type body:
+         ~azure-iiot-opc-history.models.DeleteEventsDetailsApiModelHistoryUpdateRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
@@ -301,7 +301,7 @@ class AzureOpcHistoryClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel')
+        body_content = self._serialize.body(body, 'DeleteEventsDetailsApiModelHistoryUpdateRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -324,27 +324,27 @@ class AzureOpcHistoryClient(object):
     history_delete_events.metadata = {'url': '/v2/delete/{endpointId}/events'}
 
     def history_read_raw(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Read history using json details.
 
-        Read node history if available using historic access.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Read node history if available using historic access. The endpoint must
+        be activated and connected and the module client and server must trust
+        each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The history read request
-        :type request:
-         ~azure-iiot-opc-history.models.HistoryReadRequestApiModelJToken
+        :param body: The history read request
+        :type body:
+         ~azure-iiot-opc-history.models.JTokenHistoryReadRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
         :param operation_config: :ref:`Operation configuration
          overrides<msrest:optionsforoperations>`.
-        :return: HistoryReadResponseApiModelJToken or ClientRawResponse if
+        :return: JTokenHistoryReadResponseApiModel or ClientRawResponse if
          raw=true
         :rtype:
-         ~azure-iiot-opc-history.models.HistoryReadResponseApiModelJToken or
+         ~azure-iiot-opc-history.models.JTokenHistoryReadResponseApiModel or
          ~msrest.pipeline.ClientRawResponse
         :raises:
          :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
@@ -366,7 +366,7 @@ class AzureOpcHistoryClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'HistoryReadRequestApiModelJToken')
+        body_content = self._serialize.body(body, 'JTokenHistoryReadRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -379,7 +379,7 @@ class AzureOpcHistoryClient(object):
         deserialized = None
 
         if response.status_code == 200:
-            deserialized = self._deserialize('HistoryReadResponseApiModelJToken', response)
+            deserialized = self._deserialize('JTokenHistoryReadResponseApiModel', response)
 
         if raw:
             client_raw_response = ClientRawResponse(deserialized, response)
@@ -389,27 +389,27 @@ class AzureOpcHistoryClient(object):
     history_read_raw.metadata = {'url': '/v2/history/read/{endpointId}'}
 
     def history_read_raw_next(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Read next batch of history as json.
 
-        Read next batch of node history values using historic access.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Read next batch of node history values using historic access. The
+        endpoint must be activated and connected and the module client and
+        server must trust each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The history read next request
-        :type request:
+        :param body: The history read next request
+        :type body:
          ~azure-iiot-opc-history.models.HistoryReadNextRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
         :param operation_config: :ref:`Operation configuration
          overrides<msrest:optionsforoperations>`.
-        :return: HistoryReadNextResponseApiModelJToken or ClientRawResponse if
+        :return: JTokenHistoryReadNextResponseApiModel or ClientRawResponse if
          raw=true
         :rtype:
-         ~azure-iiot-opc-history.models.HistoryReadNextResponseApiModelJToken
+         ~azure-iiot-opc-history.models.JTokenHistoryReadNextResponseApiModel
          or ~msrest.pipeline.ClientRawResponse
         :raises:
          :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
@@ -431,7 +431,7 @@ class AzureOpcHistoryClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'HistoryReadNextRequestApiModel')
+        body_content = self._serialize.body(body, 'HistoryReadNextRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -444,7 +444,7 @@ class AzureOpcHistoryClient(object):
         deserialized = None
 
         if response.status_code == 200:
-            deserialized = self._deserialize('HistoryReadNextResponseApiModelJToken', response)
+            deserialized = self._deserialize('JTokenHistoryReadNextResponseApiModel', response)
 
         if raw:
             client_raw_response = ClientRawResponse(deserialized, response)
@@ -454,18 +454,18 @@ class AzureOpcHistoryClient(object):
     history_read_raw_next.metadata = {'url': '/v2/history/read/{endpointId}/next'}
 
     def history_update_raw(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Update node history using raw json.
 
-        Update node history using historic access.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Update node history using historic access. The endpoint must be
+        activated and connected and the module client and server must trust
+        each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The history update request
-        :type request:
-         ~azure-iiot-opc-history.models.HistoryUpdateRequestApiModelJToken
+        :param body: The history update request
+        :type body:
+         ~azure-iiot-opc-history.models.JTokenHistoryUpdateRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
@@ -495,7 +495,7 @@ class AzureOpcHistoryClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'HistoryUpdateRequestApiModelJToken')
+        body_content = self._serialize.body(body, 'JTokenHistoryUpdateRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -518,18 +518,18 @@ class AzureOpcHistoryClient(object):
     history_update_raw.metadata = {'url': '/v2/history/update/{endpointId}'}
 
     def history_insert_values(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Insert historic values.
 
-        Insert historic values using historic access.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Insert historic values using historic access. The endpoint must be
+        activated and connected and the module client and server must trust
+        each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The history insert request
-        :type request:
-         ~azure-iiot-opc-history.models.HistoryUpdateRequestApiModelInsertValuesDetailsApiModel
+        :param body: The history insert request
+        :type body:
+         ~azure-iiot-opc-history.models.InsertValuesDetailsApiModelHistoryUpdateRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
@@ -559,7 +559,7 @@ class AzureOpcHistoryClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'HistoryUpdateRequestApiModelInsertValuesDetailsApiModel')
+        body_content = self._serialize.body(body, 'InsertValuesDetailsApiModelHistoryUpdateRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -582,18 +582,18 @@ class AzureOpcHistoryClient(object):
     history_insert_values.metadata = {'url': '/v2/insert/{endpointId}/values'}
 
     def history_insert_events(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Insert historic events.
 
-        Insert historic events using historic access.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Insert historic events using historic access. The endpoint must be
+        activated and connected and the module client and server must trust
+        each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The history insert request
-        :type request:
-         ~azure-iiot-opc-history.models.HistoryUpdateRequestApiModelInsertEventsDetailsApiModel
+        :param body: The history insert request
+        :type body:
+         ~azure-iiot-opc-history.models.InsertEventsDetailsApiModelHistoryUpdateRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
@@ -623,7 +623,7 @@ class AzureOpcHistoryClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'HistoryUpdateRequestApiModelInsertEventsDetailsApiModel')
+        body_content = self._serialize.body(body, 'InsertEventsDetailsApiModelHistoryUpdateRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -646,27 +646,27 @@ class AzureOpcHistoryClient(object):
     history_insert_events.metadata = {'url': '/v2/insert/{endpointId}/events'}
 
     def history_read_events(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Read historic events.
 
-        Read historic events of a node if available using historic access.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Read historic events of a node if available using historic access. The
+        endpoint must be activated and connected and the module client and
+        server must trust each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The history read request
-        :type request:
-         ~azure-iiot-opc-history.models.HistoryReadRequestApiModelReadEventsDetailsApiModel
+        :param body: The history read request
+        :type body:
+         ~azure-iiot-opc-history.models.ReadEventsDetailsApiModelHistoryReadRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
         :param operation_config: :ref:`Operation configuration
          overrides<msrest:optionsforoperations>`.
-        :return: HistoryReadResponseApiModelHistoricEventApiModel or
+        :return: HistoricEventApiModelHistoryReadResponseApiModel or
          ClientRawResponse if raw=true
         :rtype:
-         ~azure-iiot-opc-history.models.HistoryReadResponseApiModelHistoricEventApiModel
+         ~azure-iiot-opc-history.models.HistoricEventApiModelHistoryReadResponseApiModel
          or ~msrest.pipeline.ClientRawResponse
         :raises:
          :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
@@ -688,7 +688,7 @@ class AzureOpcHistoryClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'HistoryReadRequestApiModelReadEventsDetailsApiModel')
+        body_content = self._serialize.body(body, 'ReadEventsDetailsApiModelHistoryReadRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -701,7 +701,7 @@ class AzureOpcHistoryClient(object):
         deserialized = None
 
         if response.status_code == 200:
-            deserialized = self._deserialize('HistoryReadResponseApiModelHistoricEventApiModel', response)
+            deserialized = self._deserialize('HistoricEventApiModelHistoryReadResponseApiModel', response)
 
         if raw:
             client_raw_response = ClientRawResponse(deserialized, response)
@@ -711,27 +711,27 @@ class AzureOpcHistoryClient(object):
     history_read_events.metadata = {'url': '/v2/read/{endpointId}/events'}
 
     def history_read_events_next(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Read next batch of historic events.
 
-        Read next batch of historic events of a node using historic access.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Read next batch of historic events of a node using historic access. The
+        endpoint must be activated and connected and the module client and
+        server must trust each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The history read next request
-        :type request:
+        :param body: The history read next request
+        :type body:
          ~azure-iiot-opc-history.models.HistoryReadNextRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
         :param operation_config: :ref:`Operation configuration
          overrides<msrest:optionsforoperations>`.
-        :return: HistoryReadNextResponseApiModelHistoricEventApiModel or
+        :return: HistoricEventApiModelHistoryReadNextResponseApiModel or
          ClientRawResponse if raw=true
         :rtype:
-         ~azure-iiot-opc-history.models.HistoryReadNextResponseApiModelHistoricEventApiModel
+         ~azure-iiot-opc-history.models.HistoricEventApiModelHistoryReadNextResponseApiModel
          or ~msrest.pipeline.ClientRawResponse
         :raises:
          :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
@@ -753,7 +753,7 @@ class AzureOpcHistoryClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'HistoryReadNextRequestApiModel')
+        body_content = self._serialize.body(body, 'HistoryReadNextRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -766,7 +766,7 @@ class AzureOpcHistoryClient(object):
         deserialized = None
 
         if response.status_code == 200:
-            deserialized = self._deserialize('HistoryReadNextResponseApiModelHistoricEventApiModel', response)
+            deserialized = self._deserialize('HistoricEventApiModelHistoryReadNextResponseApiModel', response)
 
         if raw:
             client_raw_response = ClientRawResponse(deserialized, response)
@@ -776,28 +776,27 @@ class AzureOpcHistoryClient(object):
     history_read_events_next.metadata = {'url': '/v2/read/{endpointId}/events/next'}
 
     def history_read_values(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Read historic processed values at specified times.
 
         Read processed history values of a node if available using historic
-        access.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        access. The endpoint must be activated and connected and the module
+        client and server must trust each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The history read request
-        :type request:
-         ~azure-iiot-opc-history.models.HistoryReadRequestApiModelReadValuesDetailsApiModel
+        :param body: The history read request
+        :type body:
+         ~azure-iiot-opc-history.models.ReadValuesDetailsApiModelHistoryReadRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
         :param operation_config: :ref:`Operation configuration
          overrides<msrest:optionsforoperations>`.
-        :return: HistoryReadResponseApiModelHistoricValueApiModel or
+        :return: HistoricValueApiModelHistoryReadResponseApiModel or
          ClientRawResponse if raw=true
         :rtype:
-         ~azure-iiot-opc-history.models.HistoryReadResponseApiModelHistoricValueApiModel
+         ~azure-iiot-opc-history.models.HistoricValueApiModelHistoryReadResponseApiModel
          or ~msrest.pipeline.ClientRawResponse
         :raises:
          :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
@@ -819,7 +818,7 @@ class AzureOpcHistoryClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'HistoryReadRequestApiModelReadValuesDetailsApiModel')
+        body_content = self._serialize.body(body, 'ReadValuesDetailsApiModelHistoryReadRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -832,7 +831,7 @@ class AzureOpcHistoryClient(object):
         deserialized = None
 
         if response.status_code == 200:
-            deserialized = self._deserialize('HistoryReadResponseApiModelHistoricValueApiModel', response)
+            deserialized = self._deserialize('HistoricValueApiModelHistoryReadResponseApiModel', response)
 
         if raw:
             client_raw_response = ClientRawResponse(deserialized, response)
@@ -842,27 +841,27 @@ class AzureOpcHistoryClient(object):
     history_read_values.metadata = {'url': '/v2/read/{endpointId}/values'}
 
     def history_read_values_at_times(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Read historic values at specified times.
 
-        Read historic values of a node if available using historic access.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Read historic values of a node if available using historic access. The
+        endpoint must be activated and connected and the module client and
+        server must trust each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The history read request
-        :type request:
-         ~azure-iiot-opc-history.models.HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel
+        :param body: The history read request
+        :type body:
+         ~azure-iiot-opc-history.models.ReadValuesAtTimesDetailsApiModelHistoryReadRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
         :param operation_config: :ref:`Operation configuration
          overrides<msrest:optionsforoperations>`.
-        :return: HistoryReadResponseApiModelHistoricValueApiModel or
+        :return: HistoricValueApiModelHistoryReadResponseApiModel or
          ClientRawResponse if raw=true
         :rtype:
-         ~azure-iiot-opc-history.models.HistoryReadResponseApiModelHistoricValueApiModel
+         ~azure-iiot-opc-history.models.HistoricValueApiModelHistoryReadResponseApiModel
          or ~msrest.pipeline.ClientRawResponse
         :raises:
          :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
@@ -884,7 +883,7 @@ class AzureOpcHistoryClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel')
+        body_content = self._serialize.body(body, 'ReadValuesAtTimesDetailsApiModelHistoryReadRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -897,7 +896,7 @@ class AzureOpcHistoryClient(object):
         deserialized = None
 
         if response.status_code == 200:
-            deserialized = self._deserialize('HistoryReadResponseApiModelHistoricValueApiModel', response)
+            deserialized = self._deserialize('HistoricValueApiModelHistoryReadResponseApiModel', response)
 
         if raw:
             client_raw_response = ClientRawResponse(deserialized, response)
@@ -907,28 +906,27 @@ class AzureOpcHistoryClient(object):
     history_read_values_at_times.metadata = {'url': '/v2/read/{endpointId}/values/pick'}
 
     def history_read_processed_values(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Read historic processed values at specified times.
 
         Read processed history values of a node if available using historic
-        access.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        access. The endpoint must be activated and connected and the module
+        client and server must trust each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The history read request
-        :type request:
-         ~azure-iiot-opc-history.models.HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel
+        :param body: The history read request
+        :type body:
+         ~azure-iiot-opc-history.models.ReadProcessedValuesDetailsApiModelHistoryReadRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
         :param operation_config: :ref:`Operation configuration
          overrides<msrest:optionsforoperations>`.
-        :return: HistoryReadResponseApiModelHistoricValueApiModel or
+        :return: HistoricValueApiModelHistoryReadResponseApiModel or
          ClientRawResponse if raw=true
         :rtype:
-         ~azure-iiot-opc-history.models.HistoryReadResponseApiModelHistoricValueApiModel
+         ~azure-iiot-opc-history.models.HistoricValueApiModelHistoryReadResponseApiModel
          or ~msrest.pipeline.ClientRawResponse
         :raises:
          :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
@@ -950,7 +948,7 @@ class AzureOpcHistoryClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel')
+        body_content = self._serialize.body(body, 'ReadProcessedValuesDetailsApiModelHistoryReadRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -963,7 +961,7 @@ class AzureOpcHistoryClient(object):
         deserialized = None
 
         if response.status_code == 200:
-            deserialized = self._deserialize('HistoryReadResponseApiModelHistoricValueApiModel', response)
+            deserialized = self._deserialize('HistoricValueApiModelHistoryReadResponseApiModel', response)
 
         if raw:
             client_raw_response = ClientRawResponse(deserialized, response)
@@ -973,28 +971,27 @@ class AzureOpcHistoryClient(object):
     history_read_processed_values.metadata = {'url': '/v2/read/{endpointId}/values/processed'}
 
     def history_read_modified_values(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Read historic modified values at specified times.
 
         Read processed history values of a node if available using historic
-        access.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        access. The endpoint must be activated and connected and the module
+        client and server must trust each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The history read request
-        :type request:
-         ~azure-iiot-opc-history.models.HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel
+        :param body: The history read request
+        :type body:
+         ~azure-iiot-opc-history.models.ReadModifiedValuesDetailsApiModelHistoryReadRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
         :param operation_config: :ref:`Operation configuration
          overrides<msrest:optionsforoperations>`.
-        :return: HistoryReadResponseApiModelHistoricValueApiModel or
+        :return: HistoricValueApiModelHistoryReadResponseApiModel or
          ClientRawResponse if raw=true
         :rtype:
-         ~azure-iiot-opc-history.models.HistoryReadResponseApiModelHistoricValueApiModel
+         ~azure-iiot-opc-history.models.HistoricValueApiModelHistoryReadResponseApiModel
          or ~msrest.pipeline.ClientRawResponse
         :raises:
          :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
@@ -1016,7 +1013,7 @@ class AzureOpcHistoryClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel')
+        body_content = self._serialize.body(body, 'ReadModifiedValuesDetailsApiModelHistoryReadRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -1029,7 +1026,7 @@ class AzureOpcHistoryClient(object):
         deserialized = None
 
         if response.status_code == 200:
-            deserialized = self._deserialize('HistoryReadResponseApiModelHistoricValueApiModel', response)
+            deserialized = self._deserialize('HistoricValueApiModelHistoryReadResponseApiModel', response)
 
         if raw:
             client_raw_response = ClientRawResponse(deserialized, response)
@@ -1039,27 +1036,27 @@ class AzureOpcHistoryClient(object):
     history_read_modified_values.metadata = {'url': '/v2/read/{endpointId}/values/modified'}
 
     def history_read_value_next(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Read next batch of historic values.
 
-        Read next batch of historic values of a node using historic access.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Read next batch of historic values of a node using historic access. The
+        endpoint must be activated and connected and the module client and
+        server must trust each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The history read next request
-        :type request:
+        :param body: The history read next request
+        :type body:
          ~azure-iiot-opc-history.models.HistoryReadNextRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
         :param operation_config: :ref:`Operation configuration
          overrides<msrest:optionsforoperations>`.
-        :return: HistoryReadNextResponseApiModelHistoricValueApiModel or
+        :return: HistoricValueApiModelHistoryReadNextResponseApiModel or
          ClientRawResponse if raw=true
         :rtype:
-         ~azure-iiot-opc-history.models.HistoryReadNextResponseApiModelHistoricValueApiModel
+         ~azure-iiot-opc-history.models.HistoricValueApiModelHistoryReadNextResponseApiModel
          or ~msrest.pipeline.ClientRawResponse
         :raises:
          :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
@@ -1081,7 +1078,7 @@ class AzureOpcHistoryClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'HistoryReadNextRequestApiModel')
+        body_content = self._serialize.body(body, 'HistoryReadNextRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -1094,7 +1091,7 @@ class AzureOpcHistoryClient(object):
         deserialized = None
 
         if response.status_code == 200:
-            deserialized = self._deserialize('HistoryReadNextResponseApiModelHistoricValueApiModel', response)
+            deserialized = self._deserialize('HistoricValueApiModelHistoryReadNextResponseApiModel', response)
 
         if raw:
             client_raw_response = ClientRawResponse(deserialized, response)
@@ -1104,18 +1101,18 @@ class AzureOpcHistoryClient(object):
     history_read_value_next.metadata = {'url': '/v2/read/{endpointId}/values/next'}
 
     def history_replace_values(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Replace historic values.
 
-        Replace historic values using historic access.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Replace historic values using historic access. The endpoint must be
+        activated and connected and the module client and server must trust
+        each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The history replace request
-        :type request:
-         ~azure-iiot-opc-history.models.HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel
+        :param body: The history replace request
+        :type body:
+         ~azure-iiot-opc-history.models.ReplaceValuesDetailsApiModelHistoryUpdateRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
@@ -1145,7 +1142,7 @@ class AzureOpcHistoryClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel')
+        body_content = self._serialize.body(body, 'ReplaceValuesDetailsApiModelHistoryUpdateRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -1168,18 +1165,18 @@ class AzureOpcHistoryClient(object):
     history_replace_values.metadata = {'url': '/v2/replace/{endpointId}/values'}
 
     def history_replace_events(
-            self, endpoint_id, request, custom_headers=None, raw=False, **operation_config):
+            self, endpoint_id, body, custom_headers=None, raw=False, **operation_config):
         """Replace historic events.
 
-        Replace historic events using historic access.
-        The endpoint must be activated and connected and the module client
-        and server must trust each other.
+        Replace historic events using historic access. The endpoint must be
+        activated and connected and the module client and server must trust
+        each other.
 
         :param endpoint_id: The identifier of the activated endpoint.
         :type endpoint_id: str
-        :param request: The history replace request
-        :type request:
-         ~azure-iiot-opc-history.models.HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel
+        :param body: The history replace request
+        :type body:
+         ~azure-iiot-opc-history.models.ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
@@ -1209,7 +1206,7 @@ class AzureOpcHistoryClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel')
+        body_content = self._serialize.body(body, 'ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -1230,50 +1227,3 @@ class AzureOpcHistoryClient(object):
 
         return deserialized
     history_replace_events.metadata = {'url': '/v2/replace/{endpointId}/events'}
-
-    def get_status(
-            self, custom_headers=None, raw=False, **operation_config):
-        """Return the service status in the form of the service status
-        api model.
-
-        :param dict custom_headers: headers that will be added to the request
-        :param bool raw: returns the direct response alongside the
-         deserialized response
-        :param operation_config: :ref:`Operation configuration
-         overrides<msrest:optionsforoperations>`.
-        :return: StatusResponseApiModel or ClientRawResponse if raw=true
-        :rtype: ~azure-iiot-opc-history.models.StatusResponseApiModel or
-         ~msrest.pipeline.ClientRawResponse
-        :raises:
-         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
-        """
-        # Construct URL
-        url = self.get_status.metadata['url']
-
-        # Construct parameters
-        query_parameters = {}
-
-        # Construct headers
-        header_parameters = {}
-        header_parameters['Content-Type'] = 'application/json; charset=utf-8'
-        if custom_headers:
-            header_parameters.update(custom_headers)
-
-        # Construct and send request
-        request = self._client.get(url, query_parameters)
-        response = self._client.send(request, header_parameters, stream=False, **operation_config)
-
-        if response.status_code not in [200]:
-            raise HttpOperationError(self._deserialize, response)
-
-        deserialized = None
-
-        if response.status_code == 200:
-            deserialized = self._deserialize('StatusResponseApiModel', response)
-
-        if raw:
-            client_raw_response = ClientRawResponse(deserialized, response)
-            return client_raw_response
-
-        return deserialized
-    get_status.metadata = {'url': '/v2/status'}

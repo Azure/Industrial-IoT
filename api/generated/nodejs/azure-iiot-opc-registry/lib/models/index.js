@@ -14,7 +14,6 @@
 
 'use strict';
 
-exports.CallbackApiModel = require('./callbackApiModel');
 exports.EndpointActivationFilterApiModel = require('./endpointActivationFilterApiModel');
 exports.ServerRegistrationRequestApiModel = require('./serverRegistrationRequestApiModel');
 exports.ApplicationRegistrationRequestApiModel = require('./applicationRegistrationRequestApiModel');
@@ -24,7 +23,6 @@ exports.ApplicationInfoApiModel = require('./applicationInfoApiModel');
 exports.ApplicationInfoListApiModel = require('./applicationInfoListApiModel');
 exports.DiscoveryConfigApiModel = require('./discoveryConfigApiModel');
 exports.DiscoveryRequestApiModel = require('./discoveryRequestApiModel');
-exports.CredentialApiModel = require('./credentialApiModel');
 exports.EndpointApiModel = require('./endpointApiModel');
 exports.AuthenticationMethodApiModel = require('./authenticationMethodApiModel');
 exports.EndpointRegistrationApiModel = require('./endpointRegistrationApiModel');
@@ -32,15 +30,25 @@ exports.ApplicationRegistrationApiModel = require('./applicationRegistrationApiM
 exports.ApplicationRegistrationUpdateApiModel = require('./applicationRegistrationUpdateApiModel');
 exports.ApplicationSiteListApiModel = require('./applicationSiteListApiModel');
 exports.ApplicationRegistrationQueryApiModel = require('./applicationRegistrationQueryApiModel');
-exports.ApplicationRecordQueryApiModel = require('./applicationRecordQueryApiModel');
-exports.ApplicationRecordApiModel = require('./applicationRecordApiModel');
-exports.ApplicationRecordListApiModel = require('./applicationRecordListApiModel');
-exports.EndpointRegistrationUpdateApiModel = require('./endpointRegistrationUpdateApiModel');
+exports.DiscovererApiModel = require('./discovererApiModel');
+exports.DiscovererUpdateApiModel = require('./discovererUpdateApiModel');
+exports.DiscovererListApiModel = require('./discovererListApiModel');
+exports.DiscovererQueryApiModel = require('./discovererQueryApiModel');
 exports.EndpointInfoApiModel = require('./endpointInfoApiModel');
 exports.EndpointInfoListApiModel = require('./endpointInfoListApiModel');
 exports.EndpointRegistrationQueryApiModel = require('./endpointRegistrationQueryApiModel');
-exports.StatusResponseApiModel = require('./statusResponseApiModel');
+exports.GatewayApiModel = require('./gatewayApiModel');
 exports.SupervisorApiModel = require('./supervisorApiModel');
+exports.PublisherConfigApiModel = require('./publisherConfigApiModel');
+exports.PublisherApiModel = require('./publisherApiModel');
+exports.GatewayModulesApiModel = require('./gatewayModulesApiModel');
+exports.GatewayInfoApiModel = require('./gatewayInfoApiModel');
+exports.GatewayUpdateApiModel = require('./gatewayUpdateApiModel');
+exports.GatewayListApiModel = require('./gatewayListApiModel');
+exports.GatewayQueryApiModel = require('./gatewayQueryApiModel');
+exports.PublisherUpdateApiModel = require('./publisherUpdateApiModel');
+exports.PublisherListApiModel = require('./publisherListApiModel');
+exports.PublisherQueryApiModel = require('./publisherQueryApiModel');
 exports.SupervisorUpdateApiModel = require('./supervisorUpdateApiModel');
 exports.EndpointActivationStatusApiModel = require('./endpointActivationStatusApiModel');
 exports.SupervisorStatusApiModel = require('./supervisorStatusApiModel');

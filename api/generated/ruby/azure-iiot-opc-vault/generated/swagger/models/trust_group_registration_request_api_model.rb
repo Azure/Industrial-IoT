@@ -28,9 +28,8 @@ module azure.iiot.opc.vault
       # @return [Integer] The issued certificate key size in bits.
       attr_accessor :issued_key_size
 
-      # @return [SignatureAlgorithm] The issued certificate signature
-      # algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-      # 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+      # @return [SignatureAlgorithm] Possible values include: 'Rsa256',
+      # 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
       attr_accessor :issued_signature_algorithm
 
 
@@ -49,7 +48,7 @@ module azure.iiot.opc.vault
             model_properties: {
               name: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'name',
                 type: {
                   name: 'String'
@@ -57,7 +56,7 @@ module azure.iiot.opc.vault
               },
               parent_id: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'parentId',
                 type: {
                   name: 'String'
@@ -65,7 +64,7 @@ module azure.iiot.opc.vault
               },
               subject_name: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'subjectName',
                 type: {
                   name: 'String'

@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Crypto.BouncyCastle {
     using Org.BouncyCastle.Asn1.Pkcs;
-    using Org.BouncyCastle.Asn1.X509;
     using System;
     using Xunit;
 

@@ -18,8 +18,8 @@ class ModificationInfoApiModel {
   /**
    * Create a ModificationInfoApiModel.
    * @property {date} [modificationTime] Modification time
-   * @property {string} [updateType] Operation. Possible values include:
-   * 'Insert', 'Replace', 'Update', 'Delete'
+   * @property {string} [updateType] Possible values include: 'Insert',
+   * 'Replace', 'Update', 'Delete'
    * @property {string} [userName] User who made the change
    */
   constructor() {

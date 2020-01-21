@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Azure Industrial IoT OPC UA Protocol and Stack services</Description>
   </PropertyGroup>
@@ -14,27 +13,6 @@
     <None Remove="Stack\Types\BuiltIn\UA Core Services.xml" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Ini" Version="3.0.0" />
-    <PackageReference Include="System.Private.ServiceModel" Version="4.6.0" />
-    <PackageReference Include="System.Security.Principal.Windows" Version="4.6.0" />
-    <PackageReference Include="System.Net.Security" Version="4.3.2" />
-    <PackageReference Include="System.Net.WebSockets.Client" Version="4.3.2" />
-    <PackageReference Include="System.ServiceModel.Primitives" Version="4.6.0" />
-  </ItemGroup>
-  <Choose>
-    <When Condition="'$(Configuration)'=='Release'">
-      <ItemGroup>
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua" Version="1.4.355.26" />
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Symbols" Version="1.4.356.27" />
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
-  <ItemGroup>
     <EmbeddedResource Include="Stack\Design\BuiltIn\BuiltInTypes.xml" />
     <EmbeddedResource Include="Stack\Design\BuiltIn\StandardTypes.csv" />
     <EmbeddedResource Include="Stack\Design\BuiltIn\StandardTypes.xml" />
@@ -43,18 +21,41 @@
     <EmbeddedResource Include="Stack\Types\BuiltIn\UA Core Services.xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Ini" Version="3.1.0" />
+    <PackageReference Include="System.Private.ServiceModel" Version="4.7.0" />
+    <PackageReference Include="System.Security.Principal.Windows" Version="4.7.0" />
+    <PackageReference Include="System.Net.Security" Version="4.3.2" />
+    <PackageReference Include="System.Net.WebSockets.Client" Version="4.3.2" />
+    <PackageReference Include="System.ServiceModel.Primitives" Version="4.7.0" />
+    <PackageReference Include="Antlr4" Version="4.6.6" />
+  </ItemGroup>
+  <ItemGroup>
+    <Antlr4 Update="**/*.g4">
+      <Generator>MSBuild:Compile</Generator>
+      <CustomToolNamespace>$(RootNamespace).Parser</CustomToolNamespace>
+      <Listener>False</Listener>
+      <Visitor>False</Visitor>
+    </Antlr4>
   </ItemGroup>
   <Choose>
-    <When Condition="'$(PROJECT_BUILD)' == ''">
+    <When Condition="'$(Configuration)'=='Release'">
       <ItemGroup>
-        <ProjectReference Include="..\..\..\..\..\common\src\Microsoft.Azure.IIoT.Net\src\Microsoft.Azure.IIoT.Net.csproj" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua" Version="1.4.358.30" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes" Version="1.4.358.30" />
       </ItemGroup>
     </When>
     <Otherwise>
       <ItemGroup>
-        <PackageReference Include="Microsoft.Azure.IIoT.Net" Version="$(ReleaseVersion)" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Symbols" Version="1.4.358.30" />
+        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes.Symbols" Version="1.4.358.30" />
       </ItemGroup>
     </Otherwise>
   </Choose>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\..\common\src\Microsoft.Azure.IIoT.Net\src\Microsoft.Azure.IIoT.Net.csproj" />
+  </ItemGroup>
 </Project>

@@ -82,10 +82,12 @@ namespace HistoricalAccess {
         }
 
 #pragma warning disable RECS0154 // Parameter is never used
+#pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Loads the item configuaration.
         /// </summary>
         public bool LoadConfiguration(ISystemContext context, ArchiveItem item)
+#pragma warning restore IDE0060 // Remove unused parameter
 #pragma warning restore RECS0154 // Parameter is never used
         {
             using (var reader = item.OpenArchive()) {
@@ -218,7 +220,7 @@ namespace HistoricalAccess {
             }
 
             var currentTime = startTime;
-            var generator = new Opc.Ua.Test.DataGenerator(null);
+            var generator = new Opc.Ua.Test.TestDataGenerator();
 
             while (currentTime < DateTime.UtcNow) {
                 var dataValue = new DataValue {
@@ -232,7 +234,7 @@ namespace HistoricalAccess {
                     dataValue.Value = generator.GetRandom(item.DataType);
                 }
                 else {
-                    dataValue.Value = generator.GetRandomArray(item.DataType, false, 10, false);
+                    dataValue.Value = generator.GetRandomArray(item.DataType, 10, false);
                 }
 
                 // add record to table.
@@ -479,10 +481,12 @@ namespace HistoricalAccess {
         }
 
 #pragma warning disable RECS0154 // Parameter is never used
+#pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Extracts an integer value from the line.
         /// </summary>
         private bool ExtractField(int lineCount, ref string line, out string value)
+#pragma warning restore IDE0060 // Remove unused parameter
 #pragma warning restore RECS0154 // Parameter is never used
         {
             value = string.Empty;
@@ -593,13 +597,17 @@ namespace HistoricalAccess {
                 InnerXml = builder.ToString()
             };
 
+            XmlDecoder decoder = null;
             try {
-                var decoder = new XmlDecoder(document.DocumentElement, context);
+                decoder = new XmlDecoder(document.DocumentElement, context);
                 value = decoder.ReadVariant(null);
             }
             catch (Exception e) {
                 Utils.Trace("PARSE ERROR [Line:{0}] - '{1}': {2}", lineCount, field, e.Message);
                 return false;
+            }
+            finally {
+                decoder?.Dispose();
             }
 
             return true;

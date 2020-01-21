@@ -11,12 +11,10 @@
 namespace Microsoft.Azure.IIoT.Opc.Registry.Models
 {
     using Newtonsoft.Json;
-    using System.Collections;
-    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
-    /// Supervisor registration update request
+    /// Supervisor update request
     /// </summary>
     public partial class SupervisorUpdateApiModel
     {
@@ -31,26 +29,12 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// <summary>
         /// Initializes a new instance of the SupervisorUpdateApiModel class.
         /// </summary>
-        /// <param name="siteId">Site of the supervisor</param>
-        /// <param name="discovery">Whether the supervisor is in discovery
-        /// mode.
-        /// If null, does not change. Possible values include: 'Off', 'Local',
-        /// 'Network', 'Fast', 'Scan'</param>
-        /// <param name="discoveryConfig">Supervisor discovery
-        /// configuration</param>
-        /// <param name="discoveryCallbacks">Callbacks to add or remove (see
-        /// below)</param>
-        /// <param name="removeDiscoveryCallbacks">Whether to add or remove
-        /// callbacks</param>
-        /// <param name="logLevel">Current log level. Possible values include:
-        /// 'Error', 'Information', 'Debug', 'Verbose'</param>
-        public SupervisorUpdateApiModel(string siteId = default(string), DiscoveryMode? discovery = default(DiscoveryMode?), DiscoveryConfigApiModel discoveryConfig = default(DiscoveryConfigApiModel), IList<CallbackApiModel> discoveryCallbacks = default(IList<CallbackApiModel>), bool? removeDiscoveryCallbacks = default(bool?), SupervisorLogLevel? logLevel = default(SupervisorLogLevel?))
+        /// <param name="siteId">Site the supervisor is part of</param>
+        /// <param name="logLevel">Possible values include: 'Error',
+        /// 'Information', 'Debug', 'Verbose'</param>
+        public SupervisorUpdateApiModel(string siteId = default(string), TraceLogLevel? logLevel = default(TraceLogLevel?))
         {
             SiteId = siteId;
-            Discovery = discovery;
-            DiscoveryConfig = discoveryConfig;
-            DiscoveryCallbacks = discoveryCallbacks;
-            RemoveDiscoveryCallbacks = removeDiscoveryCallbacks;
             LogLevel = logLevel;
             CustomInit();
         }
@@ -61,43 +45,17 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets site of the supervisor
+        /// Gets or sets site the supervisor is part of
         /// </summary>
         [JsonProperty(PropertyName = "siteId")]
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Gets or sets whether the supervisor is in discovery mode.
-        /// If null, does not change. Possible values include: 'Off', 'Local',
-        /// 'Network', 'Fast', 'Scan'
-        /// </summary>
-        [JsonProperty(PropertyName = "discovery")]
-        public DiscoveryMode? Discovery { get; set; }
-
-        /// <summary>
-        /// Gets or sets supervisor discovery configuration
-        /// </summary>
-        [JsonProperty(PropertyName = "discoveryConfig")]
-        public DiscoveryConfigApiModel DiscoveryConfig { get; set; }
-
-        /// <summary>
-        /// Gets or sets callbacks to add or remove (see below)
-        /// </summary>
-        [JsonProperty(PropertyName = "discoveryCallbacks")]
-        public IList<CallbackApiModel> DiscoveryCallbacks { get; set; }
-
-        /// <summary>
-        /// Gets or sets whether to add or remove callbacks
-        /// </summary>
-        [JsonProperty(PropertyName = "removeDiscoveryCallbacks")]
-        public bool? RemoveDiscoveryCallbacks { get; set; }
-
-        /// <summary>
-        /// Gets or sets current log level. Possible values include: 'Error',
-        /// 'Information', 'Debug', 'Verbose'
+        /// Gets or sets possible values include: 'Error', 'Information',
+        /// 'Debug', 'Verbose'
         /// </summary>
         [JsonProperty(PropertyName = "logLevel")]
-        public SupervisorLogLevel? LogLevel { get; set; }
+        public TraceLogLevel? LogLevel { get; set; }
 
     }
 }

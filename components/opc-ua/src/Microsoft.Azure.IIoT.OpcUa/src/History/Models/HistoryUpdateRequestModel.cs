@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
 
     /// <summary>
     /// Request node history update
@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
     public class HistoryUpdateRequestModel<T> {
 
         /// <summary>
-        /// Node to update 
+        /// Node to update
         /// </summary>
         public string NodeId { get; set; }
 

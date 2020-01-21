@@ -18,10 +18,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class ReplaceEventsDetailsApiModel {
     /**
-     * The filter to use to select the events.
+     * The filter property.
      */
     @JsonProperty(value = "filter")
-    private Object filter;
+    private EventFilterApiModel filter;
 
     /**
      * The events to replace.
@@ -30,21 +30,21 @@ public class ReplaceEventsDetailsApiModel {
     private List<HistoricEventApiModel> events;
 
     /**
-     * Get the filter to use to select the events.
+     * Get the filter value.
      *
      * @return the filter value
      */
-    public Object filter() {
+    public EventFilterApiModel filter() {
         return this.filter;
     }
 
     /**
-     * Set the filter to use to select the events.
+     * Set the filter value.
      *
      * @param filter the filter value to set
      * @return the ReplaceEventsDetailsApiModel object itself.
      */
-    public ReplaceEventsDetailsApiModel withFilter(Object filter) {
+    public ReplaceEventsDetailsApiModel withFilter(EventFilterApiModel filter) {
         this.filter = filter;
         return this;
     }

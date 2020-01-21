@@ -34,7 +34,7 @@ class AzureOpcVaultClientConfiguration(Configuration):
         if credentials is None:
             raise ValueError("Parameter 'credentials' must not be None.")
         if not base_url:
-            base_url = 'http://localhost'
+            base_url = 'http://localhost:9080'
 
         super(AzureOpcVaultClientConfiguration, self).__init__(base_url)
 
@@ -71,8 +71,7 @@ class AzureOpcVaultClient(object):
             self, serial_number, custom_headers=None, raw=False, **operation_config):
         """Get Issuer CA Certificate chain.
 
-        :param serial_number: the serial number of the
-         Issuer CA Certificate
+        :param serial_number: the serial number of the Issuer CA Certificate
         :type serial_number: str
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
@@ -124,8 +123,7 @@ class AzureOpcVaultClient(object):
             self, serial_number, custom_headers=None, raw=False, **operation_config):
         """Get Issuer CA CRL chain.
 
-        :param serial_number: the serial number of the Issuer
-         CA Certificate
+        :param serial_number: the serial number of the Issuer CA Certificate
         :type serial_number: str
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
@@ -185,8 +183,8 @@ class AzureOpcVaultClient(object):
          deserialized response
         :param operation_config: :ref:`Operation configuration
          overrides<msrest:optionsforoperations>`.
-        :return: None or ClientRawResponse if raw=true
-        :rtype: None or ~msrest.pipeline.ClientRawResponse
+        :return: str or ClientRawResponse if raw=true
+        :rtype: str or ~msrest.pipeline.ClientRawResponse
         :raises:
          :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
         """
@@ -213,9 +211,16 @@ class AzureOpcVaultClient(object):
         if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
+        deserialized = None
+
+        if response.status_code == 200:
+            deserialized = self._deserialize('str', response)
+
         if raw:
-            client_raw_response = ClientRawResponse(None, response)
+            client_raw_response = ClientRawResponse(deserialized, response)
             return client_raw_response
+
+        return deserialized
     get_issuer_certificate_chain1.metadata = {'url': '/v2/issuer/{serialNumber}'}
 
     def get_issuer_crl_chain1(
@@ -229,8 +234,8 @@ class AzureOpcVaultClient(object):
          deserialized response
         :param operation_config: :ref:`Operation configuration
          overrides<msrest:optionsforoperations>`.
-        :return: None or ClientRawResponse if raw=true
-        :rtype: None or ~msrest.pipeline.ClientRawResponse
+        :return: str or ClientRawResponse if raw=true
+        :rtype: str or ~msrest.pipeline.ClientRawResponse
         :raises:
          :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
         """
@@ -257,21 +262,27 @@ class AzureOpcVaultClient(object):
         if response.status_code not in [200]:
             raise HttpOperationError(self._deserialize, response)
 
+        deserialized = None
+
+        if response.status_code == 200:
+            deserialized = self._deserialize('str', response)
+
         if raw:
-            client_raw_response = ClientRawResponse(None, response)
+            client_raw_response = ClientRawResponse(deserialized, response)
             return client_raw_response
+
+        return deserialized
     get_issuer_crl_chain1.metadata = {'url': '/v2/crl/{serialNumber}'}
 
     def start_signing_request(
-            self, signing_request, custom_headers=None, raw=False, **operation_config):
+            self, body, custom_headers=None, raw=False, **operation_config):
         """Create a certificate request with a certificate signing request (CSR).
 
-        The request is in the 'New' state after this call.
-        Requires Writer or Manager role.
+        The request is in the 'New' state after this call. Requires Writer or
+        Manager role.
 
-        :param signing_request: The signing request parameters
-        :type signing_request:
-         ~azure-iiot-opc-vault.models.StartSigningRequestApiModel
+        :param body: The signing request parameters
+        :type body: ~azure-iiot-opc-vault.models.StartSigningRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
@@ -298,7 +309,7 @@ class AzureOpcVaultClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(signing_request, 'StartSigningRequestApiModel')
+        body_content = self._serialize.body(body, 'StartSigningRequestApiModel')
 
         # Construct and send request
         request = self._client.put(url, query_parameters)
@@ -324,10 +335,9 @@ class AzureOpcVaultClient(object):
             self, request_id, custom_headers=None, raw=False, **operation_config):
         """Fetch signing request results.
 
-        Can be called in any state.
-        After a successful fetch in 'Completed' state, the request is
-        moved into 'Accepted' state.
-        Requires Writer role.
+        Can be called in any state. After a successful fetch in 'Completed'
+        state, the request is moved into 'Accepted' state. Requires Writer
+        role.
 
         :param request_id:
         :type request_id: str
@@ -380,14 +390,14 @@ class AzureOpcVaultClient(object):
     finish_signing_request.metadata = {'url': '/v2/requests/sign/{requestId}'}
 
     def start_new_key_pair_request(
-            self, new_key_pair_request, custom_headers=None, raw=False, **operation_config):
+            self, body, custom_headers=None, raw=False, **operation_config):
         """Create a certificate request with a new key pair.
 
-        The request is in the 'New' state after this call.
-        Requires Writer or Manager role.
+        The request is in the 'New' state after this call. Requires Writer or
+        Manager role.
 
-        :param new_key_pair_request: The new key pair request parameters
-        :type new_key_pair_request:
+        :param body: The new key pair request parameters
+        :type body:
          ~azure-iiot-opc-vault.models.StartNewKeyPairRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
@@ -415,7 +425,7 @@ class AzureOpcVaultClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(new_key_pair_request, 'StartNewKeyPairRequestApiModel')
+        body_content = self._serialize.body(body, 'StartNewKeyPairRequestApiModel')
 
         # Construct and send request
         request = self._client.put(url, query_parameters)
@@ -441,11 +451,9 @@ class AzureOpcVaultClient(object):
             self, request_id, custom_headers=None, raw=False, **operation_config):
         """Fetch certificate request result.
 
-        Can be called in any state.
-        Fetches private key in 'Completed' state.
-        After a successful fetch in 'Completed' state, the request is
-        moved into 'Accepted' state.
-        Requires Writer role.
+        Can be called in any state. Fetches private key in 'Completed' state.
+        After a successful fetch in 'Completed' state, the request is moved
+        into 'Accepted' state. Requires Writer role.
 
         :param request_id:
         :type request_id: str
@@ -501,17 +509,14 @@ class AzureOpcVaultClient(object):
             self, request_id, custom_headers=None, raw=False, **operation_config):
         """Approve the certificate request.
 
-        Validates the request with the application database.
-        - If Approved:
-        - New Key Pair request: Creates the new key pair
-        in the requested format, signs the certificate and stores the
-        private key for later securely in KeyVault.
-        - Cert Signing Request: Creates and signs the certificate.
-        Deletes the CSR from the database.
-        Stores the signed certificate for later use in the Database.
-        The request is in the 'Approved' or 'Rejected' state after this call.
-        Requires Approver role.
-        Approver needs signing rights in KeyVault.
+        Validates the request with the application database. - If Approved: -
+        New Key Pair request: Creates the new key pair in the requested format,
+        signs the certificate and stores the private key for later securely in
+        KeyVault. - Cert Signing Request: Creates and signs the certificate.
+        Deletes the CSR from the database. Stores the signed certificate for
+        later use in the Database. The request is in the 'Approved' or
+        'Rejected' state after this call. Requires Approver role. Approver
+        needs signing rights in KeyVault.
 
         :param request_id: The certificate request id
         :type request_id: str
@@ -557,9 +562,8 @@ class AzureOpcVaultClient(object):
             self, request_id, custom_headers=None, raw=False, **operation_config):
         """Reject the certificate request.
 
-        The request is in the 'Rejected' state after this call.
-        Requires Approver role.
-        Approver needs signing rights in KeyVault.
+        The request is in the 'Rejected' state after this call. Requires
+        Approver role. Approver needs signing rights in KeyVault.
 
         :param request_id: The certificate request id
         :type request_id: str
@@ -605,8 +609,8 @@ class AzureOpcVaultClient(object):
             self, request_id, custom_headers=None, raw=False, **operation_config):
         """Cancel request.
 
-        The request is in the 'Accepted' state after this call.
-        Requires Writer role.
+        The request is in the 'Accepted' state after this call. Requires Writer
+        role.
 
         :param request_id: The certificate request id
         :type request_id: str
@@ -647,6 +651,54 @@ class AzureOpcVaultClient(object):
             client_raw_response = ClientRawResponse(None, response)
             return client_raw_response
     accept_request.metadata = {'url': '/v2/requests/{requestId}/accept'}
+
+    def delete_request(
+            self, request_id, custom_headers=None, raw=False, **operation_config):
+        """Delete request. Physically delete the request.
+
+        By purging the request it is actually physically deleted from the
+        database, including the public key and other information. Requires
+        Manager role.
+
+        :param request_id: The certificate request id
+        :type request_id: str
+        :param dict custom_headers: headers that will be added to the request
+        :param bool raw: returns the direct response alongside the
+         deserialized response
+        :param operation_config: :ref:`Operation configuration
+         overrides<msrest:optionsforoperations>`.
+        :return: None or ClientRawResponse if raw=true
+        :rtype: None or ~msrest.pipeline.ClientRawResponse
+        :raises:
+         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
+        """
+        # Construct URL
+        url = self.delete_request.metadata['url']
+        path_format_arguments = {
+            'requestId': self._serialize.url("request_id", request_id, 'str')
+        }
+        url = self._client.format_url(url, **path_format_arguments)
+
+        # Construct parameters
+        query_parameters = {}
+
+        # Construct headers
+        header_parameters = {}
+        header_parameters['Content-Type'] = 'application/json; charset=utf-8'
+        if custom_headers:
+            header_parameters.update(custom_headers)
+
+        # Construct and send request
+        request = self._client.delete(url, query_parameters)
+        response = self._client.send(request, header_parameters, stream=False, **operation_config)
+
+        if response.status_code not in [200]:
+            raise HttpOperationError(self._deserialize, response)
+
+        if raw:
+            client_raw_response = ClientRawResponse(None, response)
+            return client_raw_response
+    delete_request.metadata = {'url': '/v2/requests/{requestId}'}
 
     def get_request(
             self, request_id, custom_headers=None, raw=False, **operation_config):
@@ -701,68 +753,19 @@ class AzureOpcVaultClient(object):
         return deserialized
     get_request.metadata = {'url': '/v2/requests/{requestId}'}
 
-    def delete_request(
-            self, request_id, custom_headers=None, raw=False, **operation_config):
-        """Delete request. Physically delete the request.
-
-        By purging the request it is actually physically deleted from the
-        database, including the public key and other information.
-        Requires Manager role.
-
-        :param request_id: The certificate request id
-        :type request_id: str
-        :param dict custom_headers: headers that will be added to the request
-        :param bool raw: returns the direct response alongside the
-         deserialized response
-        :param operation_config: :ref:`Operation configuration
-         overrides<msrest:optionsforoperations>`.
-        :return: None or ClientRawResponse if raw=true
-        :rtype: None or ~msrest.pipeline.ClientRawResponse
-        :raises:
-         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
-        """
-        # Construct URL
-        url = self.delete_request.metadata['url']
-        path_format_arguments = {
-            'requestId': self._serialize.url("request_id", request_id, 'str')
-        }
-        url = self._client.format_url(url, **path_format_arguments)
-
-        # Construct parameters
-        query_parameters = {}
-
-        # Construct headers
-        header_parameters = {}
-        header_parameters['Content-Type'] = 'application/json; charset=utf-8'
-        if custom_headers:
-            header_parameters.update(custom_headers)
-
-        # Construct and send request
-        request = self._client.delete(url, query_parameters)
-        response = self._client.send(request, header_parameters, stream=False, **operation_config)
-
-        if response.status_code not in [200]:
-            raise HttpOperationError(self._deserialize, response)
-
-        if raw:
-            client_raw_response = ClientRawResponse(None, response)
-            return client_raw_response
-    delete_request.metadata = {'url': '/v2/requests/{requestId}'}
-
     def query_requests(
-            self, query=None, page_size=None, custom_headers=None, raw=False, **operation_config):
+            self, page_size=None, body=None, custom_headers=None, raw=False, **operation_config):
         """Query for certificate requests.
 
-        Get all certificate requests in paged form.
-        The returned model can contain a link to the next page if more results
-        are
-        available.  Use ListRequests to continue.
+        Get all certificate requests in paged form. The returned model can
+        contain a link to the next page if more results are available. Use
+        ListRequests to continue.
 
-        :param query: optional, query filter
-        :type query:
-         ~azure-iiot-opc-vault.models.CertificateRequestQueryRequestApiModel
         :param page_size: optional, the maximum number of result per page
         :type page_size: int
+        :param body: optional, query filter
+        :type body:
+         ~azure-iiot-opc-vault.models.CertificateRequestQueryRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
          deserialized response
@@ -791,8 +794,8 @@ class AzureOpcVaultClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        if query is not None:
-            body_content = self._serialize.body(query, 'CertificateRequestQueryRequestApiModel')
+        if body is not None:
+            body_content = self._serialize.body(body, 'CertificateRequestQueryRequestApiModel')
         else:
             body_content = None
 
@@ -821,11 +824,8 @@ class AzureOpcVaultClient(object):
         """Lists certificate requests.
 
         Get all certificate requests in paged form or continue a current
-        listing or
-        query.
-        The returned model can contain a link to the next page if more results
-        are
-        available.
+        listing or query. The returned model can contain a link to the next
+        page if more results are available.
 
         :param next_page_link: optional, link to next page
         :type next_page_link: str
@@ -879,61 +879,13 @@ class AzureOpcVaultClient(object):
         return deserialized
     list_requests.metadata = {'url': '/v2/requests'}
 
-    def get_status(
-            self, custom_headers=None, raw=False, **operation_config):
-        """Return the service status in the form of the service status
-        api model.
-
-        :param dict custom_headers: headers that will be added to the request
-        :param bool raw: returns the direct response alongside the
-         deserialized response
-        :param operation_config: :ref:`Operation configuration
-         overrides<msrest:optionsforoperations>`.
-        :return: StatusResponseApiModel or ClientRawResponse if raw=true
-        :rtype: ~azure-iiot-opc-vault.models.StatusResponseApiModel or
-         ~msrest.pipeline.ClientRawResponse
-        :raises:
-         :class:`HttpOperationError<msrest.exceptions.HttpOperationError>`
-        """
-        # Construct URL
-        url = self.get_status.metadata['url']
-
-        # Construct parameters
-        query_parameters = {}
-
-        # Construct headers
-        header_parameters = {}
-        header_parameters['Content-Type'] = 'application/json; charset=utf-8'
-        if custom_headers:
-            header_parameters.update(custom_headers)
-
-        # Construct and send request
-        request = self._client.get(url, query_parameters)
-        response = self._client.send(request, header_parameters, stream=False, **operation_config)
-
-        if response.status_code not in [200]:
-            raise HttpOperationError(self._deserialize, response)
-
-        deserialized = None
-
-        if response.status_code == 200:
-            deserialized = self._deserialize('StatusResponseApiModel', response)
-
-        if raw:
-            client_raw_response = ClientRawResponse(deserialized, response)
-            return client_raw_response
-
-        return deserialized
-    get_status.metadata = {'url': '/v2/status'}
-
     def list_groups(
             self, next_page_link=None, page_size=None, custom_headers=None, raw=False, **operation_config):
         """Get information about all groups.
 
-        A trust group has a root certificate which issues certificates
-        to entities.  Entities can be part of a trust group and thus
-        trust the root certificate and all entities that the root has
-        issued certificates for.
+        A trust group has a root certificate which issues certificates to
+        entities. Entities can be part of a trust group and thus trust the root
+        certificate and all entities that the root has issued certificates for.
 
         :param next_page_link: optional, link to next page
         :type next_page_link: str
@@ -988,13 +940,13 @@ class AzureOpcVaultClient(object):
     list_groups.metadata = {'url': '/v2/groups'}
 
     def create_group(
-            self, request, custom_headers=None, raw=False, **operation_config):
+            self, body, custom_headers=None, raw=False, **operation_config):
         """Create new sub-group of an existing group.
 
         Requires manager role.
 
-        :param request: The create request
-        :type request:
+        :param body: The create request
+        :type body:
          ~azure-iiot-opc-vault.models.TrustGroupRegistrationRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
@@ -1022,7 +974,7 @@ class AzureOpcVaultClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'TrustGroupRegistrationRequestApiModel')
+        body_content = self._serialize.body(body, 'TrustGroupRegistrationRequestApiModel')
 
         # Construct and send request
         request = self._client.put(url, query_parameters)
@@ -1048,10 +1000,9 @@ class AzureOpcVaultClient(object):
             self, group_id, custom_headers=None, raw=False, **operation_config):
         """Get group information.
 
-        A trust group has a root certificate which issues certificates
-        to entities.  Entities can be part of a trust group and thus
-        trust the root certificate and all entities that the root has
-        issued certificates for.
+        A trust group has a root certificate which issues certificates to
+        entities. Entities can be part of a trust group and thus trust the root
+        certificate and all entities that the root has issued certificates for.
 
         :param group_id: The group id
         :type group_id: str
@@ -1103,17 +1054,16 @@ class AzureOpcVaultClient(object):
     get_group.metadata = {'url': '/v2/groups/{groupId}'}
 
     def update_group(
-            self, group_id, request, custom_headers=None, raw=False, **operation_config):
+            self, group_id, body, custom_headers=None, raw=False, **operation_config):
         """Update group registration.
 
-        Use this function with care and only if you are aware of
-        the security implications.
-        Requires manager role.
+        Use this function with care and only if you are aware of the security
+        implications. Requires manager role.
 
         :param group_id: The group id
         :type group_id: str
-        :param request: The group configuration
-        :type request:
+        :param body: The group configuration
+        :type body:
          ~azure-iiot-opc-vault.models.TrustGroupUpdateRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
@@ -1142,7 +1092,7 @@ class AzureOpcVaultClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'TrustGroupUpdateRequestApiModel')
+        body_content = self._serialize.body(body, 'TrustGroupUpdateRequestApiModel')
 
         # Construct and send request
         request = self._client.post(url, query_parameters)
@@ -1162,8 +1112,7 @@ class AzureOpcVaultClient(object):
         """Delete a group.
 
         After this operation the Issuer CA, CRLs and keys become inaccessible.
-        Use this function with extreme caution.
-        Requires manager role.
+        Use this function with extreme caution. Requires manager role.
 
         :param group_id: The group id
         :type group_id: str
@@ -1206,13 +1155,13 @@ class AzureOpcVaultClient(object):
     delete_group.metadata = {'url': '/v2/groups/{groupId}'}
 
     def create_root(
-            self, request, custom_headers=None, raw=False, **operation_config):
+            self, body, custom_headers=None, raw=False, **operation_config):
         """Create new root group.
 
         Requires manager role.
 
-        :param request: The create request
-        :type request:
+        :param body: The create request
+        :type body:
          ~azure-iiot-opc-vault.models.TrustGroupRootCreateRequestApiModel
         :param dict custom_headers: headers that will be added to the request
         :param bool raw: returns the direct response alongside the
@@ -1240,7 +1189,7 @@ class AzureOpcVaultClient(object):
             header_parameters.update(custom_headers)
 
         # Construct body
-        body_content = self._serialize.body(request, 'TrustGroupRootCreateRequestApiModel')
+        body_content = self._serialize.body(body, 'TrustGroupRootCreateRequestApiModel')
 
         # Construct and send request
         request = self._client.put(url, query_parameters)
@@ -1310,8 +1259,8 @@ class AzureOpcVaultClient(object):
             self, entity_id, trusted_entity_id, custom_headers=None, raw=False, **operation_config):
         """Add trust relationship.
 
-        Define trust between two entities.  The entities are identifiers
-        of application, groups, or endpoints.
+        Define trust between two entities. The entities are identifiers of
+        application, groups, or endpoints.
 
         :param entity_id: The entity identifier, e.g. group, etc.
         :type entity_id: str
@@ -1360,8 +1309,8 @@ class AzureOpcVaultClient(object):
             self, entity_id, next_page_link=None, page_size=None, custom_headers=None, raw=False, **operation_config):
         """List trusted certificates.
 
-        Returns all certificates the entity should trust based on the
-        applied trust configuration.
+        Returns all certificates the entity should trust based on the applied
+        trust configuration.
 
         :param entity_id:
         :type entity_id: str
@@ -1423,8 +1372,8 @@ class AzureOpcVaultClient(object):
             self, entity_id, untrusted_entity_id, custom_headers=None, raw=False, **operation_config):
         """Remove a trust relationship.
 
-        Removes trust between two entities.  The entities are identifiers
-        of application, groups, or endpoints.
+        Removes trust between two entities. The entities are identifiers of
+        application, groups, or endpoints.
 
         :param entity_id: The entity identifier, e.g. group, etc.
         :type entity_id: str

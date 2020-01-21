@@ -19,7 +19,7 @@ public class TrustGroupRegistrationResponseApiModel {
     /**
      * The id of the trust group.
      */
-    @JsonProperty(value = "id", required = true)
+    @JsonProperty(value = "id")
     private String id;
 
     /**

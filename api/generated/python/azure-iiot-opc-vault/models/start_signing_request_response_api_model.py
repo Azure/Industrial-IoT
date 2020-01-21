@@ -19,14 +19,10 @@ class StartSigningRequestResponseApiModel(Model):
     :type request_id: str
     """
 
-    _validation = {
-        'request_id': {'required': True},
-    }
-
     _attribute_map = {
         'request_id': {'key': 'requestId', 'type': 'str'},
     }
 
-    def __init__(self, request_id):
+    def __init__(self, request_id=None):
         super(StartSigningRequestResponseApiModel, self).__init__()
         self.request_id = request_id

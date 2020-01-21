@@ -13,16 +13,16 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <summary>
         /// Connected property name constant
         /// </summary>
-        public const string kConnected = "__connected__";
+        public const string Connected = "__connected__";
 
         /// <summary>
         /// Type property name constant
         /// </summary>
-        public const string kType = "__type__";
+        public const string Type = "__type__";
 
         /// <summary>
         /// Site id property name constant
         /// </summary>
-        public const string kSiteId = "__siteid__";
+        public const string SiteId = "__siteid__";
     }
 }

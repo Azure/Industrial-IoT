@@ -17,9 +17,7 @@
 class SupervisorQueryApiModel {
   /**
    * Create a SupervisorQueryApiModel.
-   * @property {string} [siteId] Site of the supervisor
-   * @property {string} [discovery] Discovery mode of supervisor. Possible
-   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+   * @property {string} [siteId] Site for the supervisors
    * @property {boolean} [connected] Included connected or disconnected
    */
   constructor() {
@@ -44,14 +42,6 @@ class SupervisorQueryApiModel {
             serializedName: 'siteId',
             type: {
               name: 'String'
-            }
-          },
-          discovery: {
-            required: false,
-            serializedName: 'discovery',
-            type: {
-              name: 'Enum',
-              allowedValues: [ 'Off', 'Local', 'Network', 'Fast', 'Scan' ]
             }
           },
           connected: {

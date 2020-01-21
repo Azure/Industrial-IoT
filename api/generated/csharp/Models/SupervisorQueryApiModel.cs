@@ -29,14 +29,11 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// <summary>
         /// Initializes a new instance of the SupervisorQueryApiModel class.
         /// </summary>
-        /// <param name="siteId">Site of the supervisor</param>
-        /// <param name="discovery">Discovery mode of supervisor. Possible
-        /// values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'</param>
+        /// <param name="siteId">Site for the supervisors</param>
         /// <param name="connected">Included connected or disconnected</param>
-        public SupervisorQueryApiModel(string siteId = default(string), DiscoveryMode? discovery = default(DiscoveryMode?), bool? connected = default(bool?))
+        public SupervisorQueryApiModel(string siteId = default(string), bool? connected = default(bool?))
         {
             SiteId = siteId;
-            Discovery = discovery;
             Connected = connected;
             CustomInit();
         }
@@ -47,17 +44,10 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets site of the supervisor
+        /// Gets or sets site for the supervisors
         /// </summary>
         [JsonProperty(PropertyName = "siteId")]
         public string SiteId { get; set; }
-
-        /// <summary>
-        /// Gets or sets discovery mode of supervisor. Possible values include:
-        /// 'Off', 'Local', 'Network', 'Fast', 'Scan'
-        /// </summary>
-        [JsonProperty(PropertyName = "discovery")]
-        public DiscoveryMode? Discovery { get; set; }
 
         /// <summary>
         /// Gets or sets included connected or disconnected

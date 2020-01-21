@@ -30,15 +30,13 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// <summary>
         /// Initializes a new instance of the EndpointInfoApiModel class.
         /// </summary>
-        /// <param name="registration">Endpoint registration</param>
         /// <param name="applicationId">Application id endpoint is registered
         /// under.</param>
-        /// <param name="activationState">Activation state of endpoint.
-        /// Possible values include: 'Deactivated', 'Activated',
-        /// 'ActivatedAndConnected'</param>
-        /// <param name="endpointState">Last state of the activated endpoint.
-        /// Possible values include: 'Connecting', 'NotReachable', 'Busy',
-        /// 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'</param>
+        /// <param name="activationState">Possible values include:
+        /// 'Deactivated', 'Activated', 'ActivatedAndConnected'</param>
+        /// <param name="endpointState">Possible values include: 'Connecting',
+        /// 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready',
+        /// 'Error'</param>
         /// <param name="outOfSync">Whether the registration is out of
         /// sync</param>
         /// <param name="notSeenSince">Last time endpoint was seen</param>
@@ -59,7 +57,6 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets endpoint registration
         /// </summary>
         [JsonProperty(PropertyName = "registration")]
         public EndpointRegistrationApiModel Registration { get; set; }
@@ -71,16 +68,15 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public string ApplicationId { get; set; }
 
         /// <summary>
-        /// Gets or sets activation state of endpoint. Possible values include:
-        /// 'Deactivated', 'Activated', 'ActivatedAndConnected'
+        /// Gets or sets possible values include: 'Deactivated', 'Activated',
+        /// 'ActivatedAndConnected'
         /// </summary>
         [JsonProperty(PropertyName = "activationState")]
         public EndpointActivationState? ActivationState { get; set; }
 
         /// <summary>
-        /// Gets or sets last state of the activated endpoint. Possible values
-        /// include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust',
-        /// 'CertificateInvalid', 'Ready', 'Error'
+        /// Gets or sets possible values include: 'Connecting', 'NotReachable',
+        /// 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
         /// </summary>
         [JsonProperty(PropertyName = "endpointState")]
         public EndpointConnectivityState? EndpointState { get; set; }

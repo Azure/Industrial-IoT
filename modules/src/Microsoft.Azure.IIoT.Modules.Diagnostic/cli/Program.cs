@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Cli {
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub;
@@ -17,6 +18,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Cli {
     using Serilog.Core;
     using Serilog.Events;
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using System.Threading;
@@ -35,13 +37,15 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Cli {
             var standalone = false;
             var echo = false;
             var publish = false;
-            var logger = LogEx.Console(LogEventLevel.Information);
+            var logger = ConsoleLogger.Create(LogEventLevel.Information);
             Console.WriteLine("Edge Diagnostics command line interface.");
             var configuration = new ConfigurationBuilder()
-                .AddFromDotEnvFile()
                 .AddEnvironmentVariables()
+                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
+                .AddFromDotEnvFile()
+                .AddFromKeyVault()
                 .Build();
-            var cs = configuration.GetValue<string>("PCS_IOTHUB_CONNSTRING", null);
+            var cs = configuration.GetValue<string>(PcsVariable.PCS_IOTHUB_CONNSTRING, null);
             if (string.IsNullOrEmpty(cs)) {
                 cs = configuration.GetValue<string>("_HUB_CS", null);
             }
@@ -67,7 +71,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Cli {
                             standalone = true;
                             break;
                         case "--verbose":
-                            logger = LogEx.Console(LogEventLevel.Debug);
+                            logger = ConsoleLogger.Create(LogEventLevel.Debug);
                             break;
                         case "--silent":
                             logger = Logger.None;
@@ -291,7 +295,7 @@ Arguments:
             logger.Information("Starting diagnostic module...");
             var arguments = args.ToList();
             arguments.Add($"EdgeHubConnectionString={cs}");
-            arguments.Add($"LogLevel={LogEx.Level.MinimumLevel}");
+            arguments.Add($"LogLevel={LogControl.Level.MinimumLevel}");
             Diagnostic.Program.Main(arguments.ToArray());
             logger.Information("Diagnostic module exited.");
         }
@@ -301,18 +305,24 @@ Arguments:
         /// </summary>
         private static async Task<ConnectionString> AddOrGetAsync(IIoTHubConfig config,
             string deviceId, string moduleId, ILogger logger) {
-            var level = LogEx.Level.MinimumLevel;
-            LogEx.Level.MinimumLevel = LogEventLevel.Error;
+            var level = LogControl.Level.MinimumLevel;
+            LogControl.Level.MinimumLevel = LogEventLevel.Error;
             var registry = CreateClient(config, logger);
             await registry.CreateAsync(new DeviceTwinModel {
                 Id = deviceId,
-                ModuleId = moduleId,
+                Tags = new Dictionary<string, JToken> {
+                    [TwinProperty.Type] = IdentityType.Gateway
+                },
                 Capabilities = new DeviceCapabilitiesModel {
                     IotEdge = true
                 }
             }, true, CancellationToken.None);
+            await registry.CreateAsync(new DeviceTwinModel {
+                Id = deviceId,
+                ModuleId = moduleId
+            }, true, CancellationToken.None);
             var cs = await registry.GetConnectionStringAsync(deviceId, moduleId);
-            LogEx.Level.MinimumLevel = level;
+            LogControl.Level.MinimumLevel = level;
             return cs;
         }
 

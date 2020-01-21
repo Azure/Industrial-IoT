@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <summary>
         /// flag to force automatically acceptance of untrusted certificates
         /// </summary>
-        bool AutoAccept { get; }
+        bool AutoAcceptUntrustedCertificates { get; }
 
         /// <summary>
         /// the default store path for the windows X509 certificates store in case
@@ -56,7 +56,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <summary>
         /// Default session timeout for client
         /// </summary>
-        TimeSpan? SessionTimeout { get; }
+        TimeSpan? DefaultSessionTimeout { get; }
 
         /// <summary>
         /// Default operation timeout

@@ -16,10 +16,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <summary>
         /// Get all endpoints in paged form
         /// </summary>
+        /// <param name="continuation"></param>
         /// <param name="onlyServerState">Whether only
         /// desired endpoint state should be returned.
         /// </param>
-        /// <param name="continuation"></param>
         /// <param name="pageSize"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
@@ -64,19 +64,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <returns></returns>
         Task ActivateEndpointAsync(string endpointId,
             RegistryOperationContextModel context = null,
-            CancellationToken ct = default);
-
-        /// <summary>
-        /// Update existing server endpoint registration.
-        /// Id and url field in request must not be null and
-        /// endpoint registration must exist.
-        /// </summary>
-        /// <param name="endpointId"></param>
-        /// <param name="request"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task UpdateEndpointAsync(string endpointId,
-            EndpointRegistrationUpdateModel request,
             CancellationToken ct = default);
 
         /// <summary>

@@ -45,8 +45,8 @@ namespace Microsoft.Azure.IIoT.Net {
         /// Create scanner
         /// </summary>
         /// <param name="services"></param>
-        /// <param name="netclass"></param>
         /// <param name="replies"></param>
+        /// <param name="netclass"></param>
         /// <param name="ct"></param>
         public static Task ScanAsync(this IScanServices services, Action<PingReply> replies,
             NetworkClass netclass, CancellationToken ct) {
@@ -57,9 +57,9 @@ namespace Microsoft.Azure.IIoT.Net {
         /// Create scanner
         /// </summary>
         /// <param name="services"></param>
-        /// <param name="netclass"></param>
-        /// <param name="local"></param>
         /// <param name="replies"></param>
+        /// <param name="local"></param>
+        /// <param name="netclass"></param>
         /// <param name="ct"></param>
         public static Task ScanAsync(this IScanServices services, Action<PingReply> replies,
             bool local, NetworkClass netclass, CancellationToken ct) {
@@ -70,8 +70,8 @@ namespace Microsoft.Azure.IIoT.Net {
         /// Create scanner
         /// </summary>
         /// <param name="services"></param>
-        /// <param name="addresses"></param>
         /// <param name="replies"></param>
+        /// <param name="addresses"></param>
         /// <param name="ct"></param>
         public static Task ScanAsync(this IScanServices services, Action<PingReply> replies,
             IEnumerable<AddressRange> addresses, CancellationToken ct) {

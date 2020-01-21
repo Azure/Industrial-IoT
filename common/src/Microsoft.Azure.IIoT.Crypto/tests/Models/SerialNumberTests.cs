@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Crypto.Models {
-    using System.Security.Cryptography.X509Certificates;
     using System.Numerics;
     using Xunit;
     using System;

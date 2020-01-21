@@ -37,47 +37,75 @@ export default class AzureOpcRegistryClient extends ServiceClient {
 
 
   /**
-   * @summary Get list of applications
+   * @summary Register new server
    *
-   * Get all registered applications in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
+   * Registers a server solely using a discovery url. Requires that the
+   * onboarding agent service is running and the server can be located by a
+   * supervisor in its network using the discovery url.
+   *
+   * @param {object} body Server registration request
+   *
+   * @param {string} body.discoveryUrl Discovery url to use for registration
+   *
+   * @param {string} [body.id] Registration id
+   *
+   * @param {object} [body.activationFilter]
+   *
+   * @param {array} [body.activationFilter.trustLists] Certificate trust list
+   * identifiers to use for
+   * activation, if null, all certificates are
+   * trusted.  If empty list, no certificates are
+   * trusted which is equal to no filter.
+   *
+   * @param {array} [body.activationFilter.securityPolicies] Endpoint security
+   * policies to filter against.
+   * If set to null, all policies are in scope.
+   *
+   * @param {string} [body.activationFilter.securityMode] Possible values
+   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.continuationToken] Optional Continuation
-   * token
-   *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<ApplicationInfoListApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  getListOfApplicationsWithHttpOperationResponse(options?: { continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ApplicationInfoListApiModel>>;
+  registerServerWithHttpOperationResponse(body: models.ServerRegistrationRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
 
   /**
-   * @summary Get list of applications
+   * @summary Register new server
    *
-   * Get all registered applications in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
+   * Registers a server solely using a discovery url. Requires that the
+   * onboarding agent service is running and the server can be located by a
+   * supervisor in its network using the discovery url.
+   *
+   * @param {object} body Server registration request
+   *
+   * @param {string} body.discoveryUrl Discovery url to use for registration
+   *
+   * @param {string} [body.id] Registration id
+   *
+   * @param {object} [body.activationFilter]
+   *
+   * @param {array} [body.activationFilter.trustLists] Certificate trust list
+   * identifiers to use for
+   * activation, if null, all certificates are
+   * trusted.  If empty list, no certificates are
+   * trusted which is equal to no filter.
+   *
+   * @param {array} [body.activationFilter.securityPolicies] Endpoint security
+   * policies to filter against.
+   * If set to null, all policies are in scope.
+   *
+   * @param {string} [body.activationFilter.securityMode] Possible values
+   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.continuationToken] Optional Continuation
-   * token
-   *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -89,7 +117,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * {Promise} A promise is returned.
    *
-   *                      @resolve {ApplicationInfoListApiModel} - The deserialized result object.
+   *                      @resolve {null} - The deserialized result object.
    *
    *                      @reject {Error|ServiceError} - The error object.
    *
@@ -97,54 +125,51 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {ApplicationInfoListApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ApplicationInfoListApiModel} for more
-   *                      information.
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
    *
    *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  getListOfApplications(options?: { continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.ApplicationInfoListApiModel>;
-  getListOfApplications(callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
-  getListOfApplications(options: { continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
+  registerServer(body: models.ServerRegistrationRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  registerServer(body: models.ServerRegistrationRequestApiModel, callback: ServiceCallback<void>): void;
+  registerServer(body: models.ServerRegistrationRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
 
 
   /**
    * @summary Create new application
    *
-   * The application is registered using the provided information, but it
-   * is not associated with a supervisor.  This is useful for when you need
-   * to register clients or you want to register a server that is located
-   * in a network not reachable through a Twin module.
+   * The application is registered using the provided information, but it is not
+   * associated with a supervisor. This is useful for when you need to register
+   * clients or you want to register a server that is located in a network not
+   * reachable through a Twin module.
    *
-   * @param {object} request Application registration request
+   * @param {object} body Application registration request
    *
-   * @param {string} request.applicationUri Unique application uri
+   * @param {string} body.applicationUri Unique application uri
    *
-   * @param {string} [request.applicationType] Type of application. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+   * @param {string} [body.applicationType] Possible values include: 'Server',
+   * 'Client', 'ClientAndServer', 'DiscoveryServer'
    *
-   * @param {string} [request.productUri] Product uri of the application.
+   * @param {string} [body.productUri] Product uri of the application.
    *
-   * @param {string} [request.applicationName] Default name of the server or
-   * client.
+   * @param {string} [body.applicationName] Default name of the server or client.
    *
-   * @param {string} [request.locale] Locale of default name
+   * @param {string} [body.locale] Locale of default name
    *
-   * @param {string} [request.siteId] Site of the application
+   * @param {string} [body.siteId] Site of the application
    *
-   * @param {object} [request.localizedNames] Localized names key off locale id.
+   * @param {object} [body.localizedNames] Localized names key off locale id.
    *
-   * @param {array} [request.capabilities] The OPC UA defined capabilities of the
+   * @param {array} [body.capabilities] The OPC UA defined capabilities of the
    * server.
    *
-   * @param {array} [request.discoveryUrls] Discovery urls of the server.
+   * @param {array} [body.discoveryUrls] Discovery urls of the server.
    *
-   * @param {string} [request.discoveryProfileUri] The discovery profile uri of
-   * the server.
+   * @param {string} [body.discoveryProfileUri] The discovery profile uri of the
+   * server.
    *
-   * @param {string} [request.gatewayServerUri] Gateway server uri
+   * @param {string} [body.gatewayServerUri] Gateway server uri
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -157,43 +182,42 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  createApplicationWithHttpOperationResponse(request: models.ApplicationRegistrationRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ApplicationRegistrationResponseApiModel>>;
+  createApplicationWithHttpOperationResponse(body: models.ApplicationRegistrationRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ApplicationRegistrationResponseApiModel>>;
 
   /**
    * @summary Create new application
    *
-   * The application is registered using the provided information, but it
-   * is not associated with a supervisor.  This is useful for when you need
-   * to register clients or you want to register a server that is located
-   * in a network not reachable through a Twin module.
+   * The application is registered using the provided information, but it is not
+   * associated with a supervisor. This is useful for when you need to register
+   * clients or you want to register a server that is located in a network not
+   * reachable through a Twin module.
    *
-   * @param {object} request Application registration request
+   * @param {object} body Application registration request
    *
-   * @param {string} request.applicationUri Unique application uri
+   * @param {string} body.applicationUri Unique application uri
    *
-   * @param {string} [request.applicationType] Type of application. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+   * @param {string} [body.applicationType] Possible values include: 'Server',
+   * 'Client', 'ClientAndServer', 'DiscoveryServer'
    *
-   * @param {string} [request.productUri] Product uri of the application.
+   * @param {string} [body.productUri] Product uri of the application.
    *
-   * @param {string} [request.applicationName] Default name of the server or
-   * client.
+   * @param {string} [body.applicationName] Default name of the server or client.
    *
-   * @param {string} [request.locale] Locale of default name
+   * @param {string} [body.locale] Locale of default name
    *
-   * @param {string} [request.siteId] Site of the application
+   * @param {string} [body.siteId] Site of the application
    *
-   * @param {object} [request.localizedNames] Localized names key off locale id.
+   * @param {object} [body.localizedNames] Localized names key off locale id.
    *
-   * @param {array} [request.capabilities] The OPC UA defined capabilities of the
+   * @param {array} [body.capabilities] The OPC UA defined capabilities of the
    * server.
    *
-   * @param {array} [request.discoveryUrls] Discovery urls of the server.
+   * @param {array} [body.discoveryUrls] Discovery urls of the server.
    *
-   * @param {string} [request.discoveryProfileUri] The discovery profile uri of
-   * the server.
+   * @param {string} [body.discoveryProfileUri] The discovery profile uri of the
+   * server.
    *
-   * @param {string} [request.gatewayServerUri] Gateway server uri
+   * @param {string} [body.gatewayServerUri] Gateway server uri
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -223,139 +247,9 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  createApplication(request: models.ApplicationRegistrationRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.ApplicationRegistrationResponseApiModel>;
-  createApplication(request: models.ApplicationRegistrationRequestApiModel, callback: ServiceCallback<models.ApplicationRegistrationResponseApiModel>): void;
-  createApplication(request: models.ApplicationRegistrationRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ApplicationRegistrationResponseApiModel>): void;
-
-
-  /**
-   * @summary Register new server
-   *
-   * Registers a server solely using a discovery url. Requires that
-   * the onboarding agent service is running and the server can be
-   * located by a supervisor in its network using the discovery url.
-   *
-   * @param {object} request Server registration request
-   *
-   * @param {string} request.discoveryUrl Discovery url to use for registration
-   *
-   * @param {string} [request.id] Registration id
-   *
-   * @param {object} [request.callback] An optional callback hook to register.
-   *
-   * @param {string} [request.callback.uri] Uri to call - should use https scheme
-   * in which
-   * case security is enforced.
-   *
-   * @param {string} [request.callback.method] Http Method to use for callback.
-   * Possible values include: 'Get', 'Post', 'Put', 'Delete'
-   *
-   * @param {string} [request.callback.authenticationHeader] Authentication
-   * header to add or null if not needed
-   *
-   * @param {object} [request.activationFilter] Upon discovery, activate all
-   * endpoints with this filter.
-   *
-   * @param {array} [request.activationFilter.trustLists] Certificate trust list
-   * identifiers to use for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
-   *
-   * @param {array} [request.activationFilter.securityPolicies] Endpoint security
-   * policies to filter against.
-   * If set to null, all policies are in scope.
-   *
-   * @param {string} [request.activationFilter.securityMode] Security mode level
-   * to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  registerServerWithHttpOperationResponse(request: models.ServerRegistrationRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
-
-  /**
-   * @summary Register new server
-   *
-   * Registers a server solely using a discovery url. Requires that
-   * the onboarding agent service is running and the server can be
-   * located by a supervisor in its network using the discovery url.
-   *
-   * @param {object} request Server registration request
-   *
-   * @param {string} request.discoveryUrl Discovery url to use for registration
-   *
-   * @param {string} [request.id] Registration id
-   *
-   * @param {object} [request.callback] An optional callback hook to register.
-   *
-   * @param {string} [request.callback.uri] Uri to call - should use https scheme
-   * in which
-   * case security is enforced.
-   *
-   * @param {string} [request.callback.method] Http Method to use for callback.
-   * Possible values include: 'Get', 'Post', 'Put', 'Delete'
-   *
-   * @param {string} [request.callback.authenticationHeader] Authentication
-   * header to add or null if not needed
-   *
-   * @param {object} [request.activationFilter] Upon discovery, activate all
-   * endpoints with this filter.
-   *
-   * @param {array} [request.activationFilter.trustLists] Certificate trust list
-   * identifiers to use for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
-   *
-   * @param {array} [request.activationFilter.securityPolicies] Endpoint security
-   * policies to filter against.
-   * If set to null, all policies are in scope.
-   *
-   * @param {string} [request.activationFilter.securityMode] Security mode level
-   * to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  registerServer(request: models.ServerRegistrationRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
-  registerServer(request: models.ServerRegistrationRequestApiModel, callback: ServiceCallback<void>): void;
-  registerServer(request: models.ServerRegistrationRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+  createApplication(body: models.ApplicationRegistrationRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.ApplicationRegistrationResponseApiModel>;
+  createApplication(body: models.ApplicationRegistrationRequestApiModel, callback: ServiceCallback<models.ApplicationRegistrationResponseApiModel>): void;
+  createApplication(body: models.ApplicationRegistrationRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ApplicationRegistrationResponseApiModel>): void;
 
 
   /**
@@ -416,6 +310,74 @@ export default class AzureOpcRegistryClient extends ServiceClient {
   deleteAllDisabledApplications(options?: { notSeenFor? : string, customHeaders? : { [headerName: string]: string; } }): Promise<void>;
   deleteAllDisabledApplications(callback: ServiceCallback<void>): void;
   deleteAllDisabledApplications(options: { notSeenFor? : string, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Get list of applications
+   *
+   * Get all registered applications in paged form. The returned model can
+   * contain a continuation token if more results are available. Call this
+   * operation again using the token to retrieve more results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.continuationToken] Optional Continuation token
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<ApplicationInfoListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  getListOfApplicationsWithHttpOperationResponse(options?: { continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ApplicationInfoListApiModel>>;
+
+  /**
+   * @summary Get list of applications
+   *
+   * Get all registered applications in paged form. The returned model can
+   * contain a continuation token if more results are available. Call this
+   * operation again using the token to retrieve more results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.continuationToken] Optional Continuation token
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {ApplicationInfoListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {ApplicationInfoListApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link ApplicationInfoListApiModel} for more
+   *                      information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getListOfApplications(options?: { continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.ApplicationInfoListApiModel>;
+  getListOfApplications(callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
+  getListOfApplications(options: { continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
 
 
   /**
@@ -537,68 +499,61 @@ export default class AzureOpcRegistryClient extends ServiceClient {
   /**
    * @summary Discover servers
    *
-   * Registers servers by running a discovery scan in a supervisor's
-   * network. Requires that the onboarding agent service is running.
+   * Registers servers by running a discovery scan in a supervisor's network.
+   * Requires that the onboarding agent service is running.
    *
-   * @param {object} request Discovery request
+   * @param {object} body Discovery request
    *
-   * @param {string} [request.id] Id of discovery request
+   * @param {string} [body.id] Id of discovery request
    *
-   * @param {string} [request.discovery] Discovery mode to use. Possible values
-   * include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+   * @param {string} [body.discovery] Possible values include: 'Off', 'Local',
+   * 'Network', 'Fast', 'Scan'
    *
-   * @param {object} [request.configuration] Scan configuration to use
+   * @param {object} [body.configuration]
    *
-   * @param {string} [request.configuration.addressRangesToScan] Address ranges
-   * to scan (null == all wired nics)
+   * @param {string} [body.configuration.addressRangesToScan] Address ranges to
+   * scan (null == all wired nics)
    *
-   * @param {number} [request.configuration.networkProbeTimeoutMs] Network probe
+   * @param {number} [body.configuration.networkProbeTimeoutMs] Network probe
    * timeout
    *
-   * @param {number} [request.configuration.maxNetworkProbes] Max network probes
+   * @param {number} [body.configuration.maxNetworkProbes] Max network probes
    * that should ever run.
    *
-   * @param {string} [request.configuration.portRangesToScan] Port ranges to scan
+   * @param {string} [body.configuration.portRangesToScan] Port ranges to scan
    * (null == all unassigned)
    *
-   * @param {number} [request.configuration.portProbeTimeoutMs] Port probe
-   * timeout
+   * @param {number} [body.configuration.portProbeTimeoutMs] Port probe timeout
    *
-   * @param {number} [request.configuration.maxPortProbes] Max port probes that
+   * @param {number} [body.configuration.maxPortProbes] Max port probes that
    * should ever run.
    *
-   * @param {number} [request.configuration.minPortProbesPercent] Probes that
-   * must always be there as percent of max.
+   * @param {number} [body.configuration.minPortProbesPercent] Probes that must
+   * always be there as percent of max.
    *
-   * @param {number} [request.configuration.idleTimeBetweenScansSec] Delay time
+   * @param {number} [body.configuration.idleTimeBetweenScansSec] Delay time
    * between discovery sweeps in seconds
    *
-   * @param {array} [request.configuration.discoveryUrls] List of preset
-   * discovery urls to use
+   * @param {array} [body.configuration.discoveryUrls] List of preset discovery
+   * urls to use
    *
-   * @param {array} [request.configuration.locales] List of locales to filter
-   * with during discovery
+   * @param {array} [body.configuration.locales] List of locales to filter with
+   * during discovery
    *
-   * @param {array} [request.configuration.callbacks] Callbacks to invoke once
-   * onboarding finishes
+   * @param {object} [body.configuration.activationFilter]
    *
-   * @param {object} [request.configuration.activationFilter] Activate all twins
-   * with this filter during onboarding.
-   *
-   * @param {array} [request.configuration.activationFilter.trustLists]
-   * Certificate trust list identifiers to use for
+   * @param {array} [body.configuration.activationFilter.trustLists] Certificate
+   * trust list identifiers to use for
    * activation, if null, all certificates are
    * trusted.  If empty list, no certificates are
    * trusted which is equal to no filter.
    *
-   * @param {array} [request.configuration.activationFilter.securityPolicies]
+   * @param {array} [body.configuration.activationFilter.securityPolicies]
    * Endpoint security policies to filter against.
    * If set to null, all policies are in scope.
    *
-   * @param {string} [request.configuration.activationFilter.securityMode]
-   * Security mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   * @param {string} [body.configuration.activationFilter.securityMode] Possible
+   * values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -611,73 +566,66 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  discoverServerWithHttpOperationResponse(request: models.DiscoveryRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+  discoverServerWithHttpOperationResponse(body: models.DiscoveryRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
 
   /**
    * @summary Discover servers
    *
-   * Registers servers by running a discovery scan in a supervisor's
-   * network. Requires that the onboarding agent service is running.
+   * Registers servers by running a discovery scan in a supervisor's network.
+   * Requires that the onboarding agent service is running.
    *
-   * @param {object} request Discovery request
+   * @param {object} body Discovery request
    *
-   * @param {string} [request.id] Id of discovery request
+   * @param {string} [body.id] Id of discovery request
    *
-   * @param {string} [request.discovery] Discovery mode to use. Possible values
-   * include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+   * @param {string} [body.discovery] Possible values include: 'Off', 'Local',
+   * 'Network', 'Fast', 'Scan'
    *
-   * @param {object} [request.configuration] Scan configuration to use
+   * @param {object} [body.configuration]
    *
-   * @param {string} [request.configuration.addressRangesToScan] Address ranges
-   * to scan (null == all wired nics)
+   * @param {string} [body.configuration.addressRangesToScan] Address ranges to
+   * scan (null == all wired nics)
    *
-   * @param {number} [request.configuration.networkProbeTimeoutMs] Network probe
+   * @param {number} [body.configuration.networkProbeTimeoutMs] Network probe
    * timeout
    *
-   * @param {number} [request.configuration.maxNetworkProbes] Max network probes
+   * @param {number} [body.configuration.maxNetworkProbes] Max network probes
    * that should ever run.
    *
-   * @param {string} [request.configuration.portRangesToScan] Port ranges to scan
+   * @param {string} [body.configuration.portRangesToScan] Port ranges to scan
    * (null == all unassigned)
    *
-   * @param {number} [request.configuration.portProbeTimeoutMs] Port probe
-   * timeout
+   * @param {number} [body.configuration.portProbeTimeoutMs] Port probe timeout
    *
-   * @param {number} [request.configuration.maxPortProbes] Max port probes that
+   * @param {number} [body.configuration.maxPortProbes] Max port probes that
    * should ever run.
    *
-   * @param {number} [request.configuration.minPortProbesPercent] Probes that
-   * must always be there as percent of max.
+   * @param {number} [body.configuration.minPortProbesPercent] Probes that must
+   * always be there as percent of max.
    *
-   * @param {number} [request.configuration.idleTimeBetweenScansSec] Delay time
+   * @param {number} [body.configuration.idleTimeBetweenScansSec] Delay time
    * between discovery sweeps in seconds
    *
-   * @param {array} [request.configuration.discoveryUrls] List of preset
-   * discovery urls to use
+   * @param {array} [body.configuration.discoveryUrls] List of preset discovery
+   * urls to use
    *
-   * @param {array} [request.configuration.locales] List of locales to filter
-   * with during discovery
+   * @param {array} [body.configuration.locales] List of locales to filter with
+   * during discovery
    *
-   * @param {array} [request.configuration.callbacks] Callbacks to invoke once
-   * onboarding finishes
+   * @param {object} [body.configuration.activationFilter]
    *
-   * @param {object} [request.configuration.activationFilter] Activate all twins
-   * with this filter during onboarding.
-   *
-   * @param {array} [request.configuration.activationFilter.trustLists]
-   * Certificate trust list identifiers to use for
+   * @param {array} [body.configuration.activationFilter.trustLists] Certificate
+   * trust list identifiers to use for
    * activation, if null, all certificates are
    * trusted.  If empty list, no certificates are
    * trusted which is equal to no filter.
    *
-   * @param {array} [request.configuration.activationFilter.securityPolicies]
+   * @param {array} [body.configuration.activationFilter.securityPolicies]
    * Endpoint security policies to filter against.
    * If set to null, all policies are in scope.
    *
-   * @param {string} [request.configuration.activationFilter.securityMode]
-   * Security mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   * @param {string} [body.configuration.activationFilter.securityMode] Possible
+   * values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -705,9 +653,67 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  discoverServer(request: models.DiscoveryRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
-  discoverServer(request: models.DiscoveryRequestApiModel, callback: ServiceCallback<void>): void;
-  discoverServer(request: models.DiscoveryRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+  discoverServer(body: models.DiscoveryRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  discoverServer(body: models.DiscoveryRequestApiModel, callback: ServiceCallback<void>): void;
+  discoverServer(body: models.DiscoveryRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Cancel discovery
+   *
+   * Cancels a discovery request using the request identifier.
+   *
+   * @param {string} requestId Discovery request
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  cancelWithHttpOperationResponse(requestId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Cancel discovery
+   *
+   * Cancels a discovery request using the request identifier.
+   *
+   * @param {string} requestId Discovery request
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  cancel(requestId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  cancel(requestId: string, callback: ServiceCallback<void>): void;
+  cancel(requestId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
 
 
   /**
@@ -764,6 +770,110 @@ export default class AzureOpcRegistryClient extends ServiceClient {
   getApplicationRegistration(applicationId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.ApplicationRegistrationApiModel>;
   getApplicationRegistration(applicationId: string, callback: ServiceCallback<models.ApplicationRegistrationApiModel>): void;
   getApplicationRegistration(applicationId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ApplicationRegistrationApiModel>): void;
+
+
+  /**
+   * @summary Update application registration
+   *
+   * The application information is updated with new properties. Note that this
+   * information might be overridden if the application is re-discovered during a
+   * discovery run (recurring or one-time).
+   *
+   * @param {string} applicationId The identifier of the application
+   *
+   * @param {object} body Application update request
+   *
+   * @param {string} [body.productUri] Product uri
+   *
+   * @param {string} [body.applicationName] Default name of the server or client.
+   *
+   * @param {string} [body.locale] Locale of default name - defaults to "en"
+   *
+   * @param {object} [body.localizedNames] Localized names keyed off locale id.
+   * To remove entry, set value for locale id to null.
+   *
+   * @param {buffer} [body.certificate] Application public cert
+   *
+   * @param {array} [body.capabilities] Capabilities of the application
+   *
+   * @param {array} [body.discoveryUrls] Discovery urls of the application
+   *
+   * @param {string} [body.discoveryProfileUri] Discovery profile uri
+   *
+   * @param {string} [body.gatewayServerUri] Gateway server uri
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  updateApplicationRegistrationWithHttpOperationResponse(applicationId: string, body: models.ApplicationRegistrationUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Update application registration
+   *
+   * The application information is updated with new properties. Note that this
+   * information might be overridden if the application is re-discovered during a
+   * discovery run (recurring or one-time).
+   *
+   * @param {string} applicationId The identifier of the application
+   *
+   * @param {object} body Application update request
+   *
+   * @param {string} [body.productUri] Product uri
+   *
+   * @param {string} [body.applicationName] Default name of the server or client.
+   *
+   * @param {string} [body.locale] Locale of default name - defaults to "en"
+   *
+   * @param {object} [body.localizedNames] Localized names keyed off locale id.
+   * To remove entry, set value for locale id to null.
+   *
+   * @param {buffer} [body.certificate] Application public cert
+   *
+   * @param {array} [body.capabilities] Capabilities of the application
+   *
+   * @param {array} [body.discoveryUrls] Discovery urls of the application
+   *
+   * @param {string} [body.discoveryProfileUri] Discovery profile uri
+   *
+   * @param {string} [body.gatewayServerUri] Gateway server uri
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  updateApplicationRegistration(applicationId: string, body: models.ApplicationRegistrationUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  updateApplicationRegistration(applicationId: string, body: models.ApplicationRegistrationUpdateApiModel, callback: ServiceCallback<void>): void;
+  updateApplicationRegistration(applicationId: string, body: models.ApplicationRegistrationUpdateApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
 
 
   /**
@@ -825,125 +935,15 @@ export default class AzureOpcRegistryClient extends ServiceClient {
 
 
   /**
-   * @summary Update application registration
-   *
-   * The application information is updated with new properties.  Note that
-   * this information might be overridden if the application is re-discovered
-   * during a discovery run (recurring or one-time).
-   *
-   * @param {string} applicationId The identifier of the application
-   *
-   * @param {object} request Application update request
-   *
-   * @param {string} [request.productUri] Product uri
-   *
-   * @param {string} [request.applicationName] Default name of the server or
-   * client.
-   *
-   * @param {string} [request.locale] Locale of default name - defaults to "en"
-   *
-   * @param {object} [request.localizedNames] Localized names keyed off locale
-   * id.
-   * To remove entry, set value for locale id to null.
-   *
-   * @param {buffer} [request.certificate] Application public cert
-   *
-   * @param {array} [request.capabilities] Capabilities of the application
-   *
-   * @param {array} [request.discoveryUrls] Discovery urls of the application
-   *
-   * @param {string} [request.discoveryProfileUri] Discovery profile uri
-   *
-   * @param {string} [request.gatewayServerUri] Gateway server uri
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  updateApplicationRegistrationWithHttpOperationResponse(applicationId: string, request: models.ApplicationRegistrationUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
-
-  /**
-   * @summary Update application registration
-   *
-   * The application information is updated with new properties.  Note that
-   * this information might be overridden if the application is re-discovered
-   * during a discovery run (recurring or one-time).
-   *
-   * @param {string} applicationId The identifier of the application
-   *
-   * @param {object} request Application update request
-   *
-   * @param {string} [request.productUri] Product uri
-   *
-   * @param {string} [request.applicationName] Default name of the server or
-   * client.
-   *
-   * @param {string} [request.locale] Locale of default name - defaults to "en"
-   *
-   * @param {object} [request.localizedNames] Localized names keyed off locale
-   * id.
-   * To remove entry, set value for locale id to null.
-   *
-   * @param {buffer} [request.certificate] Application public cert
-   *
-   * @param {array} [request.capabilities] Capabilities of the application
-   *
-   * @param {array} [request.discoveryUrls] Discovery urls of the application
-   *
-   * @param {string} [request.discoveryProfileUri] Discovery profile uri
-   *
-   * @param {string} [request.gatewayServerUri] Gateway server uri
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  updateApplicationRegistration(applicationId: string, request: models.ApplicationRegistrationUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
-  updateApplicationRegistration(applicationId: string, request: models.ApplicationRegistrationUpdateApiModel, callback: ServiceCallback<void>): void;
-  updateApplicationRegistration(applicationId: string, request: models.ApplicationRegistrationUpdateApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
-
-
-  /**
    * @summary Get list of sites
    *
    * List all sites applications are registered in.
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.continuationToken] Optional Continuation
-   * token
+   * @param {string} [options.continuationToken] Optional Continuation token
    *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
+   * @param {number} [options.pageSize] Optional number of results to return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -963,11 +963,9 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.continuationToken] Optional Continuation
-   * token
+   * @param {string} [options.continuationToken] Optional Continuation token
    *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
+   * @param {number} [options.pageSize] Optional number of results to return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -1001,38 +999,157 @@ export default class AzureOpcRegistryClient extends ServiceClient {
 
 
   /**
+   * @summary Query applications
+   *
+   * List applications that match a query model. The returned model can contain a
+   * continuation token if more results are available. Call the
+   * GetListOfApplications operation using the token to retrieve more results.
+   *
+   * @param {object} body Application query
+   *
+   * @param {string} [body.applicationType] Possible values include: 'Server',
+   * 'Client', 'ClientAndServer', 'DiscoveryServer'
+   *
+   * @param {string} [body.applicationUri] Application uri
+   *
+   * @param {string} [body.productUri] Product uri
+   *
+   * @param {string} [body.applicationName] Name of application
+   *
+   * @param {string} [body.locale] Locale of application name - default is "en"
+   *
+   * @param {string} [body.capability] Application capability to query with
+   *
+   * @param {string} [body.discoveryProfileUri] Discovery profile uri
+   *
+   * @param {string} [body.gatewayServerUri] Gateway server uri
+   *
+   * @param {string} [body.siteOrGatewayId] Supervisor or site the application
+   * belongs to.
+   *
+   * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
+   * were soft deleted
+   *
+   * @param {string} [body.discovererId] Discoverer id to filter with
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<ApplicationInfoListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  queryApplicationsWithHttpOperationResponse(body: models.ApplicationRegistrationQueryApiModel, options?: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ApplicationInfoListApiModel>>;
+
+  /**
+   * @summary Query applications
+   *
+   * List applications that match a query model. The returned model can contain a
+   * continuation token if more results are available. Call the
+   * GetListOfApplications operation using the token to retrieve more results.
+   *
+   * @param {object} body Application query
+   *
+   * @param {string} [body.applicationType] Possible values include: 'Server',
+   * 'Client', 'ClientAndServer', 'DiscoveryServer'
+   *
+   * @param {string} [body.applicationUri] Application uri
+   *
+   * @param {string} [body.productUri] Product uri
+   *
+   * @param {string} [body.applicationName] Name of application
+   *
+   * @param {string} [body.locale] Locale of application name - default is "en"
+   *
+   * @param {string} [body.capability] Application capability to query with
+   *
+   * @param {string} [body.discoveryProfileUri] Discovery profile uri
+   *
+   * @param {string} [body.gatewayServerUri] Gateway server uri
+   *
+   * @param {string} [body.siteOrGatewayId] Supervisor or site the application
+   * belongs to.
+   *
+   * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
+   * were soft deleted
+   *
+   * @param {string} [body.discovererId] Discoverer id to filter with
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {ApplicationInfoListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {ApplicationInfoListApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link ApplicationInfoListApiModel} for more
+   *                      information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  queryApplications(body: models.ApplicationRegistrationQueryApiModel, options?: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.ApplicationInfoListApiModel>;
+  queryApplications(body: models.ApplicationRegistrationQueryApiModel, callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
+  queryApplications(body: models.ApplicationRegistrationQueryApiModel, options: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
+
+
+  /**
    * @summary Get filtered list of applications
    *
    * Get a list of applications filtered using the specified query parameters.
    * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfApplications operation using the token to retrieve
-   * more results.
+   * available. Call the GetListOfApplications operation using the token to
+   * retrieve more results.
    *
-   * @param {object} query Applications Query model
+   * @param {object} body Applications Query model
    *
-   * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+   * @param {string} [body.applicationType] Possible values include: 'Server',
+   * 'Client', 'ClientAndServer', 'DiscoveryServer'
    *
-   * @param {string} [query.applicationUri] Application uri
+   * @param {string} [body.applicationUri] Application uri
    *
-   * @param {string} [query.productUri] Product uri
+   * @param {string} [body.productUri] Product uri
    *
-   * @param {string} [query.applicationName] Name of application
+   * @param {string} [body.applicationName] Name of application
    *
-   * @param {string} [query.locale] Locale of application name - default is "en"
+   * @param {string} [body.locale] Locale of application name - default is "en"
    *
-   * @param {string} [query.capability] Application capability to query with
+   * @param {string} [body.capability] Application capability to query with
    *
-   * @param {string} [query.discoveryProfileUri] Discovery profile uri
+   * @param {string} [body.discoveryProfileUri] Discovery profile uri
    *
-   * @param {string} [query.gatewayServerUri] Gateway server uri
+   * @param {string} [body.gatewayServerUri] Gateway server uri
    *
-   * @param {string} [query.siteOrSupervisorId] Supervisor or site the
-   * application belongs to.
+   * @param {string} [body.siteOrGatewayId] Supervisor or site the application
+   * belongs to.
    *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
+   * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
    * were soft deleted
+   *
+   * @param {string} [body.discovererId] Discoverer id to filter with
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -1047,41 +1164,42 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  getFilteredListOfApplicationsWithHttpOperationResponse(query: models.ApplicationRegistrationQueryApiModel, options?: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ApplicationInfoListApiModel>>;
+  getFilteredListOfApplicationsWithHttpOperationResponse(body: models.ApplicationRegistrationQueryApiModel, options?: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ApplicationInfoListApiModel>>;
 
   /**
    * @summary Get filtered list of applications
    *
    * Get a list of applications filtered using the specified query parameters.
    * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfApplications operation using the token to retrieve
-   * more results.
+   * available. Call the GetListOfApplications operation using the token to
+   * retrieve more results.
    *
-   * @param {object} query Applications Query model
+   * @param {object} body Applications Query model
    *
-   * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+   * @param {string} [body.applicationType] Possible values include: 'Server',
+   * 'Client', 'ClientAndServer', 'DiscoveryServer'
    *
-   * @param {string} [query.applicationUri] Application uri
+   * @param {string} [body.applicationUri] Application uri
    *
-   * @param {string} [query.productUri] Product uri
+   * @param {string} [body.productUri] Product uri
    *
-   * @param {string} [query.applicationName] Name of application
+   * @param {string} [body.applicationName] Name of application
    *
-   * @param {string} [query.locale] Locale of application name - default is "en"
+   * @param {string} [body.locale] Locale of application name - default is "en"
    *
-   * @param {string} [query.capability] Application capability to query with
+   * @param {string} [body.capability] Application capability to query with
    *
-   * @param {string} [query.discoveryProfileUri] Discovery profile uri
+   * @param {string} [body.discoveryProfileUri] Discovery profile uri
    *
-   * @param {string} [query.gatewayServerUri] Gateway server uri
+   * @param {string} [body.gatewayServerUri] Gateway server uri
    *
-   * @param {string} [query.siteOrSupervisorId] Supervisor or site the
-   * application belongs to.
+   * @param {string} [body.siteOrGatewayId] Supervisor or site the application
+   * belongs to.
    *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
+   * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
    * were soft deleted
+   *
+   * @param {string} [body.discovererId] Discoverer id to filter with
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -1113,99 +1231,41 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  getFilteredListOfApplications(query: models.ApplicationRegistrationQueryApiModel, options?: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.ApplicationInfoListApiModel>;
-  getFilteredListOfApplications(query: models.ApplicationRegistrationQueryApiModel, callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
-  getFilteredListOfApplications(query: models.ApplicationRegistrationQueryApiModel, options: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
+  getFilteredListOfApplications(body: models.ApplicationRegistrationQueryApiModel, options?: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.ApplicationInfoListApiModel>;
+  getFilteredListOfApplications(body: models.ApplicationRegistrationQueryApiModel, callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
+  getFilteredListOfApplications(body: models.ApplicationRegistrationQueryApiModel, options: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
 
 
   /**
-   * @summary Query applications
+   * @summary Subscribe for application events
    *
-   * List applications that match a query model.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfApplications operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} query Application query
-   *
-   * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
-   *
-   * @param {string} [query.applicationUri] Application uri
-   *
-   * @param {string} [query.productUri] Product uri
-   *
-   * @param {string} [query.applicationName] Name of application
-   *
-   * @param {string} [query.locale] Locale of application name - default is "en"
-   *
-   * @param {string} [query.capability] Application capability to query with
-   *
-   * @param {string} [query.discoveryProfileUri] Discovery profile uri
-   *
-   * @param {string} [query.gatewayServerUri] Gateway server uri
-   *
-   * @param {string} [query.siteOrSupervisorId] Supervisor or site the
-   * application belongs to.
-   *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
-   * were soft deleted
+   * Register a client to receive application events through SignalR.
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
+   * @param {string} [options.body] The user that will receive application
+   * events.
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<ApplicationInfoListApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  queryApplicationsWithHttpOperationResponse(query: models.ApplicationRegistrationQueryApiModel, options?: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ApplicationInfoListApiModel>>;
+  subscribeWithHttpOperationResponse(options?: { body? : string, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
 
   /**
-   * @summary Query applications
+   * @summary Subscribe for application events
    *
-   * List applications that match a query model.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfApplications operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} query Application query
-   *
-   * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
-   *
-   * @param {string} [query.applicationUri] Application uri
-   *
-   * @param {string} [query.productUri] Product uri
-   *
-   * @param {string} [query.applicationName] Name of application
-   *
-   * @param {string} [query.locale] Locale of application name - default is "en"
-   *
-   * @param {string} [query.capability] Application capability to query with
-   *
-   * @param {string} [query.discoveryProfileUri] Discovery profile uri
-   *
-   * @param {string} [query.gatewayServerUri] Gateway server uri
-   *
-   * @param {string} [query.siteOrSupervisorId] Supervisor or site the
-   * application belongs to.
-   *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
-   * were soft deleted
+   * Register a client to receive application events through SignalR.
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
+   * @param {string} [options.body] The user that will receive application
+   * events.
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -1217,7 +1277,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * {Promise} A promise is returned.
    *
-   *                      @resolve {ApplicationInfoListApiModel} - The deserialized result object.
+   *                      @resolve {null} - The deserialized result object.
    *
    *                      @reject {Error|ServiceError} - The error object.
    *
@@ -1225,77 +1285,45 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {ApplicationInfoListApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ApplicationInfoListApiModel} for more
-   *                      information.
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
    *
    *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  queryApplications(query: models.ApplicationRegistrationQueryApiModel, options?: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.ApplicationInfoListApiModel>;
-  queryApplications(query: models.ApplicationRegistrationQueryApiModel, callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
-  queryApplications(query: models.ApplicationRegistrationQueryApiModel, options: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ApplicationInfoListApiModel>): void;
+  subscribe(options?: { body? : string, customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  subscribe(callback: ServiceCallback<void>): void;
+  subscribe(options: { body? : string, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
 
 
   /**
-   * @summary Query applications by id.
+   * @summary Unsubscribe from application events
    *
-   * A query model which supports the OPC UA Global Discovery Server query.
+   * Unregister a user and stop it from receiving events.
+   *
+   * @param {string} userId The user id that will not receive any more events
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.query]
-   *
-   * @param {number} [options.query.startingRecordId] Starting record id
-   *
-   * @param {number} [options.query.maxRecordsToReturn] Max records to return
-   *
-   * @param {string} [options.query.applicationName] Application name
-   *
-   * @param {string} [options.query.applicationUri] Application uri
-   *
-   * @param {string} [options.query.applicationType] Application type. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
-   *
-   * @param {string} [options.query.productUri] Product uri
-   *
-   * @param {array} [options.query.serverCapabilities] Server capabilities
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<ApplicationRecordListApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  queryApplicationsByIdWithHttpOperationResponse(options?: { query? : models.ApplicationRecordQueryApiModel, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.ApplicationRecordListApiModel>>;
+  unsubscribeWithHttpOperationResponse(userId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
 
   /**
-   * @summary Query applications by id.
+   * @summary Unsubscribe from application events
    *
-   * A query model which supports the OPC UA Global Discovery Server query.
+   * Unregister a user and stop it from receiving events.
+   *
+   * @param {string} userId The user id that will not receive any more events
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.query]
-   *
-   * @param {number} [options.query.startingRecordId] Starting record id
-   *
-   * @param {number} [options.query.maxRecordsToReturn] Max records to return
-   *
-   * @param {string} [options.query.applicationName] Application name
-   *
-   * @param {string} [options.query.applicationUri] Application uri
-   *
-   * @param {string} [options.query.applicationType] Application type. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
-   *
-   * @param {string} [options.query.productUri] Product uri
-   *
-   * @param {array} [options.query.serverCapabilities] Server capabilities
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -1307,7 +1335,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * {Promise} A promise is returned.
    *
-   *                      @resolve {ApplicationRecordListApiModel} - The deserialized result object.
+   *                      @resolve {null} - The deserialized result object.
    *
    *                      @reject {Error|ServiceError} - The error object.
    *
@@ -1315,25 +1343,1050 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {ApplicationRecordListApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ApplicationRecordListApiModel} for more
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  unsubscribe(userId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  unsubscribe(userId: string, callback: ServiceCallback<void>): void;
+  unsubscribe(userId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Get discoverer registration information
+   *
+   * Returns a discoverer's registration and connectivity information. A
+   * discoverer id corresponds to the twin modules module identity.
+   *
+   * @param {string} discovererId Discoverer identifier
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<DiscovererApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  getDiscovererWithHttpOperationResponse(discovererId: string, options?: { onlyServerState? : boolean, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.DiscovererApiModel>>;
+
+  /**
+   * @summary Get discoverer registration information
+   *
+   * Returns a discoverer's registration and connectivity information. A
+   * discoverer id corresponds to the twin modules module identity.
+   *
+   * @param {string} discovererId Discoverer identifier
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {DiscovererApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {DiscovererApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link DiscovererApiModel} for more information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getDiscoverer(discovererId: string, options?: { onlyServerState? : boolean, customHeaders? : { [headerName: string]: string; } }): Promise<models.DiscovererApiModel>;
+  getDiscoverer(discovererId: string, callback: ServiceCallback<models.DiscovererApiModel>): void;
+  getDiscoverer(discovererId: string, options: { onlyServerState? : boolean, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.DiscovererApiModel>): void;
+
+
+  /**
+   * @summary Update discoverer information
+   *
+   * Allows a caller to configure recurring discovery runs on the twin module
+   * identified by the discoverer id or update site information.
+   *
+   * @param {string} discovererId discoverer identifier
+   *
+   * @param {object} body Patch request
+   *
+   * @param {string} [body.siteId] Site the discoverer is part of
+   *
+   * @param {string} [body.discovery] Possible values include: 'Off', 'Local',
+   * 'Network', 'Fast', 'Scan'
+   *
+   * @param {object} [body.discoveryConfig]
+   *
+   * @param {string} [body.discoveryConfig.addressRangesToScan] Address ranges to
+   * scan (null == all wired nics)
+   *
+   * @param {number} [body.discoveryConfig.networkProbeTimeoutMs] Network probe
+   * timeout
+   *
+   * @param {number} [body.discoveryConfig.maxNetworkProbes] Max network probes
+   * that should ever run.
+   *
+   * @param {string} [body.discoveryConfig.portRangesToScan] Port ranges to scan
+   * (null == all unassigned)
+   *
+   * @param {number} [body.discoveryConfig.portProbeTimeoutMs] Port probe timeout
+   *
+   * @param {number} [body.discoveryConfig.maxPortProbes] Max port probes that
+   * should ever run.
+   *
+   * @param {number} [body.discoveryConfig.minPortProbesPercent] Probes that must
+   * always be there as percent of max.
+   *
+   * @param {number} [body.discoveryConfig.idleTimeBetweenScansSec] Delay time
+   * between discovery sweeps in seconds
+   *
+   * @param {array} [body.discoveryConfig.discoveryUrls] List of preset discovery
+   * urls to use
+   *
+   * @param {array} [body.discoveryConfig.locales] List of locales to filter with
+   * during discovery
+   *
+   * @param {object} [body.discoveryConfig.activationFilter]
+   *
+   * @param {array} [body.discoveryConfig.activationFilter.trustLists]
+   * Certificate trust list identifiers to use for
+   * activation, if null, all certificates are
+   * trusted.  If empty list, no certificates are
+   * trusted which is equal to no filter.
+   *
+   * @param {array} [body.discoveryConfig.activationFilter.securityPolicies]
+   * Endpoint security policies to filter against.
+   * If set to null, all policies are in scope.
+   *
+   * @param {string} [body.discoveryConfig.activationFilter.securityMode]
+   * Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   *
+   * @param {string} [body.logLevel] Possible values include: 'Error',
+   * 'Information', 'Debug', 'Verbose'
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  updateDiscovererWithHttpOperationResponse(discovererId: string, body: models.DiscovererUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Update discoverer information
+   *
+   * Allows a caller to configure recurring discovery runs on the twin module
+   * identified by the discoverer id or update site information.
+   *
+   * @param {string} discovererId discoverer identifier
+   *
+   * @param {object} body Patch request
+   *
+   * @param {string} [body.siteId] Site the discoverer is part of
+   *
+   * @param {string} [body.discovery] Possible values include: 'Off', 'Local',
+   * 'Network', 'Fast', 'Scan'
+   *
+   * @param {object} [body.discoveryConfig]
+   *
+   * @param {string} [body.discoveryConfig.addressRangesToScan] Address ranges to
+   * scan (null == all wired nics)
+   *
+   * @param {number} [body.discoveryConfig.networkProbeTimeoutMs] Network probe
+   * timeout
+   *
+   * @param {number} [body.discoveryConfig.maxNetworkProbes] Max network probes
+   * that should ever run.
+   *
+   * @param {string} [body.discoveryConfig.portRangesToScan] Port ranges to scan
+   * (null == all unassigned)
+   *
+   * @param {number} [body.discoveryConfig.portProbeTimeoutMs] Port probe timeout
+   *
+   * @param {number} [body.discoveryConfig.maxPortProbes] Max port probes that
+   * should ever run.
+   *
+   * @param {number} [body.discoveryConfig.minPortProbesPercent] Probes that must
+   * always be there as percent of max.
+   *
+   * @param {number} [body.discoveryConfig.idleTimeBetweenScansSec] Delay time
+   * between discovery sweeps in seconds
+   *
+   * @param {array} [body.discoveryConfig.discoveryUrls] List of preset discovery
+   * urls to use
+   *
+   * @param {array} [body.discoveryConfig.locales] List of locales to filter with
+   * during discovery
+   *
+   * @param {object} [body.discoveryConfig.activationFilter]
+   *
+   * @param {array} [body.discoveryConfig.activationFilter.trustLists]
+   * Certificate trust list identifiers to use for
+   * activation, if null, all certificates are
+   * trusted.  If empty list, no certificates are
+   * trusted which is equal to no filter.
+   *
+   * @param {array} [body.discoveryConfig.activationFilter.securityPolicies]
+   * Endpoint security policies to filter against.
+   * If set to null, all policies are in scope.
+   *
+   * @param {string} [body.discoveryConfig.activationFilter.securityMode]
+   * Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   *
+   * @param {string} [body.logLevel] Possible values include: 'Error',
+   * 'Information', 'Debug', 'Verbose'
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  updateDiscoverer(discovererId: string, body: models.DiscovererUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  updateDiscoverer(discovererId: string, body: models.DiscovererUpdateApiModel, callback: ServiceCallback<void>): void;
+  updateDiscoverer(discovererId: string, body: models.DiscovererUpdateApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Enable server discovery
+   *
+   * Allows a caller to configure recurring discovery runs on the discovery
+   * module identified by the module id.
+   *
+   * @param {string} discovererId discoverer identifier
+   *
+   * @param {string} mode Discovery mode. Possible values include: 'Off',
+   * 'Local', 'Network', 'Fast', 'Scan'
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.body] Discovery configuration
+   *
+   * @param {string} [options.body.addressRangesToScan] Address ranges to scan
+   * (null == all wired nics)
+   *
+   * @param {number} [options.body.networkProbeTimeoutMs] Network probe timeout
+   *
+   * @param {number} [options.body.maxNetworkProbes] Max network probes that
+   * should ever run.
+   *
+   * @param {string} [options.body.portRangesToScan] Port ranges to scan (null ==
+   * all unassigned)
+   *
+   * @param {number} [options.body.portProbeTimeoutMs] Port probe timeout
+   *
+   * @param {number} [options.body.maxPortProbes] Max port probes that should
+   * ever run.
+   *
+   * @param {number} [options.body.minPortProbesPercent] Probes that must always
+   * be there as percent of max.
+   *
+   * @param {number} [options.body.idleTimeBetweenScansSec] Delay time between
+   * discovery sweeps in seconds
+   *
+   * @param {array} [options.body.discoveryUrls] List of preset discovery urls to
+   * use
+   *
+   * @param {array} [options.body.locales] List of locales to filter with during
+   * discovery
+   *
+   * @param {object} [options.body.activationFilter]
+   *
+   * @param {array} [options.body.activationFilter.trustLists] Certificate trust
+   * list identifiers to use for
+   * activation, if null, all certificates are
+   * trusted.  If empty list, no certificates are
+   * trusted which is equal to no filter.
+   *
+   * @param {array} [options.body.activationFilter.securityPolicies] Endpoint
+   * security policies to filter against.
+   * If set to null, all policies are in scope.
+   *
+   * @param {string} [options.body.activationFilter.securityMode] Possible values
+   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  setDiscoveryModeWithHttpOperationResponse(discovererId: string, mode: string, options?: { body? : models.DiscoveryConfigApiModel, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Enable server discovery
+   *
+   * Allows a caller to configure recurring discovery runs on the discovery
+   * module identified by the module id.
+   *
+   * @param {string} discovererId discoverer identifier
+   *
+   * @param {string} mode Discovery mode. Possible values include: 'Off',
+   * 'Local', 'Network', 'Fast', 'Scan'
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.body] Discovery configuration
+   *
+   * @param {string} [options.body.addressRangesToScan] Address ranges to scan
+   * (null == all wired nics)
+   *
+   * @param {number} [options.body.networkProbeTimeoutMs] Network probe timeout
+   *
+   * @param {number} [options.body.maxNetworkProbes] Max network probes that
+   * should ever run.
+   *
+   * @param {string} [options.body.portRangesToScan] Port ranges to scan (null ==
+   * all unassigned)
+   *
+   * @param {number} [options.body.portProbeTimeoutMs] Port probe timeout
+   *
+   * @param {number} [options.body.maxPortProbes] Max port probes that should
+   * ever run.
+   *
+   * @param {number} [options.body.minPortProbesPercent] Probes that must always
+   * be there as percent of max.
+   *
+   * @param {number} [options.body.idleTimeBetweenScansSec] Delay time between
+   * discovery sweeps in seconds
+   *
+   * @param {array} [options.body.discoveryUrls] List of preset discovery urls to
+   * use
+   *
+   * @param {array} [options.body.locales] List of locales to filter with during
+   * discovery
+   *
+   * @param {object} [options.body.activationFilter]
+   *
+   * @param {array} [options.body.activationFilter.trustLists] Certificate trust
+   * list identifiers to use for
+   * activation, if null, all certificates are
+   * trusted.  If empty list, no certificates are
+   * trusted which is equal to no filter.
+   *
+   * @param {array} [options.body.activationFilter.securityPolicies] Endpoint
+   * security policies to filter against.
+   * If set to null, all policies are in scope.
+   *
+   * @param {string} [options.body.activationFilter.securityMode] Possible values
+   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  setDiscoveryMode(discovererId: string, mode: string, options?: { body? : models.DiscoveryConfigApiModel, customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  setDiscoveryMode(discovererId: string, mode: string, callback: ServiceCallback<void>): void;
+  setDiscoveryMode(discovererId: string, mode: string, options: { body? : models.DiscoveryConfigApiModel, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Get list of discoverers
+   *
+   * Get all registered discoverers and therefore twin modules in paged form. The
+   * returned model can contain a continuation token if more results are
+   * available. Call this operation again using the token to retrieve more
+   * results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {string} [options.continuationToken] Optional Continuation token
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<DiscovererListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  getListOfDiscoverersWithHttpOperationResponse(options?: { onlyServerState? : boolean, continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.DiscovererListApiModel>>;
+
+  /**
+   * @summary Get list of discoverers
+   *
+   * Get all registered discoverers and therefore twin modules in paged form. The
+   * returned model can contain a continuation token if more results are
+   * available. Call this operation again using the token to retrieve more
+   * results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {string} [options.continuationToken] Optional Continuation token
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {DiscovererListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {DiscovererListApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link DiscovererListApiModel} for more
    *                      information.
    *
    *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  queryApplicationsById(options?: { query? : models.ApplicationRecordQueryApiModel, customHeaders? : { [headerName: string]: string; } }): Promise<models.ApplicationRecordListApiModel>;
-  queryApplicationsById(callback: ServiceCallback<models.ApplicationRecordListApiModel>): void;
-  queryApplicationsById(options: { query? : models.ApplicationRecordQueryApiModel, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.ApplicationRecordListApiModel>): void;
+  getListOfDiscoverers(options?: { onlyServerState? : boolean, continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.DiscovererListApiModel>;
+  getListOfDiscoverers(callback: ServiceCallback<models.DiscovererListApiModel>): void;
+  getListOfDiscoverers(options: { onlyServerState? : boolean, continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.DiscovererListApiModel>): void;
+
+
+  /**
+   * @summary Query discoverers
+   *
+   * Get all discoverers that match a specified query. The returned model can
+   * contain a continuation token if more results are available. Call the
+   * GetListOfDiscoverers operation using the token to retrieve more results.
+   *
+   * @param {object} body Discoverers query model
+   *
+   * @param {string} [body.siteId] Site of the discoverer
+   *
+   * @param {string} [body.discovery] Possible values include: 'Off', 'Local',
+   * 'Network', 'Fast', 'Scan'
+   *
+   * @param {boolean} [body.connected] Included connected or disconnected
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<DiscovererListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  queryDiscoverersWithHttpOperationResponse(body: models.DiscovererQueryApiModel, options?: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.DiscovererListApiModel>>;
+
+  /**
+   * @summary Query discoverers
+   *
+   * Get all discoverers that match a specified query. The returned model can
+   * contain a continuation token if more results are available. Call the
+   * GetListOfDiscoverers operation using the token to retrieve more results.
+   *
+   * @param {object} body Discoverers query model
+   *
+   * @param {string} [body.siteId] Site of the discoverer
+   *
+   * @param {string} [body.discovery] Possible values include: 'Off', 'Local',
+   * 'Network', 'Fast', 'Scan'
+   *
+   * @param {boolean} [body.connected] Included connected or disconnected
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {DiscovererListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {DiscovererListApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link DiscovererListApiModel} for more
+   *                      information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  queryDiscoverers(body: models.DiscovererQueryApiModel, options?: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.DiscovererListApiModel>;
+  queryDiscoverers(body: models.DiscovererQueryApiModel, callback: ServiceCallback<models.DiscovererListApiModel>): void;
+  queryDiscoverers(body: models.DiscovererQueryApiModel, options: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.DiscovererListApiModel>): void;
+
+
+  /**
+   * @summary Get filtered list of discoverers
+   *
+   * Get a list of discoverers filtered using the specified query parameters. The
+   * returned model can contain a continuation token if more results are
+   * available. Call the GetListOfDiscoverers operation using the token to
+   * retrieve more results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.siteId] Site of the discoverer
+   *
+   * @param {string} [options.discovery] Discovery mode of discoverer. Possible
+   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+   *
+   * @param {boolean} [options.connected] Included connected or disconnected
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<DiscovererListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  getFilteredListOfDiscoverersWithHttpOperationResponse(options?: { siteId? : string, discovery? : string, connected? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.DiscovererListApiModel>>;
+
+  /**
+   * @summary Get filtered list of discoverers
+   *
+   * Get a list of discoverers filtered using the specified query parameters. The
+   * returned model can contain a continuation token if more results are
+   * available. Call the GetListOfDiscoverers operation using the token to
+   * retrieve more results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.siteId] Site of the discoverer
+   *
+   * @param {string} [options.discovery] Discovery mode of discoverer. Possible
+   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+   *
+   * @param {boolean} [options.connected] Included connected or disconnected
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {DiscovererListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {DiscovererListApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link DiscovererListApiModel} for more
+   *                      information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getFilteredListOfDiscoverers(options?: { siteId? : string, discovery? : string, connected? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.DiscovererListApiModel>;
+  getFilteredListOfDiscoverers(callback: ServiceCallback<models.DiscovererListApiModel>): void;
+  getFilteredListOfDiscoverers(options: { siteId? : string, discovery? : string, connected? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.DiscovererListApiModel>): void;
+
+
+  /**
+   * @summary Subscribe to discoverer registry events
+   *
+   * Register a user to receive discoverer events through SignalR.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive discoverer
+   * events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  subscribe1WithHttpOperationResponse(options?: { body? : string, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Subscribe to discoverer registry events
+   *
+   * Register a user to receive discoverer events through SignalR.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive discoverer
+   * events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  subscribe1(options?: { body? : string, customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  subscribe1(callback: ServiceCallback<void>): void;
+  subscribe1(options: { body? : string, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Unsubscribe registry events
+   *
+   * Unregister a user and stop it from receiving discoverer events.
+   *
+   * @param {string} userId The user id that will not receive any more discoverer
+   * events
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  unsubscribe1WithHttpOperationResponse(userId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Unsubscribe registry events
+   *
+   * Unregister a user and stop it from receiving discoverer events.
+   *
+   * @param {string} userId The user id that will not receive any more discoverer
+   * events
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  unsubscribe1(userId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  unsubscribe1(userId: string, callback: ServiceCallback<void>): void;
+  unsubscribe1(userId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Subscribe to discovery progress from discoverer
+   *
+   * Register a client to receive discovery progress events through SignalR from
+   * a particular discoverer.
+   *
+   * @param {string} discovererId The discoverer to subscribe to
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive discovery
+   * events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  subscribeByDiscovererIdWithHttpOperationResponse(discovererId: string, options?: { body? : string, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Subscribe to discovery progress from discoverer
+   *
+   * Register a client to receive discovery progress events through SignalR from
+   * a particular discoverer.
+   *
+   * @param {string} discovererId The discoverer to subscribe to
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive discovery
+   * events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  subscribeByDiscovererId(discovererId: string, options?: { body? : string, customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  subscribeByDiscovererId(discovererId: string, callback: ServiceCallback<void>): void;
+  subscribeByDiscovererId(discovererId: string, options: { body? : string, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Subscribe to discovery progress for a request
+   *
+   * Register a client to receive discovery progress events through SignalR for a
+   * particular request.
+   *
+   * @param {string} requestId The request to monitor
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive discovery
+   * events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  subscribeByRequestIdWithHttpOperationResponse(requestId: string, options?: { body? : string, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Subscribe to discovery progress for a request
+   *
+   * Register a client to receive discovery progress events through SignalR for a
+   * particular request.
+   *
+   * @param {string} requestId The request to monitor
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive discovery
+   * events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  subscribeByRequestId(requestId: string, options?: { body? : string, customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  subscribeByRequestId(requestId: string, callback: ServiceCallback<void>): void;
+  subscribeByRequestId(requestId: string, options: { body? : string, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Unsubscribe from discovery progress for a request.
+   *
+   * Unregister a client and stop it from receiving discovery events for a
+   * particular request.
+   *
+   * @param {string} requestId The request to unsubscribe from
+   *
+   * @param {string} userId The user id that will not receive any more discovery
+   * progress
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  unsubscribeByRequestIdWithHttpOperationResponse(requestId: string, userId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Unsubscribe from discovery progress for a request.
+   *
+   * Unregister a client and stop it from receiving discovery events for a
+   * particular request.
+   *
+   * @param {string} requestId The request to unsubscribe from
+   *
+   * @param {string} userId The user id that will not receive any more discovery
+   * progress
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  unsubscribeByRequestId(requestId: string, userId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  unsubscribeByRequestId(requestId: string, userId: string, callback: ServiceCallback<void>): void;
+  unsubscribeByRequestId(requestId: string, userId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Unsubscribe from discovery progress from discoverer.
+   *
+   * Unregister a client and stop it from receiving discovery events.
+   *
+   * @param {string} discovererId The discoverer to unsubscribe from
+   *
+   * @param {string} userId The user id that will not receive any more discovery
+   * progress
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  unsubscribeByDiscovererIdWithHttpOperationResponse(discovererId: string, userId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Unsubscribe from discovery progress from discoverer.
+   *
+   * Unregister a client and stop it from receiving discovery events.
+   *
+   * @param {string} discovererId The discoverer to unsubscribe from
+   *
+   * @param {string} userId The user id that will not receive any more discovery
+   * progress
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  unsubscribeByDiscovererId(discovererId: string, userId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  unsubscribeByDiscovererId(discovererId: string, userId: string, callback: ServiceCallback<void>): void;
+  unsubscribeByDiscovererId(discovererId: string, userId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
 
 
   /**
    * @summary Activate endpoint
    *
-   * Activates an endpoint for subsequent use in twin service.
-   * All endpoints must be activated using this API or through a
-   * activation filter during application registration or discovery.
+   * Activates an endpoint for subsequent use in twin service. All endpoints must
+   * be activated using this API or through a activation filter during
+   * application registration or discovery.
    *
    * @param {string} endpointId endpoint identifier
    *
@@ -1353,9 +2406,9 @@ export default class AzureOpcRegistryClient extends ServiceClient {
   /**
    * @summary Activate endpoint
    *
-   * Activates an endpoint for subsequent use in twin service.
-   * All endpoints must be activated using this API or through a
-   * activation filter during application registration or discovery.
+   * Activates an endpoint for subsequent use in twin service. All endpoints must
+   * be activated using this API or through a activation filter during
+   * application registration or discovery.
    *
    * @param {string} endpointId endpoint identifier
    *
@@ -1400,8 +2453,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {object} [options] Optional Parameters.
    *
    * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
+   * state, or display current client state of the endpoint if available
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -1424,8 +2476,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    * @param {object} [options] Optional Parameters.
    *
    * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
+   * state, or display current client state of the endpoint if available
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -1458,86 +2509,11 @@ export default class AzureOpcRegistryClient extends ServiceClient {
 
 
   /**
-   * @summary Update endpoint information
-   *
-   * @param {string} endpointId endpoint identifier
-   *
-   * @param {object} request Endpoint update request
-   *
-   * @param {object} [request.user] User authentication to change on the
-   * endpoint.
-   *
-   * @param {string} [request.user.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   *
-   * @param {object} [request.user.value] Value to pass to server
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  updateEndpointWithHttpOperationResponse(endpointId: string, request: models.EndpointRegistrationUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
-
-  /**
-   * @summary Update endpoint information
-   *
-   * @param {string} endpointId endpoint identifier
-   *
-   * @param {object} request Endpoint update request
-   *
-   * @param {object} [request.user] User authentication to change on the
-   * endpoint.
-   *
-   * @param {string} [request.user.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   *
-   * @param {object} [request.user.value] Value to pass to server
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  updateEndpoint(endpointId: string, request: models.EndpointRegistrationUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
-  updateEndpoint(endpointId: string, request: models.EndpointRegistrationUpdateApiModel, callback: ServiceCallback<void>): void;
-  updateEndpoint(endpointId: string, request: models.EndpointRegistrationUpdateApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
-
-
-  /**
    * @summary Get list of endpoints
    *
-   * Get all registered endpoints in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
+   * Get all registered endpoints in paged form. The returned model can contain a
+   * continuation token if more results are available. Call this operation again
+   * using the token to retrieve more results.
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -1562,10 +2538,9 @@ export default class AzureOpcRegistryClient extends ServiceClient {
   /**
    * @summary Get list of endpoints
    *
-   * Get all registered endpoints in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
+   * Get all registered endpoints in paged form. The returned model can contain a
+   * continuation token if more results are available. Call this operation again
+   * using the token to retrieve more results.
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -1608,47 +2583,48 @@ export default class AzureOpcRegistryClient extends ServiceClient {
 
 
   /**
-   * @summary Get filtered list of endpoints
+   * @summary Query endpoints
    *
-   * Get a list of endpoints filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfEndpoints operation using the token to retrieve
-   * more results.
+   * Return endpoints that match the specified query. The returned model can
+   * contain a continuation token if more results are available. Call the
+   * GetListOfEndpoints operation using the token to retrieve more results.
+   *
+   * @param {object} body Query to match
+   *
+   * @param {string} [body.url] Endoint url for direct server access
+   *
+   * @param {buffer} [body.certificate] Certificate of the endpoint
+   *
+   * @param {string} [body.securityMode] Possible values include: 'Best', 'Sign',
+   * 'SignAndEncrypt', 'None'
+   *
+   * @param {string} [body.securityPolicy] Security policy uri
+   *
+   * @param {boolean} [body.activated] Whether the endpoint was activated
+   *
+   * @param {boolean} [body.connected] Whether the endpoint is connected on
+   * supervisor.
+   *
+   * @param {string} [body.endpointState] Possible values include: 'Connecting',
+   * 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+   *
+   * @param {boolean} [body.includeNotSeenSince] Whether to include endpoints
+   * that were soft deleted
+   *
+   * @param {string} [body.discovererId] Discoverer id to filter with
+   *
+   * @param {string} [body.applicationId] Application id to filter
+   *
+   * @param {string} [body.supervisorId] Supervisor id to filter with
+   *
+   * @param {string} [body.siteOrGatewayId] Site or gateway id to filter with
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.url] Endoint url for direct server access
-   *
-   * @param {string} [options.userAuthentication] Type of credential selected for
-   * authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
-   *
-   * @param {buffer} [options.certificate] Certificate of the endpoint
-   *
-   * @param {string} [options.securityMode] Security Mode. Possible values
-   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {string} [options.securityPolicy] Security policy uri
-   *
-   * @param {boolean} [options.activated] Whether the endpoint was activated
-   *
-   * @param {boolean} [options.connected] Whether the endpoint is connected on
-   * supervisor.
-   *
-   * @param {string} [options.endpointState] The last state of the the activated
-   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
-   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-   *
-   * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
-   * that were soft deleted
-   *
    * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display
-   * current client state of the endpoint if available
+   * state, or display current client state of the endpoint if available
    *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
+   * @param {number} [options.pageSize] Optional number of results to return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -1659,50 +2635,51 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  getFilteredListOfEndpointsWithHttpOperationResponse(options?: { url? : string, userAuthentication? : string, certificate? : Buffer, securityMode? : string, securityPolicy? : string, activated? : boolean, connected? : boolean, endpointState? : string, includeNotSeenSince? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.EndpointInfoListApiModel>>;
+  queryEndpointsWithHttpOperationResponse(body: models.EndpointRegistrationQueryApiModel, options?: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.EndpointInfoListApiModel>>;
 
   /**
-   * @summary Get filtered list of endpoints
+   * @summary Query endpoints
    *
-   * Get a list of endpoints filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfEndpoints operation using the token to retrieve
-   * more results.
+   * Return endpoints that match the specified query. The returned model can
+   * contain a continuation token if more results are available. Call the
+   * GetListOfEndpoints operation using the token to retrieve more results.
+   *
+   * @param {object} body Query to match
+   *
+   * @param {string} [body.url] Endoint url for direct server access
+   *
+   * @param {buffer} [body.certificate] Certificate of the endpoint
+   *
+   * @param {string} [body.securityMode] Possible values include: 'Best', 'Sign',
+   * 'SignAndEncrypt', 'None'
+   *
+   * @param {string} [body.securityPolicy] Security policy uri
+   *
+   * @param {boolean} [body.activated] Whether the endpoint was activated
+   *
+   * @param {boolean} [body.connected] Whether the endpoint is connected on
+   * supervisor.
+   *
+   * @param {string} [body.endpointState] Possible values include: 'Connecting',
+   * 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+   *
+   * @param {boolean} [body.includeNotSeenSince] Whether to include endpoints
+   * that were soft deleted
+   *
+   * @param {string} [body.discovererId] Discoverer id to filter with
+   *
+   * @param {string} [body.applicationId] Application id to filter
+   *
+   * @param {string} [body.supervisorId] Supervisor id to filter with
+   *
+   * @param {string} [body.siteOrGatewayId] Site or gateway id to filter with
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.url] Endoint url for direct server access
-   *
-   * @param {string} [options.userAuthentication] Type of credential selected for
-   * authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
-   *
-   * @param {buffer} [options.certificate] Certificate of the endpoint
-   *
-   * @param {string} [options.securityMode] Security Mode. Possible values
-   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {string} [options.securityPolicy] Security policy uri
-   *
-   * @param {boolean} [options.activated] Whether the endpoint was activated
-   *
-   * @param {boolean} [options.connected] Whether the endpoint is connected on
-   * supervisor.
-   *
-   * @param {string} [options.endpointState] The last state of the the activated
-   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
-   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-   *
-   * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
-   * that were soft deleted
-   *
    * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display
-   * current client state of the endpoint if available
+   * state, or display current client state of the endpoint if available
    *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
+   * @param {number} [options.pageSize] Optional number of results to return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -1730,137 +2707,139 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  getFilteredListOfEndpoints(options?: { url? : string, userAuthentication? : string, certificate? : Buffer, securityMode? : string, securityPolicy? : string, activated? : boolean, connected? : boolean, endpointState? : string, includeNotSeenSince? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.EndpointInfoListApiModel>;
+  queryEndpoints(body: models.EndpointRegistrationQueryApiModel, options?: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.EndpointInfoListApiModel>;
+  queryEndpoints(body: models.EndpointRegistrationQueryApiModel, callback: ServiceCallback<models.EndpointInfoListApiModel>): void;
+  queryEndpoints(body: models.EndpointRegistrationQueryApiModel, options: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.EndpointInfoListApiModel>): void;
+
+
+  /**
+   * @summary Get filtered list of endpoints
+   *
+   * Get a list of endpoints filtered using the specified query parameters. The
+   * returned model can contain a continuation token if more results are
+   * available. Call the GetListOfEndpoints operation using the token to retrieve
+   * more results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.url] Endoint url for direct server access
+   *
+   * @param {buffer} [options.certificate] Certificate of the endpoint
+   *
+   * @param {string} [options.securityMode] Security Mode. Possible values
+   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   *
+   * @param {string} [options.securityPolicy] Security policy uri
+   *
+   * @param {boolean} [options.activated] Whether the endpoint was activated
+   *
+   * @param {boolean} [options.connected] Whether the endpoint is connected on
+   * supervisor.
+   *
+   * @param {string} [options.endpointState] The last state of the the activated
+   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
+   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+   *
+   * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
+   * that were soft deleted
+   *
+   * @param {string} [options.discovererId] Discoverer id to filter with
+   *
+   * @param {string} [options.applicationId] Application id to filter
+   *
+   * @param {string} [options.supervisorId] Supervisor id to filter with
+   *
+   * @param {string} [options.siteOrGatewayId] Site or gateway id to filter with
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<EndpointInfoListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  getFilteredListOfEndpointsWithHttpOperationResponse(options?: { url? : string, certificate? : Buffer, securityMode? : string, securityPolicy? : string, activated? : boolean, connected? : boolean, endpointState? : string, includeNotSeenSince? : boolean, discovererId? : string, applicationId? : string, supervisorId? : string, siteOrGatewayId? : string, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.EndpointInfoListApiModel>>;
+
+  /**
+   * @summary Get filtered list of endpoints
+   *
+   * Get a list of endpoints filtered using the specified query parameters. The
+   * returned model can contain a continuation token if more results are
+   * available. Call the GetListOfEndpoints operation using the token to retrieve
+   * more results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.url] Endoint url for direct server access
+   *
+   * @param {buffer} [options.certificate] Certificate of the endpoint
+   *
+   * @param {string} [options.securityMode] Security Mode. Possible values
+   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   *
+   * @param {string} [options.securityPolicy] Security policy uri
+   *
+   * @param {boolean} [options.activated] Whether the endpoint was activated
+   *
+   * @param {boolean} [options.connected] Whether the endpoint is connected on
+   * supervisor.
+   *
+   * @param {string} [options.endpointState] The last state of the the activated
+   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
+   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+   *
+   * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
+   * that were soft deleted
+   *
+   * @param {string} [options.discovererId] Discoverer id to filter with
+   *
+   * @param {string} [options.applicationId] Application id to filter
+   *
+   * @param {string} [options.supervisorId] Supervisor id to filter with
+   *
+   * @param {string} [options.siteOrGatewayId] Site or gateway id to filter with
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {EndpointInfoListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {EndpointInfoListApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link EndpointInfoListApiModel} for more
+   *                      information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getFilteredListOfEndpoints(options?: { url? : string, certificate? : Buffer, securityMode? : string, securityPolicy? : string, activated? : boolean, connected? : boolean, endpointState? : string, includeNotSeenSince? : boolean, discovererId? : string, applicationId? : string, supervisorId? : string, siteOrGatewayId? : string, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.EndpointInfoListApiModel>;
   getFilteredListOfEndpoints(callback: ServiceCallback<models.EndpointInfoListApiModel>): void;
-  getFilteredListOfEndpoints(options: { url? : string, userAuthentication? : string, certificate? : Buffer, securityMode? : string, securityPolicy? : string, activated? : boolean, connected? : boolean, endpointState? : string, includeNotSeenSince? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.EndpointInfoListApiModel>): void;
-
-
-  /**
-   * @summary Query endpoints
-   *
-   * Return endpoints that match the specified query.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfEndpoints operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} query Query to match
-   *
-   * @param {string} [query.url] Endoint url for direct server access
-   *
-   * @param {string} [query.userAuthentication] Type of credential selected for
-   * authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
-   *
-   * @param {buffer} [query.certificate] Certificate of the endpoint
-   *
-   * @param {string} [query.securityMode] Security Mode. Possible values include:
-   * 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {string} [query.securityPolicy] Security policy uri
-   *
-   * @param {boolean} [query.activated] Whether the endpoint was activated
-   *
-   * @param {boolean} [query.connected] Whether the endpoint is connected on
-   * supervisor.
-   *
-   * @param {string} [query.endpointState] The last state of the the activated
-   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
-   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-   *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include endpoints
-   * that were soft deleted
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if available
-   *
-   * @param {number} [options.pageSize] Optional number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<EndpointInfoListApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  queryEndpointsWithHttpOperationResponse(query: models.EndpointRegistrationQueryApiModel, options?: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.EndpointInfoListApiModel>>;
-
-  /**
-   * @summary Query endpoints
-   *
-   * Return endpoints that match the specified query.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfEndpoints operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} query Query to match
-   *
-   * @param {string} [query.url] Endoint url for direct server access
-   *
-   * @param {string} [query.userAuthentication] Type of credential selected for
-   * authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
-   *
-   * @param {buffer} [query.certificate] Certificate of the endpoint
-   *
-   * @param {string} [query.securityMode] Security Mode. Possible values include:
-   * 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {string} [query.securityPolicy] Security policy uri
-   *
-   * @param {boolean} [query.activated] Whether the endpoint was activated
-   *
-   * @param {boolean} [query.connected] Whether the endpoint is connected on
-   * supervisor.
-   *
-   * @param {string} [query.endpointState] The last state of the the activated
-   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
-   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-   *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include endpoints
-   * that were soft deleted
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if available
-   *
-   * @param {number} [options.pageSize] Optional number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {EndpointInfoListApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {EndpointInfoListApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link EndpointInfoListApiModel} for more
-   *                      information.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  queryEndpoints(query: models.EndpointRegistrationQueryApiModel, options?: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.EndpointInfoListApiModel>;
-  queryEndpoints(query: models.EndpointRegistrationQueryApiModel, callback: ServiceCallback<models.EndpointInfoListApiModel>): void;
-  queryEndpoints(query: models.EndpointRegistrationQueryApiModel, options: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.EndpointInfoListApiModel>): void;
+  getFilteredListOfEndpoints(options: { url? : string, certificate? : Buffer, securityMode? : string, securityPolicy? : string, activated? : boolean, connected? : boolean, endpointState? : string, includeNotSeenSince? : boolean, discovererId? : string, applicationId? : string, supervisorId? : string, siteOrGatewayId? : string, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.EndpointInfoListApiModel>): void;
 
 
   /**
@@ -1922,8 +2901,72 @@ export default class AzureOpcRegistryClient extends ServiceClient {
 
 
   /**
-   * @summary Return the service status in the form of the service status
-   * api model.
+   * @summary Subscribe for endpoint events
+   *
+   * Register a user to receive endpoint events through SignalR.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive endpoint
+   * events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  subscribe2WithHttpOperationResponse(options?: { body? : string, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Subscribe for endpoint events
+   *
+   * Register a user to receive endpoint events through SignalR.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive endpoint
+   * events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  subscribe2(options?: { body? : string, customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  subscribe2(callback: ServiceCallback<void>): void;
+  subscribe2(options: { body? : string, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Unsubscribe from endpoint events
+   *
+   * Unregister a user and stop it from receiving endpoint events.
+   *
+   * @param {string} userId The user id that will not receive any more endpoint
+   * events
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -1932,15 +2975,19 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<StatusResponseApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  getStatusWithHttpOperationResponse(options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.StatusResponseApiModel>>;
+  unsubscribe2WithHttpOperationResponse(userId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
 
   /**
-   * @summary Return the service status in the form of the service status
-   * api model.
+   * @summary Unsubscribe from endpoint events
+   *
+   * Unregister a user and stop it from receiving endpoint events.
+   *
+   * @param {string} userId The user id that will not receive any more endpoint
+   * events
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -1954,7 +3001,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * {Promise} A promise is returned.
    *
-   *                      @resolve {StatusResponseApiModel} - The deserialized result object.
+   *                      @resolve {null} - The deserialized result object.
    *
    *                      @reject {Error|ServiceError} - The error object.
    *
@@ -1962,32 +3009,1015 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {StatusResponseApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link StatusResponseApiModel} for more
-   *                      information.
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
    *
    *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  getStatus(options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.StatusResponseApiModel>;
-  getStatus(callback: ServiceCallback<models.StatusResponseApiModel>): void;
-  getStatus(options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.StatusResponseApiModel>): void;
+  unsubscribe2(userId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  unsubscribe2(userId: string, callback: ServiceCallback<void>): void;
+  unsubscribe2(userId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Get Gateway registration information
+   *
+   * Returns a Gateway's registration and connectivity information. A Gateway id
+   * corresponds to the twin modules module identity.
+   *
+   * @param {string} gatewayId Gateway identifier
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<GatewayInfoApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  getGatewayWithHttpOperationResponse(gatewayId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.GatewayInfoApiModel>>;
+
+  /**
+   * @summary Get Gateway registration information
+   *
+   * Returns a Gateway's registration and connectivity information. A Gateway id
+   * corresponds to the twin modules module identity.
+   *
+   * @param {string} gatewayId Gateway identifier
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {GatewayInfoApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {GatewayInfoApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link GatewayInfoApiModel} for more information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getGateway(gatewayId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.GatewayInfoApiModel>;
+  getGateway(gatewayId: string, callback: ServiceCallback<models.GatewayInfoApiModel>): void;
+  getGateway(gatewayId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.GatewayInfoApiModel>): void;
+
+
+  /**
+   * @summary Update Gateway configuration
+   *
+   * Allows a caller to configure operations on the Gateway module identified by
+   * the Gateway id.
+   *
+   * @param {string} gatewayId Gateway identifier
+   *
+   * @param {object} body Patch request
+   *
+   * @param {string} [body.siteId] Site of the Gateway
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  updateGatewayWithHttpOperationResponse(gatewayId: string, body: models.GatewayUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Update Gateway configuration
+   *
+   * Allows a caller to configure operations on the Gateway module identified by
+   * the Gateway id.
+   *
+   * @param {string} gatewayId Gateway identifier
+   *
+   * @param {object} body Patch request
+   *
+   * @param {string} [body.siteId] Site of the Gateway
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  updateGateway(gatewayId: string, body: models.GatewayUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  updateGateway(gatewayId: string, body: models.GatewayUpdateApiModel, callback: ServiceCallback<void>): void;
+  updateGateway(gatewayId: string, body: models.GatewayUpdateApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Get list of Gateways
+   *
+   * Get all registered Gateways and therefore twin modules in paged form. The
+   * returned model can contain a continuation token if more results are
+   * available. Call this operation again using the token to retrieve more
+   * results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.continuationToken] Optional Continuation token
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<GatewayListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  getListOfGatewayWithHttpOperationResponse(options?: { continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.GatewayListApiModel>>;
+
+  /**
+   * @summary Get list of Gateways
+   *
+   * Get all registered Gateways and therefore twin modules in paged form. The
+   * returned model can contain a continuation token if more results are
+   * available. Call this operation again using the token to retrieve more
+   * results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.continuationToken] Optional Continuation token
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {GatewayListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {GatewayListApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link GatewayListApiModel} for more information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getListOfGateway(options?: { continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.GatewayListApiModel>;
+  getListOfGateway(callback: ServiceCallback<models.GatewayListApiModel>): void;
+  getListOfGateway(options: { continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.GatewayListApiModel>): void;
+
+
+  /**
+   * @summary Query Gateways
+   *
+   * Get all Gateways that match a specified query. The returned model can
+   * contain a continuation token if more results are available. Call the
+   * GetListOfGateway operation using the token to retrieve more results.
+   *
+   * @param {object} body Gateway query model
+   *
+   * @param {string} [body.siteId] Site of the Gateway
+   *
+   * @param {boolean} [body.connected] Included connected or disconnected
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<GatewayListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  queryGatewayWithHttpOperationResponse(body: models.GatewayQueryApiModel, options?: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.GatewayListApiModel>>;
+
+  /**
+   * @summary Query Gateways
+   *
+   * Get all Gateways that match a specified query. The returned model can
+   * contain a continuation token if more results are available. Call the
+   * GetListOfGateway operation using the token to retrieve more results.
+   *
+   * @param {object} body Gateway query model
+   *
+   * @param {string} [body.siteId] Site of the Gateway
+   *
+   * @param {boolean} [body.connected] Included connected or disconnected
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {GatewayListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {GatewayListApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link GatewayListApiModel} for more information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  queryGateway(body: models.GatewayQueryApiModel, options?: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.GatewayListApiModel>;
+  queryGateway(body: models.GatewayQueryApiModel, callback: ServiceCallback<models.GatewayListApiModel>): void;
+  queryGateway(body: models.GatewayQueryApiModel, options: { pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.GatewayListApiModel>): void;
+
+
+  /**
+   * @summary Get filtered list of Gateways
+   *
+   * Get a list of Gateways filtered using the specified query parameters. The
+   * returned model can contain a continuation token if more results are
+   * available. Call the GetListOfGateway operation using the token to retrieve
+   * more results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.siteId] Site of the Gateway
+   *
+   * @param {boolean} [options.connected] Included connected or disconnected
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<GatewayListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  getFilteredListOfGatewayWithHttpOperationResponse(options?: { siteId? : string, connected? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.GatewayListApiModel>>;
+
+  /**
+   * @summary Get filtered list of Gateways
+   *
+   * Get a list of Gateways filtered using the specified query parameters. The
+   * returned model can contain a continuation token if more results are
+   * available. Call the GetListOfGateway operation using the token to retrieve
+   * more results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.siteId] Site of the Gateway
+   *
+   * @param {boolean} [options.connected] Included connected or disconnected
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {GatewayListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {GatewayListApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link GatewayListApiModel} for more information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getFilteredListOfGateway(options?: { siteId? : string, connected? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.GatewayListApiModel>;
+  getFilteredListOfGateway(callback: ServiceCallback<models.GatewayListApiModel>): void;
+  getFilteredListOfGateway(options: { siteId? : string, connected? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.GatewayListApiModel>): void;
+
+
+  /**
+   * @summary Subscribe to Gateway registry events
+   *
+   * Register a user to receive Gateway events through SignalR.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive Gateway events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  subscribe3WithHttpOperationResponse(options?: { body? : string, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Subscribe to Gateway registry events
+   *
+   * Register a user to receive Gateway events through SignalR.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive Gateway events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  subscribe3(options?: { body? : string, customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  subscribe3(callback: ServiceCallback<void>): void;
+  subscribe3(options: { body? : string, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Unsubscribe registry events
+   *
+   * Unregister a user and stop it from receiving Gateway events.
+   *
+   * @param {string} userId The user id that will not receive any more Gateway
+   * events
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  unsubscribe3WithHttpOperationResponse(userId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Unsubscribe registry events
+   *
+   * Unregister a user and stop it from receiving Gateway events.
+   *
+   * @param {string} userId The user id that will not receive any more Gateway
+   * events
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  unsubscribe3(userId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  unsubscribe3(userId: string, callback: ServiceCallback<void>): void;
+  unsubscribe3(userId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Get publisher registration information
+   *
+   * Returns a publisher's registration and connectivity information. A publisher
+   * id corresponds to the twin modules module identity.
+   *
+   * @param {string} publisherId Publisher identifier
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<PublisherApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  getPublisherWithHttpOperationResponse(publisherId: string, options?: { onlyServerState? : boolean, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.PublisherApiModel>>;
+
+  /**
+   * @summary Get publisher registration information
+   *
+   * Returns a publisher's registration and connectivity information. A publisher
+   * id corresponds to the twin modules module identity.
+   *
+   * @param {string} publisherId Publisher identifier
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {PublisherApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {PublisherApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link PublisherApiModel} for more information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getPublisher(publisherId: string, options?: { onlyServerState? : boolean, customHeaders? : { [headerName: string]: string; } }): Promise<models.PublisherApiModel>;
+  getPublisher(publisherId: string, callback: ServiceCallback<models.PublisherApiModel>): void;
+  getPublisher(publisherId: string, options: { onlyServerState? : boolean, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.PublisherApiModel>): void;
+
+
+  /**
+   * @summary Update publisher configuration
+   *
+   * Allows a caller to configure operations on the publisher module identified
+   * by the publisher id.
+   *
+   * @param {string} publisherId Publisher identifier
+   *
+   * @param {object} body Patch request
+   *
+   * @param {string} [body.siteId] Site of the publisher
+   *
+   * @param {object} [body.configuration]
+   *
+   * @param {object} [body.configuration.capabilities] Capabilities
+   *
+   * @param {string} [body.configuration.jobCheckInterval] Interval to check job
+   *
+   * @param {string} [body.configuration.heartbeatInterval] Heartbeat interval
+   *
+   * @param {number} [body.configuration.maxWorkers] Parallel jobs
+   *
+   * @param {string} [body.configuration.jobOrchestratorUrl] Job orchestrator
+   * endpoint url
+   *
+   * @param {string} [body.logLevel] Possible values include: 'Error',
+   * 'Information', 'Debug', 'Verbose'
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  updatePublisherWithHttpOperationResponse(publisherId: string, body: models.PublisherUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Update publisher configuration
+   *
+   * Allows a caller to configure operations on the publisher module identified
+   * by the publisher id.
+   *
+   * @param {string} publisherId Publisher identifier
+   *
+   * @param {object} body Patch request
+   *
+   * @param {string} [body.siteId] Site of the publisher
+   *
+   * @param {object} [body.configuration]
+   *
+   * @param {object} [body.configuration.capabilities] Capabilities
+   *
+   * @param {string} [body.configuration.jobCheckInterval] Interval to check job
+   *
+   * @param {string} [body.configuration.heartbeatInterval] Heartbeat interval
+   *
+   * @param {number} [body.configuration.maxWorkers] Parallel jobs
+   *
+   * @param {string} [body.configuration.jobOrchestratorUrl] Job orchestrator
+   * endpoint url
+   *
+   * @param {string} [body.logLevel] Possible values include: 'Error',
+   * 'Information', 'Debug', 'Verbose'
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  updatePublisher(publisherId: string, body: models.PublisherUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  updatePublisher(publisherId: string, body: models.PublisherUpdateApiModel, callback: ServiceCallback<void>): void;
+  updatePublisher(publisherId: string, body: models.PublisherUpdateApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Get list of publishers
+   *
+   * Get all registered publishers and therefore twin modules in paged form. The
+   * returned model can contain a continuation token if more results are
+   * available. Call this operation again using the token to retrieve more
+   * results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {string} [options.continuationToken] Optional Continuation token
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<PublisherListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  getListOfPublisherWithHttpOperationResponse(options?: { onlyServerState? : boolean, continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.PublisherListApiModel>>;
+
+  /**
+   * @summary Get list of publishers
+   *
+   * Get all registered publishers and therefore twin modules in paged form. The
+   * returned model can contain a continuation token if more results are
+   * available. Call this operation again using the token to retrieve more
+   * results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {string} [options.continuationToken] Optional Continuation token
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {PublisherListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {PublisherListApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link PublisherListApiModel} for more information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getListOfPublisher(options?: { onlyServerState? : boolean, continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.PublisherListApiModel>;
+  getListOfPublisher(callback: ServiceCallback<models.PublisherListApiModel>): void;
+  getListOfPublisher(options: { onlyServerState? : boolean, continuationToken? : string, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.PublisherListApiModel>): void;
+
+
+  /**
+   * @summary Query publishers
+   *
+   * Get all publishers that match a specified query. The returned model can
+   * contain a continuation token if more results are available. Call the
+   * GetListOfPublisher operation using the token to retrieve more results.
+   *
+   * @param {object} body Publisher query model
+   *
+   * @param {string} [body.siteId] Site for the publishers
+   *
+   * @param {boolean} [body.connected] Included connected or disconnected
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<PublisherListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  queryPublisherWithHttpOperationResponse(body: models.PublisherQueryApiModel, options?: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.PublisherListApiModel>>;
+
+  /**
+   * @summary Query publishers
+   *
+   * Get all publishers that match a specified query. The returned model can
+   * contain a continuation token if more results are available. Call the
+   * GetListOfPublisher operation using the token to retrieve more results.
+   *
+   * @param {object} body Publisher query model
+   *
+   * @param {string} [body.siteId] Site for the publishers
+   *
+   * @param {boolean} [body.connected] Included connected or disconnected
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {PublisherListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {PublisherListApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link PublisherListApiModel} for more information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  queryPublisher(body: models.PublisherQueryApiModel, options?: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.PublisherListApiModel>;
+  queryPublisher(body: models.PublisherQueryApiModel, callback: ServiceCallback<models.PublisherListApiModel>): void;
+  queryPublisher(body: models.PublisherQueryApiModel, options: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.PublisherListApiModel>): void;
+
+
+  /**
+   * @summary Get filtered list of publishers
+   *
+   * Get a list of publishers filtered using the specified query parameters. The
+   * returned model can contain a continuation token if more results are
+   * available. Call the GetListOfPublisher operation using the token to retrieve
+   * more results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.siteId] Site for the publishers
+   *
+   * @param {boolean} [options.connected] Included connected or disconnected
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<PublisherListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  getFilteredListOfPublisherWithHttpOperationResponse(options?: { siteId? : string, connected? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.PublisherListApiModel>>;
+
+  /**
+   * @summary Get filtered list of publishers
+   *
+   * Get a list of publishers filtered using the specified query parameters. The
+   * returned model can contain a continuation token if more results are
+   * available. Call the GetListOfPublisher operation using the token to retrieve
+   * more results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.siteId] Site for the publishers
+   *
+   * @param {boolean} [options.connected] Included connected or disconnected
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {PublisherListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {PublisherListApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link PublisherListApiModel} for more information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getFilteredListOfPublisher(options?: { siteId? : string, connected? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.PublisherListApiModel>;
+  getFilteredListOfPublisher(callback: ServiceCallback<models.PublisherListApiModel>): void;
+  getFilteredListOfPublisher(options: { siteId? : string, connected? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.PublisherListApiModel>): void;
+
+
+  /**
+   * @summary Subscribe to publisher registry events
+   *
+   * Register a user to receive publisher events through SignalR.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive publisher
+   * events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  subscribe4WithHttpOperationResponse(options?: { body? : string, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Subscribe to publisher registry events
+   *
+   * Register a user to receive publisher events through SignalR.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive publisher
+   * events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  subscribe4(options?: { body? : string, customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  subscribe4(callback: ServiceCallback<void>): void;
+  subscribe4(options: { body? : string, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Unsubscribe registry events
+   *
+   * Unregister a user and stop it from receiving publisher events.
+   *
+   * @param {string} userId The user id that will not receive any more publisher
+   * events
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  unsubscribe4WithHttpOperationResponse(userId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Unsubscribe registry events
+   *
+   * Unregister a user and stop it from receiving publisher events.
+   *
+   * @param {string} userId The user id that will not receive any more publisher
+   * events
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  unsubscribe4(userId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  unsubscribe4(userId: string, callback: ServiceCallback<void>): void;
+  unsubscribe4(userId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
 
 
   /**
    * @summary Get supervisor registration information
    *
-   * Returns a supervisor's registration and connectivity information.
-   * A supervisor id corresponds to the twin modules module identity.
+   * Returns a supervisor's registration and connectivity information. A
+   * supervisor id corresponds to the twin modules module identity.
    *
    * @param {string} supervisorId Supervisor identifier
    *
    * @param {object} [options] Optional Parameters.
    *
    * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
+   * state, or display current client state of the endpoint if available
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -2003,16 +4033,15 @@ export default class AzureOpcRegistryClient extends ServiceClient {
   /**
    * @summary Get supervisor registration information
    *
-   * Returns a supervisor's registration and connectivity information.
-   * A supervisor id corresponds to the twin modules module identity.
+   * Returns a supervisor's registration and connectivity information. A
+   * supervisor id corresponds to the twin modules module identity.
    *
    * @param {string} supervisorId Supervisor identifier
    *
    * @param {object} [options] Optional Parameters.
    *
    * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
+   * state, or display current client state of the endpoint if available
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -2052,76 +4081,12 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} supervisorId supervisor identifier
    *
-   * @param {object} request Patch request
+   * @param {object} body Patch request
    *
-   * @param {string} [request.siteId] Site of the supervisor
+   * @param {string} [body.siteId] Site the supervisor is part of
    *
-   * @param {string} [request.discovery] Whether the supervisor is in discovery
-   * mode.
-   * If null, does not change. Possible values include: 'Off', 'Local',
-   * 'Network', 'Fast', 'Scan'
-   *
-   * @param {object} [request.discoveryConfig] Supervisor discovery configuration
-   *
-   * @param {string} [request.discoveryConfig.addressRangesToScan] Address ranges
-   * to scan (null == all wired nics)
-   *
-   * @param {number} [request.discoveryConfig.networkProbeTimeoutMs] Network
-   * probe timeout
-   *
-   * @param {number} [request.discoveryConfig.maxNetworkProbes] Max network
-   * probes that should ever run.
-   *
-   * @param {string} [request.discoveryConfig.portRangesToScan] Port ranges to
-   * scan (null == all unassigned)
-   *
-   * @param {number} [request.discoveryConfig.portProbeTimeoutMs] Port probe
-   * timeout
-   *
-   * @param {number} [request.discoveryConfig.maxPortProbes] Max port probes that
-   * should ever run.
-   *
-   * @param {number} [request.discoveryConfig.minPortProbesPercent] Probes that
-   * must always be there as percent of max.
-   *
-   * @param {number} [request.discoveryConfig.idleTimeBetweenScansSec] Delay time
-   * between discovery sweeps in seconds
-   *
-   * @param {array} [request.discoveryConfig.discoveryUrls] List of preset
-   * discovery urls to use
-   *
-   * @param {array} [request.discoveryConfig.locales] List of locales to filter
-   * with during discovery
-   *
-   * @param {array} [request.discoveryConfig.callbacks] Callbacks to invoke once
-   * onboarding finishes
-   *
-   * @param {object} [request.discoveryConfig.activationFilter] Activate all
-   * twins with this filter during onboarding.
-   *
-   * @param {array} [request.discoveryConfig.activationFilter.trustLists]
-   * Certificate trust list identifiers to use for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
-   *
-   * @param {array} [request.discoveryConfig.activationFilter.securityPolicies]
-   * Endpoint security policies to filter against.
-   * If set to null, all policies are in scope.
-   *
-   * @param {string} [request.discoveryConfig.activationFilter.securityMode]
-   * Security mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {array} [request.discoveryCallbacks] Callbacks to add or remove (see
-   * below)
-   *
-   * @param {boolean} [request.removeDiscoveryCallbacks] Whether to add or remove
-   * callbacks
-   *
-   * @param {string} [request.logLevel] Current log level. Possible values
-   * include: 'Error', 'Information', 'Debug', 'Verbose'
+   * @param {string} [body.logLevel] Possible values include: 'Error',
+   * 'Information', 'Debug', 'Verbose'
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -2134,7 +4099,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  updateSupervisorWithHttpOperationResponse(supervisorId: string, request: models.SupervisorUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+  updateSupervisorWithHttpOperationResponse(supervisorId: string, body: models.SupervisorUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
 
   /**
    * @summary Update supervisor information
@@ -2144,76 +4109,12 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} supervisorId supervisor identifier
    *
-   * @param {object} request Patch request
+   * @param {object} body Patch request
    *
-   * @param {string} [request.siteId] Site of the supervisor
+   * @param {string} [body.siteId] Site the supervisor is part of
    *
-   * @param {string} [request.discovery] Whether the supervisor is in discovery
-   * mode.
-   * If null, does not change. Possible values include: 'Off', 'Local',
-   * 'Network', 'Fast', 'Scan'
-   *
-   * @param {object} [request.discoveryConfig] Supervisor discovery configuration
-   *
-   * @param {string} [request.discoveryConfig.addressRangesToScan] Address ranges
-   * to scan (null == all wired nics)
-   *
-   * @param {number} [request.discoveryConfig.networkProbeTimeoutMs] Network
-   * probe timeout
-   *
-   * @param {number} [request.discoveryConfig.maxNetworkProbes] Max network
-   * probes that should ever run.
-   *
-   * @param {string} [request.discoveryConfig.portRangesToScan] Port ranges to
-   * scan (null == all unassigned)
-   *
-   * @param {number} [request.discoveryConfig.portProbeTimeoutMs] Port probe
-   * timeout
-   *
-   * @param {number} [request.discoveryConfig.maxPortProbes] Max port probes that
-   * should ever run.
-   *
-   * @param {number} [request.discoveryConfig.minPortProbesPercent] Probes that
-   * must always be there as percent of max.
-   *
-   * @param {number} [request.discoveryConfig.idleTimeBetweenScansSec] Delay time
-   * between discovery sweeps in seconds
-   *
-   * @param {array} [request.discoveryConfig.discoveryUrls] List of preset
-   * discovery urls to use
-   *
-   * @param {array} [request.discoveryConfig.locales] List of locales to filter
-   * with during discovery
-   *
-   * @param {array} [request.discoveryConfig.callbacks] Callbacks to invoke once
-   * onboarding finishes
-   *
-   * @param {object} [request.discoveryConfig.activationFilter] Activate all
-   * twins with this filter during onboarding.
-   *
-   * @param {array} [request.discoveryConfig.activationFilter.trustLists]
-   * Certificate trust list identifiers to use for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
-   *
-   * @param {array} [request.discoveryConfig.activationFilter.securityPolicies]
-   * Endpoint security policies to filter against.
-   * If set to null, all policies are in scope.
-   *
-   * @param {string} [request.discoveryConfig.activationFilter.securityMode]
-   * Security mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {array} [request.discoveryCallbacks] Callbacks to add or remove (see
-   * below)
-   *
-   * @param {boolean} [request.removeDiscoveryCallbacks] Whether to add or remove
-   * callbacks
-   *
-   * @param {string} [request.logLevel] Current log level. Possible values
-   * include: 'Error', 'Information', 'Debug', 'Verbose'
+   * @param {string} [body.logLevel] Possible values include: 'Error',
+   * 'Information', 'Debug', 'Verbose'
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -2241,9 +4142,9 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  updateSupervisor(supervisorId: string, request: models.SupervisorUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
-  updateSupervisor(supervisorId: string, request: models.SupervisorUpdateApiModel, callback: ServiceCallback<void>): void;
-  updateSupervisor(supervisorId: string, request: models.SupervisorUpdateApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+  updateSupervisor(supervisorId: string, body: models.SupervisorUpdateApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  updateSupervisor(supervisorId: string, body: models.SupervisorUpdateApiModel, callback: ServiceCallback<void>): void;
+  updateSupervisor(supervisorId: string, body: models.SupervisorUpdateApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
 
 
   /**
@@ -2309,8 +4210,8 @@ export default class AzureOpcRegistryClient extends ServiceClient {
   /**
    * @summary Reset supervisor
    *
-   * Allows a caller to reset the twin module using its supervisor
-   * identity identifier.
+   * Allows a caller to reset the twin module using its supervisor identity
+   * identifier.
    *
    * @param {string} supervisorId supervisor identifier
    *
@@ -2330,8 +4231,8 @@ export default class AzureOpcRegistryClient extends ServiceClient {
   /**
    * @summary Reset supervisor
    *
-   * Allows a caller to reset the twin module using its supervisor
-   * identity identifier.
+   * Allows a caller to reset the twin module using its supervisor identity
+   * identifier.
    *
    * @param {string} supervisorId supervisor identifier
    *
@@ -2369,10 +4270,10 @@ export default class AzureOpcRegistryClient extends ServiceClient {
   /**
    * @summary Get list of supervisors
    *
-   * Get all registered supervisors and therefore twin modules in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
+   * Get all registered supervisors and therefore twin modules in paged form. The
+   * returned model can contain a continuation token if more results are
+   * available. Call this operation again using the token to retrieve more
+   * results.
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -2397,10 +4298,10 @@ export default class AzureOpcRegistryClient extends ServiceClient {
   /**
    * @summary Get list of supervisors
    *
-   * Get all registered supervisors and therefore twin modules in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
+   * Get all registered supervisors and therefore twin modules in paged form. The
+   * returned model can contain a continuation token if more results are
+   * available. Call this operation again using the token to retrieve more
+   * results.
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -2443,26 +4344,22 @@ export default class AzureOpcRegistryClient extends ServiceClient {
 
 
   /**
-   * @summary Get filtered list of supervisors
+   * @summary Query supervisors
    *
-   * Get a list of supervisors filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfSupervisors operation using the token to retrieve
-   * more results.
+   * Get all supervisors that match a specified query. The returned model can
+   * contain a continuation token if more results are available. Call the
+   * GetListOfSupervisors operation using the token to retrieve more results.
+   *
+   * @param {object} body Supervisors query model
+   *
+   * @param {string} [body.siteId] Site for the supervisors
+   *
+   * @param {boolean} [body.connected] Included connected or disconnected
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.siteId] Site of the supervisor
-   *
-   * @param {string} [options.discovery] Discovery mode of supervisor. Possible
-   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   *
-   * @param {boolean} [options.connected] Included connected or disconnected
-   *
    * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
+   * state, or display current client state of the endpoint if available
    *
    * @param {number} [options.pageSize] Number of results to return
    *
@@ -2475,29 +4372,25 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  getFilteredListOfSupervisorsWithHttpOperationResponse(options?: { siteId? : string, discovery? : string, connected? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.SupervisorListApiModel>>;
+  querySupervisorsWithHttpOperationResponse(body: models.SupervisorQueryApiModel, options?: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.SupervisorListApiModel>>;
 
   /**
-   * @summary Get filtered list of supervisors
+   * @summary Query supervisors
    *
-   * Get a list of supervisors filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfSupervisors operation using the token to retrieve
-   * more results.
+   * Get all supervisors that match a specified query. The returned model can
+   * contain a continuation token if more results are available. Call the
+   * GetListOfSupervisors operation using the token to retrieve more results.
+   *
+   * @param {object} body Supervisors query model
+   *
+   * @param {string} [body.siteId] Site for the supervisors
+   *
+   * @param {boolean} [body.connected] Included connected or disconnected
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.siteId] Site of the supervisor
-   *
-   * @param {string} [options.discovery] Discovery mode of supervisor. Possible
-   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   *
-   * @param {boolean} [options.connected] Included connected or disconnected
-   *
    * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
+   * state, or display current client state of the endpoint if available
    *
    * @param {number} [options.pageSize] Number of results to return
    *
@@ -2527,73 +4420,121 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  getFilteredListOfSupervisors(options?: { siteId? : string, discovery? : string, connected? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.SupervisorListApiModel>;
+  querySupervisors(body: models.SupervisorQueryApiModel, options?: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.SupervisorListApiModel>;
+  querySupervisors(body: models.SupervisorQueryApiModel, callback: ServiceCallback<models.SupervisorListApiModel>): void;
+  querySupervisors(body: models.SupervisorQueryApiModel, options: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.SupervisorListApiModel>): void;
+
+
+  /**
+   * @summary Get filtered list of supervisors
+   *
+   * Get a list of supervisors filtered using the specified query parameters. The
+   * returned model can contain a continuation token if more results are
+   * available. Call the GetListOfSupervisors operation using the token to
+   * retrieve more results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.siteId] Site for the supervisors
+   *
+   * @param {boolean} [options.connected] Included connected or disconnected
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<SupervisorListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  getFilteredListOfSupervisorsWithHttpOperationResponse(options?: { siteId? : string, connected? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.SupervisorListApiModel>>;
+
+  /**
+   * @summary Get filtered list of supervisors
+   *
+   * Get a list of supervisors filtered using the specified query parameters. The
+   * returned model can contain a continuation token if more results are
+   * available. Call the GetListOfSupervisors operation using the token to
+   * retrieve more results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.siteId] Site for the supervisors
+   *
+   * @param {boolean} [options.connected] Included connected or disconnected
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {SupervisorListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {SupervisorListApiModel} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link SupervisorListApiModel} for more
+   *                      information.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getFilteredListOfSupervisors(options?: { siteId? : string, connected? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.SupervisorListApiModel>;
   getFilteredListOfSupervisors(callback: ServiceCallback<models.SupervisorListApiModel>): void;
-  getFilteredListOfSupervisors(options: { siteId? : string, discovery? : string, connected? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.SupervisorListApiModel>): void;
+  getFilteredListOfSupervisors(options: { siteId? : string, connected? : boolean, onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.SupervisorListApiModel>): void;
 
 
   /**
-   * @summary Query supervisors
+   * @summary Subscribe to supervisor registry events
    *
-   * Get all supervisors that match a specified query.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfSupervisors operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} query Supervisors query model
-   *
-   * @param {string} [query.siteId] Site of the supervisor
-   *
-   * @param {string} [query.discovery] Discovery mode of supervisor. Possible
-   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   *
-   * @param {boolean} [query.connected] Included connected or disconnected
+   * Register a user to receive supervisor events through SignalR.
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   *
-   * @param {number} [options.pageSize] Number of results to return
+   * @param {string} [options.body] The user id that will receive supervisor
+   * events.
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<SupervisorListApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  querySupervisorsWithHttpOperationResponse(query: models.SupervisorQueryApiModel, options?: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.SupervisorListApiModel>>;
+  subscribe5WithHttpOperationResponse(options?: { body? : string, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
 
   /**
-   * @summary Query supervisors
+   * @summary Subscribe to supervisor registry events
    *
-   * Get all supervisors that match a specified query.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfSupervisors operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} query Supervisors query model
-   *
-   * @param {string} [query.siteId] Site of the supervisor
-   *
-   * @param {string} [query.discovery] Discovery mode of supervisor. Possible
-   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   *
-   * @param {boolean} [query.connected] Included connected or disconnected
+   * Register a user to receive supervisor events through SignalR.
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   *
-   * @param {number} [options.pageSize] Number of results to return
+   * @param {string} [options.body] The user id that will receive supervisor
+   * events.
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -2605,7 +4546,7 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    * {Promise} A promise is returned.
    *
-   *                      @resolve {SupervisorListApiModel} - The deserialized result object.
+   *                      @resolve {null} - The deserialized result object.
    *
    *                      @reject {Error|ServiceError} - The error object.
    *
@@ -2613,17 +4554,75 @@ export default class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {SupervisorListApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link SupervisorListApiModel} for more
-   *                      information.
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
    *
    *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  querySupervisors(query: models.SupervisorQueryApiModel, options?: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.SupervisorListApiModel>;
-  querySupervisors(query: models.SupervisorQueryApiModel, callback: ServiceCallback<models.SupervisorListApiModel>): void;
-  querySupervisors(query: models.SupervisorQueryApiModel, options: { onlyServerState? : boolean, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.SupervisorListApiModel>): void;
+  subscribe5(options?: { body? : string, customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  subscribe5(callback: ServiceCallback<void>): void;
+  subscribe5(options: { body? : string, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Unsubscribe registry events
+   *
+   * Unregister a user and stop it from receiving supervisor events.
+   *
+   * @param {string} userId The user id that will not receive any more supervisor
+   * events
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  unsubscribe5WithHttpOperationResponse(userId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Unsubscribe registry events
+   *
+   * Unregister a user and stop it from receiving supervisor events.
+   *
+   * @param {string} userId The user id that will not receive any more supervisor
+   * events
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  unsubscribe5(userId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  unsubscribe5(userId: string, callback: ServiceCallback<void>): void;
+  unsubscribe5(userId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
 }
 
 export { AzureOpcRegistryClient, models as AzureOpcRegistryModels };

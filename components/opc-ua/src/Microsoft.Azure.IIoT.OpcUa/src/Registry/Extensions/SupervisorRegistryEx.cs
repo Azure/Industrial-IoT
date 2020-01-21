@@ -20,14 +20,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// Find supervisor.
         /// </summary>
         /// <param name="service"></param>
-        /// <param name="endpointId"></param>
+        /// <param name="supervisorId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<SupervisorModel> FindSupervisorAsync(
-            this ISupervisorRegistry service, string endpointId,
+            this ISupervisorRegistry service, string supervisorId,
             CancellationToken ct = default) {
             try {
-                return await service.GetSupervisorAsync(endpointId, false, ct);
+                return await service.GetSupervisorAsync(supervisorId, false, ct);
             }
             catch (ResourceNotFoundException) {
                 return null;

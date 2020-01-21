@@ -27,15 +27,15 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public ExpandedNodeId TypeId =>
-            nameof(JToken);
+            nameof(EncodeableJToken);
 
         /// <inheritdoc/>
         public ExpandedNodeId BinaryEncodingId =>
-            nameof(JToken) + "_Encoding_DefaultBinary";
+            nameof(EncodeableJToken) + "_Encoding_DefaultBinary";
 
         /// <inheritdoc/>
         public ExpandedNodeId XmlEncodingId =>
-            nameof(JToken) + "_Encoding_DefaultXml";
+            nameof(EncodeableJToken) + "_Encoding_DefaultXml";
 
         /// <inheritdoc/>
         public void Decode(IDecoder decoder) {

@@ -5,35 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Linq;
-
-    /// <summary>
-    /// Type of credential to use for serverauth
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum CredentialType {
-
-        /// <summary>
-        /// No credentials
-        /// </summary>
-        None,
-
-        /// <summary>
-        /// User name with secret
-        /// </summary>
-        UserName,
-
-        /// <summary>
-        /// Certificate
-        /// </summary>
-        X509Certificate,
-
-        /// <summary>
-        /// Token is a jwt token
-        /// </summary>
-        JwtToken
-    }
+    using System.ComponentModel;
 
     /// <summary>
     /// Credential model
@@ -45,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "type",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(CredentialType.None)]
         public CredentialType? Type { get; set; }
 
         /// <summary>
@@ -52,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "value",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public JToken Value { get; set; }
     }
 }

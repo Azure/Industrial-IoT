@@ -23,14 +23,13 @@ public class DiscoveryRequestApiModel {
     private String id;
 
     /**
-     * Discovery mode to use. Possible values include: 'Off', 'Local',
-     * 'Network', 'Fast', 'Scan'.
+     * Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'.
      */
     @JsonProperty(value = "discovery")
     private DiscoveryMode discovery;
 
     /**
-     * Scan configuration to use.
+     * The configuration property.
      */
     @JsonProperty(value = "configuration")
     private DiscoveryConfigApiModel configuration;
@@ -56,7 +55,7 @@ public class DiscoveryRequestApiModel {
     }
 
     /**
-     * Get discovery mode to use. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'.
+     * Get possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'.
      *
      * @return the discovery value
      */
@@ -65,7 +64,7 @@ public class DiscoveryRequestApiModel {
     }
 
     /**
-     * Set discovery mode to use. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'.
+     * Set possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'.
      *
      * @param discovery the discovery value to set
      * @return the DiscoveryRequestApiModel object itself.
@@ -76,7 +75,7 @@ public class DiscoveryRequestApiModel {
     }
 
     /**
-     * Get scan configuration to use.
+     * Get the configuration value.
      *
      * @return the configuration value
      */
@@ -85,7 +84,7 @@ public class DiscoveryRequestApiModel {
     }
 
     /**
-     * Set scan configuration to use.
+     * Set the configuration value.
      *
      * @param configuration the configuration value to set
      * @return the DiscoveryRequestApiModel object itself.

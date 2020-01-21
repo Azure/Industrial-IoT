@@ -20,26 +20,26 @@ public class StartNewKeyPairRequestApiModel {
     /**
      * Entity id.
      */
-    @JsonProperty(value = "entityId", required = true)
+    @JsonProperty(value = "entityId")
     private String entityId;
 
     /**
      * Certificate group.
      */
-    @JsonProperty(value = "groupId", required = true)
+    @JsonProperty(value = "groupId")
     private String groupId;
 
     /**
-     * Type. Possible values include: 'ApplicationInstanceCertificate',
+     * Possible values include: 'ApplicationInstanceCertificate',
      * 'HttpsCertificate', 'UserCredentialCertificate'.
      */
-    @JsonProperty(value = "certificateType", required = true)
+    @JsonProperty(value = "certificateType")
     private TrustGroupType certificateType;
 
     /**
      * Subject name.
      */
-    @JsonProperty(value = "subjectName", required = true)
+    @JsonProperty(value = "subjectName")
     private String subjectName;
 
     /**
@@ -89,7 +89,7 @@ public class StartNewKeyPairRequestApiModel {
     }
 
     /**
-     * Get type. Possible values include: 'ApplicationInstanceCertificate', 'HttpsCertificate', 'UserCredentialCertificate'.
+     * Get possible values include: 'ApplicationInstanceCertificate', 'HttpsCertificate', 'UserCredentialCertificate'.
      *
      * @return the certificateType value
      */
@@ -98,7 +98,7 @@ public class StartNewKeyPairRequestApiModel {
     }
 
     /**
-     * Set type. Possible values include: 'ApplicationInstanceCertificate', 'HttpsCertificate', 'UserCredentialCertificate'.
+     * Set possible values include: 'ApplicationInstanceCertificate', 'HttpsCertificate', 'UserCredentialCertificate'.
      *
      * @param certificateType the certificateType value to set
      * @return the StartNewKeyPairRequestApiModel object itself.

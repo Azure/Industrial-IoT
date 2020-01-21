@@ -5,14 +5,15 @@
 
 namespace Microsoft.Azure.IIoT.Modules.Discovery {
     using Microsoft.Azure.IIoT.Modules.Discovery.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
+    using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Tasks.Default;
+    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Extensions.Configuration;
     using Autofac;
-    using AutofacSerilogIntegration;
     using System;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
@@ -40,7 +41,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
         /// Create process
         /// </summary>
         /// <param name="config"></param>
-        public ModuleProcess(IConfigurationRoot config) {
+        public ModuleProcess(IConfiguration config) {
             _config = config;
             _exitCode = 0;
             _exit = new TaskCompletionSource<bool>();
@@ -79,7 +80,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                     var logger = hostScope.Resolve<ILogger>();
                     try {
                         // Start module
-                        await module.StartAsync("discovery", SiteId, "Discovery", this);
+                        await module.StartAsync(IdentityType.Discoverer, SiteId, "Discovery", this);
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
                         if (_exit.Task.IsCompleted) {
@@ -105,7 +106,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
         /// </summary>
         /// <param name="configuration"></param>
         /// <returns></returns>
-        private IContainer ConfigureContainer(IConfigurationRoot configuration) {
+        private IContainer ConfigureContainer(IConfiguration configuration) {
 
             var config = new Config(configuration);
             var builder = new ContainerBuilder();
@@ -117,7 +118,8 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                 .AsImplementedInterfaces().SingleInstance();
 
             // register logger
-            builder.RegisterLogger(LogEx.Console(configuration));
+            builder.AddDiagnostics(config);
+
             // Register module framework
             builder.RegisterModule<ModuleFramework>();
 
@@ -130,9 +132,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
             // Register discovery services
             builder.RegisterType<DiscoveryServices>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<ScannerServices>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<DiscoveryMessagePublisher>()
+            builder.RegisterType<ProgressPublisher>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<TaskProcessor>()
                 .AsImplementedInterfaces();
@@ -148,7 +148,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
             return builder.Build();
         }
 
-        private readonly IConfigurationRoot _config;
+        private readonly IConfiguration _config;
         private readonly TaskCompletionSource<bool> _exit;
         private TaskCompletionSource<bool> _reset;
         private int _exitCode;

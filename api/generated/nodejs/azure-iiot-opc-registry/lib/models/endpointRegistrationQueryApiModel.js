@@ -18,21 +18,21 @@ class EndpointRegistrationQueryApiModel {
   /**
    * Create a EndpointRegistrationQueryApiModel.
    * @property {string} [url] Endoint url for direct server access
-   * @property {string} [userAuthentication] Type of credential selected for
-   * authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
    * @property {buffer} [certificate] Certificate of the endpoint
-   * @property {string} [securityMode] Security Mode. Possible values include:
-   * 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   * @property {string} [securityMode] Possible values include: 'Best', 'Sign',
+   * 'SignAndEncrypt', 'None'
    * @property {string} [securityPolicy] Security policy uri
    * @property {boolean} [activated] Whether the endpoint was activated
    * @property {boolean} [connected] Whether the endpoint is connected on
    * supervisor.
-   * @property {string} [endpointState] The last state of the the activated
-   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
-   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+   * @property {string} [endpointState] Possible values include: 'Connecting',
+   * 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
    * @property {boolean} [includeNotSeenSince] Whether to include endpoints
    * that were soft deleted
+   * @property {string} [discovererId] Discoverer id to filter with
+   * @property {string} [applicationId] Application id to filter
+   * @property {string} [supervisorId] Supervisor id to filter with
+   * @property {string} [siteOrGatewayId] Site or gateway id to filter with
    */
   constructor() {
   }
@@ -56,14 +56,6 @@ class EndpointRegistrationQueryApiModel {
             serializedName: 'url',
             type: {
               name: 'String'
-            }
-          },
-          userAuthentication: {
-            required: false,
-            serializedName: 'userAuthentication',
-            type: {
-              name: 'Enum',
-              allowedValues: [ 'None', 'UserName', 'X509Certificate', 'JwtToken' ]
             }
           },
           certificate: {
@@ -115,6 +107,34 @@ class EndpointRegistrationQueryApiModel {
             serializedName: 'includeNotSeenSince',
             type: {
               name: 'Boolean'
+            }
+          },
+          discovererId: {
+            required: false,
+            serializedName: 'discovererId',
+            type: {
+              name: 'String'
+            }
+          },
+          applicationId: {
+            required: false,
+            serializedName: 'applicationId',
+            type: {
+              name: 'String'
+            }
+          },
+          supervisorId: {
+            required: false,
+            serializedName: 'supervisorId',
+            type: {
+              name: 'String'
+            }
+          },
+          siteOrGatewayId: {
+            required: false,
+            serializedName: 'siteOrGatewayId',
+            type: {
+              name: 'String'
             }
           }
         }

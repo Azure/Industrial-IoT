@@ -5,13 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.Module.Default {
     using Microsoft.Azure.IIoT.Module.Models;
-    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Serilog;
     using Newtonsoft.Json;
     using System;
-    using System.Linq;
     using System.Threading.Tasks;
     using System.IO;
     using System.Threading;
@@ -51,7 +49,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                 payload = new byte[] { (byte)' ' };
             }
             if (contentType == null) {
-                contentType = ContentEncodings.MimeTypeJson;
+                contentType = ContentMimeType.Json;
             }
             // Send chunks
             var buffer = payload.Zip(); // Gzip payload

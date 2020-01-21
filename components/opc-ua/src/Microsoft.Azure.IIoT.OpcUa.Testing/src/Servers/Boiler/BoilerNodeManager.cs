@@ -53,7 +53,6 @@ namespace Boiler {
             };
             NamespaceUris = namespaceUris;
 
-            _typeNamespaceIndex = Server.NamespaceUris.GetIndexOrAppend(namespaceUris[0]);
             _namespaceIndex = Server.NamespaceUris.GetIndexOrAppend(namespaceUris[1]);
 
             _lastUsedId = 0;
@@ -202,9 +201,7 @@ namespace Boiler {
                         activeNode.Create(context, passiveNode);
 
                         // replace the node in the parent.
-                        if (passiveNode.Parent != null) {
-                            passiveNode.Parent.ReplaceChild(context, activeNode);
-                        }
+                        passiveNode.Parent?.ReplaceChild(context, activeNode);
 
                         // Autostart boiler simulation state machine
                         var start = activeNode.Simulation.Start;
@@ -267,7 +264,6 @@ namespace Boiler {
         }
 
         private readonly ushort _namespaceIndex;
-        private readonly ushort _typeNamespaceIndex;
         private long _lastUsedId;
         private List<BoilerState> _boilers;
     }

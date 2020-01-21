@@ -115,7 +115,7 @@ namespace PerfTest {
 
                     if (monitoredItems != null) {
                         for (var ii = 0; ii < monitoredItems.Length; ii++) {
-                            if (object.ReferenceEquals(monitoredItems[ii], monitoredItem)) {
+                            if (ReferenceEquals(monitoredItems[ii], monitoredItem)) {
                                 _monitoredItems[index] = new IDataChangeMonitoredItem2[monitoredItems.Length - 1];
 
                                 if (ii > 0) {

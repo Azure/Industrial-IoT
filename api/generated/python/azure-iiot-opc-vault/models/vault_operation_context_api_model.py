@@ -21,16 +21,12 @@ class VaultOperationContextApiModel(Model):
     :type time: datetime
     """
 
-    _validation = {
-        'time': {'required': True},
-    }
-
     _attribute_map = {
         'authority_id': {'key': 'authorityId', 'type': 'str'},
         'time': {'key': 'time', 'type': 'iso-8601'},
     }
 
-    def __init__(self, time, authority_id=None):
+    def __init__(self, authority_id=None, time=None):
         super(VaultOperationContextApiModel, self).__init__()
         self.authority_id = authority_id
         self.time = time

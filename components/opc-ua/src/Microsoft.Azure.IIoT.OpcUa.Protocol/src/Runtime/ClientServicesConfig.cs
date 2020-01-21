@@ -14,53 +14,55 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
     /// </summary>
     public class ClientServicesConfig : ConfigBase, IClientServicesConfig {
 
-        private const string kAppCertStoreType = "AppCertStoreType";
-        private const string kPkiRootPath = "PkiRootPath";
-        private const string kOwnCertPath = "OwnCertPath";
-        private const string kTrustedCertPath = "TrustedCertPath";
-        private const string kIssuerCertPath = "IssuerCertPath";
-        private const string kRejectedCertPath = "RejectedCertPath";
-        private const string kAutoAccept = "AutoAccept";
-        private const string kOwnCertX509StorePathDefault = "OwnCertX509StorePathDefault";
-        private const string kSessionTimeout = "SessionTimeout";
-        private const string kOperationTimeout = "OperationTimeout";
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+        public const string AppCertStoreTypeKey = "AppCertStoreType";
+        public const string PkiRootPathKey = "PkiRootPath";
+        public const string OwnCertPathKey = "OwnCertPath";
+        public const string TrustedCertPathKey = "TrustedCertPath";
+        public const string IssuerCertPathKey = "IssuerCertPath";
+        public const string RejectedCertPathKey = "RejectedCertPath";
+        public const string AutoAcceptKey = "AutoAccept";
+        public const string OwnCertX509StorePathDefaultKey = "OwnCertX509StorePathDefault";
+        public const string SessionTimeoutKey = "SessionTimeout";
+        public const string OperationTimeoutKey = "OperationTimeout";
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <inheritdoc/>
-        public string AppCertStoreType => GetStringOrDefault(kAppCertStoreType,
+        public string AppCertStoreType => GetStringOrDefault(AppCertStoreTypeKey,
             RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "X509Store" : "Directory");
         /// <inheritdoc/>
         public string PkiRootPath =>
-            GetStringOrDefault(kPkiRootPath, "pki");
+            GetStringOrDefault(PkiRootPathKey, "pki");
         /// <inheritdoc/>
         public string OwnCertPath =>
-            GetStringOrDefault(kOwnCertPath, PkiRootPath + "/own");
+            GetStringOrDefault(OwnCertPathKey, PkiRootPath + "/own");
         /// <inheritdoc/>
         public string TrustedCertPath =>
-            GetStringOrDefault(kTrustedCertPath, PkiRootPath + "/trusted");
+            GetStringOrDefault(TrustedCertPathKey, PkiRootPath + "/trusted");
         /// <inheritdoc/>
         public string IssuerCertPath =>
-            GetStringOrDefault(kIssuerCertPath, PkiRootPath + "/issuer");
+            GetStringOrDefault(IssuerCertPathKey, PkiRootPath + "/issuer");
         /// <inheritdoc/>
         public string RejectedCertPath =>
-            GetStringOrDefault(kRejectedCertPath, PkiRootPath + "/rejected");
+            GetStringOrDefault(RejectedCertPathKey, PkiRootPath + "/rejected");
         /// <inheritdoc/>
         public string OwnCertX509StorePathDefault =>
-            GetStringOrDefault(kOwnCertX509StorePathDefault, "CurrentUser\\UA_MachineDefault");
+            GetStringOrDefault(OwnCertX509StorePathDefaultKey, "CurrentUser\\UA_MachineDefault");
         /// <inheritdoc/>
-        public bool AutoAccept =>
-            GetBoolOrDefault(kAutoAccept, false);
+        public bool AutoAcceptUntrustedCertificates =>
+            GetBoolOrDefault(AutoAcceptKey, false);
         /// <inheritdoc/>
-        public TimeSpan? SessionTimeout =>
-            GetDurationOrNull(kSessionTimeout);
+        public TimeSpan? DefaultSessionTimeout =>
+            GetDurationOrNull(SessionTimeoutKey);
         /// <inheritdoc/>
         public TimeSpan? OperationTimeout =>
-            GetDurationOrNull(kOperationTimeout);
+            GetDurationOrNull(OperationTimeoutKey);
 
         /// <summary>
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public ClientServicesConfig(IConfigurationRoot configuration = null) :
+        public ClientServicesConfig(IConfiguration configuration = null) :
             base(configuration) {
         }
     }

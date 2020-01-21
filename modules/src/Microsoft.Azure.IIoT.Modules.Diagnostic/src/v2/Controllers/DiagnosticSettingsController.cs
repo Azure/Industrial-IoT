@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Modules.Diagnostic.v2.Supervisor {
     using Microsoft.Azure.IIoT.Modules.Diagnostic.Services;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Serilog;
     using Serilog.Events;
@@ -36,7 +37,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.v2.Supervisor {
             set {
                 if (value == null || value.Type == JTokenType.Null) {
                     // Set default
-                    LogEx.Level.MinimumLevel = LogEventLevel.Information;
+                    LogControl.Level.MinimumLevel = LogEventLevel.Information;
                     _logger.Information("Setting log level to default level.");
                 }
                 else if (value.Type == JTokenType.String) {
@@ -47,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.v2.Supervisor {
                             $"Bad log level value {value} passed.");
                     }
                     _logger.Information("Setting log level to {level}", level);
-                    LogEx.Level.MinimumLevel = level;
+                    LogControl.Level.MinimumLevel = level;
                 }
                 else {
                     throw new NotSupportedException(
@@ -55,7 +56,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.v2.Supervisor {
                 }
             }
             // The enum values are the same as in serilog
-            get => JToken.FromObject(LogEx.Level.MinimumLevel.ToString());
+            get => JToken.FromObject(LogControl.Level.MinimumLevel.ToString());
         }
 
         /// <summary>
@@ -84,7 +85,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.v2.Supervisor {
         /// </summary>
         /// <param name="publisher"></param>
         /// <param name="logger"></param>
-        public DiagnosticSettingsController(IPublisher publisher, ILogger logger) {
+        public DiagnosticSettingsController(ITelemetrySender publisher, ILogger logger) {
             _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _tempState = new Dictionary<string, string>();
@@ -108,7 +109,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.v2.Supervisor {
         }
 
         private readonly Dictionary<string, string> _tempState;
-        private readonly IPublisher _publisher;
+        private readonly ITelemetrySender _publisher;
         private readonly ILogger _logger;
     }
 }

@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Models {
-    using Opc.Ua;
 
     /// <summary>
     /// Enumeration definition extension

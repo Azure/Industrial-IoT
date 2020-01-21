@@ -27,7 +27,7 @@ class ValueReadResponseApiModel {
    * read at server.
    * @property {date} [serverTimestamp] Timestamp of when value was read at
    * server.
-   * @property {object} [errorInfo] Service result in case of error
+   * @property {object} [errorInfo]
    * @property {number} [errorInfo.statusCode] Error code - if null operation
    * succeeded.
    * @property {string} [errorInfo.errorMessage] Error message in case of error

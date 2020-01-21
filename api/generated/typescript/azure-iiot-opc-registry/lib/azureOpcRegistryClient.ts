@@ -25,94 +25,64 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
   }
 
   /**
-   * Get all registered applications in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
-   * @summary Get list of applications
-   * @param [options] The optional parameters
-   * @returns Promise<Models.GetListOfApplicationsResponse>
-   */
-  getListOfApplications(options?: Models.AzureOpcRegistryClientGetListOfApplicationsOptionalParams): Promise<Models.GetListOfApplicationsResponse>;
-  /**
-   * @param callback The callback
-   */
-  getListOfApplications(callback: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): void;
-  /**
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  getListOfApplications(options: Models.AzureOpcRegistryClientGetListOfApplicationsOptionalParams, callback: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): void;
-  getListOfApplications(options?: Models.AzureOpcRegistryClientGetListOfApplicationsOptionalParams | msRest.ServiceCallback<Models.ApplicationInfoListApiModel>, callback?: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): Promise<Models.GetListOfApplicationsResponse> {
-    return this.sendOperationRequest(
-      {
-        options
-      },
-      getListOfApplicationsOperationSpec,
-      callback) as Promise<Models.GetListOfApplicationsResponse>;
-  }
-
-  /**
-   * The application is registered using the provided information, but it
-   * is not associated with a supervisor.  This is useful for when you need
-   * to register clients or you want to register a server that is located
-   * in a network not reachable through a Twin module.
-   * @summary Create new application
-   * @param request Application registration request
-   * @param [options] The optional parameters
-   * @returns Promise<Models.CreateApplicationResponse>
-   */
-  createApplication(request: Models.ApplicationRegistrationRequestApiModel, options?: msRest.RequestOptionsBase): Promise<Models.CreateApplicationResponse>;
-  /**
-   * @param request Application registration request
-   * @param callback The callback
-   */
-  createApplication(request: Models.ApplicationRegistrationRequestApiModel, callback: msRest.ServiceCallback<Models.ApplicationRegistrationResponseApiModel>): void;
-  /**
-   * @param request Application registration request
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  createApplication(request: Models.ApplicationRegistrationRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.ApplicationRegistrationResponseApiModel>): void;
-  createApplication(request: Models.ApplicationRegistrationRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.ApplicationRegistrationResponseApiModel>, callback?: msRest.ServiceCallback<Models.ApplicationRegistrationResponseApiModel>): Promise<Models.CreateApplicationResponse> {
-    return this.sendOperationRequest(
-      {
-        request,
-        options
-      },
-      createApplicationOperationSpec,
-      callback) as Promise<Models.CreateApplicationResponse>;
-  }
-
-  /**
-   * Registers a server solely using a discovery url. Requires that
-   * the onboarding agent service is running and the server can be
-   * located by a supervisor in its network using the discovery url.
+   * Registers a server solely using a discovery url. Requires that the onboarding agent service is
+   * running and the server can be located by a supervisor in its network using the discovery url.
    * @summary Register new server
-   * @param request Server registration request
+   * @param body Server registration request
    * @param [options] The optional parameters
    * @returns Promise<msRest.RestResponse>
    */
-  registerServer(request: Models.ServerRegistrationRequestApiModel, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  registerServer(body: Models.ServerRegistrationRequestApiModel, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
   /**
-   * @param request Server registration request
+   * @param body Server registration request
    * @param callback The callback
    */
-  registerServer(request: Models.ServerRegistrationRequestApiModel, callback: msRest.ServiceCallback<void>): void;
+  registerServer(body: Models.ServerRegistrationRequestApiModel, callback: msRest.ServiceCallback<void>): void;
   /**
-   * @param request Server registration request
+   * @param body Server registration request
    * @param options The optional parameters
    * @param callback The callback
    */
-  registerServer(request: Models.ServerRegistrationRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
-  registerServer(request: Models.ServerRegistrationRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+  registerServer(body: Models.ServerRegistrationRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  registerServer(body: Models.ServerRegistrationRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
     return this.sendOperationRequest(
       {
-        request,
+        body,
         options
       },
       registerServerOperationSpec,
       callback);
+  }
+
+  /**
+   * The application is registered using the provided information, but it is not associated with a
+   * supervisor. This is useful for when you need to register clients or you want to register a
+   * server that is located in a network not reachable through a Twin module.
+   * @summary Create new application
+   * @param body Application registration request
+   * @param [options] The optional parameters
+   * @returns Promise<Models.CreateApplicationResponse>
+   */
+  createApplication(body: Models.ApplicationRegistrationRequestApiModel, options?: msRest.RequestOptionsBase): Promise<Models.CreateApplicationResponse>;
+  /**
+   * @param body Application registration request
+   * @param callback The callback
+   */
+  createApplication(body: Models.ApplicationRegistrationRequestApiModel, callback: msRest.ServiceCallback<Models.ApplicationRegistrationResponseApiModel>): void;
+  /**
+   * @param body Application registration request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  createApplication(body: Models.ApplicationRegistrationRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.ApplicationRegistrationResponseApiModel>): void;
+  createApplication(body: Models.ApplicationRegistrationRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.ApplicationRegistrationResponseApiModel>, callback?: msRest.ServiceCallback<Models.ApplicationRegistrationResponseApiModel>): Promise<Models.CreateApplicationResponse> {
+    return this.sendOperationRequest(
+      {
+        body,
+        options
+      },
+      createApplicationOperationSpec,
+      callback) as Promise<Models.CreateApplicationResponse>;
   }
 
   /**
@@ -138,6 +108,33 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
       },
       deleteAllDisabledApplicationsOperationSpec,
       callback);
+  }
+
+  /**
+   * Get all registered applications in paged form. The returned model can contain a continuation
+   * token if more results are available. Call this operation again using the token to retrieve more
+   * results.
+   * @summary Get list of applications
+   * @param [options] The optional parameters
+   * @returns Promise<Models.GetListOfApplicationsResponse>
+   */
+  getListOfApplications(options?: Models.AzureOpcRegistryClientGetListOfApplicationsOptionalParams): Promise<Models.GetListOfApplicationsResponse>;
+  /**
+   * @param callback The callback
+   */
+  getListOfApplications(callback: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): void;
+  /**
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  getListOfApplications(options: Models.AzureOpcRegistryClientGetListOfApplicationsOptionalParams, callback: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): void;
+  getListOfApplications(options?: Models.AzureOpcRegistryClientGetListOfApplicationsOptionalParams | msRest.ServiceCallback<Models.ApplicationInfoListApiModel>, callback?: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): Promise<Models.GetListOfApplicationsResponse> {
+    return this.sendOperationRequest(
+      {
+        options
+      },
+      getListOfApplicationsOperationSpec,
+      callback) as Promise<Models.GetListOfApplicationsResponse>;
   }
 
   /**
@@ -199,32 +196,61 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
   }
 
   /**
-   * Registers servers by running a discovery scan in a supervisor's
-   * network. Requires that the onboarding agent service is running.
+   * Registers servers by running a discovery scan in a supervisor's network. Requires that the
+   * onboarding agent service is running.
    * @summary Discover servers
-   * @param request Discovery request
+   * @param body Discovery request
    * @param [options] The optional parameters
    * @returns Promise<msRest.RestResponse>
    */
-  discoverServer(request: Models.DiscoveryRequestApiModel, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  discoverServer(body: Models.DiscoveryRequestApiModel, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
   /**
-   * @param request Discovery request
+   * @param body Discovery request
    * @param callback The callback
    */
-  discoverServer(request: Models.DiscoveryRequestApiModel, callback: msRest.ServiceCallback<void>): void;
+  discoverServer(body: Models.DiscoveryRequestApiModel, callback: msRest.ServiceCallback<void>): void;
   /**
-   * @param request Discovery request
+   * @param body Discovery request
    * @param options The optional parameters
    * @param callback The callback
    */
-  discoverServer(request: Models.DiscoveryRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
-  discoverServer(request: Models.DiscoveryRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+  discoverServer(body: Models.DiscoveryRequestApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  discoverServer(body: Models.DiscoveryRequestApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
     return this.sendOperationRequest(
       {
-        request,
+        body,
         options
       },
       discoverServerOperationSpec,
+      callback);
+  }
+
+  /**
+   * Cancels a discovery request using the request identifier.
+   * @summary Cancel discovery
+   * @param requestId Discovery request
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  cancel(requestId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param requestId Discovery request
+   * @param callback The callback
+   */
+  cancel(requestId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param requestId Discovery request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  cancel(requestId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  cancel(requestId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        requestId,
+        options
+      },
+      cancelOperationSpec,
       callback);
   }
 
@@ -257,6 +283,40 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
   }
 
   /**
+   * The application information is updated with new properties. Note that this information might be
+   * overridden if the application is re-discovered during a discovery run (recurring or one-time).
+   * @summary Update application registration
+   * @param applicationId The identifier of the application
+   * @param body Application update request
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  updateApplicationRegistration(applicationId: string, body: Models.ApplicationRegistrationUpdateApiModel, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param applicationId The identifier of the application
+   * @param body Application update request
+   * @param callback The callback
+   */
+  updateApplicationRegistration(applicationId: string, body: Models.ApplicationRegistrationUpdateApiModel, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param applicationId The identifier of the application
+   * @param body Application update request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  updateApplicationRegistration(applicationId: string, body: Models.ApplicationRegistrationUpdateApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  updateApplicationRegistration(applicationId: string, body: Models.ApplicationRegistrationUpdateApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        applicationId,
+        body,
+        options
+      },
+      updateApplicationRegistrationOperationSpec,
+      callback);
+  }
+
+  /**
    * Unregisters and deletes application and all its associated endpoints.
    * @summary Unregister application
    * @param applicationId The identifier of the application
@@ -286,41 +346,6 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
   }
 
   /**
-   * The application information is updated with new properties.  Note that
-   * this information might be overridden if the application is re-discovered
-   * during a discovery run (recurring or one-time).
-   * @summary Update application registration
-   * @param applicationId The identifier of the application
-   * @param request Application update request
-   * @param [options] The optional parameters
-   * @returns Promise<msRest.RestResponse>
-   */
-  updateApplicationRegistration(applicationId: string, request: Models.ApplicationRegistrationUpdateApiModel, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
-  /**
-   * @param applicationId The identifier of the application
-   * @param request Application update request
-   * @param callback The callback
-   */
-  updateApplicationRegistration(applicationId: string, request: Models.ApplicationRegistrationUpdateApiModel, callback: msRest.ServiceCallback<void>): void;
-  /**
-   * @param applicationId The identifier of the application
-   * @param request Application update request
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  updateApplicationRegistration(applicationId: string, request: Models.ApplicationRegistrationUpdateApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
-  updateApplicationRegistration(applicationId: string, request: Models.ApplicationRegistrationUpdateApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
-    return this.sendOperationRequest(
-      {
-        applicationId,
-        request,
-        options
-      },
-      updateApplicationRegistrationOperationSpec,
-      callback);
-  }
-
-  /**
    * List all sites applications are registered in.
    * @summary Get list of sites
    * @param [options] The optional parameters
@@ -346,65 +371,30 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
   }
 
   /**
-   * Get a list of applications filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfApplications operation using the token to retrieve
-   * more results.
-   * @summary Get filtered list of applications
-   * @param query Applications Query model
-   * @param [options] The optional parameters
-   * @returns Promise<Models.GetFilteredListOfApplicationsResponse>
-   */
-  getFilteredListOfApplications(query: Models.ApplicationRegistrationQueryApiModel, options?: Models.AzureOpcRegistryClientGetFilteredListOfApplicationsOptionalParams): Promise<Models.GetFilteredListOfApplicationsResponse>;
-  /**
-   * @param query Applications Query model
-   * @param callback The callback
-   */
-  getFilteredListOfApplications(query: Models.ApplicationRegistrationQueryApiModel, callback: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): void;
-  /**
-   * @param query Applications Query model
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  getFilteredListOfApplications(query: Models.ApplicationRegistrationQueryApiModel, options: Models.AzureOpcRegistryClientGetFilteredListOfApplicationsOptionalParams, callback: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): void;
-  getFilteredListOfApplications(query: Models.ApplicationRegistrationQueryApiModel, options?: Models.AzureOpcRegistryClientGetFilteredListOfApplicationsOptionalParams | msRest.ServiceCallback<Models.ApplicationInfoListApiModel>, callback?: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): Promise<Models.GetFilteredListOfApplicationsResponse> {
-    return this.sendOperationRequest(
-      {
-        query,
-        options
-      },
-      getFilteredListOfApplicationsOperationSpec,
-      callback) as Promise<Models.GetFilteredListOfApplicationsResponse>;
-  }
-
-  /**
-   * List applications that match a query model.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfApplications operation using the token to retrieve
-   * more results.
+   * List applications that match a query model. The returned model can contain a continuation token
+   * if more results are available. Call the GetListOfApplications operation using the token to
+   * retrieve more results.
    * @summary Query applications
-   * @param query Application query
+   * @param body Application query
    * @param [options] The optional parameters
    * @returns Promise<Models.QueryApplicationsResponse>
    */
-  queryApplications(query: Models.ApplicationRegistrationQueryApiModel, options?: Models.AzureOpcRegistryClientQueryApplicationsOptionalParams): Promise<Models.QueryApplicationsResponse>;
+  queryApplications(body: Models.ApplicationRegistrationQueryApiModel, options?: Models.AzureOpcRegistryClientQueryApplicationsOptionalParams): Promise<Models.QueryApplicationsResponse>;
   /**
-   * @param query Application query
+   * @param body Application query
    * @param callback The callback
    */
-  queryApplications(query: Models.ApplicationRegistrationQueryApiModel, callback: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): void;
+  queryApplications(body: Models.ApplicationRegistrationQueryApiModel, callback: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): void;
   /**
-   * @param query Application query
+   * @param body Application query
    * @param options The optional parameters
    * @param callback The callback
    */
-  queryApplications(query: Models.ApplicationRegistrationQueryApiModel, options: Models.AzureOpcRegistryClientQueryApplicationsOptionalParams, callback: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): void;
-  queryApplications(query: Models.ApplicationRegistrationQueryApiModel, options?: Models.AzureOpcRegistryClientQueryApplicationsOptionalParams | msRest.ServiceCallback<Models.ApplicationInfoListApiModel>, callback?: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): Promise<Models.QueryApplicationsResponse> {
+  queryApplications(body: Models.ApplicationRegistrationQueryApiModel, options: Models.AzureOpcRegistryClientQueryApplicationsOptionalParams, callback: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): void;
+  queryApplications(body: Models.ApplicationRegistrationQueryApiModel, options?: Models.AzureOpcRegistryClientQueryApplicationsOptionalParams | msRest.ServiceCallback<Models.ApplicationInfoListApiModel>, callback?: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): Promise<Models.QueryApplicationsResponse> {
     return this.sendOperationRequest(
       {
-        query,
+        body,
         options
       },
       queryApplicationsOperationSpec,
@@ -412,34 +402,455 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
   }
 
   /**
-   * A query model which supports the OPC UA Global Discovery Server query.
-   * @summary Query applications by id.
+   * Get a list of applications filtered using the specified query parameters. The returned model can
+   * contain a continuation token if more results are available. Call the GetListOfApplications
+   * operation using the token to retrieve more results.
+   * @summary Get filtered list of applications
+   * @param body Applications Query model
    * @param [options] The optional parameters
-   * @returns Promise<Models.QueryApplicationsByIdResponse>
+   * @returns Promise<Models.GetFilteredListOfApplicationsResponse>
    */
-  queryApplicationsById(options?: Models.AzureOpcRegistryClientQueryApplicationsByIdOptionalParams): Promise<Models.QueryApplicationsByIdResponse>;
+  getFilteredListOfApplications(body: Models.ApplicationRegistrationQueryApiModel, options?: Models.AzureOpcRegistryClientGetFilteredListOfApplicationsOptionalParams): Promise<Models.GetFilteredListOfApplicationsResponse>;
+  /**
+   * @param body Applications Query model
+   * @param callback The callback
+   */
+  getFilteredListOfApplications(body: Models.ApplicationRegistrationQueryApiModel, callback: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): void;
+  /**
+   * @param body Applications Query model
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  getFilteredListOfApplications(body: Models.ApplicationRegistrationQueryApiModel, options: Models.AzureOpcRegistryClientGetFilteredListOfApplicationsOptionalParams, callback: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): void;
+  getFilteredListOfApplications(body: Models.ApplicationRegistrationQueryApiModel, options?: Models.AzureOpcRegistryClientGetFilteredListOfApplicationsOptionalParams | msRest.ServiceCallback<Models.ApplicationInfoListApiModel>, callback?: msRest.ServiceCallback<Models.ApplicationInfoListApiModel>): Promise<Models.GetFilteredListOfApplicationsResponse> {
+    return this.sendOperationRequest(
+      {
+        body,
+        options
+      },
+      getFilteredListOfApplicationsOperationSpec,
+      callback) as Promise<Models.GetFilteredListOfApplicationsResponse>;
+  }
+
+  /**
+   * Register a client to receive application events through SignalR.
+   * @summary Subscribe for application events
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  subscribe(options?: Models.AzureOpcRegistryClientSubscribeOptionalParams): Promise<msRest.RestResponse>;
   /**
    * @param callback The callback
    */
-  queryApplicationsById(callback: msRest.ServiceCallback<Models.ApplicationRecordListApiModel>): void;
+  subscribe(callback: msRest.ServiceCallback<void>): void;
   /**
    * @param options The optional parameters
    * @param callback The callback
    */
-  queryApplicationsById(options: Models.AzureOpcRegistryClientQueryApplicationsByIdOptionalParams, callback: msRest.ServiceCallback<Models.ApplicationRecordListApiModel>): void;
-  queryApplicationsById(options?: Models.AzureOpcRegistryClientQueryApplicationsByIdOptionalParams | msRest.ServiceCallback<Models.ApplicationRecordListApiModel>, callback?: msRest.ServiceCallback<Models.ApplicationRecordListApiModel>): Promise<Models.QueryApplicationsByIdResponse> {
+  subscribe(options: Models.AzureOpcRegistryClientSubscribeOptionalParams, callback: msRest.ServiceCallback<void>): void;
+  subscribe(options?: Models.AzureOpcRegistryClientSubscribeOptionalParams | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
     return this.sendOperationRequest(
       {
         options
       },
-      queryApplicationsByIdOperationSpec,
-      callback) as Promise<Models.QueryApplicationsByIdResponse>;
+      subscribeOperationSpec,
+      callback);
   }
 
   /**
-   * Activates an endpoint for subsequent use in twin service.
-   * All endpoints must be activated using this API or through a
-   * activation filter during application registration or discovery.
+   * Unregister a user and stop it from receiving events.
+   * @summary Unsubscribe from application events
+   * @param userId The user id that will not receive any more events
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  unsubscribe(userId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param userId The user id that will not receive any more events
+   * @param callback The callback
+   */
+  unsubscribe(userId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param userId The user id that will not receive any more events
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  unsubscribe(userId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  unsubscribe(userId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        userId,
+        options
+      },
+      unsubscribeOperationSpec,
+      callback);
+  }
+
+  /**
+   * Returns a discoverer's registration and connectivity information. A discoverer id corresponds to
+   * the twin modules module identity.
+   * @summary Get discoverer registration information
+   * @param discovererId Discoverer identifier
+   * @param [options] The optional parameters
+   * @returns Promise<Models.GetDiscovererResponse>
+   */
+  getDiscoverer(discovererId: string, options?: Models.AzureOpcRegistryClientGetDiscovererOptionalParams): Promise<Models.GetDiscovererResponse>;
+  /**
+   * @param discovererId Discoverer identifier
+   * @param callback The callback
+   */
+  getDiscoverer(discovererId: string, callback: msRest.ServiceCallback<Models.DiscovererApiModel>): void;
+  /**
+   * @param discovererId Discoverer identifier
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  getDiscoverer(discovererId: string, options: Models.AzureOpcRegistryClientGetDiscovererOptionalParams, callback: msRest.ServiceCallback<Models.DiscovererApiModel>): void;
+  getDiscoverer(discovererId: string, options?: Models.AzureOpcRegistryClientGetDiscovererOptionalParams | msRest.ServiceCallback<Models.DiscovererApiModel>, callback?: msRest.ServiceCallback<Models.DiscovererApiModel>): Promise<Models.GetDiscovererResponse> {
+    return this.sendOperationRequest(
+      {
+        discovererId,
+        options
+      },
+      getDiscovererOperationSpec,
+      callback) as Promise<Models.GetDiscovererResponse>;
+  }
+
+  /**
+   * Allows a caller to configure recurring discovery runs on the twin module identified by the
+   * discoverer id or update site information.
+   * @summary Update discoverer information
+   * @param discovererId discoverer identifier
+   * @param body Patch request
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  updateDiscoverer(discovererId: string, body: Models.DiscovererUpdateApiModel, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param discovererId discoverer identifier
+   * @param body Patch request
+   * @param callback The callback
+   */
+  updateDiscoverer(discovererId: string, body: Models.DiscovererUpdateApiModel, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param discovererId discoverer identifier
+   * @param body Patch request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  updateDiscoverer(discovererId: string, body: Models.DiscovererUpdateApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  updateDiscoverer(discovererId: string, body: Models.DiscovererUpdateApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        discovererId,
+        body,
+        options
+      },
+      updateDiscovererOperationSpec,
+      callback);
+  }
+
+  /**
+   * Allows a caller to configure recurring discovery runs on the discovery module identified by the
+   * module id.
+   * @summary Enable server discovery
+   * @param discovererId discoverer identifier
+   * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  setDiscoveryMode(discovererId: string, mode: Models.DiscoveryMode, options?: Models.AzureOpcRegistryClientSetDiscoveryModeOptionalParams): Promise<msRest.RestResponse>;
+  /**
+   * @param discovererId discoverer identifier
+   * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+   * @param callback The callback
+   */
+  setDiscoveryMode(discovererId: string, mode: Models.DiscoveryMode, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param discovererId discoverer identifier
+   * @param mode Discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  setDiscoveryMode(discovererId: string, mode: Models.DiscoveryMode, options: Models.AzureOpcRegistryClientSetDiscoveryModeOptionalParams, callback: msRest.ServiceCallback<void>): void;
+  setDiscoveryMode(discovererId: string, mode: Models.DiscoveryMode, options?: Models.AzureOpcRegistryClientSetDiscoveryModeOptionalParams | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        discovererId,
+        mode,
+        options
+      },
+      setDiscoveryModeOperationSpec,
+      callback);
+  }
+
+  /**
+   * Get all registered discoverers and therefore twin modules in paged form. The returned model can
+   * contain a continuation token if more results are available. Call this operation again using the
+   * token to retrieve more results.
+   * @summary Get list of discoverers
+   * @param [options] The optional parameters
+   * @returns Promise<Models.GetListOfDiscoverersResponse>
+   */
+  getListOfDiscoverers(options?: Models.AzureOpcRegistryClientGetListOfDiscoverersOptionalParams): Promise<Models.GetListOfDiscoverersResponse>;
+  /**
+   * @param callback The callback
+   */
+  getListOfDiscoverers(callback: msRest.ServiceCallback<Models.DiscovererListApiModel>): void;
+  /**
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  getListOfDiscoverers(options: Models.AzureOpcRegistryClientGetListOfDiscoverersOptionalParams, callback: msRest.ServiceCallback<Models.DiscovererListApiModel>): void;
+  getListOfDiscoverers(options?: Models.AzureOpcRegistryClientGetListOfDiscoverersOptionalParams | msRest.ServiceCallback<Models.DiscovererListApiModel>, callback?: msRest.ServiceCallback<Models.DiscovererListApiModel>): Promise<Models.GetListOfDiscoverersResponse> {
+    return this.sendOperationRequest(
+      {
+        options
+      },
+      getListOfDiscoverersOperationSpec,
+      callback) as Promise<Models.GetListOfDiscoverersResponse>;
+  }
+
+  /**
+   * Get all discoverers that match a specified query. The returned model can contain a continuation
+   * token if more results are available. Call the GetListOfDiscoverers operation using the token to
+   * retrieve more results.
+   * @summary Query discoverers
+   * @param body Discoverers query model
+   * @param [options] The optional parameters
+   * @returns Promise<Models.QueryDiscoverersResponse>
+   */
+  queryDiscoverers(body: Models.DiscovererQueryApiModel, options?: Models.AzureOpcRegistryClientQueryDiscoverersOptionalParams): Promise<Models.QueryDiscoverersResponse>;
+  /**
+   * @param body Discoverers query model
+   * @param callback The callback
+   */
+  queryDiscoverers(body: Models.DiscovererQueryApiModel, callback: msRest.ServiceCallback<Models.DiscovererListApiModel>): void;
+  /**
+   * @param body Discoverers query model
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  queryDiscoverers(body: Models.DiscovererQueryApiModel, options: Models.AzureOpcRegistryClientQueryDiscoverersOptionalParams, callback: msRest.ServiceCallback<Models.DiscovererListApiModel>): void;
+  queryDiscoverers(body: Models.DiscovererQueryApiModel, options?: Models.AzureOpcRegistryClientQueryDiscoverersOptionalParams | msRest.ServiceCallback<Models.DiscovererListApiModel>, callback?: msRest.ServiceCallback<Models.DiscovererListApiModel>): Promise<Models.QueryDiscoverersResponse> {
+    return this.sendOperationRequest(
+      {
+        body,
+        options
+      },
+      queryDiscoverersOperationSpec,
+      callback) as Promise<Models.QueryDiscoverersResponse>;
+  }
+
+  /**
+   * Get a list of discoverers filtered using the specified query parameters. The returned model can
+   * contain a continuation token if more results are available. Call the GetListOfDiscoverers
+   * operation using the token to retrieve more results.
+   * @summary Get filtered list of discoverers
+   * @param [options] The optional parameters
+   * @returns Promise<Models.GetFilteredListOfDiscoverersResponse>
+   */
+  getFilteredListOfDiscoverers(options?: Models.AzureOpcRegistryClientGetFilteredListOfDiscoverersOptionalParams): Promise<Models.GetFilteredListOfDiscoverersResponse>;
+  /**
+   * @param callback The callback
+   */
+  getFilteredListOfDiscoverers(callback: msRest.ServiceCallback<Models.DiscovererListApiModel>): void;
+  /**
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  getFilteredListOfDiscoverers(options: Models.AzureOpcRegistryClientGetFilteredListOfDiscoverersOptionalParams, callback: msRest.ServiceCallback<Models.DiscovererListApiModel>): void;
+  getFilteredListOfDiscoverers(options?: Models.AzureOpcRegistryClientGetFilteredListOfDiscoverersOptionalParams | msRest.ServiceCallback<Models.DiscovererListApiModel>, callback?: msRest.ServiceCallback<Models.DiscovererListApiModel>): Promise<Models.GetFilteredListOfDiscoverersResponse> {
+    return this.sendOperationRequest(
+      {
+        options
+      },
+      getFilteredListOfDiscoverersOperationSpec,
+      callback) as Promise<Models.GetFilteredListOfDiscoverersResponse>;
+  }
+
+  /**
+   * Register a user to receive discoverer events through SignalR.
+   * @summary Subscribe to discoverer registry events
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  subscribe1(options?: Models.AzureOpcRegistryClientSubscribe1OptionalParams): Promise<msRest.RestResponse>;
+  /**
+   * @param callback The callback
+   */
+  subscribe1(callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  subscribe1(options: Models.AzureOpcRegistryClientSubscribe1OptionalParams, callback: msRest.ServiceCallback<void>): void;
+  subscribe1(options?: Models.AzureOpcRegistryClientSubscribe1OptionalParams | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        options
+      },
+      subscribe1OperationSpec,
+      callback);
+  }
+
+  /**
+   * Unregister a user and stop it from receiving discoverer events.
+   * @summary Unsubscribe registry events
+   * @param userId The user id that will not receive any more discoverer events
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  unsubscribe1(userId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param userId The user id that will not receive any more discoverer events
+   * @param callback The callback
+   */
+  unsubscribe1(userId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param userId The user id that will not receive any more discoverer events
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  unsubscribe1(userId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  unsubscribe1(userId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        userId,
+        options
+      },
+      unsubscribe1OperationSpec,
+      callback);
+  }
+
+  /**
+   * Register a client to receive discovery progress events through SignalR from a particular
+   * discoverer.
+   * @summary Subscribe to discovery progress from discoverer
+   * @param discovererId The discoverer to subscribe to
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  subscribeByDiscovererId(discovererId: string, options?: Models.AzureOpcRegistryClientSubscribeByDiscovererIdOptionalParams): Promise<msRest.RestResponse>;
+  /**
+   * @param discovererId The discoverer to subscribe to
+   * @param callback The callback
+   */
+  subscribeByDiscovererId(discovererId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param discovererId The discoverer to subscribe to
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  subscribeByDiscovererId(discovererId: string, options: Models.AzureOpcRegistryClientSubscribeByDiscovererIdOptionalParams, callback: msRest.ServiceCallback<void>): void;
+  subscribeByDiscovererId(discovererId: string, options?: Models.AzureOpcRegistryClientSubscribeByDiscovererIdOptionalParams | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        discovererId,
+        options
+      },
+      subscribeByDiscovererIdOperationSpec,
+      callback);
+  }
+
+  /**
+   * Register a client to receive discovery progress events through SignalR for a particular request.
+   * @summary Subscribe to discovery progress for a request
+   * @param requestId The request to monitor
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  subscribeByRequestId(requestId: string, options?: Models.AzureOpcRegistryClientSubscribeByRequestIdOptionalParams): Promise<msRest.RestResponse>;
+  /**
+   * @param requestId The request to monitor
+   * @param callback The callback
+   */
+  subscribeByRequestId(requestId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param requestId The request to monitor
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  subscribeByRequestId(requestId: string, options: Models.AzureOpcRegistryClientSubscribeByRequestIdOptionalParams, callback: msRest.ServiceCallback<void>): void;
+  subscribeByRequestId(requestId: string, options?: Models.AzureOpcRegistryClientSubscribeByRequestIdOptionalParams | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        requestId,
+        options
+      },
+      subscribeByRequestIdOperationSpec,
+      callback);
+  }
+
+  /**
+   * Unregister a client and stop it from receiving discovery events for a particular request.
+   * @summary Unsubscribe from discovery progress for a request.
+   * @param requestId The request to unsubscribe from
+   * @param userId The user id that will not receive any more discovery progress
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  unsubscribeByRequestId(requestId: string, userId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param requestId The request to unsubscribe from
+   * @param userId The user id that will not receive any more discovery progress
+   * @param callback The callback
+   */
+  unsubscribeByRequestId(requestId: string, userId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param requestId The request to unsubscribe from
+   * @param userId The user id that will not receive any more discovery progress
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  unsubscribeByRequestId(requestId: string, userId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  unsubscribeByRequestId(requestId: string, userId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        requestId,
+        userId,
+        options
+      },
+      unsubscribeByRequestIdOperationSpec,
+      callback);
+  }
+
+  /**
+   * Unregister a client and stop it from receiving discovery events.
+   * @summary Unsubscribe from discovery progress from discoverer.
+   * @param discovererId The discoverer to unsubscribe from
+   * @param userId The user id that will not receive any more discovery progress
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  unsubscribeByDiscovererId(discovererId: string, userId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param discovererId The discoverer to unsubscribe from
+   * @param userId The user id that will not receive any more discovery progress
+   * @param callback The callback
+   */
+  unsubscribeByDiscovererId(discovererId: string, userId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param discovererId The discoverer to unsubscribe from
+   * @param userId The user id that will not receive any more discovery progress
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  unsubscribeByDiscovererId(discovererId: string, userId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  unsubscribeByDiscovererId(discovererId: string, userId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        discovererId,
+        userId,
+        options
+      },
+      unsubscribeByDiscovererIdOperationSpec,
+      callback);
+  }
+
+  /**
+   * Activates an endpoint for subsequent use in twin service. All endpoints must be activated using
+   * this API or through a activation filter during application registration or discovery.
    * @summary Activate endpoint
    * @param endpointId endpoint identifier
    * @param [options] The optional parameters
@@ -497,42 +908,9 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
   }
 
   /**
-   * @summary Update endpoint information
-   * @param endpointId endpoint identifier
-   * @param request Endpoint update request
-   * @param [options] The optional parameters
-   * @returns Promise<msRest.RestResponse>
-   */
-  updateEndpoint(endpointId: string, request: Models.EndpointRegistrationUpdateApiModel, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
-  /**
-   * @param endpointId endpoint identifier
-   * @param request Endpoint update request
-   * @param callback The callback
-   */
-  updateEndpoint(endpointId: string, request: Models.EndpointRegistrationUpdateApiModel, callback: msRest.ServiceCallback<void>): void;
-  /**
-   * @param endpointId endpoint identifier
-   * @param request Endpoint update request
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  updateEndpoint(endpointId: string, request: Models.EndpointRegistrationUpdateApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
-  updateEndpoint(endpointId: string, request: Models.EndpointRegistrationUpdateApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
-    return this.sendOperationRequest(
-      {
-        endpointId,
-        request,
-        options
-      },
-      updateEndpointOperationSpec,
-      callback);
-  }
-
-  /**
-   * Get all registered endpoints in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
+   * Get all registered endpoints in paged form. The returned model can contain a continuation token
+   * if more results are available. Call this operation again using the token to retrieve more
+   * results.
    * @summary Get list of endpoints
    * @param [options] The optional parameters
    * @returns Promise<Models.GetListOfEndpointsResponse>
@@ -557,11 +935,40 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
   }
 
   /**
-   * Get a list of endpoints filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfEndpoints operation using the token to retrieve
-   * more results.
+   * Return endpoints that match the specified query. The returned model can contain a continuation
+   * token if more results are available. Call the GetListOfEndpoints operation using the token to
+   * retrieve more results.
+   * @summary Query endpoints
+   * @param body Query to match
+   * @param [options] The optional parameters
+   * @returns Promise<Models.QueryEndpointsResponse>
+   */
+  queryEndpoints(body: Models.EndpointRegistrationQueryApiModel, options?: Models.AzureOpcRegistryClientQueryEndpointsOptionalParams): Promise<Models.QueryEndpointsResponse>;
+  /**
+   * @param body Query to match
+   * @param callback The callback
+   */
+  queryEndpoints(body: Models.EndpointRegistrationQueryApiModel, callback: msRest.ServiceCallback<Models.EndpointInfoListApiModel>): void;
+  /**
+   * @param body Query to match
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  queryEndpoints(body: Models.EndpointRegistrationQueryApiModel, options: Models.AzureOpcRegistryClientQueryEndpointsOptionalParams, callback: msRest.ServiceCallback<Models.EndpointInfoListApiModel>): void;
+  queryEndpoints(body: Models.EndpointRegistrationQueryApiModel, options?: Models.AzureOpcRegistryClientQueryEndpointsOptionalParams | msRest.ServiceCallback<Models.EndpointInfoListApiModel>, callback?: msRest.ServiceCallback<Models.EndpointInfoListApiModel>): Promise<Models.QueryEndpointsResponse> {
+    return this.sendOperationRequest(
+      {
+        body,
+        options
+      },
+      queryEndpointsOperationSpec,
+      callback) as Promise<Models.QueryEndpointsResponse>;
+  }
+
+  /**
+   * Get a list of endpoints filtered using the specified query parameters. The returned model can
+   * contain a continuation token if more results are available. Call the GetListOfEndpoints
+   * operation using the token to retrieve more results.
    * @summary Get filtered list of endpoints
    * @param [options] The optional parameters
    * @returns Promise<Models.GetFilteredListOfEndpointsResponse>
@@ -583,39 +990,6 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
       },
       getFilteredListOfEndpointsOperationSpec,
       callback) as Promise<Models.GetFilteredListOfEndpointsResponse>;
-  }
-
-  /**
-   * Return endpoints that match the specified query.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfEndpoints operation using the token to retrieve
-   * more results.
-   * @summary Query endpoints
-   * @param query Query to match
-   * @param [options] The optional parameters
-   * @returns Promise<Models.QueryEndpointsResponse>
-   */
-  queryEndpoints(query: Models.EndpointRegistrationQueryApiModel, options?: Models.AzureOpcRegistryClientQueryEndpointsOptionalParams): Promise<Models.QueryEndpointsResponse>;
-  /**
-   * @param query Query to match
-   * @param callback The callback
-   */
-  queryEndpoints(query: Models.EndpointRegistrationQueryApiModel, callback: msRest.ServiceCallback<Models.EndpointInfoListApiModel>): void;
-  /**
-   * @param query Query to match
-   * @param options The optional parameters
-   * @param callback The callback
-   */
-  queryEndpoints(query: Models.EndpointRegistrationQueryApiModel, options: Models.AzureOpcRegistryClientQueryEndpointsOptionalParams, callback: msRest.ServiceCallback<Models.EndpointInfoListApiModel>): void;
-  queryEndpoints(query: Models.EndpointRegistrationQueryApiModel, options?: Models.AzureOpcRegistryClientQueryEndpointsOptionalParams | msRest.ServiceCallback<Models.EndpointInfoListApiModel>, callback?: msRest.ServiceCallback<Models.EndpointInfoListApiModel>): Promise<Models.QueryEndpointsResponse> {
-    return this.sendOperationRequest(
-      {
-        query,
-        options
-      },
-      queryEndpointsOperationSpec,
-      callback) as Promise<Models.QueryEndpointsResponse>;
   }
 
   /**
@@ -648,33 +1022,466 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
   }
 
   /**
-   * @summary Return the service status in the form of the service status
-   * api model.
+   * Register a user to receive endpoint events through SignalR.
+   * @summary Subscribe for endpoint events
    * @param [options] The optional parameters
-   * @returns Promise<Models.GetStatusResponse>
+   * @returns Promise<msRest.RestResponse>
    */
-  getStatus(options?: msRest.RequestOptionsBase): Promise<Models.GetStatusResponse>;
+  subscribe2(options?: Models.AzureOpcRegistryClientSubscribe2OptionalParams): Promise<msRest.RestResponse>;
   /**
    * @param callback The callback
    */
-  getStatus(callback: msRest.ServiceCallback<Models.StatusResponseApiModel>): void;
+  subscribe2(callback: msRest.ServiceCallback<void>): void;
   /**
    * @param options The optional parameters
    * @param callback The callback
    */
-  getStatus(options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.StatusResponseApiModel>): void;
-  getStatus(options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.StatusResponseApiModel>, callback?: msRest.ServiceCallback<Models.StatusResponseApiModel>): Promise<Models.GetStatusResponse> {
+  subscribe2(options: Models.AzureOpcRegistryClientSubscribe2OptionalParams, callback: msRest.ServiceCallback<void>): void;
+  subscribe2(options?: Models.AzureOpcRegistryClientSubscribe2OptionalParams | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
     return this.sendOperationRequest(
       {
         options
       },
-      getStatusOperationSpec,
-      callback) as Promise<Models.GetStatusResponse>;
+      subscribe2OperationSpec,
+      callback);
   }
 
   /**
-   * Returns a supervisor's registration and connectivity information.
-   * A supervisor id corresponds to the twin modules module identity.
+   * Unregister a user and stop it from receiving endpoint events.
+   * @summary Unsubscribe from endpoint events
+   * @param userId The user id that will not receive any more endpoint events
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  unsubscribe2(userId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param userId The user id that will not receive any more endpoint events
+   * @param callback The callback
+   */
+  unsubscribe2(userId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param userId The user id that will not receive any more endpoint events
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  unsubscribe2(userId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  unsubscribe2(userId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        userId,
+        options
+      },
+      unsubscribe2OperationSpec,
+      callback);
+  }
+
+  /**
+   * Returns a Gateway's registration and connectivity information. A Gateway id corresponds to the
+   * twin modules module identity.
+   * @summary Get Gateway registration information
+   * @param gatewayId Gateway identifier
+   * @param [options] The optional parameters
+   * @returns Promise<Models.GetGatewayResponse>
+   */
+  getGateway(gatewayId: string, options?: msRest.RequestOptionsBase): Promise<Models.GetGatewayResponse>;
+  /**
+   * @param gatewayId Gateway identifier
+   * @param callback The callback
+   */
+  getGateway(gatewayId: string, callback: msRest.ServiceCallback<Models.GatewayInfoApiModel>): void;
+  /**
+   * @param gatewayId Gateway identifier
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  getGateway(gatewayId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<Models.GatewayInfoApiModel>): void;
+  getGateway(gatewayId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<Models.GatewayInfoApiModel>, callback?: msRest.ServiceCallback<Models.GatewayInfoApiModel>): Promise<Models.GetGatewayResponse> {
+    return this.sendOperationRequest(
+      {
+        gatewayId,
+        options
+      },
+      getGatewayOperationSpec,
+      callback) as Promise<Models.GetGatewayResponse>;
+  }
+
+  /**
+   * Allows a caller to configure operations on the Gateway module identified by the Gateway id.
+   * @summary Update Gateway configuration
+   * @param gatewayId Gateway identifier
+   * @param body Patch request
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  updateGateway(gatewayId: string, body: Models.GatewayUpdateApiModel, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param gatewayId Gateway identifier
+   * @param body Patch request
+   * @param callback The callback
+   */
+  updateGateway(gatewayId: string, body: Models.GatewayUpdateApiModel, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param gatewayId Gateway identifier
+   * @param body Patch request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  updateGateway(gatewayId: string, body: Models.GatewayUpdateApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  updateGateway(gatewayId: string, body: Models.GatewayUpdateApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        gatewayId,
+        body,
+        options
+      },
+      updateGatewayOperationSpec,
+      callback);
+  }
+
+  /**
+   * Get all registered Gateways and therefore twin modules in paged form. The returned model can
+   * contain a continuation token if more results are available. Call this operation again using the
+   * token to retrieve more results.
+   * @summary Get list of Gateways
+   * @param [options] The optional parameters
+   * @returns Promise<Models.GetListOfGatewayResponse>
+   */
+  getListOfGateway(options?: Models.AzureOpcRegistryClientGetListOfGatewayOptionalParams): Promise<Models.GetListOfGatewayResponse>;
+  /**
+   * @param callback The callback
+   */
+  getListOfGateway(callback: msRest.ServiceCallback<Models.GatewayListApiModel>): void;
+  /**
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  getListOfGateway(options: Models.AzureOpcRegistryClientGetListOfGatewayOptionalParams, callback: msRest.ServiceCallback<Models.GatewayListApiModel>): void;
+  getListOfGateway(options?: Models.AzureOpcRegistryClientGetListOfGatewayOptionalParams | msRest.ServiceCallback<Models.GatewayListApiModel>, callback?: msRest.ServiceCallback<Models.GatewayListApiModel>): Promise<Models.GetListOfGatewayResponse> {
+    return this.sendOperationRequest(
+      {
+        options
+      },
+      getListOfGatewayOperationSpec,
+      callback) as Promise<Models.GetListOfGatewayResponse>;
+  }
+
+  /**
+   * Get all Gateways that match a specified query. The returned model can contain a continuation
+   * token if more results are available. Call the GetListOfGateway operation using the token to
+   * retrieve more results.
+   * @summary Query Gateways
+   * @param body Gateway query model
+   * @param [options] The optional parameters
+   * @returns Promise<Models.QueryGatewayResponse>
+   */
+  queryGateway(body: Models.GatewayQueryApiModel, options?: Models.AzureOpcRegistryClientQueryGatewayOptionalParams): Promise<Models.QueryGatewayResponse>;
+  /**
+   * @param body Gateway query model
+   * @param callback The callback
+   */
+  queryGateway(body: Models.GatewayQueryApiModel, callback: msRest.ServiceCallback<Models.GatewayListApiModel>): void;
+  /**
+   * @param body Gateway query model
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  queryGateway(body: Models.GatewayQueryApiModel, options: Models.AzureOpcRegistryClientQueryGatewayOptionalParams, callback: msRest.ServiceCallback<Models.GatewayListApiModel>): void;
+  queryGateway(body: Models.GatewayQueryApiModel, options?: Models.AzureOpcRegistryClientQueryGatewayOptionalParams | msRest.ServiceCallback<Models.GatewayListApiModel>, callback?: msRest.ServiceCallback<Models.GatewayListApiModel>): Promise<Models.QueryGatewayResponse> {
+    return this.sendOperationRequest(
+      {
+        body,
+        options
+      },
+      queryGatewayOperationSpec,
+      callback) as Promise<Models.QueryGatewayResponse>;
+  }
+
+  /**
+   * Get a list of Gateways filtered using the specified query parameters. The returned model can
+   * contain a continuation token if more results are available. Call the GetListOfGateway operation
+   * using the token to retrieve more results.
+   * @summary Get filtered list of Gateways
+   * @param [options] The optional parameters
+   * @returns Promise<Models.GetFilteredListOfGatewayResponse>
+   */
+  getFilteredListOfGateway(options?: Models.AzureOpcRegistryClientGetFilteredListOfGatewayOptionalParams): Promise<Models.GetFilteredListOfGatewayResponse>;
+  /**
+   * @param callback The callback
+   */
+  getFilteredListOfGateway(callback: msRest.ServiceCallback<Models.GatewayListApiModel>): void;
+  /**
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  getFilteredListOfGateway(options: Models.AzureOpcRegistryClientGetFilteredListOfGatewayOptionalParams, callback: msRest.ServiceCallback<Models.GatewayListApiModel>): void;
+  getFilteredListOfGateway(options?: Models.AzureOpcRegistryClientGetFilteredListOfGatewayOptionalParams | msRest.ServiceCallback<Models.GatewayListApiModel>, callback?: msRest.ServiceCallback<Models.GatewayListApiModel>): Promise<Models.GetFilteredListOfGatewayResponse> {
+    return this.sendOperationRequest(
+      {
+        options
+      },
+      getFilteredListOfGatewayOperationSpec,
+      callback) as Promise<Models.GetFilteredListOfGatewayResponse>;
+  }
+
+  /**
+   * Register a user to receive Gateway events through SignalR.
+   * @summary Subscribe to Gateway registry events
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  subscribe3(options?: Models.AzureOpcRegistryClientSubscribe3OptionalParams): Promise<msRest.RestResponse>;
+  /**
+   * @param callback The callback
+   */
+  subscribe3(callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  subscribe3(options: Models.AzureOpcRegistryClientSubscribe3OptionalParams, callback: msRest.ServiceCallback<void>): void;
+  subscribe3(options?: Models.AzureOpcRegistryClientSubscribe3OptionalParams | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        options
+      },
+      subscribe3OperationSpec,
+      callback);
+  }
+
+  /**
+   * Unregister a user and stop it from receiving Gateway events.
+   * @summary Unsubscribe registry events
+   * @param userId The user id that will not receive any more Gateway events
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  unsubscribe3(userId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param userId The user id that will not receive any more Gateway events
+   * @param callback The callback
+   */
+  unsubscribe3(userId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param userId The user id that will not receive any more Gateway events
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  unsubscribe3(userId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  unsubscribe3(userId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        userId,
+        options
+      },
+      unsubscribe3OperationSpec,
+      callback);
+  }
+
+  /**
+   * Returns a publisher's registration and connectivity information. A publisher id corresponds to
+   * the twin modules module identity.
+   * @summary Get publisher registration information
+   * @param publisherId Publisher identifier
+   * @param [options] The optional parameters
+   * @returns Promise<Models.GetPublisherResponse>
+   */
+  getPublisher(publisherId: string, options?: Models.AzureOpcRegistryClientGetPublisherOptionalParams): Promise<Models.GetPublisherResponse>;
+  /**
+   * @param publisherId Publisher identifier
+   * @param callback The callback
+   */
+  getPublisher(publisherId: string, callback: msRest.ServiceCallback<Models.PublisherApiModel>): void;
+  /**
+   * @param publisherId Publisher identifier
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  getPublisher(publisherId: string, options: Models.AzureOpcRegistryClientGetPublisherOptionalParams, callback: msRest.ServiceCallback<Models.PublisherApiModel>): void;
+  getPublisher(publisherId: string, options?: Models.AzureOpcRegistryClientGetPublisherOptionalParams | msRest.ServiceCallback<Models.PublisherApiModel>, callback?: msRest.ServiceCallback<Models.PublisherApiModel>): Promise<Models.GetPublisherResponse> {
+    return this.sendOperationRequest(
+      {
+        publisherId,
+        options
+      },
+      getPublisherOperationSpec,
+      callback) as Promise<Models.GetPublisherResponse>;
+  }
+
+  /**
+   * Allows a caller to configure operations on the publisher module identified by the publisher id.
+   * @summary Update publisher configuration
+   * @param publisherId Publisher identifier
+   * @param body Patch request
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  updatePublisher(publisherId: string, body: Models.PublisherUpdateApiModel, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param publisherId Publisher identifier
+   * @param body Patch request
+   * @param callback The callback
+   */
+  updatePublisher(publisherId: string, body: Models.PublisherUpdateApiModel, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param publisherId Publisher identifier
+   * @param body Patch request
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  updatePublisher(publisherId: string, body: Models.PublisherUpdateApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  updatePublisher(publisherId: string, body: Models.PublisherUpdateApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        publisherId,
+        body,
+        options
+      },
+      updatePublisherOperationSpec,
+      callback);
+  }
+
+  /**
+   * Get all registered publishers and therefore twin modules in paged form. The returned model can
+   * contain a continuation token if more results are available. Call this operation again using the
+   * token to retrieve more results.
+   * @summary Get list of publishers
+   * @param [options] The optional parameters
+   * @returns Promise<Models.GetListOfPublisherResponse>
+   */
+  getListOfPublisher(options?: Models.AzureOpcRegistryClientGetListOfPublisherOptionalParams): Promise<Models.GetListOfPublisherResponse>;
+  /**
+   * @param callback The callback
+   */
+  getListOfPublisher(callback: msRest.ServiceCallback<Models.PublisherListApiModel>): void;
+  /**
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  getListOfPublisher(options: Models.AzureOpcRegistryClientGetListOfPublisherOptionalParams, callback: msRest.ServiceCallback<Models.PublisherListApiModel>): void;
+  getListOfPublisher(options?: Models.AzureOpcRegistryClientGetListOfPublisherOptionalParams | msRest.ServiceCallback<Models.PublisherListApiModel>, callback?: msRest.ServiceCallback<Models.PublisherListApiModel>): Promise<Models.GetListOfPublisherResponse> {
+    return this.sendOperationRequest(
+      {
+        options
+      },
+      getListOfPublisherOperationSpec,
+      callback) as Promise<Models.GetListOfPublisherResponse>;
+  }
+
+  /**
+   * Get all publishers that match a specified query. The returned model can contain a continuation
+   * token if more results are available. Call the GetListOfPublisher operation using the token to
+   * retrieve more results.
+   * @summary Query publishers
+   * @param body Publisher query model
+   * @param [options] The optional parameters
+   * @returns Promise<Models.QueryPublisherResponse>
+   */
+  queryPublisher(body: Models.PublisherQueryApiModel, options?: Models.AzureOpcRegistryClientQueryPublisherOptionalParams): Promise<Models.QueryPublisherResponse>;
+  /**
+   * @param body Publisher query model
+   * @param callback The callback
+   */
+  queryPublisher(body: Models.PublisherQueryApiModel, callback: msRest.ServiceCallback<Models.PublisherListApiModel>): void;
+  /**
+   * @param body Publisher query model
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  queryPublisher(body: Models.PublisherQueryApiModel, options: Models.AzureOpcRegistryClientQueryPublisherOptionalParams, callback: msRest.ServiceCallback<Models.PublisherListApiModel>): void;
+  queryPublisher(body: Models.PublisherQueryApiModel, options?: Models.AzureOpcRegistryClientQueryPublisherOptionalParams | msRest.ServiceCallback<Models.PublisherListApiModel>, callback?: msRest.ServiceCallback<Models.PublisherListApiModel>): Promise<Models.QueryPublisherResponse> {
+    return this.sendOperationRequest(
+      {
+        body,
+        options
+      },
+      queryPublisherOperationSpec,
+      callback) as Promise<Models.QueryPublisherResponse>;
+  }
+
+  /**
+   * Get a list of publishers filtered using the specified query parameters. The returned model can
+   * contain a continuation token if more results are available. Call the GetListOfPublisher
+   * operation using the token to retrieve more results.
+   * @summary Get filtered list of publishers
+   * @param [options] The optional parameters
+   * @returns Promise<Models.GetFilteredListOfPublisherResponse>
+   */
+  getFilteredListOfPublisher(options?: Models.AzureOpcRegistryClientGetFilteredListOfPublisherOptionalParams): Promise<Models.GetFilteredListOfPublisherResponse>;
+  /**
+   * @param callback The callback
+   */
+  getFilteredListOfPublisher(callback: msRest.ServiceCallback<Models.PublisherListApiModel>): void;
+  /**
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  getFilteredListOfPublisher(options: Models.AzureOpcRegistryClientGetFilteredListOfPublisherOptionalParams, callback: msRest.ServiceCallback<Models.PublisherListApiModel>): void;
+  getFilteredListOfPublisher(options?: Models.AzureOpcRegistryClientGetFilteredListOfPublisherOptionalParams | msRest.ServiceCallback<Models.PublisherListApiModel>, callback?: msRest.ServiceCallback<Models.PublisherListApiModel>): Promise<Models.GetFilteredListOfPublisherResponse> {
+    return this.sendOperationRequest(
+      {
+        options
+      },
+      getFilteredListOfPublisherOperationSpec,
+      callback) as Promise<Models.GetFilteredListOfPublisherResponse>;
+  }
+
+  /**
+   * Register a user to receive publisher events through SignalR.
+   * @summary Subscribe to publisher registry events
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  subscribe4(options?: Models.AzureOpcRegistryClientSubscribe4OptionalParams): Promise<msRest.RestResponse>;
+  /**
+   * @param callback The callback
+   */
+  subscribe4(callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  subscribe4(options: Models.AzureOpcRegistryClientSubscribe4OptionalParams, callback: msRest.ServiceCallback<void>): void;
+  subscribe4(options?: Models.AzureOpcRegistryClientSubscribe4OptionalParams | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        options
+      },
+      subscribe4OperationSpec,
+      callback);
+  }
+
+  /**
+   * Unregister a user and stop it from receiving publisher events.
+   * @summary Unsubscribe registry events
+   * @param userId The user id that will not receive any more publisher events
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  unsubscribe4(userId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param userId The user id that will not receive any more publisher events
+   * @param callback The callback
+   */
+  unsubscribe4(userId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param userId The user id that will not receive any more publisher events
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  unsubscribe4(userId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  unsubscribe4(userId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        userId,
+        options
+      },
+      unsubscribe4OperationSpec,
+      callback);
+  }
+
+  /**
+   * Returns a supervisor's registration and connectivity information. A supervisor id corresponds to
+   * the twin modules module identity.
    * @summary Get supervisor registration information
    * @param supervisorId Supervisor identifier
    * @param [options] The optional parameters
@@ -703,33 +1510,33 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
   }
 
   /**
-   * Allows a caller to configure recurring discovery runs on the twin module
-   * identified by the supervisor id or update site information.
+   * Allows a caller to configure recurring discovery runs on the twin module identified by the
+   * supervisor id or update site information.
    * @summary Update supervisor information
    * @param supervisorId supervisor identifier
-   * @param request Patch request
+   * @param body Patch request
    * @param [options] The optional parameters
    * @returns Promise<msRest.RestResponse>
    */
-  updateSupervisor(supervisorId: string, request: Models.SupervisorUpdateApiModel, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  updateSupervisor(supervisorId: string, body: Models.SupervisorUpdateApiModel, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
   /**
    * @param supervisorId supervisor identifier
-   * @param request Patch request
+   * @param body Patch request
    * @param callback The callback
    */
-  updateSupervisor(supervisorId: string, request: Models.SupervisorUpdateApiModel, callback: msRest.ServiceCallback<void>): void;
+  updateSupervisor(supervisorId: string, body: Models.SupervisorUpdateApiModel, callback: msRest.ServiceCallback<void>): void;
   /**
    * @param supervisorId supervisor identifier
-   * @param request Patch request
+   * @param body Patch request
    * @param options The optional parameters
    * @param callback The callback
    */
-  updateSupervisor(supervisorId: string, request: Models.SupervisorUpdateApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
-  updateSupervisor(supervisorId: string, request: Models.SupervisorUpdateApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+  updateSupervisor(supervisorId: string, body: Models.SupervisorUpdateApiModel, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  updateSupervisor(supervisorId: string, body: Models.SupervisorUpdateApiModel, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
     return this.sendOperationRequest(
       {
         supervisorId,
-        request,
+        body,
         options
       },
       updateSupervisorOperationSpec,
@@ -766,8 +1573,7 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
   }
 
   /**
-   * Allows a caller to reset the twin module using its supervisor
-   * identity identifier.
+   * Allows a caller to reset the twin module using its supervisor identity identifier.
    * @summary Reset supervisor
    * @param supervisorId supervisor identifier
    * @param [options] The optional parameters
@@ -796,10 +1602,9 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
   }
 
   /**
-   * Get all registered supervisors and therefore twin modules in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
+   * Get all registered supervisors and therefore twin modules in paged form. The returned model can
+   * contain a continuation token if more results are available. Call this operation again using the
+   * token to retrieve more results.
    * @summary Get list of supervisors
    * @param [options] The optional parameters
    * @returns Promise<Models.GetListOfSupervisorsResponse>
@@ -824,11 +1629,40 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
   }
 
   /**
-   * Get a list of supervisors filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfSupervisors operation using the token to retrieve
-   * more results.
+   * Get all supervisors that match a specified query. The returned model can contain a continuation
+   * token if more results are available. Call the GetListOfSupervisors operation using the token to
+   * retrieve more results.
+   * @summary Query supervisors
+   * @param body Supervisors query model
+   * @param [options] The optional parameters
+   * @returns Promise<Models.QuerySupervisorsResponse>
+   */
+  querySupervisors(body: Models.SupervisorQueryApiModel, options?: Models.AzureOpcRegistryClientQuerySupervisorsOptionalParams): Promise<Models.QuerySupervisorsResponse>;
+  /**
+   * @param body Supervisors query model
+   * @param callback The callback
+   */
+  querySupervisors(body: Models.SupervisorQueryApiModel, callback: msRest.ServiceCallback<Models.SupervisorListApiModel>): void;
+  /**
+   * @param body Supervisors query model
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  querySupervisors(body: Models.SupervisorQueryApiModel, options: Models.AzureOpcRegistryClientQuerySupervisorsOptionalParams, callback: msRest.ServiceCallback<Models.SupervisorListApiModel>): void;
+  querySupervisors(body: Models.SupervisorQueryApiModel, options?: Models.AzureOpcRegistryClientQuerySupervisorsOptionalParams | msRest.ServiceCallback<Models.SupervisorListApiModel>, callback?: msRest.ServiceCallback<Models.SupervisorListApiModel>): Promise<Models.QuerySupervisorsResponse> {
+    return this.sendOperationRequest(
+      {
+        body,
+        options
+      },
+      querySupervisorsOperationSpec,
+      callback) as Promise<Models.QuerySupervisorsResponse>;
+  }
+
+  /**
+   * Get a list of supervisors filtered using the specified query parameters. The returned model can
+   * contain a continuation token if more results are available. Call the GetListOfSupervisors
+   * operation using the token to retrieve more results.
    * @summary Get filtered list of supervisors
    * @param [options] The optional parameters
    * @returns Promise<Models.GetFilteredListOfSupervisorsResponse>
@@ -853,52 +1687,75 @@ class AzureOpcRegistryClient extends AzureOpcRegistryClientContext {
   }
 
   /**
-   * Get all supervisors that match a specified query.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfSupervisors operation using the token to retrieve
-   * more results.
-   * @summary Query supervisors
-   * @param query Supervisors query model
+   * Register a user to receive supervisor events through SignalR.
+   * @summary Subscribe to supervisor registry events
    * @param [options] The optional parameters
-   * @returns Promise<Models.QuerySupervisorsResponse>
+   * @returns Promise<msRest.RestResponse>
    */
-  querySupervisors(query: Models.SupervisorQueryApiModel, options?: Models.AzureOpcRegistryClientQuerySupervisorsOptionalParams): Promise<Models.QuerySupervisorsResponse>;
+  subscribe5(options?: Models.AzureOpcRegistryClientSubscribe5OptionalParams): Promise<msRest.RestResponse>;
   /**
-   * @param query Supervisors query model
    * @param callback The callback
    */
-  querySupervisors(query: Models.SupervisorQueryApiModel, callback: msRest.ServiceCallback<Models.SupervisorListApiModel>): void;
+  subscribe5(callback: msRest.ServiceCallback<void>): void;
   /**
-   * @param query Supervisors query model
    * @param options The optional parameters
    * @param callback The callback
    */
-  querySupervisors(query: Models.SupervisorQueryApiModel, options: Models.AzureOpcRegistryClientQuerySupervisorsOptionalParams, callback: msRest.ServiceCallback<Models.SupervisorListApiModel>): void;
-  querySupervisors(query: Models.SupervisorQueryApiModel, options?: Models.AzureOpcRegistryClientQuerySupervisorsOptionalParams | msRest.ServiceCallback<Models.SupervisorListApiModel>, callback?: msRest.ServiceCallback<Models.SupervisorListApiModel>): Promise<Models.QuerySupervisorsResponse> {
+  subscribe5(options: Models.AzureOpcRegistryClientSubscribe5OptionalParams, callback: msRest.ServiceCallback<void>): void;
+  subscribe5(options?: Models.AzureOpcRegistryClientSubscribe5OptionalParams | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
     return this.sendOperationRequest(
       {
-        query,
         options
       },
-      querySupervisorsOperationSpec,
-      callback) as Promise<Models.QuerySupervisorsResponse>;
+      subscribe5OperationSpec,
+      callback);
+  }
+
+  /**
+   * Unregister a user and stop it from receiving supervisor events.
+   * @summary Unsubscribe registry events
+   * @param userId The user id that will not receive any more supervisor events
+   * @param [options] The optional parameters
+   * @returns Promise<msRest.RestResponse>
+   */
+  unsubscribe5(userId: string, options?: msRest.RequestOptionsBase): Promise<msRest.RestResponse>;
+  /**
+   * @param userId The user id that will not receive any more supervisor events
+   * @param callback The callback
+   */
+  unsubscribe5(userId: string, callback: msRest.ServiceCallback<void>): void;
+  /**
+   * @param userId The user id that will not receive any more supervisor events
+   * @param options The optional parameters
+   * @param callback The callback
+   */
+  unsubscribe5(userId: string, options: msRest.RequestOptionsBase, callback: msRest.ServiceCallback<void>): void;
+  unsubscribe5(userId: string, options?: msRest.RequestOptionsBase | msRest.ServiceCallback<void>, callback?: msRest.ServiceCallback<void>): Promise<msRest.RestResponse> {
+    return this.sendOperationRequest(
+      {
+        userId,
+        options
+      },
+      unsubscribe5OperationSpec,
+      callback);
   }
 }
 
 // Operation Specifications
 const serializer = new msRest.Serializer(Mappers);
-const getListOfApplicationsOperationSpec: msRest.OperationSpec = {
-  httpMethod: "GET",
+const registerServerOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
   path: "v2/applications",
-  queryParameters: [
-    Parameters.continuationToken,
-    Parameters.pageSize
-  ],
+  requestBody: {
+    parameterPath: "body",
+    mapper: {
+      ...Mappers.ServerRegistrationRequestApiModel,
+      required: true
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
   responses: {
-    200: {
-      bodyMapper: Mappers.ApplicationInfoListApiModel
-    },
+    200: {},
     default: {}
   },
   serializer
@@ -908,7 +1765,7 @@ const createApplicationOperationSpec: msRest.OperationSpec = {
   httpMethod: "PUT",
   path: "v2/applications",
   requestBody: {
-    parameterPath: "request",
+    parameterPath: "body",
     mapper: {
       ...Mappers.ApplicationRegistrationRequestApiModel,
       required: true
@@ -919,24 +1776,6 @@ const createApplicationOperationSpec: msRest.OperationSpec = {
     200: {
       bodyMapper: Mappers.ApplicationRegistrationResponseApiModel
     },
-    default: {}
-  },
-  serializer
-};
-
-const registerServerOperationSpec: msRest.OperationSpec = {
-  httpMethod: "POST",
-  path: "v2/applications",
-  requestBody: {
-    parameterPath: "request",
-    mapper: {
-      ...Mappers.ServerRegistrationRequestApiModel,
-      required: true
-    }
-  },
-  contentType: "application/json-patch+json; charset=utf-8",
-  responses: {
-    200: {},
     default: {}
   },
   serializer
@@ -955,11 +1794,27 @@ const deleteAllDisabledApplicationsOperationSpec: msRest.OperationSpec = {
   serializer
 };
 
+const getListOfApplicationsOperationSpec: msRest.OperationSpec = {
+  httpMethod: "GET",
+  path: "v2/applications",
+  queryParameters: [
+    Parameters.continuationToken,
+    Parameters.pageSize
+  ],
+  responses: {
+    200: {
+      bodyMapper: Mappers.ApplicationInfoListApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
 const disableApplicationOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
   path: "v2/applications/{applicationId}/disable",
   urlParameters: [
-    Parameters.applicationId
+    Parameters.applicationId0
   ],
   responses: {
     200: {},
@@ -972,7 +1827,7 @@ const enableApplicationOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
   path: "v2/applications/{applicationId}/enable",
   urlParameters: [
-    Parameters.applicationId
+    Parameters.applicationId0
   ],
   responses: {
     200: {},
@@ -985,7 +1840,7 @@ const discoverServerOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
   path: "v2/applications/discover",
   requestBody: {
-    parameterPath: "request",
+    parameterPath: "body",
     mapper: {
       ...Mappers.DiscoveryRequestApiModel,
       required: true
@@ -999,11 +1854,24 @@ const discoverServerOperationSpec: msRest.OperationSpec = {
   serializer
 };
 
+const cancelOperationSpec: msRest.OperationSpec = {
+  httpMethod: "DELETE",
+  path: "v2/applications/discover/{requestId}",
+  urlParameters: [
+    Parameters.requestId
+  ],
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
 const getApplicationRegistrationOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
   path: "v2/applications/{applicationId}",
   urlParameters: [
-    Parameters.applicationId
+    Parameters.applicationId0
   ],
   responses: {
     200: {
@@ -1014,12 +1882,20 @@ const getApplicationRegistrationOperationSpec: msRest.OperationSpec = {
   serializer
 };
 
-const deleteApplicationOperationSpec: msRest.OperationSpec = {
-  httpMethod: "DELETE",
+const updateApplicationRegistrationOperationSpec: msRest.OperationSpec = {
+  httpMethod: "PATCH",
   path: "v2/applications/{applicationId}",
   urlParameters: [
-    Parameters.applicationId
+    Parameters.applicationId0
   ],
+  requestBody: {
+    parameterPath: "body",
+    mapper: {
+      ...Mappers.ApplicationRegistrationUpdateApiModel,
+      required: true
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
   responses: {
     200: {},
     default: {}
@@ -1027,20 +1903,12 @@ const deleteApplicationOperationSpec: msRest.OperationSpec = {
   serializer
 };
 
-const updateApplicationRegistrationOperationSpec: msRest.OperationSpec = {
-  httpMethod: "PATCH",
+const deleteApplicationOperationSpec: msRest.OperationSpec = {
+  httpMethod: "DELETE",
   path: "v2/applications/{applicationId}",
   urlParameters: [
-    Parameters.applicationId
+    Parameters.applicationId0
   ],
-  requestBody: {
-    parameterPath: "request",
-    mapper: {
-      ...Mappers.ApplicationRegistrationUpdateApiModel,
-      required: true
-    }
-  },
-  contentType: "application/json-patch+json; charset=utf-8",
   responses: {
     200: {},
     default: {}
@@ -1064,29 +1932,6 @@ const getListOfSitesOperationSpec: msRest.OperationSpec = {
   serializer
 };
 
-const getFilteredListOfApplicationsOperationSpec: msRest.OperationSpec = {
-  httpMethod: "GET",
-  path: "v2/applications/query",
-  queryParameters: [
-    Parameters.pageSize
-  ],
-  requestBody: {
-    parameterPath: "query",
-    mapper: {
-      ...Mappers.ApplicationRegistrationQueryApiModel,
-      required: true
-    }
-  },
-  contentType: "application/json-patch+json; charset=utf-8",
-  responses: {
-    200: {
-      bodyMapper: Mappers.ApplicationInfoListApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
 const queryApplicationsOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
   path: "v2/applications/query",
@@ -1094,7 +1939,7 @@ const queryApplicationsOperationSpec: msRest.OperationSpec = {
     Parameters.pageSize
   ],
   requestBody: {
-    parameterPath: "query",
+    parameterPath: "body",
     mapper: {
       ...Mappers.ApplicationRegistrationQueryApiModel,
       required: true
@@ -1110,21 +1955,299 @@ const queryApplicationsOperationSpec: msRest.OperationSpec = {
   serializer
 };
 
-const queryApplicationsByIdOperationSpec: msRest.OperationSpec = {
-  httpMethod: "POST",
-  path: "v2/applications/querybyid",
+const getFilteredListOfApplicationsOperationSpec: msRest.OperationSpec = {
+  httpMethod: "GET",
+  path: "v2/applications/query",
+  queryParameters: [
+    Parameters.pageSize
+  ],
   requestBody: {
-    parameterPath: [
-      "options",
-      "query"
-    ],
-    mapper: Mappers.ApplicationRecordQueryApiModel
+    parameterPath: "body",
+    mapper: {
+      ...Mappers.ApplicationRegistrationQueryApiModel,
+      required: true
+    }
   },
   contentType: "application/json-patch+json; charset=utf-8",
   responses: {
     200: {
-      bodyMapper: Mappers.ApplicationRecordListApiModel
+      bodyMapper: Mappers.ApplicationInfoListApiModel
     },
+    default: {}
+  },
+  serializer
+};
+
+const subscribeOperationSpec: msRest.OperationSpec = {
+  httpMethod: "PUT",
+  path: "v2/applications/events",
+  requestBody: {
+    parameterPath: [
+      "options",
+      "body"
+    ],
+    mapper: {
+      serializedName: "body",
+      type: {
+        name: "String"
+      }
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const unsubscribeOperationSpec: msRest.OperationSpec = {
+  httpMethod: "DELETE",
+  path: "v2/applications/events/{userId}",
+  urlParameters: [
+    Parameters.userId
+  ],
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const getDiscovererOperationSpec: msRest.OperationSpec = {
+  httpMethod: "GET",
+  path: "v2/discovery/{discovererId}",
+  urlParameters: [
+    Parameters.discovererId0
+  ],
+  queryParameters: [
+    Parameters.onlyServerState
+  ],
+  responses: {
+    200: {
+      bodyMapper: Mappers.DiscovererApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const updateDiscovererOperationSpec: msRest.OperationSpec = {
+  httpMethod: "PATCH",
+  path: "v2/discovery/{discovererId}",
+  urlParameters: [
+    Parameters.discovererId0
+  ],
+  requestBody: {
+    parameterPath: "body",
+    mapper: {
+      ...Mappers.DiscovererUpdateApiModel,
+      required: true
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const setDiscoveryModeOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/discovery/{discovererId}",
+  urlParameters: [
+    Parameters.discovererId0
+  ],
+  queryParameters: [
+    Parameters.mode
+  ],
+  requestBody: {
+    parameterPath: [
+      "options",
+      "body"
+    ],
+    mapper: Mappers.DiscoveryConfigApiModel
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const getListOfDiscoverersOperationSpec: msRest.OperationSpec = {
+  httpMethod: "GET",
+  path: "v2/discovery",
+  queryParameters: [
+    Parameters.onlyServerState,
+    Parameters.continuationToken,
+    Parameters.pageSize
+  ],
+  responses: {
+    200: {
+      bodyMapper: Mappers.DiscovererListApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const queryDiscoverersOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/discovery/query",
+  queryParameters: [
+    Parameters.onlyServerState,
+    Parameters.pageSize
+  ],
+  requestBody: {
+    parameterPath: "body",
+    mapper: {
+      ...Mappers.DiscovererQueryApiModel,
+      required: true
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {
+      bodyMapper: Mappers.DiscovererListApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const getFilteredListOfDiscoverersOperationSpec: msRest.OperationSpec = {
+  httpMethod: "GET",
+  path: "v2/discovery/query",
+  queryParameters: [
+    Parameters.siteId,
+    Parameters.discovery,
+    Parameters.connected,
+    Parameters.onlyServerState,
+    Parameters.pageSize
+  ],
+  responses: {
+    200: {
+      bodyMapper: Mappers.DiscovererListApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const subscribe1OperationSpec: msRest.OperationSpec = {
+  httpMethod: "PUT",
+  path: "v2/discovery/events",
+  requestBody: {
+    parameterPath: [
+      "options",
+      "body"
+    ],
+    mapper: {
+      serializedName: "body",
+      type: {
+        name: "String"
+      }
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const unsubscribe1OperationSpec: msRest.OperationSpec = {
+  httpMethod: "DELETE",
+  path: "v2/discovery/events/{userId}",
+  urlParameters: [
+    Parameters.userId
+  ],
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const subscribeByDiscovererIdOperationSpec: msRest.OperationSpec = {
+  httpMethod: "PUT",
+  path: "v2/discovery/{discovererId}/events",
+  urlParameters: [
+    Parameters.discovererId0
+  ],
+  requestBody: {
+    parameterPath: [
+      "options",
+      "body"
+    ],
+    mapper: {
+      serializedName: "body",
+      type: {
+        name: "String"
+      }
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const subscribeByRequestIdOperationSpec: msRest.OperationSpec = {
+  httpMethod: "PUT",
+  path: "v2/discovery/requests/{requestId}/events",
+  urlParameters: [
+    Parameters.requestId
+  ],
+  requestBody: {
+    parameterPath: [
+      "options",
+      "body"
+    ],
+    mapper: {
+      serializedName: "body",
+      type: {
+        name: "String"
+      }
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const unsubscribeByRequestIdOperationSpec: msRest.OperationSpec = {
+  httpMethod: "DELETE",
+  path: "v2/discovery/requests/{requestId}/events/{userId}",
+  urlParameters: [
+    Parameters.requestId,
+    Parameters.userId
+  ],
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const unsubscribeByDiscovererIdOperationSpec: msRest.OperationSpec = {
+  httpMethod: "DELETE",
+  path: "v2/discovery/{discovererId}/events/{userId}",
+  urlParameters: [
+    Parameters.discovererId0,
+    Parameters.userId
+  ],
+  responses: {
+    200: {},
     default: {}
   },
   serializer
@@ -1161,58 +2284,12 @@ const getEndpointOperationSpec: msRest.OperationSpec = {
   serializer
 };
 
-const updateEndpointOperationSpec: msRest.OperationSpec = {
-  httpMethod: "PATCH",
-  path: "v2/endpoints/{endpointId}",
-  urlParameters: [
-    Parameters.endpointId
-  ],
-  requestBody: {
-    parameterPath: "request",
-    mapper: {
-      ...Mappers.EndpointRegistrationUpdateApiModel,
-      required: true
-    }
-  },
-  contentType: "application/json-patch+json; charset=utf-8",
-  responses: {
-    200: {},
-    default: {}
-  },
-  serializer
-};
-
 const getListOfEndpointsOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
   path: "v2/endpoints",
   queryParameters: [
     Parameters.onlyServerState,
     Parameters.continuationToken,
-    Parameters.pageSize
-  ],
-  responses: {
-    200: {
-      bodyMapper: Mappers.EndpointInfoListApiModel
-    },
-    default: {}
-  },
-  serializer
-};
-
-const getFilteredListOfEndpointsOperationSpec: msRest.OperationSpec = {
-  httpMethod: "GET",
-  path: "v2/endpoints/query",
-  queryParameters: [
-    Parameters.url,
-    Parameters.userAuthentication,
-    Parameters.certificate,
-    Parameters.securityMode,
-    Parameters.securityPolicy,
-    Parameters.activated,
-    Parameters.connected,
-    Parameters.endpointState,
-    Parameters.includeNotSeenSince,
-    Parameters.onlyServerState,
     Parameters.pageSize
   ],
   responses: {
@@ -1232,13 +2309,41 @@ const queryEndpointsOperationSpec: msRest.OperationSpec = {
     Parameters.pageSize
   ],
   requestBody: {
-    parameterPath: "query",
+    parameterPath: "body",
     mapper: {
       ...Mappers.EndpointRegistrationQueryApiModel,
       required: true
     }
   },
   contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {
+      bodyMapper: Mappers.EndpointInfoListApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const getFilteredListOfEndpointsOperationSpec: msRest.OperationSpec = {
+  httpMethod: "GET",
+  path: "v2/endpoints/query",
+  queryParameters: [
+    Parameters.url,
+    Parameters.certificate,
+    Parameters.securityMode,
+    Parameters.securityPolicy,
+    Parameters.activated,
+    Parameters.connected,
+    Parameters.endpointState,
+    Parameters.includeNotSeenSince,
+    Parameters.discovererId1,
+    Parameters.applicationId1,
+    Parameters.supervisorId0,
+    Parameters.siteOrGatewayId,
+    Parameters.onlyServerState,
+    Parameters.pageSize
+  ],
   responses: {
     200: {
       bodyMapper: Mappers.EndpointInfoListApiModel
@@ -1261,13 +2366,299 @@ const deactivateEndpointOperationSpec: msRest.OperationSpec = {
   serializer
 };
 
-const getStatusOperationSpec: msRest.OperationSpec = {
+const subscribe2OperationSpec: msRest.OperationSpec = {
+  httpMethod: "PUT",
+  path: "v2/endpoints/events",
+  requestBody: {
+    parameterPath: [
+      "options",
+      "body"
+    ],
+    mapper: {
+      serializedName: "body",
+      type: {
+        name: "String"
+      }
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const unsubscribe2OperationSpec: msRest.OperationSpec = {
+  httpMethod: "DELETE",
+  path: "v2/endpoints/events/{userId}",
+  urlParameters: [
+    Parameters.userId
+  ],
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const getGatewayOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
-  path: "v2/status",
+  path: "v2/gateways/{GatewayId}",
+  urlParameters: [
+    Parameters.gatewayId
+  ],
   responses: {
     200: {
-      bodyMapper: Mappers.StatusResponseApiModel
+      bodyMapper: Mappers.GatewayInfoApiModel
     },
+    default: {}
+  },
+  serializer
+};
+
+const updateGatewayOperationSpec: msRest.OperationSpec = {
+  httpMethod: "PATCH",
+  path: "v2/gateways/{GatewayId}",
+  urlParameters: [
+    Parameters.gatewayId
+  ],
+  requestBody: {
+    parameterPath: "body",
+    mapper: {
+      ...Mappers.GatewayUpdateApiModel,
+      required: true
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const getListOfGatewayOperationSpec: msRest.OperationSpec = {
+  httpMethod: "GET",
+  path: "v2/gateways",
+  queryParameters: [
+    Parameters.continuationToken,
+    Parameters.pageSize
+  ],
+  responses: {
+    200: {
+      bodyMapper: Mappers.GatewayListApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const queryGatewayOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/gateways/query",
+  queryParameters: [
+    Parameters.pageSize
+  ],
+  requestBody: {
+    parameterPath: "body",
+    mapper: {
+      ...Mappers.GatewayQueryApiModel,
+      required: true
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {
+      bodyMapper: Mappers.GatewayListApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const getFilteredListOfGatewayOperationSpec: msRest.OperationSpec = {
+  httpMethod: "GET",
+  path: "v2/gateways/query",
+  queryParameters: [
+    Parameters.siteId,
+    Parameters.connected,
+    Parameters.pageSize
+  ],
+  responses: {
+    200: {
+      bodyMapper: Mappers.GatewayListApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const subscribe3OperationSpec: msRest.OperationSpec = {
+  httpMethod: "PUT",
+  path: "v2/gateways/events",
+  requestBody: {
+    parameterPath: [
+      "options",
+      "body"
+    ],
+    mapper: {
+      serializedName: "body",
+      type: {
+        name: "String"
+      }
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const unsubscribe3OperationSpec: msRest.OperationSpec = {
+  httpMethod: "DELETE",
+  path: "v2/gateways/events/{userId}",
+  urlParameters: [
+    Parameters.userId
+  ],
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const getPublisherOperationSpec: msRest.OperationSpec = {
+  httpMethod: "GET",
+  path: "v2/publishers/{publisherId}",
+  urlParameters: [
+    Parameters.publisherId
+  ],
+  queryParameters: [
+    Parameters.onlyServerState
+  ],
+  responses: {
+    200: {
+      bodyMapper: Mappers.PublisherApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const updatePublisherOperationSpec: msRest.OperationSpec = {
+  httpMethod: "PATCH",
+  path: "v2/publishers/{publisherId}",
+  urlParameters: [
+    Parameters.publisherId
+  ],
+  requestBody: {
+    parameterPath: "body",
+    mapper: {
+      ...Mappers.PublisherUpdateApiModel,
+      required: true
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const getListOfPublisherOperationSpec: msRest.OperationSpec = {
+  httpMethod: "GET",
+  path: "v2/publishers",
+  queryParameters: [
+    Parameters.onlyServerState,
+    Parameters.continuationToken,
+    Parameters.pageSize
+  ],
+  responses: {
+    200: {
+      bodyMapper: Mappers.PublisherListApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const queryPublisherOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/publishers/query",
+  queryParameters: [
+    Parameters.onlyServerState,
+    Parameters.pageSize
+  ],
+  requestBody: {
+    parameterPath: "body",
+    mapper: {
+      ...Mappers.PublisherQueryApiModel,
+      required: true
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {
+      bodyMapper: Mappers.PublisherListApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const getFilteredListOfPublisherOperationSpec: msRest.OperationSpec = {
+  httpMethod: "GET",
+  path: "v2/publishers/query",
+  queryParameters: [
+    Parameters.siteId,
+    Parameters.connected,
+    Parameters.onlyServerState,
+    Parameters.pageSize
+  ],
+  responses: {
+    200: {
+      bodyMapper: Mappers.PublisherListApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
+const subscribe4OperationSpec: msRest.OperationSpec = {
+  httpMethod: "PUT",
+  path: "v2/publishers/events",
+  requestBody: {
+    parameterPath: [
+      "options",
+      "body"
+    ],
+    mapper: {
+      serializedName: "body",
+      type: {
+        name: "String"
+      }
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const unsubscribe4OperationSpec: msRest.OperationSpec = {
+  httpMethod: "DELETE",
+  path: "v2/publishers/events/{userId}",
+  urlParameters: [
+    Parameters.userId
+  ],
+  responses: {
+    200: {},
     default: {}
   },
   serializer
@@ -1277,7 +2668,7 @@ const getSupervisorOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
   path: "v2/supervisors/{supervisorId}",
   urlParameters: [
-    Parameters.supervisorId
+    Parameters.supervisorId1
   ],
   queryParameters: [
     Parameters.onlyServerState
@@ -1295,10 +2686,10 @@ const updateSupervisorOperationSpec: msRest.OperationSpec = {
   httpMethod: "PATCH",
   path: "v2/supervisors/{supervisorId}",
   urlParameters: [
-    Parameters.supervisorId
+    Parameters.supervisorId1
   ],
   requestBody: {
-    parameterPath: "request",
+    parameterPath: "body",
     mapper: {
       ...Mappers.SupervisorUpdateApiModel,
       required: true
@@ -1316,7 +2707,7 @@ const getSupervisorStatusOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
   path: "v2/supervisors/{supervisorId}/status",
   urlParameters: [
-    Parameters.supervisorId
+    Parameters.supervisorId1
   ],
   responses: {
     200: {
@@ -1331,7 +2722,7 @@ const resetSupervisorOperationSpec: msRest.OperationSpec = {
   httpMethod: "POST",
   path: "v2/supervisors/{supervisorId}/reset",
   urlParameters: [
-    Parameters.supervisorId
+    Parameters.supervisorId1
   ],
   responses: {
     200: {},
@@ -1357,12 +2748,35 @@ const getListOfSupervisorsOperationSpec: msRest.OperationSpec = {
   serializer
 };
 
+const querySupervisorsOperationSpec: msRest.OperationSpec = {
+  httpMethod: "POST",
+  path: "v2/supervisors/query",
+  queryParameters: [
+    Parameters.onlyServerState,
+    Parameters.pageSize
+  ],
+  requestBody: {
+    parameterPath: "body",
+    mapper: {
+      ...Mappers.SupervisorQueryApiModel,
+      required: true
+    }
+  },
+  contentType: "application/json-patch+json; charset=utf-8",
+  responses: {
+    200: {
+      bodyMapper: Mappers.SupervisorListApiModel
+    },
+    default: {}
+  },
+  serializer
+};
+
 const getFilteredListOfSupervisorsOperationSpec: msRest.OperationSpec = {
   httpMethod: "GET",
   path: "v2/supervisors/query",
   queryParameters: [
     Parameters.siteId,
-    Parameters.discovery,
     Parameters.connected,
     Parameters.onlyServerState,
     Parameters.pageSize
@@ -1376,25 +2790,37 @@ const getFilteredListOfSupervisorsOperationSpec: msRest.OperationSpec = {
   serializer
 };
 
-const querySupervisorsOperationSpec: msRest.OperationSpec = {
-  httpMethod: "POST",
-  path: "v2/supervisors/query",
-  queryParameters: [
-    Parameters.onlyServerState,
-    Parameters.pageSize
-  ],
+const subscribe5OperationSpec: msRest.OperationSpec = {
+  httpMethod: "PUT",
+  path: "v2/supervisors/events",
   requestBody: {
-    parameterPath: "query",
+    parameterPath: [
+      "options",
+      "body"
+    ],
     mapper: {
-      ...Mappers.SupervisorQueryApiModel,
-      required: true
+      serializedName: "body",
+      type: {
+        name: "String"
+      }
     }
   },
   contentType: "application/json-patch+json; charset=utf-8",
   responses: {
-    200: {
-      bodyMapper: Mappers.SupervisorListApiModel
-    },
+    200: {},
+    default: {}
+  },
+  serializer
+};
+
+const unsubscribe5OperationSpec: msRest.OperationSpec = {
+  httpMethod: "DELETE",
+  path: "v2/supervisors/events/{userId}",
+  urlParameters: [
+    Parameters.userId
+  ],
+  responses: {
+    200: {},
     default: {}
   },
   serializer

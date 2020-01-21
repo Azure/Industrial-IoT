@@ -25,7 +25,7 @@ public class X509CrlApiModel {
     /**
      * The certificate revocation list.
      */
-    @JsonProperty(value = "crl", required = true)
+    @JsonProperty(value = "crl")
     private Object crl;
 
     /**

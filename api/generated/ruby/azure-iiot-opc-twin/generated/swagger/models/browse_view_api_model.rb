@@ -10,7 +10,7 @@
 module azure.iiot.opc.twin
   module Models
     #
-    # browse view model
+    # Browse view model
     #
     class BrowseViewApiModel
       # @return [String] Node of the view to browse

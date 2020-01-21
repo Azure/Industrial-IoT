@@ -42,10 +42,10 @@ public class ReadProcessedValuesDetailsApiModel {
     private String aggregateTypeId;
 
     /**
-     * A configuration for the aggregate.
+     * The aggregateConfiguration property.
      */
     @JsonProperty(value = "aggregateConfiguration")
-    private AggregateConfigApiModel aggregateConfiguration;
+    private AggregateConfigurationApiModel aggregateConfiguration;
 
     /**
      * Get start time to read from.
@@ -128,21 +128,21 @@ public class ReadProcessedValuesDetailsApiModel {
     }
 
     /**
-     * Get a configuration for the aggregate.
+     * Get the aggregateConfiguration value.
      *
      * @return the aggregateConfiguration value
      */
-    public AggregateConfigApiModel aggregateConfiguration() {
+    public AggregateConfigurationApiModel aggregateConfiguration() {
         return this.aggregateConfiguration;
     }
 
     /**
-     * Set a configuration for the aggregate.
+     * Set the aggregateConfiguration value.
      *
      * @param aggregateConfiguration the aggregateConfiguration value to set
      * @return the ReadProcessedValuesDetailsApiModel object itself.
      */
-    public ReadProcessedValuesDetailsApiModel withAggregateConfiguration(AggregateConfigApiModel aggregateConfiguration) {
+    public ReadProcessedValuesDetailsApiModel withAggregateConfiguration(AggregateConfigurationApiModel aggregateConfiguration) {
         this.aggregateConfiguration = aggregateConfiguration;
         return this;
     }

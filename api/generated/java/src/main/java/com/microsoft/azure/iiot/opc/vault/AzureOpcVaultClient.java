@@ -19,7 +19,6 @@ import com.microsoft.azure.iiot.opc.vault.models.StartNewKeyPairRequestApiModel;
 import com.microsoft.azure.iiot.opc.vault.models.StartNewKeyPairRequestResponseApiModel;
 import com.microsoft.azure.iiot.opc.vault.models.StartSigningRequestApiModel;
 import com.microsoft.azure.iiot.opc.vault.models.StartSigningRequestResponseApiModel;
-import com.microsoft.azure.iiot.opc.vault.models.StatusResponseApiModel;
 import com.microsoft.azure.iiot.opc.vault.models.TrustGroupRegistrationApiModel;
 import com.microsoft.azure.iiot.opc.vault.models.TrustGroupRegistrationListApiModel;
 import com.microsoft.azure.iiot.opc.vault.models.TrustGroupRegistrationRequestApiModel;
@@ -51,13 +50,12 @@ public interface AzureOpcVaultClient {
     /**
      * The default base URL.
      */
-    String DEFAULT_BASE_URL = "http://localhost";
+    String DEFAULT_BASE_URL = "http://localhost:9080";
 
     /**
      * Get Issuer CA Certificate chain.
      *
-     * @param serialNumber the serial number of the
-                 Issuer CA Certificate
+     * @param serialNumber the serial number of the Issuer CA Certificate
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
@@ -68,8 +66,7 @@ public interface AzureOpcVaultClient {
     /**
      * Get Issuer CA Certificate chain.
      *
-     * @param serialNumber the serial number of the
-                 Issuer CA Certificate
+     * @param serialNumber the serial number of the Issuer CA Certificate
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
@@ -79,8 +76,7 @@ public interface AzureOpcVaultClient {
     /**
      * Get Issuer CA Certificate chain.
      *
-     * @param serialNumber the serial number of the
-                 Issuer CA Certificate
+     * @param serialNumber the serial number of the Issuer CA Certificate
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the X509CertificateChainApiModel object
      */
@@ -89,8 +85,7 @@ public interface AzureOpcVaultClient {
     /**
      * Get Issuer CA Certificate chain.
      *
-     * @param serialNumber the serial number of the
-                 Issuer CA Certificate
+     * @param serialNumber the serial number of the Issuer CA Certificate
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the X509CertificateChainApiModel object
      */
@@ -99,8 +94,7 @@ public interface AzureOpcVaultClient {
     /**
      * Get Issuer CA CRL chain.
      *
-     * @param serialNumber the serial number of the Issuer
-                 CA Certificate
+     * @param serialNumber the serial number of the Issuer CA Certificate
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
@@ -111,8 +105,7 @@ public interface AzureOpcVaultClient {
     /**
      * Get Issuer CA CRL chain.
      *
-     * @param serialNumber the serial number of the Issuer
-                 CA Certificate
+     * @param serialNumber the serial number of the Issuer CA Certificate
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
@@ -122,8 +115,7 @@ public interface AzureOpcVaultClient {
     /**
      * Get Issuer CA CRL chain.
      *
-     * @param serialNumber the serial number of the Issuer
-                 CA Certificate
+     * @param serialNumber the serial number of the Issuer CA Certificate
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the X509CrlChainApiModel object
      */
@@ -132,8 +124,7 @@ public interface AzureOpcVaultClient {
     /**
      * Get Issuer CA CRL chain.
      *
-     * @param serialNumber the serial number of the Issuer
-                 CA Certificate
+     * @param serialNumber the serial number of the Issuer CA Certificate
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the X509CrlChainApiModel object
      */
@@ -147,8 +138,9 @@ public interface AzureOpcVaultClient {
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the String object if successful.
      */
-    void getIssuerCertificateChain1(String serialNumber);
+    String getIssuerCertificateChain1(String serialNumber);
 
     /**
      * Get Issuer Certificate for Authority Information
@@ -159,7 +151,7 @@ public interface AzureOpcVaultClient {
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> getIssuerCertificateChain1Async(String serialNumber, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<String> getIssuerCertificateChain1Async(String serialNumber, final ServiceCallback<String> serviceCallback);
 
     /**
      * Get Issuer Certificate for Authority Information
@@ -167,9 +159,9 @@ public interface AzureOpcVaultClient {
      *
      * @param serialNumber the String value
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the String object
      */
-    Observable<Void> getIssuerCertificateChain1Async(String serialNumber);
+    Observable<String> getIssuerCertificateChain1Async(String serialNumber);
 
     /**
      * Get Issuer Certificate for Authority Information
@@ -177,9 +169,9 @@ public interface AzureOpcVaultClient {
      *
      * @param serialNumber the String value
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the String object
      */
-    Observable<ServiceResponse<Void>> getIssuerCertificateChain1WithServiceResponseAsync(String serialNumber);
+    Observable<ServiceResponse<String>> getIssuerCertificateChain1WithServiceResponseAsync(String serialNumber);
 
     /**
      * Get Issuer CRL in CRL Distribution Endpoint.
@@ -188,8 +180,9 @@ public interface AzureOpcVaultClient {
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the String object if successful.
      */
-    void getIssuerCrlChain1(String serialNumber);
+    String getIssuerCrlChain1(String serialNumber);
 
     /**
      * Get Issuer CRL in CRL Distribution Endpoint.
@@ -199,79 +192,72 @@ public interface AzureOpcVaultClient {
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> getIssuerCrlChain1Async(String serialNumber, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<String> getIssuerCrlChain1Async(String serialNumber, final ServiceCallback<String> serviceCallback);
 
     /**
      * Get Issuer CRL in CRL Distribution Endpoint.
      *
      * @param serialNumber the String value
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the String object
      */
-    Observable<Void> getIssuerCrlChain1Async(String serialNumber);
+    Observable<String> getIssuerCrlChain1Async(String serialNumber);
 
     /**
      * Get Issuer CRL in CRL Distribution Endpoint.
      *
      * @param serialNumber the String value
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
+     * @return the observable to the String object
      */
-    Observable<ServiceResponse<Void>> getIssuerCrlChain1WithServiceResponseAsync(String serialNumber);
+    Observable<ServiceResponse<String>> getIssuerCrlChain1WithServiceResponseAsync(String serialNumber);
 
     /**
      * Create a certificate request with a certificate signing request (CSR).
-     * The request is in the 'New' state after this call.
-     Requires Writer or Manager role.
+     * The request is in the 'New' state after this call. Requires Writer or Manager role.
      *
-     * @param signingRequest The signing request parameters
+     * @param body The signing request parameters
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the StartSigningRequestResponseApiModel object if successful.
      */
-    StartSigningRequestResponseApiModel startSigningRequest(StartSigningRequestApiModel signingRequest);
+    StartSigningRequestResponseApiModel startSigningRequest(StartSigningRequestApiModel body);
 
     /**
      * Create a certificate request with a certificate signing request (CSR).
-     * The request is in the 'New' state after this call.
-     Requires Writer or Manager role.
+     * The request is in the 'New' state after this call. Requires Writer or Manager role.
      *
-     * @param signingRequest The signing request parameters
+     * @param body The signing request parameters
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<StartSigningRequestResponseApiModel> startSigningRequestAsync(StartSigningRequestApiModel signingRequest, final ServiceCallback<StartSigningRequestResponseApiModel> serviceCallback);
+    ServiceFuture<StartSigningRequestResponseApiModel> startSigningRequestAsync(StartSigningRequestApiModel body, final ServiceCallback<StartSigningRequestResponseApiModel> serviceCallback);
 
     /**
      * Create a certificate request with a certificate signing request (CSR).
-     * The request is in the 'New' state after this call.
-     Requires Writer or Manager role.
+     * The request is in the 'New' state after this call. Requires Writer or Manager role.
      *
-     * @param signingRequest The signing request parameters
+     * @param body The signing request parameters
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the StartSigningRequestResponseApiModel object
      */
-    Observable<StartSigningRequestResponseApiModel> startSigningRequestAsync(StartSigningRequestApiModel signingRequest);
+    Observable<StartSigningRequestResponseApiModel> startSigningRequestAsync(StartSigningRequestApiModel body);
 
     /**
      * Create a certificate request with a certificate signing request (CSR).
-     * The request is in the 'New' state after this call.
-     Requires Writer or Manager role.
+     * The request is in the 'New' state after this call. Requires Writer or Manager role.
      *
-     * @param signingRequest The signing request parameters
+     * @param body The signing request parameters
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the StartSigningRequestResponseApiModel object
      */
-    Observable<ServiceResponse<StartSigningRequestResponseApiModel>> startSigningRequestWithServiceResponseAsync(StartSigningRequestApiModel signingRequest);
+    Observable<ServiceResponse<StartSigningRequestResponseApiModel>> startSigningRequestWithServiceResponseAsync(StartSigningRequestApiModel body);
 
     /**
      * Fetch signing request results.
-     * Can be called in any state.
-     After a successful fetch in 'Completed' state, the request is
-     moved into 'Accepted' state.
-     Requires Writer role.
+     * Can be called in any state. After a successful fetch in 'Completed' state, the request is moved into 'Accepted' state. Requires Writer role.
      *
      * @param requestId the String value
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -283,10 +269,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Fetch signing request results.
-     * Can be called in any state.
-     After a successful fetch in 'Completed' state, the request is
-     moved into 'Accepted' state.
-     Requires Writer role.
+     * Can be called in any state. After a successful fetch in 'Completed' state, the request is moved into 'Accepted' state. Requires Writer role.
      *
      * @param requestId the String value
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
@@ -297,10 +280,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Fetch signing request results.
-     * Can be called in any state.
-     After a successful fetch in 'Completed' state, the request is
-     moved into 'Accepted' state.
-     Requires Writer role.
+     * Can be called in any state. After a successful fetch in 'Completed' state, the request is moved into 'Accepted' state. Requires Writer role.
      *
      * @param requestId the String value
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -310,10 +290,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Fetch signing request results.
-     * Can be called in any state.
-     After a successful fetch in 'Completed' state, the request is
-     moved into 'Accepted' state.
-     Requires Writer role.
+     * Can be called in any state. After a successful fetch in 'Completed' state, the request is moved into 'Accepted' state. Requires Writer role.
      *
      * @param requestId the String value
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -323,58 +300,50 @@ public interface AzureOpcVaultClient {
 
     /**
      * Create a certificate request with a new key pair.
-     * The request is in the 'New' state after this call.
-     Requires Writer or Manager role.
+     * The request is in the 'New' state after this call. Requires Writer or Manager role.
      *
-     * @param newKeyPairRequest The new key pair request parameters
+     * @param body The new key pair request parameters
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the StartNewKeyPairRequestResponseApiModel object if successful.
      */
-    StartNewKeyPairRequestResponseApiModel startNewKeyPairRequest(StartNewKeyPairRequestApiModel newKeyPairRequest);
+    StartNewKeyPairRequestResponseApiModel startNewKeyPairRequest(StartNewKeyPairRequestApiModel body);
 
     /**
      * Create a certificate request with a new key pair.
-     * The request is in the 'New' state after this call.
-     Requires Writer or Manager role.
+     * The request is in the 'New' state after this call. Requires Writer or Manager role.
      *
-     * @param newKeyPairRequest The new key pair request parameters
+     * @param body The new key pair request parameters
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<StartNewKeyPairRequestResponseApiModel> startNewKeyPairRequestAsync(StartNewKeyPairRequestApiModel newKeyPairRequest, final ServiceCallback<StartNewKeyPairRequestResponseApiModel> serviceCallback);
+    ServiceFuture<StartNewKeyPairRequestResponseApiModel> startNewKeyPairRequestAsync(StartNewKeyPairRequestApiModel body, final ServiceCallback<StartNewKeyPairRequestResponseApiModel> serviceCallback);
 
     /**
      * Create a certificate request with a new key pair.
-     * The request is in the 'New' state after this call.
-     Requires Writer or Manager role.
+     * The request is in the 'New' state after this call. Requires Writer or Manager role.
      *
-     * @param newKeyPairRequest The new key pair request parameters
+     * @param body The new key pair request parameters
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the StartNewKeyPairRequestResponseApiModel object
      */
-    Observable<StartNewKeyPairRequestResponseApiModel> startNewKeyPairRequestAsync(StartNewKeyPairRequestApiModel newKeyPairRequest);
+    Observable<StartNewKeyPairRequestResponseApiModel> startNewKeyPairRequestAsync(StartNewKeyPairRequestApiModel body);
 
     /**
      * Create a certificate request with a new key pair.
-     * The request is in the 'New' state after this call.
-     Requires Writer or Manager role.
+     * The request is in the 'New' state after this call. Requires Writer or Manager role.
      *
-     * @param newKeyPairRequest The new key pair request parameters
+     * @param body The new key pair request parameters
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the StartNewKeyPairRequestResponseApiModel object
      */
-    Observable<ServiceResponse<StartNewKeyPairRequestResponseApiModel>> startNewKeyPairRequestWithServiceResponseAsync(StartNewKeyPairRequestApiModel newKeyPairRequest);
+    Observable<ServiceResponse<StartNewKeyPairRequestResponseApiModel>> startNewKeyPairRequestWithServiceResponseAsync(StartNewKeyPairRequestApiModel body);
 
     /**
      * Fetch certificate request result.
-     * Can be called in any state.
-     Fetches private key in 'Completed' state.
-     After a successful fetch in 'Completed' state, the request is
-     moved into 'Accepted' state.
-     Requires Writer role.
+     * Can be called in any state. Fetches private key in 'Completed' state. After a successful fetch in 'Completed' state, the request is moved into 'Accepted' state. Requires Writer role.
      *
      * @param requestId the String value
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -386,11 +355,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Fetch certificate request result.
-     * Can be called in any state.
-     Fetches private key in 'Completed' state.
-     After a successful fetch in 'Completed' state, the request is
-     moved into 'Accepted' state.
-     Requires Writer role.
+     * Can be called in any state. Fetches private key in 'Completed' state. After a successful fetch in 'Completed' state, the request is moved into 'Accepted' state. Requires Writer role.
      *
      * @param requestId the String value
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
@@ -401,11 +366,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Fetch certificate request result.
-     * Can be called in any state.
-     Fetches private key in 'Completed' state.
-     After a successful fetch in 'Completed' state, the request is
-     moved into 'Accepted' state.
-     Requires Writer role.
+     * Can be called in any state. Fetches private key in 'Completed' state. After a successful fetch in 'Completed' state, the request is moved into 'Accepted' state. Requires Writer role.
      *
      * @param requestId the String value
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -415,11 +376,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Fetch certificate request result.
-     * Can be called in any state.
-     Fetches private key in 'Completed' state.
-     After a successful fetch in 'Completed' state, the request is
-     moved into 'Accepted' state.
-     Requires Writer role.
+     * Can be called in any state. Fetches private key in 'Completed' state. After a successful fetch in 'Completed' state, the request is moved into 'Accepted' state. Requires Writer role.
      *
      * @param requestId the String value
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -429,17 +386,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Approve the certificate request.
-     * Validates the request with the application database.
-     - If Approved:
-       - New Key Pair request: Creates the new key pair
-             in the requested format, signs the certificate and stores the
-             private key for later securely in KeyVault.
-       - Cert Signing Request: Creates and signs the certificate.
-             Deletes the CSR from the database.
-      Stores the signed certificate for later use in the Database.
-      The request is in the 'Approved' or 'Rejected' state after this call.
-      Requires Approver role.
-      Approver needs signing rights in KeyVault.
+     * Validates the request with the application database. - If Approved: - New Key Pair request: Creates the new key pair in the requested format, signs the certificate and stores the private key for later securely in KeyVault. - Cert Signing Request: Creates and signs the certificate. Deletes the CSR from the database. Stores the signed certificate for later use in the Database. The request is in the 'Approved' or 'Rejected' state after this call. Requires Approver role. Approver needs signing rights in KeyVault.
      *
      * @param requestId The certificate request id
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -450,17 +397,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Approve the certificate request.
-     * Validates the request with the application database.
-     - If Approved:
-       - New Key Pair request: Creates the new key pair
-             in the requested format, signs the certificate and stores the
-             private key for later securely in KeyVault.
-       - Cert Signing Request: Creates and signs the certificate.
-             Deletes the CSR from the database.
-      Stores the signed certificate for later use in the Database.
-      The request is in the 'Approved' or 'Rejected' state after this call.
-      Requires Approver role.
-      Approver needs signing rights in KeyVault.
+     * Validates the request with the application database. - If Approved: - New Key Pair request: Creates the new key pair in the requested format, signs the certificate and stores the private key for later securely in KeyVault. - Cert Signing Request: Creates and signs the certificate. Deletes the CSR from the database. Stores the signed certificate for later use in the Database. The request is in the 'Approved' or 'Rejected' state after this call. Requires Approver role. Approver needs signing rights in KeyVault.
      *
      * @param requestId The certificate request id
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
@@ -471,17 +408,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Approve the certificate request.
-     * Validates the request with the application database.
-     - If Approved:
-       - New Key Pair request: Creates the new key pair
-             in the requested format, signs the certificate and stores the
-             private key for later securely in KeyVault.
-       - Cert Signing Request: Creates and signs the certificate.
-             Deletes the CSR from the database.
-      Stores the signed certificate for later use in the Database.
-      The request is in the 'Approved' or 'Rejected' state after this call.
-      Requires Approver role.
-      Approver needs signing rights in KeyVault.
+     * Validates the request with the application database. - If Approved: - New Key Pair request: Creates the new key pair in the requested format, signs the certificate and stores the private key for later securely in KeyVault. - Cert Signing Request: Creates and signs the certificate. Deletes the CSR from the database. Stores the signed certificate for later use in the Database. The request is in the 'Approved' or 'Rejected' state after this call. Requires Approver role. Approver needs signing rights in KeyVault.
      *
      * @param requestId The certificate request id
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -491,17 +418,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Approve the certificate request.
-     * Validates the request with the application database.
-     - If Approved:
-       - New Key Pair request: Creates the new key pair
-             in the requested format, signs the certificate and stores the
-             private key for later securely in KeyVault.
-       - Cert Signing Request: Creates and signs the certificate.
-             Deletes the CSR from the database.
-      Stores the signed certificate for later use in the Database.
-      The request is in the 'Approved' or 'Rejected' state after this call.
-      Requires Approver role.
-      Approver needs signing rights in KeyVault.
+     * Validates the request with the application database. - If Approved: - New Key Pair request: Creates the new key pair in the requested format, signs the certificate and stores the private key for later securely in KeyVault. - Cert Signing Request: Creates and signs the certificate. Deletes the CSR from the database. Stores the signed certificate for later use in the Database. The request is in the 'Approved' or 'Rejected' state after this call. Requires Approver role. Approver needs signing rights in KeyVault.
      *
      * @param requestId The certificate request id
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -511,9 +428,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Reject the certificate request.
-     * The request is in the 'Rejected' state after this call.
-     Requires Approver role.
-     Approver needs signing rights in KeyVault.
+     * The request is in the 'Rejected' state after this call. Requires Approver role. Approver needs signing rights in KeyVault.
      *
      * @param requestId The certificate request id
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -524,9 +439,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Reject the certificate request.
-     * The request is in the 'Rejected' state after this call.
-     Requires Approver role.
-     Approver needs signing rights in KeyVault.
+     * The request is in the 'Rejected' state after this call. Requires Approver role. Approver needs signing rights in KeyVault.
      *
      * @param requestId The certificate request id
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
@@ -537,9 +450,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Reject the certificate request.
-     * The request is in the 'Rejected' state after this call.
-     Requires Approver role.
-     Approver needs signing rights in KeyVault.
+     * The request is in the 'Rejected' state after this call. Requires Approver role. Approver needs signing rights in KeyVault.
      *
      * @param requestId The certificate request id
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -549,9 +460,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Reject the certificate request.
-     * The request is in the 'Rejected' state after this call.
-     Requires Approver role.
-     Approver needs signing rights in KeyVault.
+     * The request is in the 'Rejected' state after this call. Requires Approver role. Approver needs signing rights in KeyVault.
      *
      * @param requestId The certificate request id
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -561,8 +470,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Cancel request.
-     * The request is in the 'Accepted' state after this call.
-     Requires Writer role.
+     * The request is in the 'Accepted' state after this call. Requires Writer role.
      *
      * @param requestId The certificate request id
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -573,8 +481,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Cancel request.
-     * The request is in the 'Accepted' state after this call.
-     Requires Writer role.
+     * The request is in the 'Accepted' state after this call. Requires Writer role.
      *
      * @param requestId The certificate request id
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
@@ -585,8 +492,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Cancel request.
-     * The request is in the 'Accepted' state after this call.
-     Requires Writer role.
+     * The request is in the 'Accepted' state after this call. Requires Writer role.
      *
      * @param requestId The certificate request id
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -596,14 +502,55 @@ public interface AzureOpcVaultClient {
 
     /**
      * Cancel request.
-     * The request is in the 'Accepted' state after this call.
-     Requires Writer role.
+     * The request is in the 'Accepted' state after this call. Requires Writer role.
      *
      * @param requestId The certificate request id
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
     Observable<ServiceResponse<Void>> acceptRequestWithServiceResponseAsync(String requestId);
+
+    /**
+     * Delete request. Physically delete the request.
+     * By purging the request it is actually physically deleted from the database, including the public key and other information. Requires Manager role.
+     *
+     * @param requestId The certificate request id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     */
+    void deleteRequest(String requestId);
+
+    /**
+     * Delete request. Physically delete the request.
+     * By purging the request it is actually physically deleted from the database, including the public key and other information. Requires Manager role.
+     *
+     * @param requestId The certificate request id
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    ServiceFuture<Void> deleteRequestAsync(String requestId, final ServiceCallback<Void> serviceCallback);
+
+    /**
+     * Delete request. Physically delete the request.
+     * By purging the request it is actually physically deleted from the database, including the public key and other information. Requires Manager role.
+     *
+     * @param requestId The certificate request id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<Void> deleteRequestAsync(String requestId);
+
+    /**
+     * Delete request. Physically delete the request.
+     * By purging the request it is actually physically deleted from the database, including the public key and other information. Requires Manager role.
+     *
+     * @param requestId The certificate request id
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceResponse} object if successful.
+     */
+    Observable<ServiceResponse<Void>> deleteRequestWithServiceResponseAsync(String requestId);
 
     /**
      * Get a specific certificate request.
@@ -645,60 +592,8 @@ public interface AzureOpcVaultClient {
     Observable<ServiceResponse<CertificateRequestRecordApiModel>> getRequestWithServiceResponseAsync(String requestId);
 
     /**
-     * Delete request. Physically delete the request.
-     * By purging the request it is actually physically deleted from the
-     database, including the public key and other information.
-     Requires Manager role.
-     *
-     * @param requestId The certificate request id
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     */
-    void deleteRequest(String requestId);
-
-    /**
-     * Delete request. Physically delete the request.
-     * By purging the request it is actually physically deleted from the
-     database, including the public key and other information.
-     Requires Manager role.
-     *
-     * @param requestId The certificate request id
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<Void> deleteRequestAsync(String requestId, final ServiceCallback<Void> serviceCallback);
-
-    /**
-     * Delete request. Physically delete the request.
-     * By purging the request it is actually physically deleted from the
-     database, including the public key and other information.
-     Requires Manager role.
-     *
-     * @param requestId The certificate request id
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    Observable<Void> deleteRequestAsync(String requestId);
-
-    /**
-     * Delete request. Physically delete the request.
-     * By purging the request it is actually physically deleted from the
-     database, including the public key and other information.
-     Requires Manager role.
-     *
-     * @param requestId The certificate request id
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceResponse} object if successful.
-     */
-    Observable<ServiceResponse<Void>> deleteRequestWithServiceResponseAsync(String requestId);
-
-    /**
      * Query for certificate requests.
-     * Get all certificate requests in paged form.
-     The returned model can contain a link to the next page if more results are
-     available.  Use ListRequests to continue.
+     * Get all certificate requests in paged form. The returned model can contain a link to the next page if more results are available. Use ListRequests to continue.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
@@ -709,9 +604,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Query for certificate requests.
-     * Get all certificate requests in paged form.
-     The returned model can contain a link to the next page if more results are
-     available.  Use ListRequests to continue.
+     * Get all certificate requests in paged form. The returned model can contain a link to the next page if more results are available. Use ListRequests to continue.
      *
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -721,9 +614,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Query for certificate requests.
-     * Get all certificate requests in paged form.
-     The returned model can contain a link to the next page if more results are
-     available.  Use ListRequests to continue.
+     * Get all certificate requests in paged form. The returned model can contain a link to the next page if more results are available. Use ListRequests to continue.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the CertificateRequestQueryResponseApiModel object
@@ -732,9 +623,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Query for certificate requests.
-     * Get all certificate requests in paged form.
-     The returned model can contain a link to the next page if more results are
-     available.  Use ListRequests to continue.
+     * Get all certificate requests in paged form. The returned model can contain a link to the next page if more results are available. Use ListRequests to continue.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the CertificateRequestQueryResponseApiModel object
@@ -742,65 +631,54 @@ public interface AzureOpcVaultClient {
     Observable<ServiceResponse<CertificateRequestQueryResponseApiModel>> queryRequestsWithServiceResponseAsync();
     /**
      * Query for certificate requests.
-     * Get all certificate requests in paged form.
-     The returned model can contain a link to the next page if more results are
-     available.  Use ListRequests to continue.
+     * Get all certificate requests in paged form. The returned model can contain a link to the next page if more results are available. Use ListRequests to continue.
      *
-     * @param query optional, query filter
      * @param pageSize optional, the maximum number of result per page
+     * @param body optional, query filter
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the CertificateRequestQueryResponseApiModel object if successful.
      */
-    CertificateRequestQueryResponseApiModel queryRequests(CertificateRequestQueryRequestApiModel query, Integer pageSize);
+    CertificateRequestQueryResponseApiModel queryRequests(Integer pageSize, CertificateRequestQueryRequestApiModel body);
 
     /**
      * Query for certificate requests.
-     * Get all certificate requests in paged form.
-     The returned model can contain a link to the next page if more results are
-     available.  Use ListRequests to continue.
+     * Get all certificate requests in paged form. The returned model can contain a link to the next page if more results are available. Use ListRequests to continue.
      *
-     * @param query optional, query filter
      * @param pageSize optional, the maximum number of result per page
+     * @param body optional, query filter
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<CertificateRequestQueryResponseApiModel> queryRequestsAsync(CertificateRequestQueryRequestApiModel query, Integer pageSize, final ServiceCallback<CertificateRequestQueryResponseApiModel> serviceCallback);
+    ServiceFuture<CertificateRequestQueryResponseApiModel> queryRequestsAsync(Integer pageSize, CertificateRequestQueryRequestApiModel body, final ServiceCallback<CertificateRequestQueryResponseApiModel> serviceCallback);
 
     /**
      * Query for certificate requests.
-     * Get all certificate requests in paged form.
-     The returned model can contain a link to the next page if more results are
-     available.  Use ListRequests to continue.
+     * Get all certificate requests in paged form. The returned model can contain a link to the next page if more results are available. Use ListRequests to continue.
      *
-     * @param query optional, query filter
      * @param pageSize optional, the maximum number of result per page
+     * @param body optional, query filter
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the CertificateRequestQueryResponseApiModel object
      */
-    Observable<CertificateRequestQueryResponseApiModel> queryRequestsAsync(CertificateRequestQueryRequestApiModel query, Integer pageSize);
+    Observable<CertificateRequestQueryResponseApiModel> queryRequestsAsync(Integer pageSize, CertificateRequestQueryRequestApiModel body);
 
     /**
      * Query for certificate requests.
-     * Get all certificate requests in paged form.
-     The returned model can contain a link to the next page if more results are
-     available.  Use ListRequests to continue.
+     * Get all certificate requests in paged form. The returned model can contain a link to the next page if more results are available. Use ListRequests to continue.
      *
-     * @param query optional, query filter
      * @param pageSize optional, the maximum number of result per page
+     * @param body optional, query filter
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the CertificateRequestQueryResponseApiModel object
      */
-    Observable<ServiceResponse<CertificateRequestQueryResponseApiModel>> queryRequestsWithServiceResponseAsync(CertificateRequestQueryRequestApiModel query, Integer pageSize);
+    Observable<ServiceResponse<CertificateRequestQueryResponseApiModel>> queryRequestsWithServiceResponseAsync(Integer pageSize, CertificateRequestQueryRequestApiModel body);
 
     /**
      * Lists certificate requests.
-     * Get all certificate requests in paged form or continue a current listing or
-     query.
-     The returned model can contain a link to the next page if more results are
-     available.
+     * Get all certificate requests in paged form or continue a current listing or query. The returned model can contain a link to the next page if more results are available.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
@@ -811,10 +689,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Lists certificate requests.
-     * Get all certificate requests in paged form or continue a current listing or
-     query.
-     The returned model can contain a link to the next page if more results are
-     available.
+     * Get all certificate requests in paged form or continue a current listing or query. The returned model can contain a link to the next page if more results are available.
      *
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -824,10 +699,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Lists certificate requests.
-     * Get all certificate requests in paged form or continue a current listing or
-     query.
-     The returned model can contain a link to the next page if more results are
-     available.
+     * Get all certificate requests in paged form or continue a current listing or query. The returned model can contain a link to the next page if more results are available.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the CertificateRequestQueryResponseApiModel object
@@ -836,10 +708,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Lists certificate requests.
-     * Get all certificate requests in paged form or continue a current listing or
-     query.
-     The returned model can contain a link to the next page if more results are
-     available.
+     * Get all certificate requests in paged form or continue a current listing or query. The returned model can contain a link to the next page if more results are available.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the CertificateRequestQueryResponseApiModel object
@@ -847,10 +716,7 @@ public interface AzureOpcVaultClient {
     Observable<ServiceResponse<CertificateRequestQueryResponseApiModel>> listRequestsWithServiceResponseAsync();
     /**
      * Lists certificate requests.
-     * Get all certificate requests in paged form or continue a current listing or
-     query.
-     The returned model can contain a link to the next page if more results are
-     available.
+     * Get all certificate requests in paged form or continue a current listing or query. The returned model can contain a link to the next page if more results are available.
      *
      * @param nextPageLink optional, link to next page
      * @param pageSize optional, the maximum number of result per page
@@ -863,10 +729,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Lists certificate requests.
-     * Get all certificate requests in paged form or continue a current listing or
-     query.
-     The returned model can contain a link to the next page if more results are
-     available.
+     * Get all certificate requests in paged form or continue a current listing or query. The returned model can contain a link to the next page if more results are available.
      *
      * @param nextPageLink optional, link to next page
      * @param pageSize optional, the maximum number of result per page
@@ -878,10 +741,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Lists certificate requests.
-     * Get all certificate requests in paged form or continue a current listing or
-     query.
-     The returned model can contain a link to the next page if more results are
-     available.
+     * Get all certificate requests in paged form or continue a current listing or query. The returned model can contain a link to the next page if more results are available.
      *
      * @param nextPageLink optional, link to next page
      * @param pageSize optional, the maximum number of result per page
@@ -892,10 +752,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Lists certificate requests.
-     * Get all certificate requests in paged form or continue a current listing or
-     query.
-     The returned model can contain a link to the next page if more results are
-     available.
+     * Get all certificate requests in paged form or continue a current listing or query. The returned model can contain a link to the next page if more results are available.
      *
      * @param nextPageLink optional, link to next page
      * @param pageSize optional, the maximum number of result per page
@@ -905,50 +762,8 @@ public interface AzureOpcVaultClient {
     Observable<ServiceResponse<CertificateRequestQueryResponseApiModel>> listRequestsWithServiceResponseAsync(String nextPageLink, Integer pageSize);
 
     /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the StatusResponseApiModel object if successful.
-     */
-    StatusResponseApiModel getStatus();
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    ServiceFuture<StatusResponseApiModel> getStatusAsync(final ServiceCallback<StatusResponseApiModel> serviceCallback);
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the StatusResponseApiModel object
-     */
-    Observable<StatusResponseApiModel> getStatusAsync();
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the StatusResponseApiModel object
-     */
-    Observable<ServiceResponse<StatusResponseApiModel>> getStatusWithServiceResponseAsync();
-
-    /**
      * Get information about all groups.
-     * A trust group has a root certificate which issues certificates
-     to entities.  Entities can be part of a trust group and thus
-     trust the root certificate and all entities that the root has
-     issued certificates for.
+     * A trust group has a root certificate which issues certificates to entities. Entities can be part of a trust group and thus trust the root certificate and all entities that the root has issued certificates for.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
@@ -959,10 +774,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Get information about all groups.
-     * A trust group has a root certificate which issues certificates
-     to entities.  Entities can be part of a trust group and thus
-     trust the root certificate and all entities that the root has
-     issued certificates for.
+     * A trust group has a root certificate which issues certificates to entities. Entities can be part of a trust group and thus trust the root certificate and all entities that the root has issued certificates for.
      *
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -972,10 +784,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Get information about all groups.
-     * A trust group has a root certificate which issues certificates
-     to entities.  Entities can be part of a trust group and thus
-     trust the root certificate and all entities that the root has
-     issued certificates for.
+     * A trust group has a root certificate which issues certificates to entities. Entities can be part of a trust group and thus trust the root certificate and all entities that the root has issued certificates for.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the TrustGroupRegistrationListApiModel object
@@ -984,10 +793,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Get information about all groups.
-     * A trust group has a root certificate which issues certificates
-     to entities.  Entities can be part of a trust group and thus
-     trust the root certificate and all entities that the root has
-     issued certificates for.
+     * A trust group has a root certificate which issues certificates to entities. Entities can be part of a trust group and thus trust the root certificate and all entities that the root has issued certificates for.
      *
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the TrustGroupRegistrationListApiModel object
@@ -995,10 +801,7 @@ public interface AzureOpcVaultClient {
     Observable<ServiceResponse<TrustGroupRegistrationListApiModel>> listGroupsWithServiceResponseAsync();
     /**
      * Get information about all groups.
-     * A trust group has a root certificate which issues certificates
-     to entities.  Entities can be part of a trust group and thus
-     trust the root certificate and all entities that the root has
-     issued certificates for.
+     * A trust group has a root certificate which issues certificates to entities. Entities can be part of a trust group and thus trust the root certificate and all entities that the root has issued certificates for.
      *
      * @param nextPageLink optional, link to next page
      * @param pageSize optional, the maximum number of result per page
@@ -1011,10 +814,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Get information about all groups.
-     * A trust group has a root certificate which issues certificates
-     to entities.  Entities can be part of a trust group and thus
-     trust the root certificate and all entities that the root has
-     issued certificates for.
+     * A trust group has a root certificate which issues certificates to entities. Entities can be part of a trust group and thus trust the root certificate and all entities that the root has issued certificates for.
      *
      * @param nextPageLink optional, link to next page
      * @param pageSize optional, the maximum number of result per page
@@ -1026,10 +826,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Get information about all groups.
-     * A trust group has a root certificate which issues certificates
-     to entities.  Entities can be part of a trust group and thus
-     trust the root certificate and all entities that the root has
-     issued certificates for.
+     * A trust group has a root certificate which issues certificates to entities. Entities can be part of a trust group and thus trust the root certificate and all entities that the root has issued certificates for.
      *
      * @param nextPageLink optional, link to next page
      * @param pageSize optional, the maximum number of result per page
@@ -1040,10 +837,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Get information about all groups.
-     * A trust group has a root certificate which issues certificates
-     to entities.  Entities can be part of a trust group and thus
-     trust the root certificate and all entities that the root has
-     issued certificates for.
+     * A trust group has a root certificate which issues certificates to entities. Entities can be part of a trust group and thus trust the root certificate and all entities that the root has issued certificates for.
      *
      * @param nextPageLink optional, link to next page
      * @param pageSize optional, the maximum number of result per page
@@ -1056,51 +850,48 @@ public interface AzureOpcVaultClient {
      * Create new sub-group of an existing group.
      * Requires manager role.
      *
-     * @param request The create request
+     * @param body The create request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the TrustGroupRegistrationResponseApiModel object if successful.
      */
-    TrustGroupRegistrationResponseApiModel createGroup(TrustGroupRegistrationRequestApiModel request);
+    TrustGroupRegistrationResponseApiModel createGroup(TrustGroupRegistrationRequestApiModel body);
 
     /**
      * Create new sub-group of an existing group.
      * Requires manager role.
      *
-     * @param request The create request
+     * @param body The create request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<TrustGroupRegistrationResponseApiModel> createGroupAsync(TrustGroupRegistrationRequestApiModel request, final ServiceCallback<TrustGroupRegistrationResponseApiModel> serviceCallback);
+    ServiceFuture<TrustGroupRegistrationResponseApiModel> createGroupAsync(TrustGroupRegistrationRequestApiModel body, final ServiceCallback<TrustGroupRegistrationResponseApiModel> serviceCallback);
 
     /**
      * Create new sub-group of an existing group.
      * Requires manager role.
      *
-     * @param request The create request
+     * @param body The create request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the TrustGroupRegistrationResponseApiModel object
      */
-    Observable<TrustGroupRegistrationResponseApiModel> createGroupAsync(TrustGroupRegistrationRequestApiModel request);
+    Observable<TrustGroupRegistrationResponseApiModel> createGroupAsync(TrustGroupRegistrationRequestApiModel body);
 
     /**
      * Create new sub-group of an existing group.
      * Requires manager role.
      *
-     * @param request The create request
+     * @param body The create request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the TrustGroupRegistrationResponseApiModel object
      */
-    Observable<ServiceResponse<TrustGroupRegistrationResponseApiModel>> createGroupWithServiceResponseAsync(TrustGroupRegistrationRequestApiModel request);
+    Observable<ServiceResponse<TrustGroupRegistrationResponseApiModel>> createGroupWithServiceResponseAsync(TrustGroupRegistrationRequestApiModel body);
 
     /**
      * Get group information.
-     * A trust group has a root certificate which issues certificates
-     to entities.  Entities can be part of a trust group and thus
-     trust the root certificate and all entities that the root has
-     issued certificates for.
+     * A trust group has a root certificate which issues certificates to entities. Entities can be part of a trust group and thus trust the root certificate and all entities that the root has issued certificates for.
      *
      * @param groupId The group id
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -1112,10 +903,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Get group information.
-     * A trust group has a root certificate which issues certificates
-     to entities.  Entities can be part of a trust group and thus
-     trust the root certificate and all entities that the root has
-     issued certificates for.
+     * A trust group has a root certificate which issues certificates to entities. Entities can be part of a trust group and thus trust the root certificate and all entities that the root has issued certificates for.
      *
      * @param groupId The group id
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
@@ -1126,10 +914,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Get group information.
-     * A trust group has a root certificate which issues certificates
-     to entities.  Entities can be part of a trust group and thus
-     trust the root certificate and all entities that the root has
-     issued certificates for.
+     * A trust group has a root certificate which issues certificates to entities. Entities can be part of a trust group and thus trust the root certificate and all entities that the root has issued certificates for.
      *
      * @param groupId The group id
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -1139,10 +924,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Get group information.
-     * A trust group has a root certificate which issues certificates
-     to entities.  Entities can be part of a trust group and thus
-     trust the root certificate and all entities that the root has
-     issued certificates for.
+     * A trust group has a root certificate which issues certificates to entities. Entities can be part of a trust group and thus trust the root certificate and all entities that the root has issued certificates for.
      *
      * @param groupId The group id
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -1152,63 +934,53 @@ public interface AzureOpcVaultClient {
 
     /**
      * Update group registration.
-     * Use this function with care and only if you are aware of
-     the security implications.
-     Requires manager role.
+     * Use this function with care and only if you are aware of the security implications. Requires manager role.
      *
      * @param groupId The group id
-     * @param request The group configuration
+     * @param body The group configuration
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      */
-    void updateGroup(String groupId, TrustGroupUpdateRequestApiModel request);
+    void updateGroup(String groupId, TrustGroupUpdateRequestApiModel body);
 
     /**
      * Update group registration.
-     * Use this function with care and only if you are aware of
-     the security implications.
-     Requires manager role.
+     * Use this function with care and only if you are aware of the security implications. Requires manager role.
      *
      * @param groupId The group id
-     * @param request The group configuration
+     * @param body The group configuration
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<Void> updateGroupAsync(String groupId, TrustGroupUpdateRequestApiModel request, final ServiceCallback<Void> serviceCallback);
+    ServiceFuture<Void> updateGroupAsync(String groupId, TrustGroupUpdateRequestApiModel body, final ServiceCallback<Void> serviceCallback);
 
     /**
      * Update group registration.
-     * Use this function with care and only if you are aware of
-     the security implications.
-     Requires manager role.
+     * Use this function with care and only if you are aware of the security implications. Requires manager role.
      *
      * @param groupId The group id
-     * @param request The group configuration
+     * @param body The group configuration
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<Void> updateGroupAsync(String groupId, TrustGroupUpdateRequestApiModel request);
+    Observable<Void> updateGroupAsync(String groupId, TrustGroupUpdateRequestApiModel body);
 
     /**
      * Update group registration.
-     * Use this function with care and only if you are aware of
-     the security implications.
-     Requires manager role.
+     * Use this function with care and only if you are aware of the security implications. Requires manager role.
      *
      * @param groupId The group id
-     * @param request The group configuration
+     * @param body The group configuration
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceResponse} object if successful.
      */
-    Observable<ServiceResponse<Void>> updateGroupWithServiceResponseAsync(String groupId, TrustGroupUpdateRequestApiModel request);
+    Observable<ServiceResponse<Void>> updateGroupWithServiceResponseAsync(String groupId, TrustGroupUpdateRequestApiModel body);
 
     /**
      * Delete a group.
-     * After this operation the Issuer CA, CRLs and keys become inaccessible.
-     Use this function with extreme caution.
-     Requires manager role.
+     * After this operation the Issuer CA, CRLs and keys become inaccessible. Use this function with extreme caution. Requires manager role.
      *
      * @param groupId The group id
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -1219,9 +991,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Delete a group.
-     * After this operation the Issuer CA, CRLs and keys become inaccessible.
-     Use this function with extreme caution.
-     Requires manager role.
+     * After this operation the Issuer CA, CRLs and keys become inaccessible. Use this function with extreme caution. Requires manager role.
      *
      * @param groupId The group id
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
@@ -1232,9 +1002,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Delete a group.
-     * After this operation the Issuer CA, CRLs and keys become inaccessible.
-     Use this function with extreme caution.
-     Requires manager role.
+     * After this operation the Issuer CA, CRLs and keys become inaccessible. Use this function with extreme caution. Requires manager role.
      *
      * @param groupId The group id
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -1244,9 +1012,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Delete a group.
-     * After this operation the Issuer CA, CRLs and keys become inaccessible.
-     Use this function with extreme caution.
-     Requires manager role.
+     * After this operation the Issuer CA, CRLs and keys become inaccessible. Use this function with extreme caution. Requires manager role.
      *
      * @param groupId The group id
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -1258,44 +1024,44 @@ public interface AzureOpcVaultClient {
      * Create new root group.
      * Requires manager role.
      *
-     * @param request The create request
+     * @param body The create request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the TrustGroupRegistrationResponseApiModel object if successful.
      */
-    TrustGroupRegistrationResponseApiModel createRoot(TrustGroupRootCreateRequestApiModel request);
+    TrustGroupRegistrationResponseApiModel createRoot(TrustGroupRootCreateRequestApiModel body);
 
     /**
      * Create new root group.
      * Requires manager role.
      *
-     * @param request The create request
+     * @param body The create request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    ServiceFuture<TrustGroupRegistrationResponseApiModel> createRootAsync(TrustGroupRootCreateRequestApiModel request, final ServiceCallback<TrustGroupRegistrationResponseApiModel> serviceCallback);
+    ServiceFuture<TrustGroupRegistrationResponseApiModel> createRootAsync(TrustGroupRootCreateRequestApiModel body, final ServiceCallback<TrustGroupRegistrationResponseApiModel> serviceCallback);
 
     /**
      * Create new root group.
      * Requires manager role.
      *
-     * @param request The create request
+     * @param body The create request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the TrustGroupRegistrationResponseApiModel object
      */
-    Observable<TrustGroupRegistrationResponseApiModel> createRootAsync(TrustGroupRootCreateRequestApiModel request);
+    Observable<TrustGroupRegistrationResponseApiModel> createRootAsync(TrustGroupRootCreateRequestApiModel body);
 
     /**
      * Create new root group.
      * Requires manager role.
      *
-     * @param request The create request
+     * @param body The create request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the TrustGroupRegistrationResponseApiModel object
      */
-    Observable<ServiceResponse<TrustGroupRegistrationResponseApiModel>> createRootWithServiceResponseAsync(TrustGroupRootCreateRequestApiModel request);
+    Observable<ServiceResponse<TrustGroupRegistrationResponseApiModel>> createRootWithServiceResponseAsync(TrustGroupRootCreateRequestApiModel body);
 
     /**
      * Renew a group CA Certificate.
@@ -1337,8 +1103,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Add trust relationship.
-     * Define trust between two entities.  The entities are identifiers
-     of application, groups, or endpoints.
+     * Define trust between two entities. The entities are identifiers of application, groups, or endpoints.
      *
      * @param entityId The entity identifier, e.g. group, etc.
      * @param trustedEntityId The trusted entity identifier
@@ -1350,8 +1115,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Add trust relationship.
-     * Define trust between two entities.  The entities are identifiers
-     of application, groups, or endpoints.
+     * Define trust between two entities. The entities are identifiers of application, groups, or endpoints.
      *
      * @param entityId The entity identifier, e.g. group, etc.
      * @param trustedEntityId The trusted entity identifier
@@ -1363,8 +1127,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Add trust relationship.
-     * Define trust between two entities.  The entities are identifiers
-     of application, groups, or endpoints.
+     * Define trust between two entities. The entities are identifiers of application, groups, or endpoints.
      *
      * @param entityId The entity identifier, e.g. group, etc.
      * @param trustedEntityId The trusted entity identifier
@@ -1375,8 +1138,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Add trust relationship.
-     * Define trust between two entities.  The entities are identifiers
-     of application, groups, or endpoints.
+     * Define trust between two entities. The entities are identifiers of application, groups, or endpoints.
      *
      * @param entityId The entity identifier, e.g. group, etc.
      * @param trustedEntityId The trusted entity identifier
@@ -1387,8 +1149,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * List trusted certificates.
-     * Returns all certificates the entity should trust based on the
-     applied trust configuration.
+     * Returns all certificates the entity should trust based on the applied trust configuration.
      *
      * @param entityId the String value
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -1400,8 +1161,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * List trusted certificates.
-     * Returns all certificates the entity should trust based on the
-     applied trust configuration.
+     * Returns all certificates the entity should trust based on the applied trust configuration.
      *
      * @param entityId the String value
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
@@ -1412,8 +1172,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * List trusted certificates.
-     * Returns all certificates the entity should trust based on the
-     applied trust configuration.
+     * Returns all certificates the entity should trust based on the applied trust configuration.
      *
      * @param entityId the String value
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -1423,8 +1182,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * List trusted certificates.
-     * Returns all certificates the entity should trust based on the
-     applied trust configuration.
+     * Returns all certificates the entity should trust based on the applied trust configuration.
      *
      * @param entityId the String value
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -1433,8 +1191,7 @@ public interface AzureOpcVaultClient {
     Observable<ServiceResponse<X509CertificateListApiModel>> listTrustedCertificatesWithServiceResponseAsync(String entityId);
     /**
      * List trusted certificates.
-     * Returns all certificates the entity should trust based on the
-     applied trust configuration.
+     * Returns all certificates the entity should trust based on the applied trust configuration.
      *
      * @param entityId the String value
      * @param nextPageLink optional, link to next page
@@ -1448,8 +1205,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * List trusted certificates.
-     * Returns all certificates the entity should trust based on the
-     applied trust configuration.
+     * Returns all certificates the entity should trust based on the applied trust configuration.
      *
      * @param entityId the String value
      * @param nextPageLink optional, link to next page
@@ -1462,8 +1218,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * List trusted certificates.
-     * Returns all certificates the entity should trust based on the
-     applied trust configuration.
+     * Returns all certificates the entity should trust based on the applied trust configuration.
      *
      * @param entityId the String value
      * @param nextPageLink optional, link to next page
@@ -1475,8 +1230,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * List trusted certificates.
-     * Returns all certificates the entity should trust based on the
-     applied trust configuration.
+     * Returns all certificates the entity should trust based on the applied trust configuration.
      *
      * @param entityId the String value
      * @param nextPageLink optional, link to next page
@@ -1488,8 +1242,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Remove a trust relationship.
-     * Removes trust between two entities.  The entities are identifiers
-     of application, groups, or endpoints.
+     * Removes trust between two entities. The entities are identifiers of application, groups, or endpoints.
      *
      * @param entityId The entity identifier, e.g. group, etc.
      * @param untrustedEntityId The trusted entity identifier
@@ -1501,8 +1254,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Remove a trust relationship.
-     * Removes trust between two entities.  The entities are identifiers
-     of application, groups, or endpoints.
+     * Removes trust between two entities. The entities are identifiers of application, groups, or endpoints.
      *
      * @param entityId The entity identifier, e.g. group, etc.
      * @param untrustedEntityId The trusted entity identifier
@@ -1514,8 +1266,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Remove a trust relationship.
-     * Removes trust between two entities.  The entities are identifiers
-     of application, groups, or endpoints.
+     * Removes trust between two entities. The entities are identifiers of application, groups, or endpoints.
      *
      * @param entityId The entity identifier, e.g. group, etc.
      * @param untrustedEntityId The trusted entity identifier
@@ -1526,8 +1277,7 @@ public interface AzureOpcVaultClient {
 
     /**
      * Remove a trust relationship.
-     * Removes trust between two entities.  The entities are identifiers
-     of application, groups, or endpoints.
+     * Removes trust between two entities. The entities are identifiers of application, groups, or endpoints.
      *
      * @param entityId The entity identifier, e.g. group, etc.
      * @param untrustedEntityId The trusted entity identifier

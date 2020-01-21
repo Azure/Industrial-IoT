@@ -22,13 +22,9 @@ class MethodMetadataRequestApiModel(Model):
      identified by
      MethodId to the actual method node.
     :type method_browse_path: list[str]
-    :param header: Optional request header
+    :param header:
     :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
-
-    _validation = {
-        'method_id': {'required': True},
-    }
 
     _attribute_map = {
         'method_id': {'key': 'methodId', 'type': 'str'},
@@ -36,7 +32,7 @@ class MethodMetadataRequestApiModel(Model):
         'header': {'key': 'header', 'type': 'RequestHeaderApiModel'},
     }
 
-    def __init__(self, method_id, method_browse_path=None, header=None):
+    def __init__(self, method_id=None, method_browse_path=None, header=None):
         super(MethodMetadataRequestApiModel, self).__init__()
         self.method_id = method_id
         self.method_browse_path = method_browse_path

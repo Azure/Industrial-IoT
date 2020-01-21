@@ -25,13 +25,9 @@ class ValueReadRequestApiModel(Model):
      an array, string or bytestring.
      See 7.22 of part 4: NumericRange.
     :type index_range: str
-    :param header: Optional request header
+    :param header:
     :type header: ~azure-iiot-opc-twin.models.RequestHeaderApiModel
     """
-
-    _validation = {
-        'node_id': {'required': True},
-    }
 
     _attribute_map = {
         'node_id': {'key': 'nodeId', 'type': 'str'},
@@ -40,7 +36,7 @@ class ValueReadRequestApiModel(Model):
         'header': {'key': 'header', 'type': 'RequestHeaderApiModel'},
     }
 
-    def __init__(self, node_id, browse_path=None, index_range=None, header=None):
+    def __init__(self, node_id=None, browse_path=None, index_range=None, header=None):
         super(ValueReadRequestApiModel, self).__init__()
         self.node_id = node_id
         self.browse_path = browse_path

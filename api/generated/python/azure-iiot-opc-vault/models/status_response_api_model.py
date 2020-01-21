@@ -38,7 +38,7 @@ class StatusResponseApiModel(Model):
     :ivar dependencies: A property bag with details about the internal
      dependencies
     :vartype dependencies: dict[str, str]
-    :ivar metadata: Optional meta data.
+    :ivar metadata:
     :vartype metadata: dict[str, str]
     """
 

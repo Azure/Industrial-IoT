@@ -18,8 +18,7 @@ class HistoryUpdateResponseApiModel {
   /**
    * Create a HistoryUpdateResponseApiModel.
    * @property {array} [results] List of results from the update operation
-   * @property {object} [errorInfo] Service result in case of service call
-   * error
+   * @property {object} [errorInfo]
    * @property {number} [errorInfo.statusCode] Error code - if null operation
    * succeeded.
    * @property {string} [errorInfo.errorMessage] Error message in case of error

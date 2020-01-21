@@ -18,8 +18,8 @@ class EndpointActivationStatusApiModel {
   /**
    * Create a EndpointActivationStatusApiModel.
    * @property {string} id Identifier of the endoint
-   * @property {string} [activationState] Activation state. Possible values
-   * include: 'Deactivated', 'Activated', 'ActivatedAndConnected'
+   * @property {string} [activationState] Possible values include:
+   * 'Deactivated', 'Activated', 'ActivatedAndConnected'
    */
   constructor() {
   }

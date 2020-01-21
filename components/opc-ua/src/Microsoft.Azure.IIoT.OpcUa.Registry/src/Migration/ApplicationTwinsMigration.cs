@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
-    using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
     using Microsoft.Azure.IIoT.Exceptions;
@@ -22,8 +21,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
         /// <summary>
         /// Create migrator
         /// </summary>
-        /// <param name="repo"></param>
         /// <param name="source"></param>
+        /// <param name="repo"></param>
         /// <param name="logger"></param>
         public ApplicationTwinsMigration(IIoTHubTwinServices source, IApplicationRepository repo,
             ILogger logger) {

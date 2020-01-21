@@ -39,24 +39,6 @@ const fqdn = "go/azure-iiot-opc-registry"
         return []ApplicationType{Client,ClientAndServer,DiscoveryServer,Server}
     }
 
-        // CallbackMethodType enumerates the values for callback method type.
-    type CallbackMethodType string
-
-    const (
-                // Delete ...
-        Delete CallbackMethodType = "Delete"
-                // Get ...
-        Get CallbackMethodType = "Get"
-                // Post ...
-        Post CallbackMethodType = "Post"
-                // Put ...
-        Put CallbackMethodType = "Put"
-            )
-    // PossibleCallbackMethodTypeValues returns an array of possible values for the CallbackMethodType const type.
-    func PossibleCallbackMethodTypeValues() []CallbackMethodType {
-        return []CallbackMethodType{Delete,Get,Post,Put}
-    }
-
         // CredentialType enumerates the values for credential type.
     type CredentialType string
 
@@ -147,12 +129,10 @@ const fqdn = "go/azure-iiot-opc-registry"
         Low SecurityAssessment = "Low"
                 // Medium ...
         Medium SecurityAssessment = "Medium"
-                // Unknown ...
-        Unknown SecurityAssessment = "Unknown"
             )
     // PossibleSecurityAssessmentValues returns an array of possible values for the SecurityAssessment const type.
     func PossibleSecurityAssessmentValues() []SecurityAssessment {
-        return []SecurityAssessment{High,Low,Medium,Unknown}
+        return []SecurityAssessment{High,Low,Medium}
     }
 
         // SecurityMode enumerates the values for security mode.
@@ -173,29 +153,29 @@ const fqdn = "go/azure-iiot-opc-registry"
         return []SecurityMode{SecurityModeBest,SecurityModeNone,SecurityModeSign,SecurityModeSignAndEncrypt}
     }
 
-        // SupervisorLogLevel enumerates the values for supervisor log level.
-    type SupervisorLogLevel string
+        // TraceLogLevel enumerates the values for trace log level.
+    type TraceLogLevel string
 
     const (
-                // SupervisorLogLevelDebug ...
-        SupervisorLogLevelDebug SupervisorLogLevel = "Debug"
-                // SupervisorLogLevelError ...
-        SupervisorLogLevelError SupervisorLogLevel = "Error"
-                // SupervisorLogLevelInformation ...
-        SupervisorLogLevelInformation SupervisorLogLevel = "Information"
-                // SupervisorLogLevelVerbose ...
-        SupervisorLogLevelVerbose SupervisorLogLevel = "Verbose"
+                // TraceLogLevelDebug ...
+        TraceLogLevelDebug TraceLogLevel = "Debug"
+                // TraceLogLevelError ...
+        TraceLogLevelError TraceLogLevel = "Error"
+                // TraceLogLevelInformation ...
+        TraceLogLevelInformation TraceLogLevel = "Information"
+                // TraceLogLevelVerbose ...
+        TraceLogLevelVerbose TraceLogLevel = "Verbose"
             )
-    // PossibleSupervisorLogLevelValues returns an array of possible values for the SupervisorLogLevel const type.
-    func PossibleSupervisorLogLevelValues() []SupervisorLogLevel {
-        return []SupervisorLogLevel{SupervisorLogLevelDebug,SupervisorLogLevelError,SupervisorLogLevelInformation,SupervisorLogLevelVerbose}
+    // PossibleTraceLogLevelValues returns an array of possible values for the TraceLogLevel const type.
+    func PossibleTraceLogLevelValues() []TraceLogLevel {
+        return []TraceLogLevel{TraceLogLevelDebug,TraceLogLevelError,TraceLogLevelInformation,TraceLogLevelVerbose}
     }
 
             // ApplicationInfoAPIModel application info model
             type ApplicationInfoAPIModel struct {
             // ApplicationID - Unique application id
             ApplicationID *string `json:"applicationId,omitempty"`
-            // ApplicationType - Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+            // ApplicationType - Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
             ApplicationType ApplicationType `json:"applicationType,omitempty"`
             // ApplicationURI - Unique application uri
             ApplicationURI *string `json:"applicationUri,omitempty"`
@@ -221,13 +201,11 @@ const fqdn = "go/azure-iiot-opc-registry"
             HostAddresses *[]string `json:"hostAddresses,omitempty"`
             // SiteID - Site of the application
             SiteID *string `json:"siteId,omitempty"`
-            // SupervisorID - Supervisor having registered the application
-            SupervisorID *string `json:"supervisorId,omitempty"`
+            // DiscovererID - Discoverer that registered the application
+            DiscovererID *string `json:"discovererId,omitempty"`
             // NotSeenSince - Last time application was seen
             NotSeenSince *date.Time `json:"notSeenSince,omitempty"`
-            // Created - Created
             Created *RegistryOperationAPIModel `json:"created,omitempty"`
-            // Updated - Updated
             Updated *RegistryOperationAPIModel `json:"updated,omitempty"`
             }
 
@@ -276,8 +254,8 @@ const fqdn = "go/azure-iiot-opc-registry"
                 if(aiam.SiteID != nil) {
                 objectMap["siteId"] = aiam.SiteID
                 }
-                if(aiam.SupervisorID != nil) {
-                objectMap["supervisorId"] = aiam.SupervisorID
+                if(aiam.DiscovererID != nil) {
+                objectMap["discovererId"] = aiam.DiscovererID
                 }
                 if(aiam.NotSeenSince != nil) {
                 objectMap["notSeenSince"] = aiam.NotSeenSince
@@ -430,59 +408,20 @@ const fqdn = "go/azure-iiot-opc-registry"
             return ApplicationInfoListAPIModelPage{fn: getNextPage}
         }
 
-            // ApplicationRecordAPIModel application with optional list of
-            // endpoints
-            type ApplicationRecordAPIModel struct {
-            // RecordID - Record id
-            RecordID *int32 `json:"recordId,omitempty"`
-            // Application - Application information
-            Application *ApplicationInfoAPIModel `json:"application,omitempty"`
-            }
-
-            // ApplicationRecordListAPIModel create response
-            type ApplicationRecordListAPIModel struct {
-            autorest.Response `json:"-"`
-            // Applications - Applications found
-            Applications *[]ApplicationRecordAPIModel `json:"applications,omitempty"`
-            // LastCounterResetTime - Last counter reset
-            LastCounterResetTime *date.Time `json:"lastCounterResetTime,omitempty"`
-            // NextRecordID - Next record id
-            NextRecordID *int32 `json:"nextRecordId,omitempty"`
-            }
-
-            // ApplicationRecordQueryAPIModel query by id
-            type ApplicationRecordQueryAPIModel struct {
-            // StartingRecordID - Starting record id
-            StartingRecordID *int32 `json:"startingRecordId,omitempty"`
-            // MaxRecordsToReturn - Max records to return
-            MaxRecordsToReturn *int32 `json:"maxRecordsToReturn,omitempty"`
-            // ApplicationName - Application name
-            ApplicationName *string `json:"applicationName,omitempty"`
-            // ApplicationURI - Application uri
-            ApplicationURI *string `json:"applicationUri,omitempty"`
-            // ApplicationType - Application type. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
-            ApplicationType ApplicationType `json:"applicationType,omitempty"`
-            // ProductURI - Product uri
-            ProductURI *string `json:"productUri,omitempty"`
-            // ServerCapabilities - Server capabilities
-            ServerCapabilities *[]string `json:"serverCapabilities,omitempty"`
-            }
-
-            // ApplicationRegistrationAPIModel application with list of
-            // endpoints
+            // ApplicationRegistrationAPIModel application with optional list
+            // of endpoints
             type ApplicationRegistrationAPIModel struct {
             autorest.Response `json:"-"`
-            // Application - Application information
             Application *ApplicationInfoAPIModel `json:"application,omitempty"`
             // Endpoints - List of endpoint twins
             Endpoints *[]EndpointRegistrationAPIModel `json:"endpoints,omitempty"`
-            // SecurityAssessment - Application security assessment. Possible values include: 'Unknown', 'Low', 'Medium', 'High'
+            // SecurityAssessment - Possible values include: 'Low', 'Medium', 'High'
             SecurityAssessment SecurityAssessment `json:"securityAssessment,omitempty"`
             }
 
             // ApplicationRegistrationQueryAPIModel application information
             type ApplicationRegistrationQueryAPIModel struct {
-            // ApplicationType - Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+            // ApplicationType - Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
             ApplicationType ApplicationType `json:"applicationType,omitempty"`
             // ApplicationURI - Application uri
             ApplicationURI *string `json:"applicationUri,omitempty"`
@@ -498,17 +437,19 @@ const fqdn = "go/azure-iiot-opc-registry"
             DiscoveryProfileURI *string `json:"discoveryProfileUri,omitempty"`
             // GatewayServerURI - Gateway server uri
             GatewayServerURI *string `json:"gatewayServerUri,omitempty"`
-            // SiteOrSupervisorID - Supervisor or site the application belongs to.
-            SiteOrSupervisorID *string `json:"siteOrSupervisorId,omitempty"`
+            // SiteOrGatewayID - Supervisor or site the application belongs to.
+            SiteOrGatewayID *string `json:"siteOrGatewayId,omitempty"`
             // IncludeNotSeenSince - Whether to include apps that were soft deleted
             IncludeNotSeenSince *bool `json:"includeNotSeenSince,omitempty"`
+            // DiscovererID - Discoverer id to filter with
+            DiscovererID *string `json:"discovererId,omitempty"`
             }
 
             // ApplicationRegistrationRequestAPIModel application information
             type ApplicationRegistrationRequestAPIModel struct {
             // ApplicationURI - Unique application uri
             ApplicationURI *string `json:"applicationUri,omitempty"`
-            // ApplicationType - Type of application. Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+            // ApplicationType - Possible values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
             ApplicationType ApplicationType `json:"applicationType,omitempty"`
             // ProductURI - Product uri of the application.
             ProductURI *string `json:"productUri,omitempty"`
@@ -637,7 +578,7 @@ const fqdn = "go/azure-iiot-opc-registry"
             // ApplicationSiteListAPIModel list of application sites
             type ApplicationSiteListAPIModel struct {
             autorest.Response `json:"-"`
-            // Sites - Distinct list of sites applications were registered in.
+            // Sites - Sites
             Sites *[]string `json:"sites,omitempty"`
             // ContinuationToken - Continuation or null if final
             ContinuationToken *string `json:"continuationToken,omitempty"`
@@ -777,7 +718,7 @@ const fqdn = "go/azure-iiot-opc-registry"
             type AuthenticationMethodAPIModel struct {
             // ID - Method id
             ID *string `json:"id,omitempty"`
-            // CredentialType - Type of credential. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+            // CredentialType - Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
             CredentialType CredentialType `json:"credentialType,omitempty"`
             // SecurityPolicy - Security policy to use when passing credential.
             SecurityPolicy *string `json:"securityPolicy,omitempty"`
@@ -785,26 +726,186 @@ const fqdn = "go/azure-iiot-opc-registry"
             Configuration interface{} `json:"configuration,omitempty"`
             }
 
-            // CallbackAPIModel a registered callback
-            type CallbackAPIModel struct {
-            // URI - Uri to call - should use https scheme in which
-            // case security is enforced.
-            URI *string `json:"uri,omitempty"`
-            // Method - Http Method to use for callback. Possible values include: 'Get', 'Post', 'Put', 'Delete'
-            Method CallbackMethodType `json:"method,omitempty"`
-            // AuthenticationHeader - Authentication header to add or null if not needed
-            AuthenticationHeader *string `json:"authenticationHeader,omitempty"`
+            // DiscovererAPIModel discoverer registration model
+            type DiscovererAPIModel struct {
+            autorest.Response `json:"-"`
+            // ID - Discoverer id
+            ID *string `json:"id,omitempty"`
+            // SiteID - Site of the discoverer
+            SiteID *string `json:"siteId,omitempty"`
+            // Discovery - Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+            Discovery DiscoveryMode `json:"discovery,omitempty"`
+            DiscoveryConfig *DiscoveryConfigAPIModel `json:"discoveryConfig,omitempty"`
+            // LogLevel - Possible values include: 'TraceLogLevelError', 'TraceLogLevelInformation', 'TraceLogLevelDebug', 'TraceLogLevelVerbose'
+            LogLevel TraceLogLevel `json:"logLevel,omitempty"`
+            // OutOfSync - Whether the registration is out of sync between
+            // client (module) and server (service) (default: false).
+            OutOfSync *bool `json:"outOfSync,omitempty"`
+            // Connected - Whether discoverer is connected on this registration
+            Connected *bool `json:"connected,omitempty"`
             }
 
-            // CredentialAPIModel credential model
-            type CredentialAPIModel struct {
-            // Type - Type of credential. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-            Type CredentialType `json:"type,omitempty"`
-            // Value - Value to pass to server
-            Value interface{} `json:"value,omitempty"`
+            // DiscovererListAPIModel discoverer registration list
+            type DiscovererListAPIModel struct {
+            autorest.Response `json:"-"`
+            // Items - Registrations
+            Items *[]DiscovererAPIModel `json:"items,omitempty"`
+            // ContinuationToken - Continuation or null if final
+            ContinuationToken *string `json:"continuationToken,omitempty"`
             }
 
-            // DiscoveryConfigAPIModel discovery configuration
+            // DiscovererListAPIModelIterator provides access to a complete
+            // listing of DiscovererAPIModel values.
+            type DiscovererListAPIModelIterator struct {
+                i int
+                page DiscovererListAPIModelPage
+            }
+        // NextWithContext advances to the next value.  If there was an error making
+        // the request the iterator does not advance and the error is returned.
+        func (iter * DiscovererListAPIModelIterator) NextWithContext(ctx context.Context) (err error) {
+        if tracing.IsEnabled() {
+        ctx = tracing.StartSpan(ctx, fqdn + "/DiscovererListAPIModelIterator.NextWithContext")
+        defer func() {
+        sc := -1
+        if iter.Response().Response.Response != nil {
+        sc = iter.Response().Response.Response.StatusCode
+        }
+        tracing.EndSpan(ctx, sc, err)
+        }()
+        }
+        iter.i++
+        if iter.i < len(iter. page.Values()) {
+        return nil
+        }
+        err = iter.page.NextWithContext(ctx)
+        if err != nil {
+        iter. i--
+        return err
+        }
+        iter.i = 0
+        return nil
+        }
+        // Next advances to the next value.  If there was an error making
+        // the request the iterator does not advance and the error is returned.
+        // Deprecated: Use NextWithContext() instead.
+        func (iter * DiscovererListAPIModelIterator) Next() error {
+        return iter.NextWithContext(context.Background())
+        }
+        // NotDone returns true if the enumeration should be started or is not yet complete.
+        func (iter DiscovererListAPIModelIterator) NotDone() bool {
+        return iter.page.NotDone() && iter.i < len(iter. page.Values())
+        }
+        // Response returns the raw server response from the last page request.
+        func (iter DiscovererListAPIModelIterator) Response() DiscovererListAPIModel {
+        return iter.page.Response()
+        }
+        // Value returns the current value or a zero-initialized value if the
+        // iterator has advanced beyond the end of the collection.
+        func (iter DiscovererListAPIModelIterator) Value() DiscovererAPIModel {
+        if !iter.page.NotDone() {
+        return DiscovererAPIModel{}
+        }
+        return iter.page.Values()[iter.i]
+        }
+        // Creates a new instance of the DiscovererListAPIModelIterator type.
+        func NewDiscovererListAPIModelIterator (page DiscovererListAPIModelPage) DiscovererListAPIModelIterator {
+            return DiscovererListAPIModelIterator{page: page}
+        }
+
+
+                // IsEmpty returns true if the ListResult contains no values.
+                func (dlam DiscovererListAPIModel) IsEmpty() bool {
+                return dlam.Value == nil || len(*dlam.Value) == 0
+                }
+
+                    // discovererListAPIModelPreparer prepares a request to retrieve the next set of results.
+                    // It returns nil if no more results exist.
+                    func (dlam DiscovererListAPIModel) discovererListAPIModelPreparer(ctx context.Context) (*http.Request, error) {
+                    if dlam.ContinuationToken == nil || len(to.String(dlam.ContinuationToken)) < 1 {
+                    return nil, nil
+                    }
+                    return autorest.Prepare((&http.Request{}).WithContext(ctx),
+                    autorest.AsJSON(),
+                    autorest.AsGet(),
+                    autorest.WithBaseURL(to.String( dlam.ContinuationToken)));
+                    }
+
+            // DiscovererListAPIModelPage contains a page of DiscovererAPIModel
+            // values.
+            type DiscovererListAPIModelPage struct {
+                fn func(context.Context, DiscovererListAPIModel) (DiscovererListAPIModel, error)
+                dlam DiscovererListAPIModel
+            }
+
+        // NextWithContext advances to the next page of values.  If there was an error making
+        // the request the page does not advance and the error is returned.
+        func (page * DiscovererListAPIModelPage) NextWithContext(ctx context.Context) (err error) {
+        if tracing.IsEnabled() {
+        ctx = tracing.StartSpan(ctx, fqdn + "/DiscovererListAPIModelPage.NextWithContext")
+        defer func() {
+        sc := -1
+        if page.Response().Response.Response != nil {
+        sc = page.Response().Response.Response.StatusCode
+        }
+        tracing.EndSpan(ctx, sc, err)
+        }()
+        }
+        next, err := page.fn(ctx, page.dlam)
+        if err != nil {
+        return err
+        }
+        page.dlam = next
+        return nil
+        }
+
+        // Next advances to the next page of values.  If there was an error making
+        // the request the page does not advance and the error is returned.
+        // Deprecated: Use NextWithContext() instead.
+        func (page * DiscovererListAPIModelPage) Next() error {
+        return page.NextWithContext(context.Background())
+        }
+        // NotDone returns true if the page enumeration should be started or is not yet complete.
+        func (page DiscovererListAPIModelPage) NotDone() bool {
+        return !page.dlam.IsEmpty()
+        }
+        // Response returns the raw server response from the last page request.
+        func (page DiscovererListAPIModelPage) Response() DiscovererListAPIModel {
+        return page.dlam
+        }
+        // Values returns the slice of values for the current page or nil if there are no values.
+        func (page DiscovererListAPIModelPage) Values() []DiscovererAPIModel {
+        if page.dlam.IsEmpty() {
+        return nil
+        }
+        return *page.dlam.Value
+        }
+        // Creates a new instance of the DiscovererListAPIModelPage type.
+        func NewDiscovererListAPIModelPage (getNextPage func(context.Context, DiscovererListAPIModel) (DiscovererListAPIModel, error)) DiscovererListAPIModelPage {
+            return DiscovererListAPIModelPage{fn: getNextPage}
+        }
+
+            // DiscovererQueryAPIModel discoverer registration query
+            type DiscovererQueryAPIModel struct {
+            // SiteID - Site of the discoverer
+            SiteID *string `json:"siteId,omitempty"`
+            // Discovery - Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+            Discovery DiscoveryMode `json:"discovery,omitempty"`
+            // Connected - Included connected or disconnected
+            Connected *bool `json:"connected,omitempty"`
+            }
+
+            // DiscovererUpdateAPIModel discoverer update request
+            type DiscovererUpdateAPIModel struct {
+            // SiteID - Site the discoverer is part of
+            SiteID *string `json:"siteId,omitempty"`
+            // Discovery - Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+            Discovery DiscoveryMode `json:"discovery,omitempty"`
+            DiscoveryConfig *DiscoveryConfigAPIModel `json:"discoveryConfig,omitempty"`
+            // LogLevel - Possible values include: 'TraceLogLevelError', 'TraceLogLevelInformation', 'TraceLogLevelDebug', 'TraceLogLevelVerbose'
+            LogLevel TraceLogLevel `json:"logLevel,omitempty"`
+            }
+
+            // DiscoveryConfigAPIModel discovery configuration api model
             type DiscoveryConfigAPIModel struct {
             // AddressRangesToScan - Address ranges to scan (null == all wired nics)
             AddressRangesToScan *string `json:"addressRangesToScan,omitempty"`
@@ -826,9 +927,6 @@ const fqdn = "go/azure-iiot-opc-registry"
             DiscoveryUrls *[]string `json:"discoveryUrls,omitempty"`
             // Locales - List of locales to filter with during discovery
             Locales *[]string `json:"locales,omitempty"`
-            // Callbacks - Callbacks to invoke once onboarding finishes
-            Callbacks *[]CallbackAPIModel `json:"callbacks,omitempty"`
-            // ActivationFilter - Activate all twins with this filter during onboarding.
             ActivationFilter *EndpointActivationFilterAPIModel `json:"activationFilter,omitempty"`
             }
 
@@ -836,9 +934,8 @@ const fqdn = "go/azure-iiot-opc-registry"
             type DiscoveryRequestAPIModel struct {
             // ID - Id of discovery request
             ID *string `json:"id,omitempty"`
-            // Discovery - Discovery mode to use. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+            // Discovery - Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
             Discovery DiscoveryMode `json:"discovery,omitempty"`
-            // Configuration - Scan configuration to use
             Configuration *DiscoveryConfigAPIModel `json:"configuration,omitempty"`
             }
 
@@ -853,8 +950,7 @@ const fqdn = "go/azure-iiot-opc-registry"
             // SecurityPolicies - Endpoint security policies to filter against.
             // If set to null, all policies are in scope.
             SecurityPolicies *[]string `json:"securityPolicies,omitempty"`
-            // SecurityMode - Security mode level to activate. If null,
-            // then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is assumed. Possible values include: 'SecurityModeBest', 'SecurityModeSign', 'SecurityModeSignAndEncrypt', 'SecurityModeNone'
+            // SecurityMode - Possible values include: 'SecurityModeBest', 'SecurityModeSign', 'SecurityModeSignAndEncrypt', 'SecurityModeNone'
             SecurityMode SecurityMode `json:"securityMode,omitempty"`
             }
 
@@ -863,7 +959,7 @@ const fqdn = "go/azure-iiot-opc-registry"
             type EndpointActivationStatusAPIModel struct {
             // ID - Identifier of the endoint
             ID *string `json:"id,omitempty"`
-            // ActivationState - Activation state. Possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'
+            // ActivationState - Possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'
             ActivationState EndpointActivationState `json:"activationState,omitempty"`
             }
 
@@ -874,10 +970,7 @@ const fqdn = "go/azure-iiot-opc-registry"
             // AlternativeUrls - Alternative endpoint urls that can be used for
             // accessing and validating the server
             AlternativeUrls *[]string `json:"alternativeUrls,omitempty"`
-            // User - User Authentication
-            User *CredentialAPIModel `json:"user,omitempty"`
-            // SecurityMode - Security Mode to use for communication
-            // default to best. Possible values include: 'SecurityModeBest', 'SecurityModeSign', 'SecurityModeSignAndEncrypt', 'SecurityModeNone'
+            // SecurityMode - Possible values include: 'SecurityModeBest', 'SecurityModeSign', 'SecurityModeSignAndEncrypt', 'SecurityModeNone'
             SecurityMode SecurityMode `json:"securityMode,omitempty"`
             // SecurityPolicy - Security policy uri to use for communication
             // default to best.
@@ -889,13 +982,12 @@ const fqdn = "go/azure-iiot-opc-registry"
             // EndpointInfoAPIModel endpoint registration model
             type EndpointInfoAPIModel struct {
             autorest.Response `json:"-"`
-            // Registration - Endpoint registration
             Registration *EndpointRegistrationAPIModel `json:"registration,omitempty"`
             // ApplicationID - Application id endpoint is registered under.
             ApplicationID *string `json:"applicationId,omitempty"`
-            // ActivationState - Activation state of endpoint. Possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'
+            // ActivationState - Possible values include: 'Deactivated', 'Activated', 'ActivatedAndConnected'
             ActivationState EndpointActivationState `json:"activationState,omitempty"`
-            // EndpointState - Last state of the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+            // EndpointState - Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
             EndpointState EndpointConnectivityState `json:"endpointState,omitempty"`
             // OutOfSync - Whether the registration is out of sync
             OutOfSync *bool `json:"outOfSync,omitempty"`
@@ -1050,7 +1142,10 @@ const fqdn = "go/azure-iiot-opc-registry"
             EndpointURL *string `json:"endpointUrl,omitempty"`
             // SiteID - Registered site of the endpoint
             SiteID *string `json:"siteId,omitempty"`
-            // Endpoint - Endpoint information of the registration
+            // SupervisorID - Supervisor that manages the endpoint.
+            SupervisorID *string `json:"supervisorId,omitempty"`
+            // DiscovererID - Discoverer that registered the endpoint
+            DiscovererID *string `json:"discovererId,omitempty"`
             Endpoint *EndpointAPIModel `json:"endpoint,omitempty"`
             // SecurityLevel - Security level of the endpoint
             SecurityLevel *int32 `json:"securityLevel,omitempty"`
@@ -1063,11 +1158,9 @@ const fqdn = "go/azure-iiot-opc-registry"
             type EndpointRegistrationQueryAPIModel struct {
             // URL - Endoint url for direct server access
             URL *string `json:"url,omitempty"`
-            // UserAuthentication - Type of credential selected for authentication. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-            UserAuthentication CredentialType `json:"userAuthentication,omitempty"`
             // Certificate - Certificate of the endpoint
             Certificate *[]byte `json:"certificate,omitempty"`
-            // SecurityMode - Security Mode. Possible values include: 'SecurityModeBest', 'SecurityModeSign', 'SecurityModeSignAndEncrypt', 'SecurityModeNone'
+            // SecurityMode - Possible values include: 'SecurityModeBest', 'SecurityModeSign', 'SecurityModeSignAndEncrypt', 'SecurityModeNone'
             SecurityMode SecurityMode `json:"securityMode,omitempty"`
             // SecurityPolicy - Security policy uri
             SecurityPolicy *string `json:"securityPolicy,omitempty"`
@@ -1075,17 +1168,405 @@ const fqdn = "go/azure-iiot-opc-registry"
             Activated *bool `json:"activated,omitempty"`
             // Connected - Whether the endpoint is connected on supervisor.
             Connected *bool `json:"connected,omitempty"`
-            // EndpointState - The last state of the the activated endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+            // EndpointState - Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
             EndpointState EndpointConnectivityState `json:"endpointState,omitempty"`
             // IncludeNotSeenSince - Whether to include endpoints that were soft deleted
             IncludeNotSeenSince *bool `json:"includeNotSeenSince,omitempty"`
+            // DiscovererID - Discoverer id to filter with
+            DiscovererID *string `json:"discovererId,omitempty"`
+            // ApplicationID - Application id to filter
+            ApplicationID *string `json:"applicationId,omitempty"`
+            // SupervisorID - Supervisor id to filter with
+            SupervisorID *string `json:"supervisorId,omitempty"`
+            // SiteOrGatewayID - Site or gateway id to filter with
+            SiteOrGatewayID *string `json:"siteOrGatewayId,omitempty"`
             }
 
-            // EndpointRegistrationUpdateAPIModel endpoint registration update
-            // request
-            type EndpointRegistrationUpdateAPIModel struct {
-            // User - User authentication to change on the endpoint.
-            User *CredentialAPIModel `json:"user,omitempty"`
+            // GatewayAPIModel gateway registration model
+            type GatewayAPIModel struct {
+            // ID - Gateway id
+            ID *string `json:"id,omitempty"`
+            // SiteID - Site of the Gateway
+            SiteID *string `json:"siteId,omitempty"`
+            // Connected - Whether Gateway is connected on this registration
+            Connected *bool `json:"connected,omitempty"`
+            }
+
+            // GatewayInfoAPIModel gateway info model
+            type GatewayInfoAPIModel struct {
+            autorest.Response `json:"-"`
+            Gateway *GatewayAPIModel `json:"gateway,omitempty"`
+            Modules *GatewayModulesAPIModel `json:"modules,omitempty"`
+            }
+
+            // GatewayListAPIModel gateway registration list
+            type GatewayListAPIModel struct {
+            autorest.Response `json:"-"`
+            // Items - Registrations
+            Items *[]GatewayAPIModel `json:"items,omitempty"`
+            // ContinuationToken - Continuation or null if final
+            ContinuationToken *string `json:"continuationToken,omitempty"`
+            }
+
+            // GatewayListAPIModelIterator provides access to a complete
+            // listing of GatewayAPIModel values.
+            type GatewayListAPIModelIterator struct {
+                i int
+                page GatewayListAPIModelPage
+            }
+        // NextWithContext advances to the next value.  If there was an error making
+        // the request the iterator does not advance and the error is returned.
+        func (iter * GatewayListAPIModelIterator) NextWithContext(ctx context.Context) (err error) {
+        if tracing.IsEnabled() {
+        ctx = tracing.StartSpan(ctx, fqdn + "/GatewayListAPIModelIterator.NextWithContext")
+        defer func() {
+        sc := -1
+        if iter.Response().Response.Response != nil {
+        sc = iter.Response().Response.Response.StatusCode
+        }
+        tracing.EndSpan(ctx, sc, err)
+        }()
+        }
+        iter.i++
+        if iter.i < len(iter. page.Values()) {
+        return nil
+        }
+        err = iter.page.NextWithContext(ctx)
+        if err != nil {
+        iter. i--
+        return err
+        }
+        iter.i = 0
+        return nil
+        }
+        // Next advances to the next value.  If there was an error making
+        // the request the iterator does not advance and the error is returned.
+        // Deprecated: Use NextWithContext() instead.
+        func (iter * GatewayListAPIModelIterator) Next() error {
+        return iter.NextWithContext(context.Background())
+        }
+        // NotDone returns true if the enumeration should be started or is not yet complete.
+        func (iter GatewayListAPIModelIterator) NotDone() bool {
+        return iter.page.NotDone() && iter.i < len(iter. page.Values())
+        }
+        // Response returns the raw server response from the last page request.
+        func (iter GatewayListAPIModelIterator) Response() GatewayListAPIModel {
+        return iter.page.Response()
+        }
+        // Value returns the current value or a zero-initialized value if the
+        // iterator has advanced beyond the end of the collection.
+        func (iter GatewayListAPIModelIterator) Value() GatewayAPIModel {
+        if !iter.page.NotDone() {
+        return GatewayAPIModel{}
+        }
+        return iter.page.Values()[iter.i]
+        }
+        // Creates a new instance of the GatewayListAPIModelIterator type.
+        func NewGatewayListAPIModelIterator (page GatewayListAPIModelPage) GatewayListAPIModelIterator {
+            return GatewayListAPIModelIterator{page: page}
+        }
+
+
+                // IsEmpty returns true if the ListResult contains no values.
+                func (glam GatewayListAPIModel) IsEmpty() bool {
+                return glam.Value == nil || len(*glam.Value) == 0
+                }
+
+                    // gatewayListAPIModelPreparer prepares a request to retrieve the next set of results.
+                    // It returns nil if no more results exist.
+                    func (glam GatewayListAPIModel) gatewayListAPIModelPreparer(ctx context.Context) (*http.Request, error) {
+                    if glam.ContinuationToken == nil || len(to.String(glam.ContinuationToken)) < 1 {
+                    return nil, nil
+                    }
+                    return autorest.Prepare((&http.Request{}).WithContext(ctx),
+                    autorest.AsJSON(),
+                    autorest.AsGet(),
+                    autorest.WithBaseURL(to.String( glam.ContinuationToken)));
+                    }
+
+            // GatewayListAPIModelPage contains a page of GatewayAPIModel
+            // values.
+            type GatewayListAPIModelPage struct {
+                fn func(context.Context, GatewayListAPIModel) (GatewayListAPIModel, error)
+                glam GatewayListAPIModel
+            }
+
+        // NextWithContext advances to the next page of values.  If there was an error making
+        // the request the page does not advance and the error is returned.
+        func (page * GatewayListAPIModelPage) NextWithContext(ctx context.Context) (err error) {
+        if tracing.IsEnabled() {
+        ctx = tracing.StartSpan(ctx, fqdn + "/GatewayListAPIModelPage.NextWithContext")
+        defer func() {
+        sc := -1
+        if page.Response().Response.Response != nil {
+        sc = page.Response().Response.Response.StatusCode
+        }
+        tracing.EndSpan(ctx, sc, err)
+        }()
+        }
+        next, err := page.fn(ctx, page.glam)
+        if err != nil {
+        return err
+        }
+        page.glam = next
+        return nil
+        }
+
+        // Next advances to the next page of values.  If there was an error making
+        // the request the page does not advance and the error is returned.
+        // Deprecated: Use NextWithContext() instead.
+        func (page * GatewayListAPIModelPage) Next() error {
+        return page.NextWithContext(context.Background())
+        }
+        // NotDone returns true if the page enumeration should be started or is not yet complete.
+        func (page GatewayListAPIModelPage) NotDone() bool {
+        return !page.glam.IsEmpty()
+        }
+        // Response returns the raw server response from the last page request.
+        func (page GatewayListAPIModelPage) Response() GatewayListAPIModel {
+        return page.glam
+        }
+        // Values returns the slice of values for the current page or nil if there are no values.
+        func (page GatewayListAPIModelPage) Values() []GatewayAPIModel {
+        if page.glam.IsEmpty() {
+        return nil
+        }
+        return *page.glam.Value
+        }
+        // Creates a new instance of the GatewayListAPIModelPage type.
+        func NewGatewayListAPIModelPage (getNextPage func(context.Context, GatewayListAPIModel) (GatewayListAPIModel, error)) GatewayListAPIModelPage {
+            return GatewayListAPIModelPage{fn: getNextPage}
+        }
+
+            // GatewayModulesAPIModel gateway modules model
+            type GatewayModulesAPIModel struct {
+            Supervisor *SupervisorAPIModel `json:"supervisor,omitempty"`
+            Publisher *PublisherAPIModel `json:"publisher,omitempty"`
+            Discoverer *DiscovererAPIModel `json:"discoverer,omitempty"`
+            }
+
+            // GatewayQueryAPIModel gateway registration query
+            type GatewayQueryAPIModel struct {
+            // SiteID - Site of the Gateway
+            SiteID *string `json:"siteId,omitempty"`
+            // Connected - Included connected or disconnected
+            Connected *bool `json:"connected,omitempty"`
+            }
+
+            // GatewayUpdateAPIModel gateway registration update request
+            type GatewayUpdateAPIModel struct {
+            // SiteID - Site of the Gateway
+            SiteID *string `json:"siteId,omitempty"`
+            }
+
+            // PublisherAPIModel publisher registration model
+            type PublisherAPIModel struct {
+            autorest.Response `json:"-"`
+            // ID - Publisher id
+            ID *string `json:"id,omitempty"`
+            // SiteID - Site of the publisher
+            SiteID *string `json:"siteId,omitempty"`
+            // Certificate - Publisher public client cert
+            Certificate *[]byte `json:"certificate,omitempty"`
+            // LogLevel - Possible values include: 'TraceLogLevelError', 'TraceLogLevelInformation', 'TraceLogLevelDebug', 'TraceLogLevelVerbose'
+            LogLevel TraceLogLevel `json:"logLevel,omitempty"`
+            Configuration *PublisherConfigAPIModel `json:"configuration,omitempty"`
+            // OutOfSync - Whether the registration is out of sync between
+            // client (module) and server (service) (default: false).
+            OutOfSync *bool `json:"outOfSync,omitempty"`
+            // Connected - Whether publisher is connected on this registration
+            Connected *bool `json:"connected,omitempty"`
+            }
+
+            // PublisherConfigAPIModel default publisher agent configuration
+            type PublisherConfigAPIModel struct {
+            // Capabilities - Capabilities
+            Capabilities map[string]*string `json:"capabilities"`
+            // JobCheckInterval - Interval to check job
+            JobCheckInterval *string `json:"jobCheckInterval,omitempty"`
+            // HeartbeatInterval - Heartbeat interval
+            HeartbeatInterval *string `json:"heartbeatInterval,omitempty"`
+            // MaxWorkers - Parallel jobs
+            MaxWorkers *int32 `json:"maxWorkers,omitempty"`
+            // JobOrchestratorURL - Job orchestrator endpoint url
+            JobOrchestratorURL *string `json:"jobOrchestratorUrl,omitempty"`
+            }
+
+        // MarshalJSON is the custom marshaler for PublisherConfigAPIModel.
+        func (pcam PublisherConfigAPIModel)MarshalJSON() ([]byte, error){
+        objectMap := make(map[string]interface{})
+                if(pcam.Capabilities != nil) {
+                objectMap["capabilities"] = pcam.Capabilities
+                }
+                if(pcam.JobCheckInterval != nil) {
+                objectMap["jobCheckInterval"] = pcam.JobCheckInterval
+                }
+                if(pcam.HeartbeatInterval != nil) {
+                objectMap["heartbeatInterval"] = pcam.HeartbeatInterval
+                }
+                if(pcam.MaxWorkers != nil) {
+                objectMap["maxWorkers"] = pcam.MaxWorkers
+                }
+                if(pcam.JobOrchestratorURL != nil) {
+                objectMap["jobOrchestratorUrl"] = pcam.JobOrchestratorURL
+                }
+                return json.Marshal(objectMap)
+        }
+
+            // PublisherListAPIModel publisher registration list
+            type PublisherListAPIModel struct {
+            autorest.Response `json:"-"`
+            // Items - Registrations
+            Items *[]PublisherAPIModel `json:"items,omitempty"`
+            // ContinuationToken - Continuation or null if final
+            ContinuationToken *string `json:"continuationToken,omitempty"`
+            }
+
+            // PublisherListAPIModelIterator provides access to a complete
+            // listing of PublisherAPIModel values.
+            type PublisherListAPIModelIterator struct {
+                i int
+                page PublisherListAPIModelPage
+            }
+        // NextWithContext advances to the next value.  If there was an error making
+        // the request the iterator does not advance and the error is returned.
+        func (iter * PublisherListAPIModelIterator) NextWithContext(ctx context.Context) (err error) {
+        if tracing.IsEnabled() {
+        ctx = tracing.StartSpan(ctx, fqdn + "/PublisherListAPIModelIterator.NextWithContext")
+        defer func() {
+        sc := -1
+        if iter.Response().Response.Response != nil {
+        sc = iter.Response().Response.Response.StatusCode
+        }
+        tracing.EndSpan(ctx, sc, err)
+        }()
+        }
+        iter.i++
+        if iter.i < len(iter. page.Values()) {
+        return nil
+        }
+        err = iter.page.NextWithContext(ctx)
+        if err != nil {
+        iter. i--
+        return err
+        }
+        iter.i = 0
+        return nil
+        }
+        // Next advances to the next value.  If there was an error making
+        // the request the iterator does not advance and the error is returned.
+        // Deprecated: Use NextWithContext() instead.
+        func (iter * PublisherListAPIModelIterator) Next() error {
+        return iter.NextWithContext(context.Background())
+        }
+        // NotDone returns true if the enumeration should be started or is not yet complete.
+        func (iter PublisherListAPIModelIterator) NotDone() bool {
+        return iter.page.NotDone() && iter.i < len(iter. page.Values())
+        }
+        // Response returns the raw server response from the last page request.
+        func (iter PublisherListAPIModelIterator) Response() PublisherListAPIModel {
+        return iter.page.Response()
+        }
+        // Value returns the current value or a zero-initialized value if the
+        // iterator has advanced beyond the end of the collection.
+        func (iter PublisherListAPIModelIterator) Value() PublisherAPIModel {
+        if !iter.page.NotDone() {
+        return PublisherAPIModel{}
+        }
+        return iter.page.Values()[iter.i]
+        }
+        // Creates a new instance of the PublisherListAPIModelIterator type.
+        func NewPublisherListAPIModelIterator (page PublisherListAPIModelPage) PublisherListAPIModelIterator {
+            return PublisherListAPIModelIterator{page: page}
+        }
+
+
+                // IsEmpty returns true if the ListResult contains no values.
+                func (plam PublisherListAPIModel) IsEmpty() bool {
+                return plam.Value == nil || len(*plam.Value) == 0
+                }
+
+                    // publisherListAPIModelPreparer prepares a request to retrieve the next set of results.
+                    // It returns nil if no more results exist.
+                    func (plam PublisherListAPIModel) publisherListAPIModelPreparer(ctx context.Context) (*http.Request, error) {
+                    if plam.ContinuationToken == nil || len(to.String(plam.ContinuationToken)) < 1 {
+                    return nil, nil
+                    }
+                    return autorest.Prepare((&http.Request{}).WithContext(ctx),
+                    autorest.AsJSON(),
+                    autorest.AsGet(),
+                    autorest.WithBaseURL(to.String( plam.ContinuationToken)));
+                    }
+
+            // PublisherListAPIModelPage contains a page of PublisherAPIModel
+            // values.
+            type PublisherListAPIModelPage struct {
+                fn func(context.Context, PublisherListAPIModel) (PublisherListAPIModel, error)
+                plam PublisherListAPIModel
+            }
+
+        // NextWithContext advances to the next page of values.  If there was an error making
+        // the request the page does not advance and the error is returned.
+        func (page * PublisherListAPIModelPage) NextWithContext(ctx context.Context) (err error) {
+        if tracing.IsEnabled() {
+        ctx = tracing.StartSpan(ctx, fqdn + "/PublisherListAPIModelPage.NextWithContext")
+        defer func() {
+        sc := -1
+        if page.Response().Response.Response != nil {
+        sc = page.Response().Response.Response.StatusCode
+        }
+        tracing.EndSpan(ctx, sc, err)
+        }()
+        }
+        next, err := page.fn(ctx, page.plam)
+        if err != nil {
+        return err
+        }
+        page.plam = next
+        return nil
+        }
+
+        // Next advances to the next page of values.  If there was an error making
+        // the request the page does not advance and the error is returned.
+        // Deprecated: Use NextWithContext() instead.
+        func (page * PublisherListAPIModelPage) Next() error {
+        return page.NextWithContext(context.Background())
+        }
+        // NotDone returns true if the page enumeration should be started or is not yet complete.
+        func (page PublisherListAPIModelPage) NotDone() bool {
+        return !page.plam.IsEmpty()
+        }
+        // Response returns the raw server response from the last page request.
+        func (page PublisherListAPIModelPage) Response() PublisherListAPIModel {
+        return page.plam
+        }
+        // Values returns the slice of values for the current page or nil if there are no values.
+        func (page PublisherListAPIModelPage) Values() []PublisherAPIModel {
+        if page.plam.IsEmpty() {
+        return nil
+        }
+        return *page.plam.Value
+        }
+        // Creates a new instance of the PublisherListAPIModelPage type.
+        func NewPublisherListAPIModelPage (getNextPage func(context.Context, PublisherListAPIModel) (PublisherListAPIModel, error)) PublisherListAPIModelPage {
+            return PublisherListAPIModelPage{fn: getNextPage}
+        }
+
+            // PublisherQueryAPIModel publisher registration query
+            type PublisherQueryAPIModel struct {
+            // SiteID - Site for the publishers
+            SiteID *string `json:"siteId,omitempty"`
+            // Connected - Included connected or disconnected
+            Connected *bool `json:"connected,omitempty"`
+            }
+
+            // PublisherUpdateAPIModel publisher registration update request
+            type PublisherUpdateAPIModel struct {
+            // SiteID - Site of the publisher
+            SiteID *string `json:"siteId,omitempty"`
+            Configuration *PublisherConfigAPIModel `json:"configuration,omitempty"`
+            // LogLevel - Possible values include: 'TraceLogLevelError', 'TraceLogLevelInformation', 'TraceLogLevelDebug', 'TraceLogLevelVerbose'
+            LogLevel TraceLogLevel `json:"logLevel,omitempty"`
             }
 
             // RegistryOperationAPIModel registry operation log model
@@ -1096,55 +1577,14 @@ const fqdn = "go/azure-iiot-opc-registry"
             Time *date.Time `json:"time,omitempty"`
             }
 
-            // ServerRegistrationRequestAPIModel application registration
-            // request
+            // ServerRegistrationRequestAPIModel server registration request
             type ServerRegistrationRequestAPIModel struct {
             // DiscoveryURL - Discovery url to use for registration
             DiscoveryURL *string `json:"discoveryUrl,omitempty"`
             // ID - Registration id
             ID *string `json:"id,omitempty"`
-            // Callback - An optional callback hook to register.
-            Callback *CallbackAPIModel `json:"callback,omitempty"`
-            // ActivationFilter - Upon discovery, activate all endpoints with this filter.
             ActivationFilter *EndpointActivationFilterAPIModel `json:"activationFilter,omitempty"`
             }
-
-            // StatusResponseAPIModel status response model
-            type StatusResponseAPIModel struct {
-            autorest.Response `json:"-"`
-            // Name - Name of this service
-            Name *string `json:"name,omitempty"`
-            // Status - Operational status
-            Status *string `json:"status,omitempty"`
-            // CurrentTime - READ-ONLY; Current time
-            CurrentTime *string `json:"currentTime,omitempty"`
-            // StartTime - READ-ONLY; Start time of service
-            StartTime *string `json:"startTime,omitempty"`
-            // UpTime - READ-ONLY; Up time of service
-            UpTime *int64 `json:"upTime,omitempty"`
-            // UID - READ-ONLY; Value generated at bootstrap by each instance of the service and
-            // used to correlate logs coming from the same instance. The value
-            // changes every time the service starts.
-            UID *string `json:"uid,omitempty"`
-            // Properties - READ-ONLY; A property bag with details about the service
-            Properties map[string]*string `json:"properties"`
-            // Dependencies - READ-ONLY; A property bag with details about the internal dependencies
-            Dependencies map[string]*string `json:"dependencies"`
-            // Metadata - READ-ONLY; Optional meta data.
-            Metadata map[string]*string `json:"$metadata"`
-            }
-
-        // MarshalJSON is the custom marshaler for StatusResponseAPIModel.
-        func (sram StatusResponseAPIModel)MarshalJSON() ([]byte, error){
-        objectMap := make(map[string]interface{})
-                if(sram.Name != nil) {
-                objectMap["name"] = sram.Name
-                }
-                if(sram.Status != nil) {
-                objectMap["status"] = sram.Status
-                }
-                return json.Marshal(objectMap)
-        }
 
             // SupervisorAPIModel supervisor registration model
             type SupervisorAPIModel struct {
@@ -1153,14 +1593,10 @@ const fqdn = "go/azure-iiot-opc-registry"
             ID *string `json:"id,omitempty"`
             // SiteID - Site of the supervisor
             SiteID *string `json:"siteId,omitempty"`
-            // Discovery - Whether the supervisor is in discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-            Discovery DiscoveryMode `json:"discovery,omitempty"`
-            // DiscoveryConfig - Supervisor configuration
-            DiscoveryConfig *DiscoveryConfigAPIModel `json:"discoveryConfig,omitempty"`
             // Certificate - Supervisor public client cert
             Certificate *[]byte `json:"certificate,omitempty"`
-            // LogLevel - Current log level. Possible values include: 'SupervisorLogLevelError', 'SupervisorLogLevelInformation', 'SupervisorLogLevelDebug', 'SupervisorLogLevelVerbose'
-            LogLevel SupervisorLogLevel `json:"logLevel,omitempty"`
+            // LogLevel - Possible values include: 'TraceLogLevelError', 'TraceLogLevelInformation', 'TraceLogLevelDebug', 'TraceLogLevelVerbose'
+            LogLevel TraceLogLevel `json:"logLevel,omitempty"`
             // OutOfSync - Whether the registration is out of sync between
             // client (module) and server (service) (default: false).
             OutOfSync *bool `json:"outOfSync,omitempty"`
@@ -1309,10 +1745,8 @@ const fqdn = "go/azure-iiot-opc-registry"
 
             // SupervisorQueryAPIModel supervisor registration query
             type SupervisorQueryAPIModel struct {
-            // SiteID - Site of the supervisor
+            // SiteID - Site for the supervisors
             SiteID *string `json:"siteId,omitempty"`
-            // Discovery - Discovery mode of supervisor. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-            Discovery DiscoveryMode `json:"discovery,omitempty"`
             // Connected - Included connected or disconnected
             Connected *bool `json:"connected,omitempty"`
             }
@@ -1330,20 +1764,11 @@ const fqdn = "go/azure-iiot-opc-registry"
             Endpoints *[]EndpointActivationStatusAPIModel `json:"endpoints,omitempty"`
             }
 
-            // SupervisorUpdateAPIModel supervisor registration update request
+            // SupervisorUpdateAPIModel supervisor update request
             type SupervisorUpdateAPIModel struct {
-            // SiteID - Site of the supervisor
+            // SiteID - Site the supervisor is part of
             SiteID *string `json:"siteId,omitempty"`
-            // Discovery - Whether the supervisor is in discovery mode.
-            // If null, does not change. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-            Discovery DiscoveryMode `json:"discovery,omitempty"`
-            // DiscoveryConfig - Supervisor discovery configuration
-            DiscoveryConfig *DiscoveryConfigAPIModel `json:"discoveryConfig,omitempty"`
-            // DiscoveryCallbacks - Callbacks to add or remove (see below)
-            DiscoveryCallbacks *[]CallbackAPIModel `json:"discoveryCallbacks,omitempty"`
-            // RemoveDiscoveryCallbacks - Whether to add or remove callbacks
-            RemoveDiscoveryCallbacks *bool `json:"removeDiscoveryCallbacks,omitempty"`
-            // LogLevel - Current log level. Possible values include: 'SupervisorLogLevelError', 'SupervisorLogLevelInformation', 'SupervisorLogLevelDebug', 'SupervisorLogLevelVerbose'
-            LogLevel SupervisorLogLevel `json:"logLevel,omitempty"`
+            // LogLevel - Possible values include: 'TraceLogLevelError', 'TraceLogLevelInformation', 'TraceLogLevelDebug', 'TraceLogLevelVerbose'
+            LogLevel TraceLogLevel `json:"logLevel,omitempty"`
             }
 

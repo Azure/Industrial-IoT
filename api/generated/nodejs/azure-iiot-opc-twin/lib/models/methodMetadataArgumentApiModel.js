@@ -19,19 +19,17 @@ class MethodMetadataArgumentApiModel {
    * Create a MethodMetadataArgumentApiModel.
    * @property {string} [name] Argument name
    * @property {string} [description] Optional description
-   * @property {object} [type] Data type node of the argument
-   * @property {string} [type.nodeClass] Type of node. Possible values include:
-   * 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType',
-   * 'ReferenceType', 'DataType', 'View'
+   * @property {object} [type]
+   * @property {string} [type.nodeClass] Possible values include: 'Object',
+   * 'Variable', 'Method', 'ObjectType', 'VariableType', 'ReferenceType',
+   * 'DataType', 'View'
    * @property {string} [type.displayName] Display name
    * @property {string} [type.nodeId] Id of node.
    * (Mandatory).
    * @property {string} [type.description] Description if any
    * @property {string} [type.browseName] Browse name
-   * @property {string} [type.accessRestrictions] Node access restrictions if
-   * any.
-   * (default: none). Possible values include: 'SigningRequired',
-   * 'EncryptionRequired', 'SessionRequired'
+   * @property {string} [type.accessRestrictions] Possible values include:
+   * 'SigningRequired', 'EncryptionRequired', 'SessionRequired'
    * @property {number} [type.writeMask] Default write mask for the node
    * (default: 0)
    * @property {number} [type.userWriteMask] User write mask for the node
@@ -43,10 +41,7 @@ class MethodMetadataArgumentApiModel {
    * @property {boolean} [type.containsNoLoops] Whether a view contains loops.
    * Null if
    * not a view.
-   * @property {string} [type.eventNotifier] If object or view and eventing,
-   * event notifier
-   * to subscribe to.
-   * (default: no events supported). Possible values include:
+   * @property {string} [type.eventNotifier] Possible values include:
    * 'SubscribeToEvents', 'HistoryRead', 'HistoryWrite'
    * @property {boolean} [type.executable] If method node class, whether method
    * can
@@ -59,24 +54,20 @@ class MethodMetadataArgumentApiModel {
    * node is a
    * data type node and definition is available,
    * otherwise null.
-   * @property {string} [type.accessLevel] Default access level for variable
-   * node.
-   * (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite',
-   * 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite',
-   * 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'
-   * @property {string} [type.userAccessLevel] User access level for variable
-   * node or null.
-   * (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite',
-   * 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite',
-   * 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'
+   * @property {string} [type.accessLevel] Possible values include:
+   * 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite',
+   * 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead',
+   * 'NonatomicWrite', 'WriteFullArrayOnly'
+   * @property {string} [type.userAccessLevel] Possible values include:
+   * 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite',
+   * 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead',
+   * 'NonatomicWrite', 'WriteFullArrayOnly'
    * @property {string} [type.dataType] If variable the datatype of the
    * variable.
    * (default: null)
-   * @property {string} [type.valueRank] Value rank of the variable data of a
-   * variable
-   * or variable type, otherwise null.
-   * (default: scalar = -1). Possible values include: 'ScalarOrOneDimension',
-   * 'Any', 'Scalar', 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions'
+   * @property {string} [type.valueRank] Possible values include:
+   * 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions',
+   * 'ScalarOrOneDimension', 'Any', 'Scalar'
    * @property {array} [type.arrayDimensions] Array dimensions of variable or
    * variable type.
    * (default: empty array)
@@ -106,9 +97,9 @@ class MethodMetadataArgumentApiModel {
    * any forward hierarchical references.
    * (default: unknown)
    * @property {object} [defaultValue] Default value
-   * @property {string} [valueRank] Optional, scalar if not set. Possible
-   * values include: 'ScalarOrOneDimension', 'Any', 'Scalar',
-   * 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions'
+   * @property {string} [valueRank] Possible values include:
+   * 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions',
+   * 'ScalarOrOneDimension', 'Any', 'Scalar'
    * @property {array} [arrayDimensions] Optional, array dimension
    */
   constructor() {
@@ -162,7 +153,7 @@ class MethodMetadataArgumentApiModel {
             serializedName: 'valueRank',
             type: {
               name: 'Enum',
-              allowedValues: [ 'ScalarOrOneDimension', 'Any', 'Scalar', 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions' ]
+              allowedValues: [ 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions', 'ScalarOrOneDimension', 'Any', 'Scalar' ]
             }
           },
           arrayDimensions: {

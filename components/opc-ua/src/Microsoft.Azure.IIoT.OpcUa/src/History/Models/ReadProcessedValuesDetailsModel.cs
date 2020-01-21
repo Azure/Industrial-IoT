@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System;
 
     /// <summary>
@@ -34,6 +35,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
         /// <summary>
         /// A configuration for the aggregate
         /// </summary>
-        public AggregateConfigModel AggregateConfiguration { get; set; }
+        public AggregateConfigurationModel AggregateConfiguration { get; set; }
     }
 }

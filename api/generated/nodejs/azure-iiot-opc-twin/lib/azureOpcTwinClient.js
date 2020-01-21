@@ -22,17 +22,214 @@ const models = require('./models');
 
 
 /**
+ * @summary Browse node references
+ *
+ * Browse a node on the specified endpoint. The endpoint must be activated and
+ * connected and the module client and server must trust each other.
+ *
+ * @param {string} endpointId The identifier of the activated endpoint.
+ *
+ * @param {object} body The browse request
+ *
+ * @param {string} [body.nodeId] Node to browse.
+ * (default: RootFolder).
+ *
+ * @param {string} [body.direction] Possible values include: 'Forward',
+ * 'Backward', 'Both'
+ *
+ * @param {object} [body.view]
+ *
+ * @param {string} body.view.viewId Node of the view to browse
+ *
+ * @param {number} [body.view.version] Browses specific version of the view.
+ *
+ * @param {date} [body.view.timestamp] Browses at or before this timestamp.
+ *
+ * @param {string} [body.referenceTypeId] Reference types to browse.
+ * (default: hierarchical).
+ *
+ * @param {boolean} [body.noSubtypes] Whether to include subtypes of the
+ * reference type.
+ * (default is false)
+ *
+ * @param {number} [body.maxReferencesToReturn] Max number of references to
+ * return. There might
+ * be less returned as this is up to the client
+ * restrictions.  Set to 0 to return no references
+ * or target nodes.
+ * (default is decided by client e.g. 60)
+ *
+ * @param {boolean} [body.targetNodesOnly] Whether to collapse all references
+ * into a set of
+ * unique target nodes and not show reference
+ * information.
+ * (default is false)
+ *
+ * @param {boolean} [body.readVariableValues] Whether to read variable values
+ * on target nodes.
+ * (default is false)
+ *
+ * @param {object} [body.header]
+ *
+ * @param {object} [body.header.elevation]
+ *
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ *
+ * @param {object} [body.header.elevation.value] Value to pass to server
+ *
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
+ *
+ * @param {object} [body.header.diagnostics]
+ *
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
+ *
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
+ * (default: client generated)
+ *
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
+ * (default: client generated)
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link BrowseResponseApiModel} for more
+ *                      information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _browse(endpointId, body, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
+      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
+    }
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/browse/{endpointId}';
+  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['BrowseRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(body, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['BrowseResponseApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
  * @summary Browse set of unique target nodes
  *
  * Browse the set of unique hierarchically referenced target nodes on the
- * endpoint.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
- * The root node id to browse from can be provided as part of the query
- * parameters.
- * If it is not provided, the RootFolder node is browsed. Note that this
- * is the same as the POST method with the model containing the node id
- * and the targetNodesOnly flag set to true.
+ * endpoint. The endpoint must be activated and connected and the module client
+ * and server must trust each other. The root node id to browse from can be
+ * provided as part of the query parameters. If it is not provided, the
+ * RootFolder node is browsed. Note that this is the same as the POST method
+ * with the model containing the node id and the targetNodesOnly flag set to
+ * true.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
@@ -162,79 +359,54 @@ function _getSetOfUniqueNodes(endpointId, options, callback) {
 }
 
 /**
- * @summary Browse node references
+ * @summary Browse next set of references
  *
- * Browse a node on the specified endpoint.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Browse next set of references on the endpoint. The endpoint must be
+ * activated and connected and the module client and server must trust each
+ * other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The browse request
+ * @param {object} body The request body with continuation token.
  *
- * @param {string} [request.nodeId] Node to browse.
- * (default: RootFolder).
+ * @param {string} body.continuationToken Continuation token from previews
+ * browse request.
+ * (mandatory)
  *
- * @param {string} [request.direction] Direction to browse in
- * (default: forward). Possible values include: 'Forward', 'Backward', 'Both'
+ * @param {boolean} [body.abort] Whether to abort browse and release.
+ * (default: false)
  *
- * @param {object} [request.view] View to browse
- * (default: null = new view = All nodes).
- *
- * @param {string} request.view.viewId Node of the view to browse
- *
- * @param {number} [request.view.version] Browses specific version of the view.
- *
- * @param {date} [request.view.timestamp] Browses at or before this timestamp.
- *
- * @param {string} [request.referenceTypeId] Reference types to browse.
- * (default: hierarchical).
- *
- * @param {boolean} [request.noSubtypes] Whether to include subtypes of the
- * reference type.
- * (default is false)
- *
- * @param {number} [request.maxReferencesToReturn] Max number of references to
- * return. There might
- * be less returned as this is up to the client
- * restrictions.  Set to 0 to return no references
- * or target nodes.
- * (default is decided by client e.g. 60)
- *
- * @param {boolean} [request.targetNodesOnly] Whether to collapse all
- * references into a set of
+ * @param {boolean} [body.targetNodesOnly] Whether to collapse all references
+ * into a set of
  * unique target nodes and not show reference
  * information.
  * (default is false)
  *
- * @param {boolean} [request.readVariableValues] Whether to read variable
- * values on target nodes.
+ * @param {boolean} [body.readVariableValues] Whether to read variable values
+ * on target nodes.
  * (default is false)
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -249,14 +421,14 @@ function _getSetOfUniqueNodes(endpointId, options, callback) {
  *                      {Error}  err        - The Error object if an error occurred, null otherwise.
  *
  *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link BrowseResponseApiModel} for more
+ *                      See {@link BrowseNextResponseApiModel} for more
  *                      information.
  *
  *                      {object} [request]  - The HTTP Request object if an error did not occur.
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _browse(endpointId, request, options, callback) {
+function _browseNext(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -271,8 +443,8 @@ function _browse(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -280,7 +452,7 @@ function _browse(endpointId, request, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/browse/{endpointId}';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/browse/{endpointId}/next';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
 
   // Create HTTP transport objects
@@ -301,14 +473,14 @@ function _browse(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['BrowseRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['BrowseNextRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -350,7 +522,7 @@ function _browse(endpointId, request, options, callback) {
         parsedResponse = JSON.parse(responseBody);
         result = JSON.parse(responseBody);
         if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['BrowseResponseApiModel']().mapper();
+          let resultMapper = new client.models['BrowseNextResponseApiModel']().mapper();
           result = client.deserialize(resultMapper, parsedResponse, 'result');
         }
       } catch (error) {
@@ -369,11 +541,10 @@ function _browse(endpointId, request, options, callback) {
  * @summary Browse next set of unique target nodes
  *
  * Browse the next set of unique hierarchically referenced target nodes on the
- * endpoint.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
- * Note that this is the same as the POST method with the model containing
- * the continuation token and the targetNodesOnly flag set to true.
+ * endpoint. The endpoint must be activated and connected and the module client
+ * and server must trust each other. Note that this is the same as the POST
+ * method with the model containing the continuation token and the
+ * targetNodesOnly flag set to true.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
@@ -500,233 +671,48 @@ function _getNextSetOfUniqueNodes(endpointId, continuationToken, options, callba
 }
 
 /**
- * @summary Browse next set of references
- *
- * Browse next set of references on the endpoint.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
- *
- * @param {string} endpointId The identifier of the activated endpoint.
- *
- * @param {object} request The request body with continuation token.
- *
- * @param {string} request.continuationToken Continuation token from previews
- * browse request.
- * (mandatory)
- *
- * @param {boolean} [request.abort] Whether to abort browse and release.
- * (default: false)
- *
- * @param {boolean} [request.targetNodesOnly] Whether to collapse all
- * references into a set of
- * unique target nodes and not show reference
- * information.
- * (default is false)
- *
- * @param {boolean} [request.readVariableValues] Whether to read variable
- * values on target nodes.
- * (default is false)
- *
- * @param {object} [request.header] Optional request header
- *
- * @param {object} [request.header.elevation] Optional User elevation
- *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
- *
- * @param {object} [request.header.elevation.value] Value to pass to server
- *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
- *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
- *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
- *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
- * (default: client generated)
- *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
- * (default: client generated)
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link BrowseNextResponseApiModel} for more
- *                      information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _browseNext(endpointId, request, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  // Validate
-  try {
-    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
-      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
-    }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/browse/{endpointId}/next';
-  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'POST';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  // Serialize Request
-  let requestContent = null;
-  let requestModel = null;
-  try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['BrowseNextRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
-      requestContent = JSON.stringify(requestModel);
-    }
-  } catch (error) {
-    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
-    return callback(serializationError);
-  }
-  httpRequest.body = requestContent;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['BrowseNextResponseApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
  * @summary Browse using a browse path
  *
- * Browse using a path from the specified node id.
- * This call uses TranslateBrowsePathsToNodeIds service under the hood.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Browse using a path from the specified node id. This call uses
+ * TranslateBrowsePathsToNodeIds service under the hood. The endpoint must be
+ * activated and connected and the module client and server must trust each
+ * other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The browse path request
+ * @param {object} body The browse path request
  *
- * @param {string} [request.nodeId] Node to browse from.
+ * @param {string} [body.nodeId] Node to browse from.
  * (default: RootFolder).
  *
- * @param {array} request.browsePaths The paths to browse from node.
+ * @param {array} body.browsePaths The paths to browse from node.
  * (mandatory)
  *
- * @param {boolean} [request.readVariableValues] Whether to read variable
- * values on target nodes.
+ * @param {boolean} [body.readVariableValues] Whether to read variable values
+ * on target nodes.
  * (default is false)
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -748,7 +734,7 @@ function _browseNext(endpointId, request, options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _browseUsingPath(endpointId, request, options, callback) {
+function _browseUsingPath(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -763,8 +749,8 @@ function _browseUsingPath(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -793,14 +779,14 @@ function _browseUsingPath(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
+    if (body !== null && body !== undefined) {
       let requestModelMapper = new client.models['BrowsePathRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -861,45 +847,41 @@ function _browseUsingPath(endpointId, request, options, callback) {
  * @summary Get method meta data
  *
  * Return method meta data to support a user interface displaying forms to
- * input and output arguments.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * input and output arguments. The endpoint must be activated and connected and
+ * the module client and server must trust each other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The method metadata request
+ * @param {object} body The method metadata request
  *
- * @param {string} request.methodId Method id of method to call.
+ * @param {string} [body.methodId] Method id of method to call.
  * (Required)
  *
- * @param {array} [request.methodBrowsePath] An optional component path from
- * the node identified by
+ * @param {array} [body.methodBrowsePath] An optional component path from the
+ * node identified by
  * MethodId to the actual method node.
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -921,7 +903,7 @@ function _browseUsingPath(endpointId, request, options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _getCallMetadata(endpointId, request, options, callback) {
+function _getCallMetadata(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -936,8 +918,8 @@ function _getCallMetadata(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -966,14 +948,14 @@ function _getCallMetadata(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
+    if (body !== null && body !== undefined) {
       let requestModelMapper = new client.models['MethodMetadataRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -1033,57 +1015,54 @@ function _getCallMetadata(endpointId, request, options, callback) {
 /**
  * @summary Call a method
  *
- * Invoke method node with specified input arguments.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Invoke method node with specified input arguments. The endpoint must be
+ * activated and connected and the module client and server must trust each
+ * other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The method call request
+ * @param {object} body The method call request
  *
- * @param {string} [request.methodId] Method id of method to call.
+ * @param {string} [body.methodId] Method id of method to call.
  *
- * @param {string} [request.objectId] Context of the method, i.e. an object or
+ * @param {string} [body.objectId] Context of the method, i.e. an object or
  * object type
  * node.
  *
- * @param {array} [request.argumentsProperty] Arguments for the method - null
+ * @param {array} [body.argumentsProperty] Arguments for the method - null
  * means no args
  *
- * @param {array} [request.methodBrowsePath] An optional component path from
- * the node identified by
+ * @param {array} [body.methodBrowsePath] An optional component path from the
+ * node identified by
  * MethodId or from a resolved objectId to the actual
  * method node.
  *
- * @param {array} [request.objectBrowsePath] An optional component path from
- * the node identified by
+ * @param {array} [body.objectBrowsePath] An optional component path from the
+ * node identified by
  * ObjectId to the actual object or objectType node.
  * If ObjectId is null, the root node (i=84) is used.
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -1105,7 +1084,7 @@ function _getCallMetadata(endpointId, request, options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _callMethod(endpointId, request, options, callback) {
+function _callMethod(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -1120,8 +1099,8 @@ function _callMethod(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -1150,14 +1129,14 @@ function _callMethod(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
+    if (body !== null && body !== undefined) {
       let requestModelMapper = new client.models['MethodCallRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -1215,61 +1194,47 @@ function _callMethod(endpointId, request, options, callback) {
 }
 
 /**
- * @summary Start publishing node values
+ * @summary Read variable value
  *
- * Start publishing variable node values to IoT Hub.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Read a variable node's value. The endpoint must be activated and connected
+ * and the module client and server must trust each other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The publish request
+ * @param {object} body The read value request
  *
- * @param {object} request.item Item to publish
+ * @param {string} [body.nodeId] Node to read from (mandatory)
  *
- * @param {string} request.item.nodeId Node to monitor
- *
- * @param {array} [request.item.browsePath] An optional path from NodeId
- * instance to
+ * @param {array} [body.browsePath] An optional path from NodeId instance to
  * the actual node.
  *
- * @param {string} [request.item.nodeAttribute] Attribute to monitor. Possible
- * values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description',
- * 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
- * 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank',
- * 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
- * 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable',
- * 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions',
- * 'AccessRestrictions'
+ * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+ * slices
+ * out of a matrix or 0:1 for the first item in
+ * an array, string or bytestring.
+ * See 7.22 of part 4: NumericRange.
  *
- * @param {number} [request.item.publishingInterval] Publishing interval to use
+ * @param {object} [body.header]
  *
- * @param {number} [request.item.samplingInterval] Sampling interval to use
+ * @param {object} [body.header.elevation]
  *
- * @param {object} [request.header] Optional request header
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.diagnostics]
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
- *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
- *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -1284,14 +1249,14 @@ function _callMethod(endpointId, request, options, callback) {
  *                      {Error}  err        - The Error object if an error occurred, null otherwise.
  *
  *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link PublishStartResponseApiModel} for more
+ *                      See {@link ValueReadResponseApiModel} for more
  *                      information.
  *
  *                      {object} [request]  - The HTTP Request object if an error did not occur.
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _startPublishingValues(endpointId, request, options, callback) {
+function _readValue(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -1306,8 +1271,8 @@ function _startPublishingValues(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -1315,7 +1280,7 @@ function _startPublishingValues(endpointId, request, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/publish/{endpointId}/start';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/read/{endpointId}';
   requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
 
   // Create HTTP transport objects
@@ -1336,14 +1301,14 @@ function _startPublishingValues(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['PublishStartRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['ValueReadRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -1385,445 +1350,7 @@ function _startPublishingValues(endpointId, request, options, callback) {
         parsedResponse = JSON.parse(responseBody);
         result = JSON.parse(responseBody);
         if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['PublishStartResponseApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Stop publishing node values
- *
- * Stop publishing variable node values to IoT Hub.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
- *
- * @param {string} endpointId The identifier of the activated endpoint.
- *
- * @param {object} request The unpublish request
- *
- * @param {string} request.nodeId Node of published item to unpublish
- *
- * @param {array} [request.browsePath] An optional path from NodeId instance to
- * the actual node.
- *
- * @param {string} [request.nodeAttribute] Attribute of item to unpublish.
- * Possible values include: 'NodeClass', 'BrowseName', 'DisplayName',
- * 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric',
- * 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType',
- * 'ValueRank', 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
- * 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable',
- * 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions',
- * 'AccessRestrictions'
- *
- * @param {object} [request.diagnostics] Optional diagnostics configuration
- *
- * @param {string} [request.diagnostics.level] Requested level of response
- * diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
- *
- * @param {string} [request.diagnostics.auditId] Client audit log entry.
- * (default: client generated)
- *
- * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
- * (default: client generated)
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link PublishStopResponseApiModel} for more
- *                      information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _stopPublishingValues(endpointId, request, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  // Validate
-  try {
-    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
-      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
-    }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/publish/{endpointId}/stop';
-  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'POST';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  // Serialize Request
-  let requestContent = null;
-  let requestModel = null;
-  try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['PublishStopRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
-      requestContent = JSON.stringify(requestModel);
-    }
-  } catch (error) {
-    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
-    return callback(serializationError);
-  }
-  httpRequest.body = requestContent;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['PublishStopResponseApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Get next set of published nodes
- *
- * Returns next set of currently published node ids for an endpoint.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
- *
- * @param {string} endpointId The identifier of the activated endpoint.
- *
- * @param {string} continuationToken The continuation token to continue with
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link PublishedItemListResponseApiModel} for more
- *                      information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _getNextListOfPublishedNodes(endpointId, continuationToken, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  // Validate
-  try {
-    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
-      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
-    }
-    if (continuationToken === null || continuationToken === undefined || typeof continuationToken.valueOf() !== 'string') {
-      throw new Error('continuationToken cannot be null or undefined and it must be of type string.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/publish/{endpointId}';
-  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
-  let queryParameters = [];
-  queryParameters.push('continuationToken=' + encodeURIComponent(continuationToken));
-  if (queryParameters.length > 0) {
-    requestUrl += '?' + queryParameters.join('&');
-  }
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'GET';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  httpRequest.body = null;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['PublishedItemListResponseApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Get currently published nodes
- *
- * Returns currently published node ids for an endpoint.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
- *
- * @param {string} endpointId The identifier of the activated endpoint.
- *
- * @param {object} request The list request
- *
- * @param {string} [request.continuationToken] Continuation token or null to
- * start
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link PublishedItemListResponseApiModel} for more
- *                      information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _getFirstListOfPublishedNodes(endpointId, request, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  // Validate
-  try {
-    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
-      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
-    }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/publish/{endpointId}';
-  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'POST';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  // Serialize Request
-  let requestContent = null;
-  let requestModel = null;
-  try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['PublishedItemListRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
-      requestContent = JSON.stringify(requestModel);
-    }
-  } catch (error) {
-    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
-    return callback(serializationError);
-  }
-  httpRequest.body = requestContent;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['PublishedItemListResponseApiModel']().mapper();
+          let resultMapper = new client.models['ValueReadResponseApiModel']().mapper();
           result = client.deserialize(resultMapper, parsedResponse, 'result');
         }
       } catch (error) {
@@ -1841,9 +1368,9 @@ function _getFirstListOfPublishedNodes(endpointId, request, options, callback) {
 /**
  * @summary Get variable value
  *
- * Get a variable node's value using its node id.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Get a variable node's value using its node id. The endpoint must be
+ * activated and connected and the module client and server must trust each
+ * other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
@@ -1969,218 +1496,38 @@ function _getValue(endpointId, nodeId, options, callback) {
 }
 
 /**
- * @summary Read variable value
- *
- * Read a variable node's value.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
- *
- * @param {string} endpointId The identifier of the activated endpoint.
- *
- * @param {object} request The read value request
- *
- * @param {string} request.nodeId Node to read from (mandatory)
- *
- * @param {array} [request.browsePath] An optional path from NodeId instance to
- * the actual node.
- *
- * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
- * slices
- * out of a matrix or 0:1 for the first item in
- * an array, string or bytestring.
- * See 7.22 of part 4: NumericRange.
- *
- * @param {object} [request.header] Optional request header
- *
- * @param {object} [request.header.elevation] Optional User elevation
- *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
- *
- * @param {object} [request.header.elevation.value] Value to pass to server
- *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
- *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
- *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
- *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
- * (default: client generated)
- *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
- * (default: client generated)
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link ValueReadResponseApiModel} for more
- *                      information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _readValue(endpointId, request, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  // Validate
-  try {
-    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
-      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
-    }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/read/{endpointId}';
-  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'POST';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  // Serialize Request
-  let requestContent = null;
-  let requestModel = null;
-  try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['ValueReadRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
-      requestContent = JSON.stringify(requestModel);
-    }
-  } catch (error) {
-    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
-    return callback(serializationError);
-  }
-  httpRequest.body = requestContent;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['ValueReadResponseApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
  * @summary Read node attributes
  *
- * Read attributes of a node.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Read attributes of a node. The endpoint must be activated and connected and
+ * the module client and server must trust each other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The read request
+ * @param {object} body The read request
  *
- * @param {array} request.attributes Attributes to read
+ * @param {array} body.attributes Attributes to read
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -2201,7 +1548,7 @@ function _readValue(endpointId, request, options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _readAttributes(endpointId, request, options, callback) {
+function _readAttributes(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -2216,8 +1563,8 @@ function _readAttributes(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -2246,14 +1593,14 @@ function _readAttributes(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
+    if (body !== null && body !== undefined) {
       let requestModelMapper = new client.models['ReadRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -2311,164 +1658,53 @@ function _readAttributes(endpointId, request, options, callback) {
 }
 
 /**
- * @summary Return the service status in the form of the service status
- * api model.
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link StatusResponseApiModel} for more
- *                      information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _getStatus(options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/status';
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'GET';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  httpRequest.body = null;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['StatusResponseApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
  * @summary Write variable value
  *
- * Write variable node's value.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Write variable node's value. The endpoint must be activated and connected
+ * and the module client and server must trust each other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The write value request
+ * @param {object} body The write value request
  *
- * @param {string} request.nodeId Node id to to write value to.
+ * @param {string} [body.nodeId] Node id to to write value to.
  *
- * @param {array} [request.browsePath] An optional path from NodeId instance to
+ * @param {array} [body.browsePath] An optional path from NodeId instance to
  * the actual node.
  *
- * @param {object} request.value Value to write. The system tries to convert
+ * @param {object} body.value Value to write. The system tries to convert
  * the value according to the data type value,
  * e.g. convert comma seperated value strings
  * into arrays.  (Mandatory)
  *
- * @param {string} [request.dataType] A built in datatype for the value. This
- * can
+ * @param {string} [body.dataType] A built in datatype for the value. This can
  * be a data type from browse, or a built in
  * type.
  * (default: best effort)
  *
- * @param {string} [request.indexRange] Index range to write
+ * @param {string} [body.indexRange] Index range to write
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -2490,7 +1726,7 @@ function _getStatus(options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _writeValue(endpointId, request, options, callback) {
+function _writeValue(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -2505,8 +1741,8 @@ function _writeValue(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -2535,14 +1771,14 @@ function _writeValue(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
+    if (body !== null && body !== undefined) {
       let requestModelMapper = new client.models['ValueWriteRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -2602,40 +1838,36 @@ function _writeValue(endpointId, request, options, callback) {
 /**
  * @summary Write node attributes
  *
- * Write any attribute of a node.
- * The endpoint must be activated and connected and the module client
- * and server must trust each other.
+ * Write any attribute of a node. The endpoint must be activated and connected
+ * and the module client and server must trust each other.
  *
  * @param {string} endpointId The identifier of the activated endpoint.
  *
- * @param {object} request The batch write request
+ * @param {object} body The batch write request
  *
- * @param {array} request.attributes Attributes to update
+ * @param {array} body.attributes Attributes to update
  *
- * @param {object} [request.header] Optional request header
+ * @param {object} [body.header]
  *
- * @param {object} [request.header.elevation] Optional User elevation
+ * @param {object} [body.header.elevation]
  *
- * @param {string} [request.header.elevation.type] Type of credential. Possible
- * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+ * @param {string} [body.header.elevation.type] Possible values include:
+ * 'None', 'UserName', 'X509Certificate', 'JwtToken'
  *
- * @param {object} [request.header.elevation.value] Value to pass to server
+ * @param {object} [body.header.elevation.value] Value to pass to server
  *
- * @param {array} [request.header.locales] Optional list of locales in
- * preference order.
+ * @param {array} [body.header.locales] Optional list of locales in preference
+ * order.
  *
- * @param {object} [request.header.diagnostics] Optional diagnostics
- * configuration
+ * @param {object} [body.header.diagnostics]
  *
- * @param {string} [request.header.diagnostics.level] Requested level of
- * response diagnostics.
- * (default: Status). Possible values include: 'None', 'Status', 'Operations',
- * 'Diagnostics', 'Verbose'
+ * @param {string} [body.header.diagnostics.level] Possible values include:
+ * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
  *
- * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+ * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
  * (default: client generated)
  *
- * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+ * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
  * (default: client generated)
  *
  * @param {object} [options] Optional Parameters.
@@ -2656,7 +1888,7 @@ function _writeValue(endpointId, request, options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _writeAttributes(endpointId, request, options, callback) {
+function _writeAttributes(endpointId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -2671,8 +1903,8 @@ function _writeAttributes(endpointId, request, options, callback) {
     if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
       throw new Error('endpointId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -2701,14 +1933,14 @@ function _writeAttributes(endpointId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
+    if (body !== null && body !== undefined) {
       let requestModelMapper = new client.models['WriteRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -2788,45 +2020,253 @@ class AzureOpcTwinClient extends ServiceClient {
 
     this.baseUri = baseUri;
     if (!this.baseUri) {
-      this.baseUri = 'http://localhost';
+      this.baseUri = 'http://localhost:9080';
     }
     this.credentials = credentials;
 
     let packageInfo = this.getPackageJsonInfo(__dirname);
     this.addUserAgentInfo(`${packageInfo.name}/${packageInfo.version}`);
     this.models = models;
-    this._getSetOfUniqueNodes = _getSetOfUniqueNodes;
     this._browse = _browse;
-    this._getNextSetOfUniqueNodes = _getNextSetOfUniqueNodes;
+    this._getSetOfUniqueNodes = _getSetOfUniqueNodes;
     this._browseNext = _browseNext;
+    this._getNextSetOfUniqueNodes = _getNextSetOfUniqueNodes;
     this._browseUsingPath = _browseUsingPath;
     this._getCallMetadata = _getCallMetadata;
     this._callMethod = _callMethod;
-    this._startPublishingValues = _startPublishingValues;
-    this._stopPublishingValues = _stopPublishingValues;
-    this._getNextListOfPublishedNodes = _getNextListOfPublishedNodes;
-    this._getFirstListOfPublishedNodes = _getFirstListOfPublishedNodes;
-    this._getValue = _getValue;
     this._readValue = _readValue;
+    this._getValue = _getValue;
     this._readAttributes = _readAttributes;
-    this._getStatus = _getStatus;
     this._writeValue = _writeValue;
     this._writeAttributes = _writeAttributes;
     msRest.addSerializationMixin(this);
   }
 
   /**
+   * @summary Browse node references
+   *
+   * Browse a node on the specified endpoint. The endpoint must be activated and
+   * connected and the module client and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} body The browse request
+   *
+   * @param {string} [body.nodeId] Node to browse.
+   * (default: RootFolder).
+   *
+   * @param {string} [body.direction] Possible values include: 'Forward',
+   * 'Backward', 'Both'
+   *
+   * @param {object} [body.view]
+   *
+   * @param {string} body.view.viewId Node of the view to browse
+   *
+   * @param {number} [body.view.version] Browses specific version of the view.
+   *
+   * @param {date} [body.view.timestamp] Browses at or before this timestamp.
+   *
+   * @param {string} [body.referenceTypeId] Reference types to browse.
+   * (default: hierarchical).
+   *
+   * @param {boolean} [body.noSubtypes] Whether to include subtypes of the
+   * reference type.
+   * (default is false)
+   *
+   * @param {number} [body.maxReferencesToReturn] Max number of references to
+   * return. There might
+   * be less returned as this is up to the client
+   * restrictions.  Set to 0 to return no references
+   * or target nodes.
+   * (default is decided by client e.g. 60)
+   *
+   * @param {boolean} [body.targetNodesOnly] Whether to collapse all references
+   * into a set of
+   * unique target nodes and not show reference
+   * information.
+   * (default is false)
+   *
+   * @param {boolean} [body.readVariableValues] Whether to read variable values
+   * on target nodes.
+   * (default is false)
+   *
+   * @param {object} [body.header]
+   *
+   * @param {object} [body.header.elevation]
+   *
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [body.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
+   *
+   * @param {object} [body.header.diagnostics]
+   *
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<BrowseResponseApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  browseWithHttpOperationResponse(endpointId, body, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._browse(endpointId, body, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Browse node references
+   *
+   * Browse a node on the specified endpoint. The endpoint must be activated and
+   * connected and the module client and server must trust each other.
+   *
+   * @param {string} endpointId The identifier of the activated endpoint.
+   *
+   * @param {object} body The browse request
+   *
+   * @param {string} [body.nodeId] Node to browse.
+   * (default: RootFolder).
+   *
+   * @param {string} [body.direction] Possible values include: 'Forward',
+   * 'Backward', 'Both'
+   *
+   * @param {object} [body.view]
+   *
+   * @param {string} body.view.viewId Node of the view to browse
+   *
+   * @param {number} [body.view.version] Browses specific version of the view.
+   *
+   * @param {date} [body.view.timestamp] Browses at or before this timestamp.
+   *
+   * @param {string} [body.referenceTypeId] Reference types to browse.
+   * (default: hierarchical).
+   *
+   * @param {boolean} [body.noSubtypes] Whether to include subtypes of the
+   * reference type.
+   * (default is false)
+   *
+   * @param {number} [body.maxReferencesToReturn] Max number of references to
+   * return. There might
+   * be less returned as this is up to the client
+   * restrictions.  Set to 0 to return no references
+   * or target nodes.
+   * (default is decided by client e.g. 60)
+   *
+   * @param {boolean} [body.targetNodesOnly] Whether to collapse all references
+   * into a set of
+   * unique target nodes and not show reference
+   * information.
+   * (default is false)
+   *
+   * @param {boolean} [body.readVariableValues] Whether to read variable values
+   * on target nodes.
+   * (default is false)
+   *
+   * @param {object} [body.header]
+   *
+   * @param {object} [body.header.elevation]
+   *
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   *
+   * @param {object} [body.header.elevation.value] Value to pass to server
+   *
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
+   *
+   * @param {object} [body.header.diagnostics]
+   *
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
+   *
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
+   * (default: client generated)
+   *
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
+   * (default: client generated)
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {BrowseResponseApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link BrowseResponseApiModel} for more
+   *                      information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  browse(endpointId, body, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._browse(endpointId, body, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._browse(endpointId, body, options, optionalCallback);
+    }
+  }
+
+  /**
    * @summary Browse set of unique target nodes
    *
    * Browse the set of unique hierarchically referenced target nodes on the
-   * endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   * The root node id to browse from can be provided as part of the query
-   * parameters.
-   * If it is not provided, the RootFolder node is browsed. Note that this
-   * is the same as the POST method with the model containing the node id
-   * and the targetNodesOnly flag set to true.
+   * endpoint. The endpoint must be activated and connected and the module client
+   * and server must trust each other. The root node id to browse from can be
+   * provided as part of the query parameters. If it is not provided, the
+   * RootFolder node is browsed. Note that this is the same as the POST method
+   * with the model containing the node id and the targetNodesOnly flag set to
+   * true.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
@@ -2862,14 +2302,12 @@ class AzureOpcTwinClient extends ServiceClient {
    * @summary Browse set of unique target nodes
    *
    * Browse the set of unique hierarchically referenced target nodes on the
-   * endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   * The root node id to browse from can be provided as part of the query
-   * parameters.
-   * If it is not provided, the RootFolder node is browsed. Note that this
-   * is the same as the POST method with the model containing the node id
-   * and the targetNodesOnly flag set to true.
+   * endpoint. The endpoint must be activated and connected and the module client
+   * and server must trust each other. The root node id to browse from can be
+   * provided as part of the query parameters. If it is not provided, the
+   * RootFolder node is browsed. Note that this is the same as the POST method
+   * with the model containing the node id and the targetNodesOnly flag set to
+   * true.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
@@ -2925,79 +2363,54 @@ class AzureOpcTwinClient extends ServiceClient {
   }
 
   /**
-   * @summary Browse node references
+   * @summary Browse next set of references
    *
-   * Browse a node on the specified endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Browse next set of references on the endpoint. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The browse request
+   * @param {object} body The request body with continuation token.
    *
-   * @param {string} [request.nodeId] Node to browse.
-   * (default: RootFolder).
+   * @param {string} body.continuationToken Continuation token from previews
+   * browse request.
+   * (mandatory)
    *
-   * @param {string} [request.direction] Direction to browse in
-   * (default: forward). Possible values include: 'Forward', 'Backward', 'Both'
+   * @param {boolean} [body.abort] Whether to abort browse and release.
+   * (default: false)
    *
-   * @param {object} [request.view] View to browse
-   * (default: null = new view = All nodes).
-   *
-   * @param {string} request.view.viewId Node of the view to browse
-   *
-   * @param {number} [request.view.version] Browses specific version of the view.
-   *
-   * @param {date} [request.view.timestamp] Browses at or before this timestamp.
-   *
-   * @param {string} [request.referenceTypeId] Reference types to browse.
-   * (default: hierarchical).
-   *
-   * @param {boolean} [request.noSubtypes] Whether to include subtypes of the
-   * reference type.
-   * (default is false)
-   *
-   * @param {number} [request.maxReferencesToReturn] Max number of references to
-   * return. There might
-   * be less returned as this is up to the client
-   * restrictions.  Set to 0 to return no references
-   * or target nodes.
-   * (default is decided by client e.g. 60)
-   *
-   * @param {boolean} [request.targetNodesOnly] Whether to collapse all
-   * references into a set of
+   * @param {boolean} [body.targetNodesOnly] Whether to collapse all references
+   * into a set of
    * unique target nodes and not show reference
    * information.
    * (default is false)
    *
-   * @param {boolean} [request.readVariableValues] Whether to read variable
-   * values on target nodes.
+   * @param {boolean} [body.readVariableValues] Whether to read variable values
+   * on target nodes.
    * (default is false)
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -3007,15 +2420,15 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<BrowseResponseApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<BrowseNextResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  browseWithHttpOperationResponse(endpointId, request, options) {
+  browseNextWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._browse(endpointId, request, options, (err, result, request, response) => {
+      self._browseNext(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -3026,79 +2439,54 @@ class AzureOpcTwinClient extends ServiceClient {
   }
 
   /**
-   * @summary Browse node references
+   * @summary Browse next set of references
    *
-   * Browse a node on the specified endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Browse next set of references on the endpoint. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The browse request
+   * @param {object} body The request body with continuation token.
    *
-   * @param {string} [request.nodeId] Node to browse.
-   * (default: RootFolder).
+   * @param {string} body.continuationToken Continuation token from previews
+   * browse request.
+   * (mandatory)
    *
-   * @param {string} [request.direction] Direction to browse in
-   * (default: forward). Possible values include: 'Forward', 'Backward', 'Both'
+   * @param {boolean} [body.abort] Whether to abort browse and release.
+   * (default: false)
    *
-   * @param {object} [request.view] View to browse
-   * (default: null = new view = All nodes).
-   *
-   * @param {string} request.view.viewId Node of the view to browse
-   *
-   * @param {number} [request.view.version] Browses specific version of the view.
-   *
-   * @param {date} [request.view.timestamp] Browses at or before this timestamp.
-   *
-   * @param {string} [request.referenceTypeId] Reference types to browse.
-   * (default: hierarchical).
-   *
-   * @param {boolean} [request.noSubtypes] Whether to include subtypes of the
-   * reference type.
-   * (default is false)
-   *
-   * @param {number} [request.maxReferencesToReturn] Max number of references to
-   * return. There might
-   * be less returned as this is up to the client
-   * restrictions.  Set to 0 to return no references
-   * or target nodes.
-   * (default is decided by client e.g. 60)
-   *
-   * @param {boolean} [request.targetNodesOnly] Whether to collapse all
-   * references into a set of
+   * @param {boolean} [body.targetNodesOnly] Whether to collapse all references
+   * into a set of
    * unique target nodes and not show reference
    * information.
    * (default is false)
    *
-   * @param {boolean} [request.readVariableValues] Whether to read variable
-   * values on target nodes.
+   * @param {boolean} [body.readVariableValues] Whether to read variable values
+   * on target nodes.
    * (default is false)
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -3113,7 +2501,7 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {BrowseResponseApiModel} - The deserialized result object.
+   *                      @resolve {BrowseNextResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -3122,14 +2510,14 @@ class AzureOpcTwinClient extends ServiceClient {
    *                      {Error}  err        - The Error object if an error occurred, null otherwise.
    *
    *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link BrowseResponseApiModel} for more
+   *                      See {@link BrowseNextResponseApiModel} for more
    *                      information.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  browse(endpointId, request, options, optionalCallback) {
+  browseNext(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -3138,14 +2526,14 @@ class AzureOpcTwinClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._browse(endpointId, request, options, (err, result, request, response) => {
+        self._browseNext(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._browse(endpointId, request, options, optionalCallback);
+      return self._browseNext(endpointId, body, options, optionalCallback);
     }
   }
 
@@ -3153,11 +2541,10 @@ class AzureOpcTwinClient extends ServiceClient {
    * @summary Browse next set of unique target nodes
    *
    * Browse the next set of unique hierarchically referenced target nodes on the
-   * endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   * Note that this is the same as the POST method with the model containing
-   * the continuation token and the targetNodesOnly flag set to true.
+   * endpoint. The endpoint must be activated and connected and the module client
+   * and server must trust each other. Note that this is the same as the POST
+   * method with the model containing the continuation token and the
+   * targetNodesOnly flag set to true.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
@@ -3193,11 +2580,10 @@ class AzureOpcTwinClient extends ServiceClient {
    * @summary Browse next set of unique target nodes
    *
    * Browse the next set of unique hierarchically referenced target nodes on the
-   * endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   * Note that this is the same as the POST method with the model containing
-   * the continuation token and the targetNodesOnly flag set to true.
+   * endpoint. The endpoint must be activated and connected and the module client
+   * and server must trust each other. Note that this is the same as the POST
+   * method with the model containing the continuation token and the
+   * targetNodesOnly flag set to true.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
@@ -3253,232 +2639,48 @@ class AzureOpcTwinClient extends ServiceClient {
   }
 
   /**
-   * @summary Browse next set of references
-   *
-   * Browse next set of references on the endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The request body with continuation token.
-   *
-   * @param {string} request.continuationToken Continuation token from previews
-   * browse request.
-   * (mandatory)
-   *
-   * @param {boolean} [request.abort] Whether to abort browse and release.
-   * (default: false)
-   *
-   * @param {boolean} [request.targetNodesOnly] Whether to collapse all
-   * references into a set of
-   * unique target nodes and not show reference
-   * information.
-   * (default is false)
-   *
-   * @param {boolean} [request.readVariableValues] Whether to read variable
-   * values on target nodes.
-   * (default is false)
-   *
-   * @param {object} [request.header] Optional request header
-   *
-   * @param {object} [request.header.elevation] Optional User elevation
-   *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   *
-   * @param {object} [request.header.elevation.value] Value to pass to server
-   *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
-   *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
-   *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
-   *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
-   * (default: client generated)
-   *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
-   * (default: client generated)
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<BrowseNextResponseApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  browseNextWithHttpOperationResponse(endpointId, request, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._browseNext(endpointId, request, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Browse next set of references
-   *
-   * Browse next set of references on the endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The request body with continuation token.
-   *
-   * @param {string} request.continuationToken Continuation token from previews
-   * browse request.
-   * (mandatory)
-   *
-   * @param {boolean} [request.abort] Whether to abort browse and release.
-   * (default: false)
-   *
-   * @param {boolean} [request.targetNodesOnly] Whether to collapse all
-   * references into a set of
-   * unique target nodes and not show reference
-   * information.
-   * (default is false)
-   *
-   * @param {boolean} [request.readVariableValues] Whether to read variable
-   * values on target nodes.
-   * (default is false)
-   *
-   * @param {object} [request.header] Optional request header
-   *
-   * @param {object} [request.header.elevation] Optional User elevation
-   *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   *
-   * @param {object} [request.header.elevation.value] Value to pass to server
-   *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
-   *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
-   *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
-   *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
-   * (default: client generated)
-   *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
-   * (default: client generated)
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {BrowseNextResponseApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link BrowseNextResponseApiModel} for more
-   *                      information.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  browseNext(endpointId, request, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._browseNext(endpointId, request, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._browseNext(endpointId, request, options, optionalCallback);
-    }
-  }
-
-  /**
    * @summary Browse using a browse path
    *
-   * Browse using a path from the specified node id.
-   * This call uses TranslateBrowsePathsToNodeIds service under the hood.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Browse using a path from the specified node id. This call uses
+   * TranslateBrowsePathsToNodeIds service under the hood. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The browse path request
+   * @param {object} body The browse path request
    *
-   * @param {string} [request.nodeId] Node to browse from.
+   * @param {string} [body.nodeId] Node to browse from.
    * (default: RootFolder).
    *
-   * @param {array} request.browsePaths The paths to browse from node.
+   * @param {array} body.browsePaths The paths to browse from node.
    * (mandatory)
    *
-   * @param {boolean} [request.readVariableValues] Whether to read variable
-   * values on target nodes.
+   * @param {boolean} [body.readVariableValues] Whether to read variable values
+   * on target nodes.
    * (default is false)
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -3492,11 +2694,11 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  browseUsingPathWithHttpOperationResponse(endpointId, request, options) {
+  browseUsingPathWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._browseUsingPath(endpointId, request, options, (err, result, request, response) => {
+      self._browseUsingPath(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -3509,49 +2711,46 @@ class AzureOpcTwinClient extends ServiceClient {
   /**
    * @summary Browse using a browse path
    *
-   * Browse using a path from the specified node id.
-   * This call uses TranslateBrowsePathsToNodeIds service under the hood.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Browse using a path from the specified node id. This call uses
+   * TranslateBrowsePathsToNodeIds service under the hood. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The browse path request
+   * @param {object} body The browse path request
    *
-   * @param {string} [request.nodeId] Node to browse from.
+   * @param {string} [body.nodeId] Node to browse from.
    * (default: RootFolder).
    *
-   * @param {array} request.browsePaths The paths to browse from node.
+   * @param {array} body.browsePaths The paths to browse from node.
    * (mandatory)
    *
-   * @param {boolean} [request.readVariableValues] Whether to read variable
-   * values on target nodes.
+   * @param {boolean} [body.readVariableValues] Whether to read variable values
+   * on target nodes.
    * (default is false)
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -3582,7 +2781,7 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  browseUsingPath(endpointId, request, options, optionalCallback) {
+  browseUsingPath(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -3591,14 +2790,14 @@ class AzureOpcTwinClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._browseUsingPath(endpointId, request, options, (err, result, request, response) => {
+        self._browseUsingPath(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._browseUsingPath(endpointId, request, options, optionalCallback);
+      return self._browseUsingPath(endpointId, body, options, optionalCallback);
     }
   }
 
@@ -3606,45 +2805,41 @@ class AzureOpcTwinClient extends ServiceClient {
    * @summary Get method meta data
    *
    * Return method meta data to support a user interface displaying forms to
-   * input and output arguments.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * input and output arguments. The endpoint must be activated and connected and
+   * the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The method metadata request
+   * @param {object} body The method metadata request
    *
-   * @param {string} request.methodId Method id of method to call.
+   * @param {string} [body.methodId] Method id of method to call.
    * (Required)
    *
-   * @param {array} [request.methodBrowsePath] An optional component path from
-   * the node identified by
+   * @param {array} [body.methodBrowsePath] An optional component path from the
+   * node identified by
    * MethodId to the actual method node.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -3658,11 +2853,11 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  getCallMetadataWithHttpOperationResponse(endpointId, request, options) {
+  getCallMetadataWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._getCallMetadata(endpointId, request, options, (err, result, request, response) => {
+      self._getCallMetadata(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -3676,45 +2871,41 @@ class AzureOpcTwinClient extends ServiceClient {
    * @summary Get method meta data
    *
    * Return method meta data to support a user interface displaying forms to
-   * input and output arguments.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * input and output arguments. The endpoint must be activated and connected and
+   * the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The method metadata request
+   * @param {object} body The method metadata request
    *
-   * @param {string} request.methodId Method id of method to call.
+   * @param {string} [body.methodId] Method id of method to call.
    * (Required)
    *
-   * @param {array} [request.methodBrowsePath] An optional component path from
-   * the node identified by
+   * @param {array} [body.methodBrowsePath] An optional component path from the
+   * node identified by
    * MethodId to the actual method node.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -3745,7 +2936,7 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  getCallMetadata(endpointId, request, options, optionalCallback) {
+  getCallMetadata(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -3754,71 +2945,68 @@ class AzureOpcTwinClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._getCallMetadata(endpointId, request, options, (err, result, request, response) => {
+        self._getCallMetadata(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._getCallMetadata(endpointId, request, options, optionalCallback);
+      return self._getCallMetadata(endpointId, body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Call a method
    *
-   * Invoke method node with specified input arguments.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Invoke method node with specified input arguments. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The method call request
+   * @param {object} body The method call request
    *
-   * @param {string} [request.methodId] Method id of method to call.
+   * @param {string} [body.methodId] Method id of method to call.
    *
-   * @param {string} [request.objectId] Context of the method, i.e. an object or
+   * @param {string} [body.objectId] Context of the method, i.e. an object or
    * object type
    * node.
    *
-   * @param {array} [request.argumentsProperty] Arguments for the method - null
+   * @param {array} [body.argumentsProperty] Arguments for the method - null
    * means no args
    *
-   * @param {array} [request.methodBrowsePath] An optional component path from
-   * the node identified by
+   * @param {array} [body.methodBrowsePath] An optional component path from the
+   * node identified by
    * MethodId or from a resolved objectId to the actual
    * method node.
    *
-   * @param {array} [request.objectBrowsePath] An optional component path from
-   * the node identified by
+   * @param {array} [body.objectBrowsePath] An optional component path from the
+   * node identified by
    * ObjectId to the actual object or objectType node.
    * If ObjectId is null, the root node (i=84) is used.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -3832,11 +3020,11 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  callMethodWithHttpOperationResponse(endpointId, request, options) {
+  callMethodWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._callMethod(endpointId, request, options, (err, result, request, response) => {
+      self._callMethod(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -3849,57 +3037,54 @@ class AzureOpcTwinClient extends ServiceClient {
   /**
    * @summary Call a method
    *
-   * Invoke method node with specified input arguments.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Invoke method node with specified input arguments. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The method call request
+   * @param {object} body The method call request
    *
-   * @param {string} [request.methodId] Method id of method to call.
+   * @param {string} [body.methodId] Method id of method to call.
    *
-   * @param {string} [request.objectId] Context of the method, i.e. an object or
+   * @param {string} [body.objectId] Context of the method, i.e. an object or
    * object type
    * node.
    *
-   * @param {array} [request.argumentsProperty] Arguments for the method - null
+   * @param {array} [body.argumentsProperty] Arguments for the method - null
    * means no args
    *
-   * @param {array} [request.methodBrowsePath] An optional component path from
-   * the node identified by
+   * @param {array} [body.methodBrowsePath] An optional component path from the
+   * node identified by
    * MethodId or from a resolved objectId to the actual
    * method node.
    *
-   * @param {array} [request.objectBrowsePath] An optional component path from
-   * the node identified by
+   * @param {array} [body.objectBrowsePath] An optional component path from the
+   * node identified by
    * ObjectId to the actual object or objectType node.
    * If ObjectId is null, the root node (i=84) is used.
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -3930,7 +3115,7 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  callMethod(endpointId, request, options, optionalCallback) {
+  callMethod(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -3939,73 +3124,59 @@ class AzureOpcTwinClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._callMethod(endpointId, request, options, (err, result, request, response) => {
+        self._callMethod(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._callMethod(endpointId, request, options, optionalCallback);
+      return self._callMethod(endpointId, body, options, optionalCallback);
     }
   }
 
   /**
-   * @summary Start publishing node values
+   * @summary Read variable value
    *
-   * Start publishing variable node values to IoT Hub.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Read a variable node's value. The endpoint must be activated and connected
+   * and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The publish request
+   * @param {object} body The read value request
    *
-   * @param {object} request.item Item to publish
+   * @param {string} [body.nodeId] Node to read from (mandatory)
    *
-   * @param {string} request.item.nodeId Node to monitor
-   *
-   * @param {array} [request.item.browsePath] An optional path from NodeId
-   * instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {string} [request.item.nodeAttribute] Attribute to monitor. Possible
-   * values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description',
-   * 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
-   * 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank',
-   * 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
-   * 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable',
-   * 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions',
-   * 'AccessRestrictions'
+   * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
    *
-   * @param {number} [request.item.publishingInterval] Publishing interval to use
+   * @param {object} [body.header]
    *
-   * @param {number} [request.item.samplingInterval] Sampling interval to use
+   * @param {object} [body.header.elevation]
    *
-   * @param {object} [request.header] Optional request header
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
-   *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
-   *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4015,15 +3186,15 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<PublishStartResponseApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<ValueReadResponseApiModel>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  startPublishingValuesWithHttpOperationResponse(endpointId, request, options) {
+  readValueWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._startPublishingValues(endpointId, request, options, (err, result, request, response) => {
+      self._readValue(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -4034,61 +3205,47 @@ class AzureOpcTwinClient extends ServiceClient {
   }
 
   /**
-   * @summary Start publishing node values
+   * @summary Read variable value
    *
-   * Start publishing variable node values to IoT Hub.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Read a variable node's value. The endpoint must be activated and connected
+   * and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The publish request
+   * @param {object} body The read value request
    *
-   * @param {object} request.item Item to publish
+   * @param {string} [body.nodeId] Node to read from (mandatory)
    *
-   * @param {string} request.item.nodeId Node to monitor
-   *
-   * @param {array} [request.item.browsePath] An optional path from NodeId
-   * instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {string} [request.item.nodeAttribute] Attribute to monitor. Possible
-   * values include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description',
-   * 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
-   * 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank',
-   * 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
-   * 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable',
-   * 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions',
-   * 'AccessRestrictions'
+   * @param {string} [body.indexRange] Index range to read, e.g. 1:2,0:1 for 2
+   * slices
+   * out of a matrix or 0:1 for the first item in
+   * an array, string or bytestring.
+   * See 7.22 of part 4: NumericRange.
    *
-   * @param {number} [request.item.publishingInterval] Publishing interval to use
+   * @param {object} [body.header]
    *
-   * @param {number} [request.item.samplingInterval] Sampling interval to use
+   * @param {object} [body.header.elevation]
    *
-   * @param {object} [request.header] Optional request header
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
-   *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
-   *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4103,7 +3260,7 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {PublishStartResponseApiModel} - The deserialized result object.
+   *                      @resolve {ValueReadResponseApiModel} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -4112,14 +3269,14 @@ class AzureOpcTwinClient extends ServiceClient {
    *                      {Error}  err        - The Error object if an error occurred, null otherwise.
    *
    *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link PublishStartResponseApiModel} for more
+   *                      See {@link ValueReadResponseApiModel} for more
    *                      information.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  startPublishingValues(endpointId, request, options, optionalCallback) {
+  readValue(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -4128,368 +3285,23 @@ class AzureOpcTwinClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._startPublishingValues(endpointId, request, options, (err, result, request, response) => {
+        self._readValue(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._startPublishingValues(endpointId, request, options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Stop publishing node values
-   *
-   * Stop publishing variable node values to IoT Hub.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The unpublish request
-   *
-   * @param {string} request.nodeId Node of published item to unpublish
-   *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
-   * the actual node.
-   *
-   * @param {string} [request.nodeAttribute] Attribute of item to unpublish.
-   * Possible values include: 'NodeClass', 'BrowseName', 'DisplayName',
-   * 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric',
-   * 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType',
-   * 'ValueRank', 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
-   * 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable',
-   * 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions',
-   * 'AccessRestrictions'
-   *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
-   *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
-   *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
-   * (default: client generated)
-   *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
-   * (default: client generated)
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<PublishStopResponseApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  stopPublishingValuesWithHttpOperationResponse(endpointId, request, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._stopPublishingValues(endpointId, request, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Stop publishing node values
-   *
-   * Stop publishing variable node values to IoT Hub.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The unpublish request
-   *
-   * @param {string} request.nodeId Node of published item to unpublish
-   *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
-   * the actual node.
-   *
-   * @param {string} [request.nodeAttribute] Attribute of item to unpublish.
-   * Possible values include: 'NodeClass', 'BrowseName', 'DisplayName',
-   * 'Description', 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric',
-   * 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType',
-   * 'ValueRank', 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
-   * 'MinimumSamplingInterval', 'Historizing', 'Executable', 'UserExecutable',
-   * 'DataTypeDefinition', 'RolePermissions', 'UserRolePermissions',
-   * 'AccessRestrictions'
-   *
-   * @param {object} [request.diagnostics] Optional diagnostics configuration
-   *
-   * @param {string} [request.diagnostics.level] Requested level of response
-   * diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
-   *
-   * @param {string} [request.diagnostics.auditId] Client audit log entry.
-   * (default: client generated)
-   *
-   * @param {date} [request.diagnostics.timeStamp] Timestamp of request.
-   * (default: client generated)
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {PublishStopResponseApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link PublishStopResponseApiModel} for more
-   *                      information.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  stopPublishingValues(endpointId, request, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._stopPublishingValues(endpointId, request, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._stopPublishingValues(endpointId, request, options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Get next set of published nodes
-   *
-   * Returns next set of currently published node ids for an endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {string} continuationToken The continuation token to continue with
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<PublishedItemListResponseApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  getNextListOfPublishedNodesWithHttpOperationResponse(endpointId, continuationToken, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._getNextListOfPublishedNodes(endpointId, continuationToken, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Get next set of published nodes
-   *
-   * Returns next set of currently published node ids for an endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {string} continuationToken The continuation token to continue with
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {PublishedItemListResponseApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link PublishedItemListResponseApiModel} for more
-   *                      information.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getNextListOfPublishedNodes(endpointId, continuationToken, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._getNextListOfPublishedNodes(endpointId, continuationToken, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._getNextListOfPublishedNodes(endpointId, continuationToken, options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Get currently published nodes
-   *
-   * Returns currently published node ids for an endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The list request
-   *
-   * @param {string} [request.continuationToken] Continuation token or null to
-   * start
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<PublishedItemListResponseApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  getFirstListOfPublishedNodesWithHttpOperationResponse(endpointId, request, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._getFirstListOfPublishedNodes(endpointId, request, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Get currently published nodes
-   *
-   * Returns currently published node ids for an endpoint.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The list request
-   *
-   * @param {string} [request.continuationToken] Continuation token or null to
-   * start
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {PublishedItemListResponseApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link PublishedItemListResponseApiModel} for more
-   *                      information.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getFirstListOfPublishedNodes(endpointId, request, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._getFirstListOfPublishedNodes(endpointId, request, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._getFirstListOfPublishedNodes(endpointId, request, options, optionalCallback);
+      return self._readValue(endpointId, body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Get variable value
    *
-   * Get a variable node's value using its node id.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Get a variable node's value using its node id. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
@@ -4523,9 +3335,9 @@ class AzureOpcTwinClient extends ServiceClient {
   /**
    * @summary Get variable value
    *
-   * Get a variable node's value using its node id.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Get a variable node's value using its node id. The endpoint must be
+   * activated and connected and the module client and server must trust each
+   * other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
@@ -4580,211 +3392,38 @@ class AzureOpcTwinClient extends ServiceClient {
   }
 
   /**
-   * @summary Read variable value
-   *
-   * Read a variable node's value.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The read value request
-   *
-   * @param {string} request.nodeId Node to read from (mandatory)
-   *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
-   * the actual node.
-   *
-   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
-   * slices
-   * out of a matrix or 0:1 for the first item in
-   * an array, string or bytestring.
-   * See 7.22 of part 4: NumericRange.
-   *
-   * @param {object} [request.header] Optional request header
-   *
-   * @param {object} [request.header.elevation] Optional User elevation
-   *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   *
-   * @param {object} [request.header.elevation.value] Value to pass to server
-   *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
-   *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
-   *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
-   *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
-   * (default: client generated)
-   *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
-   * (default: client generated)
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<ValueReadResponseApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  readValueWithHttpOperationResponse(endpointId, request, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._readValue(endpointId, request, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Read variable value
-   *
-   * Read a variable node's value.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
-   *
-   * @param {string} endpointId The identifier of the activated endpoint.
-   *
-   * @param {object} request The read value request
-   *
-   * @param {string} request.nodeId Node to read from (mandatory)
-   *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
-   * the actual node.
-   *
-   * @param {string} [request.indexRange] Index range to read, e.g. 1:2,0:1 for 2
-   * slices
-   * out of a matrix or 0:1 for the first item in
-   * an array, string or bytestring.
-   * See 7.22 of part 4: NumericRange.
-   *
-   * @param {object} [request.header] Optional request header
-   *
-   * @param {object} [request.header.elevation] Optional User elevation
-   *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   *
-   * @param {object} [request.header.elevation.value] Value to pass to server
-   *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
-   *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
-   *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
-   *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
-   * (default: client generated)
-   *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
-   * (default: client generated)
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {ValueReadResponseApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ValueReadResponseApiModel} for more
-   *                      information.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  readValue(endpointId, request, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._readValue(endpointId, request, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._readValue(endpointId, request, options, optionalCallback);
-    }
-  }
-
-  /**
    * @summary Read node attributes
    *
-   * Read attributes of a node.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Read attributes of a node. The endpoint must be activated and connected and
+   * the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The read request
+   * @param {object} body The read request
    *
-   * @param {array} request.attributes Attributes to read
+   * @param {array} body.attributes Attributes to read
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4798,11 +3437,11 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  readAttributesWithHttpOperationResponse(endpointId, request, options) {
+  readAttributesWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._readAttributes(endpointId, request, options, (err, result, request, response) => {
+      self._readAttributes(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -4815,40 +3454,36 @@ class AzureOpcTwinClient extends ServiceClient {
   /**
    * @summary Read node attributes
    *
-   * Read attributes of a node.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Read attributes of a node. The endpoint must be activated and connected and
+   * the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The read request
+   * @param {object} body The read request
    *
-   * @param {array} request.attributes Attributes to read
+   * @param {array} body.attributes Attributes to read
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -4878,7 +3513,7 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  readAttributes(endpointId, request, options, optionalCallback) {
+  readAttributes(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -4887,151 +3522,65 @@ class AzureOpcTwinClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._readAttributes(endpointId, request, options, (err, result, request, response) => {
+        self._readAttributes(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._readAttributes(endpointId, request, options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Return the service status in the form of the service status
-   * api model.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<StatusResponseApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  getStatusWithHttpOperationResponse(options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._getStatus(options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Return the service status in the form of the service status
-   * api model.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {StatusResponseApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link StatusResponseApiModel} for more
-   *                      information.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getStatus(options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._getStatus(options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._getStatus(options, optionalCallback);
+      return self._readAttributes(endpointId, body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Write variable value
    *
-   * Write variable node's value.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Write variable node's value. The endpoint must be activated and connected
+   * and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The write value request
+   * @param {object} body The write value request
    *
-   * @param {string} request.nodeId Node id to to write value to.
+   * @param {string} [body.nodeId] Node id to to write value to.
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.value Value to write. The system tries to convert
+   * @param {object} body.value Value to write. The system tries to convert
    * the value according to the data type value,
    * e.g. convert comma seperated value strings
    * into arrays.  (Mandatory)
    *
-   * @param {string} [request.dataType] A built in datatype for the value. This
-   * can
+   * @param {string} [body.dataType] A built in datatype for the value. This can
    * be a data type from browse, or a built in
    * type.
    * (default: best effort)
    *
-   * @param {string} [request.indexRange] Index range to write
+   * @param {string} [body.indexRange] Index range to write
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5045,11 +3594,11 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  writeValueWithHttpOperationResponse(endpointId, request, options) {
+  writeValueWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._writeValue(endpointId, request, options, (err, result, request, response) => {
+      self._writeValue(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -5062,56 +3611,51 @@ class AzureOpcTwinClient extends ServiceClient {
   /**
    * @summary Write variable value
    *
-   * Write variable node's value.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Write variable node's value. The endpoint must be activated and connected
+   * and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The write value request
+   * @param {object} body The write value request
    *
-   * @param {string} request.nodeId Node id to to write value to.
+   * @param {string} [body.nodeId] Node id to to write value to.
    *
-   * @param {array} [request.browsePath] An optional path from NodeId instance to
+   * @param {array} [body.browsePath] An optional path from NodeId instance to
    * the actual node.
    *
-   * @param {object} request.value Value to write. The system tries to convert
+   * @param {object} body.value Value to write. The system tries to convert
    * the value according to the data type value,
    * e.g. convert comma seperated value strings
    * into arrays.  (Mandatory)
    *
-   * @param {string} [request.dataType] A built in datatype for the value. This
-   * can
+   * @param {string} [body.dataType] A built in datatype for the value. This can
    * be a data type from browse, or a built in
    * type.
    * (default: best effort)
    *
-   * @param {string} [request.indexRange] Index range to write
+   * @param {string} [body.indexRange] Index range to write
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5142,7 +3686,7 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  writeValue(endpointId, request, options, optionalCallback) {
+  writeValue(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -5151,54 +3695,50 @@ class AzureOpcTwinClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._writeValue(endpointId, request, options, (err, result, request, response) => {
+        self._writeValue(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._writeValue(endpointId, request, options, optionalCallback);
+      return self._writeValue(endpointId, body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Write node attributes
    *
-   * Write any attribute of a node.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Write any attribute of a node. The endpoint must be activated and connected
+   * and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The batch write request
+   * @param {object} body The batch write request
    *
-   * @param {array} request.attributes Attributes to update
+   * @param {array} body.attributes Attributes to update
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5212,11 +3752,11 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  writeAttributesWithHttpOperationResponse(endpointId, request, options) {
+  writeAttributesWithHttpOperationResponse(endpointId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._writeAttributes(endpointId, request, options, (err, result, request, response) => {
+      self._writeAttributes(endpointId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -5229,40 +3769,36 @@ class AzureOpcTwinClient extends ServiceClient {
   /**
    * @summary Write node attributes
    *
-   * Write any attribute of a node.
-   * The endpoint must be activated and connected and the module client
-   * and server must trust each other.
+   * Write any attribute of a node. The endpoint must be activated and connected
+   * and the module client and server must trust each other.
    *
    * @param {string} endpointId The identifier of the activated endpoint.
    *
-   * @param {object} request The batch write request
+   * @param {object} body The batch write request
    *
-   * @param {array} request.attributes Attributes to update
+   * @param {array} body.attributes Attributes to update
    *
-   * @param {object} [request.header] Optional request header
+   * @param {object} [body.header]
    *
-   * @param {object} [request.header.elevation] Optional User elevation
+   * @param {object} [body.header.elevation]
    *
-   * @param {string} [request.header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @param {string} [body.header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    *
-   * @param {object} [request.header.elevation.value] Value to pass to server
+   * @param {object} [body.header.elevation.value] Value to pass to server
    *
-   * @param {array} [request.header.locales] Optional list of locales in
-   * preference order.
+   * @param {array} [body.header.locales] Optional list of locales in preference
+   * order.
    *
-   * @param {object} [request.header.diagnostics] Optional diagnostics
-   * configuration
+   * @param {object} [body.header.diagnostics]
    *
-   * @param {string} [request.header.diagnostics.level] Requested level of
-   * response diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status', 'Operations',
-   * 'Diagnostics', 'Verbose'
+   * @param {string} [body.header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    *
-   * @param {string} [request.header.diagnostics.auditId] Client audit log entry.
+   * @param {string} [body.header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    *
-   * @param {date} [request.header.diagnostics.timeStamp] Timestamp of request.
+   * @param {date} [body.header.diagnostics.timeStamp] Timestamp of request.
    * (default: client generated)
    *
    * @param {object} [options] Optional Parameters.
@@ -5292,7 +3828,7 @@ class AzureOpcTwinClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  writeAttributes(endpointId, request, options, optionalCallback) {
+  writeAttributes(endpointId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -5301,14 +3837,14 @@ class AzureOpcTwinClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._writeAttributes(endpointId, request, options, (err, result, request, response) => {
+        self._writeAttributes(endpointId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._writeAttributes(endpointId, request, options, optionalCallback);
+      return self._writeAttributes(endpointId, body, options, optionalCallback);
     }
   }
 

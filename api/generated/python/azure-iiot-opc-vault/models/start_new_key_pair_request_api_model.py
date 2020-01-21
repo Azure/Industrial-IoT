@@ -19,7 +19,7 @@ class StartNewKeyPairRequestApiModel(Model):
     :type entity_id: str
     :param group_id: Certificate group
     :type group_id: str
-    :param certificate_type: Type. Possible values include:
+    :param certificate_type: Possible values include:
      'ApplicationInstanceCertificate', 'HttpsCertificate',
      'UserCredentialCertificate'
     :type certificate_type: str or ~azure-iiot-opc-vault.models.TrustGroupType
@@ -29,13 +29,6 @@ class StartNewKeyPairRequestApiModel(Model):
     :type domain_names: list[str]
     """
 
-    _validation = {
-        'entity_id': {'required': True},
-        'group_id': {'required': True},
-        'certificate_type': {'required': True},
-        'subject_name': {'required': True},
-    }
-
     _attribute_map = {
         'entity_id': {'key': 'entityId', 'type': 'str'},
         'group_id': {'key': 'groupId', 'type': 'str'},
@@ -44,7 +37,7 @@ class StartNewKeyPairRequestApiModel(Model):
         'domain_names': {'key': 'domainNames', 'type': '[str]'},
     }
 
-    def __init__(self, entity_id, group_id, certificate_type, subject_name, domain_names=None):
+    def __init__(self, entity_id=None, group_id=None, certificate_type=None, subject_name=None, domain_names=None):
         super(StartNewKeyPairRequestApiModel, self).__init__()
         self.entity_id = entity_id
         self.group_id = group_id

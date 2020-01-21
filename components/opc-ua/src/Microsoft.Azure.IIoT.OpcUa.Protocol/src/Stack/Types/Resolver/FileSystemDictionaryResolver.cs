@@ -28,7 +28,6 @@
  * ======================================================================*/
 
 namespace Opc.Ua.Types.Resolver {
-    using Opc.Ua.Types;
     using System;
     using System.Collections.Generic;
     using System.IO;

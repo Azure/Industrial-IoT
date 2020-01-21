@@ -93,8 +93,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             return new SupervisorModel {
                 Certificate = model.Certificate,
                 Connected = model.Connected,
-                Discovery = model.Discovery,
-                DiscoveryConfig = model.DiscoveryConfig.Clone(),
                 Id = model.Id,
                 OutOfSync = model.OutOfSync,
                 SiteId = model.SiteId

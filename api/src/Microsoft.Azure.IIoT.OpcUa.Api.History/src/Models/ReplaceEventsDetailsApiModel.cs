@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Replace historic events
@@ -18,12 +18,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// </summary>
         [JsonProperty(PropertyName = "filter",
             NullValueHandling = NullValueHandling.Ignore)]
-        public JToken Filter { get; set; }
+        public EventFilterApiModel Filter { get; set; }
 
         /// <summary>
-        /// The new events to replace existing ones
+        /// The events to replace
         /// </summary>
         [JsonProperty(PropertyName = "events")]
+        [Required]
         public List<HistoricEventApiModel> Events { get; set; }
     }
 }

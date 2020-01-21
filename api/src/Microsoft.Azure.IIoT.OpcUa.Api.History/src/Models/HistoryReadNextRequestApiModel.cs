@@ -5,6 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
     using Newtonsoft.Json;
+    using System.ComponentModel;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Request node history read continuation
@@ -16,6 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// results.
         /// </summary>
         [JsonProperty(PropertyName = "continuationToken")]
+        [Required]
         public string ContinuationToken { get; set; }
 
         /// <summary>
@@ -23,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// </summary>
         [JsonProperty(PropertyName = "abort",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(false)]
         public bool? Abort { get; set; }
 
         /// <summary>
@@ -30,6 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// </summary>
         [JsonProperty(PropertyName = "header",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public RequestHeaderApiModel Header { get; set; }
     }
 }

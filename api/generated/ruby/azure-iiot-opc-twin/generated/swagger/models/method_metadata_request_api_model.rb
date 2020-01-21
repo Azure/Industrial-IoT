@@ -22,7 +22,7 @@ module azure.iiot.opc.twin
       # MethodId to the actual method node.
       attr_accessor :method_browse_path
 
-      # @return [RequestHeaderApiModel] Optional request header
+      # @return [RequestHeaderApiModel]
       attr_accessor :header
 
 
@@ -41,7 +41,7 @@ module azure.iiot.opc.twin
             model_properties: {
               method_id: {
                 client_side_validation: true,
-                required: true,
+                required: false,
                 serialized_name: 'methodId',
                 type: {
                   name: 'String'

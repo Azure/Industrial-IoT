@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
@@ -29,8 +29,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
             }
             Url = model.Url;
             AlternativeUrls = model.AlternativeUrls;
-            User = model.User == null ? null :
-                new CredentialApiModel(model.User);
             Certificate = model.Certificate;
             SecurityMode = model.SecurityMode;
             SecurityPolicy = model.SecurityPolicy;
@@ -43,7 +41,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
             return new EndpointModel {
                 Url = Url,
                 AlternativeUrls = AlternativeUrls,
-                User = User?.ToServiceModel(),
                 Certificate = Certificate,
                 SecurityMode = SecurityMode,
                 SecurityPolicy = SecurityPolicy,
@@ -63,13 +60,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
         [JsonProperty(PropertyName = "AlternativeUrls",
             NullValueHandling = NullValueHandling.Ignore)]
         public HashSet<string> AlternativeUrls { get; set; }
-
-        /// <summary>
-        /// User Authentication
-        /// </summary>
-        [JsonProperty(PropertyName = "User",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public CredentialApiModel User { get; set; }
 
         /// <summary>
         /// Security Mode to use for communication

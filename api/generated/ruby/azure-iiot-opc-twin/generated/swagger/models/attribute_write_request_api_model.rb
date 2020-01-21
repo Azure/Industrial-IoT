@@ -16,9 +16,9 @@ module azure.iiot.opc.twin
       # @return [String] Node to write to (mandatory)
       attr_accessor :node_id
 
-      # @return [NodeAttribute] Attribute to write (mandatory). Possible values
-      # include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description',
-      # 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
+      # @return [NodeAttribute] Possible values include: 'NodeClass',
+      # 'BrowseName', 'DisplayName', 'Description', 'WriteMask',
+      # 'UserWriteMask', 'IsAbstract', 'Symmetric', 'InverseName',
       # 'ContainsNoLoops', 'EventNotifier', 'Value', 'DataType', 'ValueRank',
       # 'ArrayDimensions', 'AccessLevel', 'UserAccessLevel',
       # 'MinimumSamplingInterval', 'Historizing', 'Executable',

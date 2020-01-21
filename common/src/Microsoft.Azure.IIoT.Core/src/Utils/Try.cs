@@ -58,7 +58,6 @@ namespace Microsoft.Azure.IIoT.Utils {
             }
         }
 
-
         /// <summary>
         /// Try operation
         /// </summary>
@@ -112,7 +111,9 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <typeparam name="T"></typeparam>
         /// <param name="options"></param>
         /// <returns></returns>
+#pragma warning disable IDE1006 // Naming Styles
         public static async Task<T> Options<T>(params Func<Task<T>>[] options) {
+#pragma warning restore IDE1006 // Naming Styles
             var exceptions = new List<Exception>();
             foreach (var option in options) {
                 try {
@@ -130,7 +131,9 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// </summary>
         /// <param name="options"></param>
         /// <returns></returns>
+#pragma warning disable IDE1006 // Naming Styles
         public static async Task Options(params Func<Task>[] options) {
+#pragma warning restore IDE1006 // Naming Styles
             var exceptions = new List<Exception>();
             foreach (var option in options) {
                 try {

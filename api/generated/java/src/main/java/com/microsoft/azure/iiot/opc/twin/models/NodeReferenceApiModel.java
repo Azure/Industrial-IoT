@@ -17,26 +17,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class NodeReferenceApiModel {
     /**
-     * Reference Type identifier.
+     * Reference Type id.
      */
     @JsonProperty(value = "referenceTypeId")
     private String referenceTypeId;
 
     /**
-     * Browse direction of reference. Possible values include: 'Forward',
-     * 'Backward', 'Both'.
+     * Possible values include: 'Forward', 'Backward', 'Both'.
      */
     @JsonProperty(value = "direction")
     private BrowseDirection direction;
 
     /**
-     * Target node.
+     * The target property.
      */
     @JsonProperty(value = "target", required = true)
     private NodeApiModel target;
 
     /**
-     * Get reference Type identifier.
+     * Get reference Type id.
      *
      * @return the referenceTypeId value
      */
@@ -45,7 +44,7 @@ public class NodeReferenceApiModel {
     }
 
     /**
-     * Set reference Type identifier.
+     * Set reference Type id.
      *
      * @param referenceTypeId the referenceTypeId value to set
      * @return the NodeReferenceApiModel object itself.
@@ -56,7 +55,7 @@ public class NodeReferenceApiModel {
     }
 
     /**
-     * Get browse direction of reference. Possible values include: 'Forward', 'Backward', 'Both'.
+     * Get possible values include: 'Forward', 'Backward', 'Both'.
      *
      * @return the direction value
      */
@@ -65,7 +64,7 @@ public class NodeReferenceApiModel {
     }
 
     /**
-     * Set browse direction of reference. Possible values include: 'Forward', 'Backward', 'Both'.
+     * Set possible values include: 'Forward', 'Backward', 'Both'.
      *
      * @param direction the direction value to set
      * @return the NodeReferenceApiModel object itself.
@@ -76,7 +75,7 @@ public class NodeReferenceApiModel {
     }
 
     /**
-     * Get target node.
+     * Get the target value.
      *
      * @return the target value
      */
@@ -85,7 +84,7 @@ public class NodeReferenceApiModel {
     }
 
     /**
-     * Set target node.
+     * Set the target value.
      *
      * @param target the target value to set
      * @return the NodeReferenceApiModel object itself.

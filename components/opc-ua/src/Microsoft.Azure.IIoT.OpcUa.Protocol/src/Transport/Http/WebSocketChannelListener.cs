@@ -45,8 +45,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Transport {
         /// Creates the listener and starts accepting connections over
         /// tcp and tcpv6.
         /// </summary>
-        /// <param name="config"></param>
         /// <param name="controller"></param>
+        /// <param name="config"></param>
         /// <param name="logger"></param>
         public WebSocketChannelListener(IServer controller,
             IWebListenerConfig config, ILogger logger) {

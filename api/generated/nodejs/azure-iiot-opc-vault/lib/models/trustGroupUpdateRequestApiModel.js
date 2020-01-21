@@ -21,9 +21,8 @@ class TrustGroupUpdateRequestApiModel {
    * @property {string} [issuedLifetime] The issued certificate lifetime.
    * @property {number} [issuedKeySize] The issued certificate key size in
    * bits.
-   * @property {string} [issuedSignatureAlgorithm] The issued certificate key
-   * size in bits. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-   * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @property {string} [issuedSignatureAlgorithm] Possible values include:
+   * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    */
   constructor() {
   }

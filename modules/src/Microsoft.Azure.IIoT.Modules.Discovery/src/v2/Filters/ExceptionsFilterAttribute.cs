@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.v2.Filters {
     using System.Net;
     using System.Net.Sockets;
     using System.Security;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Convert all the exceptions returned by the module controllers to a
@@ -70,6 +71,10 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.v2.Filters {
                 case MessageTooLargeException mtl:
                     status = (int)HttpStatusCode.RequestEntityTooLarge;
                     break;
+                case TaskCanceledException tce:
+                case OperationCanceledException oce:
+                    status = (int)HttpStatusCode.Gone;
+                    break;
 
                 //
                 // The following will most certainly be retried by our
@@ -80,7 +85,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.v2.Filters {
                 //      GatewayTimeout
                 //      PreconditionFailed
                 //      TemporaryRedirect
-                //      429 (IoT Hub throttle)
+                //      TooManyRequests
                 //
                 // As such, if you want to terminate make sure exception
                 // is caught ahead of here and returns a status other than
@@ -88,7 +93,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.v2.Filters {
                 //
 
                 case ServerBusyException se:
-                    status = 429;
+                    status = (int)HttpStatusCode.TooManyRequests;
                     break;
                 case ExternalDependencyException ex:
                     status = (int)HttpStatusCode.ServiceUnavailable;

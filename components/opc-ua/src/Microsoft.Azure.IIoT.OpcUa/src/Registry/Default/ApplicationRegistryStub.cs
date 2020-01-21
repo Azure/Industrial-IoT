@@ -49,8 +49,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Default {
         }
 
         /// <inheritdoc/>
-        public Task ProcessDiscoveryEventsAsync(string siteId, string supervisorId,
-            DiscoveryResultModel result, IEnumerable<DiscoveryEventModel> events) {
+        public Task ProcessDiscoveryEventsAsync(string siteId, string discovererId,
+            string supervisorId, DiscoveryResultModel result,
+            IEnumerable<DiscoveryEventModel> events) {
             return Task.CompletedTask;
         }
 

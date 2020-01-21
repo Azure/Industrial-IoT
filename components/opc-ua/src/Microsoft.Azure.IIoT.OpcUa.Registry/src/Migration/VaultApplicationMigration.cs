@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
-    using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Extensions.Configuration;
@@ -29,16 +29,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
         /// <param name="configuration"></param>
         /// <param name="logger"></param>
         public VaultApplicationMigration(IApplicationRepository repo,
-            IDatabaseServer db, IConfigurationRoot configuration, ILogger logger) {
+            IDatabaseServer db, IConfiguration configuration, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
-
-            // Bind legacy configuration
-            var config = new ServicesConfig();
-            configuration?.Bind("OpcVault", config);
-
-            var database = db.OpenAsync(config.CosmosDBDatabase).Result;
             try {
+                // Bind legacy configuration
+                var config = new ServicesConfig();
+                configuration?.Bind("OpcVault", config);
+
+                var database = db.OpenAsync(config.CosmosDBDatabase).Result;
+
                 _source = database.OpenContainerAsync(config.CosmosDBCollection)
                     .Result
                     .AsDocuments();
@@ -127,7 +127,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
                 HostAddresses = null,
                 NotSeenSince = null,
                 SiteId = null,
-                SupervisorId = null
+                DiscovererId = null
             };
             app.ApplicationId = ApplicationInfoModelEx.CreateApplicationId(app);
             return app;

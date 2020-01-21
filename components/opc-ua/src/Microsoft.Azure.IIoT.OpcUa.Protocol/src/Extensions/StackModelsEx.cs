@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using Newtonsoft.Json.Linq;
@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             return new RequestHeader {
                 AuditEntryId = diagnostics?.AuditId ?? Guid.NewGuid().ToString(),
                 ReturnDiagnostics =
-                    (uint)(diagnostics?.Level ?? Twin.Models.DiagnosticsLevel.None)
+                    (uint)(diagnostics?.Level ?? Core.Models.DiagnosticsLevel.None)
                      .ToStackType(),
                 Timestamp = diagnostics?.TimeStamp ?? DateTime.UtcNow,
                 TimeoutHint = timeoutHint,
@@ -126,6 +126,162 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             return new RolePermissionModel {
                 RoleId = type.RoleId.AsString(context),
                 Permissions = ((PermissionType)type.Permissions).ToServiceType()
+            };
+        }
+
+        /// <summary>
+        /// Convert to stack model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static DataChangeFilter ToStackModel(this DataChangeFilterModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new DataChangeFilter {
+                DeadbandValue = model.DeadBandValue ?? 0.0,
+                DeadbandType = (uint)model.DeadBandType.ToStackType(),
+                Trigger = model.DataChangeTrigger.ToStackType()
+            };
+        }
+
+        /// <summary>
+        /// Convert to service model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static DataChangeFilterModel ToServiceModel(this DataChangeFilter model) {
+            if (model == null) {
+                return null;
+            }
+            return new DataChangeFilterModel {
+                DeadBandValue = (int)model.DeadbandValue == 0 ? (double?)null :
+                    model.DeadbandValue,
+                DeadBandType = ((DeadbandType)model.DeadbandType).ToServiceType(),
+                DataChangeTrigger = model.Trigger.ToServiceType()
+            };
+        }
+
+        /// <summary>
+        /// Convert to stack model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static AggregateFilter ToStackModel(this AggregateFilterModel model,
+            ServiceMessageContext context) {
+            if (model == null) {
+                return null;
+            }
+            return new AggregateFilter {
+                AggregateConfiguration = model.AggregateConfiguration.ToStackModel(),
+                AggregateType = model.AggregateTypeId.ToNodeId(context),
+                StartTime = model.StartTime ?? DateTime.MinValue,
+                ProcessingInterval = model.ProcessingInterval ?? 0.0
+            };
+        }
+
+        /// <summary>
+        /// Convert to service model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static AggregateFilterModel ToServiceModel(this AggregateFilter model,
+            ServiceMessageContext context) {
+            if (model == null) {
+                return null;
+            }
+            return new AggregateFilterModel {
+                AggregateConfiguration = model.AggregateConfiguration.ToServiceModel(),
+                AggregateTypeId = model.AggregateType.AsString(context),
+                StartTime = model.StartTime == DateTime.MinValue ? (DateTime?)null :
+                    model.StartTime,
+                ProcessingInterval = (int)model.ProcessingInterval == 0 ? (double?)null :
+                    model.ProcessingInterval
+            };
+        }
+
+        /// <summary>
+        /// Convert to stack model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static AggregateConfiguration ToStackModel(
+            this AggregateConfigurationModel model) {
+            if (model == null) {
+                return new AggregateConfiguration();
+            }
+            return new AggregateConfiguration {
+                UseServerCapabilitiesDefaults = model.UseServerCapabilitiesDefaults ?? true,
+                PercentDataBad = model.PercentDataBad ?? 0,
+                PercentDataGood = model.PercentDataGood ?? 0,
+                TreatUncertainAsBad = model.TreatUncertainAsBad ?? true,
+                UseSlopedExtrapolation = model.UseSlopedExtrapolation ?? true
+            };
+        }
+
+        /// <summary>
+        /// Convert to service model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static AggregateConfigurationModel ToServiceModel(
+            this AggregateConfiguration model) {
+            if (model == null) {
+                return null;
+            }
+            return new AggregateConfigurationModel {
+                UseServerCapabilitiesDefaults = model.UseServerCapabilitiesDefaults ? (bool?)null :
+                    model.UseServerCapabilitiesDefaults,
+                PercentDataBad = model.PercentDataBad == 0 ? (byte?)null :
+                    model.PercentDataBad,
+                PercentDataGood = model.PercentDataGood == 0 ? (byte?)null :
+                    model.PercentDataGood,
+                TreatUncertainAsBad = model.TreatUncertainAsBad ? (bool?)null :
+                    model.TreatUncertainAsBad,
+                UseSlopedExtrapolation = model.UseSlopedExtrapolation ? (bool?)null :
+                    model.UseSlopedExtrapolation
+            };
+        }
+
+        /// <summary>
+        /// Convert to stack model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static SimpleAttributeOperand ToStackModel(this SimpleAttributeOperandModel model,
+            ServiceMessageContext context) {
+            if (model == null) {
+                return null;
+            }
+            return new SimpleAttributeOperand {
+                TypeDefinitionId = model.NodeId.ToNodeId(context),
+                AttributeId = (uint)(model.AttributeId ?? NodeAttribute.Value),
+                BrowsePath = new QualifiedNameCollection(model.BrowsePath == null ?
+                    Enumerable.Empty<QualifiedName>() :
+                    model.BrowsePath?.Select(n => n.ToQualifiedName(context))),
+                IndexRange = model.IndexRange
+            };
+        }
+
+        /// <summary>
+        /// Convert to service model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        public static SimpleAttributeOperandModel ToServiceModel(this SimpleAttributeOperand model,
+            ServiceMessageContext context) {
+            if (model == null) {
+                return null;
+            }
+            return new SimpleAttributeOperandModel {
+                NodeId = model.TypeDefinitionId.AsString(context),
+                AttributeId = (NodeAttribute)model.AttributeId,
+                BrowsePath = model.BrowsePath?.Select(p => p.AsString(context)).ToArray(),
+                IndexRange = model.IndexRange
             };
         }
 

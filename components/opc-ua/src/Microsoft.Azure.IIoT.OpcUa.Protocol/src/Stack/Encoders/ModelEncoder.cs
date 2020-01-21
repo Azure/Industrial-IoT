@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.Encoders {
-    using Opc.Ua;
     using System;
     using System.Collections.Generic;
     using System.Xml;
@@ -22,8 +21,8 @@ namespace Opc.Ua.Encoders {
         /// </summary>
         /// <param name="contentType"></param>
         /// <param name="callback"></param>
-        /// <param name="context"></param>
         /// <param name="stream"></param>
+        /// <param name="context"></param>
         public ModelEncoder(Stream stream, string contentType,
             Action<ExpandedNodeId> callback = null,
             ServiceMessageContext context = null) :
@@ -379,18 +378,18 @@ fieldName, new EncodableWrapper(this, value), systemType);
                 throw new ArgumentNullException(nameof(stream));
             }
             switch (contentType.ToLowerInvariant()) {
-                case ContentEncodings.MimeTypeJson:
-                case ContentEncodings.MimeTypeUaJson:
+                case ContentMimeType.Json:
+                case ContentMimeType.UaJson:
                     return new JsonEncoderEx(new StreamWriter(stream),
                         context ?? new ServiceMessageContext(),
                         JsonEncoderEx.JsonEncoding.Array) {
                         UseAdvancedEncoding = true,
                         IgnoreDefaultValues = true
                     };
-                case ContentEncodings.MimeTypeUaBinary:
+                case ContentMimeType.UaBinary:
                     return new BinaryEncoder(stream,
                         context ?? new ServiceMessageContext());
-                case ContentEncodings.MimeTypeUaXml:
+                case ContentMimeType.UaXml:
                     return new XmlEncoder((Type)null, XmlWriter.Create(stream),
                         context ?? new ServiceMessageContext());
                 default:

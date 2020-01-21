@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.Module.Framework;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Serilog;
     using Serilog.Events;
     using System;
@@ -33,7 +34,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
             set {
                 if (value == null || value.Type == JTokenType.Null) {
                     // Set default
-                    LogEx.Level.MinimumLevel = LogEventLevel.Information;
+                    LogControl.Level.MinimumLevel = LogEventLevel.Information;
                     _logger.Information("Setting log level to default level.");
                 }
                 else if (value.Type == JTokenType.String) {
@@ -44,7 +45,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                             $"Bad log level value {value} passed.");
                     }
                     _logger.Information("Setting log level to {level}", level);
-                    LogEx.Level.MinimumLevel = level;
+                    LogControl.Level.MinimumLevel = level;
                 }
                 else {
                     throw new NotSupportedException(
@@ -52,7 +53,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                 }
             }
             // The enum values are the same as in serilog
-            get => JToken.FromObject(LogEx.Level.MinimumLevel.ToString());
+            get => JToken.FromObject(LogControl.Level.MinimumLevel.ToString());
         }
 
         /// <summary>

@@ -48,7 +48,6 @@ export const X509CertificateApiModel: msRest.CompositeMapper = {
         }
       },
       certificate: {
-        required: true,
         serializedName: "certificate",
         type: {
           name: "Object"
@@ -93,7 +92,6 @@ export const X509CrlApiModel: msRest.CompositeMapper = {
         }
       },
       crl: {
-        required: true,
         serializedName: "crl",
         type: {
           name: "Object"
@@ -125,6 +123,23 @@ export const X509CrlChainApiModel: msRest.CompositeMapper = {
   }
 };
 
+export const NotFoundResult: msRest.CompositeMapper = {
+  serializedName: "NotFoundResult",
+  type: {
+    name: "Composite",
+    className: "NotFoundResult",
+    modelProperties: {
+      statusCode: {
+        readOnly: true,
+        serializedName: "statusCode",
+        type: {
+          name: "Number"
+        }
+      }
+    }
+  }
+};
+
 export const StartSigningRequestApiModel: msRest.CompositeMapper = {
   serializedName: "StartSigningRequestApiModel",
   type: {
@@ -132,21 +147,18 @@ export const StartSigningRequestApiModel: msRest.CompositeMapper = {
     className: "StartSigningRequestApiModel",
     modelProperties: {
       entityId: {
-        required: true,
         serializedName: "entityId",
         type: {
           name: "String"
         }
       },
       groupId: {
-        required: true,
         serializedName: "groupId",
         type: {
           name: "String"
         }
       },
       certificateRequest: {
-        required: true,
         serializedName: "certificateRequest",
         type: {
           name: "Object"
@@ -163,7 +175,6 @@ export const StartSigningRequestResponseApiModel: msRest.CompositeMapper = {
     className: "StartSigningRequestResponseApiModel",
     modelProperties: {
       requestId: {
-        required: true,
         serializedName: "requestId",
         type: {
           name: "String"
@@ -186,7 +197,6 @@ export const VaultOperationContextApiModel: msRest.CompositeMapper = {
         }
       },
       time: {
-        required: true,
         serializedName: "time",
         type: {
           name: "DateTime"
@@ -306,21 +316,18 @@ export const StartNewKeyPairRequestApiModel: msRest.CompositeMapper = {
     className: "StartNewKeyPairRequestApiModel",
     modelProperties: {
       entityId: {
-        required: true,
         serializedName: "entityId",
         type: {
           name: "String"
         }
       },
       groupId: {
-        required: true,
         serializedName: "groupId",
         type: {
           name: "String"
         }
       },
       certificateType: {
-        required: true,
         serializedName: "certificateType",
         type: {
           name: "Enum",
@@ -332,7 +339,6 @@ export const StartNewKeyPairRequestApiModel: msRest.CompositeMapper = {
         }
       },
       subjectName: {
-        required: true,
         serializedName: "subjectName",
         type: {
           name: "String"
@@ -360,7 +366,6 @@ export const StartNewKeyPairRequestResponseApiModel: msRest.CompositeMapper = {
     className: "StartNewKeyPairRequestResponseApiModel",
     modelProperties: {
       requestId: {
-        required: true,
         serializedName: "requestId",
         type: {
           name: "String"
@@ -558,92 +563,6 @@ export const CertificateRequestQueryResponseApiModel: msRest.CompositeMapper = {
   }
 };
 
-export const StatusResponseApiModel: msRest.CompositeMapper = {
-  serializedName: "StatusResponseApiModel",
-  type: {
-    name: "Composite",
-    className: "StatusResponseApiModel",
-    modelProperties: {
-      name: {
-        serializedName: "name",
-        type: {
-          name: "String"
-        }
-      },
-      status: {
-        serializedName: "status",
-        type: {
-          name: "String"
-        }
-      },
-      currentTime: {
-        readOnly: true,
-        serializedName: "currentTime",
-        type: {
-          name: "String"
-        }
-      },
-      startTime: {
-        readOnly: true,
-        serializedName: "startTime",
-        type: {
-          name: "String"
-        }
-      },
-      upTime: {
-        readOnly: true,
-        serializedName: "upTime",
-        type: {
-          name: "Number"
-        }
-      },
-      uid: {
-        readOnly: true,
-        serializedName: "uid",
-        type: {
-          name: "String"
-        }
-      },
-      properties: {
-        readOnly: true,
-        serializedName: "properties",
-        type: {
-          name: "Dictionary",
-          value: {
-            type: {
-              name: "String"
-            }
-          }
-        }
-      },
-      dependencies: {
-        readOnly: true,
-        serializedName: "dependencies",
-        type: {
-          name: "Dictionary",
-          value: {
-            type: {
-              name: "String"
-            }
-          }
-        }
-      },
-      metadata: {
-        readOnly: true,
-        serializedName: "$metadata",
-        type: {
-          name: "Dictionary",
-          value: {
-            type: {
-              name: "String"
-            }
-          }
-        }
-      }
-    }
-  }
-};
-
 export const TrustGroupApiModel: msRest.CompositeMapper = {
   serializedName: "TrustGroupApiModel",
   type: {
@@ -651,7 +570,6 @@ export const TrustGroupApiModel: msRest.CompositeMapper = {
     className: "TrustGroupApiModel",
     modelProperties: {
       name: {
-        required: true,
         serializedName: "name",
         type: {
           name: "String"
@@ -665,7 +583,6 @@ export const TrustGroupApiModel: msRest.CompositeMapper = {
       },
       type: {
         serializedName: "type",
-        defaultValue: 'ApplicationInstanceCertificate',
         type: {
           name: "Enum",
           allowedValues: [
@@ -676,7 +593,6 @@ export const TrustGroupApiModel: msRest.CompositeMapper = {
         }
       },
       subjectName: {
-        required: true,
         serializedName: "subjectName",
         type: {
           name: "String"
@@ -745,14 +661,12 @@ export const TrustGroupRegistrationApiModel: msRest.CompositeMapper = {
     className: "TrustGroupRegistrationApiModel",
     modelProperties: {
       id: {
-        required: true,
         serializedName: "id",
         type: {
           name: "String"
         }
       },
       group: {
-        required: true,
         serializedName: "group",
         type: {
           name: "Composite",
@@ -798,21 +712,18 @@ export const TrustGroupRegistrationRequestApiModel: msRest.CompositeMapper = {
     className: "TrustGroupRegistrationRequestApiModel",
     modelProperties: {
       name: {
-        required: true,
         serializedName: "name",
         type: {
           name: "String"
         }
       },
       parentId: {
-        required: true,
         serializedName: "parentId",
         type: {
           name: "String"
         }
       },
       subjectName: {
-        required: true,
         serializedName: "subjectName",
         type: {
           name: "String"
@@ -855,7 +766,6 @@ export const TrustGroupRegistrationResponseApiModel: msRest.CompositeMapper = {
     className: "TrustGroupRegistrationResponseApiModel",
     modelProperties: {
       id: {
-        required: true,
         serializedName: "id",
         type: {
           name: "String"
@@ -914,7 +824,6 @@ export const TrustGroupRootCreateRequestApiModel: msRest.CompositeMapper = {
     className: "TrustGroupRootCreateRequestApiModel",
     modelProperties: {
       name: {
-        required: true,
         serializedName: "name",
         type: {
           name: "String"
@@ -922,7 +831,6 @@ export const TrustGroupRootCreateRequestApiModel: msRest.CompositeMapper = {
       },
       type: {
         serializedName: "type",
-        defaultValue: 'ApplicationInstanceCertificate',
         type: {
           name: "Enum",
           allowedValues: [
@@ -933,14 +841,12 @@ export const TrustGroupRootCreateRequestApiModel: msRest.CompositeMapper = {
         }
       },
       subjectName: {
-        required: true,
         serializedName: "subjectName",
         type: {
           name: "String"
         }
       },
       lifetime: {
-        required: true,
         serializedName: "lifetime",
         type: {
           name: "String"

@@ -25,8 +25,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Encode message to bytes
         /// </summary>
         /// <param name="contentType"></param>
-        /// <param name="message"></param>
         /// <param name="stream"></param>
+        /// <param name="message"></param>
         /// <returns></returns>
         void Encode(string contentType,
             Stream stream, IEncodeable message);

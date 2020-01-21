@@ -15,9 +15,9 @@ from msrest.serialization import Model
 class NodeApiModel(Model):
     """Node model.
 
-    :param node_class: Type of node. Possible values include: 'Object',
-     'Variable', 'Method', 'ObjectType', 'VariableType', 'ReferenceType',
-     'DataType', 'View'
+    :param node_class: Possible values include: 'Object', 'Variable',
+     'Method', 'ObjectType', 'VariableType', 'ReferenceType', 'DataType',
+     'View'
     :type node_class: str or ~azure-iiot-opc-twin.models.NodeClass
     :param display_name: Display name
     :type display_name: str
@@ -28,8 +28,7 @@ class NodeApiModel(Model):
     :type description: str
     :param browse_name: Browse name
     :type browse_name: str
-    :param access_restrictions: Node access restrictions if any.
-     (default: none). Possible values include: 'SigningRequired',
+    :param access_restrictions: Possible values include: 'SigningRequired',
      'EncryptionRequired', 'SessionRequired'
     :type access_restrictions: str or
      ~azure-iiot-opc-twin.models.NodeAccessRestrictions
@@ -46,10 +45,8 @@ class NodeApiModel(Model):
     :param contains_no_loops: Whether a view contains loops. Null if
      not a view.
     :type contains_no_loops: bool
-    :param event_notifier: If object or view and eventing, event notifier
-     to subscribe to.
-     (default: no events supported). Possible values include:
-     'SubscribeToEvents', 'HistoryRead', 'HistoryWrite'
+    :param event_notifier: Possible values include: 'SubscribeToEvents',
+     'HistoryRead', 'HistoryWrite'
     :type event_notifier: str or ~azure-iiot-opc-twin.models.NodeEventNotifier
     :param executable: If method node class, whether method can
      be called.
@@ -62,24 +59,22 @@ class NodeApiModel(Model):
      data type node and definition is available,
      otherwise null.
     :type data_type_definition: object
-    :param access_level: Default access level for variable node.
-     (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite',
-     'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite',
-     'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'
+    :param access_level: Possible values include: 'CurrentRead',
+     'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange',
+     'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite',
+     'WriteFullArrayOnly'
     :type access_level: str or ~azure-iiot-opc-twin.models.NodeAccessLevel
-    :param user_access_level: User access level for variable node or null.
-     (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite',
-     'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite',
-     'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'
+    :param user_access_level: Possible values include: 'CurrentRead',
+     'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange',
+     'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite',
+     'WriteFullArrayOnly'
     :type user_access_level: str or
      ~azure-iiot-opc-twin.models.NodeAccessLevel
     :param data_type: If variable the datatype of the variable.
      (default: null)
     :type data_type: str
-    :param value_rank: Value rank of the variable data of a variable
-     or variable type, otherwise null.
-     (default: scalar = -1). Possible values include: 'ScalarOrOneDimension',
-     'Any', 'Scalar', 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions'
+    :param value_rank: Possible values include: 'OneOrMoreDimensions',
+     'OneDimension', 'TwoDimensions', 'ScalarOrOneDimension', 'Any', 'Scalar'
     :type value_rank: str or ~azure-iiot-opc-twin.models.NodeValueRank
     :param array_dimensions: Array dimensions of variable or variable type.
      (default: empty array)

@@ -17,7 +17,7 @@
 class ValueReadRequestApiModel {
   /**
    * Create a ValueReadRequestApiModel.
-   * @property {string} nodeId Node to read from (mandatory)
+   * @property {string} [nodeId] Node to read from (mandatory)
    * @property {array} [browsePath] An optional path from NodeId instance to
    * the actual node.
    * @property {string} [indexRange] Index range to read, e.g. 1:2,0:1 for 2
@@ -25,18 +25,16 @@ class ValueReadRequestApiModel {
    * out of a matrix or 0:1 for the first item in
    * an array, string or bytestring.
    * See 7.22 of part 4: NumericRange.
-   * @property {object} [header] Optional request header
-   * @property {object} [header.elevation] Optional User elevation
-   * @property {string} [header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @property {object} [header]
+   * @property {object} [header.elevation]
+   * @property {string} [header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    * @property {object} [header.elevation.value] Value to pass to server
    * @property {array} [header.locales] Optional list of locales in preference
    * order.
-   * @property {object} [header.diagnostics] Optional diagnostics configuration
-   * @property {string} [header.diagnostics.level] Requested level of response
-   * diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status',
-   * 'Operations', 'Diagnostics', 'Verbose'
+   * @property {object} [header.diagnostics]
+   * @property {string} [header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    * @property {string} [header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    * @property {date} [header.diagnostics.timeStamp] Timestamp of request.
@@ -60,7 +58,7 @@ class ValueReadRequestApiModel {
         className: 'ValueReadRequestApiModel',
         modelProperties: {
           nodeId: {
-            required: true,
+            required: false,
             serializedName: 'nodeId',
             type: {
               name: 'String'

@@ -33,9 +33,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// class.
         /// </summary>
         /// <param name="id">Identifier of the endoint</param>
-        /// <param name="activationState">Activation state. Possible values
-        /// include: 'Deactivated', 'Activated',
-        /// 'ActivatedAndConnected'</param>
+        /// <param name="activationState">Possible values include:
+        /// 'Deactivated', 'Activated', 'ActivatedAndConnected'</param>
         public EndpointActivationStatusApiModel(string id, EndpointActivationState? activationState = default(EndpointActivationState?))
         {
             Id = id;
@@ -55,8 +54,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public string Id { get; set; }
 
         /// <summary>
-        /// Gets or sets activation state. Possible values include:
-        /// 'Deactivated', 'Activated', 'ActivatedAndConnected'
+        /// Gets or sets possible values include: 'Deactivated', 'Activated',
+        /// 'ActivatedAndConnected'
         /// </summary>
         [JsonProperty(PropertyName = "activationState")]
         public EndpointActivationState? ActivationState { get; set; }

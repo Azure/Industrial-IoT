@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
     using System.Collections.Generic;
+    using System.ComponentModel;
 
     /// <summary>
     /// Discovery configuration api model
@@ -17,13 +18,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "addressRangesToScan",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string AddressRangesToScan { get; set; }
 
         /// <summary>
-        /// Networking probe timeout
+        /// Network probe timeout
         /// </summary>
         [JsonProperty(PropertyName = "networkProbeTimeoutMs",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public int? NetworkProbeTimeoutMs { get; set; }
 
         /// <summary>
@@ -31,6 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "maxNetworkProbes",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public int? MaxNetworkProbes { get; set; }
 
         /// <summary>
@@ -38,6 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "portRangesToScan",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string PortRangesToScan { get; set; }
 
         /// <summary>
@@ -45,6 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "portProbeTimeoutMs",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public int? PortProbeTimeoutMs { get; set; }
 
         /// <summary>
@@ -52,6 +58,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "maxPortProbes",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public int? MaxPortProbes { get; set; }
 
         /// <summary>
@@ -59,6 +66,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "minPortProbesPercent",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public int? MinPortProbesPercent { get; set; }
 
         /// <summary>
@@ -66,6 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "idleTimeBetweenScansSec",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public int? IdleTimeBetweenScansSec { get; set; }
 
         /// <summary>
@@ -73,28 +82,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "discoveryUrls",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public List<string> DiscoveryUrls { get; set; }
 
         /// <summary>
-        /// List of locales to filter with during discovery in
-        /// priority order. Null or empty discovers all.
+        /// List of locales to filter with during discovery
         /// </summary>
         [JsonProperty(PropertyName = "locales",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public List<string> Locales { get; set; }
 
         /// <summary>
-        /// Callbacks to invoke once onboarding finishes
-        /// </summary>
-        [JsonProperty(PropertyName = "callbacks",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public List<CallbackApiModel> Callbacks { get; set; }
-
-        /// <summary>
-        /// Activate all endpoints with this filter during onboarding.
+        /// Activate all twins with this filter during onboarding.
         /// </summary>
         [JsonProperty(PropertyName = "activationFilter",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public EndpointActivationFilterApiModel ActivationFilter { get; set; }
     }
 }

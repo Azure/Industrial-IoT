@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Storage {
         /// </summary>
         /// <exception cref="System.NotSupportedException"/>
         /// <returns></returns>
-        IGremlinClient OpenGremlinClient();
+        IGraphQueryClient OpenGremlinClient();
 
         /// <summary>
         /// Open bulk loader if supported

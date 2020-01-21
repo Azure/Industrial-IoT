@@ -6,35 +6,31 @@
 namespace Microsoft.Azure.IIoT.Modules.Discovery.Runtime {
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
-    using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Hub.Module.Client.Runtime;
+    using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
-    using System;
 
     /// <summary>
     /// Wraps a configuration root
     /// </summary>
-    public class Config : ConfigBase, IModuleConfig {
+    public class Config : DiagnosticsConfig, IModuleConfig {
 
-        /// <summary>
-        /// Module configuration
-        /// </summary>
-        private const string kEdgeHubConnectionString = "EdgeHubConnectionString";
-        /// <summary>Hub connection string</summary>
-        public string EdgeHubConnectionString =>
-            GetStringOrDefault(kEdgeHubConnectionString);
-        /// <summary>Whether to bypass cert validation</summary>
-        public bool BypassCertVerification =>
-            GetBoolOrDefault(nameof(BypassCertVerification), false);
-        /// <summary>Transports to use</summary>
-        public TransportOption Transport => Enum.Parse<TransportOption>(
-            GetStringOrDefault(nameof(Transport), nameof(TransportOption.Any)), true);
+        /// <inheritdoc/>
+        public string EdgeHubConnectionString => _module.EdgeHubConnectionString;
+        /// <inheritdoc/>
+        public bool BypassCertVerification => _module.BypassCertVerification;
+        /// <inheritdoc/>
+        public TransportOption Transport => _module.Transport;
 
         /// <summary>
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public Config(IConfigurationRoot configuration) :
+        public Config(IConfiguration configuration) :
             base(configuration) {
+            _module = new ModuleConfig(configuration);
         }
+
+        private readonly ModuleConfig _module;
     }
 }

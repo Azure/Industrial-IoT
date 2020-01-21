@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Crypto.Storage.Models {
     using Microsoft.Azure.IIoT.Crypto.Models;
     using System;
-    using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
     /// Crl document extensions

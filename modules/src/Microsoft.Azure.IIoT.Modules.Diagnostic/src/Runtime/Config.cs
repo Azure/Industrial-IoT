@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Runtime {
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public Config(IConfigurationRoot configuration) :
+        public Config(IConfiguration configuration) :
             base(configuration) {
         }
     }

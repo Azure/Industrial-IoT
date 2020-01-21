@@ -287,7 +287,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
         /// </summary>
         private void Initialize()
         {
-            BaseUri = new System.Uri("http://localhost");
+            BaseUri = new System.Uri("http://localhost:9080");
             SerializationSettings = new JsonSerializerSettings
             {
                 Formatting = Newtonsoft.Json.Formatting.Indented,
@@ -316,18 +316,179 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             CustomInitialize();
         }
         /// <summary>
+        /// Browse node references
+        /// </summary>
+        /// <remarks>
+        /// Browse a node on the specified endpoint. The endpoint must be activated and
+        /// connected and the module client and server must trust each other.
+        /// </remarks>
+        /// <param name='endpointId'>
+        /// The identifier of the activated endpoint.
+        /// </param>
+        /// <param name='body'>
+        /// The browse request
+        /// </param>
+        /// <param name='customHeaders'>
+        /// Headers that will be added to request.
+        /// </param>
+        /// <param name='cancellationToken'>
+        /// The cancellation token.
+        /// </param>
+        /// <exception cref="HttpOperationException">
+        /// Thrown when the operation returned an invalid status code
+        /// </exception>
+        /// <exception cref="SerializationException">
+        /// Thrown when unable to deserialize the response
+        /// </exception>
+        /// <exception cref="ValidationException">
+        /// Thrown when a required parameter is null
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// Thrown when a required parameter is null
+        /// </exception>
+        /// <return>
+        /// A response object containing the response body and response headers.
+        /// </return>
+        public async Task<HttpOperationResponse<BrowseResponseApiModel>> BrowseWithHttpMessagesAsync(string endpointId, BrowseRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (endpointId == null)
+            {
+                throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
+            }
+            if (body == null)
+            {
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
+            }
+            if (body != null)
+            {
+                body.Validate();
+            }
+            // Tracing
+            bool _shouldTrace = ServiceClientTracing.IsEnabled;
+            string _invocationId = null;
+            if (_shouldTrace)
+            {
+                _invocationId = ServiceClientTracing.NextInvocationId.ToString();
+                Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
+                tracingParameters.Add("endpointId", endpointId);
+                tracingParameters.Add("body", body);
+                tracingParameters.Add("cancellationToken", cancellationToken);
+                ServiceClientTracing.Enter(_invocationId, this, "Browse", tracingParameters);
+            }
+            // Construct URL
+            var _baseUrl = BaseUri.AbsoluteUri;
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/browse/{endpointId}").ToString();
+            _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
+            // Create HTTP transport objects
+            var _httpRequest = new HttpRequestMessage();
+            HttpResponseMessage _httpResponse = null;
+            _httpRequest.Method = new HttpMethod("POST");
+            _httpRequest.RequestUri = new System.Uri(_url);
+            // Set Headers
+
+
+            if (customHeaders != null)
+            {
+                foreach(var _header in customHeaders)
+                {
+                    if (_httpRequest.Headers.Contains(_header.Key))
+                    {
+                        _httpRequest.Headers.Remove(_header.Key);
+                    }
+                    _httpRequest.Headers.TryAddWithoutValidation(_header.Key, _header.Value);
+                }
+            }
+
+            // Serialize Request
+            string _requestContent = null;
+            if(body != null)
+            {
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
+                _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
+                _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
+            }
+            // Set Credentials
+            if (Credentials != null)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await Credentials.ProcessHttpRequestAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
+            }
+            // Send Request
+            if (_shouldTrace)
+            {
+                ServiceClientTracing.SendRequest(_invocationId, _httpRequest);
+            }
+            cancellationToken.ThrowIfCancellationRequested();
+            _httpResponse = await HttpClient.SendAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
+            if (_shouldTrace)
+            {
+                ServiceClientTracing.ReceiveResponse(_invocationId, _httpResponse);
+            }
+            HttpStatusCode _statusCode = _httpResponse.StatusCode;
+            cancellationToken.ThrowIfCancellationRequested();
+            string _responseContent = null;
+            if ((int)_statusCode != 200)
+            {
+                var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
+                if (_httpResponse.Content != null) {
+                    _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                }
+                else {
+                    _responseContent = string.Empty;
+                }
+                ex.Request = new HttpRequestMessageWrapper(_httpRequest, _requestContent);
+                ex.Response = new HttpResponseMessageWrapper(_httpResponse, _responseContent);
+                if (_shouldTrace)
+                {
+                    ServiceClientTracing.Error(_invocationId, ex);
+                }
+                _httpRequest.Dispose();
+                if (_httpResponse != null)
+                {
+                    _httpResponse.Dispose();
+                }
+                throw ex;
+            }
+            // Create Result
+            var _result = new HttpOperationResponse<BrowseResponseApiModel>();
+            _result.Request = _httpRequest;
+            _result.Response = _httpResponse;
+            // Deserialize Response
+            if ((int)_statusCode == 200)
+            {
+                _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
+                try
+                {
+                    _result.Body = SafeJsonConvert.DeserializeObject<BrowseResponseApiModel>(_responseContent, DeserializationSettings);
+                }
+                catch (JsonException ex)
+                {
+                    _httpRequest.Dispose();
+                    if (_httpResponse != null)
+                    {
+                        _httpResponse.Dispose();
+                    }
+                    throw new SerializationException("Unable to deserialize the response.", _responseContent, ex);
+                }
+            }
+            if (_shouldTrace)
+            {
+                ServiceClientTracing.Exit(_invocationId, _result);
+            }
+            return _result;
+        }
+
+        /// <summary>
         /// Browse set of unique target nodes
         /// </summary>
         /// <remarks>
         /// Browse the set of unique hierarchically referenced target nodes on the
-        /// endpoint.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
-        /// The root node id to browse from can be provided as part of the query
-        /// parameters.
-        /// If it is not provided, the RootFolder node is browsed. Note that this
-        /// is the same as the POST method with the model containing the node id
-        /// and the targetNodesOnly flag set to true.
+        /// endpoint. The endpoint must be activated and connected and the module
+        /// client and server must trust each other. The root node id to browse from
+        /// can be provided as part of the query parameters. If it is not provided, the
+        /// RootFolder node is browsed. Note that this is the same as the POST method
+        /// with the model containing the node id and the targetNodesOnly flag set to
+        /// true.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
@@ -481,18 +642,18 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
         }
 
         /// <summary>
-        /// Browse node references
+        /// Browse next set of references
         /// </summary>
         /// <remarks>
-        /// Browse a node on the specified endpoint.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Browse next set of references on the endpoint. The endpoint must be
+        /// activated and connected and the module client and server must trust each
+        /// other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
-        /// The browse request
+        /// <param name='body'>
+        /// The request body with continuation token.
         /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
@@ -515,19 +676,19 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<BrowseResponseApiModel>> BrowseWithHttpMessagesAsync(string endpointId, BrowseRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<BrowseNextResponseApiModel>> BrowseNextWithHttpMessagesAsync(string endpointId, BrowseNextRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (request != null)
+            if (body != null)
             {
-                request.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -537,13 +698,13 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "Browse", tracingParameters);
+                ServiceClientTracing.Enter(_invocationId, this, "BrowseNext", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/browse/{endpointId}").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/browse/{endpointId}/next").ToString();
             _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
@@ -567,9 +728,9 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -616,7 +777,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
                 throw ex;
             }
             // Create Result
-            var _result = new HttpOperationResponse<BrowseResponseApiModel>();
+            var _result = new HttpOperationResponse<BrowseNextResponseApiModel>();
             _result.Request = _httpRequest;
             _result.Response = _httpResponse;
             // Deserialize Response
@@ -625,7 +786,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
                 _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                 try
                 {
-                    _result.Body = SafeJsonConvert.DeserializeObject<BrowseResponseApiModel>(_responseContent, DeserializationSettings);
+                    _result.Body = SafeJsonConvert.DeserializeObject<BrowseNextResponseApiModel>(_responseContent, DeserializationSettings);
                 }
                 catch (JsonException ex)
                 {
@@ -649,11 +810,10 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
         /// </summary>
         /// <remarks>
         /// Browse the next set of unique hierarchically referenced target nodes on the
-        /// endpoint.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
-        /// Note that this is the same as the POST method with the model containing
-        /// the continuation token and the targetNodesOnly flag set to true.
+        /// endpoint. The endpoint must be activated and connected and the module
+        /// client and server must trust each other. Note that this is the same as the
+        /// POST method with the model containing the continuation token and the
+        /// targetNodesOnly flag set to true.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
@@ -811,182 +971,18 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
         }
 
         /// <summary>
-        /// Browse next set of references
-        /// </summary>
-        /// <remarks>
-        /// Browse next set of references on the endpoint.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
-        /// </remarks>
-        /// <param name='endpointId'>
-        /// The identifier of the activated endpoint.
-        /// </param>
-        /// <param name='request'>
-        /// The request body with continuation token.
-        /// </param>
-        /// <param name='customHeaders'>
-        /// Headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        /// <exception cref="HttpOperationException">
-        /// Thrown when the operation returned an invalid status code
-        /// </exception>
-        /// <exception cref="SerializationException">
-        /// Thrown when unable to deserialize the response
-        /// </exception>
-        /// <exception cref="ValidationException">
-        /// Thrown when a required parameter is null
-        /// </exception>
-        /// <exception cref="System.ArgumentNullException">
-        /// Thrown when a required parameter is null
-        /// </exception>
-        /// <return>
-        /// A response object containing the response body and response headers.
-        /// </return>
-        public async Task<HttpOperationResponse<BrowseNextResponseApiModel>> BrowseNextWithHttpMessagesAsync(string endpointId, BrowseNextRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (endpointId == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
-            }
-            if (request == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
-            }
-            if (request != null)
-            {
-                request.Validate();
-            }
-            // Tracing
-            bool _shouldTrace = ServiceClientTracing.IsEnabled;
-            string _invocationId = null;
-            if (_shouldTrace)
-            {
-                _invocationId = ServiceClientTracing.NextInvocationId.ToString();
-                Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
-                tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "BrowseNext", tracingParameters);
-            }
-            // Construct URL
-            var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/browse/{endpointId}/next").ToString();
-            _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
-            // Create HTTP transport objects
-            var _httpRequest = new HttpRequestMessage();
-            HttpResponseMessage _httpResponse = null;
-            _httpRequest.Method = new HttpMethod("POST");
-            _httpRequest.RequestUri = new System.Uri(_url);
-            // Set Headers
-
-
-            if (customHeaders != null)
-            {
-                foreach(var _header in customHeaders)
-                {
-                    if (_httpRequest.Headers.Contains(_header.Key))
-                    {
-                        _httpRequest.Headers.Remove(_header.Key);
-                    }
-                    _httpRequest.Headers.TryAddWithoutValidation(_header.Key, _header.Value);
-                }
-            }
-
-            // Serialize Request
-            string _requestContent = null;
-            if(request != null)
-            {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
-                _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
-                _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
-            }
-            // Set Credentials
-            if (Credentials != null)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await Credentials.ProcessHttpRequestAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
-            }
-            // Send Request
-            if (_shouldTrace)
-            {
-                ServiceClientTracing.SendRequest(_invocationId, _httpRequest);
-            }
-            cancellationToken.ThrowIfCancellationRequested();
-            _httpResponse = await HttpClient.SendAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
-            if (_shouldTrace)
-            {
-                ServiceClientTracing.ReceiveResponse(_invocationId, _httpResponse);
-            }
-            HttpStatusCode _statusCode = _httpResponse.StatusCode;
-            cancellationToken.ThrowIfCancellationRequested();
-            string _responseContent = null;
-            if ((int)_statusCode != 200)
-            {
-                var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
-                if (_httpResponse.Content != null) {
-                    _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                }
-                else {
-                    _responseContent = string.Empty;
-                }
-                ex.Request = new HttpRequestMessageWrapper(_httpRequest, _requestContent);
-                ex.Response = new HttpResponseMessageWrapper(_httpResponse, _responseContent);
-                if (_shouldTrace)
-                {
-                    ServiceClientTracing.Error(_invocationId, ex);
-                }
-                _httpRequest.Dispose();
-                if (_httpResponse != null)
-                {
-                    _httpResponse.Dispose();
-                }
-                throw ex;
-            }
-            // Create Result
-            var _result = new HttpOperationResponse<BrowseNextResponseApiModel>();
-            _result.Request = _httpRequest;
-            _result.Response = _httpResponse;
-            // Deserialize Response
-            if ((int)_statusCode == 200)
-            {
-                _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                try
-                {
-                    _result.Body = SafeJsonConvert.DeserializeObject<BrowseNextResponseApiModel>(_responseContent, DeserializationSettings);
-                }
-                catch (JsonException ex)
-                {
-                    _httpRequest.Dispose();
-                    if (_httpResponse != null)
-                    {
-                        _httpResponse.Dispose();
-                    }
-                    throw new SerializationException("Unable to deserialize the response.", _responseContent, ex);
-                }
-            }
-            if (_shouldTrace)
-            {
-                ServiceClientTracing.Exit(_invocationId, _result);
-            }
-            return _result;
-        }
-
-        /// <summary>
         /// Browse using a browse path
         /// </summary>
         /// <remarks>
-        /// Browse using a path from the specified node id.
-        /// This call uses TranslateBrowsePathsToNodeIds service under the hood.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Browse using a path from the specified node id. This call uses
+        /// TranslateBrowsePathsToNodeIds service under the hood. The endpoint must be
+        /// activated and connected and the module client and server must trust each
+        /// other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The browse path request
         /// </param>
         /// <param name='customHeaders'>
@@ -1010,19 +1006,19 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<BrowsePathResponseApiModel>> BrowseUsingPathWithHttpMessagesAsync(string endpointId, BrowsePathRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<BrowsePathResponseApiModel>> BrowseUsingPathWithHttpMessagesAsync(string endpointId, BrowsePathRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (request != null)
+            if (body != null)
             {
-                request.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -1032,7 +1028,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "BrowseUsingPath", tracingParameters);
             }
@@ -1062,9 +1058,9 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -1144,14 +1140,13 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
         /// </summary>
         /// <remarks>
         /// Return method meta data to support a user interface displaying forms to
-        /// input and output arguments.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// input and output arguments. The endpoint must be activated and connected
+        /// and the module client and server must trust each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The method metadata request
         /// </param>
         /// <param name='customHeaders'>
@@ -1175,19 +1170,15 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<MethodMetadataResponseApiModel>> GetCallMetadataWithHttpMessagesAsync(string endpointId, MethodMetadataRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<MethodMetadataResponseApiModel>> GetCallMetadataWithHttpMessagesAsync(string endpointId, MethodMetadataRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
-            }
-            if (request != null)
-            {
-                request.Validate();
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -1197,7 +1188,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "GetCallMetadata", tracingParameters);
             }
@@ -1227,9 +1218,9 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -1308,14 +1299,14 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
         /// Call a method
         /// </summary>
         /// <remarks>
-        /// Invoke method node with specified input arguments.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Invoke method node with specified input arguments. The endpoint must be
+        /// activated and connected and the module client and server must trust each
+        /// other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The method call request
         /// </param>
         /// <param name='customHeaders'>
@@ -1339,15 +1330,15 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<MethodCallResponseApiModel>> CallMethodWithHttpMessagesAsync(string endpointId, MethodCallRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<MethodCallResponseApiModel>> CallMethodWithHttpMessagesAsync(string endpointId, MethodCallRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -1357,7 +1348,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "CallMethod", tracingParameters);
             }
@@ -1387,9 +1378,9 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -1465,18 +1456,17 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
         }
 
         /// <summary>
-        /// Start publishing node values
+        /// Read variable value
         /// </summary>
         /// <remarks>
-        /// Start publishing variable node values to IoT Hub.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Read a variable node's value. The endpoint must be activated and connected
+        /// and the module client and server must trust each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
-        /// The publish request
+        /// <param name='body'>
+        /// The read value request
         /// </param>
         /// <param name='customHeaders'>
         /// Headers that will be added to request.
@@ -1499,19 +1489,15 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<PublishStartResponseApiModel>> StartPublishingValuesWithHttpMessagesAsync(string endpointId, PublishStartRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<ValueReadResponseApiModel>> ReadValueWithHttpMessagesAsync(string endpointId, ValueReadRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
-            }
-            if (request != null)
-            {
-                request.Validate();
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -1521,13 +1507,13 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "StartPublishingValues", tracingParameters);
+                ServiceClientTracing.Enter(_invocationId, this, "ReadValue", tracingParameters);
             }
             // Construct URL
             var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/publish/{endpointId}/start").ToString();
+            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/read/{endpointId}").ToString();
             _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
             // Create HTTP transport objects
             var _httpRequest = new HttpRequestMessage();
@@ -1551,9 +1537,9 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -1600,7 +1586,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
                 throw ex;
             }
             // Create Result
-            var _result = new HttpOperationResponse<PublishStartResponseApiModel>();
+            var _result = new HttpOperationResponse<ValueReadResponseApiModel>();
             _result.Request = _httpRequest;
             _result.Response = _httpResponse;
             // Deserialize Response
@@ -1609,494 +1595,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
                 _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
                 try
                 {
-                    _result.Body = SafeJsonConvert.DeserializeObject<PublishStartResponseApiModel>(_responseContent, DeserializationSettings);
-                }
-                catch (JsonException ex)
-                {
-                    _httpRequest.Dispose();
-                    if (_httpResponse != null)
-                    {
-                        _httpResponse.Dispose();
-                    }
-                    throw new SerializationException("Unable to deserialize the response.", _responseContent, ex);
-                }
-            }
-            if (_shouldTrace)
-            {
-                ServiceClientTracing.Exit(_invocationId, _result);
-            }
-            return _result;
-        }
-
-        /// <summary>
-        /// Stop publishing node values
-        /// </summary>
-        /// <remarks>
-        /// Stop publishing variable node values to IoT Hub.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
-        /// </remarks>
-        /// <param name='endpointId'>
-        /// The identifier of the activated endpoint.
-        /// </param>
-        /// <param name='request'>
-        /// The unpublish request
-        /// </param>
-        /// <param name='customHeaders'>
-        /// Headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        /// <exception cref="HttpOperationException">
-        /// Thrown when the operation returned an invalid status code
-        /// </exception>
-        /// <exception cref="SerializationException">
-        /// Thrown when unable to deserialize the response
-        /// </exception>
-        /// <exception cref="ValidationException">
-        /// Thrown when a required parameter is null
-        /// </exception>
-        /// <exception cref="System.ArgumentNullException">
-        /// Thrown when a required parameter is null
-        /// </exception>
-        /// <return>
-        /// A response object containing the response body and response headers.
-        /// </return>
-        public async Task<HttpOperationResponse<PublishStopResponseApiModel>> StopPublishingValuesWithHttpMessagesAsync(string endpointId, PublishStopRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (endpointId == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
-            }
-            if (request == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
-            }
-            if (request != null)
-            {
-                request.Validate();
-            }
-            // Tracing
-            bool _shouldTrace = ServiceClientTracing.IsEnabled;
-            string _invocationId = null;
-            if (_shouldTrace)
-            {
-                _invocationId = ServiceClientTracing.NextInvocationId.ToString();
-                Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
-                tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "StopPublishingValues", tracingParameters);
-            }
-            // Construct URL
-            var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/publish/{endpointId}/stop").ToString();
-            _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
-            // Create HTTP transport objects
-            var _httpRequest = new HttpRequestMessage();
-            HttpResponseMessage _httpResponse = null;
-            _httpRequest.Method = new HttpMethod("POST");
-            _httpRequest.RequestUri = new System.Uri(_url);
-            // Set Headers
-
-
-            if (customHeaders != null)
-            {
-                foreach(var _header in customHeaders)
-                {
-                    if (_httpRequest.Headers.Contains(_header.Key))
-                    {
-                        _httpRequest.Headers.Remove(_header.Key);
-                    }
-                    _httpRequest.Headers.TryAddWithoutValidation(_header.Key, _header.Value);
-                }
-            }
-
-            // Serialize Request
-            string _requestContent = null;
-            if(request != null)
-            {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
-                _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
-                _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
-            }
-            // Set Credentials
-            if (Credentials != null)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await Credentials.ProcessHttpRequestAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
-            }
-            // Send Request
-            if (_shouldTrace)
-            {
-                ServiceClientTracing.SendRequest(_invocationId, _httpRequest);
-            }
-            cancellationToken.ThrowIfCancellationRequested();
-            _httpResponse = await HttpClient.SendAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
-            if (_shouldTrace)
-            {
-                ServiceClientTracing.ReceiveResponse(_invocationId, _httpResponse);
-            }
-            HttpStatusCode _statusCode = _httpResponse.StatusCode;
-            cancellationToken.ThrowIfCancellationRequested();
-            string _responseContent = null;
-            if ((int)_statusCode != 200)
-            {
-                var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
-                if (_httpResponse.Content != null) {
-                    _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                }
-                else {
-                    _responseContent = string.Empty;
-                }
-                ex.Request = new HttpRequestMessageWrapper(_httpRequest, _requestContent);
-                ex.Response = new HttpResponseMessageWrapper(_httpResponse, _responseContent);
-                if (_shouldTrace)
-                {
-                    ServiceClientTracing.Error(_invocationId, ex);
-                }
-                _httpRequest.Dispose();
-                if (_httpResponse != null)
-                {
-                    _httpResponse.Dispose();
-                }
-                throw ex;
-            }
-            // Create Result
-            var _result = new HttpOperationResponse<PublishStopResponseApiModel>();
-            _result.Request = _httpRequest;
-            _result.Response = _httpResponse;
-            // Deserialize Response
-            if ((int)_statusCode == 200)
-            {
-                _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                try
-                {
-                    _result.Body = SafeJsonConvert.DeserializeObject<PublishStopResponseApiModel>(_responseContent, DeserializationSettings);
-                }
-                catch (JsonException ex)
-                {
-                    _httpRequest.Dispose();
-                    if (_httpResponse != null)
-                    {
-                        _httpResponse.Dispose();
-                    }
-                    throw new SerializationException("Unable to deserialize the response.", _responseContent, ex);
-                }
-            }
-            if (_shouldTrace)
-            {
-                ServiceClientTracing.Exit(_invocationId, _result);
-            }
-            return _result;
-        }
-
-        /// <summary>
-        /// Get next set of published nodes
-        /// </summary>
-        /// <remarks>
-        /// Returns next set of currently published node ids for an endpoint.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
-        /// </remarks>
-        /// <param name='endpointId'>
-        /// The identifier of the activated endpoint.
-        /// </param>
-        /// <param name='continuationToken'>
-        /// The continuation token to continue with
-        /// </param>
-        /// <param name='customHeaders'>
-        /// Headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        /// <exception cref="HttpOperationException">
-        /// Thrown when the operation returned an invalid status code
-        /// </exception>
-        /// <exception cref="SerializationException">
-        /// Thrown when unable to deserialize the response
-        /// </exception>
-        /// <exception cref="ValidationException">
-        /// Thrown when a required parameter is null
-        /// </exception>
-        /// <exception cref="System.ArgumentNullException">
-        /// Thrown when a required parameter is null
-        /// </exception>
-        /// <return>
-        /// A response object containing the response body and response headers.
-        /// </return>
-        public async Task<HttpOperationResponse<PublishedItemListResponseApiModel>> GetNextListOfPublishedNodesWithHttpMessagesAsync(string endpointId, string continuationToken, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (endpointId == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
-            }
-            if (continuationToken == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "continuationToken");
-            }
-            // Tracing
-            bool _shouldTrace = ServiceClientTracing.IsEnabled;
-            string _invocationId = null;
-            if (_shouldTrace)
-            {
-                _invocationId = ServiceClientTracing.NextInvocationId.ToString();
-                Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("continuationToken", continuationToken);
-                tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "GetNextListOfPublishedNodes", tracingParameters);
-            }
-            // Construct URL
-            var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/publish/{endpointId}").ToString();
-            _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
-            List<string> _queryParameters = new List<string>();
-            if (continuationToken != null)
-            {
-                _queryParameters.Add(string.Format("continuationToken={0}", System.Uri.EscapeDataString(continuationToken)));
-            }
-            if (_queryParameters.Count > 0)
-            {
-                _url += "?" + string.Join("&", _queryParameters);
-            }
-            // Create HTTP transport objects
-            var _httpRequest = new HttpRequestMessage();
-            HttpResponseMessage _httpResponse = null;
-            _httpRequest.Method = new HttpMethod("GET");
-            _httpRequest.RequestUri = new System.Uri(_url);
-            // Set Headers
-
-
-            if (customHeaders != null)
-            {
-                foreach(var _header in customHeaders)
-                {
-                    if (_httpRequest.Headers.Contains(_header.Key))
-                    {
-                        _httpRequest.Headers.Remove(_header.Key);
-                    }
-                    _httpRequest.Headers.TryAddWithoutValidation(_header.Key, _header.Value);
-                }
-            }
-
-            // Serialize Request
-            string _requestContent = null;
-            // Set Credentials
-            if (Credentials != null)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await Credentials.ProcessHttpRequestAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
-            }
-            // Send Request
-            if (_shouldTrace)
-            {
-                ServiceClientTracing.SendRequest(_invocationId, _httpRequest);
-            }
-            cancellationToken.ThrowIfCancellationRequested();
-            _httpResponse = await HttpClient.SendAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
-            if (_shouldTrace)
-            {
-                ServiceClientTracing.ReceiveResponse(_invocationId, _httpResponse);
-            }
-            HttpStatusCode _statusCode = _httpResponse.StatusCode;
-            cancellationToken.ThrowIfCancellationRequested();
-            string _responseContent = null;
-            if ((int)_statusCode != 200)
-            {
-                var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
-                if (_httpResponse.Content != null) {
-                    _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                }
-                else {
-                    _responseContent = string.Empty;
-                }
-                ex.Request = new HttpRequestMessageWrapper(_httpRequest, _requestContent);
-                ex.Response = new HttpResponseMessageWrapper(_httpResponse, _responseContent);
-                if (_shouldTrace)
-                {
-                    ServiceClientTracing.Error(_invocationId, ex);
-                }
-                _httpRequest.Dispose();
-                if (_httpResponse != null)
-                {
-                    _httpResponse.Dispose();
-                }
-                throw ex;
-            }
-            // Create Result
-            var _result = new HttpOperationResponse<PublishedItemListResponseApiModel>();
-            _result.Request = _httpRequest;
-            _result.Response = _httpResponse;
-            // Deserialize Response
-            if ((int)_statusCode == 200)
-            {
-                _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                try
-                {
-                    _result.Body = SafeJsonConvert.DeserializeObject<PublishedItemListResponseApiModel>(_responseContent, DeserializationSettings);
-                }
-                catch (JsonException ex)
-                {
-                    _httpRequest.Dispose();
-                    if (_httpResponse != null)
-                    {
-                        _httpResponse.Dispose();
-                    }
-                    throw new SerializationException("Unable to deserialize the response.", _responseContent, ex);
-                }
-            }
-            if (_shouldTrace)
-            {
-                ServiceClientTracing.Exit(_invocationId, _result);
-            }
-            return _result;
-        }
-
-        /// <summary>
-        /// Get currently published nodes
-        /// </summary>
-        /// <remarks>
-        /// Returns currently published node ids for an endpoint.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
-        /// </remarks>
-        /// <param name='endpointId'>
-        /// The identifier of the activated endpoint.
-        /// </param>
-        /// <param name='request'>
-        /// The list request
-        /// </param>
-        /// <param name='customHeaders'>
-        /// Headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        /// <exception cref="HttpOperationException">
-        /// Thrown when the operation returned an invalid status code
-        /// </exception>
-        /// <exception cref="SerializationException">
-        /// Thrown when unable to deserialize the response
-        /// </exception>
-        /// <exception cref="ValidationException">
-        /// Thrown when a required parameter is null
-        /// </exception>
-        /// <exception cref="System.ArgumentNullException">
-        /// Thrown when a required parameter is null
-        /// </exception>
-        /// <return>
-        /// A response object containing the response body and response headers.
-        /// </return>
-        public async Task<HttpOperationResponse<PublishedItemListResponseApiModel>> GetFirstListOfPublishedNodesWithHttpMessagesAsync(string endpointId, PublishedItemListRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (endpointId == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
-            }
-            if (request == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
-            }
-            // Tracing
-            bool _shouldTrace = ServiceClientTracing.IsEnabled;
-            string _invocationId = null;
-            if (_shouldTrace)
-            {
-                _invocationId = ServiceClientTracing.NextInvocationId.ToString();
-                Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
-                tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "GetFirstListOfPublishedNodes", tracingParameters);
-            }
-            // Construct URL
-            var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/publish/{endpointId}").ToString();
-            _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
-            // Create HTTP transport objects
-            var _httpRequest = new HttpRequestMessage();
-            HttpResponseMessage _httpResponse = null;
-            _httpRequest.Method = new HttpMethod("POST");
-            _httpRequest.RequestUri = new System.Uri(_url);
-            // Set Headers
-
-
-            if (customHeaders != null)
-            {
-                foreach(var _header in customHeaders)
-                {
-                    if (_httpRequest.Headers.Contains(_header.Key))
-                    {
-                        _httpRequest.Headers.Remove(_header.Key);
-                    }
-                    _httpRequest.Headers.TryAddWithoutValidation(_header.Key, _header.Value);
-                }
-            }
-
-            // Serialize Request
-            string _requestContent = null;
-            if(request != null)
-            {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
-                _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
-                _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
-            }
-            // Set Credentials
-            if (Credentials != null)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await Credentials.ProcessHttpRequestAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
-            }
-            // Send Request
-            if (_shouldTrace)
-            {
-                ServiceClientTracing.SendRequest(_invocationId, _httpRequest);
-            }
-            cancellationToken.ThrowIfCancellationRequested();
-            _httpResponse = await HttpClient.SendAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
-            if (_shouldTrace)
-            {
-                ServiceClientTracing.ReceiveResponse(_invocationId, _httpResponse);
-            }
-            HttpStatusCode _statusCode = _httpResponse.StatusCode;
-            cancellationToken.ThrowIfCancellationRequested();
-            string _responseContent = null;
-            if ((int)_statusCode != 200)
-            {
-                var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
-                if (_httpResponse.Content != null) {
-                    _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                }
-                else {
-                    _responseContent = string.Empty;
-                }
-                ex.Request = new HttpRequestMessageWrapper(_httpRequest, _requestContent);
-                ex.Response = new HttpResponseMessageWrapper(_httpResponse, _responseContent);
-                if (_shouldTrace)
-                {
-                    ServiceClientTracing.Error(_invocationId, ex);
-                }
-                _httpRequest.Dispose();
-                if (_httpResponse != null)
-                {
-                    _httpResponse.Dispose();
-                }
-                throw ex;
-            }
-            // Create Result
-            var _result = new HttpOperationResponse<PublishedItemListResponseApiModel>();
-            _result.Request = _httpRequest;
-            _result.Response = _httpResponse;
-            // Deserialize Response
-            if ((int)_statusCode == 200)
-            {
-                _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                try
-                {
-                    _result.Body = SafeJsonConvert.DeserializeObject<PublishedItemListResponseApiModel>(_responseContent, DeserializationSettings);
+                    _result.Body = SafeJsonConvert.DeserializeObject<ValueReadResponseApiModel>(_responseContent, DeserializationSettings);
                 }
                 catch (JsonException ex)
                 {
@@ -2119,9 +1618,9 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
         /// Get variable value
         /// </summary>
         /// <remarks>
-        /// Get a variable node's value using its node id.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Get a variable node's value using its node id. The endpoint must be
+        /// activated and connected and the module client and server must trust each
+        /// other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
@@ -2279,181 +1778,16 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
         }
 
         /// <summary>
-        /// Read variable value
-        /// </summary>
-        /// <remarks>
-        /// Read a variable node's value.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
-        /// </remarks>
-        /// <param name='endpointId'>
-        /// The identifier of the activated endpoint.
-        /// </param>
-        /// <param name='request'>
-        /// The read value request
-        /// </param>
-        /// <param name='customHeaders'>
-        /// Headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        /// <exception cref="HttpOperationException">
-        /// Thrown when the operation returned an invalid status code
-        /// </exception>
-        /// <exception cref="SerializationException">
-        /// Thrown when unable to deserialize the response
-        /// </exception>
-        /// <exception cref="ValidationException">
-        /// Thrown when a required parameter is null
-        /// </exception>
-        /// <exception cref="System.ArgumentNullException">
-        /// Thrown when a required parameter is null
-        /// </exception>
-        /// <return>
-        /// A response object containing the response body and response headers.
-        /// </return>
-        public async Task<HttpOperationResponse<ValueReadResponseApiModel>> ReadValueWithHttpMessagesAsync(string endpointId, ValueReadRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (endpointId == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
-            }
-            if (request == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
-            }
-            if (request != null)
-            {
-                request.Validate();
-            }
-            // Tracing
-            bool _shouldTrace = ServiceClientTracing.IsEnabled;
-            string _invocationId = null;
-            if (_shouldTrace)
-            {
-                _invocationId = ServiceClientTracing.NextInvocationId.ToString();
-                Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
-                tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "ReadValue", tracingParameters);
-            }
-            // Construct URL
-            var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/read/{endpointId}").ToString();
-            _url = _url.Replace("{endpointId}", System.Uri.EscapeDataString(endpointId));
-            // Create HTTP transport objects
-            var _httpRequest = new HttpRequestMessage();
-            HttpResponseMessage _httpResponse = null;
-            _httpRequest.Method = new HttpMethod("POST");
-            _httpRequest.RequestUri = new System.Uri(_url);
-            // Set Headers
-
-
-            if (customHeaders != null)
-            {
-                foreach(var _header in customHeaders)
-                {
-                    if (_httpRequest.Headers.Contains(_header.Key))
-                    {
-                        _httpRequest.Headers.Remove(_header.Key);
-                    }
-                    _httpRequest.Headers.TryAddWithoutValidation(_header.Key, _header.Value);
-                }
-            }
-
-            // Serialize Request
-            string _requestContent = null;
-            if(request != null)
-            {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
-                _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
-                _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
-            }
-            // Set Credentials
-            if (Credentials != null)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await Credentials.ProcessHttpRequestAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
-            }
-            // Send Request
-            if (_shouldTrace)
-            {
-                ServiceClientTracing.SendRequest(_invocationId, _httpRequest);
-            }
-            cancellationToken.ThrowIfCancellationRequested();
-            _httpResponse = await HttpClient.SendAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
-            if (_shouldTrace)
-            {
-                ServiceClientTracing.ReceiveResponse(_invocationId, _httpResponse);
-            }
-            HttpStatusCode _statusCode = _httpResponse.StatusCode;
-            cancellationToken.ThrowIfCancellationRequested();
-            string _responseContent = null;
-            if ((int)_statusCode != 200)
-            {
-                var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
-                if (_httpResponse.Content != null) {
-                    _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                }
-                else {
-                    _responseContent = string.Empty;
-                }
-                ex.Request = new HttpRequestMessageWrapper(_httpRequest, _requestContent);
-                ex.Response = new HttpResponseMessageWrapper(_httpResponse, _responseContent);
-                if (_shouldTrace)
-                {
-                    ServiceClientTracing.Error(_invocationId, ex);
-                }
-                _httpRequest.Dispose();
-                if (_httpResponse != null)
-                {
-                    _httpResponse.Dispose();
-                }
-                throw ex;
-            }
-            // Create Result
-            var _result = new HttpOperationResponse<ValueReadResponseApiModel>();
-            _result.Request = _httpRequest;
-            _result.Response = _httpResponse;
-            // Deserialize Response
-            if ((int)_statusCode == 200)
-            {
-                _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                try
-                {
-                    _result.Body = SafeJsonConvert.DeserializeObject<ValueReadResponseApiModel>(_responseContent, DeserializationSettings);
-                }
-                catch (JsonException ex)
-                {
-                    _httpRequest.Dispose();
-                    if (_httpResponse != null)
-                    {
-                        _httpResponse.Dispose();
-                    }
-                    throw new SerializationException("Unable to deserialize the response.", _responseContent, ex);
-                }
-            }
-            if (_shouldTrace)
-            {
-                ServiceClientTracing.Exit(_invocationId, _result);
-            }
-            return _result;
-        }
-
-        /// <summary>
         /// Read node attributes
         /// </summary>
         /// <remarks>
-        /// Read attributes of a node.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Read attributes of a node. The endpoint must be activated and connected and
+        /// the module client and server must trust each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The read request
         /// </param>
         /// <param name='customHeaders'>
@@ -2477,19 +1811,19 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<ReadResponseApiModel>> ReadAttributesWithHttpMessagesAsync(string endpointId, ReadRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<ReadResponseApiModel>> ReadAttributesWithHttpMessagesAsync(string endpointId, ReadRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (request != null)
+            if (body != null)
             {
-                request.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -2499,7 +1833,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "ReadAttributes", tracingParameters);
             }
@@ -2529,9 +1863,9 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -2607,144 +1941,16 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
         }
 
         /// <summary>
-        /// Return the service status in the form of the service status
-        /// api model.
-        /// </summary>
-        /// <param name='customHeaders'>
-        /// Headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        /// <exception cref="HttpOperationException">
-        /// Thrown when the operation returned an invalid status code
-        /// </exception>
-        /// <exception cref="SerializationException">
-        /// Thrown when unable to deserialize the response
-        /// </exception>
-        /// <return>
-        /// A response object containing the response body and response headers.
-        /// </return>
-        public async Task<HttpOperationResponse<StatusResponseApiModel>> GetStatusWithHttpMessagesAsync(Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            // Tracing
-            bool _shouldTrace = ServiceClientTracing.IsEnabled;
-            string _invocationId = null;
-            if (_shouldTrace)
-            {
-                _invocationId = ServiceClientTracing.NextInvocationId.ToString();
-                Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
-                tracingParameters.Add("cancellationToken", cancellationToken);
-                ServiceClientTracing.Enter(_invocationId, this, "GetStatus", tracingParameters);
-            }
-            // Construct URL
-            var _baseUrl = BaseUri.AbsoluteUri;
-            var _url = new System.Uri(new System.Uri(_baseUrl + (_baseUrl.EndsWith("/") ? "" : "/")), "v2/status").ToString();
-            // Create HTTP transport objects
-            var _httpRequest = new HttpRequestMessage();
-            HttpResponseMessage _httpResponse = null;
-            _httpRequest.Method = new HttpMethod("GET");
-            _httpRequest.RequestUri = new System.Uri(_url);
-            // Set Headers
-
-
-            if (customHeaders != null)
-            {
-                foreach(var _header in customHeaders)
-                {
-                    if (_httpRequest.Headers.Contains(_header.Key))
-                    {
-                        _httpRequest.Headers.Remove(_header.Key);
-                    }
-                    _httpRequest.Headers.TryAddWithoutValidation(_header.Key, _header.Value);
-                }
-            }
-
-            // Serialize Request
-            string _requestContent = null;
-            // Set Credentials
-            if (Credentials != null)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-                await Credentials.ProcessHttpRequestAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
-            }
-            // Send Request
-            if (_shouldTrace)
-            {
-                ServiceClientTracing.SendRequest(_invocationId, _httpRequest);
-            }
-            cancellationToken.ThrowIfCancellationRequested();
-            _httpResponse = await HttpClient.SendAsync(_httpRequest, cancellationToken).ConfigureAwait(false);
-            if (_shouldTrace)
-            {
-                ServiceClientTracing.ReceiveResponse(_invocationId, _httpResponse);
-            }
-            HttpStatusCode _statusCode = _httpResponse.StatusCode;
-            cancellationToken.ThrowIfCancellationRequested();
-            string _responseContent = null;
-            if ((int)_statusCode != 200)
-            {
-                var ex = new HttpOperationException(string.Format("Operation returned an invalid status code '{0}'", _statusCode));
-                if (_httpResponse.Content != null) {
-                    _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                }
-                else {
-                    _responseContent = string.Empty;
-                }
-                ex.Request = new HttpRequestMessageWrapper(_httpRequest, _requestContent);
-                ex.Response = new HttpResponseMessageWrapper(_httpResponse, _responseContent);
-                if (_shouldTrace)
-                {
-                    ServiceClientTracing.Error(_invocationId, ex);
-                }
-                _httpRequest.Dispose();
-                if (_httpResponse != null)
-                {
-                    _httpResponse.Dispose();
-                }
-                throw ex;
-            }
-            // Create Result
-            var _result = new HttpOperationResponse<StatusResponseApiModel>();
-            _result.Request = _httpRequest;
-            _result.Response = _httpResponse;
-            // Deserialize Response
-            if ((int)_statusCode == 200)
-            {
-                _responseContent = await _httpResponse.Content.ReadAsStringAsync().ConfigureAwait(false);
-                try
-                {
-                    _result.Body = SafeJsonConvert.DeserializeObject<StatusResponseApiModel>(_responseContent, DeserializationSettings);
-                }
-                catch (JsonException ex)
-                {
-                    _httpRequest.Dispose();
-                    if (_httpResponse != null)
-                    {
-                        _httpResponse.Dispose();
-                    }
-                    throw new SerializationException("Unable to deserialize the response.", _responseContent, ex);
-                }
-            }
-            if (_shouldTrace)
-            {
-                ServiceClientTracing.Exit(_invocationId, _result);
-            }
-            return _result;
-        }
-
-        /// <summary>
         /// Write variable value
         /// </summary>
         /// <remarks>
-        /// Write variable node's value.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Write variable node's value. The endpoint must be activated and connected
+        /// and the module client and server must trust each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The write value request
         /// </param>
         /// <param name='customHeaders'>
@@ -2768,19 +1974,19 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<ValueWriteResponseApiModel>> WriteValueWithHttpMessagesAsync(string endpointId, ValueWriteRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<ValueWriteResponseApiModel>> WriteValueWithHttpMessagesAsync(string endpointId, ValueWriteRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (request != null)
+            if (body != null)
             {
-                request.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -2790,7 +1996,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "WriteValue", tracingParameters);
             }
@@ -2820,9 +2026,9 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }
@@ -2901,14 +2107,13 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
         /// Write node attributes
         /// </summary>
         /// <remarks>
-        /// Write any attribute of a node.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Write any attribute of a node. The endpoint must be activated and connected
+        /// and the module client and server must trust each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The batch write request
         /// </param>
         /// <param name='customHeaders'>
@@ -2932,19 +2137,19 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
         /// <return>
         /// A response object containing the response body and response headers.
         /// </return>
-        public async Task<HttpOperationResponse<WriteResponseApiModel>> WriteAttributesWithHttpMessagesAsync(string endpointId, WriteRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<HttpOperationResponse<WriteResponseApiModel>> WriteAttributesWithHttpMessagesAsync(string endpointId, WriteRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken))
         {
             if (endpointId == null)
             {
                 throw new ValidationException(ValidationRules.CannotBeNull, "endpointId");
             }
-            if (request == null)
+            if (body == null)
             {
-                throw new ValidationException(ValidationRules.CannotBeNull, "request");
+                throw new ValidationException(ValidationRules.CannotBeNull, "body");
             }
-            if (request != null)
+            if (body != null)
             {
-                request.Validate();
+                body.Validate();
             }
             // Tracing
             bool _shouldTrace = ServiceClientTracing.IsEnabled;
@@ -2954,7 +2159,7 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
                 _invocationId = ServiceClientTracing.NextInvocationId.ToString();
                 Dictionary<string, object> tracingParameters = new Dictionary<string, object>();
                 tracingParameters.Add("endpointId", endpointId);
-                tracingParameters.Add("request", request);
+                tracingParameters.Add("body", body);
                 tracingParameters.Add("cancellationToken", cancellationToken);
                 ServiceClientTracing.Enter(_invocationId, this, "WriteAttributes", tracingParameters);
             }
@@ -2984,9 +2189,9 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
 
             // Serialize Request
             string _requestContent = null;
-            if(request != null)
+            if(body != null)
             {
-                _requestContent = SafeJsonConvert.SerializeObject(request, SerializationSettings);
+                _requestContent = SafeJsonConvert.SerializeObject(body, SerializationSettings);
                 _httpRequest.Content = new StringContent(_requestContent, System.Text.Encoding.UTF8);
                 _httpRequest.Content.Headers.ContentType =System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json-patch+json; charset=utf-8");
             }

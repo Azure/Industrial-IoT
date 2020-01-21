@@ -19,15 +19,15 @@ module azure.iiot.opc.twin
       # @return [String] Optional description
       attr_accessor :description
 
-      # @return [NodeApiModel] Data type node of the argument
+      # @return [NodeApiModel]
       attr_accessor :type
 
       # @return Default value
       attr_accessor :default_value
 
-      # @return [NodeValueRank] Optional, scalar if not set. Possible values
-      # include: 'ScalarOrOneDimension', 'Any', 'Scalar',
-      # 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions'
+      # @return [NodeValueRank] Possible values include: 'OneOrMoreDimensions',
+      # 'OneDimension', 'TwoDimensions', 'ScalarOrOneDimension', 'Any',
+      # 'Scalar'
       attr_accessor :value_rank
 
       # @return [Array<Integer>] Optional, array dimension

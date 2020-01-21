@@ -37,9 +37,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// <param name="maxRecordsToReturn">Max records to return</param>
         /// <param name="applicationName">Application name</param>
         /// <param name="applicationUri">Application uri</param>
-        /// <param name="applicationType">Application type. Possible values
-        /// include: 'Server', 'Client', 'ClientAndServer',
-        /// 'DiscoveryServer'</param>
+        /// <param name="applicationType">Possible values include: 'Server',
+        /// 'Client', 'ClientAndServer', 'DiscoveryServer'</param>
         /// <param name="productUri">Product uri</param>
         /// <param name="serverCapabilities">Server capabilities</param>
         public ApplicationRecordQueryApiModel(int? startingRecordId = default(int?), int? maxRecordsToReturn = default(int?), string applicationName = default(string), string applicationUri = default(string), ApplicationType? applicationType = default(ApplicationType?), string productUri = default(string), IList<string> serverCapabilities = default(IList<string>))
@@ -84,8 +83,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public string ApplicationUri { get; set; }
 
         /// <summary>
-        /// Gets or sets application type. Possible values include: 'Server',
-        /// 'Client', 'ClientAndServer', 'DiscoveryServer'
+        /// Gets or sets possible values include: 'Server', 'Client',
+        /// 'ClientAndServer', 'DiscoveryServer'
         /// </summary>
         [JsonProperty(PropertyName = "applicationType")]
         public ApplicationType? ApplicationType { get; set; }

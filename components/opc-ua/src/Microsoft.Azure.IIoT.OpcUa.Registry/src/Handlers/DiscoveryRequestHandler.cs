@@ -4,9 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Registry;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
     using Microsoft.Azure.IIoT.Tasks;
     using Microsoft.Azure.IIoT.Messaging;
     using System;
@@ -19,7 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     public sealed class DiscoveryRequestHandler : IEventHandler<DiscoveryRequestModel> {
 
         /// <inheritdoc/>
-        public string ContentType => ContentTypes.DiscoveryRequest;
+        public string ContentType => MessageSchemaTypes.DiscoveryRequest;
 
         /// <summary>
         /// Create handler

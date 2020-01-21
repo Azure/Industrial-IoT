@@ -5,16 +5,15 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.v2;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Migration;
-    using Microsoft.Azure.IIoT.Services;
-    using Microsoft.Azure.IIoT.Services.Auth;
-    using Microsoft.Azure.IIoT.Services.Auth.Clients;
-    using Microsoft.Azure.IIoT.Services.Cors;
-    using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
+    using Microsoft.Azure.IIoT.AspNetCore.Cors;
+    using Microsoft.Azure.IIoT.AspNetCore.Correlation;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -22,20 +21,20 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
     using Microsoft.Azure.IIoT.Messaging.Default;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Services;
+    using Microsoft.Azure.IIoT.Messaging.SignalR.Services;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
     using Microsoft.Azure.IIoT.Storage.Default;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.OpenApi.Models;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using AutofacSerilogIntegration;
     using Newtonsoft.Json;
-    using Swashbuckle.AspNetCore.Swagger;
     using System;
-    using Serilog;
     using ILogger = Serilog.ILogger;
 
     /// <summary>
@@ -51,35 +50,36 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
         /// <summary>
         /// Service info - Initialized in constructor
         /// </summary>
-        public ServiceInfo ServiceInfo { get; }
+        public ServiceInfo ServiceInfo { get; } = new ServiceInfo();
 
         /// <summary>
         /// Current hosting environment - Initialized in constructor
         /// </summary>
-        public IHostingEnvironment Environment { get; }
+        public IWebHostEnvironment Environment { get; }
 
         /// <summary>
-        /// Di container - Initialized in `ConfigureServices`
-        /// </summary>
-        public IContainer ApplicationContainer { get; private set; }
-
-        /// <summary>
-        /// Created through builder
+        /// Create startup
         /// </summary>
         /// <param name="env"></param>
         /// <param name="configuration"></param>
-        public Startup(IHostingEnvironment env, IConfiguration configuration) {
+        public Startup(IWebHostEnvironment env, IConfiguration configuration) :
+            this (env, new Config(new ConfigurationBuilder()
+                .AddConfiguration(configuration)
+                .AddEnvironmentVariables()
+                .AddEnvironmentVariables(EnvironmentVariableTarget.User)
+                .AddFromDotEnvFile()
+                .AddFromKeyVault()
+                .Build())) {
+        }
+
+        /// <summary>
+        /// Create startup
+        /// </summary>
+        /// <param name="env"></param>
+        /// <param name="configuration"></param>
+        public Startup(IWebHostEnvironment env, Config configuration) {
             Environment = env;
-            ServiceInfo = new ServiceInfo();
-            Config = new Config(
-                new ConfigurationBuilder()
-                    .AddConfiguration(configuration)
-                    .SetBasePath(env.ContentRootPath)
-                    .AddJsonFile(
-                        "appsettings.json", true, true)
-                    .AddJsonFile(
-                        $"appsettings.{env.EnvironmentName}.json", true, true)
-                    .Build());
+            Config = configuration;
         }
 
         /// <summary>
@@ -89,12 +89,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
         /// </summary>
         /// <param name="services"></param>
         /// <returns></returns>
-        public IServiceProvider ConfigureServices(IServiceCollection services) {
+        public void ConfigureServices(IServiceCollection services) {
 
             services.AddLogging(o => o.AddConsole().AddDebug());
 
             // Setup (not enabling yet) CORS
             services.AddCors();
+            services.AddHealthChecks();
+            services.AddDistributedMemoryCache();
 
             // Add authentication
             services.AddJwtBearerAuthentication(Config,
@@ -110,30 +112,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
             // services.AddHttpClient();
 
             // Add controllers as services so they'll be resolved.
-            services.AddMvc()
-                .AddApplicationPart(GetType().Assembly)
-                .AddControllersAsServices()
-                .AddJsonOptions(options => {
+            services.AddControllers()
+                .AddNewtonsoftJson(options => {
                     options.SerializerSettings.Formatting = Formatting.Indented;
                     options.SerializerSettings.Converters.Add(new ExceptionConverter(
                         Environment.IsDevelopment()));
                     options.SerializerSettings.MaxDepth = 10;
                 });
-
-            services.AddSwagger(Config, new Info {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
-
-            // Prepare DI container
-            var builder = new ContainerBuilder();
-            builder.Populate(services);
-            ConfigureContainer(builder);
-            ApplicationContainer = builder.Build();
-            return new AutofacServiceProvider(ApplicationContainer);
+            services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
-
 
         /// <summary>
         /// This method is called by the runtime, after the ConfigureServices
@@ -141,31 +128,33 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
         /// </summary>
         /// <param name="app"></param>
         /// <param name="appLifetime"></param>
-        public void Configure(IApplicationBuilder app, IApplicationLifetime appLifetime) {
+        public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime) {
+            var applicationContainer = app.ApplicationServices.GetAutofacRoot();
+            var log = applicationContainer.Resolve<ILogger>();
 
-            var log = ApplicationContainer.Resolve<ILogger>();
+            app.UseRouting();
+            app.EnableCors();
 
             if (Config.AuthRequired) {
                 app.UseAuthentication();
             }
+            app.UseAuthorization();
             if (Config.HttpsRedirectPort > 0) {
-                // app.UseHsts();
+                app.UseHsts();
                 app.UseHttpsRedirection();
             }
 
-            app.EnableCors();
             app.UseCorrelation();
-            app.UseSwagger(Config, new Info {
-                Title = ServiceInfo.Name,
-                Version = VersionInfo.PATH,
-                Description = ServiceInfo.Description,
-            });
+            app.UseSwagger();
 
-            app.UseMvc();
+            app.UseEndpoints(endpoints => {
+                endpoints.MapControllers();
+                endpoints.MapHealthChecks("/healthz");
+            });
 
             // If you want to dispose of resources that have been resolved in the
             // application container, register for the "ApplicationStopped" event.
-            appLifetime.ApplicationStopped.Register(ApplicationContainer.Dispose);
+            appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
 
             // Print some useful information at bootstrap time
             log.Information("{service} web service started with id {id}", ServiceInfo.Name,
@@ -186,12 +175,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
             builder.RegisterInstance(Config.Configuration)
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Register logger
-            builder.RegisterLogger(LogEx.ApplicationInsights(Config, Config.Configuration));
-
-            // Register metrics logger
-            builder.RegisterType<MetricLogger>()
-                .AsImplementedInterfaces().SingleInstance();
+            // Add diagnostics based on configuration
+            builder.AddDiagnostics(Config);
 
             // CORS setup
             builder.RegisterType<CorsSetup>()
@@ -199,15 +184,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
 
             // Register http client module
             builder.RegisterModule<HttpClientModule>();
-            // ... with bearer auth
-            if (Config.AuthRequired) {
-                builder.RegisterType<BehalfOfTokenProvider>()
-                    .AsImplementedInterfaces().SingleInstance();
-                builder.RegisterType<DistributedTokenCache>()
-                    .AsImplementedInterfaces().SingleInstance();
-                builder.RegisterType<HttpBearerAuthentication>()
-                    .AsImplementedInterfaces().SingleInstance();
-            }
+
+            builder.RegisterType<HttpBearerAuthentication>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<PassThroughTokenProvider>()
+                .AsImplementedInterfaces().SingleInstance();
 
             // Iot hub services
             builder.RegisterType<IoTHubServiceHttpClient>()
@@ -225,6 +206,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
             builder.RegisterType<ServiceBusClientFactory>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ServiceBusEventBus>()
+                .AsImplementedInterfaces().SingleInstance();
+            // And signalr host for api registration
+            builder.RegisterType<SignalRServiceHost>()
+                .AsImplementedInterfaces().SingleInstance();
+            // ... and auto start
+            builder.RegisterType<HostAutoStart>()
+                .AutoActivate()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Cosmos db collection as storage

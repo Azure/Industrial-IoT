@@ -1,0 +1,4 @@
+{
+    "name": "iot/opc-onboarding-service",
+    "exposes": [9060]
+}

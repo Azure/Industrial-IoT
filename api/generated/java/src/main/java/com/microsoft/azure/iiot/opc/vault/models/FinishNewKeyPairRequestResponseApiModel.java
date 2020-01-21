@@ -17,25 +17,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class FinishNewKeyPairRequestResponseApiModel {
     /**
-     * Request.
+     * The request property.
      */
     @JsonProperty(value = "request")
     private CertificateRequestRecordApiModel request;
 
     /**
-     * Signed certificate.
+     * The certificate property.
      */
     @JsonProperty(value = "certificate")
     private X509CertificateApiModel certificate;
 
     /**
-     * Private key.
+     * The privateKey property.
      */
     @JsonProperty(value = "privateKey")
     private PrivateKeyApiModel privateKey;
 
     /**
-     * Get request.
+     * Get the request value.
      *
      * @return the request value
      */
@@ -44,7 +44,7 @@ public class FinishNewKeyPairRequestResponseApiModel {
     }
 
     /**
-     * Set request.
+     * Set the request value.
      *
      * @param request the request value to set
      * @return the FinishNewKeyPairRequestResponseApiModel object itself.
@@ -55,7 +55,7 @@ public class FinishNewKeyPairRequestResponseApiModel {
     }
 
     /**
-     * Get signed certificate.
+     * Get the certificate value.
      *
      * @return the certificate value
      */
@@ -64,7 +64,7 @@ public class FinishNewKeyPairRequestResponseApiModel {
     }
 
     /**
-     * Set signed certificate.
+     * Set the certificate value.
      *
      * @param certificate the certificate value to set
      * @return the FinishNewKeyPairRequestResponseApiModel object itself.
@@ -75,7 +75,7 @@ public class FinishNewKeyPairRequestResponseApiModel {
     }
 
     /**
-     * Get private key.
+     * Get the privateKey value.
      *
      * @return the privateKey value
      */
@@ -84,7 +84,7 @@ public class FinishNewKeyPairRequestResponseApiModel {
     }
 
     /**
-     * Set private key.
+     * Set the privateKey value.
      *
      * @param privateKey the privateKey value to set
      * @return the FinishNewKeyPairRequestResponseApiModel object itself.

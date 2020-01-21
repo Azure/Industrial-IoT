@@ -1,0 +1,313 @@
+﻿@page "/discoverers"
+@page "/discoverers/{page}"
+
+@using Microsoft.Azure.IIoT.App.Services
+@using Microsoft.Azure.IIoT.App.Components.Pager
+@using Microsoft.Azure.IIoT.App.Components.Drawer
+@using Microsoft.Azure.IIoT.App.Data
+@using Microsoft.AspNetCore.Components
+@using Microsoft.Azure.IIoT.Http.SignalR
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models
+
+
+@inject NavigationManager NavigationManager
+@inject Registry RegistryHelper
+@inject RegistryServiceEvents RegistryServiceEvents
+@inject SignalRClient SignalRClientHelper
+
+<h1>Asset Discovery</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Discovery Module Id</th>
+            <th>Connection Status</th>
+            <th>Scan Status</th>
+            <th>Scan Mask</th>
+            <th>Port Range</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{string connectStatus = "Disconnected"; }
+        @foreach (var discoverer in pagedDiscovererList.Results)
+        {
+            <tr>
+                @if (discoverer.HasApplication == true)
+                {
+                    <td>
+                        <a href='endpoints/@discoverer.DiscovererModel.Id/@RegistryHelper.PathAll'>
+                            @discoverer.DiscovererModel.Id
+                        </a>
+                    </td>
+                }
+                else
+                {
+                    <td>@discoverer.DiscovererModel.Id</td>
+                }
+                @{connectStatus = discoverer.DiscovererModel.Connected == true ? "Connected" : "Disconnected";}
+                <td>
+                    @connectStatus
+                </td>
+                <td>
+                    @if (discoverer.DiscovererModel.Connected == true) {
+                        <input type="checkbox" enabled @bind="@discoverer.ScanStatus" @onclick="@(() => SetScan(discoverer, true,
+                                                                                                                discoverer.DiscovererModel.DiscoveryConfig?.AddressRangesToScan,
+                                                                                                                discoverer.DiscovererModel.DiscoveryConfig?.PortRangesToScan))" />
+                    }
+                    else {
+                        <input type="checkbox" disabled @bind="@discoverer.ScanStatus" />
+                    }
+
+                    @{string output = discoverer.ScanStatus == true ? "On" : "Off";}
+                    @output
+                    @if (discoverer.IsSearching)
+                    {
+                        <div class=" pos-right loader"></div>
+                    }
+                    else
+                    {
+                        <div class=" pos-right"></div>
+                    }
+                </td>
+                <td>
+                    @{string portOutput = discoverer.DiscovererModel.DiscoveryConfig?.AddressRangesToScan == null ? "Default" : discoverer.DiscovererModel.DiscoveryConfig.AddressRangesToScan;}
+                    <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
+                        @portOutput
+                    </a>
+                </td>
+                <td>
+                    @{string scanOutput = discoverer.DiscovererModel.DiscoveryConfig?.PortRangesToScan == null ? "Default" : discoverer.DiscovererModel.DiscoveryConfig.PortRangesToScan;}
+                    <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
+                        @scanOutput
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div class="results @_scanResult"> Scan Results:
+    <div class="events">
+        @_eventResult
+    </div>
+</div>
+
+<Drawer HeaderText="Scan IP address range" ObjectData="@DiscovererData" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
+    <div class="drawer-content list-group">
+        <div class="list-group-item text-justify list-group-item-heading">
+            <b>Enter address range to scan.</b>
+            <br><b>To apply default config leave the input field blank and click on apply</b>
+        </div>
+        <hr />
+        <div class="list-group-item text-left">
+            <form>
+                <div class="form-group">
+                    <label>Mask address range (CIDR notation)</label>
+                    <input @bind="@IpMask" aria-label="addressRange" id="ipAddressMask" type="text" class="form-control" placeholder="IP-address/netmask" />
+                </div>
+                <div class="form-group">
+                    <label>Port range</label>
+                    <input @bind-value="@PortRange" aria-label="portRange" id="PortRange" type="text" class="form-control" placeholder="StartPort-EndPort" />
+                </div>
+                <hr />
+                <div>
+                    <button @onclick="@(() => SetScan(DiscovererData, true, IpMask, PortRange))" type="button" class="btn btn-primary">Apply</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</Drawer>
+
+<Pager Result=@discovererList PageChanged=@((Page) => PagerPageChanged(Page)) />
+
+
+@code {
+
+    [Parameter]
+    public string Page { get; set; } = "1";
+
+    public bool IsSearching { get; set; } = false;
+    public bool IsOpened { get; set; } = false;
+    public DiscovererInfo DiscovererData { get; set; }
+    public string IpMask { get; set; }
+    public string PortRange { get; set; }
+    public PagedResult<DiscovererInfo> discovererList = new PagedResult<DiscovererInfo>();
+    public PagedResult<DiscovererInfo> pagedDiscovererList = new PagedResult<DiscovererInfo>();
+    public const int PageLength = 10;
+    private string _eventResult { get; set; }
+    private string _scanResult { get; set; } = "hidden";
+    private IAsyncDisposable _discovererEvent { get; set; }
+
+
+    /// <summary>
+    /// Notify page change
+    /// </summary>
+    /// <param name="page"></param>
+    /// <returns></returns>
+    public void PagerPageChanged(int page)
+    {
+        pagedDiscovererList = discovererList.GetPaged(page, PageLength);
+        NavigationManager.NavigateTo("/discoverers/" + page);
+    }
+
+    /// <summary>
+    /// OnInitializedAsync
+    /// </summary>
+    protected override async Task OnInitializedAsync()
+    {
+        discovererList = await RegistryHelper.GetDiscovererListAsync();
+        Page = "1";
+        pagedDiscovererList = discovererList.GetPaged(Int32.Parse(Page), PageLength);
+        _discovererEvent = await RegistryServiceEvents.SubscribeDiscovererEventsAsync(null, DiscovererEvent);
+    }
+
+    /// <summary>
+    /// Enable discoverer scan
+    /// </summary>
+    /// <param name="discoverer"></param>
+    /// /// <param name="forceScan"></param>
+    /// /// <param name="ipMask"></param>
+    /// /// <param name="portRange"></param>
+    private async Task SetScan(DiscovererInfo discoverer, bool forceScan, string ipMask = null, string portRange = null)
+    {
+        var discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByDiscovererIdAsync(
+                discoverer.DiscovererModel.Id, null, async data => {
+                    await InvokeAsync(() => ScanProgress(data));
+                });
+
+        try
+        {
+            _eventResult = string.Empty;
+            await RegistryHelper.SetScanAsync(discoverer, ipMask, portRange, forceScan);
+        }
+        catch
+        {
+            await discovery.DisposeAsync();
+        }
+
+        if (discoverer.ScanStatus == true)
+        {
+            discoverer.IsSearching = true;
+            _scanResult = "visible";
+            DiscovererData = discoverer;
+        }
+        else
+        {
+            await discovery.DisposeAsync();
+            _scanResult = "hidden";
+        }
+    }
+
+    /// <summary>
+    /// Open then Drawer
+    /// </summary>
+    /// <param name="OpenDrawer"></param>
+    private void OpenDrawer(DiscovererInfo discoverer)
+    {
+        IsOpened = true;
+        DiscovererData = discoverer;
+    }
+
+    /// <summary>
+    /// Close the Drawer
+    /// </summary>
+    private void CloseDrawer()
+    {
+        IsOpened = false;
+        this.StateHasChanged();
+    }
+
+    /// <summary>
+    /// display discoverers scan events
+    /// </summary>
+    /// <param name="ev"></param>
+    private void ScanProgress(DiscoveryProgressApiModel ev)
+    {
+        switch (ev.EventType) {
+            case DiscoveryProgressType.Pending:
+                _eventResult += string.Format("{0}: {1} waiting...", ev.DiscovererId, ev.Total) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.Started:
+                _eventResult += string.Format("{0}: Started.", ev.DiscovererId) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.NetworkScanStarted:
+                _eventResult += string.Format("{0}: Scanning network...", ev.DiscovererId) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.NetworkScanResult:
+                _eventResult += string.Format("{0}: {1}/{2}: {3} addresses found - NEW: {4}...", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered, ev.Result) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.NetworkScanProgress:
+                _eventResult += string.Format("{0}: {1}/{2}: {3} addresses found", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.NetworkScanFinished:
+                _eventResult += string.Format("{0}: {1}/{2}: {3} addresses found - complete!", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.PortScanStarted:
+                _eventResult += string.Format("{0}: Scanning ports...", ev.DiscovererId) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.PortScanResult:
+                _eventResult += string.Format("{0}: {1}/{2}: {3} ports found - NEW: {4}", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered, ev.Result) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.PortScanProgress:
+                _eventResult += string.Format("{0}: {1}/{2}: {3} ports found", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.PortScanFinished:
+                _eventResult += string.Format("{0}: {1}/{2}: {3} ports found - complete!", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.ServerDiscoveryStarted:
+                _eventResult += "==========================================" + System.Environment.NewLine;
+                _eventResult += string.Format("{0}: {1}/{2}: Finding servers...", ev.DiscovererId, ev.Progress, ev.Total) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.EndpointsDiscoveryStarted:
+                _eventResult += string.Format("{0}: {1}/{2}: ... {3} servers found - find endpoints on {4}...", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered, ev.RequestDetails["url"]) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.EndpointsDiscoveryFinished:
+                _eventResult += string.Format("{0}: {1}/{2}: ... {3} servers found - {4} endpoints found on {5}...", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered, ev.Result, ev.RequestDetails["url"]) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.ServerDiscoveryFinished:
+                _eventResult += string.Format("{0}: {1}/{2}: ... {3} servers found.", ev.DiscovererId, ev.Progress, ev.Total, ev.Discovered) + System.Environment.NewLine;
+                break;
+            case DiscoveryProgressType.Cancelled:
+                _eventResult += "==========================================" + System.Environment.NewLine;
+                _eventResult += string.Format("{0}: Cancelled.", ev.DiscovererId) + System.Environment.NewLine;
+                if (DiscovererData != null) {
+                    DiscovererData.IsSearching = false;
+                }
+                break;
+            case DiscoveryProgressType.Error:
+                _eventResult += "==========================================" + System.Environment.NewLine;
+                _eventResult += string.Format("{0}: Failure.", ev.DiscovererId) + System.Environment.NewLine;
+                if (DiscovererData != null) {
+                    DiscovererData.IsSearching = false;
+                }
+                break;
+            case DiscoveryProgressType.Finished:
+                _eventResult += "==========================================" + System.Environment.NewLine;
+                _eventResult += string.Format("{0}: Completed.", ev.DiscovererId) + System.Environment.NewLine;
+                if (DiscovererData != null) {
+                    DiscovererData.IsSearching = false;
+                }
+                break;
+        }
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// refresh UI on DiscovererEvent
+    /// </summary>
+    /// <param name="ev"></param>
+    private Task DiscovererEvent(DiscovererEventApiModel ev)
+    {
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    public async void Dispose()
+    {
+        if (_discovererEvent != null)
+        {
+            await _discovererEvent.DisposeAsync();
+        }
+    }
+
+}

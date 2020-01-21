@@ -36,20 +36,17 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// <param name="alternativeUrls">Alternative endpoint urls that can be
         /// used for
         /// accessing and validating the server</param>
-        /// <param name="user">User Authentication</param>
-        /// <param name="securityMode">Security Mode to use for communication
-        /// default to best. Possible values include: 'Best', 'Sign',
+        /// <param name="securityMode">Possible values include: 'Best', 'Sign',
         /// 'SignAndEncrypt', 'None'</param>
         /// <param name="securityPolicy">Security policy uri to use for
         /// communication
         /// default to best.</param>
         /// <param name="certificate">Endpoint certificate that was
         /// registered.</param>
-        public EndpointApiModel(string url, IList<string> alternativeUrls = default(IList<string>), CredentialApiModel user = default(CredentialApiModel), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), byte[] certificate = default(byte[]))
+        public EndpointApiModel(string url, IList<string> alternativeUrls = default(IList<string>), SecurityMode? securityMode = default(SecurityMode?), string securityPolicy = default(string), byte[] certificate = default(byte[]))
         {
             Url = url;
             AlternativeUrls = alternativeUrls;
-            User = user;
             SecurityMode = securityMode;
             SecurityPolicy = securityPolicy;
             Certificate = certificate;
@@ -75,14 +72,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public IList<string> AlternativeUrls { get; set; }
 
         /// <summary>
-        /// Gets or sets user Authentication
-        /// </summary>
-        [JsonProperty(PropertyName = "user")]
-        public CredentialApiModel User { get; set; }
-
-        /// <summary>
-        /// Gets or sets security Mode to use for communication
-        /// default to best. Possible values include: 'Best', 'Sign',
+        /// Gets or sets possible values include: 'Best', 'Sign',
         /// 'SignAndEncrypt', 'None'
         /// </summary>
         [JsonProperty(PropertyName = "securityMode")]

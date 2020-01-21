@@ -36,9 +36,9 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// lifetime.</param>
         /// <param name="issuedKeySize">The issued certificate key size in
         /// bits.</param>
-        /// <param name="issuedSignatureAlgorithm">The issued certificate key
-        /// size in bits. Possible values include: 'Rsa256', 'Rsa384',
-        /// 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'</param>
+        /// <param name="issuedSignatureAlgorithm">Possible values include:
+        /// 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss',
+        /// 'Rsa512Pss'</param>
         public TrustGroupUpdateRequestApiModel(string name = default(string), string issuedLifetime = default(string), int? issuedKeySize = default(int?), SignatureAlgorithm? issuedSignatureAlgorithm = default(SignatureAlgorithm?))
         {
             Name = name;
@@ -72,9 +72,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         public int? IssuedKeySize { get; set; }
 
         /// <summary>
-        /// Gets or sets the issued certificate key size in bits. Possible
-        /// values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss',
-        /// 'Rsa384Pss', 'Rsa512Pss'
+        /// Gets or sets possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
+        /// 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
         /// </summary>
         [JsonProperty(PropertyName = "issuedSignatureAlgorithm")]
         public SignatureAlgorithm? IssuedSignatureAlgorithm { get; set; }

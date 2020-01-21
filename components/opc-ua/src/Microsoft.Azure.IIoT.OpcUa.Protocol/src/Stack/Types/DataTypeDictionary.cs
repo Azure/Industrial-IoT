@@ -227,8 +227,8 @@ namespace Opc.Ua.Types {
         /// Validates the base type of a complex type.
         /// </summary>
         /// <param name="complexType"></param>
-        /// <param name="fields"></param>
         /// <param name="baseType"></param>
+        /// <param name="fields"></param>
         private void ValidateBaseType(ComplexType complexType,
             XmlQualifiedName baseType, Dictionary<string, FieldType> fields) {
             if (baseType.IsNullOrEmpty()) {

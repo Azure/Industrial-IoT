@@ -11,7 +11,7 @@
 'use strict';
 
 /**
- * Discovery configuration
+ * Discovery configuration api model
  *
  */
 class DiscoveryConfigApiModel {
@@ -33,9 +33,7 @@ class DiscoveryConfigApiModel {
    * @property {array} [discoveryUrls] List of preset discovery urls to use
    * @property {array} [locales] List of locales to filter with during
    * discovery
-   * @property {array} [callbacks] Callbacks to invoke once onboarding finishes
-   * @property {object} [activationFilter] Activate all twins with this filter
-   * during onboarding.
+   * @property {object} [activationFilter]
    * @property {array} [activationFilter.trustLists] Certificate trust list
    * identifiers to use for
    * activation, if null, all certificates are
@@ -44,10 +42,8 @@ class DiscoveryConfigApiModel {
    * @property {array} [activationFilter.securityPolicies] Endpoint security
    * policies to filter against.
    * If set to null, all policies are in scope.
-   * @property {string} [activationFilter.securityMode] Security mode level to
-   * activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   * @property {string} [activationFilter.securityMode] Possible values
+   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
    */
   constructor() {
   }
@@ -146,21 +142,6 @@ class DiscoveryConfigApiModel {
                   serializedName: 'StringElementType',
                   type: {
                     name: 'String'
-                  }
-              }
-            }
-          },
-          callbacks: {
-            required: false,
-            serializedName: 'callbacks',
-            type: {
-              name: 'Sequence',
-              element: {
-                  required: false,
-                  serializedName: 'CallbackApiModelElementType',
-                  type: {
-                    name: 'Composite',
-                    className: 'CallbackApiModel'
                   }
               }
             }

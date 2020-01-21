@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Default {
             _processor = processor;
             _listeners = new ConcurrentDictionary<string, IApplicationRegistryListener>();
 
-            _listeners.TryAdd("v2", new Events.v2.ApplicationEventPublisher(bus));
+            _listeners.TryAdd("v2", new Events.v2.ApplicationEventBusPublisher(bus));
             // ...
         }
 

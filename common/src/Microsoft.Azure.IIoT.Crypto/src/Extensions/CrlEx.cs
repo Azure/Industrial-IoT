@@ -41,8 +41,8 @@ namespace Microsoft.Azure.IIoT.Crypto.Models {
         /// <summary>
         /// Verifies the signature on the CRL.
         /// </summary>
-        /// <param name="issuer"></param>
         /// <param name="crl"></param>
+        /// <param name="issuer"></param>
         /// <returns></returns>
         public static bool HasValidSignature(this Crl crl, Certificate issuer) {
             try {

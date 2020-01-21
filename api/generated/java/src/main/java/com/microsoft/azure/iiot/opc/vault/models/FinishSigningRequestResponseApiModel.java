@@ -17,19 +17,19 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class FinishSigningRequestResponseApiModel {
     /**
-     * Request.
+     * The request property.
      */
     @JsonProperty(value = "request")
     private CertificateRequestRecordApiModel request;
 
     /**
-     * Signed certificate.
+     * The certificate property.
      */
     @JsonProperty(value = "certificate")
     private X509CertificateApiModel certificate;
 
     /**
-     * Get request.
+     * Get the request value.
      *
      * @return the request value
      */
@@ -38,7 +38,7 @@ public class FinishSigningRequestResponseApiModel {
     }
 
     /**
-     * Set request.
+     * Set the request value.
      *
      * @param request the request value to set
      * @return the FinishSigningRequestResponseApiModel object itself.
@@ -49,7 +49,7 @@ public class FinishSigningRequestResponseApiModel {
     }
 
     /**
-     * Get signed certificate.
+     * Get the certificate value.
      *
      * @return the certificate value
      */
@@ -58,7 +58,7 @@ public class FinishSigningRequestResponseApiModel {
     }
 
     /**
-     * Set signed certificate.
+     * Set the certificate value.
      *
      * @param certificate the certificate value to set
      * @return the FinishSigningRequestResponseApiModel object itself.

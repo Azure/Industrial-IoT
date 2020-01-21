@@ -35,20 +35,24 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// class.
         /// </summary>
         /// <param name="id">Registered identifier of the endpoint</param>
-        /// <param name="endpoint">Endpoint information of the
-        /// registration</param>
         /// <param name="endpointUrl">Original endpoint url of the
         /// endpoint</param>
         /// <param name="siteId">Registered site of the endpoint</param>
+        /// <param name="supervisorId">Supervisor that manages the
+        /// endpoint.</param>
+        /// <param name="discovererId">Discoverer that registered the
+        /// endpoint</param>
         /// <param name="securityLevel">Security level of the endpoint</param>
         /// <param name="authenticationMethods">Supported authentication
         /// methods that can be selected to
         /// obtain a credential and used to interact with the endpoint.</param>
-        public EndpointRegistrationApiModel(string id, EndpointApiModel endpoint, string endpointUrl = default(string), string siteId = default(string), int? securityLevel = default(int?), IList<AuthenticationMethodApiModel> authenticationMethods = default(IList<AuthenticationMethodApiModel>))
+        public EndpointRegistrationApiModel(string id, EndpointApiModel endpoint, string endpointUrl = default(string), string siteId = default(string), string supervisorId = default(string), string discovererId = default(string), int? securityLevel = default(int?), IList<AuthenticationMethodApiModel> authenticationMethods = default(IList<AuthenticationMethodApiModel>))
         {
             Id = id;
             EndpointUrl = endpointUrl;
             SiteId = siteId;
+            SupervisorId = supervisorId;
+            DiscovererId = discovererId;
             Endpoint = endpoint;
             SecurityLevel = securityLevel;
             AuthenticationMethods = authenticationMethods;
@@ -79,7 +83,18 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Gets or sets endpoint information of the registration
+        /// Gets or sets supervisor that manages the endpoint.
+        /// </summary>
+        [JsonProperty(PropertyName = "supervisorId")]
+        public string SupervisorId { get; set; }
+
+        /// <summary>
+        /// Gets or sets discoverer that registered the endpoint
+        /// </summary>
+        [JsonProperty(PropertyName = "discovererId")]
+        public string DiscovererId { get; set; }
+
+        /// <summary>
         /// </summary>
         [JsonProperty(PropertyName = "endpoint")]
         public EndpointApiModel Endpoint { get; set; }

@@ -19,10 +19,9 @@ class BrowseRequestApiModel {
    * Create a BrowseRequestApiModel.
    * @property {string} [nodeId] Node to browse.
    * (default: RootFolder).
-   * @property {string} [direction] Direction to browse in
-   * (default: forward). Possible values include: 'Forward', 'Backward', 'Both'
-   * @property {object} [view] View to browse
-   * (default: null = new view = All nodes).
+   * @property {string} [direction] Possible values include: 'Forward',
+   * 'Backward', 'Both'
+   * @property {object} [view]
    * @property {string} [view.viewId] Node of the view to browse
    * @property {number} [view.version] Browses specific version of the view.
    * @property {date} [view.timestamp] Browses at or before this timestamp.
@@ -45,18 +44,16 @@ class BrowseRequestApiModel {
    * @property {boolean} [readVariableValues] Whether to read variable values
    * on target nodes.
    * (default is false). Default value: false .
-   * @property {object} [header] Optional request header
-   * @property {object} [header.elevation] Optional User elevation
-   * @property {string} [header.elevation.type] Type of credential. Possible
-   * values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+   * @property {object} [header]
+   * @property {object} [header.elevation]
+   * @property {string} [header.elevation.type] Possible values include:
+   * 'None', 'UserName', 'X509Certificate', 'JwtToken'
    * @property {object} [header.elevation.value] Value to pass to server
    * @property {array} [header.locales] Optional list of locales in preference
    * order.
-   * @property {object} [header.diagnostics] Optional diagnostics configuration
-   * @property {string} [header.diagnostics.level] Requested level of response
-   * diagnostics.
-   * (default: Status). Possible values include: 'None', 'Status',
-   * 'Operations', 'Diagnostics', 'Verbose'
+   * @property {object} [header.diagnostics]
+   * @property {string} [header.diagnostics.level] Possible values include:
+   * 'None', 'Status', 'Operations', 'Diagnostics', 'Verbose'
    * @property {string} [header.diagnostics.auditId] Client audit log entry.
    * (default: client generated)
    * @property {date} [header.diagnostics.timeStamp] Timestamp of request.

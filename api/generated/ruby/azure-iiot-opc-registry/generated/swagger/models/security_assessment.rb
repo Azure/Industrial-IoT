@@ -13,7 +13,6 @@ module azure.iiot.opc.registry
     # Defines values for SecurityAssessment
     #
     module SecurityAssessment
-      Unknown = "Unknown"
       Low = "Low"
       Medium = "Medium"
       High = "High"

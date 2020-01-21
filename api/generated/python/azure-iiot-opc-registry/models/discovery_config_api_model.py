@@ -13,7 +13,7 @@ from msrest.serialization import Model
 
 
 class DiscoveryConfigApiModel(Model):
-    """Discovery configuration.
+    """Discovery configuration api model.
 
     :param address_ranges_to_scan: Address ranges to scan (null == all wired
      nics)
@@ -38,10 +38,7 @@ class DiscoveryConfigApiModel(Model):
     :type discovery_urls: list[str]
     :param locales: List of locales to filter with during discovery
     :type locales: list[str]
-    :param callbacks: Callbacks to invoke once onboarding finishes
-    :type callbacks: list[~azure-iiot-opc-registry.models.CallbackApiModel]
-    :param activation_filter: Activate all twins with this filter during
-     onboarding.
+    :param activation_filter:
     :type activation_filter:
      ~azure-iiot-opc-registry.models.EndpointActivationFilterApiModel
     """
@@ -57,11 +54,10 @@ class DiscoveryConfigApiModel(Model):
         'idle_time_between_scans_sec': {'key': 'idleTimeBetweenScansSec', 'type': 'int'},
         'discovery_urls': {'key': 'discoveryUrls', 'type': '[str]'},
         'locales': {'key': 'locales', 'type': '[str]'},
-        'callbacks': {'key': 'callbacks', 'type': '[CallbackApiModel]'},
         'activation_filter': {'key': 'activationFilter', 'type': 'EndpointActivationFilterApiModel'},
     }
 
-    def __init__(self, address_ranges_to_scan=None, network_probe_timeout_ms=None, max_network_probes=None, port_ranges_to_scan=None, port_probe_timeout_ms=None, max_port_probes=None, min_port_probes_percent=None, idle_time_between_scans_sec=None, discovery_urls=None, locales=None, callbacks=None, activation_filter=None):
+    def __init__(self, address_ranges_to_scan=None, network_probe_timeout_ms=None, max_network_probes=None, port_ranges_to_scan=None, port_probe_timeout_ms=None, max_port_probes=None, min_port_probes_percent=None, idle_time_between_scans_sec=None, discovery_urls=None, locales=None, activation_filter=None):
         super(DiscoveryConfigApiModel, self).__init__()
         self.address_ranges_to_scan = address_ranges_to_scan
         self.network_probe_timeout_ms = network_probe_timeout_ms
@@ -73,5 +69,4 @@ class DiscoveryConfigApiModel(Model):
         self.idle_time_between_scans_sec = idle_time_between_scans_sec
         self.discovery_urls = discovery_urls
         self.locales = locales
-        self.callbacks = callbacks
         self.activation_filter = activation_filter

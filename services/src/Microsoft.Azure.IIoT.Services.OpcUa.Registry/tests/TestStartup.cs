@@ -4,17 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
-    using Microsoft.Azure.IIoT.Hub.Client;
-    using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.AspNetCore;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime;
+    using Microsoft.Azure.IIoT.Storage.Default;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Mvc.Testing;
-    using Microsoft.Extensions.Configuration;
     using Autofac;
-    using System;
+    using Autofac.Extensions.Hosting;
     using System.Net.Http;
-    using System.Text;
-    using Microsoft.Azure.IIoT.Storage.Default;
 
     /// <summary>
     /// Startup class for tests
@@ -25,26 +22,20 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
         /// Create startup
         /// </summary>
         /// <param name="env"></param>
-        /// <param name="configuration"></param>
-        public TestStartup(IHostingEnvironment env, IConfiguration configuration) :
-            base(env, configuration) {
+        public TestStartup(IWebHostEnvironment env) : base(env, new Config(null)) {
         }
 
         /// <inheritdoc/>
         public override void ConfigureContainer(ContainerBuilder builder) {
-            base.ConfigureContainer(builder);
-            builder.RegisterType<TestIoTHubConfig>()
-               .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterInstance(Config)
+                .AsImplementedInterfaces().SingleInstance();
+            // Add diagnostics based on configuration
+            builder.AddDiagnostics(Config);
+            // Register service info and configuration interfaces
+            builder.RegisterInstance(ServiceInfo)
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<MemoryDatabase>()
                .AsImplementedInterfaces().SingleInstance();
-        }
-
-        public class TestIoTHubConfig : IIoTHubConfig {
-            public string IoTHubConnString =>
-                ConnectionString.CreateServiceConnectionString(
-                    "test.test.org", "iothubowner", Convert.ToBase64String(
-                        Encoding.UTF8.GetBytes(Guid.NewGuid().ToString()))).ToString();
-            public string IoTHubResourceId => null;
         }
     }
 
@@ -52,14 +43,20 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
     public class WebAppFixture : WebApplicationFactory<TestStartup>, IHttpClientFactory {
 
         /// <inheritdoc/>
-        protected override IWebHostBuilder CreateWebHostBuilder() {
-            return WebHost.CreateDefaultBuilder().UseStartup<TestStartup>();
+        protected override IHostBuilder CreateHostBuilder() {
+            return Host.CreateDefaultBuilder();
         }
 
         /// <inheritdoc/>
         protected override void ConfigureWebHost(IWebHostBuilder builder) {
-            builder.UseContentRoot(".");
+            builder.UseContentRoot(".").UseStartup<TestStartup>();
             base.ConfigureWebHost(builder);
+        }
+
+        /// <inheritdoc/>
+        protected override IHost CreateHost(IHostBuilder builder) {
+            builder.UseAutofac();
+            return base.CreateHost(builder);
         }
 
         /// <inheritdoc/>

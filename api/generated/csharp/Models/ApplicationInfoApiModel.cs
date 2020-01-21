@@ -33,9 +33,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// Initializes a new instance of the ApplicationInfoApiModel class.
         /// </summary>
         /// <param name="applicationId">Unique application id</param>
-        /// <param name="applicationType">Type of application. Possible values
-        /// include: 'Server', 'Client', 'ClientAndServer',
-        /// 'DiscoveryServer'</param>
+        /// <param name="applicationType">Possible values include: 'Server',
+        /// 'Client', 'ClientAndServer', 'DiscoveryServer'</param>
         /// <param name="applicationUri">Unique application uri</param>
         /// <param name="productUri">Product uri</param>
         /// <param name="applicationName">Default name of application</param>
@@ -52,12 +51,10 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         /// <param name="hostAddresses">Host addresses of server application or
         /// null</param>
         /// <param name="siteId">Site of the application</param>
-        /// <param name="supervisorId">Supervisor having registered the
+        /// <param name="discovererId">Discoverer that registered the
         /// application</param>
         /// <param name="notSeenSince">Last time application was seen</param>
-        /// <param name="created">Created</param>
-        /// <param name="updated">Updated</param>
-        public ApplicationInfoApiModel(string applicationId = default(string), ApplicationType? applicationType = default(ApplicationType?), string applicationUri = default(string), string productUri = default(string), string applicationName = default(string), string locale = default(string), IDictionary<string, string> localizedNames = default(IDictionary<string, string>), byte[] certificate = default(byte[]), IList<string> capabilities = default(IList<string>), IList<string> discoveryUrls = default(IList<string>), string discoveryProfileUri = default(string), string gatewayServerUri = default(string), IList<string> hostAddresses = default(IList<string>), string siteId = default(string), string supervisorId = default(string), System.DateTime? notSeenSince = default(System.DateTime?), RegistryOperationApiModel created = default(RegistryOperationApiModel), RegistryOperationApiModel updated = default(RegistryOperationApiModel))
+        public ApplicationInfoApiModel(string applicationId = default(string), ApplicationType? applicationType = default(ApplicationType?), string applicationUri = default(string), string productUri = default(string), string applicationName = default(string), string locale = default(string), IDictionary<string, string> localizedNames = default(IDictionary<string, string>), byte[] certificate = default(byte[]), IList<string> capabilities = default(IList<string>), IList<string> discoveryUrls = default(IList<string>), string discoveryProfileUri = default(string), string gatewayServerUri = default(string), IList<string> hostAddresses = default(IList<string>), string siteId = default(string), string discovererId = default(string), System.DateTime? notSeenSince = default(System.DateTime?), RegistryOperationApiModel created = default(RegistryOperationApiModel), RegistryOperationApiModel updated = default(RegistryOperationApiModel))
         {
             ApplicationId = applicationId;
             ApplicationType = applicationType;
@@ -73,7 +70,7 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
             GatewayServerUri = gatewayServerUri;
             HostAddresses = hostAddresses;
             SiteId = siteId;
-            SupervisorId = supervisorId;
+            DiscovererId = discovererId;
             NotSeenSince = notSeenSince;
             Created = created;
             Updated = updated;
@@ -92,8 +89,8 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public string ApplicationId { get; set; }
 
         /// <summary>
-        /// Gets or sets type of application. Possible values include:
-        /// 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+        /// Gets or sets possible values include: 'Server', 'Client',
+        /// 'ClientAndServer', 'DiscoveryServer'
         /// </summary>
         [JsonProperty(PropertyName = "applicationType")]
         public ApplicationType? ApplicationType { get; set; }
@@ -171,10 +168,10 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Gets or sets supervisor having registered the application
+        /// Gets or sets discoverer that registered the application
         /// </summary>
-        [JsonProperty(PropertyName = "supervisorId")]
-        public string SupervisorId { get; set; }
+        [JsonProperty(PropertyName = "discovererId")]
+        public string DiscovererId { get; set; }
 
         /// <summary>
         /// Gets or sets last time application was seen
@@ -183,13 +180,11 @@ namespace Microsoft.Azure.IIoT.Opc.Registry.Models
         public System.DateTime? NotSeenSince { get; set; }
 
         /// <summary>
-        /// Gets or sets created
         /// </summary>
         [JsonProperty(PropertyName = "created")]
         public RegistryOperationApiModel Created { get; set; }
 
         /// <summary>
-        /// Gets or sets updated
         /// </summary>
         [JsonProperty(PropertyName = "updated")]
         public RegistryOperationApiModel Updated { get; set; }

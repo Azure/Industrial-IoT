@@ -36,10 +36,10 @@ public class ReadEventsDetailsApiModel {
     private Integer numEvents;
 
     /**
-     * The filter to use to select the event fields.
+     * The filter property.
      */
     @JsonProperty(value = "filter")
-    private Object filter;
+    private EventFilterApiModel filter;
 
     /**
      * Get start time to read from.
@@ -102,21 +102,21 @@ public class ReadEventsDetailsApiModel {
     }
 
     /**
-     * Get the filter to use to select the event fields.
+     * Get the filter value.
      *
      * @return the filter value
      */
-    public Object filter() {
+    public EventFilterApiModel filter() {
         return this.filter;
     }
 
     /**
-     * Set the filter to use to select the event fields.
+     * Set the filter value.
      *
      * @param filter the filter value to set
      * @return the ReadEventsDetailsApiModel object itself.
      */
-    public ReadEventsDetailsApiModel withFilter(Object filter) {
+    public ReadEventsDetailsApiModel withFilter(EventFilterApiModel filter) {
         this.filter = filter;
         return this;
     }

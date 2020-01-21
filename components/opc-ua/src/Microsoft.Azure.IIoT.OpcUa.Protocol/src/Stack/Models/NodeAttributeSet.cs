@@ -6,7 +6,6 @@
 namespace Opc.Ua.Models {
     using Opc.Ua.Extensions;
     using Opc.Ua.Nodeset;
-    using Opc.Ua;
     using System;
     using System.Linq;
     using System.Collections.Generic;
@@ -109,7 +108,7 @@ namespace Opc.Ua.Models {
 
         /// <inheritdoc/>
         public NodeId LocalId =>
-            this.GetAttribute(Attributes.NodeId, Opc.Ua.NodeId.Null);
+            this.GetAttribute(Attributes.NodeId, Ua.NodeId.Null);
 
         /// <inheritdoc/>
         public NodeClass NodeClass {

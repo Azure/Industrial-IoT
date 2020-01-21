@@ -29,7 +29,7 @@ module azure.iiot.opc.registry
     #
     def initialize(credentials = nil, base_url = nil, options = nil)
       super(credentials, options)
-      @base_url = base_url || 'http://localhost'
+      @base_url = base_url || 'http://localhost:9080'
 
       fail ArgumentError, 'invalid type of credentials input parameter' unless credentials.is_a?(MsRest::ServiceClientCredentials) unless credentials.nil?
       @credentials = credentials
@@ -95,81 +95,75 @@ module azure.iiot.opc.registry
     end
 
     #
-    # Get list of applications
+    # Register new server
     #
-    # Get all registered applications in paged form.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call this operation again using the token to retrieve more results.
+    # Registers a server solely using a discovery url. Requires that the onboarding
+    # agent service is running and the server can be located by a supervisor in its
+    # network using the discovery url.
     #
-    # @param continuation_token [String] Optional Continuation
-    # token
-    # @param page_size [Integer] Optional number of results to
-    # return
+    # @param body [ServerRegistrationRequestApiModel] Server registration request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
-    # @return [ApplicationInfoListApiModel] operation results.
     #
-    def get_list_of_applications(continuation_token:nil, page_size:nil, custom_headers:nil)
-      response = get_list_of_applications_async(continuation_token:continuation_token, page_size:page_size, custom_headers:custom_headers).value!
-      response.body unless response.nil?
+    def register_server(body, custom_headers:nil)
+      response = register_server_async(body, custom_headers:custom_headers).value!
+      nil
     end
 
     #
-    # Get list of applications
+    # Register new server
     #
-    # Get all registered applications in paged form.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call this operation again using the token to retrieve more results.
+    # Registers a server solely using a discovery url. Requires that the onboarding
+    # agent service is running and the server can be located by a supervisor in its
+    # network using the discovery url.
     #
-    # @param continuation_token [String] Optional Continuation
-    # token
-    # @param page_size [Integer] Optional number of results to
-    # return
+    # @param body [ServerRegistrationRequestApiModel] Server registration request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def get_list_of_applications_with_http_info(continuation_token:nil, page_size:nil, custom_headers:nil)
-      get_list_of_applications_async(continuation_token:continuation_token, page_size:page_size, custom_headers:custom_headers).value!
+    def register_server_with_http_info(body, custom_headers:nil)
+      register_server_async(body, custom_headers:custom_headers).value!
     end
 
     #
-    # Get list of applications
+    # Register new server
     #
-    # Get all registered applications in paged form.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call this operation again using the token to retrieve more results.
+    # Registers a server solely using a discovery url. Requires that the onboarding
+    # agent service is running and the server can be located by a supervisor in its
+    # network using the discovery url.
     #
-    # @param continuation_token [String] Optional Continuation
-    # token
-    # @param page_size [Integer] Optional number of results to
-    # return
+    # @param body [ServerRegistrationRequestApiModel] Server registration request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def get_list_of_applications_async(continuation_token:nil, page_size:nil, custom_headers:nil)
+    def register_server_async(body, custom_headers:nil)
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.registry::Models::ServerRegistrationRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
       path_template = 'v2/applications'
 
       request_url = @base_url || self.base_url
 
       options = {
           middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          query_params: {'continuationToken' => continuation_token,'pageSize' => page_size},
+          body: request_content,
           headers: request_headers.merge(custom_headers || {}),
           base_url: request_url
       }
-      promise = self.make_request_async(:get, path_template, options)
+      promise = self.make_request_async(:post, path_template, options)
 
       promise = promise.then do |result|
         http_response = result.response
@@ -180,16 +174,6 @@ module azure.iiot.opc.registry
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
 
-        # Deserialize Response
-        if status_code == 200
-          begin
-            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.registry::Models::ApplicationInfoListApiModel.mapper()
-            result.body = self.deserialize(result_mapper, parsed_response)
-          rescue Exception => e
-            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
-          end
-        end
 
         result
       end
@@ -200,59 +184,59 @@ module azure.iiot.opc.registry
     #
     # Create new application
     #
-    # The application is registered using the provided information, but it
-    # is not associated with a supervisor.  This is useful for when you need
-    # to register clients or you want to register a server that is located
-    # in a network not reachable through a Twin module.
+    # The application is registered using the provided information, but it is not
+    # associated with a supervisor. This is useful for when you need to register
+    # clients or you want to register a server that is located in a network not
+    # reachable through a Twin module.
     #
-    # @param request [ApplicationRegistrationRequestApiModel] Application
-    # registration request
+    # @param body [ApplicationRegistrationRequestApiModel] Application registration
+    # request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [ApplicationRegistrationResponseApiModel] operation results.
     #
-    def create_application(request, custom_headers:nil)
-      response = create_application_async(request, custom_headers:custom_headers).value!
+    def create_application(body, custom_headers:nil)
+      response = create_application_async(body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Create new application
     #
-    # The application is registered using the provided information, but it
-    # is not associated with a supervisor.  This is useful for when you need
-    # to register clients or you want to register a server that is located
-    # in a network not reachable through a Twin module.
+    # The application is registered using the provided information, but it is not
+    # associated with a supervisor. This is useful for when you need to register
+    # clients or you want to register a server that is located in a network not
+    # reachable through a Twin module.
     #
-    # @param request [ApplicationRegistrationRequestApiModel] Application
-    # registration request
+    # @param body [ApplicationRegistrationRequestApiModel] Application registration
+    # request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def create_application_with_http_info(request, custom_headers:nil)
-      create_application_async(request, custom_headers:custom_headers).value!
+    def create_application_with_http_info(body, custom_headers:nil)
+      create_application_async(body, custom_headers:custom_headers).value!
     end
 
     #
     # Create new application
     #
-    # The application is registered using the provided information, but it
-    # is not associated with a supervisor.  This is useful for when you need
-    # to register clients or you want to register a server that is located
-    # in a network not reachable through a Twin module.
+    # The application is registered using the provided information, but it is not
+    # associated with a supervisor. This is useful for when you need to register
+    # clients or you want to register a server that is located in a network not
+    # reachable through a Twin module.
     #
-    # @param request [ApplicationRegistrationRequestApiModel] Application
-    # registration request
+    # @param body [ApplicationRegistrationRequestApiModel] Application registration
+    # request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def create_application_async(request, custom_headers:nil)
-      fail ArgumentError, 'request is nil' if request.nil?
+    def create_application_async(body, custom_headers:nil)
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
@@ -260,7 +244,7 @@ module azure.iiot.opc.registry
 
       # Serialize Request
       request_mapper = azure.iiot.opc.registry::Models::ApplicationRegistrationRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/applications'
@@ -294,96 +278,6 @@ module azure.iiot.opc.registry
             fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
           end
         end
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Register new server
-    #
-    # Registers a server solely using a discovery url. Requires that
-    # the onboarding agent service is running and the server can be
-    # located by a supervisor in its network using the discovery url.
-    #
-    # @param request [ServerRegistrationRequestApiModel] Server registration
-    # request
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    #
-    def register_server(request, custom_headers:nil)
-      response = register_server_async(request, custom_headers:custom_headers).value!
-      nil
-    end
-
-    #
-    # Register new server
-    #
-    # Registers a server solely using a discovery url. Requires that
-    # the onboarding agent service is running and the server can be
-    # located by a supervisor in its network using the discovery url.
-    #
-    # @param request [ServerRegistrationRequestApiModel] Server registration
-    # request
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def register_server_with_http_info(request, custom_headers:nil)
-      register_server_async(request, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Register new server
-    #
-    # Registers a server solely using a discovery url. Requires that
-    # the onboarding agent service is running and the server can be
-    # located by a supervisor in its network using the discovery url.
-    #
-    # @param request [ServerRegistrationRequestApiModel] Server registration
-    # request
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def register_server_async(request, custom_headers:nil)
-      fail ArgumentError, 'request is nil' if request.nil?
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-
-      # Serialize Request
-      request_mapper = azure.iiot.opc.registry::Models::ServerRegistrationRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
-      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
-
-      path_template = 'v2/applications'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          body: request_content,
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:post, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
 
         result
       end
@@ -461,6 +355,100 @@ module azure.iiot.opc.registry
           fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
         end
 
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Get list of applications
+    #
+    # Get all registered applications in paged form. The returned model can contain
+    # a continuation token if more results are available. Call this operation again
+    # using the token to retrieve more results.
+    #
+    # @param continuation_token [String] Optional Continuation token
+    # @param page_size [Integer] Optional number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [ApplicationInfoListApiModel] operation results.
+    #
+    def get_list_of_applications(continuation_token:nil, page_size:nil, custom_headers:nil)
+      response = get_list_of_applications_async(continuation_token:continuation_token, page_size:page_size, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Get list of applications
+    #
+    # Get all registered applications in paged form. The returned model can contain
+    # a continuation token if more results are available. Call this operation again
+    # using the token to retrieve more results.
+    #
+    # @param continuation_token [String] Optional Continuation token
+    # @param page_size [Integer] Optional number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def get_list_of_applications_with_http_info(continuation_token:nil, page_size:nil, custom_headers:nil)
+      get_list_of_applications_async(continuation_token:continuation_token, page_size:page_size, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Get list of applications
+    #
+    # Get all registered applications in paged form. The returned model can contain
+    # a continuation token if more results are available. Call this operation again
+    # using the token to retrieve more results.
+    #
+    # @param continuation_token [String] Optional Continuation token
+    # @param page_size [Integer] Optional number of results to return
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def get_list_of_applications_async(continuation_token:nil, page_size:nil, custom_headers:nil)
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/applications'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          query_params: {'continuationToken' => continuation_token,'pageSize' => page_size},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:get, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.registry::Models::ApplicationInfoListApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
 
         result
       end
@@ -621,49 +609,49 @@ module azure.iiot.opc.registry
     #
     # Discover servers
     #
-    # Registers servers by running a discovery scan in a supervisor's
-    # network. Requires that the onboarding agent service is running.
+    # Registers servers by running a discovery scan in a supervisor's network.
+    # Requires that the onboarding agent service is running.
     #
-    # @param request [DiscoveryRequestApiModel] Discovery request
+    # @param body [DiscoveryRequestApiModel] Discovery request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     #
-    def discover_server(request, custom_headers:nil)
-      response = discover_server_async(request, custom_headers:custom_headers).value!
+    def discover_server(body, custom_headers:nil)
+      response = discover_server_async(body, custom_headers:custom_headers).value!
       nil
     end
 
     #
     # Discover servers
     #
-    # Registers servers by running a discovery scan in a supervisor's
-    # network. Requires that the onboarding agent service is running.
+    # Registers servers by running a discovery scan in a supervisor's network.
+    # Requires that the onboarding agent service is running.
     #
-    # @param request [DiscoveryRequestApiModel] Discovery request
+    # @param body [DiscoveryRequestApiModel] Discovery request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def discover_server_with_http_info(request, custom_headers:nil)
-      discover_server_async(request, custom_headers:custom_headers).value!
+    def discover_server_with_http_info(body, custom_headers:nil)
+      discover_server_async(body, custom_headers:custom_headers).value!
     end
 
     #
     # Discover servers
     #
-    # Registers servers by running a discovery scan in a supervisor's
-    # network. Requires that the onboarding agent service is running.
+    # Registers servers by running a discovery scan in a supervisor's network.
+    # Requires that the onboarding agent service is running.
     #
-    # @param request [DiscoveryRequestApiModel] Discovery request
+    # @param body [DiscoveryRequestApiModel] Discovery request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def discover_server_async(request, custom_headers:nil)
-      fail ArgumentError, 'request is nil' if request.nil?
+    def discover_server_async(body, custom_headers:nil)
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
@@ -671,7 +659,7 @@ module azure.iiot.opc.registry
 
       # Serialize Request
       request_mapper = azure.iiot.opc.registry::Models::DiscoveryRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/applications/discover'
@@ -685,6 +673,81 @@ module azure.iiot.opc.registry
           base_url: request_url
       }
       promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Cancel discovery
+    #
+    # Cancels a discovery request using the request identifier.
+    #
+    # @param request_id [String] Discovery request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def cancel(request_id, custom_headers:nil)
+      response = cancel_async(request_id, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Cancel discovery
+    #
+    # Cancels a discovery request using the request identifier.
+    #
+    # @param request_id [String] Discovery request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def cancel_with_http_info(request_id, custom_headers:nil)
+      cancel_async(request_id, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Cancel discovery
+    #
+    # Cancels a discovery request using the request identifier.
+    #
+    # @param request_id [String] Discovery request
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def cancel_async(request_id, custom_headers:nil)
+      fail ArgumentError, 'request_id is nil' if request_id.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/applications/discover/{requestId}'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'requestId' => request_id},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:delete, path_template, options)
 
       promise = promise.then do |result|
         http_response = result.response
@@ -783,6 +846,101 @@ module azure.iiot.opc.registry
     end
 
     #
+    # Update application registration
+    #
+    # The application information is updated with new properties. Note that this
+    # information might be overridden if the application is re-discovered during a
+    # discovery run (recurring or one-time).
+    #
+    # @param application_id [String] The identifier of the application
+    # @param body [ApplicationRegistrationUpdateApiModel] Application update
+    # request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def update_application_registration(application_id, body, custom_headers:nil)
+      response = update_application_registration_async(application_id, body, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Update application registration
+    #
+    # The application information is updated with new properties. Note that this
+    # information might be overridden if the application is re-discovered during a
+    # discovery run (recurring or one-time).
+    #
+    # @param application_id [String] The identifier of the application
+    # @param body [ApplicationRegistrationUpdateApiModel] Application update
+    # request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def update_application_registration_with_http_info(application_id, body, custom_headers:nil)
+      update_application_registration_async(application_id, body, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Update application registration
+    #
+    # The application information is updated with new properties. Note that this
+    # information might be overridden if the application is re-discovered during a
+    # discovery run (recurring or one-time).
+    #
+    # @param application_id [String] The identifier of the application
+    # @param body [ApplicationRegistrationUpdateApiModel] Application update
+    # request
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def update_application_registration_async(application_id, body, custom_headers:nil)
+      fail ArgumentError, 'application_id is nil' if application_id.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.registry::Models::ApplicationRegistrationUpdateApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/applications/{applicationId}'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'applicationId' => application_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:patch, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
     # Unregister application
     #
     # Unregisters and deletes application and all its associated endpoints.
@@ -858,109 +1016,12 @@ module azure.iiot.opc.registry
     end
 
     #
-    # Update application registration
-    #
-    # The application information is updated with new properties.  Note that
-    # this information might be overridden if the application is re-discovered
-    # during a discovery run (recurring or one-time).
-    #
-    # @param application_id [String] The identifier of the application
-    # @param request [ApplicationRegistrationUpdateApiModel] Application update
-    # request
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    #
-    def update_application_registration(application_id, request, custom_headers:nil)
-      response = update_application_registration_async(application_id, request, custom_headers:custom_headers).value!
-      nil
-    end
-
-    #
-    # Update application registration
-    #
-    # The application information is updated with new properties.  Note that
-    # this information might be overridden if the application is re-discovered
-    # during a discovery run (recurring or one-time).
-    #
-    # @param application_id [String] The identifier of the application
-    # @param request [ApplicationRegistrationUpdateApiModel] Application update
-    # request
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def update_application_registration_with_http_info(application_id, request, custom_headers:nil)
-      update_application_registration_async(application_id, request, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Update application registration
-    #
-    # The application information is updated with new properties.  Note that
-    # this information might be overridden if the application is re-discovered
-    # during a discovery run (recurring or one-time).
-    #
-    # @param application_id [String] The identifier of the application
-    # @param request [ApplicationRegistrationUpdateApiModel] Application update
-    # request
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def update_application_registration_async(application_id, request, custom_headers:nil)
-      fail ArgumentError, 'application_id is nil' if application_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-
-      # Serialize Request
-      request_mapper = azure.iiot.opc.registry::Models::ApplicationRegistrationUpdateApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
-      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
-
-      path_template = 'v2/applications/{applicationId}'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          path_params: {'applicationId' => application_id},
-          body: request_content,
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:patch, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
     # Get list of sites
     #
     # List all sites applications are registered in.
     #
-    # @param continuation_token [String] Optional Continuation
-    # token
-    # @param page_size [Integer] Optional number of results to
-    # return
+    # @param continuation_token [String] Optional Continuation token
+    # @param page_size [Integer] Optional number of results to return
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -976,10 +1037,8 @@ module azure.iiot.opc.registry
     #
     # List all sites applications are registered in.
     #
-    # @param continuation_token [String] Optional Continuation
-    # token
-    # @param page_size [Integer] Optional number of results to
-    # return
+    # @param continuation_token [String] Optional Continuation token
+    # @param page_size [Integer] Optional number of results to return
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -994,10 +1053,8 @@ module azure.iiot.opc.registry
     #
     # List all sites applications are registered in.
     #
-    # @param continuation_token [String] Optional Continuation
-    # token
-    # @param page_size [Integer] Optional number of results to
-    # return
+    # @param continuation_token [String] Optional Continuation token
+    # @param page_size [Integer] Optional number of results to return
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
@@ -1047,64 +1104,58 @@ module azure.iiot.opc.registry
     end
 
     #
-    # Get filtered list of applications
+    # Query applications
     #
-    # Get a list of applications filtered using the specified query parameters.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfApplications operation using the token to retrieve
-    # more results.
+    # List applications that match a query model. The returned model can contain a
+    # continuation token if more results are available. Call the
+    # GetListOfApplications operation using the token to retrieve more results.
     #
-    # @param query [ApplicationRegistrationQueryApiModel] Applications Query model
-    # @param page_size [Integer] Number of results to return
+    # @param body [ApplicationRegistrationQueryApiModel] Application query
+    # @param page_size [Integer] Optional number of results to return
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [ApplicationInfoListApiModel] operation results.
     #
-    def get_filtered_list_of_applications(query, page_size:nil, custom_headers:nil)
-      response = get_filtered_list_of_applications_async(query, page_size:page_size, custom_headers:custom_headers).value!
+    def query_applications(body, page_size:nil, custom_headers:nil)
+      response = query_applications_async(body, page_size:page_size, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
-    # Get filtered list of applications
+    # Query applications
     #
-    # Get a list of applications filtered using the specified query parameters.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfApplications operation using the token to retrieve
-    # more results.
+    # List applications that match a query model. The returned model can contain a
+    # continuation token if more results are available. Call the
+    # GetListOfApplications operation using the token to retrieve more results.
     #
-    # @param query [ApplicationRegistrationQueryApiModel] Applications Query model
-    # @param page_size [Integer] Number of results to return
+    # @param body [ApplicationRegistrationQueryApiModel] Application query
+    # @param page_size [Integer] Optional number of results to return
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def get_filtered_list_of_applications_with_http_info(query, page_size:nil, custom_headers:nil)
-      get_filtered_list_of_applications_async(query, page_size:page_size, custom_headers:custom_headers).value!
+    def query_applications_with_http_info(body, page_size:nil, custom_headers:nil)
+      query_applications_async(body, page_size:page_size, custom_headers:custom_headers).value!
     end
 
     #
-    # Get filtered list of applications
+    # Query applications
     #
-    # Get a list of applications filtered using the specified query parameters.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfApplications operation using the token to retrieve
-    # more results.
+    # List applications that match a query model. The returned model can contain a
+    # continuation token if more results are available. Call the
+    # GetListOfApplications operation using the token to retrieve more results.
     #
-    # @param query [ApplicationRegistrationQueryApiModel] Applications Query model
-    # @param page_size [Integer] Number of results to return
+    # @param body [ApplicationRegistrationQueryApiModel] Application query
+    # @param page_size [Integer] Optional number of results to return
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def get_filtered_list_of_applications_async(query, page_size:nil, custom_headers:nil)
-      fail ArgumentError, 'query is nil' if query.nil?
+    def query_applications_async(body, page_size:nil, custom_headers:nil)
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
@@ -1112,7 +1163,112 @@ module azure.iiot.opc.registry
 
       # Serialize Request
       request_mapper = azure.iiot.opc.registry::Models::ApplicationRegistrationQueryApiModel.mapper()
-      request_content = self.serialize(request_mapper,  query)
+      request_content = self.serialize(request_mapper,  body)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/applications/query'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          query_params: {'pageSize' => page_size},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.registry::Models::ApplicationInfoListApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Get filtered list of applications
+    #
+    # Get a list of applications filtered using the specified query parameters. The
+    # returned model can contain a continuation token if more results are
+    # available. Call the GetListOfApplications operation using the token to
+    # retrieve more results.
+    #
+    # @param body [ApplicationRegistrationQueryApiModel] Applications Query model
+    # @param page_size [Integer] Number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [ApplicationInfoListApiModel] operation results.
+    #
+    def get_filtered_list_of_applications(body, page_size:nil, custom_headers:nil)
+      response = get_filtered_list_of_applications_async(body, page_size:page_size, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Get filtered list of applications
+    #
+    # Get a list of applications filtered using the specified query parameters. The
+    # returned model can contain a continuation token if more results are
+    # available. Call the GetListOfApplications operation using the token to
+    # retrieve more results.
+    #
+    # @param body [ApplicationRegistrationQueryApiModel] Applications Query model
+    # @param page_size [Integer] Number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def get_filtered_list_of_applications_with_http_info(body, page_size:nil, custom_headers:nil)
+      get_filtered_list_of_applications_async(body, page_size:page_size, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Get filtered list of applications
+    #
+    # Get a list of applications filtered using the specified query parameters. The
+    # returned model can contain a continuation token if more results are
+    # available. Call the GetListOfApplications operation using the token to
+    # retrieve more results.
+    #
+    # @param body [ApplicationRegistrationQueryApiModel] Applications Query model
+    # @param page_size [Integer] Number of results to return
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def get_filtered_list_of_applications_async(body, page_size:nil, custom_headers:nil)
+      fail ArgumentError, 'body is nil' if body.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.registry::Models::ApplicationRegistrationQueryApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/applications/query'
@@ -1155,89 +1311,236 @@ module azure.iiot.opc.registry
     end
 
     #
-    # Query applications
+    # Subscribe for application events
     #
-    # List applications that match a query model.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfApplications operation using the token to retrieve
-    # more results.
+    # Register a client to receive application events through SignalR.
     #
-    # @param query [ApplicationRegistrationQueryApiModel] Application query
-    # @param page_size [Integer] Optional number of results to
-    # return
+    # @param body [String] The user that will receive application events.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
-    # @return [ApplicationInfoListApiModel] operation results.
     #
-    def query_applications(query, page_size:nil, custom_headers:nil)
-      response = query_applications_async(query, page_size:page_size, custom_headers:custom_headers).value!
-      response.body unless response.nil?
+    def subscribe(body:nil, custom_headers:nil)
+      response = subscribe_async(body:body, custom_headers:custom_headers).value!
+      nil
     end
 
     #
-    # Query applications
+    # Subscribe for application events
     #
-    # List applications that match a query model.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfApplications operation using the token to retrieve
-    # more results.
+    # Register a client to receive application events through SignalR.
     #
-    # @param query [ApplicationRegistrationQueryApiModel] Application query
-    # @param page_size [Integer] Optional number of results to
-    # return
+    # @param body [String] The user that will receive application events.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def query_applications_with_http_info(query, page_size:nil, custom_headers:nil)
-      query_applications_async(query, page_size:page_size, custom_headers:custom_headers).value!
+    def subscribe_with_http_info(body:nil, custom_headers:nil)
+      subscribe_async(body:body, custom_headers:custom_headers).value!
     end
 
     #
-    # Query applications
+    # Subscribe for application events
     #
-    # List applications that match a query model.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfApplications operation using the token to retrieve
-    # more results.
+    # Register a client to receive application events through SignalR.
     #
-    # @param query [ApplicationRegistrationQueryApiModel] Application query
-    # @param page_size [Integer] Optional number of results to
-    # return
+    # @param body [String] The user that will receive application events.
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def query_applications_async(query, page_size:nil, custom_headers:nil)
-      fail ArgumentError, 'query is nil' if query.nil?
+    def subscribe_async(body:nil, custom_headers:nil)
 
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
 
       # Serialize Request
-      request_mapper = azure.iiot.opc.registry::Models::ApplicationRegistrationQueryApiModel.mapper()
-      request_content = self.serialize(request_mapper,  query)
+      request_mapper = {
+        client_side_validation: true,
+        required: false,
+        serialized_name: 'body',
+        type: {
+          name: 'String'
+        }
+      }
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v2/applications/query'
+      path_template = 'v2/applications/events'
 
       request_url = @base_url || self.base_url
 
       options = {
           middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          query_params: {'pageSize' => page_size},
           body: request_content,
           headers: request_headers.merge(custom_headers || {}),
           base_url: request_url
       }
-      promise = self.make_request_async(:post, path_template, options)
+      promise = self.make_request_async(:put, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Unsubscribe from application events
+    #
+    # Unregister a user and stop it from receiving events.
+    #
+    # @param user_id [String] The user id that will not receive any more events
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def unsubscribe(user_id, custom_headers:nil)
+      response = unsubscribe_async(user_id, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Unsubscribe from application events
+    #
+    # Unregister a user and stop it from receiving events.
+    #
+    # @param user_id [String] The user id that will not receive any more events
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def unsubscribe_with_http_info(user_id, custom_headers:nil)
+      unsubscribe_async(user_id, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Unsubscribe from application events
+    #
+    # Unregister a user and stop it from receiving events.
+    #
+    # @param user_id [String] The user id that will not receive any more events
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def unsubscribe_async(user_id, custom_headers:nil)
+      fail ArgumentError, 'user_id is nil' if user_id.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/applications/events/{userId}'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'userId' => user_id},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:delete, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Get discoverer registration information
+    #
+    # Returns a discoverer's registration and connectivity information. A
+    # discoverer id corresponds to the twin modules module identity.
+    #
+    # @param discoverer_id [String] Discoverer identifier
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [DiscovererApiModel] operation results.
+    #
+    def get_discoverer(discoverer_id, only_server_state:nil, custom_headers:nil)
+      response = get_discoverer_async(discoverer_id, only_server_state:only_server_state, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Get discoverer registration information
+    #
+    # Returns a discoverer's registration and connectivity information. A
+    # discoverer id corresponds to the twin modules module identity.
+    #
+    # @param discoverer_id [String] Discoverer identifier
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def get_discoverer_with_http_info(discoverer_id, only_server_state:nil, custom_headers:nil)
+      get_discoverer_async(discoverer_id, only_server_state:only_server_state, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Get discoverer registration information
+    #
+    # Returns a discoverer's registration and connectivity information. A
+    # discoverer id corresponds to the twin modules module identity.
+    #
+    # @param discoverer_id [String] Discoverer identifier
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def get_discoverer_async(discoverer_id, only_server_state:nil, custom_headers:nil)
+      fail ArgumentError, 'discoverer_id is nil' if discoverer_id.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/discovery/{discovererId}'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'discovererId' => discoverer_id},
+          query_params: {'onlyServerState' => only_server_state},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:get, path_template, options)
 
       promise = promise.then do |result|
         http_response = result.response
@@ -1252,7 +1555,7 @@ module azure.iiot.opc.registry
         if status_code == 200
           begin
             parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.registry::Models::ApplicationInfoListApiModel.mapper()
+            result_mapper = azure.iiot.opc.registry::Models::DiscovererApiModel.mapper()
             result.body = self.deserialize(result_mapper, parsed_response)
           rescue Exception => e
             fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
@@ -1266,64 +1569,369 @@ module azure.iiot.opc.registry
     end
 
     #
-    # Query applications by id.
+    # Update discoverer information
     #
-    # A query model which supports the OPC UA Global Discovery Server query.
+    # Allows a caller to configure recurring discovery runs on the twin module
+    # identified by the discoverer id or update site information.
     #
-    # @param query [ApplicationRecordQueryApiModel]
+    # @param discoverer_id [String] discoverer identifier
+    # @param body [DiscovererUpdateApiModel] Patch request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
-    # @return [ApplicationRecordListApiModel] operation results.
     #
-    def query_applications_by_id(query:nil, custom_headers:nil)
-      response = query_applications_by_id_async(query:query, custom_headers:custom_headers).value!
-      response.body unless response.nil?
+    def update_discoverer(discoverer_id, body, custom_headers:nil)
+      response = update_discoverer_async(discoverer_id, body, custom_headers:custom_headers).value!
+      nil
     end
 
     #
-    # Query applications by id.
+    # Update discoverer information
     #
-    # A query model which supports the OPC UA Global Discovery Server query.
+    # Allows a caller to configure recurring discovery runs on the twin module
+    # identified by the discoverer id or update site information.
     #
-    # @param query [ApplicationRecordQueryApiModel]
+    # @param discoverer_id [String] discoverer identifier
+    # @param body [DiscovererUpdateApiModel] Patch request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def query_applications_by_id_with_http_info(query:nil, custom_headers:nil)
-      query_applications_by_id_async(query:query, custom_headers:custom_headers).value!
+    def update_discoverer_with_http_info(discoverer_id, body, custom_headers:nil)
+      update_discoverer_async(discoverer_id, body, custom_headers:custom_headers).value!
     end
 
     #
-    # Query applications by id.
+    # Update discoverer information
     #
-    # A query model which supports the OPC UA Global Discovery Server query.
+    # Allows a caller to configure recurring discovery runs on the twin module
+    # identified by the discoverer id or update site information.
     #
-    # @param query [ApplicationRecordQueryApiModel]
+    # @param discoverer_id [String] discoverer identifier
+    # @param body [DiscovererUpdateApiModel] Patch request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def query_applications_by_id_async(query:nil, custom_headers:nil)
+    def update_discoverer_async(discoverer_id, body, custom_headers:nil)
+      fail ArgumentError, 'discoverer_id is nil' if discoverer_id.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
 
       # Serialize Request
-      request_mapper = azure.iiot.opc.registry::Models::ApplicationRecordQueryApiModel.mapper()
-      request_content = self.serialize(request_mapper,  query)
+      request_mapper = azure.iiot.opc.registry::Models::DiscovererUpdateApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
-      path_template = 'v2/applications/querybyid'
+      path_template = 'v2/discovery/{discovererId}'
 
       request_url = @base_url || self.base_url
 
       options = {
           middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'discovererId' => discoverer_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:patch, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Enable server discovery
+    #
+    # Allows a caller to configure recurring discovery runs on the discovery module
+    # identified by the module id.
+    #
+    # @param discoverer_id [String] discoverer identifier
+    # @param mode [DiscoveryMode] Discovery mode. Possible values include: 'Off',
+    # 'Local', 'Network', 'Fast', 'Scan'
+    # @param body [DiscoveryConfigApiModel] Discovery configuration
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def set_discovery_mode(discoverer_id, mode, body:nil, custom_headers:nil)
+      response = set_discovery_mode_async(discoverer_id, mode, body:body, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Enable server discovery
+    #
+    # Allows a caller to configure recurring discovery runs on the discovery module
+    # identified by the module id.
+    #
+    # @param discoverer_id [String] discoverer identifier
+    # @param mode [DiscoveryMode] Discovery mode. Possible values include: 'Off',
+    # 'Local', 'Network', 'Fast', 'Scan'
+    # @param body [DiscoveryConfigApiModel] Discovery configuration
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def set_discovery_mode_with_http_info(discoverer_id, mode, body:nil, custom_headers:nil)
+      set_discovery_mode_async(discoverer_id, mode, body:body, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Enable server discovery
+    #
+    # Allows a caller to configure recurring discovery runs on the discovery module
+    # identified by the module id.
+    #
+    # @param discoverer_id [String] discoverer identifier
+    # @param mode [DiscoveryMode] Discovery mode. Possible values include: 'Off',
+    # 'Local', 'Network', 'Fast', 'Scan'
+    # @param body [DiscoveryConfigApiModel] Discovery configuration
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def set_discovery_mode_async(discoverer_id, mode, body:nil, custom_headers:nil)
+      fail ArgumentError, 'discoverer_id is nil' if discoverer_id.nil?
+      fail ArgumentError, 'mode is nil' if mode.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.registry::Models::DiscoveryConfigApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/discovery/{discovererId}'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'discovererId' => discoverer_id},
+          query_params: {'mode' => mode},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Get list of discoverers
+    #
+    # Get all registered discoverers and therefore twin modules in paged form. The
+    # returned model can contain a continuation token if more results are
+    # available. Call this operation again using the token to retrieve more
+    # results.
+    #
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param continuation_token [String] Optional Continuation token
+    # @param page_size [Integer] Optional number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [DiscovererListApiModel] operation results.
+    #
+    def get_list_of_discoverers(only_server_state:nil, continuation_token:nil, page_size:nil, custom_headers:nil)
+      response = get_list_of_discoverers_async(only_server_state:only_server_state, continuation_token:continuation_token, page_size:page_size, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Get list of discoverers
+    #
+    # Get all registered discoverers and therefore twin modules in paged form. The
+    # returned model can contain a continuation token if more results are
+    # available. Call this operation again using the token to retrieve more
+    # results.
+    #
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param continuation_token [String] Optional Continuation token
+    # @param page_size [Integer] Optional number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def get_list_of_discoverers_with_http_info(only_server_state:nil, continuation_token:nil, page_size:nil, custom_headers:nil)
+      get_list_of_discoverers_async(only_server_state:only_server_state, continuation_token:continuation_token, page_size:page_size, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Get list of discoverers
+    #
+    # Get all registered discoverers and therefore twin modules in paged form. The
+    # returned model can contain a continuation token if more results are
+    # available. Call this operation again using the token to retrieve more
+    # results.
+    #
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param continuation_token [String] Optional Continuation token
+    # @param page_size [Integer] Optional number of results to return
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def get_list_of_discoverers_async(only_server_state:nil, continuation_token:nil, page_size:nil, custom_headers:nil)
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/discovery'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          query_params: {'onlyServerState' => only_server_state,'continuationToken' => continuation_token,'pageSize' => page_size},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:get, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.registry::Models::DiscovererListApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Query discoverers
+    #
+    # Get all discoverers that match a specified query. The returned model can
+    # contain a continuation token if more results are available. Call the
+    # GetListOfDiscoverers operation using the token to retrieve more results.
+    #
+    # @param body [DiscovererQueryApiModel] Discoverers query model
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param page_size [Integer] Number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [DiscovererListApiModel] operation results.
+    #
+    def query_discoverers(body, only_server_state:nil, page_size:nil, custom_headers:nil)
+      response = query_discoverers_async(body, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Query discoverers
+    #
+    # Get all discoverers that match a specified query. The returned model can
+    # contain a continuation token if more results are available. Call the
+    # GetListOfDiscoverers operation using the token to retrieve more results.
+    #
+    # @param body [DiscovererQueryApiModel] Discoverers query model
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param page_size [Integer] Number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def query_discoverers_with_http_info(body, only_server_state:nil, page_size:nil, custom_headers:nil)
+      query_discoverers_async(body, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Query discoverers
+    #
+    # Get all discoverers that match a specified query. The returned model can
+    # contain a continuation token if more results are available. Call the
+    # GetListOfDiscoverers operation using the token to retrieve more results.
+    #
+    # @param body [DiscovererQueryApiModel] Discoverers query model
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param page_size [Integer] Number of results to return
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def query_discoverers_async(body, only_server_state:nil, page_size:nil, custom_headers:nil)
+      fail ArgumentError, 'body is nil' if body.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.registry::Models::DiscovererQueryApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/discovery/query'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          query_params: {'onlyServerState' => only_server_state,'pageSize' => page_size},
           body: request_content,
           headers: request_headers.merge(custom_headers || {}),
           base_url: request_url
@@ -1343,12 +1951,646 @@ module azure.iiot.opc.registry
         if status_code == 200
           begin
             parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.registry::Models::ApplicationRecordListApiModel.mapper()
+            result_mapper = azure.iiot.opc.registry::Models::DiscovererListApiModel.mapper()
             result.body = self.deserialize(result_mapper, parsed_response)
           rescue Exception => e
             fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
           end
         end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Get filtered list of discoverers
+    #
+    # Get a list of discoverers filtered using the specified query parameters. The
+    # returned model can contain a continuation token if more results are
+    # available. Call the GetListOfDiscoverers operation using the token to
+    # retrieve more results.
+    #
+    # @param site_id [String] Site of the discoverer
+    # @param discovery [DiscoveryMode] Discovery mode of discoverer. Possible
+    # values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+    # @param connected [Boolean] Included connected or disconnected
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param page_size [Integer] Number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [DiscovererListApiModel] operation results.
+    #
+    def get_filtered_list_of_discoverers(site_id:nil, discovery:nil, connected:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
+      response = get_filtered_list_of_discoverers_async(site_id:site_id, discovery:discovery, connected:connected, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Get filtered list of discoverers
+    #
+    # Get a list of discoverers filtered using the specified query parameters. The
+    # returned model can contain a continuation token if more results are
+    # available. Call the GetListOfDiscoverers operation using the token to
+    # retrieve more results.
+    #
+    # @param site_id [String] Site of the discoverer
+    # @param discovery [DiscoveryMode] Discovery mode of discoverer. Possible
+    # values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+    # @param connected [Boolean] Included connected or disconnected
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param page_size [Integer] Number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def get_filtered_list_of_discoverers_with_http_info(site_id:nil, discovery:nil, connected:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
+      get_filtered_list_of_discoverers_async(site_id:site_id, discovery:discovery, connected:connected, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Get filtered list of discoverers
+    #
+    # Get a list of discoverers filtered using the specified query parameters. The
+    # returned model can contain a continuation token if more results are
+    # available. Call the GetListOfDiscoverers operation using the token to
+    # retrieve more results.
+    #
+    # @param site_id [String] Site of the discoverer
+    # @param discovery [DiscoveryMode] Discovery mode of discoverer. Possible
+    # values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+    # @param connected [Boolean] Included connected or disconnected
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param page_size [Integer] Number of results to return
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def get_filtered_list_of_discoverers_async(site_id:nil, discovery:nil, connected:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/discovery/query'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          query_params: {'siteId' => site_id,'discovery' => discovery,'connected' => connected,'onlyServerState' => only_server_state,'pageSize' => page_size},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:get, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.registry::Models::DiscovererListApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Subscribe to discoverer registry events
+    #
+    # Register a user to receive discoverer events through SignalR.
+    #
+    # @param body [String] The user id that will receive discoverer events.
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def subscribe1(body:nil, custom_headers:nil)
+      response = subscribe1_async(body:body, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Subscribe to discoverer registry events
+    #
+    # Register a user to receive discoverer events through SignalR.
+    #
+    # @param body [String] The user id that will receive discoverer events.
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def subscribe1_with_http_info(body:nil, custom_headers:nil)
+      subscribe1_async(body:body, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Subscribe to discoverer registry events
+    #
+    # Register a user to receive discoverer events through SignalR.
+    #
+    # @param body [String] The user id that will receive discoverer events.
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def subscribe1_async(body:nil, custom_headers:nil)
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = {
+        client_side_validation: true,
+        required: false,
+        serialized_name: 'body',
+        type: {
+          name: 'String'
+        }
+      }
+      request_content = self.serialize(request_mapper,  body)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/discovery/events'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:put, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Unsubscribe registry events
+    #
+    # Unregister a user and stop it from receiving discoverer events.
+    #
+    # @param user_id [String] The user id that will not receive any more discoverer
+    # events
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def unsubscribe1(user_id, custom_headers:nil)
+      response = unsubscribe1_async(user_id, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Unsubscribe registry events
+    #
+    # Unregister a user and stop it from receiving discoverer events.
+    #
+    # @param user_id [String] The user id that will not receive any more discoverer
+    # events
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def unsubscribe1_with_http_info(user_id, custom_headers:nil)
+      unsubscribe1_async(user_id, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Unsubscribe registry events
+    #
+    # Unregister a user and stop it from receiving discoverer events.
+    #
+    # @param user_id [String] The user id that will not receive any more discoverer
+    # events
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def unsubscribe1_async(user_id, custom_headers:nil)
+      fail ArgumentError, 'user_id is nil' if user_id.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/discovery/events/{userId}'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'userId' => user_id},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:delete, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Subscribe to discovery progress from discoverer
+    #
+    # Register a client to receive discovery progress events through SignalR from a
+    # particular discoverer.
+    #
+    # @param discoverer_id [String] The discoverer to subscribe to
+    # @param body [String] The user id that will receive discovery events.
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def subscribe_by_discoverer_id(discoverer_id, body:nil, custom_headers:nil)
+      response = subscribe_by_discoverer_id_async(discoverer_id, body:body, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Subscribe to discovery progress from discoverer
+    #
+    # Register a client to receive discovery progress events through SignalR from a
+    # particular discoverer.
+    #
+    # @param discoverer_id [String] The discoverer to subscribe to
+    # @param body [String] The user id that will receive discovery events.
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def subscribe_by_discoverer_id_with_http_info(discoverer_id, body:nil, custom_headers:nil)
+      subscribe_by_discoverer_id_async(discoverer_id, body:body, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Subscribe to discovery progress from discoverer
+    #
+    # Register a client to receive discovery progress events through SignalR from a
+    # particular discoverer.
+    #
+    # @param discoverer_id [String] The discoverer to subscribe to
+    # @param body [String] The user id that will receive discovery events.
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def subscribe_by_discoverer_id_async(discoverer_id, body:nil, custom_headers:nil)
+      fail ArgumentError, 'discoverer_id is nil' if discoverer_id.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = {
+        client_side_validation: true,
+        required: false,
+        serialized_name: 'body',
+        type: {
+          name: 'String'
+        }
+      }
+      request_content = self.serialize(request_mapper,  body)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/discovery/{discovererId}/events'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'discovererId' => discoverer_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:put, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Subscribe to discovery progress for a request
+    #
+    # Register a client to receive discovery progress events through SignalR for a
+    # particular request.
+    #
+    # @param request_id [String] The request to monitor
+    # @param body [String] The user id that will receive discovery events.
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def subscribe_by_request_id(request_id, body:nil, custom_headers:nil)
+      response = subscribe_by_request_id_async(request_id, body:body, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Subscribe to discovery progress for a request
+    #
+    # Register a client to receive discovery progress events through SignalR for a
+    # particular request.
+    #
+    # @param request_id [String] The request to monitor
+    # @param body [String] The user id that will receive discovery events.
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def subscribe_by_request_id_with_http_info(request_id, body:nil, custom_headers:nil)
+      subscribe_by_request_id_async(request_id, body:body, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Subscribe to discovery progress for a request
+    #
+    # Register a client to receive discovery progress events through SignalR for a
+    # particular request.
+    #
+    # @param request_id [String] The request to monitor
+    # @param body [String] The user id that will receive discovery events.
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def subscribe_by_request_id_async(request_id, body:nil, custom_headers:nil)
+      fail ArgumentError, 'request_id is nil' if request_id.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = {
+        client_side_validation: true,
+        required: false,
+        serialized_name: 'body',
+        type: {
+          name: 'String'
+        }
+      }
+      request_content = self.serialize(request_mapper,  body)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/discovery/requests/{requestId}/events'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'requestId' => request_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:put, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Unsubscribe from discovery progress for a request.
+    #
+    # Unregister a client and stop it from receiving discovery events for a
+    # particular request.
+    #
+    # @param request_id [String] The request to unsubscribe from
+    # @param user_id [String] The user id that will not receive any more discovery
+    # progress
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def unsubscribe_by_request_id(request_id, user_id, custom_headers:nil)
+      response = unsubscribe_by_request_id_async(request_id, user_id, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Unsubscribe from discovery progress for a request.
+    #
+    # Unregister a client and stop it from receiving discovery events for a
+    # particular request.
+    #
+    # @param request_id [String] The request to unsubscribe from
+    # @param user_id [String] The user id that will not receive any more discovery
+    # progress
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def unsubscribe_by_request_id_with_http_info(request_id, user_id, custom_headers:nil)
+      unsubscribe_by_request_id_async(request_id, user_id, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Unsubscribe from discovery progress for a request.
+    #
+    # Unregister a client and stop it from receiving discovery events for a
+    # particular request.
+    #
+    # @param request_id [String] The request to unsubscribe from
+    # @param user_id [String] The user id that will not receive any more discovery
+    # progress
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def unsubscribe_by_request_id_async(request_id, user_id, custom_headers:nil)
+      fail ArgumentError, 'request_id is nil' if request_id.nil?
+      fail ArgumentError, 'user_id is nil' if user_id.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/discovery/requests/{requestId}/events/{userId}'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'requestId' => request_id,'userId' => user_id},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:delete, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Unsubscribe from discovery progress from discoverer.
+    #
+    # Unregister a client and stop it from receiving discovery events.
+    #
+    # @param discoverer_id [String] The discoverer to unsubscribe from
+    # @param user_id [String] The user id that will not receive any more discovery
+    # progress
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def unsubscribe_by_discoverer_id(discoverer_id, user_id, custom_headers:nil)
+      response = unsubscribe_by_discoverer_id_async(discoverer_id, user_id, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Unsubscribe from discovery progress from discoverer.
+    #
+    # Unregister a client and stop it from receiving discovery events.
+    #
+    # @param discoverer_id [String] The discoverer to unsubscribe from
+    # @param user_id [String] The user id that will not receive any more discovery
+    # progress
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def unsubscribe_by_discoverer_id_with_http_info(discoverer_id, user_id, custom_headers:nil)
+      unsubscribe_by_discoverer_id_async(discoverer_id, user_id, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Unsubscribe from discovery progress from discoverer.
+    #
+    # Unregister a client and stop it from receiving discovery events.
+    #
+    # @param discoverer_id [String] The discoverer to unsubscribe from
+    # @param user_id [String] The user id that will not receive any more discovery
+    # progress
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def unsubscribe_by_discoverer_id_async(discoverer_id, user_id, custom_headers:nil)
+      fail ArgumentError, 'discoverer_id is nil' if discoverer_id.nil?
+      fail ArgumentError, 'user_id is nil' if user_id.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/discovery/{discovererId}/events/{userId}'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'discovererId' => discoverer_id,'userId' => user_id},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:delete, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
 
         result
       end
@@ -1359,9 +2601,9 @@ module azure.iiot.opc.registry
     #
     # Activate endpoint
     #
-    # Activates an endpoint for subsequent use in twin service.
-    # All endpoints must be activated using this API or through a
-    # activation filter during application registration or discovery.
+    # Activates an endpoint for subsequent use in twin service. All endpoints must
+    # be activated using this API or through a activation filter during application
+    # registration or discovery.
     #
     # @param endpoint_id [String] endpoint identifier
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -1376,9 +2618,9 @@ module azure.iiot.opc.registry
     #
     # Activate endpoint
     #
-    # Activates an endpoint for subsequent use in twin service.
-    # All endpoints must be activated using this API or through a
-    # activation filter during application registration or discovery.
+    # Activates an endpoint for subsequent use in twin service. All endpoints must
+    # be activated using this API or through a activation filter during application
+    # registration or discovery.
     #
     # @param endpoint_id [String] endpoint identifier
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -1393,9 +2635,9 @@ module azure.iiot.opc.registry
     #
     # Activate endpoint
     #
-    # Activates an endpoint for subsequent use in twin service.
-    # All endpoints must be activated using this API or through a
-    # activation filter during application registration or discovery.
+    # Activates an endpoint for subsequent use in twin service. All endpoints must
+    # be activated using this API or through a activation filter during application
+    # registration or discovery.
     #
     # @param endpoint_id [String] endpoint identifier
     # @param [Hash{String => String}] A hash of custom headers that will be added
@@ -1443,9 +2685,8 @@ module azure.iiot.opc.registry
     # Gets information about an endpoint.
     #
     # @param endpoint_id [String] endpoint identifier
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -1462,9 +2703,8 @@ module azure.iiot.opc.registry
     # Gets information about an endpoint.
     #
     # @param endpoint_id [String] endpoint identifier
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -1480,9 +2720,8 @@ module azure.iiot.opc.registry
     # Gets information about an endpoint.
     #
     # @param endpoint_id [String] endpoint identifier
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
@@ -1534,95 +2773,14 @@ module azure.iiot.opc.registry
     end
 
     #
-    # Update endpoint information
-    #
-    # @param endpoint_id [String] endpoint identifier
-    # @param request [EndpointRegistrationUpdateApiModel] Endpoint update request
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    #
-    def update_endpoint(endpoint_id, request, custom_headers:nil)
-      response = update_endpoint_async(endpoint_id, request, custom_headers:custom_headers).value!
-      nil
-    end
-
-    #
-    # Update endpoint information
-    #
-    # @param endpoint_id [String] endpoint identifier
-    # @param request [EndpointRegistrationUpdateApiModel] Endpoint update request
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def update_endpoint_with_http_info(endpoint_id, request, custom_headers:nil)
-      update_endpoint_async(endpoint_id, request, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Update endpoint information
-    #
-    # @param endpoint_id [String] endpoint identifier
-    # @param request [EndpointRegistrationUpdateApiModel] Endpoint update request
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def update_endpoint_async(endpoint_id, request, custom_headers:nil)
-      fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-
-      # Serialize Request
-      request_mapper = azure.iiot.opc.registry::Models::EndpointRegistrationUpdateApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
-      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
-
-      path_template = 'v2/endpoints/{endpointId}'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          path_params: {'endpointId' => endpoint_id},
-          body: request_content,
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:patch, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
     # Get list of endpoints
     #
-    # Get all registered endpoints in paged form.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call this operation again using the token to retrieve more results.
+    # Get all registered endpoints in paged form. The returned model can contain a
+    # continuation token if more results are available. Call this operation again
+    # using the token to retrieve more results.
     #
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if available
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
     # @param continuation_token [String] Optional Continuation token
     # @param page_size [Integer] Optional number of results to return
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -1638,13 +2796,12 @@ module azure.iiot.opc.registry
     #
     # Get list of endpoints
     #
-    # Get all registered endpoints in paged form.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call this operation again using the token to retrieve more results.
+    # Get all registered endpoints in paged form. The returned model can contain a
+    # continuation token if more results are available. Call this operation again
+    # using the token to retrieve more results.
     #
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if available
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
     # @param continuation_token [String] Optional Continuation token
     # @param page_size [Integer] Optional number of results to return
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -1659,13 +2816,12 @@ module azure.iiot.opc.registry
     #
     # Get list of endpoints
     #
-    # Get all registered endpoints in paged form.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call this operation again using the token to retrieve more results.
+    # Get all registered endpoints in paged form. The returned model can contain a
+    # continuation token if more results are available. Call this operation again
+    # using the token to retrieve more results.
     #
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if available
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
     # @param continuation_token [String] Optional Continuation token
     # @param page_size [Integer] Optional number of results to return
     # @param [Hash{String => String}] A hash of custom headers that will be added
@@ -1717,132 +2873,86 @@ module azure.iiot.opc.registry
     end
 
     #
-    # Get filtered list of endpoints
+    # Query endpoints
     #
-    # Get a list of endpoints filtered using the specified query parameters.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfEndpoints operation using the token to retrieve
-    # more results.
+    # Return endpoints that match the specified query. The returned model can
+    # contain a continuation token if more results are available. Call the
+    # GetListOfEndpoints operation using the token to retrieve more results.
     #
-    # @param url [String] Endoint url for direct server access
-    # @param user_authentication [Enum] Type of credential selected for
-    # authentication. Possible values include: 'None', 'UserName',
-    # 'X509Certificate', 'JwtToken'
-    # @param certificate [Array<Integer>] Certificate of the endpoint
-    # @param security_mode [Enum] Security Mode. Possible values include: 'Best',
-    # 'Sign', 'SignAndEncrypt', 'None'
-    # @param security_policy [String] Security policy uri
-    # @param activated [Boolean] Whether the endpoint was activated
-    # @param connected [Boolean] Whether the endpoint is connected on supervisor.
-    # @param endpoint_state [Enum] The last state of the the activated endpoint.
-    # Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust',
-    # 'CertificateInvalid', 'Ready', 'Error'
-    # @param include_not_seen_since [Boolean] Whether to include endpoints that
-    # were soft deleted
+    # @param body [EndpointRegistrationQueryApiModel] Query to match
     # @param only_server_state [Boolean] Whether to include only server state, or
-    # display
-    # current client state of the endpoint if available
-    # @param page_size [Integer] Optional number of results to
-    # return
+    # display current client state of the endpoint if available
+    # @param page_size [Integer] Optional number of results to return
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [EndpointInfoListApiModel] operation results.
     #
-    def get_filtered_list_of_endpoints(url:nil, user_authentication:nil, certificate:nil, security_mode:nil, security_policy:nil, activated:nil, connected:nil, endpoint_state:nil, include_not_seen_since:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
-      response = get_filtered_list_of_endpoints_async(url:url, user_authentication:user_authentication, certificate:certificate, security_mode:security_mode, security_policy:security_policy, activated:activated, connected:connected, endpoint_state:endpoint_state, include_not_seen_since:include_not_seen_since, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+    def query_endpoints(body, only_server_state:nil, page_size:nil, custom_headers:nil)
+      response = query_endpoints_async(body, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
-    # Get filtered list of endpoints
+    # Query endpoints
     #
-    # Get a list of endpoints filtered using the specified query parameters.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfEndpoints operation using the token to retrieve
-    # more results.
+    # Return endpoints that match the specified query. The returned model can
+    # contain a continuation token if more results are available. Call the
+    # GetListOfEndpoints operation using the token to retrieve more results.
     #
-    # @param url [String] Endoint url for direct server access
-    # @param user_authentication [Enum] Type of credential selected for
-    # authentication. Possible values include: 'None', 'UserName',
-    # 'X509Certificate', 'JwtToken'
-    # @param certificate [Array<Integer>] Certificate of the endpoint
-    # @param security_mode [Enum] Security Mode. Possible values include: 'Best',
-    # 'Sign', 'SignAndEncrypt', 'None'
-    # @param security_policy [String] Security policy uri
-    # @param activated [Boolean] Whether the endpoint was activated
-    # @param connected [Boolean] Whether the endpoint is connected on supervisor.
-    # @param endpoint_state [Enum] The last state of the the activated endpoint.
-    # Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust',
-    # 'CertificateInvalid', 'Ready', 'Error'
-    # @param include_not_seen_since [Boolean] Whether to include endpoints that
-    # were soft deleted
+    # @param body [EndpointRegistrationQueryApiModel] Query to match
     # @param only_server_state [Boolean] Whether to include only server state, or
-    # display
-    # current client state of the endpoint if available
-    # @param page_size [Integer] Optional number of results to
-    # return
+    # display current client state of the endpoint if available
+    # @param page_size [Integer] Optional number of results to return
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def get_filtered_list_of_endpoints_with_http_info(url:nil, user_authentication:nil, certificate:nil, security_mode:nil, security_policy:nil, activated:nil, connected:nil, endpoint_state:nil, include_not_seen_since:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
-      get_filtered_list_of_endpoints_async(url:url, user_authentication:user_authentication, certificate:certificate, security_mode:security_mode, security_policy:security_policy, activated:activated, connected:connected, endpoint_state:endpoint_state, include_not_seen_since:include_not_seen_since, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+    def query_endpoints_with_http_info(body, only_server_state:nil, page_size:nil, custom_headers:nil)
+      query_endpoints_async(body, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
     end
 
     #
-    # Get filtered list of endpoints
+    # Query endpoints
     #
-    # Get a list of endpoints filtered using the specified query parameters.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfEndpoints operation using the token to retrieve
-    # more results.
+    # Return endpoints that match the specified query. The returned model can
+    # contain a continuation token if more results are available. Call the
+    # GetListOfEndpoints operation using the token to retrieve more results.
     #
-    # @param url [String] Endoint url for direct server access
-    # @param user_authentication [Enum] Type of credential selected for
-    # authentication. Possible values include: 'None', 'UserName',
-    # 'X509Certificate', 'JwtToken'
-    # @param certificate [Array<Integer>] Certificate of the endpoint
-    # @param security_mode [Enum] Security Mode. Possible values include: 'Best',
-    # 'Sign', 'SignAndEncrypt', 'None'
-    # @param security_policy [String] Security policy uri
-    # @param activated [Boolean] Whether the endpoint was activated
-    # @param connected [Boolean] Whether the endpoint is connected on supervisor.
-    # @param endpoint_state [Enum] The last state of the the activated endpoint.
-    # Possible values include: 'Connecting', 'NotReachable', 'Busy', 'NoTrust',
-    # 'CertificateInvalid', 'Ready', 'Error'
-    # @param include_not_seen_since [Boolean] Whether to include endpoints that
-    # were soft deleted
+    # @param body [EndpointRegistrationQueryApiModel] Query to match
     # @param only_server_state [Boolean] Whether to include only server state, or
-    # display
-    # current client state of the endpoint if available
-    # @param page_size [Integer] Optional number of results to
-    # return
+    # display current client state of the endpoint if available
+    # @param page_size [Integer] Optional number of results to return
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def get_filtered_list_of_endpoints_async(url:nil, user_authentication:nil, certificate:nil, security_mode:nil, security_policy:nil, activated:nil, connected:nil, endpoint_state:nil, include_not_seen_since:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
+    def query_endpoints_async(body, only_server_state:nil, page_size:nil, custom_headers:nil)
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.registry::Models::EndpointRegistrationQueryApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
       path_template = 'v2/endpoints/query'
 
       request_url = @base_url || self.base_url
 
       options = {
           middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          query_params: {'Url' => url,'UserAuthentication' => user_authentication,'Certificate' => certificate,'SecurityMode' => security_mode,'SecurityPolicy' => security_policy,'Activated' => activated,'Connected' => connected,'EndpointState' => endpoint_state,'IncludeNotSeenSince' => include_not_seen_since,'onlyServerState' => only_server_state,'pageSize' => page_size},
+          query_params: {'onlyServerState' => only_server_state,'pageSize' => page_size},
+          body: request_content,
           headers: request_headers.merge(custom_headers || {}),
           base_url: request_url
       }
-      promise = self.make_request_async(:get, path_template, options)
+      promise = self.make_request_async(:post, path_template, options)
 
       promise = promise.then do |result|
         http_response = result.response
@@ -1871,92 +2981,126 @@ module azure.iiot.opc.registry
     end
 
     #
-    # Query endpoints
+    # Get filtered list of endpoints
     #
-    # Return endpoints that match the specified query.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfEndpoints operation using the token to retrieve
+    # Get a list of endpoints filtered using the specified query parameters. The
+    # returned model can contain a continuation token if more results are
+    # available. Call the GetListOfEndpoints operation using the token to retrieve
     # more results.
     #
-    # @param query [EndpointRegistrationQueryApiModel] Query to match
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if available
+    # @param url [String] Endoint url for direct server access
+    # @param certificate [Array<Integer>] Certificate of the endpoint
+    # @param security_mode [SecurityMode] Security Mode. Possible values include:
+    # 'Best', 'Sign', 'SignAndEncrypt', 'None'
+    # @param security_policy [String] Security policy uri
+    # @param activated [Boolean] Whether the endpoint was activated
+    # @param connected [Boolean] Whether the endpoint is connected on supervisor.
+    # @param endpoint_state [EndpointConnectivityState] The last state of the the
+    # activated endpoint. Possible values include: 'Connecting', 'NotReachable',
+    # 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+    # @param include_not_seen_since [Boolean] Whether to include endpoints that
+    # were soft deleted
+    # @param discoverer_id [String] Discoverer id to filter with
+    # @param application_id [String] Application id to filter
+    # @param supervisor_id [String] Supervisor id to filter with
+    # @param site_or_gateway_id [String] Site or gateway id to filter with
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
     # @param page_size [Integer] Optional number of results to return
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [EndpointInfoListApiModel] operation results.
     #
-    def query_endpoints(query, only_server_state:nil, page_size:nil, custom_headers:nil)
-      response = query_endpoints_async(query, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+    def get_filtered_list_of_endpoints(url:nil, certificate:nil, security_mode:nil, security_policy:nil, activated:nil, connected:nil, endpoint_state:nil, include_not_seen_since:nil, discoverer_id:nil, application_id:nil, supervisor_id:nil, site_or_gateway_id:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
+      response = get_filtered_list_of_endpoints_async(url:url, certificate:certificate, security_mode:security_mode, security_policy:security_policy, activated:activated, connected:connected, endpoint_state:endpoint_state, include_not_seen_since:include_not_seen_since, discoverer_id:discoverer_id, application_id:application_id, supervisor_id:supervisor_id, site_or_gateway_id:site_or_gateway_id, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
-    # Query endpoints
+    # Get filtered list of endpoints
     #
-    # Return endpoints that match the specified query.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfEndpoints operation using the token to retrieve
+    # Get a list of endpoints filtered using the specified query parameters. The
+    # returned model can contain a continuation token if more results are
+    # available. Call the GetListOfEndpoints operation using the token to retrieve
     # more results.
     #
-    # @param query [EndpointRegistrationQueryApiModel] Query to match
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if available
+    # @param url [String] Endoint url for direct server access
+    # @param certificate [Array<Integer>] Certificate of the endpoint
+    # @param security_mode [SecurityMode] Security Mode. Possible values include:
+    # 'Best', 'Sign', 'SignAndEncrypt', 'None'
+    # @param security_policy [String] Security policy uri
+    # @param activated [Boolean] Whether the endpoint was activated
+    # @param connected [Boolean] Whether the endpoint is connected on supervisor.
+    # @param endpoint_state [EndpointConnectivityState] The last state of the the
+    # activated endpoint. Possible values include: 'Connecting', 'NotReachable',
+    # 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+    # @param include_not_seen_since [Boolean] Whether to include endpoints that
+    # were soft deleted
+    # @param discoverer_id [String] Discoverer id to filter with
+    # @param application_id [String] Application id to filter
+    # @param supervisor_id [String] Supervisor id to filter with
+    # @param site_or_gateway_id [String] Site or gateway id to filter with
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
     # @param page_size [Integer] Optional number of results to return
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def query_endpoints_with_http_info(query, only_server_state:nil, page_size:nil, custom_headers:nil)
-      query_endpoints_async(query, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+    def get_filtered_list_of_endpoints_with_http_info(url:nil, certificate:nil, security_mode:nil, security_policy:nil, activated:nil, connected:nil, endpoint_state:nil, include_not_seen_since:nil, discoverer_id:nil, application_id:nil, supervisor_id:nil, site_or_gateway_id:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
+      get_filtered_list_of_endpoints_async(url:url, certificate:certificate, security_mode:security_mode, security_policy:security_policy, activated:activated, connected:connected, endpoint_state:endpoint_state, include_not_seen_since:include_not_seen_since, discoverer_id:discoverer_id, application_id:application_id, supervisor_id:supervisor_id, site_or_gateway_id:site_or_gateway_id, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
     end
 
     #
-    # Query endpoints
+    # Get filtered list of endpoints
     #
-    # Return endpoints that match the specified query.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfEndpoints operation using the token to retrieve
+    # Get a list of endpoints filtered using the specified query parameters. The
+    # returned model can contain a continuation token if more results are
+    # available. Call the GetListOfEndpoints operation using the token to retrieve
     # more results.
     #
-    # @param query [EndpointRegistrationQueryApiModel] Query to match
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if available
+    # @param url [String] Endoint url for direct server access
+    # @param certificate [Array<Integer>] Certificate of the endpoint
+    # @param security_mode [SecurityMode] Security Mode. Possible values include:
+    # 'Best', 'Sign', 'SignAndEncrypt', 'None'
+    # @param security_policy [String] Security policy uri
+    # @param activated [Boolean] Whether the endpoint was activated
+    # @param connected [Boolean] Whether the endpoint is connected on supervisor.
+    # @param endpoint_state [EndpointConnectivityState] The last state of the the
+    # activated endpoint. Possible values include: 'Connecting', 'NotReachable',
+    # 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+    # @param include_not_seen_since [Boolean] Whether to include endpoints that
+    # were soft deleted
+    # @param discoverer_id [String] Discoverer id to filter with
+    # @param application_id [String] Application id to filter
+    # @param supervisor_id [String] Supervisor id to filter with
+    # @param site_or_gateway_id [String] Site or gateway id to filter with
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
     # @param page_size [Integer] Optional number of results to return
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def query_endpoints_async(query, only_server_state:nil, page_size:nil, custom_headers:nil)
-      fail ArgumentError, 'query is nil' if query.nil?
+    def get_filtered_list_of_endpoints_async(url:nil, certificate:nil, security_mode:nil, security_policy:nil, activated:nil, connected:nil, endpoint_state:nil, include_not_seen_since:nil, discoverer_id:nil, application_id:nil, supervisor_id:nil, site_or_gateway_id:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
 
 
       request_headers = {}
-      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
-
-      # Serialize Request
-      request_mapper = azure.iiot.opc.registry::Models::EndpointRegistrationQueryApiModel.mapper()
-      request_content = self.serialize(request_mapper,  query)
-      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
-
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
       path_template = 'v2/endpoints/query'
 
       request_url = @base_url || self.base_url
 
       options = {
           middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          query_params: {'onlyServerState' => only_server_state,'pageSize' => page_size},
-          body: request_content,
+          query_params: {'url' => url,'certificate' => certificate,'securityMode' => security_mode,'securityPolicy' => security_policy,'activated' => activated,'connected' => connected,'endpointState' => endpoint_state,'includeNotSeenSince' => include_not_seen_since,'discovererId' => discoverer_id,'applicationId' => application_id,'supervisorId' => supervisor_id,'siteOrGatewayId' => site_or_gateway_id,'onlyServerState' => only_server_state,'pageSize' => page_size},
           headers: request_headers.merge(custom_headers || {}),
           base_url: request_url
       }
-      promise = self.make_request_async(:post, path_template, options)
+      promise = self.make_request_async(:get, path_template, options)
 
       promise = promise.then do |result|
         http_response = result.response
@@ -2060,52 +3204,228 @@ module azure.iiot.opc.registry
     end
 
     #
-    # Return the service status in the form of the service status
-    # api model.
+    # Subscribe for endpoint events
     #
+    # Register a user to receive endpoint events through SignalR.
+    #
+    # @param body [String] The user id that will receive endpoint events.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
-    # @return [StatusResponseApiModel] operation results.
     #
-    def get_status(custom_headers:nil)
-      response = get_status_async(custom_headers:custom_headers).value!
-      response.body unless response.nil?
+    def subscribe2(body:nil, custom_headers:nil)
+      response = subscribe2_async(body:body, custom_headers:custom_headers).value!
+      nil
     end
 
     #
-    # Return the service status in the form of the service status
-    # api model.
+    # Subscribe for endpoint events
     #
+    # Register a user to receive endpoint events through SignalR.
+    #
+    # @param body [String] The user id that will receive endpoint events.
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def get_status_with_http_info(custom_headers:nil)
-      get_status_async(custom_headers:custom_headers).value!
+    def subscribe2_with_http_info(body:nil, custom_headers:nil)
+      subscribe2_async(body:body, custom_headers:custom_headers).value!
     end
 
     #
-    # Return the service status in the form of the service status
-    # api model.
+    # Subscribe for endpoint events
     #
+    # Register a user to receive endpoint events through SignalR.
+    #
+    # @param body [String] The user id that will receive endpoint events.
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def get_status_async(custom_headers:nil)
+    def subscribe2_async(body:nil, custom_headers:nil)
 
 
       request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v2/status'
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = {
+        client_side_validation: true,
+        required: false,
+        serialized_name: 'body',
+        type: {
+          name: 'String'
+        }
+      }
+      request_content = self.serialize(request_mapper,  body)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/endpoints/events'
 
       request_url = @base_url || self.base_url
 
       options = {
           middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:put, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Unsubscribe from endpoint events
+    #
+    # Unregister a user and stop it from receiving endpoint events.
+    #
+    # @param user_id [String] The user id that will not receive any more endpoint
+    # events
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def unsubscribe2(user_id, custom_headers:nil)
+      response = unsubscribe2_async(user_id, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Unsubscribe from endpoint events
+    #
+    # Unregister a user and stop it from receiving endpoint events.
+    #
+    # @param user_id [String] The user id that will not receive any more endpoint
+    # events
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def unsubscribe2_with_http_info(user_id, custom_headers:nil)
+      unsubscribe2_async(user_id, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Unsubscribe from endpoint events
+    #
+    # Unregister a user and stop it from receiving endpoint events.
+    #
+    # @param user_id [String] The user id that will not receive any more endpoint
+    # events
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def unsubscribe2_async(user_id, custom_headers:nil)
+      fail ArgumentError, 'user_id is nil' if user_id.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/endpoints/events/{userId}'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'userId' => user_id},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:delete, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Get Gateway registration information
+    #
+    # Returns a Gateway's registration and connectivity information. A Gateway id
+    # corresponds to the twin modules module identity.
+    #
+    # @param gateway_id [String] Gateway identifier
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [GatewayInfoApiModel] operation results.
+    #
+    def get_gateway(gateway_id, custom_headers:nil)
+      response = get_gateway_async(gateway_id, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Get Gateway registration information
+    #
+    # Returns a Gateway's registration and connectivity information. A Gateway id
+    # corresponds to the twin modules module identity.
+    #
+    # @param gateway_id [String] Gateway identifier
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def get_gateway_with_http_info(gateway_id, custom_headers:nil)
+      get_gateway_async(gateway_id, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Get Gateway registration information
+    #
+    # Returns a Gateway's registration and connectivity information. A Gateway id
+    # corresponds to the twin modules module identity.
+    #
+    # @param gateway_id [String] Gateway identifier
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def get_gateway_async(gateway_id, custom_headers:nil)
+      fail ArgumentError, 'gateway_id is nil' if gateway_id.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/gateways/{GatewayId}'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'GatewayId' => gateway_id},
           headers: request_headers.merge(custom_headers || {}),
           base_url: request_url
       }
@@ -2124,7 +3444,7 @@ module azure.iiot.opc.registry
         if status_code == 200
           begin
             parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.registry::Models::StatusResponseApiModel.mapper()
+            result_mapper = azure.iiot.opc.registry::Models::GatewayInfoApiModel.mapper()
             result.body = self.deserialize(result_mapper, parsed_response)
           rescue Exception => e
             fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
@@ -2138,15 +3458,1234 @@ module azure.iiot.opc.registry
     end
 
     #
+    # Update Gateway configuration
+    #
+    # Allows a caller to configure operations on the Gateway module identified by
+    # the Gateway id.
+    #
+    # @param gateway_id [String] Gateway identifier
+    # @param body [GatewayUpdateApiModel] Patch request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def update_gateway(gateway_id, body, custom_headers:nil)
+      response = update_gateway_async(gateway_id, body, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Update Gateway configuration
+    #
+    # Allows a caller to configure operations on the Gateway module identified by
+    # the Gateway id.
+    #
+    # @param gateway_id [String] Gateway identifier
+    # @param body [GatewayUpdateApiModel] Patch request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def update_gateway_with_http_info(gateway_id, body, custom_headers:nil)
+      update_gateway_async(gateway_id, body, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Update Gateway configuration
+    #
+    # Allows a caller to configure operations on the Gateway module identified by
+    # the Gateway id.
+    #
+    # @param gateway_id [String] Gateway identifier
+    # @param body [GatewayUpdateApiModel] Patch request
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def update_gateway_async(gateway_id, body, custom_headers:nil)
+      fail ArgumentError, 'gateway_id is nil' if gateway_id.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.registry::Models::GatewayUpdateApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/gateways/{GatewayId}'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'GatewayId' => gateway_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:patch, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Get list of Gateways
+    #
+    # Get all registered Gateways and therefore twin modules in paged form. The
+    # returned model can contain a continuation token if more results are
+    # available. Call this operation again using the token to retrieve more
+    # results.
+    #
+    # @param continuation_token [String] Optional Continuation token
+    # @param page_size [Integer] Optional number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [GatewayListApiModel] operation results.
+    #
+    def get_list_of_gateway(continuation_token:nil, page_size:nil, custom_headers:nil)
+      response = get_list_of_gateway_async(continuation_token:continuation_token, page_size:page_size, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Get list of Gateways
+    #
+    # Get all registered Gateways and therefore twin modules in paged form. The
+    # returned model can contain a continuation token if more results are
+    # available. Call this operation again using the token to retrieve more
+    # results.
+    #
+    # @param continuation_token [String] Optional Continuation token
+    # @param page_size [Integer] Optional number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def get_list_of_gateway_with_http_info(continuation_token:nil, page_size:nil, custom_headers:nil)
+      get_list_of_gateway_async(continuation_token:continuation_token, page_size:page_size, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Get list of Gateways
+    #
+    # Get all registered Gateways and therefore twin modules in paged form. The
+    # returned model can contain a continuation token if more results are
+    # available. Call this operation again using the token to retrieve more
+    # results.
+    #
+    # @param continuation_token [String] Optional Continuation token
+    # @param page_size [Integer] Optional number of results to return
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def get_list_of_gateway_async(continuation_token:nil, page_size:nil, custom_headers:nil)
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/gateways'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          query_params: {'continuationToken' => continuation_token,'pageSize' => page_size},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:get, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.registry::Models::GatewayListApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Query Gateways
+    #
+    # Get all Gateways that match a specified query. The returned model can contain
+    # a continuation token if more results are available. Call the GetListOfGateway
+    # operation using the token to retrieve more results.
+    #
+    # @param body [GatewayQueryApiModel] Gateway query model
+    # @param page_size [Integer] Number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [GatewayListApiModel] operation results.
+    #
+    def query_gateway(body, page_size:nil, custom_headers:nil)
+      response = query_gateway_async(body, page_size:page_size, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Query Gateways
+    #
+    # Get all Gateways that match a specified query. The returned model can contain
+    # a continuation token if more results are available. Call the GetListOfGateway
+    # operation using the token to retrieve more results.
+    #
+    # @param body [GatewayQueryApiModel] Gateway query model
+    # @param page_size [Integer] Number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def query_gateway_with_http_info(body, page_size:nil, custom_headers:nil)
+      query_gateway_async(body, page_size:page_size, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Query Gateways
+    #
+    # Get all Gateways that match a specified query. The returned model can contain
+    # a continuation token if more results are available. Call the GetListOfGateway
+    # operation using the token to retrieve more results.
+    #
+    # @param body [GatewayQueryApiModel] Gateway query model
+    # @param page_size [Integer] Number of results to return
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def query_gateway_async(body, page_size:nil, custom_headers:nil)
+      fail ArgumentError, 'body is nil' if body.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.registry::Models::GatewayQueryApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/gateways/query'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          query_params: {'pageSize' => page_size},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.registry::Models::GatewayListApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Get filtered list of Gateways
+    #
+    # Get a list of Gateways filtered using the specified query parameters. The
+    # returned model can contain a continuation token if more results are
+    # available. Call the GetListOfGateway operation using the token to retrieve
+    # more results.
+    #
+    # @param site_id [String] Site of the Gateway
+    # @param connected [Boolean] Included connected or disconnected
+    # @param page_size [Integer] Number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [GatewayListApiModel] operation results.
+    #
+    def get_filtered_list_of_gateway(site_id:nil, connected:nil, page_size:nil, custom_headers:nil)
+      response = get_filtered_list_of_gateway_async(site_id:site_id, connected:connected, page_size:page_size, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Get filtered list of Gateways
+    #
+    # Get a list of Gateways filtered using the specified query parameters. The
+    # returned model can contain a continuation token if more results are
+    # available. Call the GetListOfGateway operation using the token to retrieve
+    # more results.
+    #
+    # @param site_id [String] Site of the Gateway
+    # @param connected [Boolean] Included connected or disconnected
+    # @param page_size [Integer] Number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def get_filtered_list_of_gateway_with_http_info(site_id:nil, connected:nil, page_size:nil, custom_headers:nil)
+      get_filtered_list_of_gateway_async(site_id:site_id, connected:connected, page_size:page_size, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Get filtered list of Gateways
+    #
+    # Get a list of Gateways filtered using the specified query parameters. The
+    # returned model can contain a continuation token if more results are
+    # available. Call the GetListOfGateway operation using the token to retrieve
+    # more results.
+    #
+    # @param site_id [String] Site of the Gateway
+    # @param connected [Boolean] Included connected or disconnected
+    # @param page_size [Integer] Number of results to return
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def get_filtered_list_of_gateway_async(site_id:nil, connected:nil, page_size:nil, custom_headers:nil)
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/gateways/query'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          query_params: {'siteId' => site_id,'connected' => connected,'pageSize' => page_size},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:get, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.registry::Models::GatewayListApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Subscribe to Gateway registry events
+    #
+    # Register a user to receive Gateway events through SignalR.
+    #
+    # @param body [String] The user id that will receive Gateway events.
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def subscribe3(body:nil, custom_headers:nil)
+      response = subscribe3_async(body:body, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Subscribe to Gateway registry events
+    #
+    # Register a user to receive Gateway events through SignalR.
+    #
+    # @param body [String] The user id that will receive Gateway events.
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def subscribe3_with_http_info(body:nil, custom_headers:nil)
+      subscribe3_async(body:body, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Subscribe to Gateway registry events
+    #
+    # Register a user to receive Gateway events through SignalR.
+    #
+    # @param body [String] The user id that will receive Gateway events.
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def subscribe3_async(body:nil, custom_headers:nil)
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = {
+        client_side_validation: true,
+        required: false,
+        serialized_name: 'body',
+        type: {
+          name: 'String'
+        }
+      }
+      request_content = self.serialize(request_mapper,  body)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/gateways/events'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:put, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Unsubscribe registry events
+    #
+    # Unregister a user and stop it from receiving Gateway events.
+    #
+    # @param user_id [String] The user id that will not receive any more Gateway
+    # events
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def unsubscribe3(user_id, custom_headers:nil)
+      response = unsubscribe3_async(user_id, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Unsubscribe registry events
+    #
+    # Unregister a user and stop it from receiving Gateway events.
+    #
+    # @param user_id [String] The user id that will not receive any more Gateway
+    # events
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def unsubscribe3_with_http_info(user_id, custom_headers:nil)
+      unsubscribe3_async(user_id, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Unsubscribe registry events
+    #
+    # Unregister a user and stop it from receiving Gateway events.
+    #
+    # @param user_id [String] The user id that will not receive any more Gateway
+    # events
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def unsubscribe3_async(user_id, custom_headers:nil)
+      fail ArgumentError, 'user_id is nil' if user_id.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/gateways/events/{userId}'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'userId' => user_id},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:delete, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Get publisher registration information
+    #
+    # Returns a publisher's registration and connectivity information. A publisher
+    # id corresponds to the twin modules module identity.
+    #
+    # @param publisher_id [String] Publisher identifier
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [PublisherApiModel] operation results.
+    #
+    def get_publisher(publisher_id, only_server_state:nil, custom_headers:nil)
+      response = get_publisher_async(publisher_id, only_server_state:only_server_state, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Get publisher registration information
+    #
+    # Returns a publisher's registration and connectivity information. A publisher
+    # id corresponds to the twin modules module identity.
+    #
+    # @param publisher_id [String] Publisher identifier
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def get_publisher_with_http_info(publisher_id, only_server_state:nil, custom_headers:nil)
+      get_publisher_async(publisher_id, only_server_state:only_server_state, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Get publisher registration information
+    #
+    # Returns a publisher's registration and connectivity information. A publisher
+    # id corresponds to the twin modules module identity.
+    #
+    # @param publisher_id [String] Publisher identifier
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def get_publisher_async(publisher_id, only_server_state:nil, custom_headers:nil)
+      fail ArgumentError, 'publisher_id is nil' if publisher_id.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/publishers/{publisherId}'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'publisherId' => publisher_id},
+          query_params: {'onlyServerState' => only_server_state},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:get, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.registry::Models::PublisherApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Update publisher configuration
+    #
+    # Allows a caller to configure operations on the publisher module identified by
+    # the publisher id.
+    #
+    # @param publisher_id [String] Publisher identifier
+    # @param body [PublisherUpdateApiModel] Patch request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def update_publisher(publisher_id, body, custom_headers:nil)
+      response = update_publisher_async(publisher_id, body, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Update publisher configuration
+    #
+    # Allows a caller to configure operations on the publisher module identified by
+    # the publisher id.
+    #
+    # @param publisher_id [String] Publisher identifier
+    # @param body [PublisherUpdateApiModel] Patch request
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def update_publisher_with_http_info(publisher_id, body, custom_headers:nil)
+      update_publisher_async(publisher_id, body, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Update publisher configuration
+    #
+    # Allows a caller to configure operations on the publisher module identified by
+    # the publisher id.
+    #
+    # @param publisher_id [String] Publisher identifier
+    # @param body [PublisherUpdateApiModel] Patch request
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def update_publisher_async(publisher_id, body, custom_headers:nil)
+      fail ArgumentError, 'publisher_id is nil' if publisher_id.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.registry::Models::PublisherUpdateApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/publishers/{publisherId}'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'publisherId' => publisher_id},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:patch, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Get list of publishers
+    #
+    # Get all registered publishers and therefore twin modules in paged form. The
+    # returned model can contain a continuation token if more results are
+    # available. Call this operation again using the token to retrieve more
+    # results.
+    #
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param continuation_token [String] Optional Continuation token
+    # @param page_size [Integer] Optional number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [PublisherListApiModel] operation results.
+    #
+    def get_list_of_publisher(only_server_state:nil, continuation_token:nil, page_size:nil, custom_headers:nil)
+      response = get_list_of_publisher_async(only_server_state:only_server_state, continuation_token:continuation_token, page_size:page_size, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Get list of publishers
+    #
+    # Get all registered publishers and therefore twin modules in paged form. The
+    # returned model can contain a continuation token if more results are
+    # available. Call this operation again using the token to retrieve more
+    # results.
+    #
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param continuation_token [String] Optional Continuation token
+    # @param page_size [Integer] Optional number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def get_list_of_publisher_with_http_info(only_server_state:nil, continuation_token:nil, page_size:nil, custom_headers:nil)
+      get_list_of_publisher_async(only_server_state:only_server_state, continuation_token:continuation_token, page_size:page_size, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Get list of publishers
+    #
+    # Get all registered publishers and therefore twin modules in paged form. The
+    # returned model can contain a continuation token if more results are
+    # available. Call this operation again using the token to retrieve more
+    # results.
+    #
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param continuation_token [String] Optional Continuation token
+    # @param page_size [Integer] Optional number of results to return
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def get_list_of_publisher_async(only_server_state:nil, continuation_token:nil, page_size:nil, custom_headers:nil)
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/publishers'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          query_params: {'onlyServerState' => only_server_state,'continuationToken' => continuation_token,'pageSize' => page_size},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:get, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.registry::Models::PublisherListApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Query publishers
+    #
+    # Get all publishers that match a specified query. The returned model can
+    # contain a continuation token if more results are available. Call the
+    # GetListOfPublisher operation using the token to retrieve more results.
+    #
+    # @param body [PublisherQueryApiModel] Publisher query model
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param page_size [Integer] Number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [PublisherListApiModel] operation results.
+    #
+    def query_publisher(body, only_server_state:nil, page_size:nil, custom_headers:nil)
+      response = query_publisher_async(body, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Query publishers
+    #
+    # Get all publishers that match a specified query. The returned model can
+    # contain a continuation token if more results are available. Call the
+    # GetListOfPublisher operation using the token to retrieve more results.
+    #
+    # @param body [PublisherQueryApiModel] Publisher query model
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param page_size [Integer] Number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def query_publisher_with_http_info(body, only_server_state:nil, page_size:nil, custom_headers:nil)
+      query_publisher_async(body, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Query publishers
+    #
+    # Get all publishers that match a specified query. The returned model can
+    # contain a continuation token if more results are available. Call the
+    # GetListOfPublisher operation using the token to retrieve more results.
+    #
+    # @param body [PublisherQueryApiModel] Publisher query model
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param page_size [Integer] Number of results to return
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def query_publisher_async(body, only_server_state:nil, page_size:nil, custom_headers:nil)
+      fail ArgumentError, 'body is nil' if body.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = azure.iiot.opc.registry::Models::PublisherQueryApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/publishers/query'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          query_params: {'onlyServerState' => only_server_state,'pageSize' => page_size},
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:post, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.registry::Models::PublisherListApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Get filtered list of publishers
+    #
+    # Get a list of publishers filtered using the specified query parameters. The
+    # returned model can contain a continuation token if more results are
+    # available. Call the GetListOfPublisher operation using the token to retrieve
+    # more results.
+    #
+    # @param site_id [String] Site for the publishers
+    # @param connected [Boolean] Included connected or disconnected
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param page_size [Integer] Number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [PublisherListApiModel] operation results.
+    #
+    def get_filtered_list_of_publisher(site_id:nil, connected:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
+      response = get_filtered_list_of_publisher_async(site_id:site_id, connected:connected, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Get filtered list of publishers
+    #
+    # Get a list of publishers filtered using the specified query parameters. The
+    # returned model can contain a continuation token if more results are
+    # available. Call the GetListOfPublisher operation using the token to retrieve
+    # more results.
+    #
+    # @param site_id [String] Site for the publishers
+    # @param connected [Boolean] Included connected or disconnected
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param page_size [Integer] Number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def get_filtered_list_of_publisher_with_http_info(site_id:nil, connected:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
+      get_filtered_list_of_publisher_async(site_id:site_id, connected:connected, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Get filtered list of publishers
+    #
+    # Get a list of publishers filtered using the specified query parameters. The
+    # returned model can contain a continuation token if more results are
+    # available. Call the GetListOfPublisher operation using the token to retrieve
+    # more results.
+    #
+    # @param site_id [String] Site for the publishers
+    # @param connected [Boolean] Included connected or disconnected
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param page_size [Integer] Number of results to return
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def get_filtered_list_of_publisher_async(site_id:nil, connected:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/publishers/query'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          query_params: {'siteId' => site_id,'connected' => connected,'onlyServerState' => only_server_state,'pageSize' => page_size},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:get, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.registry::Models::PublisherListApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Subscribe to publisher registry events
+    #
+    # Register a user to receive publisher events through SignalR.
+    #
+    # @param body [String] The user id that will receive publisher events.
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def subscribe4(body:nil, custom_headers:nil)
+      response = subscribe4_async(body:body, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Subscribe to publisher registry events
+    #
+    # Register a user to receive publisher events through SignalR.
+    #
+    # @param body [String] The user id that will receive publisher events.
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def subscribe4_with_http_info(body:nil, custom_headers:nil)
+      subscribe4_async(body:body, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Subscribe to publisher registry events
+    #
+    # Register a user to receive publisher events through SignalR.
+    #
+    # @param body [String] The user id that will receive publisher events.
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def subscribe4_async(body:nil, custom_headers:nil)
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = {
+        client_side_validation: true,
+        required: false,
+        serialized_name: 'body',
+        type: {
+          name: 'String'
+        }
+      }
+      request_content = self.serialize(request_mapper,  body)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/publishers/events'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:put, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Unsubscribe registry events
+    #
+    # Unregister a user and stop it from receiving publisher events.
+    #
+    # @param user_id [String] The user id that will not receive any more publisher
+    # events
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def unsubscribe4(user_id, custom_headers:nil)
+      response = unsubscribe4_async(user_id, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Unsubscribe registry events
+    #
+    # Unregister a user and stop it from receiving publisher events.
+    #
+    # @param user_id [String] The user id that will not receive any more publisher
+    # events
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def unsubscribe4_with_http_info(user_id, custom_headers:nil)
+      unsubscribe4_async(user_id, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Unsubscribe registry events
+    #
+    # Unregister a user and stop it from receiving publisher events.
+    #
+    # @param user_id [String] The user id that will not receive any more publisher
+    # events
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def unsubscribe4_async(user_id, custom_headers:nil)
+      fail ArgumentError, 'user_id is nil' if user_id.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/publishers/events/{userId}'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'userId' => user_id},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:delete, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
     # Get supervisor registration information
     #
-    # Returns a supervisor's registration and connectivity information.
-    # A supervisor id corresponds to the twin modules module identity.
+    # Returns a supervisor's registration and connectivity information. A
+    # supervisor id corresponds to the twin modules module identity.
     #
     # @param supervisor_id [String] Supervisor identifier
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -2160,13 +4699,12 @@ module azure.iiot.opc.registry
     #
     # Get supervisor registration information
     #
-    # Returns a supervisor's registration and connectivity information.
-    # A supervisor id corresponds to the twin modules module identity.
+    # Returns a supervisor's registration and connectivity information. A
+    # supervisor id corresponds to the twin modules module identity.
     #
     # @param supervisor_id [String] Supervisor identifier
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
@@ -2179,13 +4717,12 @@ module azure.iiot.opc.registry
     #
     # Get supervisor registration information
     #
-    # Returns a supervisor's registration and connectivity information.
-    # A supervisor id corresponds to the twin modules module identity.
+    # Returns a supervisor's registration and connectivity information. A
+    # supervisor id corresponds to the twin modules module identity.
     #
     # @param supervisor_id [String] Supervisor identifier
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
@@ -2243,13 +4780,13 @@ module azure.iiot.opc.registry
     # identified by the supervisor id or update site information.
     #
     # @param supervisor_id [String] supervisor identifier
-    # @param request [SupervisorUpdateApiModel] Patch request
+    # @param body [SupervisorUpdateApiModel] Patch request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     #
-    def update_supervisor(supervisor_id, request, custom_headers:nil)
-      response = update_supervisor_async(supervisor_id, request, custom_headers:custom_headers).value!
+    def update_supervisor(supervisor_id, body, custom_headers:nil)
+      response = update_supervisor_async(supervisor_id, body, custom_headers:custom_headers).value!
       nil
     end
 
@@ -2260,14 +4797,14 @@ module azure.iiot.opc.registry
     # identified by the supervisor id or update site information.
     #
     # @param supervisor_id [String] supervisor identifier
-    # @param request [SupervisorUpdateApiModel] Patch request
+    # @param body [SupervisorUpdateApiModel] Patch request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def update_supervisor_with_http_info(supervisor_id, request, custom_headers:nil)
-      update_supervisor_async(supervisor_id, request, custom_headers:custom_headers).value!
+    def update_supervisor_with_http_info(supervisor_id, body, custom_headers:nil)
+      update_supervisor_async(supervisor_id, body, custom_headers:custom_headers).value!
     end
 
     #
@@ -2277,15 +4814,15 @@ module azure.iiot.opc.registry
     # identified by the supervisor id or update site information.
     #
     # @param supervisor_id [String] supervisor identifier
-    # @param request [SupervisorUpdateApiModel] Patch request
+    # @param body [SupervisorUpdateApiModel] Patch request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def update_supervisor_async(supervisor_id, request, custom_headers:nil)
+    def update_supervisor_async(supervisor_id, body, custom_headers:nil)
       fail ArgumentError, 'supervisor_id is nil' if supervisor_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
@@ -2293,7 +4830,7 @@ module azure.iiot.opc.registry
 
       # Serialize Request
       request_mapper = azure.iiot.opc.registry::Models::SupervisorUpdateApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/supervisors/{supervisorId}'
@@ -2414,8 +4951,8 @@ module azure.iiot.opc.registry
     #
     # Reset supervisor
     #
-    # Allows a caller to reset the twin module using its supervisor
-    # identity identifier.
+    # Allows a caller to reset the twin module using its supervisor identity
+    # identifier.
     #
     # @param supervisor_id [String] supervisor identifier
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -2430,8 +4967,8 @@ module azure.iiot.opc.registry
     #
     # Reset supervisor
     #
-    # Allows a caller to reset the twin module using its supervisor
-    # identity identifier.
+    # Allows a caller to reset the twin module using its supervisor identity
+    # identifier.
     #
     # @param supervisor_id [String] supervisor identifier
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -2446,8 +4983,8 @@ module azure.iiot.opc.registry
     #
     # Reset supervisor
     #
-    # Allows a caller to reset the twin module using its supervisor
-    # identity identifier.
+    # Allows a caller to reset the twin module using its supervisor identity
+    # identifier.
     #
     # @param supervisor_id [String] supervisor identifier
     # @param [Hash{String => String}] A hash of custom headers that will be added
@@ -2492,13 +5029,13 @@ module azure.iiot.opc.registry
     #
     # Get list of supervisors
     #
-    # Get all registered supervisors and therefore twin modules in paged form.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call this operation again using the token to retrieve more results.
+    # Get all registered supervisors and therefore twin modules in paged form. The
+    # returned model can contain a continuation token if more results are
+    # available. Call this operation again using the token to retrieve more
+    # results.
     #
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if available
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
     # @param continuation_token [String] Optional Continuation token
     # @param page_size [Integer] Optional number of results to return
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -2514,13 +5051,13 @@ module azure.iiot.opc.registry
     #
     # Get list of supervisors
     #
-    # Get all registered supervisors and therefore twin modules in paged form.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call this operation again using the token to retrieve more results.
+    # Get all registered supervisors and therefore twin modules in paged form. The
+    # returned model can contain a continuation token if more results are
+    # available. Call this operation again using the token to retrieve more
+    # results.
     #
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if available
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
     # @param continuation_token [String] Optional Continuation token
     # @param page_size [Integer] Optional number of results to return
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
@@ -2535,13 +5072,13 @@ module azure.iiot.opc.registry
     #
     # Get list of supervisors
     #
-    # Get all registered supervisors and therefore twin modules in paged form.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call this operation again using the token to retrieve more results.
+    # Get all registered supervisors and therefore twin modules in paged form. The
+    # returned model can contain a continuation token if more results are
+    # available. Call this operation again using the token to retrieve more
+    # results.
     #
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if available
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
     # @param continuation_token [String] Optional Continuation token
     # @param page_size [Integer] Optional number of results to return
     # @param [Hash{String => String}] A hash of custom headers that will be added
@@ -2593,191 +5130,64 @@ module azure.iiot.opc.registry
     end
 
     #
-    # Get filtered list of supervisors
+    # Query supervisors
     #
-    # Get a list of supervisors filtered using the specified query parameters.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfSupervisors operation using the token to retrieve
-    # more results.
+    # Get all supervisors that match a specified query. The returned model can
+    # contain a continuation token if more results are available. Call the
+    # GetListOfSupervisors operation using the token to retrieve more results.
     #
-    # @param site_id [String] Site of the supervisor
-    # @param discovery [Enum] Discovery mode of supervisor. Possible values
-    # include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-    # @param connected [Boolean] Included connected or disconnected
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
+    # @param body [SupervisorQueryApiModel] Supervisors query model
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
     # @param page_size [Integer] Number of results to return
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [SupervisorListApiModel] operation results.
     #
-    def get_filtered_list_of_supervisors(site_id:nil, discovery:nil, connected:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
-      response = get_filtered_list_of_supervisors_async(site_id:site_id, discovery:discovery, connected:connected, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
-      response.body unless response.nil?
-    end
-
-    #
-    # Get filtered list of supervisors
-    #
-    # Get a list of supervisors filtered using the specified query parameters.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfSupervisors operation using the token to retrieve
-    # more results.
-    #
-    # @param site_id [String] Site of the supervisor
-    # @param discovery [Enum] Discovery mode of supervisor. Possible values
-    # include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-    # @param connected [Boolean] Included connected or disconnected
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
-    # @param page_size [Integer] Number of results to return
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def get_filtered_list_of_supervisors_with_http_info(site_id:nil, discovery:nil, connected:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
-      get_filtered_list_of_supervisors_async(site_id:site_id, discovery:discovery, connected:connected, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
-    end
-
-    #
-    # Get filtered list of supervisors
-    #
-    # Get a list of supervisors filtered using the specified query parameters.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfSupervisors operation using the token to retrieve
-    # more results.
-    #
-    # @param site_id [String] Site of the supervisor
-    # @param discovery [Enum] Discovery mode of supervisor. Possible values
-    # include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-    # @param connected [Boolean] Included connected or disconnected
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
-    # @param page_size [Integer] Number of results to return
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def get_filtered_list_of_supervisors_async(site_id:nil, discovery:nil, connected:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v2/supervisors/query'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          query_params: {'SiteId' => site_id,'Discovery' => discovery,'Connected' => connected,'onlyServerState' => only_server_state,'pageSize' => page_size},
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:get, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-        # Deserialize Response
-        if status_code == 200
-          begin
-            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.registry::Models::SupervisorListApiModel.mapper()
-            result.body = self.deserialize(result_mapper, parsed_response)
-          rescue Exception => e
-            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
-          end
-        end
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Query supervisors
-    #
-    # Get all supervisors that match a specified query.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfSupervisors operation using the token to retrieve
-    # more results.
-    #
-    # @param query [SupervisorQueryApiModel] Supervisors query model
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
-    # @param page_size [Integer] Number of results to return
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [SupervisorListApiModel] operation results.
-    #
-    def query_supervisors(query, only_server_state:nil, page_size:nil, custom_headers:nil)
-      response = query_supervisors_async(query, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+    def query_supervisors(body, only_server_state:nil, page_size:nil, custom_headers:nil)
+      response = query_supervisors_async(body, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Query supervisors
     #
-    # Get all supervisors that match a specified query.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfSupervisors operation using the token to retrieve
-    # more results.
+    # Get all supervisors that match a specified query. The returned model can
+    # contain a continuation token if more results are available. Call the
+    # GetListOfSupervisors operation using the token to retrieve more results.
     #
-    # @param query [SupervisorQueryApiModel] Supervisors query model
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
+    # @param body [SupervisorQueryApiModel] Supervisors query model
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
     # @param page_size [Integer] Number of results to return
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def query_supervisors_with_http_info(query, only_server_state:nil, page_size:nil, custom_headers:nil)
-      query_supervisors_async(query, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+    def query_supervisors_with_http_info(body, only_server_state:nil, page_size:nil, custom_headers:nil)
+      query_supervisors_async(body, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
     end
 
     #
     # Query supervisors
     #
-    # Get all supervisors that match a specified query.
-    # The returned model can contain a continuation token if more results are
-    # available.
-    # Call the GetListOfSupervisors operation using the token to retrieve
-    # more results.
+    # Get all supervisors that match a specified query. The returned model can
+    # contain a continuation token if more results are available. Call the
+    # GetListOfSupervisors operation using the token to retrieve more results.
     #
-    # @param query [SupervisorQueryApiModel] Supervisors query model
-    # @param only_server_state [Boolean] Whether to include only server
-    # state, or display current client state of the endpoint if
-    # available
+    # @param body [SupervisorQueryApiModel] Supervisors query model
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
     # @param page_size [Integer] Number of results to return
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def query_supervisors_async(query, only_server_state:nil, page_size:nil, custom_headers:nil)
-      fail ArgumentError, 'query is nil' if query.nil?
+    def query_supervisors_async(body, only_server_state:nil, page_size:nil, custom_headers:nil)
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
@@ -2785,7 +5195,7 @@ module azure.iiot.opc.registry
 
       # Serialize Request
       request_mapper = azure.iiot.opc.registry::Models::SupervisorQueryApiModel.mapper()
-      request_content = self.serialize(request_mapper,  query)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/supervisors/query'
@@ -2820,6 +5230,277 @@ module azure.iiot.opc.registry
             fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
           end
         end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Get filtered list of supervisors
+    #
+    # Get a list of supervisors filtered using the specified query parameters. The
+    # returned model can contain a continuation token if more results are
+    # available. Call the GetListOfSupervisors operation using the token to
+    # retrieve more results.
+    #
+    # @param site_id [String] Site for the supervisors
+    # @param connected [Boolean] Included connected or disconnected
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param page_size [Integer] Number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [SupervisorListApiModel] operation results.
+    #
+    def get_filtered_list_of_supervisors(site_id:nil, connected:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
+      response = get_filtered_list_of_supervisors_async(site_id:site_id, connected:connected, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+      response.body unless response.nil?
+    end
+
+    #
+    # Get filtered list of supervisors
+    #
+    # Get a list of supervisors filtered using the specified query parameters. The
+    # returned model can contain a continuation token if more results are
+    # available. Call the GetListOfSupervisors operation using the token to
+    # retrieve more results.
+    #
+    # @param site_id [String] Site for the supervisors
+    # @param connected [Boolean] Included connected or disconnected
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param page_size [Integer] Number of results to return
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def get_filtered_list_of_supervisors_with_http_info(site_id:nil, connected:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
+      get_filtered_list_of_supervisors_async(site_id:site_id, connected:connected, only_server_state:only_server_state, page_size:page_size, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Get filtered list of supervisors
+    #
+    # Get a list of supervisors filtered using the specified query parameters. The
+    # returned model can contain a continuation token if more results are
+    # available. Call the GetListOfSupervisors operation using the token to
+    # retrieve more results.
+    #
+    # @param site_id [String] Site for the supervisors
+    # @param connected [Boolean] Included connected or disconnected
+    # @param only_server_state [Boolean] Whether to include only server state, or
+    # display current client state of the endpoint if available
+    # @param page_size [Integer] Number of results to return
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def get_filtered_list_of_supervisors_async(site_id:nil, connected:nil, only_server_state:nil, page_size:nil, custom_headers:nil)
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/supervisors/query'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          query_params: {'siteId' => site_id,'connected' => connected,'onlyServerState' => only_server_state,'pageSize' => page_size},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:get, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+        # Deserialize Response
+        if status_code == 200
+          begin
+            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
+            result_mapper = azure.iiot.opc.registry::Models::SupervisorListApiModel.mapper()
+            result.body = self.deserialize(result_mapper, parsed_response)
+          rescue Exception => e
+            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
+          end
+        end
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Subscribe to supervisor registry events
+    #
+    # Register a user to receive supervisor events through SignalR.
+    #
+    # @param body [String] The user id that will receive supervisor events.
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def subscribe5(body:nil, custom_headers:nil)
+      response = subscribe5_async(body:body, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Subscribe to supervisor registry events
+    #
+    # Register a user to receive supervisor events through SignalR.
+    #
+    # @param body [String] The user id that will receive supervisor events.
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def subscribe5_with_http_info(body:nil, custom_headers:nil)
+      subscribe5_async(body:body, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Subscribe to supervisor registry events
+    #
+    # Register a user to receive supervisor events through SignalR.
+    #
+    # @param body [String] The user id that will receive supervisor events.
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def subscribe5_async(body:nil, custom_headers:nil)
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
+
+      # Serialize Request
+      request_mapper = {
+        client_side_validation: true,
+        required: false,
+        serialized_name: 'body',
+        type: {
+          name: 'String'
+        }
+      }
+      request_content = self.serialize(request_mapper,  body)
+      request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
+
+      path_template = 'v2/supervisors/events'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          body: request_content,
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:put, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
+
+        result
+      end
+
+      promise.execute
+    end
+
+    #
+    # Unsubscribe registry events
+    #
+    # Unregister a user and stop it from receiving supervisor events.
+    #
+    # @param user_id [String] The user id that will not receive any more supervisor
+    # events
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    #
+    def unsubscribe5(user_id, custom_headers:nil)
+      response = unsubscribe5_async(user_id, custom_headers:custom_headers).value!
+      nil
+    end
+
+    #
+    # Unsubscribe registry events
+    #
+    # Unregister a user and stop it from receiving supervisor events.
+    #
+    # @param user_id [String] The user id that will not receive any more supervisor
+    # events
+    # @param custom_headers [Hash{String => String}] A hash of custom headers that
+    # will be added to the HTTP request.
+    #
+    # @return [MsRest::HttpOperationResponse] HTTP response information.
+    #
+    def unsubscribe5_with_http_info(user_id, custom_headers:nil)
+      unsubscribe5_async(user_id, custom_headers:custom_headers).value!
+    end
+
+    #
+    # Unsubscribe registry events
+    #
+    # Unregister a user and stop it from receiving supervisor events.
+    #
+    # @param user_id [String] The user id that will not receive any more supervisor
+    # events
+    # @param [Hash{String => String}] A hash of custom headers that will be added
+    # to the HTTP request.
+    #
+    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
+    #
+    def unsubscribe5_async(user_id, custom_headers:nil)
+      fail ArgumentError, 'user_id is nil' if user_id.nil?
+
+
+      request_headers = {}
+      request_headers['Content-Type'] = 'application/json; charset=utf-8'
+      path_template = 'v2/supervisors/events/{userId}'
+
+      request_url = @base_url || self.base_url
+
+      options = {
+          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
+          path_params: {'userId' => user_id},
+          headers: request_headers.merge(custom_headers || {}),
+          base_url: request_url
+      }
+      promise = self.make_request_async(:delete, path_template, options)
+
+      promise = promise.then do |result|
+        http_response = result.response
+        status_code = http_response.status
+        response_content = http_response.body
+        unless status_code == 200
+          error_model = JSON.load(response_content)
+          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
+        end
+
 
         result
       end

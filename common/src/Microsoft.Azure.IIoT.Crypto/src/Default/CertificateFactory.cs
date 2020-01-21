@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Crypto.Default {
-    using Microsoft.Azure.IIoT.Crypto;
     using Microsoft.Azure.IIoT.Crypto.Models;
     using System;
     using System.Collections.Generic;
@@ -55,7 +54,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
 
                 // Basic constraints
                 request.CertificateExtensions.Add(
-                    new X509BasicConstraintsExtension(canIssue, canIssue, 0, true));
+                    new X509BasicConstraintsExtension(canIssue, !canIssue, 0, true));
                 // Subject Key Identifier
                 request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(
                     request.PublicKey, X509SubjectKeyIdentifierHashAlgorithm.Sha1, false));
@@ -149,7 +148,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
 
                 // Basic constraints
                 request.CertificateExtensions.Add(new X509BasicConstraintsExtension(
-                    canIssue, canIssue, 0, true));
+                    canIssue, !canIssue, 0, true));
                 // Subject Key Identifier
                 var ski = new X509SubjectKeyIdentifierExtension(request.PublicKey,
                     X509SubjectKeyIdentifierHashAlgorithm.Sha1, false);

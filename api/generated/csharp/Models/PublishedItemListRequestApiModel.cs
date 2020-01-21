@@ -8,7 +8,7 @@
 // regenerated.
 // </auto-generated>
 
-namespace Microsoft.Azure.IIoT.Opc.Twin.Models
+namespace Microsoft.Azure.IIoT.Opc.Publisher.Models
 {
     using Newtonsoft.Json;
     using System.Linq;

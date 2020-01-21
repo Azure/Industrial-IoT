@@ -6,22 +6,19 @@
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Edge;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Control;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Discovery;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Export;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Servers;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Twin;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Export.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
+    using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Tasks.Default;
+    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Extensions.Configuration;
     using Autofac;
-    using AutofacSerilogIntegration;
     using System;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
@@ -50,7 +47,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
         /// </summary>
         /// <param name="config"></param>
         /// <param name="injector"></param>
-        public ModuleProcess(IConfigurationRoot config, IInjector injector = null) {
+        public ModuleProcess(IConfiguration config, IInjector injector = null) {
             _config = config;
             _injector = injector;
             _exitCode = 0;
@@ -87,13 +84,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                 using (var hostScope = ConfigureContainer(_config)) {
                     _reset = new TaskCompletionSource<bool>();
                     var module = hostScope.Resolve<IModuleHost>();
-                    var publisher = hostScope.Resolve<IPublisher>();
                     var logger = hostScope.Resolve<ILogger>();
                     try {
-                        // Find publisher in network before starting supervisor
-                        await publisher.StartAsync();
                         // Start module
-                        await module.StartAsync("supervisor", SiteId, "OpcTwin", this);
+                        await module.StartAsync(IdentityType.Supervisor, SiteId, "OpcTwin", this);
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
                         if (_exit.Task.IsCompleted) {
@@ -119,7 +113,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
         /// </summary>
         /// <param name="configuration"></param>
         /// <returns></returns>
-        private IContainer ConfigureContainer(IConfigurationRoot configuration) {
+        private IContainer ConfigureContainer(IConfiguration configuration) {
 
             var config = new Config(configuration);
             var builder = new ContainerBuilder();
@@ -131,7 +125,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                 .AsImplementedInterfaces().SingleInstance();
 
             // register logger
-            builder.RegisterLogger(LogEx.Console(configuration));
+            builder.AddDiagnostics(config);
 
             // Register module framework
             builder.RegisterModule<ModuleFramework>();
@@ -141,22 +135,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<AddressSpaceServices>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<JsonVariantEncoder>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<PublisherDiscovery>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<PublisherServices>()
+            builder.RegisterType<VariantEncoderFactory>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<StackLogger>()
                 .AsImplementedInterfaces().SingleInstance().AutoActivate();
-
-            // Register discovery services
-            builder.RegisterType<DiscoveryServices>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<ScannerServices>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<DiscoveryMessagePublisher>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<TaskProcessor>()
                 .AsImplementedInterfaces();
 
@@ -164,8 +146,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
             builder.RegisterType<v2.Supervisor.SupervisorMethodsController>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
             builder.RegisterType<v2.Supervisor.SupervisorSettingsController>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<v2.Supervisor.DiscoverySettingsController>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
 
             // Register supervisor services
@@ -195,14 +175,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
             /// Create twin container factory
             /// </summary>
             /// <param name="client"></param>
-            /// <param name="publisher"></param>
             /// <param name="logger"></param>
             /// <param name="injector"></param>
-            public TwinContainerFactory(IClientHost client, IPublisher publisher,
-                ILogger logger, IInjector injector = null) {
+            public TwinContainerFactory(IClientHost client, ILogger logger,
+                IInjector injector = null) {
                 _client = client ?? throw new ArgumentNullException(nameof(client));
                 _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-                _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
                 _injector = injector;
             }
 
@@ -219,12 +197,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                 builder.RegisterInstance(_client)
                     .OnRelease(_ => { }) // Do not dispose
                     .AsImplementedInterfaces().SingleInstance();
-                builder.RegisterInstance(_publisher)
-                    .OnRelease(_ => { }) // Do not dispose
-                    .AsImplementedInterfaces().SingleInstance();
 
                 // Register other opc ua services
-                builder.RegisterType<JsonVariantEncoder>()
+                builder.RegisterType<VariantEncoderFactory>()
                     .AsImplementedInterfaces().SingleInstance();
                 builder.RegisterType<TwinServices>()
                     .AsImplementedInterfaces().SingleInstance();
@@ -241,8 +216,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
                 builder.RegisterType<v2.Supervisor.EndpointSettingsController>()
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
-                builder.RegisterType<v2.Supervisor.NodeSettingsController>()
-                    .AsImplementedInterfaces().InstancePerLifetimeScope();
 
                 configure?.Invoke(builder);
                 _injector?.Inject(builder);
@@ -254,10 +227,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
             private readonly IClientHost _client;
             private readonly IInjector _injector;
             private readonly ILogger _logger;
-            private readonly IPublisher _publisher;
         }
 
-        private readonly IConfigurationRoot _config;
+        private readonly IConfiguration _config;
         private readonly IInjector _injector;
         private readonly TaskCompletionSource<bool> _exit;
         private TaskCompletionSource<bool> _reset;

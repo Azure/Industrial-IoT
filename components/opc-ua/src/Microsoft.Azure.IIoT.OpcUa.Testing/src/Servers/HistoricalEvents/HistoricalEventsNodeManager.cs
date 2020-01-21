@@ -476,7 +476,7 @@ namespace HistoricalEvents {
 
                     var e = _generator.GetReport(context, NamespaceIndex, ii, row.Row);
 
-                    if (details.Filter.WhereClause != null && details.Filter.WhereClause.Elements.Count > 0) {
+                    if (details.Filter.WhereClause?.Elements.Count > 0) {
                         if (!details.Filter.WhereClause.Evaluate(filterContext, e)) {
                             continue;
                         }
@@ -599,7 +599,7 @@ namespace HistoricalEvents {
                     var row = _generator.GenerateFluidLevelTestReport();
                     var well = (BaseObjectState)FindPredefinedNode(new NodeId((string)row[BrowseNames.UidWell], NamespaceIndex), typeof(BaseObjectState));
 
-                    if (well != null && well.AreEventsMonitored) {
+                    if (well?.AreEventsMonitored == true) {
                         var e = _generator.GetFluidLevelTestReport(SystemContext, NamespaceIndex, row);
                         well.ReportEvent(SystemContext, e);
                     }
@@ -609,7 +609,7 @@ namespace HistoricalEvents {
                     var row = _generator.GenerateInjectionTestReport();
                     var well = (BaseObjectState)FindPredefinedNode(new NodeId((string)row[BrowseNames.UidWell], NamespaceIndex), typeof(BaseObjectState));
 
-                    if (well != null && well.AreEventsMonitored) {
+                    if (well?.AreEventsMonitored == true) {
                         var e = _generator.GetInjectionTestReport(SystemContext, NamespaceIndex, row);
                         well.ReportEvent(SystemContext, e);
                     }

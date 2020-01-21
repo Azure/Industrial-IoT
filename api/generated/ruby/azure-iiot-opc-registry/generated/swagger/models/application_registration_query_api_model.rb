@@ -13,8 +13,8 @@ module azure.iiot.opc.registry
     # Application information
     #
     class ApplicationRegistrationQueryApiModel
-      # @return [ApplicationType] Type of application. Possible values include:
-      # 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+      # @return [ApplicationType] Possible values include: 'Server', 'Client',
+      # 'ClientAndServer', 'DiscoveryServer'
       attr_accessor :application_type
 
       # @return [String] Application uri
@@ -39,10 +39,13 @@ module azure.iiot.opc.registry
       attr_accessor :gateway_server_uri
 
       # @return [String] Supervisor or site the application belongs to.
-      attr_accessor :site_or_supervisor_id
+      attr_accessor :site_or_gateway_id
 
       # @return [Boolean] Whether to include apps that were soft deleted
       attr_accessor :include_not_seen_since
+
+      # @return [String] Discoverer id to filter with
+      attr_accessor :discoverer_id
 
 
       #
@@ -123,10 +126,10 @@ module azure.iiot.opc.registry
                   name: 'String'
                 }
               },
-              site_or_supervisor_id: {
+              site_or_gateway_id: {
                 client_side_validation: true,
                 required: false,
-                serialized_name: 'siteOrSupervisorId',
+                serialized_name: 'siteOrGatewayId',
                 type: {
                   name: 'String'
                 }
@@ -137,6 +140,14 @@ module azure.iiot.opc.registry
                 serialized_name: 'includeNotSeenSince',
                 type: {
                   name: 'Boolean'
+                }
+              },
+              discoverer_id: {
+                client_side_validation: true,
+                required: false,
+                serialized_name: 'discovererId',
+                type: {
+                  name: 'String'
                 }
               }
             }

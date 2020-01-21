@@ -35,7 +35,7 @@ export interface X509CertificateApiModel {
   /**
    * Raw data
    */
-  certificate: any;
+  certificate?: any;
 }
 
 /**
@@ -59,11 +59,11 @@ export interface X509CrlApiModel {
   /**
    * The certificate revocation list.
    */
-  crl: any;
+  crl?: any;
 }
 
 /**
- * Crl collection model
+ * Crl chain model
  */
 export interface X509CrlChainApiModel {
   /**
@@ -72,491 +72,410 @@ export interface X509CrlChainApiModel {
   chain?: X509CrlApiModel[];
 }
 
+export interface NotFoundResult {
+  readonly statusCode?: number;
+}
+
 /**
  * Signing request
- */
+*/
 export interface StartSigningRequestApiModel {
   /**
    * Id of entity to sign a certificate for
-   */
-  entityId: string;
+  */
+  entityId?: string;
   /**
    * Certificate group id
-   */
-  groupId: string;
+  */
+  groupId?: string;
   /**
    * Request
-   */
-  certificateRequest: any;
+  */
+  certificateRequest?: any;
 }
 
 /**
  * Signing request response
- */
+*/
 export interface StartSigningRequestResponseApiModel {
   /**
    * Request id
-   */
-  requestId: string;
+  */
+  requestId?: string;
 }
 
 /**
  * Vault operation log model
- */
+*/
 export interface VaultOperationContextApiModel {
   /**
    * User
-   */
+  */
   authorityId?: string;
   /**
    * Operation time
-   */
-  time: Date;
+  */
+  time?: Date;
 }
 
 /**
  * Certificate request record model
- */
+*/
 export interface CertificateRequestRecordApiModel {
   /**
    * Request id
-   */
+  */
   requestId?: string;
   /**
    * Application id
-   */
+  */
   entityId?: string;
   /**
    * Trust group
-   */
+  */
   groupId?: string;
   /**
-   * Request state. Possible values include: 'New', 'Approved', 'Rejected', 'Failure', 'Completed',
-   * 'Accepted'
-   */
+   * Possible values include: 'New', 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'
+  */
   state?: string;
   /**
-   * Request type. Possible values include: 'SigningRequest', 'KeyPairRequest'
-   */
+   * Possible values include: 'SigningRequest', 'KeyPairRequest'
+  */
   type?: string;
   /**
    * Error diagnostics
-   */
+  */
   errorInfo?: any;
-  /**
-   * Request time
-   */
   submitted?: VaultOperationContextApiModel;
-  /**
-   * Approved or rejected
-   */
   approved?: VaultOperationContextApiModel;
-  /**
-   * Finished
-   */
   accepted?: VaultOperationContextApiModel;
 }
 
 /**
  * Finish request results
- */
+*/
 export interface FinishSigningRequestResponseApiModel {
-  /**
-   * Request
-   */
   request?: CertificateRequestRecordApiModel;
-  /**
-   * Signed certificate
-   */
   certificate?: X509CertificateApiModel;
 }
 
 /**
  * New key pair request
- */
+*/
 export interface StartNewKeyPairRequestApiModel {
   /**
    * Entity id
-   */
-  entityId: string;
+  */
+  entityId?: string;
   /**
    * Certificate group
-   */
-  groupId: string;
+  */
+  groupId?: string;
   /**
-   * Type. Possible values include: 'ApplicationInstanceCertificate', 'HttpsCertificate',
+   * Possible values include: 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
-   */
-  certificateType: string;
+  */
+  certificateType?: string;
   /**
    * Subject name
-   */
-  subjectName: string;
+  */
+  subjectName?: string;
   /**
    * Domain names
-   */
+  */
   domainNames?: string[];
 }
 
 /**
  * New key pair response
- */
+*/
 export interface StartNewKeyPairRequestResponseApiModel {
   /**
    * Request id
-   */
-  requestId: string;
+  */
+  requestId?: string;
 }
 
 /**
  * Private key
- */
+*/
 export interface PrivateKeyApiModel {
   /**
-   * Key type. Possible values include: 'RSA', 'ECC', 'AES'
-   */
+   * Possible values include: 'RSA', 'ECC', 'AES'
+  */
   kty?: string;
   /**
    * RSA modulus.
-   */
+  */
   n?: Buffer;
   /**
    * RSA public exponent, in Base64.
-   */
+  */
   e?: Buffer;
   /**
    * RSA Private Key Parameter
-   */
+  */
   dp?: Buffer;
   /**
    * RSA Private Key Parameter
-   */
+  */
   dq?: Buffer;
   /**
    * RSA Private Key Parameter
-   */
+  */
   qi?: Buffer;
   /**
    * RSA secret prime
-   */
+  */
   p?: Buffer;
   /**
-   * RSA secret prime, with p &lt; q
-   */
+   * RSA secret prime, with p < q
+  */
   q?: Buffer;
-  /**
-   * The curve for ECC algorithms
-   */
   crv?: string;
   /**
    * X coordinate for the Elliptic Curve point.
-   */
+  */
   x?: Buffer;
   /**
    * Y coordinate for the Elliptic Curve point.
-   */
+  */
   y?: Buffer;
   /**
    * RSA private exponent or ECC private key.
-   */
+  */
   d?: Buffer;
   /**
    * Symmetric key
-   */
+  */
   k?: Buffer;
-  /**
-   * HSM Token, used with "Bring Your Own Key"
-   */
   keyHsm?: Buffer;
 }
 
 /**
  * Finish request results
- */
+*/
 export interface FinishNewKeyPairRequestResponseApiModel {
-  /**
-   * Request
-   */
   request?: CertificateRequestRecordApiModel;
-  /**
-   * Signed certificate
-   */
   certificate?: X509CertificateApiModel;
-  /**
-   * Private key
-   */
   privateKey?: PrivateKeyApiModel;
 }
 
 /**
  * Certificate request query model
- */
+*/
 export interface CertificateRequestQueryRequestApiModel {
   /**
    * The entity id to filter with
-   */
+  */
   entityId?: string;
   /**
-   * The certificate request state. Possible values include: 'New', 'Approved', 'Rejected',
-   * 'Failure', 'Completed', 'Accepted'
-   */
+   * Possible values include: 'New', 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'
+  */
   state?: string;
 }
 
 /**
  * Response model
- */
+*/
 export interface CertificateRequestQueryResponseApiModel {
   /**
    * The query result.
-   */
+  */
   requests?: CertificateRequestRecordApiModel[];
   /**
    * Link to the next page of results.
-   */
+  */
   nextPageLink?: string;
 }
 
 /**
- * Status model
- */
-export interface StatusResponseApiModel {
-  /**
-   * Name of this service
-   */
-  name?: string;
-  /**
-   * Operational status
-   */
-  status?: string;
-  /**
-   * Current time
-   */
-  readonly currentTime?: string;
-  /**
-   * Start time of service
-   */
-  readonly startTime?: string;
-  /**
-   * Up time of service
-   */
-  readonly upTime?: number;
-  /**
-   * Value generated at bootstrap by each instance of the service and
-   * used to correlate logs coming from the same instance. The value
-   * changes every time the service starts.
-   */
-  readonly uid?: string;
-  /**
-   * A property bag with details about the service
-   */
-  readonly properties?: { [propertyName: string]: string };
-  /**
-   * A property bag with details about the internal dependencies
-   */
-  readonly dependencies?: { [propertyName: string]: string };
-  /**
-   * Optional meta data.
-   */
-  readonly metadata?: { [propertyName: string]: string };
-}
-
-/**
  * Trust group model
- */
+*/
 export interface TrustGroupApiModel {
   /**
    * The name of the trust group.
-   */
-  name: string;
+  */
+  name?: string;
   /**
    * The identifer of the parent trust group.
-   */
+  */
   parentId?: string;
   /**
-   * The trust group type. Possible values include: 'ApplicationInstanceCertificate',
-   * 'HttpsCertificate', 'UserCredentialCertificate'
-   */
+   * Possible values include: 'ApplicationInstanceCertificate', 'HttpsCertificate',
+   * 'UserCredentialCertificate'
+  */
   type?: string;
   /**
    * The subject name of the group as distinguished name.
-   */
-  subjectName: string;
+  */
+  subjectName?: string;
   /**
    * The lifetime of the trust group certificate.
-   */
+  */
   lifetime?: string;
   /**
    * The trust group certificate key size in bits.
-   */
+  */
   keySize?: number;
   /**
-   * The certificate signature algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-   * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
-   */
+   * Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+  */
   signatureAlgorithm?: string;
   /**
    * The issued certificate lifetime in months.
-   */
+  */
   issuedLifetime?: string;
   /**
    * The issued certificate key size in bits.
-   */
+  */
   issuedKeySize?: number;
   /**
-   * The Signature algorithm for issued certificates. Possible values include: 'Rsa256', 'Rsa384',
-   * 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
-   */
+   * Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+  */
   issuedSignatureAlgorithm?: string;
 }
 
 /**
  * Trust group registration model
- */
+*/
 export interface TrustGroupRegistrationApiModel {
   /**
    * The registered id of the trust group
-   */
-  id: string;
-  /**
-   * Trust group
-   */
-  group: TrustGroupApiModel;
+  */
+  id?: string;
+  group?: TrustGroupApiModel;
 }
 
 /**
  * Trust group registration collection model
- */
+*/
 export interface TrustGroupRegistrationListApiModel {
   /**
    * Group registrations
-   */
+  */
   registrations?: TrustGroupRegistrationApiModel[];
   /**
    * Next link
-   */
+  */
   nextPageLink?: string;
 }
 
 /**
  * Trust group registration request model
- */
+*/
 export interface TrustGroupRegistrationRequestApiModel {
   /**
    * The new name of the trust group
-   */
-  name: string;
+  */
+  name?: string;
   /**
    * The identifer of the parent trust group.
-   */
-  parentId: string;
+  */
+  parentId?: string;
   /**
    * The subject name of the group as distinguished name.
-   */
-  subjectName: string;
+  */
+  subjectName?: string;
   /**
    * The lifetime of certificates issued in the group.
-   */
+  */
   issuedLifetime?: string;
   /**
    * The issued certificate key size in bits.
-   */
+  */
   issuedKeySize?: number;
   /**
-   * The issued certificate signature algorithm. Possible values include: 'Rsa256', 'Rsa384',
-   * 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
-   */
+   * Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+  */
   issuedSignatureAlgorithm?: string;
 }
 
 /**
  * Trust group registration response model
- */
+*/
 export interface TrustGroupRegistrationResponseApiModel {
   /**
    * The id of the trust group
-   */
-  id: string;
+  */
+  id?: string;
 }
 
 /**
  * Trust group update model
- */
+*/
 export interface TrustGroupUpdateRequestApiModel {
   /**
    * The name of the trust group
-   */
+  */
   name?: string;
   /**
    * The issued certificate lifetime.
-   */
+  */
   issuedLifetime?: string;
   /**
    * The issued certificate key size in bits.
-   */
+  */
   issuedKeySize?: number;
   /**
-   * The issued certificate key size in bits. Possible values include: 'Rsa256', 'Rsa384',
-   * 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
-   */
+   * Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+  */
   issuedSignatureAlgorithm?: string;
 }
 
 /**
  * Trust group root registration model
- */
+*/
 export interface TrustGroupRootCreateRequestApiModel {
   /**
    * The new name of the trust group root
-   */
-  name: string;
+  */
+  name?: string;
   /**
-   * The trust group type. Possible values include: 'ApplicationInstanceCertificate',
-   * 'HttpsCertificate', 'UserCredentialCertificate'
-   */
+   * Possible values include: 'ApplicationInstanceCertificate', 'HttpsCertificate',
+   * 'UserCredentialCertificate'
+  */
   type?: string;
   /**
    * The subject name of the group as distinguished name.
-   */
-  subjectName: string;
+  */
+  subjectName?: string;
   /**
    * The lifetime of the trust group root certificate.
-   */
-  lifetime: string;
+  */
+  lifetime?: string;
   /**
    * The certificate key size in bits.
-   */
+  */
   keySize?: number;
   /**
-   * The certificate signature algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-   * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
-   */
+   * Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+  */
   signatureAlgorithm?: string;
   /**
    * The issued certificate lifetime.
-   */
+  */
   issuedLifetime?: string;
   /**
    * The issued certificate key size in bits.
-   */
+  */
   issuedKeySize?: number;
   /**
-   * The issued certificate signature algorithm. Possible values include: 'Rsa256', 'Rsa384',
-   * 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
-   */
+   * Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+  */
   issuedSignatureAlgorithm?: string;
 }
 
 /**
  * Certificate list
- */
+*/
 export interface X509CertificateListApiModel {
   /**
    * Certificates
-   */
+  */
   certificates?: X509CertificateApiModel[];
   /**
    * Next link
-   */
+  */
   nextPageLink?: string;
 }

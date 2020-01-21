@@ -31,8 +31,6 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// Initializes a new instance of the
         /// FinishSigningRequestResponseApiModel class.
         /// </summary>
-        /// <param name="request">Request</param>
-        /// <param name="certificate">Signed certificate</param>
         public FinishSigningRequestResponseApiModel(CertificateRequestRecordApiModel request = default(CertificateRequestRecordApiModel), X509CertificateApiModel certificate = default(X509CertificateApiModel))
         {
             Request = request;
@@ -46,33 +44,14 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets request
         /// </summary>
         [JsonProperty(PropertyName = "request")]
         public CertificateRequestRecordApiModel Request { get; set; }
 
         /// <summary>
-        /// Gets or sets signed certificate
         /// </summary>
         [JsonProperty(PropertyName = "certificate")]
         public X509CertificateApiModel Certificate { get; set; }
 
-        /// <summary>
-        /// Validate the object.
-        /// </summary>
-        /// <exception cref="Rest.ValidationException">
-        /// Thrown if validation fails
-        /// </exception>
-        public virtual void Validate()
-        {
-            if (Request != null)
-            {
-                Request.Validate();
-            }
-            if (Certificate != null)
-            {
-                Certificate.Validate();
-            }
-        }
     }
 }

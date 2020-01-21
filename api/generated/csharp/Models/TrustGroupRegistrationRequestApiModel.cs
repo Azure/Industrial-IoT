@@ -10,7 +10,6 @@
 
 namespace Microsoft.Azure.IIoT.Opc.Vault.Models
 {
-    using Microsoft.Rest;
     using Newtonsoft.Json;
     using System.Linq;
 
@@ -41,10 +40,10 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// the group.</param>
         /// <param name="issuedKeySize">The issued certificate key size in
         /// bits.</param>
-        /// <param name="issuedSignatureAlgorithm">The issued certificate
-        /// signature algorithm. Possible values include: 'Rsa256', 'Rsa384',
-        /// 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'</param>
-        public TrustGroupRegistrationRequestApiModel(string name, string parentId, string subjectName, string issuedLifetime = default(string), int? issuedKeySize = default(int?), SignatureAlgorithm? issuedSignatureAlgorithm = default(SignatureAlgorithm?))
+        /// <param name="issuedSignatureAlgorithm">Possible values include:
+        /// 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss',
+        /// 'Rsa512Pss'</param>
+        public TrustGroupRegistrationRequestApiModel(string name = default(string), string parentId = default(string), string subjectName = default(string), string issuedLifetime = default(string), int? issuedKeySize = default(int?), SignatureAlgorithm? issuedSignatureAlgorithm = default(SignatureAlgorithm?))
         {
             Name = name;
             ParentId = parentId;
@@ -91,33 +90,11 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         public int? IssuedKeySize { get; set; }
 
         /// <summary>
-        /// Gets or sets the issued certificate signature algorithm. Possible
-        /// values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss',
-        /// 'Rsa384Pss', 'Rsa512Pss'
+        /// Gets or sets possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
+        /// 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
         /// </summary>
         [JsonProperty(PropertyName = "issuedSignatureAlgorithm")]
         public SignatureAlgorithm? IssuedSignatureAlgorithm { get; set; }
 
-        /// <summary>
-        /// Validate the object.
-        /// </summary>
-        /// <exception cref="ValidationException">
-        /// Thrown if validation fails
-        /// </exception>
-        public virtual void Validate()
-        {
-            if (Name == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "Name");
-            }
-            if (ParentId == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "ParentId");
-            }
-            if (SubjectName == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "SubjectName");
-            }
-        }
     }
 }

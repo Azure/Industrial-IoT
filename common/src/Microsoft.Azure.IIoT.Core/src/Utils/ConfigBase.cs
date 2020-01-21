@@ -17,17 +17,15 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <summary>
         /// Configuration
         /// </summary>
-        public IConfigurationRoot Configuration { get; }
+        public IConfiguration Configuration { get; }
 
         /// <summary>
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        protected ConfigBase(IConfigurationRoot configuration) {
+        protected ConfigBase(IConfiguration configuration) {
             if (configuration == null) {
                 configuration = new ConfigurationBuilder()
-                    .AddFromDotEnvFile()
-                    .AddEnvironmentVariables()
                     .Build();
             }
             Configuration = configuration;

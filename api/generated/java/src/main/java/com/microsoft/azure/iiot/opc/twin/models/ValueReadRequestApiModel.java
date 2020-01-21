@@ -20,7 +20,7 @@ public class ValueReadRequestApiModel {
     /**
      * Node to read from (mandatory).
      */
-    @JsonProperty(value = "nodeId", required = true)
+    @JsonProperty(value = "nodeId")
     private String nodeId;
 
     /**
@@ -40,7 +40,7 @@ public class ValueReadRequestApiModel {
     private String indexRange;
 
     /**
-     * Optional request header.
+     * The headerProperty property.
      */
     @JsonProperty(value = "header")
     private RequestHeaderApiModel headerProperty;
@@ -114,7 +114,7 @@ public class ValueReadRequestApiModel {
     }
 
     /**
-     * Get optional request header.
+     * Get the headerProperty value.
      *
      * @return the headerProperty value
      */
@@ -123,7 +123,7 @@ public class ValueReadRequestApiModel {
     }
 
     /**
-     * Set optional request header.
+     * Set the headerProperty value.
      *
      * @param headerProperty the headerProperty value to set
      * @return the ValueReadRequestApiModel object itself.

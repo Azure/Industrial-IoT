@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class ApplicationSiteListApiModel {
     /**
-     * Distinct list of sites applications were registered in.
+     * Sites.
      */
     @JsonProperty(value = "sites")
     private List<String> sites;
@@ -30,7 +30,7 @@ public class ApplicationSiteListApiModel {
     private String continuationToken;
 
     /**
-     * Get distinct list of sites applications were registered in.
+     * Get sites.
      *
      * @return the sites value
      */
@@ -39,7 +39,7 @@ public class ApplicationSiteListApiModel {
     }
 
     /**
-     * Set distinct list of sites applications were registered in.
+     * Set sites.
      *
      * @param sites the sites value to set
      * @return the ApplicationSiteListApiModel object itself.

@@ -31,9 +31,9 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// Initializes a new instance of the VaultOperationContextApiModel
         /// class.
         /// </summary>
-        /// <param name="time">Operation time</param>
         /// <param name="authorityId">User</param>
-        public VaultOperationContextApiModel(System.DateTime time, string authorityId = default(string))
+        /// <param name="time">Operation time</param>
+        public VaultOperationContextApiModel(string authorityId = default(string), System.DateTime? time = default(System.DateTime?))
         {
             AuthorityId = authorityId;
             Time = time;
@@ -55,17 +55,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// Gets or sets operation time
         /// </summary>
         [JsonProperty(PropertyName = "time")]
-        public System.DateTime Time { get; set; }
+        public System.DateTime? Time { get; set; }
 
-        /// <summary>
-        /// Validate the object.
-        /// </summary>
-        /// <exception cref="Rest.ValidationException">
-        /// Thrown if validation fails
-        /// </exception>
-        public virtual void Validate()
-        {
-            //Nothing to validate
-        }
     }
 }

@@ -5,35 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
     using System.Collections.Generic;
-
-    /// <summary>
-    /// Security mode of endpoint
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum SecurityMode {
-
-        /// <summary>
-        /// Best
-        /// </summary>
-        Best,
-
-        /// <summary>
-        /// Sign
-        /// </summary>
-        Sign,
-
-        /// <summary>
-        /// Sign and Encrypt
-        /// </summary>
-        SignAndEncrypt,
-
-        /// <summary>
-        /// No security
-        /// </summary>
-        None
-    }
 
     /// <summary>
     /// Endpoint model
@@ -53,13 +25,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         [JsonProperty(PropertyName = "alternativeUrls",
             NullValueHandling = NullValueHandling.Ignore)]
         public HashSet<string> AlternativeUrls { get; set; }
-
-        /// <summary>
-        /// User Authentication
-        /// </summary>
-        [JsonProperty(PropertyName = "user",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public CredentialApiModel User { get; set; }
 
         /// <summary>
         /// Security Mode to use for communication.

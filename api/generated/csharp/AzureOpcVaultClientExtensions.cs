@@ -26,8 +26,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// The operations group for this extension method.
             /// </param>
             /// <param name='serialNumber'>
-            /// the serial number of the
-            /// Issuer CA Certificate
+            /// the serial number of the Issuer CA Certificate
             /// </param>
             public static X509CertificateChainApiModel GetIssuerCertificateChain(this IAzureOpcVaultClient operations, string serialNumber)
             {
@@ -41,8 +40,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// The operations group for this extension method.
             /// </param>
             /// <param name='serialNumber'>
-            /// the serial number of the
-            /// Issuer CA Certificate
+            /// the serial number of the Issuer CA Certificate
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
@@ -62,8 +60,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// The operations group for this extension method.
             /// </param>
             /// <param name='serialNumber'>
-            /// the serial number of the Issuer
-            /// CA Certificate
+            /// the serial number of the Issuer CA Certificate
             /// </param>
             public static X509CrlChainApiModel GetIssuerCrlChain(this IAzureOpcVaultClient operations, string serialNumber)
             {
@@ -77,8 +74,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// The operations group for this extension method.
             /// </param>
             /// <param name='serialNumber'>
-            /// the serial number of the Issuer
-            /// CA Certificate
+            /// the serial number of the Issuer CA Certificate
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
@@ -100,9 +96,9 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// </param>
             /// <param name='serialNumber'>
             /// </param>
-            public static void GetIssuerCertificateChain1(this IAzureOpcVaultClient operations, string serialNumber)
+            public static string GetIssuerCertificateChain1(this IAzureOpcVaultClient operations, string serialNumber)
             {
-                operations.GetIssuerCertificateChain1Async(serialNumber).GetAwaiter().GetResult();
+                return operations.GetIssuerCertificateChain1Async(serialNumber).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -117,9 +113,12 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task GetIssuerCertificateChain1Async(this IAzureOpcVaultClient operations, string serialNumber, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<string> GetIssuerCertificateChain1Async(this IAzureOpcVaultClient operations, string serialNumber, CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.GetIssuerCertificateChain1WithHttpMessagesAsync(serialNumber, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                using (var _result = await operations.GetIssuerCertificateChain1WithHttpMessagesAsync(serialNumber, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
             }
 
             /// <summary>
@@ -130,9 +129,9 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// </param>
             /// <param name='serialNumber'>
             /// </param>
-            public static void GetIssuerCrlChain1(this IAzureOpcVaultClient operations, string serialNumber)
+            public static string GetIssuerCrlChain1(this IAzureOpcVaultClient operations, string serialNumber)
             {
-                operations.GetIssuerCrlChain1Async(serialNumber).GetAwaiter().GetResult();
+                return operations.GetIssuerCrlChain1Async(serialNumber).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -146,48 +145,51 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task GetIssuerCrlChain1Async(this IAzureOpcVaultClient operations, string serialNumber, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<string> GetIssuerCrlChain1Async(this IAzureOpcVaultClient operations, string serialNumber, CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.GetIssuerCrlChain1WithHttpMessagesAsync(serialNumber, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                using (var _result = await operations.GetIssuerCrlChain1WithHttpMessagesAsync(serialNumber, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
             }
 
             /// <summary>
             /// Create a certificate request with a certificate signing request (CSR).
             /// </summary>
             /// <remarks>
-            /// The request is in the 'New' state after this call.
-            /// Requires Writer or Manager role.
+            /// The request is in the 'New' state after this call. Requires Writer or
+            /// Manager role.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='signingRequest'>
+            /// <param name='body'>
             /// The signing request parameters
             /// </param>
-            public static StartSigningRequestResponseApiModel StartSigningRequest(this IAzureOpcVaultClient operations, StartSigningRequestApiModel signingRequest)
+            public static StartSigningRequestResponseApiModel StartSigningRequest(this IAzureOpcVaultClient operations, StartSigningRequestApiModel body)
             {
-                return operations.StartSigningRequestAsync(signingRequest).GetAwaiter().GetResult();
+                return operations.StartSigningRequestAsync(body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Create a certificate request with a certificate signing request (CSR).
             /// </summary>
             /// <remarks>
-            /// The request is in the 'New' state after this call.
-            /// Requires Writer or Manager role.
+            /// The request is in the 'New' state after this call. Requires Writer or
+            /// Manager role.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='signingRequest'>
+            /// <param name='body'>
             /// The signing request parameters
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<StartSigningRequestResponseApiModel> StartSigningRequestAsync(this IAzureOpcVaultClient operations, StartSigningRequestApiModel signingRequest, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<StartSigningRequestResponseApiModel> StartSigningRequestAsync(this IAzureOpcVaultClient operations, StartSigningRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.StartSigningRequestWithHttpMessagesAsync(signingRequest, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.StartSigningRequestWithHttpMessagesAsync(body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -197,10 +199,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// Fetch signing request results.
             /// </summary>
             /// <remarks>
-            /// Can be called in any state.
-            /// After a successful fetch in 'Completed' state, the request is
-            /// moved into 'Accepted' state.
-            /// Requires Writer role.
+            /// Can be called in any state. After a successful fetch in 'Completed' state,
+            /// the request is moved into 'Accepted' state. Requires Writer role.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -216,10 +216,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// Fetch signing request results.
             /// </summary>
             /// <remarks>
-            /// Can be called in any state.
-            /// After a successful fetch in 'Completed' state, the request is
-            /// moved into 'Accepted' state.
-            /// Requires Writer role.
+            /// Can be called in any state. After a successful fetch in 'Completed' state,
+            /// the request is moved into 'Accepted' state. Requires Writer role.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -241,39 +239,39 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// Create a certificate request with a new key pair.
             /// </summary>
             /// <remarks>
-            /// The request is in the 'New' state after this call.
-            /// Requires Writer or Manager role.
+            /// The request is in the 'New' state after this call. Requires Writer or
+            /// Manager role.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='newKeyPairRequest'>
+            /// <param name='body'>
             /// The new key pair request parameters
             /// </param>
-            public static StartNewKeyPairRequestResponseApiModel StartNewKeyPairRequest(this IAzureOpcVaultClient operations, StartNewKeyPairRequestApiModel newKeyPairRequest)
+            public static StartNewKeyPairRequestResponseApiModel StartNewKeyPairRequest(this IAzureOpcVaultClient operations, StartNewKeyPairRequestApiModel body)
             {
-                return operations.StartNewKeyPairRequestAsync(newKeyPairRequest).GetAwaiter().GetResult();
+                return operations.StartNewKeyPairRequestAsync(body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Create a certificate request with a new key pair.
             /// </summary>
             /// <remarks>
-            /// The request is in the 'New' state after this call.
-            /// Requires Writer or Manager role.
+            /// The request is in the 'New' state after this call. Requires Writer or
+            /// Manager role.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='newKeyPairRequest'>
+            /// <param name='body'>
             /// The new key pair request parameters
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<StartNewKeyPairRequestResponseApiModel> StartNewKeyPairRequestAsync(this IAzureOpcVaultClient operations, StartNewKeyPairRequestApiModel newKeyPairRequest, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<StartNewKeyPairRequestResponseApiModel> StartNewKeyPairRequestAsync(this IAzureOpcVaultClient operations, StartNewKeyPairRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.StartNewKeyPairRequestWithHttpMessagesAsync(newKeyPairRequest, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.StartNewKeyPairRequestWithHttpMessagesAsync(body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -283,11 +281,9 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// Fetch certificate request result.
             /// </summary>
             /// <remarks>
-            /// Can be called in any state.
-            /// Fetches private key in 'Completed' state.
-            /// After a successful fetch in 'Completed' state, the request is
-            /// moved into 'Accepted' state.
-            /// Requires Writer role.
+            /// Can be called in any state. Fetches private key in 'Completed' state. After
+            /// a successful fetch in 'Completed' state, the request is moved into
+            /// 'Accepted' state. Requires Writer role.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -303,11 +299,9 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// Fetch certificate request result.
             /// </summary>
             /// <remarks>
-            /// Can be called in any state.
-            /// Fetches private key in 'Completed' state.
-            /// After a successful fetch in 'Completed' state, the request is
-            /// moved into 'Accepted' state.
-            /// Requires Writer role.
+            /// Can be called in any state. Fetches private key in 'Completed' state. After
+            /// a successful fetch in 'Completed' state, the request is moved into
+            /// 'Accepted' state. Requires Writer role.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -329,17 +323,13 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// Approve the certificate request.
             /// </summary>
             /// <remarks>
-            /// Validates the request with the application database.
-            /// - If Approved:
-            /// - New Key Pair request: Creates the new key pair
-            /// in the requested format, signs the certificate and stores the
-            /// private key for later securely in KeyVault.
-            /// - Cert Signing Request: Creates and signs the certificate.
-            /// Deletes the CSR from the database.
-            /// Stores the signed certificate for later use in the Database.
-            /// The request is in the 'Approved' or 'Rejected' state after this call.
-            /// Requires Approver role.
-            /// Approver needs signing rights in KeyVault.
+            /// Validates the request with the application database. - If Approved: - New
+            /// Key Pair request: Creates the new key pair in the requested format, signs
+            /// the certificate and stores the private key for later securely in KeyVault.
+            /// - Cert Signing Request: Creates and signs the certificate. Deletes the CSR
+            /// from the database. Stores the signed certificate for later use in the
+            /// Database. The request is in the 'Approved' or 'Rejected' state after this
+            /// call. Requires Approver role. Approver needs signing rights in KeyVault.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -356,17 +346,13 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// Approve the certificate request.
             /// </summary>
             /// <remarks>
-            /// Validates the request with the application database.
-            /// - If Approved:
-            /// - New Key Pair request: Creates the new key pair
-            /// in the requested format, signs the certificate and stores the
-            /// private key for later securely in KeyVault.
-            /// - Cert Signing Request: Creates and signs the certificate.
-            /// Deletes the CSR from the database.
-            /// Stores the signed certificate for later use in the Database.
-            /// The request is in the 'Approved' or 'Rejected' state after this call.
-            /// Requires Approver role.
-            /// Approver needs signing rights in KeyVault.
+            /// Validates the request with the application database. - If Approved: - New
+            /// Key Pair request: Creates the new key pair in the requested format, signs
+            /// the certificate and stores the private key for later securely in KeyVault.
+            /// - Cert Signing Request: Creates and signs the certificate. Deletes the CSR
+            /// from the database. Stores the signed certificate for later use in the
+            /// Database. The request is in the 'Approved' or 'Rejected' state after this
+            /// call. Requires Approver role. Approver needs signing rights in KeyVault.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -386,9 +372,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// Reject the certificate request.
             /// </summary>
             /// <remarks>
-            /// The request is in the 'Rejected' state after this call.
-            /// Requires Approver role.
-            /// Approver needs signing rights in KeyVault.
+            /// The request is in the 'Rejected' state after this call. Requires Approver
+            /// role. Approver needs signing rights in KeyVault.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -405,9 +390,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// Reject the certificate request.
             /// </summary>
             /// <remarks>
-            /// The request is in the 'Rejected' state after this call.
-            /// Requires Approver role.
-            /// Approver needs signing rights in KeyVault.
+            /// The request is in the 'Rejected' state after this call. Requires Approver
+            /// role. Approver needs signing rights in KeyVault.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -427,8 +411,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// Cancel request
             /// </summary>
             /// <remarks>
-            /// The request is in the 'Accepted' state after this call.
-            /// Requires Writer role.
+            /// The request is in the 'Accepted' state after this call. Requires Writer
+            /// role.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -445,8 +429,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// Cancel request
             /// </summary>
             /// <remarks>
-            /// The request is in the 'Accepted' state after this call.
-            /// Requires Writer role.
+            /// The request is in the 'Accepted' state after this call. Requires Writer
+            /// role.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -460,6 +444,45 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             public static async Task AcceptRequestAsync(this IAzureOpcVaultClient operations, string requestId, CancellationToken cancellationToken = default(CancellationToken))
             {
                 (await operations.AcceptRequestWithHttpMessagesAsync(requestId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+            }
+
+            /// <summary>
+            /// Delete request. Physically delete the request.
+            /// </summary>
+            /// <remarks>
+            /// By purging the request it is actually physically deleted from the database,
+            /// including the public key and other information. Requires Manager role.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='requestId'>
+            /// The certificate request id
+            /// </param>
+            public static void DeleteRequest(this IAzureOpcVaultClient operations, string requestId)
+            {
+                operations.DeleteRequestAsync(requestId).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Delete request. Physically delete the request.
+            /// </summary>
+            /// <remarks>
+            /// By purging the request it is actually physically deleted from the database,
+            /// including the public key and other information. Requires Manager role.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='requestId'>
+            /// The certificate request id
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task DeleteRequestAsync(this IAzureOpcVaultClient operations, string requestId, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                (await operations.DeleteRequestWithHttpMessagesAsync(requestId, null, cancellationToken).ConfigureAwait(false)).Dispose();
             }
 
             /// <summary>
@@ -497,91 +520,50 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             }
 
             /// <summary>
-            /// Delete request. Physically delete the request.
+            /// Query for certificate requests.
             /// </summary>
             /// <remarks>
-            /// By purging the request it is actually physically deleted from the
-            /// database, including the public key and other information.
-            /// Requires Manager role.
+            /// Get all certificate requests in paged form. The returned model can contain
+            /// a link to the next page if more results are available. Use ListRequests to
+            /// continue.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='requestId'>
-            /// The certificate request id
+            /// <param name='pageSize'>
+            /// optional, the maximum number of result per page
             /// </param>
-            public static void DeleteRequest(this IAzureOpcVaultClient operations, string requestId)
+            /// <param name='body'>
+            /// optional, query filter
+            /// </param>
+            public static CertificateRequestQueryResponseApiModel QueryRequests(this IAzureOpcVaultClient operations, int? pageSize = default(int?), CertificateRequestQueryRequestApiModel body = default(CertificateRequestQueryRequestApiModel))
             {
-                operations.DeleteRequestAsync(requestId).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Delete request. Physically delete the request.
-            /// </summary>
-            /// <remarks>
-            /// By purging the request it is actually physically deleted from the
-            /// database, including the public key and other information.
-            /// Requires Manager role.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='requestId'>
-            /// The certificate request id
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task DeleteRequestAsync(this IAzureOpcVaultClient operations, string requestId, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                (await operations.DeleteRequestWithHttpMessagesAsync(requestId, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                return operations.QueryRequestsAsync(pageSize, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Query for certificate requests.
             /// </summary>
             /// <remarks>
-            /// Get all certificate requests in paged form.
-            /// The returned model can contain a link to the next page if more results are
-            /// available.  Use ListRequests to continue.
+            /// Get all certificate requests in paged form. The returned model can contain
+            /// a link to the next page if more results are available. Use ListRequests to
+            /// continue.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='query'>
-            /// optional, query filter
-            /// </param>
             /// <param name='pageSize'>
             /// optional, the maximum number of result per page
             /// </param>
-            public static CertificateRequestQueryResponseApiModel QueryRequests(this IAzureOpcVaultClient operations, CertificateRequestQueryRequestApiModel query = default(CertificateRequestQueryRequestApiModel), int? pageSize = default(int?))
-            {
-                return operations.QueryRequestsAsync(query, pageSize).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Query for certificate requests.
-            /// </summary>
-            /// <remarks>
-            /// Get all certificate requests in paged form.
-            /// The returned model can contain a link to the next page if more results are
-            /// available.  Use ListRequests to continue.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='query'>
+            /// <param name='body'>
             /// optional, query filter
-            /// </param>
-            /// <param name='pageSize'>
-            /// optional, the maximum number of result per page
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<CertificateRequestQueryResponseApiModel> QueryRequestsAsync(this IAzureOpcVaultClient operations, CertificateRequestQueryRequestApiModel query = default(CertificateRequestQueryRequestApiModel), int? pageSize = default(int?), CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<CertificateRequestQueryResponseApiModel> QueryRequestsAsync(this IAzureOpcVaultClient operations, int? pageSize = default(int?), CertificateRequestQueryRequestApiModel body = default(CertificateRequestQueryRequestApiModel), CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.QueryRequestsWithHttpMessagesAsync(query, pageSize, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.QueryRequestsWithHttpMessagesAsync(pageSize, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -592,9 +574,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// </summary>
             /// <remarks>
             /// Get all certificate requests in paged form or continue a current listing or
-            /// query.
-            /// The returned model can contain a link to the next page if more results are
-            /// available.
+            /// query. The returned model can contain a link to the next page if more
+            /// results are available.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -615,9 +596,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// </summary>
             /// <remarks>
             /// Get all certificate requests in paged form or continue a current listing or
-            /// query.
-            /// The returned model can contain a link to the next page if more results are
-            /// available.
+            /// query. The returned model can contain a link to the next page if more
+            /// results are available.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -640,43 +620,12 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             }
 
             /// <summary>
-            /// Return the service status in the form of the service status
-            /// api model.
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            public static StatusResponseApiModel GetStatus(this IAzureOpcVaultClient operations)
-            {
-                return operations.GetStatusAsync().GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Return the service status in the form of the service status
-            /// api model.
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<StatusResponseApiModel> GetStatusAsync(this IAzureOpcVaultClient operations, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.GetStatusWithHttpMessagesAsync(null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
             /// Get information about all groups.
             /// </summary>
             /// <remarks>
-            /// A trust group has a root certificate which issues certificates
-            /// to entities.  Entities can be part of a trust group and thus
-            /// trust the root certificate and all entities that the root has
-            /// issued certificates for.
+            /// A trust group has a root certificate which issues certificates to entities.
+            /// Entities can be part of a trust group and thus trust the root certificate
+            /// and all entities that the root has issued certificates for.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -696,10 +645,9 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// Get information about all groups.
             /// </summary>
             /// <remarks>
-            /// A trust group has a root certificate which issues certificates
-            /// to entities.  Entities can be part of a trust group and thus
-            /// trust the root certificate and all entities that the root has
-            /// issued certificates for.
+            /// A trust group has a root certificate which issues certificates to entities.
+            /// Entities can be part of a trust group and thus trust the root certificate
+            /// and all entities that the root has issued certificates for.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -730,12 +678,12 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The create request
             /// </param>
-            public static TrustGroupRegistrationResponseApiModel CreateGroup(this IAzureOpcVaultClient operations, TrustGroupRegistrationRequestApiModel request)
+            public static TrustGroupRegistrationResponseApiModel CreateGroup(this IAzureOpcVaultClient operations, TrustGroupRegistrationRequestApiModel body)
             {
-                return operations.CreateGroupAsync(request).GetAwaiter().GetResult();
+                return operations.CreateGroupAsync(body).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -747,15 +695,15 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The create request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<TrustGroupRegistrationResponseApiModel> CreateGroupAsync(this IAzureOpcVaultClient operations, TrustGroupRegistrationRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<TrustGroupRegistrationResponseApiModel> CreateGroupAsync(this IAzureOpcVaultClient operations, TrustGroupRegistrationRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.CreateGroupWithHttpMessagesAsync(request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.CreateGroupWithHttpMessagesAsync(body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -765,10 +713,9 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// Get group information.
             /// </summary>
             /// <remarks>
-            /// A trust group has a root certificate which issues certificates
-            /// to entities.  Entities can be part of a trust group and thus
-            /// trust the root certificate and all entities that the root has
-            /// issued certificates for.
+            /// A trust group has a root certificate which issues certificates to entities.
+            /// Entities can be part of a trust group and thus trust the root certificate
+            /// and all entities that the root has issued certificates for.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -785,10 +732,9 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// Get group information.
             /// </summary>
             /// <remarks>
-            /// A trust group has a root certificate which issues certificates
-            /// to entities.  Entities can be part of a trust group and thus
-            /// trust the root certificate and all entities that the root has
-            /// issued certificates for.
+            /// A trust group has a root certificate which issues certificates to entities.
+            /// Entities can be part of a trust group and thus trust the root certificate
+            /// and all entities that the root has issued certificates for.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -811,9 +757,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// Update group registration.
             /// </summary>
             /// <remarks>
-            /// Use this function with care and only if you are aware of
-            /// the security implications.
-            /// Requires manager role.
+            /// Use this function with care and only if you are aware of the security
+            /// implications. Requires manager role.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -821,21 +766,20 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// <param name='groupId'>
             /// The group id
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The group configuration
             /// </param>
-            public static void UpdateGroup(this IAzureOpcVaultClient operations, string groupId, TrustGroupUpdateRequestApiModel request)
+            public static void UpdateGroup(this IAzureOpcVaultClient operations, string groupId, TrustGroupUpdateRequestApiModel body)
             {
-                operations.UpdateGroupAsync(groupId, request).GetAwaiter().GetResult();
+                operations.UpdateGroupAsync(groupId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Update group registration.
             /// </summary>
             /// <remarks>
-            /// Use this function with care and only if you are aware of
-            /// the security implications.
-            /// Requires manager role.
+            /// Use this function with care and only if you are aware of the security
+            /// implications. Requires manager role.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -843,24 +787,23 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// <param name='groupId'>
             /// The group id
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The group configuration
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task UpdateGroupAsync(this IAzureOpcVaultClient operations, string groupId, TrustGroupUpdateRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task UpdateGroupAsync(this IAzureOpcVaultClient operations, string groupId, TrustGroupUpdateRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                (await operations.UpdateGroupWithHttpMessagesAsync(groupId, request, null, cancellationToken).ConfigureAwait(false)).Dispose();
+                (await operations.UpdateGroupWithHttpMessagesAsync(groupId, body, null, cancellationToken).ConfigureAwait(false)).Dispose();
             }
 
             /// <summary>
             /// Delete a group.
             /// </summary>
             /// <remarks>
-            /// After this operation the Issuer CA, CRLs and keys become inaccessible.
-            /// Use this function with extreme caution.
-            /// Requires manager role.
+            /// After this operation the Issuer CA, CRLs and keys become inaccessible. Use
+            /// this function with extreme caution. Requires manager role.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -877,9 +820,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// Delete a group.
             /// </summary>
             /// <remarks>
-            /// After this operation the Issuer CA, CRLs and keys become inaccessible.
-            /// Use this function with extreme caution.
-            /// Requires manager role.
+            /// After this operation the Issuer CA, CRLs and keys become inaccessible. Use
+            /// this function with extreme caution. Requires manager role.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -904,12 +846,12 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The create request
             /// </param>
-            public static TrustGroupRegistrationResponseApiModel CreateRoot(this IAzureOpcVaultClient operations, TrustGroupRootCreateRequestApiModel request)
+            public static TrustGroupRegistrationResponseApiModel CreateRoot(this IAzureOpcVaultClient operations, TrustGroupRootCreateRequestApiModel body)
             {
-                return operations.CreateRootAsync(request).GetAwaiter().GetResult();
+                return operations.CreateRootAsync(body).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -921,15 +863,15 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// <param name='operations'>
             /// The operations group for this extension method.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The create request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<TrustGroupRegistrationResponseApiModel> CreateRootAsync(this IAzureOpcVaultClient operations, TrustGroupRootCreateRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<TrustGroupRegistrationResponseApiModel> CreateRootAsync(this IAzureOpcVaultClient operations, TrustGroupRootCreateRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.CreateRootWithHttpMessagesAsync(request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.CreateRootWithHttpMessagesAsync(body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -968,8 +910,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// Add trust relationship
             /// </summary>
             /// <remarks>
-            /// Define trust between two entities.  The entities are identifiers
-            /// of application, groups, or endpoints.
+            /// Define trust between two entities. The entities are identifiers of
+            /// application, groups, or endpoints.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -989,8 +931,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// Add trust relationship
             /// </summary>
             /// <remarks>
-            /// Define trust between two entities.  The entities are identifiers
-            /// of application, groups, or endpoints.
+            /// Define trust between two entities. The entities are identifiers of
+            /// application, groups, or endpoints.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -1013,8 +955,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// List trusted certificates
             /// </summary>
             /// <remarks>
-            /// Returns all certificates the entity should trust based on the
-            /// applied trust configuration.
+            /// Returns all certificates the entity should trust based on the applied trust
+            /// configuration.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -1036,8 +978,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// List trusted certificates
             /// </summary>
             /// <remarks>
-            /// Returns all certificates the entity should trust based on the
-            /// applied trust configuration.
+            /// Returns all certificates the entity should trust based on the applied trust
+            /// configuration.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -1065,8 +1007,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// Remove a trust relationship
             /// </summary>
             /// <remarks>
-            /// Removes trust between two entities.  The entities are identifiers
-            /// of application, groups, or endpoints.
+            /// Removes trust between two entities. The entities are identifiers of
+            /// application, groups, or endpoints.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -1086,8 +1028,8 @@ namespace Microsoft.Azure.IIoT.Opc.Vault
             /// Remove a trust relationship
             /// </summary>
             /// <remarks>
-            /// Removes trust between two entities.  The entities are identifiers
-            /// of application, groups, or endpoints.
+            /// Removes trust between two entities. The entities are identifiers of
+            /// application, groups, or endpoints.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.

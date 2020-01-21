@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Newtonsoft.Json.Linq;
     using System;
 
@@ -11,6 +12,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
     /// Result of value read
     /// </summary>
     public class ValueReadResultModel {
+
+        /// <summary>
+        /// Node id
+        /// </summary>
+        public string NodeId { get; set; }
 
         /// <summary>
         /// Value read

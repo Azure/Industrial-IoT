@@ -10,8 +10,15 @@ Azure Industrial IoT OPC UA Vault Service
 *Version* : v2
 
 
+### License information
+*License* : MIT LICENSE  
+*License URL* : https://opensource.org/licenses/MIT  
+*Terms of service* : null
+
+
 ### URI scheme
-*Schemes* : HTTPS, HTTP
+*Host* : localhost:9080  
+*Schemes* : HTTP, HTTPS
 
 
 ### Tags
@@ -21,7 +28,6 @@ Azure Industrial IoT OPC UA Vault Service
 Information Access
 services.
 * Requests : Certificate request services.
-* Status : Status checks
 * TrustGroups : Trust group services.
 * TrustLists : Trust lists services.
 
@@ -47,7 +53,7 @@ GET /v2/certificates/{serialNumber}
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Path**|**serialNumber**  <br>*required*|the serial number of the<br>            Issuer CA Certificate|string|
+|**Path**|**serialNumber**  <br>*required*|the serial number of the Issuer CA Certificate|string|
 
 
 ##### Responses
@@ -80,7 +86,7 @@ GET /v2/certificates/{serialNumber}/crl
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Path**|**serialNumber**  <br>*required*|the serial number of the Issuer<br>            CA Certificate|string|
+|**Path**|**serialNumber**  <br>*required*|the serial number of the Issuer CA Certificate|string|
 
 
 ##### Responses
@@ -127,7 +133,7 @@ GET /v2/crl/{serialNumber}
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|Success|string (binary)|
 
 
 ##### Produces
@@ -153,7 +159,7 @@ GET /v2/issuer/{serialNumber}
 
 |HTTP Code|Description|Schema|
 |---|---|---|
-|**200**|Success|No Content|
+|**200**|Success|string (binary)|
 
 
 ##### Produces
@@ -174,10 +180,7 @@ GET /v2/requests
 
 
 ##### Description
-Get all certificate requests in paged form or continue a current listing or
-query.
-The returned model can contain a link to the next page if more results are
-available.
+Get all certificate requests in paged form or continue a current listing or query. The returned model can contain a link to the next page if more results are available.
 
 
 ##### Parameters
@@ -215,15 +218,14 @@ PUT /v2/requests/keypair
 
 
 ##### Description
-The request is in the 'New' state after this call.
-Requires Writer or Manager role.
+The request is in the 'New' state after this call. Requires Writer or Manager role.
 
 
 ##### Parameters
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**newKeyPairRequest**  <br>*required*|The new key pair request parameters|[StartNewKeyPairRequestApiModel](definitions.md#startnewkeypairrequestapimodel)|
+|**Body**|**body**  <br>*required*|The new key pair request parameters|[StartNewKeyPairRequestApiModel](definitions.md#startnewkeypairrequestapimodel)|
 
 
 ##### Responses
@@ -261,11 +263,7 @@ GET /v2/requests/keypair/{requestId}
 
 
 ##### Description
-Can be called in any state.
-Fetches private key in 'Completed' state.
-After a successful fetch in 'Completed' state, the request is
-moved into 'Accepted' state.
-Requires Writer role.
+Can be called in any state. Fetches private key in 'Completed' state. After a successful fetch in 'Completed' state, the request is moved into 'Accepted' state. Requires Writer role.
 
 
 ##### Parameters
@@ -302,9 +300,7 @@ POST /v2/requests/query
 
 
 ##### Description
-Get all certificate requests in paged form.
-The returned model can contain a link to the next page if more results are
-available.  Use ListRequests to continue.
+Get all certificate requests in paged form. The returned model can contain a link to the next page if more results are available. Use ListRequests to continue.
 
 
 ##### Parameters
@@ -312,7 +308,7 @@ available.  Use ListRequests to continue.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Query**|**pageSize**  <br>*optional*|optional, the maximum number of result per page|integer (int32)|
-|**Body**|**query**  <br>*optional*|optional, query filter|[CertificateRequestQueryRequestApiModel](definitions.md#certificaterequestqueryrequestapimodel)|
+|**Body**|**body**  <br>*optional*|optional, query filter|[CertificateRequestQueryRequestApiModel](definitions.md#certificaterequestqueryrequestapimodel)|
 
 
 ##### Responses
@@ -350,15 +346,14 @@ PUT /v2/requests/sign
 
 
 ##### Description
-The request is in the 'New' state after this call.
-Requires Writer or Manager role.
+The request is in the 'New' state after this call. Requires Writer or Manager role.
 
 
 ##### Parameters
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**signingRequest**  <br>*required*|The signing request parameters|[StartSigningRequestApiModel](definitions.md#startsigningrequestapimodel)|
+|**Body**|**body**  <br>*required*|The signing request parameters|[StartSigningRequestApiModel](definitions.md#startsigningrequestapimodel)|
 
 
 ##### Responses
@@ -396,10 +391,7 @@ GET /v2/requests/sign/{requestId}
 
 
 ##### Description
-Can be called in any state.
-After a successful fetch in 'Completed' state, the request is
-moved into 'Accepted' state.
-Requires Writer role.
+Can be called in any state. After a successful fetch in 'Completed' state, the request is moved into 'Accepted' state. Requires Writer role.
 
 
 ##### Parameters
@@ -469,9 +461,7 @@ DELETE /v2/requests/{requestId}
 
 
 ##### Description
-By purging the request it is actually physically deleted from the
-database, including the public key and other information.
-Requires Manager role.
+By purging the request it is actually physically deleted from the database, including the public key and other information. Requires Manager role.
 
 
 ##### Parameters
@@ -486,11 +476,6 @@ Requires Manager role.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-
-
-##### Produces
-
-* `application/json`
 
 
 ##### Security
@@ -508,8 +493,7 @@ POST /v2/requests/{requestId}/accept
 
 
 ##### Description
-The request is in the 'Accepted' state after this call.
-Requires Writer role.
+The request is in the 'Accepted' state after this call. Requires Writer role.
 
 
 ##### Parameters
@@ -524,11 +508,6 @@ Requires Writer role.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-
-
-##### Produces
-
-* `application/json`
 
 
 ##### Security
@@ -546,17 +525,7 @@ POST /v2/requests/{requestId}/approve
 
 
 ##### Description
-Validates the request with the application database.
-- If Approved:
-  - New Key Pair request: Creates the new key pair
-        in the requested format, signs the certificate and stores the
-        private key for later securely in KeyVault.
-  - Cert Signing Request: Creates and signs the certificate.
-        Deletes the CSR from the database.
- Stores the signed certificate for later use in the Database.
- The request is in the 'Approved' or 'Rejected' state after this call.
- Requires Approver role.
- Approver needs signing rights in KeyVault.
+Validates the request with the application database. - If Approved: - New Key Pair request: Creates the new key pair in the requested format, signs the certificate and stores the private key for later securely in KeyVault. - Cert Signing Request: Creates and signs the certificate. Deletes the CSR from the database. Stores the signed certificate for later use in the Database. The request is in the 'Approved' or 'Rejected' state after this call. Requires Approver role. Approver needs signing rights in KeyVault.
 
 
 ##### Parameters
@@ -571,11 +540,6 @@ Validates the request with the application database.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-
-
-##### Produces
-
-* `application/json`
 
 
 ##### Security
@@ -593,9 +557,7 @@ POST /v2/requests/{requestId}/reject
 
 
 ##### Description
-The request is in the 'Rejected' state after this call.
-Requires Approver role.
-Approver needs signing rights in KeyVault.
+The request is in the 'Rejected' state after this call. Requires Approver role. Approver needs signing rights in KeyVault.
 
 
 ##### Parameters
@@ -612,40 +574,11 @@ Approver needs signing rights in KeyVault.
 |**200**|Success|No Content|
 
 
-##### Produces
-
-* `application/json`
-
-
 ##### Security
 
 |Type|Name|Scopes|
 |---|---|---|
 |**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
-<a name="status_resource"></a>
-### Status
-Status checks
-
-
-<a name="getstatus"></a>
-#### Return the service status in the form of the service status api model.
-```
-GET /v2/status
-```
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|[StatusResponseApiModel](definitions.md#statusresponseapimodel)|
-
-
-##### Produces
-
-* `application/json`
 
 
 <a name="trustgroups_resource"></a>
@@ -661,10 +594,7 @@ GET /v2/groups
 
 
 ##### Description
-A trust group has a root certificate which issues certificates
-to entities.  Entities can be part of a trust group and thus
-trust the root certificate and all entities that the root has
-issued certificates for.
+A trust group has a root certificate which issues certificates to entities. Entities can be part of a trust group and thus trust the root certificate and all entities that the root has issued certificates for.
 
 
 ##### Parameters
@@ -709,7 +639,7 @@ Requires manager role.
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**request**  <br>*required*|The create request|[TrustGroupRegistrationRequestApiModel](definitions.md#trustgroupregistrationrequestapimodel)|
+|**Body**|**body**  <br>*required*|The create request|[TrustGroupRegistrationRequestApiModel](definitions.md#trustgroupregistrationrequestapimodel)|
 
 
 ##### Responses
@@ -754,7 +684,7 @@ Requires manager role.
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Body**|**request**  <br>*required*|The create request|[TrustGroupRootCreateRequestApiModel](definitions.md#trustgrouprootcreaterequestapimodel)|
+|**Body**|**body**  <br>*required*|The create request|[TrustGroupRootCreateRequestApiModel](definitions.md#trustgrouprootcreaterequestapimodel)|
 
 
 ##### Responses
@@ -792,9 +722,7 @@ POST /v2/groups/{groupId}
 
 
 ##### Description
-Use this function with care and only if you are aware of
-the security implications.
-Requires manager role.
+Use this function with care and only if you are aware of the security implications. Requires manager role.
 
 
 ##### Parameters
@@ -802,7 +730,7 @@ Requires manager role.
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**groupId**  <br>*required*|The group id|string|
-|**Body**|**request**  <br>*required*|The group configuration|[TrustGroupUpdateRequestApiModel](definitions.md#trustgroupupdaterequestapimodel)|
+|**Body**|**body**  <br>*required*|The group configuration|[TrustGroupUpdateRequestApiModel](definitions.md#trustgroupupdaterequestapimodel)|
 
 
 ##### Responses
@@ -820,11 +748,6 @@ Requires manager role.
 * `application/*+json`
 
 
-##### Produces
-
-* `application/json`
-
-
 ##### Security
 
 |Type|Name|Scopes|
@@ -840,10 +763,7 @@ GET /v2/groups/{groupId}
 
 
 ##### Description
-A trust group has a root certificate which issues certificates
-to entities.  Entities can be part of a trust group and thus
-trust the root certificate and all entities that the root has
-issued certificates for.
+A trust group has a root certificate which issues certificates to entities. Entities can be part of a trust group and thus trust the root certificate and all entities that the root has issued certificates for.
 
 
 ##### Parameters
@@ -880,9 +800,7 @@ DELETE /v2/groups/{groupId}
 
 
 ##### Description
-After this operation the Issuer CA, CRLs and keys become inaccessible.
-Use this function with extreme caution.
-Requires manager role.
+After this operation the Issuer CA, CRLs and keys become inaccessible. Use this function with extreme caution. Requires manager role.
 
 
 ##### Parameters
@@ -897,11 +815,6 @@ Requires manager role.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-
-
-##### Produces
-
-* `application/json`
 
 
 ##### Security
@@ -932,11 +845,6 @@ POST /v2/groups/{groupId}/renew
 |**200**|Success|No Content|
 
 
-##### Produces
-
-* `application/json`
-
-
 ##### Security
 
 |Type|Name|Scopes|
@@ -957,8 +865,7 @@ GET /v2/trustlists/{entityId}
 
 
 ##### Description
-Returns all certificates the entity should trust based on the
-applied trust configuration.
+Returns all certificates the entity should trust based on the applied trust configuration.
 
 
 ##### Parameters
@@ -997,8 +904,7 @@ PUT /v2/trustlists/{entityId}/{trustedEntityId}
 
 
 ##### Description
-Define trust between two entities.  The entities are identifiers
-of application, groups, or endpoints.
+Define trust between two entities. The entities are identifiers of application, groups, or endpoints.
 
 
 ##### Parameters
@@ -1016,11 +922,6 @@ of application, groups, or endpoints.
 |**200**|Success|No Content|
 
 
-##### Produces
-
-* `application/json`
-
-
 ##### Security
 
 |Type|Name|Scopes|
@@ -1036,8 +937,7 @@ DELETE /v2/trustlists/{entityId}/{untrustedEntityId}
 
 
 ##### Description
-Removes trust between two entities.  The entities are identifiers
-of application, groups, or endpoints.
+Removes trust between two entities. The entities are identifiers of application, groups, or endpoints.
 
 
 ##### Parameters
@@ -1053,11 +953,6 @@ of application, groups, or endpoints.
 |HTTP Code|Description|Schema|
 |---|---|---|
 |**200**|Success|No Content|
-
-
-##### Produces
-
-* `application/json`
 
 
 ##### Security

@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System.Collections.Generic;
 
     /// <summary>
@@ -19,19 +19,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// <param name="result"></param>
         /// <param name="hostAddress"></param>
         /// <param name="siteId"></param>
-        /// <param name="supervisorId"></param>
+        /// <param name="gatewayId"></param>
+        /// <param name="moduleId"></param>
         /// <returns></returns>
         public static ApplicationRegistrationModel ToServiceModel(this DiscoveredEndpointModel result,
-            string hostAddress, string siteId, string supervisorId) {
+            string hostAddress, string siteId, string gatewayId, string moduleId) {
             var type = result.Description.Server.ApplicationType.ToServiceType() ??
                 ApplicationType.Server;
+            var discovererId = DiscovererModelEx.CreateDiscovererId(gatewayId, moduleId);
             return new ApplicationRegistrationModel {
                 Application = new ApplicationInfoModel {
                     SiteId = siteId,
-                    SupervisorId = supervisorId,
+                    DiscovererId = discovererId,
                     ApplicationType = type,
-                    ApplicationId = ApplicationInfoModelEx.CreateApplicationId(
-                        siteId ?? supervisorId, result.Description.Server.ApplicationUri, type),
+                    ApplicationId = ApplicationInfoModelEx.CreateApplicationId(siteId ?? gatewayId,
+                        result.Description.Server.ApplicationUri, type), // TODO: Assign at onboarder and leave null
                     ProductUri = result.Description.Server.ProductUri,
                     ApplicationUri = result.Description.Server.ApplicationUri,
                     DiscoveryUrls = new HashSet<string>(result.Description.Server.DiscoveryUrls),
@@ -50,7 +52,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 Endpoints = new List<EndpointRegistrationModel> {
                     new EndpointRegistrationModel {
                         SiteId = siteId,
-                        SupervisorId = supervisorId,
+                        DiscovererId = discovererId,
+                        SupervisorId = null,
+                        Id = null,
                         SecurityLevel = result.Description.SecurityLevel,
                         AuthenticationMethods = result.Description.UserIdentityTokens.ToServiceModel(),
                         EndpointUrl = result.Description.EndpointUrl, // Reported

@@ -29,30 +29,16 @@ public class SupervisorApiModel {
     private String siteId;
 
     /**
-     * Whether the supervisor is in discovery mode. Possible values include:
-     * 'Off', 'Local', 'Network', 'Fast', 'Scan'.
-     */
-    @JsonProperty(value = "discovery")
-    private DiscoveryMode discovery;
-
-    /**
-     * Supervisor configuration.
-     */
-    @JsonProperty(value = "discoveryConfig")
-    private DiscoveryConfigApiModel discoveryConfig;
-
-    /**
      * Supervisor public client cert.
      */
     @JsonProperty(value = "certificate")
     private byte[] certificate;
 
     /**
-     * Current log level. Possible values include: 'Error', 'Information',
-     * 'Debug', 'Verbose'.
+     * Possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
      */
     @JsonProperty(value = "logLevel")
-    private SupervisorLogLevel logLevel;
+    private TraceLogLevel logLevel;
 
     /**
      * Whether the registration is out of sync between
@@ -108,46 +94,6 @@ public class SupervisorApiModel {
     }
 
     /**
-     * Get whether the supervisor is in discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'.
-     *
-     * @return the discovery value
-     */
-    public DiscoveryMode discovery() {
-        return this.discovery;
-    }
-
-    /**
-     * Set whether the supervisor is in discovery mode. Possible values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'.
-     *
-     * @param discovery the discovery value to set
-     * @return the SupervisorApiModel object itself.
-     */
-    public SupervisorApiModel withDiscovery(DiscoveryMode discovery) {
-        this.discovery = discovery;
-        return this;
-    }
-
-    /**
-     * Get supervisor configuration.
-     *
-     * @return the discoveryConfig value
-     */
-    public DiscoveryConfigApiModel discoveryConfig() {
-        return this.discoveryConfig;
-    }
-
-    /**
-     * Set supervisor configuration.
-     *
-     * @param discoveryConfig the discoveryConfig value to set
-     * @return the SupervisorApiModel object itself.
-     */
-    public SupervisorApiModel withDiscoveryConfig(DiscoveryConfigApiModel discoveryConfig) {
-        this.discoveryConfig = discoveryConfig;
-        return this;
-    }
-
-    /**
      * Get supervisor public client cert.
      *
      * @return the certificate value
@@ -168,21 +114,21 @@ public class SupervisorApiModel {
     }
 
     /**
-     * Get current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
+     * Get possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
      *
      * @return the logLevel value
      */
-    public SupervisorLogLevel logLevel() {
+    public TraceLogLevel logLevel() {
         return this.logLevel;
     }
 
     /**
-     * Set current log level. Possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
+     * Set possible values include: 'Error', 'Information', 'Debug', 'Verbose'.
      *
      * @param logLevel the logLevel value to set
      * @return the SupervisorApiModel object itself.
      */
-    public SupervisorApiModel withLogLevel(SupervisorLogLevel logLevel) {
+    public SupervisorApiModel withLogLevel(TraceLogLevel logLevel) {
         this.logLevel = logLevel;
         return this;
     }

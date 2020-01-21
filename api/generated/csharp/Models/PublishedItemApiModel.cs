@@ -8,12 +8,10 @@
 // regenerated.
 // </auto-generated>
 
-namespace Microsoft.Azure.IIoT.Opc.Twin.Models
+namespace Microsoft.Azure.IIoT.Opc.Publisher.Models
 {
     using Microsoft.Rest;
     using Newtonsoft.Json;
-    using System.Collections;
-    using System.Collections.Generic;
     using System.Linq;
 
     /// <summary>
@@ -33,24 +31,11 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// Initializes a new instance of the PublishedItemApiModel class.
         /// </summary>
         /// <param name="nodeId">Node to monitor</param>
-        /// <param name="browsePath">An optional path from NodeId instance to
-        /// the actual node.</param>
-        /// <param name="nodeAttribute">Attribute to monitor. Possible values
-        /// include: 'NodeClass', 'BrowseName', 'DisplayName', 'Description',
-        /// 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric',
-        /// 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value',
-        /// 'DataType', 'ValueRank', 'ArrayDimensions', 'AccessLevel',
-        /// 'UserAccessLevel', 'MinimumSamplingInterval', 'Historizing',
-        /// 'Executable', 'UserExecutable', 'DataTypeDefinition',
-        /// 'RolePermissions', 'UserRolePermissions',
-        /// 'AccessRestrictions'</param>
         /// <param name="publishingInterval">Publishing interval to use</param>
         /// <param name="samplingInterval">Sampling interval to use</param>
-        public PublishedItemApiModel(string nodeId, IList<string> browsePath = default(IList<string>), NodeAttribute? nodeAttribute = default(NodeAttribute?), int? publishingInterval = default(int?), int? samplingInterval = default(int?))
+        public PublishedItemApiModel(string nodeId, string publishingInterval = default(string), string samplingInterval = default(string))
         {
             NodeId = nodeId;
-            BrowsePath = browsePath;
-            NodeAttribute = nodeAttribute;
             PublishingInterval = publishingInterval;
             SamplingInterval = samplingInterval;
             CustomInit();
@@ -68,36 +53,16 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public string NodeId { get; set; }
 
         /// <summary>
-        /// Gets or sets an optional path from NodeId instance to
-        /// the actual node.
-        /// </summary>
-        [JsonProperty(PropertyName = "browsePath")]
-        public IList<string> BrowsePath { get; set; }
-
-        /// <summary>
-        /// Gets or sets attribute to monitor. Possible values include:
-        /// 'NodeClass', 'BrowseName', 'DisplayName', 'Description',
-        /// 'WriteMask', 'UserWriteMask', 'IsAbstract', 'Symmetric',
-        /// 'InverseName', 'ContainsNoLoops', 'EventNotifier', 'Value',
-        /// 'DataType', 'ValueRank', 'ArrayDimensions', 'AccessLevel',
-        /// 'UserAccessLevel', 'MinimumSamplingInterval', 'Historizing',
-        /// 'Executable', 'UserExecutable', 'DataTypeDefinition',
-        /// 'RolePermissions', 'UserRolePermissions', 'AccessRestrictions'
-        /// </summary>
-        [JsonProperty(PropertyName = "nodeAttribute")]
-        public NodeAttribute? NodeAttribute { get; set; }
-
-        /// <summary>
         /// Gets or sets publishing interval to use
         /// </summary>
         [JsonProperty(PropertyName = "publishingInterval")]
-        public int? PublishingInterval { get; set; }
+        public string PublishingInterval { get; set; }
 
         /// <summary>
         /// Gets or sets sampling interval to use
         /// </summary>
         [JsonProperty(PropertyName = "samplingInterval")]
-        public int? SamplingInterval { get; set; }
+        public string SamplingInterval { get; set; }
 
         /// <summary>
         /// Validate the object.

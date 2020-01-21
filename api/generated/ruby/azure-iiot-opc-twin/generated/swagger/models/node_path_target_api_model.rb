@@ -16,7 +16,7 @@ module azure.iiot.opc.twin
       # @return [Array<String>] The target browse path
       attr_accessor :browse_path
 
-      # @return [NodeApiModel] Target node
+      # @return [NodeApiModel]
       attr_accessor :target
 
       # @return [Integer] Remaining index in path

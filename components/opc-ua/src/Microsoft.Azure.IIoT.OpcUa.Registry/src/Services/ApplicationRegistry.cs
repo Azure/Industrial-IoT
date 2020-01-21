@@ -17,8 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     /// <summary>
     /// Application registry service.
     /// </summary>
-    public sealed class ApplicationRegistry : IApplicationRegistry,
-        IApplicationBulkProcessor {
+    public sealed class ApplicationRegistry : IApplicationRegistry, IApplicationBulkProcessor {
 
         /// <summary>
         /// Create registry services
@@ -31,7 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <param name="metrics"></param>
         public ApplicationRegistry(IApplicationRepository database,
             IApplicationEndpointRegistry endpoints, IEndpointBulkProcessor bulk,
-            IApplicationEventBroker broker, ILogger logger, IMetricLogger metrics) {
+            IApplicationEventBroker broker, ILogger logger, IMetricsLogger metrics) {
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
@@ -210,26 +209,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         /// <inheritdoc/>
-        public async Task ProcessDiscoveryEventsAsync(string siteId, string supervisorId,
-            DiscoveryResultModel result, IEnumerable<DiscoveryEventModel> events) {
+        public async Task ProcessDiscoveryEventsAsync(string siteId, string discovererId,
+            string supervisorId, DiscoveryResultModel result, IEnumerable<DiscoveryEventModel> events) {
             if (string.IsNullOrEmpty(siteId)) {
                 throw new ArgumentNullException(nameof(siteId));
             }
-            if (string.IsNullOrEmpty(supervisorId)) {
-                throw new ArgumentNullException(nameof(supervisorId));
+            if (string.IsNullOrEmpty(discovererId)) {
+                throw new ArgumentNullException(nameof(discovererId));
             }
             if (result == null) {
                 throw new ArgumentNullException(nameof(result));
             }
             var context = result.Context.Validate();
+
             //
-            // Get all applications for this supervisor or the site the application
+            // Get all applications for this discoverer or the site the application
             // was found in.  There should only be one site in the found application set
-            // or none, otherwise, throw.  The OR covers where site of a supervisor was
-            // changed after a discovery run (same supervisor that registered, but now
+            // or none, otherwise, throw.  The OR covers where site of a discoverer was
+            // changed after a discovery run (same discoverer that registered, but now
             // different site reported).
             //
-            var existing = await _database.ListAllAsync(siteId, supervisorId);
+            var existing = await _database.ListAllAsync(siteId, discovererId);
             var found = events.Select(ev => ev.Application);
 
             // Create endpoints lookup table per found application id
@@ -244,9 +244,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     .ToList());
             //
             // Merge found with existing applications. For disabled applications this will
-            // take ownership regardless of supervisor, unfound applications are only disabled
+            // take ownership regardless of discoverer, unfound applications are only disabled
             // and existing ones are patched only if they were previously reported by the same
-            // supervisor.  New ones are simply added.
+            // discoverer.  New ones are simply added.
             //
             var remove = new HashSet<ApplicationInfoModel>(existing,
                 ApplicationInfoModelEx.LogicalEquality);
@@ -271,8 +271,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 // Remove applications
                 foreach (var removal in remove) {
                     try {
-                        // Only touch applications the supervisor owns.
-                        if (removal.SupervisorId == supervisorId) {
+                        // Only touch applications the discoverer owns.
+                        if (removal.DiscovererId == discovererId) {
                             // Disable if not already disabled
                             var app = await _database.UpdateAsync(removal.ApplicationId,
                                 (application, disabled) => {
@@ -291,7 +291,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                                 l => l.OnApplicationDisabledAsync(context, app));
                         }
                         else {
-                            // Skip the ones owned by other supervisors
+                            // Skip the ones owned by other discoverers
                             unchanged++;
                         }
                     }
@@ -310,7 +310,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                         ApplicationInfoModelEx.CreateApplicationId(application);
                     application.Created = context;
                     application.NotSeenSince = null;
-                    application.SupervisorId = supervisorId;
+                    application.DiscovererId = discovererId;
                     application.SiteId = siteId;
 
                     var app = await _database.AddAsync(application, false);
@@ -322,7 +322,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     // Now - add all new endpoints
                     endpoints.TryGetValue(app.ApplicationId, out var epFound);
                     await _bulk.ProcessDiscoveryEventsAsync(epFound, result,
-                        supervisorId, null, false);
+                        discovererId, supervisorId, null, false);
                     added++;
                 }
                 catch (ConflictingResourceException) {
@@ -330,7 +330,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 }
                 catch (Exception ex) {
                     unchanged++;
-                    _logger.Error(ex, "Exception during discovery addition.");
+                    _logger.Error(ex, "Exception adding application from discovery.");
                 }
             }
 
@@ -343,7 +343,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     // Disable if not already disabled
                     var app = await _database.UpdateAsync(update.ApplicationId,
                         (application, disabled) => {
-                            if (update.SupervisorId != supervisorId && !(disabled ?? false)) {
+                            if (update.DiscovererId != discovererId && !(disabled ?? false)) {
                                 // TODO: Decide whether we merge endpoints...
                                 unchanged++;
                                 return (null, null);
@@ -353,7 +353,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                             wasUpdated = true;
 
                             application.Patch(update);
-                            application.SupervisorId = supervisorId;
+                            application.DiscovererId = discovererId;
                             application.SiteId = siteId;
                             application.NotSeenSince = null;
                             application.Updated = context;
@@ -368,8 +368,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     if (wasUpdated) {
                         endpoints.TryGetValue(app.ApplicationId, out var epFound);
                         // TODO: Handle case where we take ownership of all endpoints
-                        await _bulk.ProcessDiscoveryEventsAsync(epFound, result, supervisorId,
-                            app.ApplicationId, false);
+                        await _bulk.ProcessDiscoveryEventsAsync(epFound, result, discovererId,
+                            supervisorId, app.ApplicationId, false);
 
                         await _broker.NotifyAllAsync(l => l.OnApplicationUpdatedAsync(context, app));
                     }
@@ -385,9 +385,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             log = true;
 #endif
             if (log) {
-                _logger.Information("... processed discovery results from {supervisorId}: " +
+                _logger.Information("... processed discovery results from {discovererId}: " +
                     "{added} applications added, {updated} updated, {removed} disabled, and " +
-                    "{unchanged} unchanged.", supervisorId, added, updated, removed, unchanged);
+                    "{unchanged} unchanged.", discovererId, added, updated, removed, unchanged);
                 _metrics.TrackValue("applicationsAdded", added);
                 _metrics.TrackValue("applicationsUpdated", updated);
                 _metrics.TrackValue("applicationsUnchanged", unchanged);
@@ -396,7 +396,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         private readonly IApplicationRepository _database;
         private readonly ILogger _logger;
-        private readonly IMetricLogger _metrics;
+        private readonly IMetricsLogger _metrics;
         private readonly IEndpointBulkProcessor _bulk;
         private readonly IApplicationEndpointRegistry _endpoints;
         private readonly IApplicationEventBroker _broker;

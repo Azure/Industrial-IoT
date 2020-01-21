@@ -4,10 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Newtonsoft.Json.Linq {
-    using Newtonsoft.Json.Bson;
     using System;
     using System.Collections.Generic;
-    using System.IO;
 
     /// <summary>
     /// Json token extensions
@@ -21,42 +19,6 @@ namespace Newtonsoft.Json.Linq {
         /// <returns></returns>
         public static string ToSha1Hash(this JToken token) {
             return token.ToString(Formatting.None).ToSha1Hash();
-        }
-
-        /// <summary>
-        /// Creates a comparable bson buffer from token
-        /// </summary>
-        /// <param name="token"></param>
-        /// <returns></returns>
-        public static byte[] ToBson(this JToken token) {
-            using (var ms = new MemoryStream()) {
-                using (var writer = new BsonDataWriter(ms)) {
-                    if (token.Type != JTokenType.Object &&
-                        token.Type != JTokenType.Array) {
-                        token = new JObject {
-                            new JProperty("value", token)
-                        };
-                    }
-                    token.WriteTo(writer);
-                }
-                return ms.ToArray();
-            }
-        }
-
-        /// <summary>
-        /// Decodes a bson buffer to a token
-        /// </summary>
-        /// <param name="buffer"></param>
-        /// <returns></returns>
-        public static JToken FromBson(byte[] buffer) {
-            if (buffer == null) {
-                return JValue.CreateNull();
-            }
-            using (var ms = new MemoryStream(buffer)) {
-                using (var reader = new BsonDataReader(ms)) {
-                    return JToken.ReadFrom(reader);
-                }
-            }
         }
 
         /// <summary>
@@ -108,10 +70,12 @@ namespace Newtonsoft.Json.Linq {
         /// <param name="t"></param>
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
+        /// <param name="compare"></param>
         /// <returns></returns>
         public static T GetValueOrDefault<T>(this JToken t,
-            string key, T defaultValue) {
-            return GetValueOrDefault(t, key, () => defaultValue);
+            string key, T defaultValue,
+            StringComparison compare = StringComparison.Ordinal) {
+            return GetValueOrDefault(t, key, () => defaultValue, compare);
         }
 
         /// <summary>
@@ -120,10 +84,11 @@ namespace Newtonsoft.Json.Linq {
         /// <typeparam name="T"></typeparam>
         /// <param name="t"></param>
         /// <param name="key"></param>
+        /// <param name="compare"></param>
         /// <returns></returns>
         public static T GetValueOrDefault<T>(this JToken t,
-            string key) {
-            return GetValueOrDefault(t, key, () => default(T));
+            string key, StringComparison compare = StringComparison.Ordinal) {
+            return GetValueOrDefault(t, key, () => default(T), compare);
         }
 
         /// <summary>
@@ -133,12 +98,17 @@ namespace Newtonsoft.Json.Linq {
         /// <param name="t"></param>
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
+        /// <param name="compare"></param>
         /// <returns></returns>
         public static T GetValueOrDefault<T>(this JToken t,
-            string key, Func<T> defaultValue) {
-            if (t is JObject o && o.TryGetValue(key, out var token)) {
+            string key, Func<T> defaultValue,
+            StringComparison compare = StringComparison.Ordinal) {
+            if (t is JObject o) {
                 try {
-                    return token.ToObject<T>();
+                    var value = o.Property(key, compare)?.Value;
+                    if (value != null) {
+                        return value.ToObject<T>();
+                    }
                 }
                 catch {
                     return defaultValue();
@@ -154,10 +124,12 @@ namespace Newtonsoft.Json.Linq {
         /// <param name="t"></param>
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
+        /// <param name="compare"></param>
         /// <returns></returns>
         public static T? GetValueOrDefault<T>(this JToken t,
-            string key, T? defaultValue) where T : struct {
-            return GetValueOrDefault(t, key, () => defaultValue);
+            string key, T? defaultValue,
+            StringComparison compare = StringComparison.Ordinal) where T : struct {
+            return GetValueOrDefault(t, key, () => defaultValue, compare);
         }
 
         /// <summary>
@@ -167,13 +139,18 @@ namespace Newtonsoft.Json.Linq {
         /// <param name="t"></param>
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
+        /// <param name="compare"></param>
         /// <returns></returns>
         public static T? GetValueOrDefault<T>(this JToken t,
-            string key, Func<T?> defaultValue) where T : struct {
+            string key, Func<T?> defaultValue,
+            StringComparison compare = StringComparison.Ordinal) where T : struct {
 
-            if (t is JObject o && o.TryGetValue(key, out var token)) {
+            if (t is JObject o) {
                 try {
-                    return token.ToObject<T>();
+                    var value = o.Property(key, compare)?.Value;
+                    if (value != null) {
+                        return value.ToObject<T>();
+                    }
                 }
                 catch {
                     return defaultValue();

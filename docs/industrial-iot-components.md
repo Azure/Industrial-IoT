@@ -27,4 +27,4 @@ The complete architecture of Industrial IoT Components is shown below:
 
 * [Complete code structure](code-structure.md)
 * [Deploy Azure Industrial IoT](readme.md)
-* [Deploy the Microservices](howto-deploy-microservices.md)
+* [Deploy the Components](deploy/readme.md)

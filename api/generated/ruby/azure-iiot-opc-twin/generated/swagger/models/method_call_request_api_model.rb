@@ -36,7 +36,7 @@ module azure.iiot.opc.twin
       # If ObjectId is null, the root node (i=84) is used.
       attr_accessor :object_browse_path
 
-      # @return [RequestHeaderApiModel] Optional request header
+      # @return [RequestHeaderApiModel]
       attr_accessor :header
 
 

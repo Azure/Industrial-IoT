@@ -5,72 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
     using System;
-
-    /// <summary>
-    /// State of the endpoint after activation
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum EndpointConnectivityState {
-
-        /// <summary>
-        /// Client connecting to endpoint
-        /// </summary>
-        Connecting,
-
-        /// <summary>
-        /// Server not reachable
-        /// </summary>
-        NotReachable,
-
-        /// <summary>
-        /// Server busy - try later
-        /// </summary>
-        Busy,
-
-        /// <summary>
-        /// Client is not trusted - update client cert
-        /// </summary>
-        NoTrust,
-
-        /// <summary>
-        /// Server certificate is invalid - update server certificate
-        /// </summary>
-        CertificateInvalid,
-
-        /// <summary>
-        /// Connected and ready
-        /// </summary>
-        Ready,
-
-        /// <summary>
-        /// Any other connection error
-        /// </summary>
-        Error
-    }
-
-    /// <summary>
-    /// Activation state of the endpoint twin
-    /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
-    public enum EndpointActivationState {
-
-        /// <summary>
-        /// Endpoint twin is deactivated (default)
-        /// </summary>
-        Deactivated,
-
-        /// <summary>
-        /// Endpoint twin is activated but not connected
-        /// </summary>
-        Activated,
-
-        /// <summary>
-        /// Endoint twin is activated and connected to hub
-        /// </summary>
-        ActivatedAndConnected
-    }
+    using System.ComponentModel;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Endpoint registration model
@@ -81,12 +18,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// Endpoint registration
         /// </summary>
         [JsonProperty(PropertyName = "registration")]
+        [Required]
         public EndpointRegistrationApiModel Registration { get; set; }
 
         /// <summary>
-        /// Application id endpoint is registered with.
+        /// Application id endpoint is registered under.
         /// </summary>
         [JsonProperty(PropertyName = "applicationId")]
+        [Required]
         public string ApplicationId { get; set; }
 
         /// <summary>
@@ -94,13 +33,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "activationState",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null), ReadOnly(true)]
         public EndpointActivationState? ActivationState { get; set; }
 
         /// <summary>
-        /// Last connectivity state of the activated endpoint
+        /// Last state of the activated endpoint
         /// </summary>
         [JsonProperty(PropertyName = "endpointState",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null), ReadOnly(true)]
         public EndpointConnectivityState? EndpointState { get; set; }
 
         /// <summary>
@@ -108,6 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "outOfSync",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null), ReadOnly(true)]
         public bool? OutOfSync { get; set; }
 
         /// <summary>
@@ -115,6 +57,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "notSeenSince",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public DateTime? NotSeenSince { get; set; }
 
         /// <summary>

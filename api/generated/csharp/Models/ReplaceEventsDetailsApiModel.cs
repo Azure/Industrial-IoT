@@ -35,8 +35,7 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// class.
         /// </summary>
         /// <param name="events">The events to replace</param>
-        /// <param name="filter">The filter to use to select the events</param>
-        public ReplaceEventsDetailsApiModel(IList<HistoricEventApiModel> events, object filter = default(object))
+        public ReplaceEventsDetailsApiModel(IList<HistoricEventApiModel> events, EventFilterApiModel filter = default(EventFilterApiModel))
         {
             Filter = filter;
             Events = events;
@@ -49,10 +48,9 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets the filter to use to select the events
         /// </summary>
         [JsonProperty(PropertyName = "filter")]
-        public object Filter { get; set; }
+        public EventFilterApiModel Filter { get; set; }
 
         /// <summary>
         /// Gets or sets the events to replace

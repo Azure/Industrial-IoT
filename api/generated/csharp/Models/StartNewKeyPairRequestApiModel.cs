@@ -10,7 +10,6 @@
 
 namespace Microsoft.Azure.IIoT.Opc.Vault.Models
 {
-    using Microsoft.Rest;
     using Newtonsoft.Json;
     using System.Collections;
     using System.Collections.Generic;
@@ -36,12 +35,12 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// </summary>
         /// <param name="entityId">Entity id</param>
         /// <param name="groupId">Certificate group</param>
-        /// <param name="certificateType">Type. Possible values include:
+        /// <param name="certificateType">Possible values include:
         /// 'ApplicationInstanceCertificate', 'HttpsCertificate',
         /// 'UserCredentialCertificate'</param>
         /// <param name="subjectName">Subject name</param>
         /// <param name="domainNames">Domain names</param>
-        public StartNewKeyPairRequestApiModel(string entityId, string groupId, TrustGroupType certificateType, string subjectName, IList<string> domainNames = default(IList<string>))
+        public StartNewKeyPairRequestApiModel(string entityId = default(string), string groupId = default(string), TrustGroupType? certificateType = default(TrustGroupType?), string subjectName = default(string), IList<string> domainNames = default(IList<string>))
         {
             EntityId = entityId;
             GroupId = groupId;
@@ -69,12 +68,12 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         public string GroupId { get; set; }
 
         /// <summary>
-        /// Gets or sets type. Possible values include:
+        /// Gets or sets possible values include:
         /// 'ApplicationInstanceCertificate', 'HttpsCertificate',
         /// 'UserCredentialCertificate'
         /// </summary>
         [JsonProperty(PropertyName = "certificateType")]
-        public TrustGroupType CertificateType { get; set; }
+        public TrustGroupType? CertificateType { get; set; }
 
         /// <summary>
         /// Gets or sets subject name
@@ -88,26 +87,5 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         [JsonProperty(PropertyName = "domainNames")]
         public IList<string> DomainNames { get; set; }
 
-        /// <summary>
-        /// Validate the object.
-        /// </summary>
-        /// <exception cref="ValidationException">
-        /// Thrown if validation fails
-        /// </exception>
-        public virtual void Validate()
-        {
-            if (EntityId == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "EntityId");
-            }
-            if (GroupId == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "GroupId");
-            }
-            if (SubjectName == null)
-            {
-                throw new ValidationException(ValidationRules.CannotBeNull, "SubjectName");
-            }
-        }
     }
 }

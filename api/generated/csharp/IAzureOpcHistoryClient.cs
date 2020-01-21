@@ -49,14 +49,14 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// Delete value history at specified times
         /// </summary>
         /// <remarks>
-        /// Delete value history using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Delete value history using historic access. The endpoint must be
+        /// activated and connected and the module client and server must trust
+        /// each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history update request
         /// </param>
         /// <param name='customHeaders'>
@@ -65,20 +65,20 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryDeleteValuesAtTimesWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryDeleteValuesAtTimesWithHttpMessagesAsync(string endpointId, DeleteValuesAtTimesDetailsApiModelHistoryUpdateRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Delete historic values
         /// </summary>
         /// <remarks>
-        /// Delete historic values using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Delete historic values using historic access. The endpoint must be
+        /// activated and connected and the module client and server must trust
+        /// each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history update request
         /// </param>
         /// <param name='customHeaders'>
@@ -87,20 +87,20 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryDeleteValuesWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryDeleteValuesWithHttpMessagesAsync(string endpointId, DeleteValuesDetailsApiModelHistoryUpdateRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Delete historic values
         /// </summary>
         /// <remarks>
-        /// Delete historic values using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Delete historic values using historic access. The endpoint must be
+        /// activated and connected and the module client and server must trust
+        /// each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history update request
         /// </param>
         /// <param name='customHeaders'>
@@ -109,20 +109,20 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryDeleteModifiedValuesWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryDeleteModifiedValuesWithHttpMessagesAsync(string endpointId, DeleteModifiedValuesDetailsApiModelHistoryUpdateRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Delete historic events
         /// </summary>
         /// <remarks>
-        /// Delete historic events using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Delete historic events using historic access. The endpoint must be
+        /// activated and connected and the module client and server must trust
+        /// each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history update request
         /// </param>
         /// <param name='customHeaders'>
@@ -131,20 +131,20 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryDeleteEventsWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryDeleteEventsWithHttpMessagesAsync(string endpointId, DeleteEventsDetailsApiModelHistoryUpdateRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Read history using json details
         /// </summary>
         /// <remarks>
-        /// Read node history if available using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Read node history if available using historic access. The endpoint
+        /// must be activated and connected and the module client and server
+        /// must trust each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history read request
         /// </param>
         /// <param name='customHeaders'>
@@ -153,20 +153,20 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<HistoryReadResponseApiModelJToken>> HistoryReadRawWithHttpMessagesAsync(string endpointId, HistoryReadRequestApiModelJToken request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<JTokenHistoryReadResponseApiModel>> HistoryReadRawWithHttpMessagesAsync(string endpointId, JTokenHistoryReadRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Read next batch of history as json
         /// </summary>
         /// <remarks>
-        /// Read next batch of node history values using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Read next batch of node history values using historic access. The
+        /// endpoint must be activated and connected and the module client and
+        /// server must trust each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history read next request
         /// </param>
         /// <param name='customHeaders'>
@@ -175,20 +175,20 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<HistoryReadNextResponseApiModelJToken>> HistoryReadRawNextWithHttpMessagesAsync(string endpointId, HistoryReadNextRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<JTokenHistoryReadNextResponseApiModel>> HistoryReadRawNextWithHttpMessagesAsync(string endpointId, HistoryReadNextRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Update node history using raw json
         /// </summary>
         /// <remarks>
-        /// Update node history using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Update node history using historic access. The endpoint must be
+        /// activated and connected and the module client and server must trust
+        /// each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history update request
         /// </param>
         /// <param name='customHeaders'>
@@ -197,20 +197,20 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryUpdateRawWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelJToken request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryUpdateRawWithHttpMessagesAsync(string endpointId, JTokenHistoryUpdateRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Insert historic values
         /// </summary>
         /// <remarks>
-        /// Insert historic values using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Insert historic values using historic access. The endpoint must be
+        /// activated and connected and the module client and server must trust
+        /// each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history insert request
         /// </param>
         /// <param name='customHeaders'>
@@ -219,20 +219,20 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryInsertValuesWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelInsertValuesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryInsertValuesWithHttpMessagesAsync(string endpointId, InsertValuesDetailsApiModelHistoryUpdateRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Insert historic events
         /// </summary>
         /// <remarks>
-        /// Insert historic events using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Insert historic events using historic access. The endpoint must be
+        /// activated and connected and the module client and server must trust
+        /// each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history insert request
         /// </param>
         /// <param name='customHeaders'>
@@ -241,7 +241,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryInsertEventsWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelInsertEventsDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryInsertEventsWithHttpMessagesAsync(string endpointId, InsertEventsDetailsApiModelHistoryUpdateRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Read historic events
@@ -254,7 +254,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history read request
         /// </param>
         /// <param name='customHeaders'>
@@ -263,7 +263,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<HistoryReadResponseApiModelHistoricEventApiModel>> HistoryReadEventsWithHttpMessagesAsync(string endpointId, HistoryReadRequestApiModelReadEventsDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<HistoricEventApiModelHistoryReadResponseApiModel>> HistoryReadEventsWithHttpMessagesAsync(string endpointId, ReadEventsDetailsApiModelHistoryReadRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Read next batch of historic events
@@ -276,7 +276,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history read next request
         /// </param>
         /// <param name='customHeaders'>
@@ -285,21 +285,20 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<HistoryReadNextResponseApiModelHistoricEventApiModel>> HistoryReadEventsNextWithHttpMessagesAsync(string endpointId, HistoryReadNextRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<HistoricEventApiModelHistoryReadNextResponseApiModel>> HistoryReadEventsNextWithHttpMessagesAsync(string endpointId, HistoryReadNextRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Read historic processed values at specified times
         /// </summary>
         /// <remarks>
         /// Read processed history values of a node if available using historic
-        /// access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// access. The endpoint must be activated and connected and the module
+        /// client and server must trust each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history read request
         /// </param>
         /// <param name='customHeaders'>
@@ -308,7 +307,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>> HistoryReadValuesWithHttpMessagesAsync(string endpointId, HistoryReadRequestApiModelReadValuesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<HistoricValueApiModelHistoryReadResponseApiModel>> HistoryReadValuesWithHttpMessagesAsync(string endpointId, ReadValuesDetailsApiModelHistoryReadRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Read historic values at specified times
@@ -321,7 +320,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history read request
         /// </param>
         /// <param name='customHeaders'>
@@ -330,21 +329,20 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>> HistoryReadValuesAtTimesWithHttpMessagesAsync(string endpointId, HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<HistoricValueApiModelHistoryReadResponseApiModel>> HistoryReadValuesAtTimesWithHttpMessagesAsync(string endpointId, ReadValuesAtTimesDetailsApiModelHistoryReadRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Read historic processed values at specified times
         /// </summary>
         /// <remarks>
         /// Read processed history values of a node if available using historic
-        /// access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// access. The endpoint must be activated and connected and the module
+        /// client and server must trust each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history read request
         /// </param>
         /// <param name='customHeaders'>
@@ -353,21 +351,20 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>> HistoryReadProcessedValuesWithHttpMessagesAsync(string endpointId, HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<HistoricValueApiModelHistoryReadResponseApiModel>> HistoryReadProcessedValuesWithHttpMessagesAsync(string endpointId, ReadProcessedValuesDetailsApiModelHistoryReadRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Read historic modified values at specified times
         /// </summary>
         /// <remarks>
         /// Read processed history values of a node if available using historic
-        /// access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// access. The endpoint must be activated and connected and the module
+        /// client and server must trust each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history read request
         /// </param>
         /// <param name='customHeaders'>
@@ -376,7 +373,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<HistoryReadResponseApiModelHistoricValueApiModel>> HistoryReadModifiedValuesWithHttpMessagesAsync(string endpointId, HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<HistoricValueApiModelHistoryReadResponseApiModel>> HistoryReadModifiedValuesWithHttpMessagesAsync(string endpointId, ReadModifiedValuesDetailsApiModelHistoryReadRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Read next batch of historic values
@@ -389,7 +386,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history read next request
         /// </param>
         /// <param name='customHeaders'>
@@ -398,20 +395,20 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<HistoryReadNextResponseApiModelHistoricValueApiModel>> HistoryReadValueNextWithHttpMessagesAsync(string endpointId, HistoryReadNextRequestApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<HistoricValueApiModelHistoryReadNextResponseApiModel>> HistoryReadValueNextWithHttpMessagesAsync(string endpointId, HistoryReadNextRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Replace historic values
         /// </summary>
         /// <remarks>
-        /// Replace historic values using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Replace historic values using historic access. The endpoint must be
+        /// activated and connected and the module client and server must trust
+        /// each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history replace request
         /// </param>
         /// <param name='customHeaders'>
@@ -420,20 +417,20 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryReplaceValuesWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryReplaceValuesWithHttpMessagesAsync(string endpointId, ReplaceValuesDetailsApiModelHistoryUpdateRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Replace historic events
         /// </summary>
         /// <remarks>
-        /// Replace historic events using historic access.
-        /// The endpoint must be activated and connected and the module client
-        /// and server must trust each other.
+        /// Replace historic events using historic access. The endpoint must be
+        /// activated and connected and the module client and server must trust
+        /// each other.
         /// </remarks>
         /// <param name='endpointId'>
         /// The identifier of the activated endpoint.
         /// </param>
-        /// <param name='request'>
+        /// <param name='body'>
         /// The history replace request
         /// </param>
         /// <param name='customHeaders'>
@@ -442,19 +439,7 @@ namespace Microsoft.Azure.IIoT.Opc.History
         /// <param name='cancellationToken'>
         /// The cancellation token.
         /// </param>
-        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryReplaceEventsWithHttpMessagesAsync(string endpointId, HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel request, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Return the service status in the form of the service status
-        /// api model.
-        /// </summary>
-        /// <param name='customHeaders'>
-        /// The headers that will be added to request.
-        /// </param>
-        /// <param name='cancellationToken'>
-        /// The cancellation token.
-        /// </param>
-        Task<HttpOperationResponse<StatusResponseApiModel>> GetStatusWithHttpMessagesAsync(Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpOperationResponse<HistoryUpdateResponseApiModel>> HistoryReplaceEventsWithHttpMessagesAsync(string endpointId, ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel body, Dictionary<string, List<string>> customHeaders = null, CancellationToken cancellationToken = default(CancellationToken));
 
     }
 }

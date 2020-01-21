@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
             _logger = logger ??
                 throw new ArgumentNullException(nameof(logger));
 
-            _lock = new SemaphoreSlim(1);
+            _lock = new SemaphoreSlim(1, 1);
             _master = Sync();
 
             _notifier = new FileSystemWatcher(Path.GetTempPath(), _fileName);

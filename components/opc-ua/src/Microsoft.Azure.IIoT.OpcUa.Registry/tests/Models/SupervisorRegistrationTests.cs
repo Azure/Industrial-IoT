@@ -3,8 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.Hub;
     using AutoFixture;
     using System;
@@ -70,36 +69,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services.Models {
         }
 
         [Fact]
-        public void TestEqualIsNotEqualWithServiceModelConversion() {
-            var r1 = CreateRegistration();
-            var m = r1.ToServiceModel();
-            m.DiscoveryConfig.AddressRangesToScan = "";
-            var r2 = m.ToSupervisorRegistration();
-
-            Assert.NotEqual(r1, r2);
-            Assert.NotEqual(r1.GetHashCode(), r2.GetHashCode());
-            Assert.True(r1 != r2);
-            Assert.False(r1 == r2);
-        }
-
-        [Fact]
-        public void TestEqualIsNotEqualWithDeviceModel() {
-            var r1 = CreateRegistration();
-            var m = r1.ToDeviceTwin();
-            m.Properties.Desired["AddressRangesToScan"] = null;
-            var r2 = m.ToRegistration();
-
-            Assert.NotEqual(r1, r2);
-            Assert.NotEqual(r1.GetHashCode(), r2.GetHashCode());
-            Assert.True(r1 != r2);
-            Assert.False(r1 == r2);
-        }
-
-        [Fact]
         public void TestEqualIsEqualWithDeviceModel() {
             var r1 = CreateRegistration();
             var m = r1.ToDeviceTwin();
-            var r2 = m.ToRegistration();
+            var r2 = m.ToEntityRegistration();
 
             Assert.Equal(r1, r2);
             Assert.Equal(r1.GetHashCode(), r2.GetHashCode());
@@ -117,10 +90,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services.Models {
             var r3 = r2.ToServiceModel().ToSupervisorRegistration(false);
             var m2 = r2.Patch(r3);
 
-            Assert.True((bool)m1.Tags[nameof(BaseRegistration.IsDisabled)]);
-            Assert.NotNull((DateTime?)m1.Tags[nameof(BaseRegistration.NotSeenSince)]);
-            Assert.Null((bool?)m2.Tags[nameof(BaseRegistration.IsDisabled)]);
-            Assert.Null((DateTime?)m2.Tags[nameof(BaseRegistration.NotSeenSince)]);
+            Assert.True((bool)m1.Tags[nameof(EntityRegistration.IsDisabled)]);
+            Assert.NotNull((DateTime?)m1.Tags[nameof(EntityRegistration.NotSeenSince)]);
+            Assert.Null((bool?)m2.Tags[nameof(EntityRegistration.IsDisabled)]);
+            Assert.Null((DateTime?)m2.Tags[nameof(EntityRegistration.NotSeenSince)]);
         }
 
         /// <summary>
@@ -134,16 +107,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services.Models {
                 .FromFactory(() => new SupervisorRegistration(
                     fix.Create<string>(), fix.Create<string>()))
                 .With(x => x.Certificate, cert.EncodeAsDictionary())
-                .With(x => x.DiscoveryCallbacks, fix.CreateMany<CallbackModel>()
-                    .ToList().EncodeAsDictionary())
-                .With(x => x.Locales, fix.CreateMany<string>()
-                    .ToList().EncodeAsDictionary())
-                .With(x => x.SecurityPoliciesFilter, fix.CreateMany<string>()
-                    .ToList().EncodeAsDictionary())
-                .With(x => x.TrustListsFilter, fix.CreateMany<string>()
-                    .ToList().EncodeAsDictionary())
-                .With(x => x.DiscoveryUrls, fix.CreateMany<string>()
-                    .ToList().EncodeAsDictionary())
                 .With(x => x.Thumbprint, cert.ToSha1Hash())
                 .Without(x => x.IsDisabled)
                 .Without(x => x.NotSeenSince)

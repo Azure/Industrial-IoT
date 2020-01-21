@@ -482,7 +482,7 @@ namespace HistoricalAccess {
             if (configurationToUse.UseServerCapabilitiesDefaults) {
                 var configuration = item.ArchiveItem.AggregateConfiguration;
 
-                if (configuration == null || configuration.UseServerCapabilitiesDefaults) {
+                if (configuration?.UseServerCapabilitiesDefaults != false) {
                     configuration = Server.AggregateManager.GetDefaultConfiguration(null);
                 }
 
@@ -581,7 +581,6 @@ namespace HistoricalAccess {
 
                     // process values until the max is reached.
                     var data = details.IsReadModified ? new HistoryModifiedData() : new HistoryData();
-                    var modifiedData = data as HistoryModifiedData;
 
                     while (request.NumValuesPerNode == 0 || data.DataValues.Count < request.NumValuesPerNode) {
                         if (request.Values.Count == 0) {
@@ -592,10 +591,10 @@ namespace HistoricalAccess {
                         request.Values.RemoveFirst();
                         data.DataValues.Add(value);
 
-                        if (modifiedData != null) {
+                        if (data is HistoryModifiedData modifiedData) {
                             ModificationInfo modificationInfo = null;
 
-                            if (request.ModificationInfos != null && request.ModificationInfos.Count > 0) {
+                            if (request.ModificationInfos?.Count > 0) {
                                 modificationInfo = request.ModificationInfos.First.Value;
                                 request.ModificationInfos.RemoveFirst();
                             }
@@ -1005,9 +1004,7 @@ namespace HistoricalAccess {
                 }
             }
 
-            if (item != null) {
-                item.ReloadFromSource(context);
-            }
+            item?.ReloadFromSource(context);
 
             return item;
         }
@@ -1116,9 +1113,7 @@ namespace HistoricalAccess {
                     // add value.
                     values.AddLast(RowToDataValue(context, nodeToRead, view[ii], applyIndexRangeOrEncoding));
 
-                    if (modificationInfos != null) {
-                        modificationInfos.AddLast((ModificationInfo)view[ii].Row[6]);
-                    }
+                    modificationInfos?.AddLast((ModificationInfo)view[ii].Row[6]);
                 }
                 finally {
                     if (timeFlowsBackward) {
@@ -1412,11 +1407,11 @@ namespace HistoricalAccess {
         /// Stores a read history request.
         /// </summary>
         private class HistoryReadRequest {
-            public byte[] ContinuationPoint;
-            public LinkedList<DataValue> Values;
-            public LinkedList<ModificationInfo> ModificationInfos;
-            public uint NumValuesPerNode;
-            public AggregateFilter Filter;
+            public byte[] ContinuationPoint { get; set; }
+            public LinkedList<DataValue> Values { get; set; }
+            public LinkedList<ModificationInfo> ModificationInfos { get; set; }
+            public uint NumValuesPerNode { get; set; }
+            public AggregateFilter Filter { get; set; }
         }
 
         /// <summary>

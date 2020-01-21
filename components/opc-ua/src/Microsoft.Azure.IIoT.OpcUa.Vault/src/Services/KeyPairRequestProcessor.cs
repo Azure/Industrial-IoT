@@ -6,13 +6,11 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Vault.Services {
     using Microsoft.Azure.IIoT.Crypto;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Microsoft.Azure.IIoT.OpcUa.Vault;
     using Microsoft.Azure.IIoT.OpcUa.Vault.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Serilog;
     using System;
     using System.Linq;
-    using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -27,8 +25,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Services {
         /// <param name="keys"></param>
         /// <param name="serializer"></param>
         /// <param name="entities"></param>
-        /// <param name="broker"></param>
         /// <param name="repo"></param>
+        /// <param name="broker"></param>
         /// <param name="logger"></param>
         public KeyPairRequestProcessor(IRequestRepository repo, IKeyStore keys,
             IKeyHandleSerializer serializer, IEntityInfoResolver entities,

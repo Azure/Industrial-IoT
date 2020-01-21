@@ -29,10 +29,6 @@ class X509CertificateApiModel(Model):
     :type certificate: object
     """
 
-    _validation = {
-        'certificate': {'required': True},
-    }
-
     _attribute_map = {
         'subject': {'key': 'subject', 'type': 'str'},
         'thumbprint': {'key': 'thumbprint', 'type': 'str'},
@@ -42,7 +38,7 @@ class X509CertificateApiModel(Model):
         'certificate': {'key': 'certificate', 'type': 'object'},
     }
 
-    def __init__(self, certificate, subject=None, thumbprint=None, serial_number=None, not_before_utc=None, not_after_utc=None):
+    def __init__(self, subject=None, thumbprint=None, serial_number=None, not_before_utc=None, not_after_utc=None, certificate=None):
         super(X509CertificateApiModel, self).__init__()
         self.subject = subject
         self.thumbprint = thumbprint

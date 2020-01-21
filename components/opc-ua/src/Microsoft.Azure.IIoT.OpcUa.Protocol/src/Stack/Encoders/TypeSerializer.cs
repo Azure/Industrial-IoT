@@ -71,15 +71,15 @@ namespace Opc.Ua.Encoders {
         /// <returns></returns>
         private IDecoder CreateDecoder(string contentType, Stream stream) {
             switch (contentType.ToLowerInvariant()) {
-                case ContentEncodings.MimeTypeUaJson:
-                case ContentEncodings.MimeTypeUaNonReversibleJson:
-                case ContentEncodings.MimeTypeUaNonReversibleJsonReference:
+                case ContentMimeType.UaJson:
+                case ContentMimeType.UaNonReversibleJson:
+                case ContentMimeType.UaNonReversibleJsonReference:
                     return new JsonDecoderEx(stream, _context);
-                case ContentEncodings.MimeTypeUaBinary:
+                case ContentMimeType.UaBinary:
                     return new BinaryDecoder(stream, _context);
-                case ContentEncodings.MimeTypeUaXml:
+                case ContentMimeType.UaXml:
                     return new XmlDecoder(null, XmlReader.Create(stream), _context);
-                case ContentEncodings.MimeTypeUaJsonReference:
+                case ContentMimeType.UaJsonReference:
                     return new JsonDecoder(null, new JsonTextReader(
                         new StreamReader(stream)), _context);
                 default:
@@ -95,19 +95,19 @@ namespace Opc.Ua.Encoders {
         /// <returns></returns>
         private IEncoder CreateEncoder(string contentType, Stream stream) {
             switch (contentType.ToLowerInvariant()) {
-                case ContentEncodings.MimeTypeUaJson:
+                case ContentMimeType.UaJson:
                     return new JsonEncoderEx(stream, _context);
-                case ContentEncodings.MimeTypeUaNonReversibleJson:
+                case ContentMimeType.UaNonReversibleJson:
                     return new JsonEncoderEx(stream, _context) {
                         UseReversibleEncoding = false
                     };
-                case ContentEncodings.MimeTypeUaJsonReference:
+                case ContentMimeType.UaJsonReference:
                     return new JsonEncoder(_context, true, new StreamWriter(stream));
-                case ContentEncodings.MimeTypeUaNonReversibleJsonReference:
+                case ContentMimeType.UaNonReversibleJsonReference:
                     return new JsonEncoder(_context, false, new StreamWriter(stream));
-                case ContentEncodings.MimeTypeUaBinary:
+                case ContentMimeType.UaBinary:
                     return new BinaryEncoder(stream, _context);
-                case ContentEncodings.MimeTypeUaXml:
+                case ContentMimeType.UaXml:
                     return new XmlEncoder(
                         new XmlQualifiedName("ua", Namespaces.OpcUaXsd),
                             XmlWriter.Create(stream), _context);

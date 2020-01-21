@@ -43,7 +43,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// <param name="readVariableValues">Whether to read variable values on
         /// target nodes.
         /// (default is false)</param>
-        /// <param name="header">Optional request header</param>
         public BrowseNextRequestApiModel(string continuationToken, bool? abort = default(bool?), bool? targetNodesOnly = default(bool?), bool? readVariableValues = default(bool?), RequestHeaderApiModel header = default(RequestHeaderApiModel))
         {
             ContinuationToken = continuationToken;
@@ -90,7 +89,6 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public bool? ReadVariableValues { get; set; }
 
         /// <summary>
-        /// Gets or sets optional request header
         /// </summary>
         [JsonProperty(PropertyName = "header")]
         public RequestHeaderApiModel Header { get; set; }

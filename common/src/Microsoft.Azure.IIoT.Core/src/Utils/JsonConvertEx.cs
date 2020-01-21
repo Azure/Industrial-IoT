@@ -6,7 +6,6 @@
 namespace Newtonsoft.Json {
     using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Serialization;
-    using Serilog;
     using System;
     using System.Collections.Generic;
 
@@ -62,7 +61,7 @@ namespace Newtonsoft.Json {
                 Converters = new List<JsonConverter>(),
                 TypeNameHandling = TypeNameHandling.None,
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                MaxDepth = 10
+                MaxDepth = 20
             };
         }
 

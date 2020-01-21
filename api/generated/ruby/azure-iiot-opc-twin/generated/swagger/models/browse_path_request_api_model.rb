@@ -25,7 +25,7 @@ module azure.iiot.opc.twin
       # (default is false). Default value: false .
       attr_accessor :read_variable_values
 
-      # @return [RequestHeaderApiModel] Optional request header
+      # @return [RequestHeaderApiModel]
       attr_accessor :header
 
 

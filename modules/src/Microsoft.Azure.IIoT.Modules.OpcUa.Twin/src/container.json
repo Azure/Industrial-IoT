@@ -1,0 +1,4 @@
+{
+    "name": "iotedge/opc-twin",
+    "buildAlways": true
+}

@@ -52,7 +52,7 @@ namespace Microsoft.Azure.IIoT.Http {
         }
 
         private static readonly MediaTypeHeaderValue kDefaultMediaType =
-            new MediaTypeHeaderValue(ContentEncodings.MimeTypeJson);
+            new MediaTypeHeaderValue(ContentMimeType.Json);
         private static readonly Encoding kDefaultEncoding = new UTF8Encoding();
     }
 }

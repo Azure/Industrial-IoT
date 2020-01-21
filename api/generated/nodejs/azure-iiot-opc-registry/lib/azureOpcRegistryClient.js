@@ -22,20 +22,416 @@ const models = require('./models');
 
 
 /**
- * @summary Get list of applications
+ * @summary Register new server
  *
- * Get all registered applications in paged form.
- * The returned model can contain a continuation token if more results are
- * available.
- * Call this operation again using the token to retrieve more results.
+ * Registers a server solely using a discovery url. Requires that the
+ * onboarding agent service is running and the server can be located by a
+ * supervisor in its network using the discovery url.
+ *
+ * @param {object} body Server registration request
+ *
+ * @param {string} body.discoveryUrl Discovery url to use for registration
+ *
+ * @param {string} [body.id] Registration id
+ *
+ * @param {object} [body.activationFilter]
+ *
+ * @param {array} [body.activationFilter.trustLists] Certificate trust list
+ * identifiers to use for
+ * activation, if null, all certificates are
+ * trusted.  If empty list, no certificates are
+ * trusted which is equal to no filter.
+ *
+ * @param {array} [body.activationFilter.securityPolicies] Endpoint security
+ * policies to filter against.
+ * If set to null, all policies are in scope.
+ *
+ * @param {string} [body.activationFilter.securityMode] Possible values
+ * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
  *
  * @param {object} [options] Optional Parameters.
  *
- * @param {string} [options.continuationToken] Optional Continuation
- * token
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
  *
- * @param {number} [options.pageSize] Optional number of results to
- * return
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _registerServer(body, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications';
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['ServerRegistrationRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(body, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Create new application
+ *
+ * The application is registered using the provided information, but it is not
+ * associated with a supervisor. This is useful for when you need to register
+ * clients or you want to register a server that is located in a network not
+ * reachable through a Twin module.
+ *
+ * @param {object} body Application registration request
+ *
+ * @param {string} body.applicationUri Unique application uri
+ *
+ * @param {string} [body.applicationType] Possible values include: 'Server',
+ * 'Client', 'ClientAndServer', 'DiscoveryServer'
+ *
+ * @param {string} [body.productUri] Product uri of the application.
+ *
+ * @param {string} [body.applicationName] Default name of the server or client.
+ *
+ * @param {string} [body.locale] Locale of default name
+ *
+ * @param {string} [body.siteId] Site of the application
+ *
+ * @param {object} [body.localizedNames] Localized names key off locale id.
+ *
+ * @param {array} [body.capabilities] The OPC UA defined capabilities of the
+ * server.
+ *
+ * @param {array} [body.discoveryUrls] Discovery urls of the server.
+ *
+ * @param {string} [body.discoveryProfileUri] The discovery profile uri of the
+ * server.
+ *
+ * @param {string} [body.gatewayServerUri] Gateway server uri
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link ApplicationRegistrationResponseApiModel} for
+ *                      more information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _createApplication(body, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications';
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'PUT';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['ApplicationRegistrationRequestApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(body, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['ApplicationRegistrationResponseApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Purge applications
+ *
+ * Purges all applications that have not been seen for a specified amount of
+ * time.
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {string} [options.notSeenFor] A duration in milliseconds
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _deleteAllDisabledApplications(options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let notSeenFor = (options && options.notSeenFor !== undefined) ? options.notSeenFor : undefined;
+  // Validate
+  try {
+    if (notSeenFor !== null && notSeenFor !== undefined && typeof notSeenFor.valueOf() !== 'string') {
+      throw new Error('notSeenFor must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications';
+  let queryParameters = [];
+  if (notSeenFor !== null && notSeenFor !== undefined) {
+    queryParameters.push('notSeenFor=' + encodeURIComponent(notSeenFor));
+  }
+  if (queryParameters.length > 0) {
+    requestUrl += '?' + queryParameters.join('&');
+  }
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'DELETE';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Get list of applications
+ *
+ * Get all registered applications in paged form. The returned model can
+ * contain a continuation token if more results are available. Call this
+ * operation again using the token to retrieve more results.
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {string} [options.continuationToken] Optional Continuation token
+ *
+ * @param {number} [options.pageSize] Optional number of results to return
  *
  * @param {object} [options.customHeaders] Headers that will be added to the
  * request
@@ -155,421 +551,6 @@ function _getListOfApplications(options, callback) {
         return callback(deserializationError);
       }
     }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Create new application
- *
- * The application is registered using the provided information, but it
- * is not associated with a supervisor.  This is useful for when you need
- * to register clients or you want to register a server that is located
- * in a network not reachable through a Twin module.
- *
- * @param {object} request Application registration request
- *
- * @param {string} request.applicationUri Unique application uri
- *
- * @param {string} [request.applicationType] Type of application. Possible
- * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
- *
- * @param {string} [request.productUri] Product uri of the application.
- *
- * @param {string} [request.applicationName] Default name of the server or
- * client.
- *
- * @param {string} [request.locale] Locale of default name
- *
- * @param {string} [request.siteId] Site of the application
- *
- * @param {object} [request.localizedNames] Localized names key off locale id.
- *
- * @param {array} [request.capabilities] The OPC UA defined capabilities of the
- * server.
- *
- * @param {array} [request.discoveryUrls] Discovery urls of the server.
- *
- * @param {string} [request.discoveryProfileUri] The discovery profile uri of
- * the server.
- *
- * @param {string} [request.gatewayServerUri] Gateway server uri
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link ApplicationRegistrationResponseApiModel} for
- *                      more information.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _createApplication(request, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  // Validate
-  try {
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications';
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'PUT';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  // Serialize Request
-  let requestContent = null;
-  let requestModel = null;
-  try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['ApplicationRegistrationRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
-      requestContent = JSON.stringify(requestModel);
-    }
-  } catch (error) {
-    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
-    return callback(serializationError);
-  }
-  httpRequest.body = requestContent;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['ApplicationRegistrationResponseApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
-      }
-    }
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Register new server
- *
- * Registers a server solely using a discovery url. Requires that
- * the onboarding agent service is running and the server can be
- * located by a supervisor in its network using the discovery url.
- *
- * @param {object} request Server registration request
- *
- * @param {string} request.discoveryUrl Discovery url to use for registration
- *
- * @param {string} [request.id] Registration id
- *
- * @param {object} [request.callback] An optional callback hook to register.
- *
- * @param {string} [request.callback.uri] Uri to call - should use https scheme
- * in which
- * case security is enforced.
- *
- * @param {string} [request.callback.method] Http Method to use for callback.
- * Possible values include: 'Get', 'Post', 'Put', 'Delete'
- *
- * @param {string} [request.callback.authenticationHeader] Authentication
- * header to add or null if not needed
- *
- * @param {object} [request.activationFilter] Upon discovery, activate all
- * endpoints with this filter.
- *
- * @param {array} [request.activationFilter.trustLists] Certificate trust list
- * identifiers to use for
- * activation, if null, all certificates are
- * trusted.  If empty list, no certificates are
- * trusted which is equal to no filter.
- *
- * @param {array} [request.activationFilter.securityPolicies] Endpoint security
- * policies to filter against.
- * If set to null, all policies are in scope.
- *
- * @param {string} [request.activationFilter.securityMode] Security mode level
- * to activate. If null,
- * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
- * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {null} [result]   - The deserialized result object if an error did not occur.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _registerServer(request, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  // Validate
-  try {
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications';
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'POST';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  // Serialize Request
-  let requestContent = null;
-  let requestModel = null;
-  try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['ServerRegistrationRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
-      requestContent = JSON.stringify(requestModel);
-    }
-  } catch (error) {
-    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
-    return callback(serializationError);
-  }
-  httpRequest.body = requestContent;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
- * @summary Purge applications
- *
- * Purges all applications that have not been seen for a specified amount of
- * time.
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {string} [options.notSeenFor] A duration in milliseconds
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {null} [result]   - The deserialized result object if an error did not occur.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _deleteAllDisabledApplications(options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  let notSeenFor = (options && options.notSeenFor !== undefined) ? options.notSeenFor : undefined;
-  // Validate
-  try {
-    if (notSeenFor !== null && notSeenFor !== undefined && typeof notSeenFor.valueOf() !== 'string') {
-      throw new Error('notSeenFor must be of type string.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications';
-  let queryParameters = [];
-  if (notSeenFor !== null && notSeenFor !== undefined) {
-    queryParameters.push('notSeenFor=' + encodeURIComponent(notSeenFor));
-  }
-  if (queryParameters.length > 0) {
-    requestUrl += '?' + queryParameters.join('&');
-  }
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'DELETE';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  httpRequest.body = null;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
 
     return callback(null, result, httpRequest, response);
   });
@@ -776,68 +757,61 @@ function _enableApplication(applicationId, options, callback) {
 /**
  * @summary Discover servers
  *
- * Registers servers by running a discovery scan in a supervisor's
- * network. Requires that the onboarding agent service is running.
+ * Registers servers by running a discovery scan in a supervisor's network.
+ * Requires that the onboarding agent service is running.
  *
- * @param {object} request Discovery request
+ * @param {object} body Discovery request
  *
- * @param {string} [request.id] Id of discovery request
+ * @param {string} [body.id] Id of discovery request
  *
- * @param {string} [request.discovery] Discovery mode to use. Possible values
- * include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+ * @param {string} [body.discovery] Possible values include: 'Off', 'Local',
+ * 'Network', 'Fast', 'Scan'
  *
- * @param {object} [request.configuration] Scan configuration to use
+ * @param {object} [body.configuration]
  *
- * @param {string} [request.configuration.addressRangesToScan] Address ranges
- * to scan (null == all wired nics)
+ * @param {string} [body.configuration.addressRangesToScan] Address ranges to
+ * scan (null == all wired nics)
  *
- * @param {number} [request.configuration.networkProbeTimeoutMs] Network probe
+ * @param {number} [body.configuration.networkProbeTimeoutMs] Network probe
  * timeout
  *
- * @param {number} [request.configuration.maxNetworkProbes] Max network probes
+ * @param {number} [body.configuration.maxNetworkProbes] Max network probes
  * that should ever run.
  *
- * @param {string} [request.configuration.portRangesToScan] Port ranges to scan
+ * @param {string} [body.configuration.portRangesToScan] Port ranges to scan
  * (null == all unassigned)
  *
- * @param {number} [request.configuration.portProbeTimeoutMs] Port probe
- * timeout
+ * @param {number} [body.configuration.portProbeTimeoutMs] Port probe timeout
  *
- * @param {number} [request.configuration.maxPortProbes] Max port probes that
+ * @param {number} [body.configuration.maxPortProbes] Max port probes that
  * should ever run.
  *
- * @param {number} [request.configuration.minPortProbesPercent] Probes that
- * must always be there as percent of max.
+ * @param {number} [body.configuration.minPortProbesPercent] Probes that must
+ * always be there as percent of max.
  *
- * @param {number} [request.configuration.idleTimeBetweenScansSec] Delay time
+ * @param {number} [body.configuration.idleTimeBetweenScansSec] Delay time
  * between discovery sweeps in seconds
  *
- * @param {array} [request.configuration.discoveryUrls] List of preset
- * discovery urls to use
+ * @param {array} [body.configuration.discoveryUrls] List of preset discovery
+ * urls to use
  *
- * @param {array} [request.configuration.locales] List of locales to filter
- * with during discovery
+ * @param {array} [body.configuration.locales] List of locales to filter with
+ * during discovery
  *
- * @param {array} [request.configuration.callbacks] Callbacks to invoke once
- * onboarding finishes
+ * @param {object} [body.configuration.activationFilter]
  *
- * @param {object} [request.configuration.activationFilter] Activate all twins
- * with this filter during onboarding.
- *
- * @param {array} [request.configuration.activationFilter.trustLists]
- * Certificate trust list identifiers to use for
+ * @param {array} [body.configuration.activationFilter.trustLists] Certificate
+ * trust list identifiers to use for
  * activation, if null, all certificates are
  * trusted.  If empty list, no certificates are
  * trusted which is equal to no filter.
  *
- * @param {array} [request.configuration.activationFilter.securityPolicies]
+ * @param {array} [body.configuration.activationFilter.securityPolicies]
  * Endpoint security policies to filter against.
  * If set to null, all policies are in scope.
  *
- * @param {string} [request.configuration.activationFilter.securityMode]
- * Security mode level to activate. If null,
- * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
- * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+ * @param {string} [body.configuration.activationFilter.securityMode] Possible
+ * values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
  *
  * @param {object} [options] Optional Parameters.
  *
@@ -856,7 +830,7 @@ function _enableApplication(applicationId, options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _discoverServer(request, options, callback) {
+function _discoverServer(body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -868,8 +842,8 @@ function _discoverServer(request, options, callback) {
   }
   // Validate
   try {
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -897,17 +871,116 @@ function _discoverServer(request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
+    if (body !== null && body !== undefined) {
       let requestModelMapper = new client.models['DiscoveryRequestApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Cancel discovery
+ *
+ * Cancels a discovery request using the request identifier.
+ *
+ * @param {string} requestId Discovery request
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _cancel(requestId, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (requestId === null || requestId === undefined || typeof requestId.valueOf() !== 'string') {
+      throw new Error('requestId cannot be null or undefined and it must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/discover/{requestId}';
+  requestUrl = requestUrl.replace('{requestId}', encodeURIComponent(requestId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'DELETE';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
   // Send Request
   return client.pipeline(httpRequest, (err, response, responseBody) => {
     if (err) {
@@ -1061,6 +1134,145 @@ function _getApplicationRegistration(applicationId, options, callback) {
 }
 
 /**
+ * @summary Update application registration
+ *
+ * The application information is updated with new properties. Note that this
+ * information might be overridden if the application is re-discovered during a
+ * discovery run (recurring or one-time).
+ *
+ * @param {string} applicationId The identifier of the application
+ *
+ * @param {object} body Application update request
+ *
+ * @param {string} [body.productUri] Product uri
+ *
+ * @param {string} [body.applicationName] Default name of the server or client.
+ *
+ * @param {string} [body.locale] Locale of default name - defaults to "en"
+ *
+ * @param {object} [body.localizedNames] Localized names keyed off locale id.
+ * To remove entry, set value for locale id to null.
+ *
+ * @param {buffer} [body.certificate] Application public cert
+ *
+ * @param {array} [body.capabilities] Capabilities of the application
+ *
+ * @param {array} [body.discoveryUrls] Discovery urls of the application
+ *
+ * @param {string} [body.discoveryProfileUri] Discovery profile uri
+ *
+ * @param {string} [body.gatewayServerUri] Gateway server uri
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _updateApplicationRegistration(applicationId, body, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (applicationId === null || applicationId === undefined || typeof applicationId.valueOf() !== 'string') {
+      throw new Error('applicationId cannot be null or undefined and it must be of type string.');
+    }
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/{applicationId}';
+  requestUrl = requestUrl.replace('{applicationId}', encodeURIComponent(applicationId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'PATCH';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['ApplicationRegistrationUpdateApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(body, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
  * @summary Unregister application
  *
  * Unregisters and deletes application and all its associated endpoints.
@@ -1160,158 +1372,15 @@ function _deleteApplication(applicationId, options, callback) {
 }
 
 /**
- * @summary Update application registration
- *
- * The application information is updated with new properties.  Note that
- * this information might be overridden if the application is re-discovered
- * during a discovery run (recurring or one-time).
- *
- * @param {string} applicationId The identifier of the application
- *
- * @param {object} request Application update request
- *
- * @param {string} [request.productUri] Product uri
- *
- * @param {string} [request.applicationName] Default name of the server or
- * client.
- *
- * @param {string} [request.locale] Locale of default name - defaults to "en"
- *
- * @param {object} [request.localizedNames] Localized names keyed off locale
- * id.
- * To remove entry, set value for locale id to null.
- *
- * @param {buffer} [request.certificate] Application public cert
- *
- * @param {array} [request.capabilities] Capabilities of the application
- *
- * @param {array} [request.discoveryUrls] Discovery urls of the application
- *
- * @param {string} [request.discoveryProfileUri] Discovery profile uri
- *
- * @param {string} [request.gatewayServerUri] Gateway server uri
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {null} [result]   - The deserialized result object if an error did not occur.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _updateApplicationRegistration(applicationId, request, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  // Validate
-  try {
-    if (applicationId === null || applicationId === undefined || typeof applicationId.valueOf() !== 'string') {
-      throw new Error('applicationId cannot be null or undefined and it must be of type string.');
-    }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/{applicationId}';
-  requestUrl = requestUrl.replace('{applicationId}', encodeURIComponent(applicationId));
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'PATCH';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  // Serialize Request
-  let requestContent = null;
-  let requestModel = null;
-  try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['ApplicationRegistrationUpdateApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
-      requestContent = JSON.stringify(requestModel);
-    }
-  } catch (error) {
-    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
-    return callback(serializationError);
-  }
-  httpRequest.body = requestContent;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
  * @summary Get list of sites
  *
  * List all sites applications are registered in.
  *
  * @param {object} [options] Optional Parameters.
  *
- * @param {string} [options.continuationToken] Optional Continuation
- * token
+ * @param {string} [options.continuationToken] Optional Continuation token
  *
- * @param {number} [options.pageSize] Optional number of results to
- * return
+ * @param {number} [options.pageSize] Optional number of results to return
  *
  * @param {object} [options.customHeaders] Headers that will be added to the
  * request
@@ -1437,38 +1506,210 @@ function _getListOfSites(options, callback) {
 }
 
 /**
+ * @summary Query applications
+ *
+ * List applications that match a query model. The returned model can contain a
+ * continuation token if more results are available. Call the
+ * GetListOfApplications operation using the token to retrieve more results.
+ *
+ * @param {object} body Application query
+ *
+ * @param {string} [body.applicationType] Possible values include: 'Server',
+ * 'Client', 'ClientAndServer', 'DiscoveryServer'
+ *
+ * @param {string} [body.applicationUri] Application uri
+ *
+ * @param {string} [body.productUri] Product uri
+ *
+ * @param {string} [body.applicationName] Name of application
+ *
+ * @param {string} [body.locale] Locale of application name - default is "en"
+ *
+ * @param {string} [body.capability] Application capability to query with
+ *
+ * @param {string} [body.discoveryProfileUri] Discovery profile uri
+ *
+ * @param {string} [body.gatewayServerUri] Gateway server uri
+ *
+ * @param {string} [body.siteOrGatewayId] Supervisor or site the application
+ * belongs to.
+ *
+ * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
+ * were soft deleted
+ *
+ * @param {string} [body.discovererId] Discoverer id to filter with
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {number} [options.pageSize] Optional number of results to return
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link ApplicationInfoListApiModel} for more
+ *                      information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _queryApplications(body, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
+  // Validate
+  try {
+    if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
+      throw new Error('pageSize must be of type number.');
+    }
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/query';
+  let queryParameters = [];
+  if (pageSize !== null && pageSize !== undefined) {
+    queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
+  }
+  if (queryParameters.length > 0) {
+    requestUrl += '?' + queryParameters.join('&');
+  }
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['ApplicationRegistrationQueryApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(body, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['ApplicationInfoListApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
  * @summary Get filtered list of applications
  *
  * Get a list of applications filtered using the specified query parameters.
  * The returned model can contain a continuation token if more results are
- * available.
- * Call the GetListOfApplications operation using the token to retrieve
- * more results.
+ * available. Call the GetListOfApplications operation using the token to
+ * retrieve more results.
  *
- * @param {object} query Applications Query model
+ * @param {object} body Applications Query model
  *
- * @param {string} [query.applicationType] Type of application. Possible values
- * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+ * @param {string} [body.applicationType] Possible values include: 'Server',
+ * 'Client', 'ClientAndServer', 'DiscoveryServer'
  *
- * @param {string} [query.applicationUri] Application uri
+ * @param {string} [body.applicationUri] Application uri
  *
- * @param {string} [query.productUri] Product uri
+ * @param {string} [body.productUri] Product uri
  *
- * @param {string} [query.applicationName] Name of application
+ * @param {string} [body.applicationName] Name of application
  *
- * @param {string} [query.locale] Locale of application name - default is "en"
+ * @param {string} [body.locale] Locale of application name - default is "en"
  *
- * @param {string} [query.capability] Application capability to query with
+ * @param {string} [body.capability] Application capability to query with
  *
- * @param {string} [query.discoveryProfileUri] Discovery profile uri
+ * @param {string} [body.discoveryProfileUri] Discovery profile uri
  *
- * @param {string} [query.gatewayServerUri] Gateway server uri
+ * @param {string} [body.gatewayServerUri] Gateway server uri
  *
- * @param {string} [query.siteOrSupervisorId] Supervisor or site the
- * application belongs to.
+ * @param {string} [body.siteOrGatewayId] Supervisor or site the application
+ * belongs to.
  *
- * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
+ * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
  * were soft deleted
+ *
+ * @param {string} [body.discovererId] Discoverer id to filter with
  *
  * @param {object} [options] Optional Parameters.
  *
@@ -1491,7 +1732,7 @@ function _getListOfSites(options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _getFilteredListOfApplications(query, options, callback) {
+function _getFilteredListOfApplications(body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -1504,11 +1745,11 @@ function _getFilteredListOfApplications(query, options, callback) {
   let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
   // Validate
   try {
-    if (query === null || query === undefined) {
-      throw new Error('query cannot be null or undefined.');
-    }
     if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
       throw new Error('pageSize must be of type number.');
+    }
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -1543,14 +1784,14 @@ function _getFilteredListOfApplications(query, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (query !== null && query !== undefined) {
+    if (body !== null && body !== undefined) {
       let requestModelMapper = new client.models['ApplicationRegistrationQueryApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, query, 'query');
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(query, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -1608,43 +1849,236 @@ function _getFilteredListOfApplications(query, options, callback) {
 }
 
 /**
- * @summary Query applications
+ * @summary Subscribe for application events
  *
- * List applications that match a query model.
- * The returned model can contain a continuation token if more results are
- * available.
- * Call the GetListOfApplications operation using the token to retrieve
- * more results.
- *
- * @param {object} query Application query
- *
- * @param {string} [query.applicationType] Type of application. Possible values
- * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
- *
- * @param {string} [query.applicationUri] Application uri
- *
- * @param {string} [query.productUri] Product uri
- *
- * @param {string} [query.applicationName] Name of application
- *
- * @param {string} [query.locale] Locale of application name - default is "en"
- *
- * @param {string} [query.capability] Application capability to query with
- *
- * @param {string} [query.discoveryProfileUri] Discovery profile uri
- *
- * @param {string} [query.gatewayServerUri] Gateway server uri
- *
- * @param {string} [query.siteOrSupervisorId] Supervisor or site the
- * application belongs to.
- *
- * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
- * were soft deleted
+ * Register a client to receive application events through SignalR.
  *
  * @param {object} [options] Optional Parameters.
  *
- * @param {number} [options.pageSize] Optional number of results to
- * return
+ * @param {string} [options.body] The user that will receive application
+ * events.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _subscribe(options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let body = (options && options.body !== undefined) ? options.body : undefined;
+  // Validate
+  try {
+    if (body !== null && body !== undefined && typeof body.valueOf() !== 'string') {
+      throw new Error('body must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/events';
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'PUT';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = {
+        required: false,
+        serializedName: 'body',
+        type: {
+          name: 'String'
+        }
+      };
+      requestModel = client.serialize(requestModelMapper, body, 'body');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(body, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Unsubscribe from application events
+ *
+ * Unregister a user and stop it from receiving events.
+ *
+ * @param {string} userId The user id that will not receive any more events
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _unsubscribe(userId, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (userId === null || userId === undefined || typeof userId.valueOf() !== 'string') {
+      throw new Error('userId cannot be null or undefined and it must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/events/{userId}';
+  requestUrl = requestUrl.replace('{userId}', encodeURIComponent(userId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'DELETE';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Get discoverer registration information
+ *
+ * Returns a discoverer's registration and connectivity information. A
+ * discoverer id corresponds to the twin modules module identity.
+ *
+ * @param {string} discovererId Discoverer identifier
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {boolean} [options.onlyServerState] Whether to include only server
+ * state, or display current client state of the endpoint if available
  *
  * @param {object} [options.customHeaders] Headers that will be added to the
  * request
@@ -1656,14 +2090,13 @@ function _getFilteredListOfApplications(query, options, callback) {
  *                      {Error}  err        - The Error object if an error occurred, null otherwise.
  *
  *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link ApplicationInfoListApiModel} for more
- *                      information.
+ *                      See {@link DiscovererApiModel} for more information.
  *
  *                      {object} [request]  - The HTTP Request object if an error did not occur.
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _queryApplications(query, options, callback) {
+function _getDiscoverer(discovererId, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -1673,11 +2106,502 @@ function _queryApplications(query, options, callback) {
   if (!callback) {
     throw new Error('callback cannot be null.');
   }
+  let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
+  // Validate
+  try {
+    if (discovererId === null || discovererId === undefined || typeof discovererId.valueOf() !== 'string') {
+      throw new Error('discovererId cannot be null or undefined and it must be of type string.');
+    }
+    if (onlyServerState !== null && onlyServerState !== undefined && typeof onlyServerState !== 'boolean') {
+      throw new Error('onlyServerState must be of type boolean.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/discovery/{discovererId}';
+  requestUrl = requestUrl.replace('{discovererId}', encodeURIComponent(discovererId));
+  let queryParameters = [];
+  if (onlyServerState !== null && onlyServerState !== undefined) {
+    queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
+  }
+  if (queryParameters.length > 0) {
+    requestUrl += '?' + queryParameters.join('&');
+  }
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'GET';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['DiscovererApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Update discoverer information
+ *
+ * Allows a caller to configure recurring discovery runs on the twin module
+ * identified by the discoverer id or update site information.
+ *
+ * @param {string} discovererId discoverer identifier
+ *
+ * @param {object} body Patch request
+ *
+ * @param {string} [body.siteId] Site the discoverer is part of
+ *
+ * @param {string} [body.discovery] Possible values include: 'Off', 'Local',
+ * 'Network', 'Fast', 'Scan'
+ *
+ * @param {object} [body.discoveryConfig]
+ *
+ * @param {string} [body.discoveryConfig.addressRangesToScan] Address ranges to
+ * scan (null == all wired nics)
+ *
+ * @param {number} [body.discoveryConfig.networkProbeTimeoutMs] Network probe
+ * timeout
+ *
+ * @param {number} [body.discoveryConfig.maxNetworkProbes] Max network probes
+ * that should ever run.
+ *
+ * @param {string} [body.discoveryConfig.portRangesToScan] Port ranges to scan
+ * (null == all unassigned)
+ *
+ * @param {number} [body.discoveryConfig.portProbeTimeoutMs] Port probe timeout
+ *
+ * @param {number} [body.discoveryConfig.maxPortProbes] Max port probes that
+ * should ever run.
+ *
+ * @param {number} [body.discoveryConfig.minPortProbesPercent] Probes that must
+ * always be there as percent of max.
+ *
+ * @param {number} [body.discoveryConfig.idleTimeBetweenScansSec] Delay time
+ * between discovery sweeps in seconds
+ *
+ * @param {array} [body.discoveryConfig.discoveryUrls] List of preset discovery
+ * urls to use
+ *
+ * @param {array} [body.discoveryConfig.locales] List of locales to filter with
+ * during discovery
+ *
+ * @param {object} [body.discoveryConfig.activationFilter]
+ *
+ * @param {array} [body.discoveryConfig.activationFilter.trustLists]
+ * Certificate trust list identifiers to use for
+ * activation, if null, all certificates are
+ * trusted.  If empty list, no certificates are
+ * trusted which is equal to no filter.
+ *
+ * @param {array} [body.discoveryConfig.activationFilter.securityPolicies]
+ * Endpoint security policies to filter against.
+ * If set to null, all policies are in scope.
+ *
+ * @param {string} [body.discoveryConfig.activationFilter.securityMode]
+ * Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+ *
+ * @param {string} [body.logLevel] Possible values include: 'Error',
+ * 'Information', 'Debug', 'Verbose'
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _updateDiscoverer(discovererId, body, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (discovererId === null || discovererId === undefined || typeof discovererId.valueOf() !== 'string') {
+      throw new Error('discovererId cannot be null or undefined and it must be of type string.');
+    }
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/discovery/{discovererId}';
+  requestUrl = requestUrl.replace('{discovererId}', encodeURIComponent(discovererId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'PATCH';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['DiscovererUpdateApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(body, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Enable server discovery
+ *
+ * Allows a caller to configure recurring discovery runs on the discovery
+ * module identified by the module id.
+ *
+ * @param {string} discovererId discoverer identifier
+ *
+ * @param {string} mode Discovery mode. Possible values include: 'Off',
+ * 'Local', 'Network', 'Fast', 'Scan'
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.body] Discovery configuration
+ *
+ * @param {string} [options.body.addressRangesToScan] Address ranges to scan
+ * (null == all wired nics)
+ *
+ * @param {number} [options.body.networkProbeTimeoutMs] Network probe timeout
+ *
+ * @param {number} [options.body.maxNetworkProbes] Max network probes that
+ * should ever run.
+ *
+ * @param {string} [options.body.portRangesToScan] Port ranges to scan (null ==
+ * all unassigned)
+ *
+ * @param {number} [options.body.portProbeTimeoutMs] Port probe timeout
+ *
+ * @param {number} [options.body.maxPortProbes] Max port probes that should
+ * ever run.
+ *
+ * @param {number} [options.body.minPortProbesPercent] Probes that must always
+ * be there as percent of max.
+ *
+ * @param {number} [options.body.idleTimeBetweenScansSec] Delay time between
+ * discovery sweeps in seconds
+ *
+ * @param {array} [options.body.discoveryUrls] List of preset discovery urls to
+ * use
+ *
+ * @param {array} [options.body.locales] List of locales to filter with during
+ * discovery
+ *
+ * @param {object} [options.body.activationFilter]
+ *
+ * @param {array} [options.body.activationFilter.trustLists] Certificate trust
+ * list identifiers to use for
+ * activation, if null, all certificates are
+ * trusted.  If empty list, no certificates are
+ * trusted which is equal to no filter.
+ *
+ * @param {array} [options.body.activationFilter.securityPolicies] Endpoint
+ * security policies to filter against.
+ * If set to null, all policies are in scope.
+ *
+ * @param {string} [options.body.activationFilter.securityMode] Possible values
+ * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _setDiscoveryMode(discovererId, mode, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let body = (options && options.body !== undefined) ? options.body : undefined;
+  // Validate
+  try {
+    if (discovererId === null || discovererId === undefined || typeof discovererId.valueOf() !== 'string') {
+      throw new Error('discovererId cannot be null or undefined and it must be of type string.');
+    }
+    if (mode) {
+      let allowedValues = [ 'Off', 'Local', 'Network', 'Fast', 'Scan' ];
+      if (!allowedValues.some( function(item) { return item === mode; })) {
+        throw new Error(mode + ' is not a valid value. The valid values are: ' + allowedValues);
+      }
+    } else {
+      throw new Error('mode cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/discovery/{discovererId}';
+  requestUrl = requestUrl.replace('{discovererId}', encodeURIComponent(discovererId));
+  let queryParameters = [];
+  queryParameters.push('mode=' + encodeURIComponent(mode));
+  if (queryParameters.length > 0) {
+    requestUrl += '?' + queryParameters.join('&');
+  }
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['DiscoveryConfigApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(body, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Get list of discoverers
+ *
+ * Get all registered discoverers and therefore twin modules in paged form. The
+ * returned model can contain a continuation token if more results are
+ * available. Call this operation again using the token to retrieve more
+ * results.
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {boolean} [options.onlyServerState] Whether to include only server
+ * state, or display current client state of the endpoint if available
+ *
+ * @param {string} [options.continuationToken] Optional Continuation token
+ *
+ * @param {number} [options.pageSize] Optional number of results to return
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link DiscovererListApiModel} for more
+ *                      information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _getListOfDiscoverers(options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
+  let continuationToken = (options && options.continuationToken !== undefined) ? options.continuationToken : undefined;
   let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
   // Validate
   try {
-    if (query === null || query === undefined) {
-      throw new Error('query cannot be null or undefined.');
+    if (onlyServerState !== null && onlyServerState !== undefined && typeof onlyServerState !== 'boolean') {
+      throw new Error('onlyServerState must be of type boolean.');
+    }
+    if (continuationToken !== null && continuationToken !== undefined && typeof continuationToken.valueOf() !== 'string') {
+      throw new Error('continuationToken must be of type string.');
     }
     if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
       throw new Error('pageSize must be of type number.');
@@ -1688,8 +2612,163 @@ function _queryApplications(query, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/query';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/discovery';
   let queryParameters = [];
+  if (onlyServerState !== null && onlyServerState !== undefined) {
+    queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
+  }
+  if (continuationToken !== null && continuationToken !== undefined) {
+    queryParameters.push('continuationToken=' + encodeURIComponent(continuationToken));
+  }
+  if (pageSize !== null && pageSize !== undefined) {
+    queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
+  }
+  if (queryParameters.length > 0) {
+    requestUrl += '?' + queryParameters.join('&');
+  }
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'GET';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['DiscovererListApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Query discoverers
+ *
+ * Get all discoverers that match a specified query. The returned model can
+ * contain a continuation token if more results are available. Call the
+ * GetListOfDiscoverers operation using the token to retrieve more results.
+ *
+ * @param {object} body Discoverers query model
+ *
+ * @param {string} [body.siteId] Site of the discoverer
+ *
+ * @param {string} [body.discovery] Possible values include: 'Off', 'Local',
+ * 'Network', 'Fast', 'Scan'
+ *
+ * @param {boolean} [body.connected] Included connected or disconnected
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {boolean} [options.onlyServerState] Whether to include only server
+ * state, or display current client state of the endpoint if available
+ *
+ * @param {number} [options.pageSize] Number of results to return
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link DiscovererListApiModel} for more
+ *                      information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _queryDiscoverers(body, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
+  let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
+  // Validate
+  try {
+    if (onlyServerState !== null && onlyServerState !== undefined && typeof onlyServerState !== 'boolean') {
+      throw new Error('onlyServerState must be of type boolean.');
+    }
+    if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
+      throw new Error('pageSize must be of type number.');
+    }
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/discovery/query';
+  let queryParameters = [];
+  if (onlyServerState !== null && onlyServerState !== undefined) {
+    queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
+  }
   if (pageSize !== null && pageSize !== undefined) {
     queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
   }
@@ -1715,14 +2794,14 @@ function _queryApplications(query, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (query !== null && query !== undefined) {
-      let requestModelMapper = new client.models['ApplicationRegistrationQueryApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, query, 'query');
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['DiscovererQueryApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(query, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -1764,7 +2843,7 @@ function _queryApplications(query, options, callback) {
         parsedResponse = JSON.parse(responseBody);
         result = JSON.parse(responseBody);
         if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['ApplicationInfoListApiModel']().mapper();
+          let resultMapper = new client.models['DiscovererListApiModel']().mapper();
           result = client.deserialize(resultMapper, parsedResponse, 'result');
         }
       } catch (error) {
@@ -1780,28 +2859,26 @@ function _queryApplications(query, options, callback) {
 }
 
 /**
- * @summary Query applications by id.
+ * @summary Get filtered list of discoverers
  *
- * A query model which supports the OPC UA Global Discovery Server query.
+ * Get a list of discoverers filtered using the specified query parameters. The
+ * returned model can contain a continuation token if more results are
+ * available. Call the GetListOfDiscoverers operation using the token to
+ * retrieve more results.
  *
  * @param {object} [options] Optional Parameters.
  *
- * @param {object} [options.query]
+ * @param {string} [options.siteId] Site of the discoverer
  *
- * @param {number} [options.query.startingRecordId] Starting record id
+ * @param {string} [options.discovery] Discovery mode of discoverer. Possible
+ * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
  *
- * @param {number} [options.query.maxRecordsToReturn] Max records to return
+ * @param {boolean} [options.connected] Included connected or disconnected
  *
- * @param {string} [options.query.applicationName] Application name
+ * @param {boolean} [options.onlyServerState] Whether to include only server
+ * state, or display current client state of the endpoint if available
  *
- * @param {string} [options.query.applicationUri] Application uri
- *
- * @param {string} [options.query.applicationType] Application type. Possible
- * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
- *
- * @param {string} [options.query.productUri] Product uri
- *
- * @param {array} [options.query.serverCapabilities] Server capabilities
+ * @param {number} [options.pageSize] Number of results to return
  *
  * @param {object} [options.customHeaders] Headers that will be added to the
  * request
@@ -1813,14 +2890,14 @@ function _queryApplications(query, options, callback) {
  *                      {Error}  err        - The Error object if an error occurred, null otherwise.
  *
  *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link ApplicationRecordListApiModel} for more
+ *                      See {@link DiscovererListApiModel} for more
  *                      information.
  *
  *                      {object} [request]  - The HTTP Request object if an error did not occur.
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _queryApplicationsById(options, callback) {
+function _getFilteredListOfDiscoverers(options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -1830,15 +2907,178 @@ function _queryApplicationsById(options, callback) {
   if (!callback) {
     throw new Error('callback cannot be null.');
   }
-  let query = (options && options.query !== undefined) ? options.query : undefined;
+  let siteId = (options && options.siteId !== undefined) ? options.siteId : undefined;
+  let discovery = (options && options.discovery !== undefined) ? options.discovery : undefined;
+  let connected = (options && options.connected !== undefined) ? options.connected : undefined;
+  let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
+  let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
+  // Validate
+  try {
+    if (siteId !== null && siteId !== undefined && typeof siteId.valueOf() !== 'string') {
+      throw new Error('siteId must be of type string.');
+    }
+    if (discovery) {
+      let allowedValues = [ 'Off', 'Local', 'Network', 'Fast', 'Scan' ];
+      if (!allowedValues.some( function(item) { return item === discovery; })) {
+        throw new Error(discovery + ' is not a valid value. The valid values are: ' + allowedValues);
+      }
+    }
+    if (connected !== null && connected !== undefined && typeof connected !== 'boolean') {
+      throw new Error('connected must be of type boolean.');
+    }
+    if (onlyServerState !== null && onlyServerState !== undefined && typeof onlyServerState !== 'boolean') {
+      throw new Error('onlyServerState must be of type boolean.');
+    }
+    if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
+      throw new Error('pageSize must be of type number.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/applications/querybyid';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/discovery/query';
+  let queryParameters = [];
+  if (siteId !== null && siteId !== undefined) {
+    queryParameters.push('siteId=' + encodeURIComponent(siteId));
+  }
+  if (discovery !== null && discovery !== undefined) {
+    queryParameters.push('discovery=' + encodeURIComponent(discovery));
+  }
+  if (connected !== null && connected !== undefined) {
+    queryParameters.push('connected=' + encodeURIComponent(connected.toString()));
+  }
+  if (onlyServerState !== null && onlyServerState !== undefined) {
+    queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
+  }
+  if (pageSize !== null && pageSize !== undefined) {
+    queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
+  }
+  if (queryParameters.length > 0) {
+    requestUrl += '?' + queryParameters.join('&');
+  }
 
   // Create HTTP transport objects
   let httpRequest = new WebResource();
-  httpRequest.method = 'POST';
+  httpRequest.method = 'GET';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['DiscovererListApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Subscribe to discoverer registry events
+ *
+ * Register a user to receive discoverer events through SignalR.
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {string} [options.body] The user id that will receive discoverer
+ * events.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _subscribe1(options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let body = (options && options.body !== undefined) ? options.body : undefined;
+  // Validate
+  try {
+    if (body !== null && body !== undefined && typeof body.valueOf() !== 'string') {
+      throw new Error('body must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/discovery/events';
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'PUT';
   httpRequest.url = requestUrl;
   httpRequest.headers = {};
   // Set Headers
@@ -1854,14 +3094,20 @@ function _queryApplicationsById(options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (query !== null && query !== undefined) {
-      let requestModelMapper = new client.models['ApplicationRecordQueryApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, query, 'query');
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = {
+        required: false,
+        serializedName: 'body',
+        type: {
+          name: 'String'
+        }
+      };
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(query, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -1896,23 +3142,573 @@ function _queryApplicationsById(options, callback) {
     // Create Result
     let result = null;
     if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['ApplicationRecordListApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Unsubscribe registry events
+ *
+ * Unregister a user and stop it from receiving discoverer events.
+ *
+ * @param {string} userId The user id that will not receive any more discoverer
+ * events
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _unsubscribe1(userId, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (userId === null || userId === undefined || typeof userId.valueOf() !== 'string') {
+      throw new Error('userId cannot be null or undefined and it must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/discovery/events/{userId}';
+  requestUrl = requestUrl.replace('{userId}', encodeURIComponent(userId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'DELETE';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
       }
     }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Subscribe to discovery progress from discoverer
+ *
+ * Register a client to receive discovery progress events through SignalR from
+ * a particular discoverer.
+ *
+ * @param {string} discovererId The discoverer to subscribe to
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {string} [options.body] The user id that will receive discovery
+ * events.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _subscribeByDiscovererId(discovererId, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let body = (options && options.body !== undefined) ? options.body : undefined;
+  // Validate
+  try {
+    if (discovererId === null || discovererId === undefined || typeof discovererId.valueOf() !== 'string') {
+      throw new Error('discovererId cannot be null or undefined and it must be of type string.');
+    }
+    if (body !== null && body !== undefined && typeof body.valueOf() !== 'string') {
+      throw new Error('body must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/discovery/{discovererId}/events';
+  requestUrl = requestUrl.replace('{discovererId}', encodeURIComponent(discovererId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'PUT';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = {
+        required: false,
+        serializedName: 'body',
+        type: {
+          name: 'String'
+        }
+      };
+      requestModel = client.serialize(requestModelMapper, body, 'body');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(body, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Subscribe to discovery progress for a request
+ *
+ * Register a client to receive discovery progress events through SignalR for a
+ * particular request.
+ *
+ * @param {string} requestId The request to monitor
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {string} [options.body] The user id that will receive discovery
+ * events.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _subscribeByRequestId(requestId, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let body = (options && options.body !== undefined) ? options.body : undefined;
+  // Validate
+  try {
+    if (requestId === null || requestId === undefined || typeof requestId.valueOf() !== 'string') {
+      throw new Error('requestId cannot be null or undefined and it must be of type string.');
+    }
+    if (body !== null && body !== undefined && typeof body.valueOf() !== 'string') {
+      throw new Error('body must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/discovery/requests/{requestId}/events';
+  requestUrl = requestUrl.replace('{requestId}', encodeURIComponent(requestId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'PUT';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = {
+        required: false,
+        serializedName: 'body',
+        type: {
+          name: 'String'
+        }
+      };
+      requestModel = client.serialize(requestModelMapper, body, 'body');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(body, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Unsubscribe from discovery progress for a request.
+ *
+ * Unregister a client and stop it from receiving discovery events for a
+ * particular request.
+ *
+ * @param {string} requestId The request to unsubscribe from
+ *
+ * @param {string} userId The user id that will not receive any more discovery
+ * progress
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _unsubscribeByRequestId(requestId, userId, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (requestId === null || requestId === undefined || typeof requestId.valueOf() !== 'string') {
+      throw new Error('requestId cannot be null or undefined and it must be of type string.');
+    }
+    if (userId === null || userId === undefined || typeof userId.valueOf() !== 'string') {
+      throw new Error('userId cannot be null or undefined and it must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/discovery/requests/{requestId}/events/{userId}';
+  requestUrl = requestUrl.replace('{requestId}', encodeURIComponent(requestId));
+  requestUrl = requestUrl.replace('{userId}', encodeURIComponent(userId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'DELETE';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Unsubscribe from discovery progress from discoverer.
+ *
+ * Unregister a client and stop it from receiving discovery events.
+ *
+ * @param {string} discovererId The discoverer to unsubscribe from
+ *
+ * @param {string} userId The user id that will not receive any more discovery
+ * progress
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _unsubscribeByDiscovererId(discovererId, userId, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (discovererId === null || discovererId === undefined || typeof discovererId.valueOf() !== 'string') {
+      throw new Error('discovererId cannot be null or undefined and it must be of type string.');
+    }
+    if (userId === null || userId === undefined || typeof userId.valueOf() !== 'string') {
+      throw new Error('userId cannot be null or undefined and it must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/discovery/{discovererId}/events/{userId}';
+  requestUrl = requestUrl.replace('{discovererId}', encodeURIComponent(discovererId));
+  requestUrl = requestUrl.replace('{userId}', encodeURIComponent(userId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'DELETE';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
 
     return callback(null, result, httpRequest, response);
   });
@@ -1921,9 +3717,9 @@ function _queryApplicationsById(options, callback) {
 /**
  * @summary Activate endpoint
  *
- * Activates an endpoint for subsequent use in twin service.
- * All endpoints must be activated using this API or through a
- * activation filter during application registration or discovery.
+ * Activates an endpoint for subsequent use in twin service. All endpoints must
+ * be activated using this API or through a activation filter during
+ * application registration or discovery.
  *
  * @param {string} endpointId endpoint identifier
  *
@@ -2029,8 +3825,7 @@ function _activateEndpoint(endpointId, options, callback) {
  * @param {object} [options] Optional Parameters.
  *
  * @param {boolean} [options.onlyServerState] Whether to include only server
- * state, or display current client state of the endpoint if
- * available
+ * state, or display current client state of the endpoint if available
  *
  * @param {object} [options.customHeaders] Headers that will be added to the
  * request
@@ -2152,136 +3947,11 @@ function _getEndpoint(endpointId, options, callback) {
 }
 
 /**
- * @summary Update endpoint information
- *
- * @param {string} endpointId endpoint identifier
- *
- * @param {object} request Endpoint update request
- *
- * @param {object} [request.user] User authentication to change on the
- * endpoint.
- *
- * @param {string} [request.user.type] Type of credential. Possible values
- * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
- *
- * @param {object} [request.user.value] Value to pass to server
- *
- * @param {object} [options] Optional Parameters.
- *
- * @param {object} [options.customHeaders] Headers that will be added to the
- * request
- *
- * @param {function} callback - The callback.
- *
- * @returns {function} callback(err, result, request, response)
- *
- *                      {Error}  err        - The Error object if an error occurred, null otherwise.
- *
- *                      {null} [result]   - The deserialized result object if an error did not occur.
- *
- *                      {object} [request]  - The HTTP Request object if an error did not occur.
- *
- *                      {stream} [response] - The HTTP Response stream if an error did not occur.
- */
-function _updateEndpoint(endpointId, request, options, callback) {
-   /* jshint validthis: true */
-  let client = this;
-  if(!callback && typeof options === 'function') {
-    callback = options;
-    options = null;
-  }
-  if (!callback) {
-    throw new Error('callback cannot be null.');
-  }
-  // Validate
-  try {
-    if (endpointId === null || endpointId === undefined || typeof endpointId.valueOf() !== 'string') {
-      throw new Error('endpointId cannot be null or undefined and it must be of type string.');
-    }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
-    }
-  } catch (error) {
-    return callback(error);
-  }
-
-  // Construct URL
-  let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/endpoints/{endpointId}';
-  requestUrl = requestUrl.replace('{endpointId}', encodeURIComponent(endpointId));
-
-  // Create HTTP transport objects
-  let httpRequest = new WebResource();
-  httpRequest.method = 'PATCH';
-  httpRequest.url = requestUrl;
-  httpRequest.headers = {};
-  // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
-  if(options) {
-    for(let headerName in options['customHeaders']) {
-      if (options['customHeaders'].hasOwnProperty(headerName)) {
-        httpRequest.headers[headerName] = options['customHeaders'][headerName];
-      }
-    }
-  }
-  // Serialize Request
-  let requestContent = null;
-  let requestModel = null;
-  try {
-    if (request !== null && request !== undefined) {
-      let requestModelMapper = new client.models['EndpointRegistrationUpdateApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
-      requestContent = JSON.stringify(requestModel);
-    }
-  } catch (error) {
-    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
-    return callback(serializationError);
-  }
-  httpRequest.body = requestContent;
-  // Send Request
-  return client.pipeline(httpRequest, (err, response, responseBody) => {
-    if (err) {
-      return callback(err);
-    }
-    let statusCode = response.statusCode;
-    if (statusCode !== 200) {
-      let error = new Error(responseBody);
-      error.statusCode = response.statusCode;
-      error.request = msRest.stripRequest(httpRequest);
-      error.response = msRest.stripResponse(response);
-      if (responseBody === '') responseBody = null;
-      let parsedErrorResponse;
-      try {
-        parsedErrorResponse = JSON.parse(responseBody);
-        if (parsedErrorResponse) {
-          let internalError = null;
-          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
-          error.code = internalError ? internalError.code : parsedErrorResponse.code;
-          error.message = internalError ? internalError.message : parsedErrorResponse.message;
-        }
-      } catch (defaultError) {
-        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
-                         `- "${responseBody}" for the default response.`;
-        return callback(error);
-      }
-      return callback(error);
-    }
-    // Create Result
-    let result = null;
-    if (responseBody === '') responseBody = null;
-
-    return callback(null, result, httpRequest, response);
-  });
-}
-
-/**
  * @summary Get list of endpoints
  *
- * Get all registered endpoints in paged form.
- * The returned model can contain a continuation token if more results are
- * available.
- * Call this operation again using the token to retrieve more results.
+ * Get all registered endpoints in paged form. The returned model can contain a
+ * continuation token if more results are available. Call this operation again
+ * using the token to retrieve more results.
  *
  * @param {object} [options] Optional Parameters.
  *
@@ -2423,47 +4093,48 @@ function _getListOfEndpoints(options, callback) {
 }
 
 /**
- * @summary Get filtered list of endpoints
+ * @summary Query endpoints
  *
- * Get a list of endpoints filtered using the specified query parameters.
- * The returned model can contain a continuation token if more results are
- * available.
- * Call the GetListOfEndpoints operation using the token to retrieve
- * more results.
+ * Return endpoints that match the specified query. The returned model can
+ * contain a continuation token if more results are available. Call the
+ * GetListOfEndpoints operation using the token to retrieve more results.
+ *
+ * @param {object} body Query to match
+ *
+ * @param {string} [body.url] Endoint url for direct server access
+ *
+ * @param {buffer} [body.certificate] Certificate of the endpoint
+ *
+ * @param {string} [body.securityMode] Possible values include: 'Best', 'Sign',
+ * 'SignAndEncrypt', 'None'
+ *
+ * @param {string} [body.securityPolicy] Security policy uri
+ *
+ * @param {boolean} [body.activated] Whether the endpoint was activated
+ *
+ * @param {boolean} [body.connected] Whether the endpoint is connected on
+ * supervisor.
+ *
+ * @param {string} [body.endpointState] Possible values include: 'Connecting',
+ * 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+ *
+ * @param {boolean} [body.includeNotSeenSince] Whether to include endpoints
+ * that were soft deleted
+ *
+ * @param {string} [body.discovererId] Discoverer id to filter with
+ *
+ * @param {string} [body.applicationId] Application id to filter
+ *
+ * @param {string} [body.supervisorId] Supervisor id to filter with
+ *
+ * @param {string} [body.siteOrGatewayId] Site or gateway id to filter with
  *
  * @param {object} [options] Optional Parameters.
  *
- * @param {string} [options.url] Endoint url for direct server access
- *
- * @param {string} [options.userAuthentication] Type of credential selected for
- * authentication. Possible values include: 'None', 'UserName',
- * 'X509Certificate', 'JwtToken'
- *
- * @param {buffer} [options.certificate] Certificate of the endpoint
- *
- * @param {string} [options.securityMode] Security Mode. Possible values
- * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
- *
- * @param {string} [options.securityPolicy] Security policy uri
- *
- * @param {boolean} [options.activated] Whether the endpoint was activated
- *
- * @param {boolean} [options.connected] Whether the endpoint is connected on
- * supervisor.
- *
- * @param {string} [options.endpointState] The last state of the the activated
- * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
- * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
- *
- * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
- * that were soft deleted
- *
  * @param {boolean} [options.onlyServerState] Whether to include only server
- * state, or display
- * current client state of the endpoint if available
+ * state, or display current client state of the endpoint if available
  *
- * @param {number} [options.pageSize] Optional number of results to
- * return
+ * @param {number} [options.pageSize] Optional number of results to return
  *
  * @param {object} [options.customHeaders] Headers that will be added to the
  * request
@@ -2482,7 +4153,7 @@ function _getListOfEndpoints(options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _getFilteredListOfEndpoints(options, callback) {
+function _queryEndpoints(body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -2492,51 +4163,18 @@ function _getFilteredListOfEndpoints(options, callback) {
   if (!callback) {
     throw new Error('callback cannot be null.');
   }
-  let url = (options && options.url !== undefined) ? options.url : undefined;
-  let userAuthentication = (options && options.userAuthentication !== undefined) ? options.userAuthentication : undefined;
-  let certificate = (options && options.certificate !== undefined) ? options.certificate : undefined;
-  let securityMode = (options && options.securityMode !== undefined) ? options.securityMode : undefined;
-  let securityPolicy = (options && options.securityPolicy !== undefined) ? options.securityPolicy : undefined;
-  let activated = (options && options.activated !== undefined) ? options.activated : undefined;
-  let connected = (options && options.connected !== undefined) ? options.connected : undefined;
-  let endpointState = (options && options.endpointState !== undefined) ? options.endpointState : undefined;
-  let includeNotSeenSince = (options && options.includeNotSeenSince !== undefined) ? options.includeNotSeenSince : undefined;
   let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
   let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
   // Validate
   try {
-    if (url !== null && url !== undefined && typeof url.valueOf() !== 'string') {
-      throw new Error('url must be of type string.');
-    }
-    if (userAuthentication !== null && userAuthentication !== undefined && typeof userAuthentication.valueOf() !== 'string') {
-      throw new Error('userAuthentication must be of type string.');
-    }
-    if (certificate && !Buffer.isBuffer(certificate)) {
-      throw new Error('certificate must be of type buffer.');
-    }
-    if (securityMode !== null && securityMode !== undefined && typeof securityMode.valueOf() !== 'string') {
-      throw new Error('securityMode must be of type string.');
-    }
-    if (securityPolicy !== null && securityPolicy !== undefined && typeof securityPolicy.valueOf() !== 'string') {
-      throw new Error('securityPolicy must be of type string.');
-    }
-    if (activated !== null && activated !== undefined && typeof activated !== 'boolean') {
-      throw new Error('activated must be of type boolean.');
-    }
-    if (connected !== null && connected !== undefined && typeof connected !== 'boolean') {
-      throw new Error('connected must be of type boolean.');
-    }
-    if (endpointState !== null && endpointState !== undefined && typeof endpointState.valueOf() !== 'string') {
-      throw new Error('endpointState must be of type string.');
-    }
-    if (includeNotSeenSince !== null && includeNotSeenSince !== undefined && typeof includeNotSeenSince !== 'boolean') {
-      throw new Error('includeNotSeenSince must be of type boolean.');
-    }
     if (onlyServerState !== null && onlyServerState !== undefined && typeof onlyServerState !== 'boolean') {
       throw new Error('onlyServerState must be of type boolean.');
     }
     if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
       throw new Error('pageSize must be of type number.');
+    }
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -2546,33 +4184,6 @@ function _getFilteredListOfEndpoints(options, callback) {
   let baseUrl = this.baseUri;
   let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/endpoints/query';
   let queryParameters = [];
-  if (url !== null && url !== undefined) {
-    queryParameters.push('Url=' + encodeURIComponent(url));
-  }
-  if (userAuthentication !== null && userAuthentication !== undefined) {
-    queryParameters.push('UserAuthentication=' + encodeURIComponent(userAuthentication));
-  }
-  if (certificate !== null && certificate !== undefined) {
-    queryParameters.push('Certificate=' + encodeURIComponent(client.serializeObject(certificate)));
-  }
-  if (securityMode !== null && securityMode !== undefined) {
-    queryParameters.push('SecurityMode=' + encodeURIComponent(securityMode));
-  }
-  if (securityPolicy !== null && securityPolicy !== undefined) {
-    queryParameters.push('SecurityPolicy=' + encodeURIComponent(securityPolicy));
-  }
-  if (activated !== null && activated !== undefined) {
-    queryParameters.push('Activated=' + encodeURIComponent(activated.toString()));
-  }
-  if (connected !== null && connected !== undefined) {
-    queryParameters.push('Connected=' + encodeURIComponent(connected.toString()));
-  }
-  if (endpointState !== null && endpointState !== undefined) {
-    queryParameters.push('EndpointState=' + encodeURIComponent(endpointState));
-  }
-  if (includeNotSeenSince !== null && includeNotSeenSince !== undefined) {
-    queryParameters.push('IncludeNotSeenSince=' + encodeURIComponent(includeNotSeenSince.toString()));
-  }
   if (onlyServerState !== null && onlyServerState !== undefined) {
     queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
   }
@@ -2585,11 +4196,11 @@ function _getFilteredListOfEndpoints(options, callback) {
 
   // Create HTTP transport objects
   let httpRequest = new WebResource();
-  httpRequest.method = 'GET';
+  httpRequest.method = 'POST';
   httpRequest.url = requestUrl;
   httpRequest.headers = {};
   // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
   if(options) {
     for(let headerName in options['customHeaders']) {
       if (options['customHeaders'].hasOwnProperty(headerName)) {
@@ -2597,7 +4208,21 @@ function _getFilteredListOfEndpoints(options, callback) {
       }
     }
   }
-  httpRequest.body = null;
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['EndpointRegistrationQueryApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(body, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
   // Send Request
   return client.pipeline(httpRequest, (err, response, responseBody) => {
     if (err) {
@@ -2652,42 +4277,43 @@ function _getFilteredListOfEndpoints(options, callback) {
 }
 
 /**
- * @summary Query endpoints
+ * @summary Get filtered list of endpoints
  *
- * Return endpoints that match the specified query.
- * The returned model can contain a continuation token if more results are
- * available.
- * Call the GetListOfEndpoints operation using the token to retrieve
+ * Get a list of endpoints filtered using the specified query parameters. The
+ * returned model can contain a continuation token if more results are
+ * available. Call the GetListOfEndpoints operation using the token to retrieve
  * more results.
  *
- * @param {object} query Query to match
+ * @param {object} [options] Optional Parameters.
  *
- * @param {string} [query.url] Endoint url for direct server access
+ * @param {string} [options.url] Endoint url for direct server access
  *
- * @param {string} [query.userAuthentication] Type of credential selected for
- * authentication. Possible values include: 'None', 'UserName',
- * 'X509Certificate', 'JwtToken'
+ * @param {buffer} [options.certificate] Certificate of the endpoint
  *
- * @param {buffer} [query.certificate] Certificate of the endpoint
+ * @param {string} [options.securityMode] Security Mode. Possible values
+ * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
  *
- * @param {string} [query.securityMode] Security Mode. Possible values include:
- * 'Best', 'Sign', 'SignAndEncrypt', 'None'
+ * @param {string} [options.securityPolicy] Security policy uri
  *
- * @param {string} [query.securityPolicy] Security policy uri
+ * @param {boolean} [options.activated] Whether the endpoint was activated
  *
- * @param {boolean} [query.activated] Whether the endpoint was activated
- *
- * @param {boolean} [query.connected] Whether the endpoint is connected on
+ * @param {boolean} [options.connected] Whether the endpoint is connected on
  * supervisor.
  *
- * @param {string} [query.endpointState] The last state of the the activated
+ * @param {string} [options.endpointState] The last state of the the activated
  * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
  * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
  *
- * @param {boolean} [query.includeNotSeenSince] Whether to include endpoints
+ * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
  * that were soft deleted
  *
- * @param {object} [options] Optional Parameters.
+ * @param {string} [options.discovererId] Discoverer id to filter with
+ *
+ * @param {string} [options.applicationId] Application id to filter
+ *
+ * @param {string} [options.supervisorId] Supervisor id to filter with
+ *
+ * @param {string} [options.siteOrGatewayId] Site or gateway id to filter with
  *
  * @param {boolean} [options.onlyServerState] Whether to include only server
  * state, or display current client state of the endpoint if available
@@ -2711,7 +4337,7 @@ function _getFilteredListOfEndpoints(options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _queryEndpoints(query, options, callback) {
+function _getFilteredListOfEndpoints(options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -2721,12 +4347,63 @@ function _queryEndpoints(query, options, callback) {
   if (!callback) {
     throw new Error('callback cannot be null.');
   }
+  let url = (options && options.url !== undefined) ? options.url : undefined;
+  let certificate = (options && options.certificate !== undefined) ? options.certificate : undefined;
+  let securityMode = (options && options.securityMode !== undefined) ? options.securityMode : undefined;
+  let securityPolicy = (options && options.securityPolicy !== undefined) ? options.securityPolicy : undefined;
+  let activated = (options && options.activated !== undefined) ? options.activated : undefined;
+  let connected = (options && options.connected !== undefined) ? options.connected : undefined;
+  let endpointState = (options && options.endpointState !== undefined) ? options.endpointState : undefined;
+  let includeNotSeenSince = (options && options.includeNotSeenSince !== undefined) ? options.includeNotSeenSince : undefined;
+  let discovererId = (options && options.discovererId !== undefined) ? options.discovererId : undefined;
+  let applicationId = (options && options.applicationId !== undefined) ? options.applicationId : undefined;
+  let supervisorId = (options && options.supervisorId !== undefined) ? options.supervisorId : undefined;
+  let siteOrGatewayId = (options && options.siteOrGatewayId !== undefined) ? options.siteOrGatewayId : undefined;
   let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
   let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
   // Validate
   try {
-    if (query === null || query === undefined) {
-      throw new Error('query cannot be null or undefined.');
+    if (url !== null && url !== undefined && typeof url.valueOf() !== 'string') {
+      throw new Error('url must be of type string.');
+    }
+    if (certificate && !Buffer.isBuffer(certificate)) {
+      throw new Error('certificate must be of type buffer.');
+    }
+    if (securityMode) {
+      let allowedValues = [ 'Best', 'Sign', 'SignAndEncrypt', 'None' ];
+      if (!allowedValues.some( function(item) { return item === securityMode; })) {
+        throw new Error(securityMode + ' is not a valid value. The valid values are: ' + allowedValues);
+      }
+    }
+    if (securityPolicy !== null && securityPolicy !== undefined && typeof securityPolicy.valueOf() !== 'string') {
+      throw new Error('securityPolicy must be of type string.');
+    }
+    if (activated !== null && activated !== undefined && typeof activated !== 'boolean') {
+      throw new Error('activated must be of type boolean.');
+    }
+    if (connected !== null && connected !== undefined && typeof connected !== 'boolean') {
+      throw new Error('connected must be of type boolean.');
+    }
+    if (endpointState) {
+      let allowedValues1 = [ 'Connecting', 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error' ];
+      if (!allowedValues1.some( function(item) { return item === endpointState; })) {
+        throw new Error(endpointState + ' is not a valid value. The valid values are: ' + allowedValues1);
+      }
+    }
+    if (includeNotSeenSince !== null && includeNotSeenSince !== undefined && typeof includeNotSeenSince !== 'boolean') {
+      throw new Error('includeNotSeenSince must be of type boolean.');
+    }
+    if (discovererId !== null && discovererId !== undefined && typeof discovererId.valueOf() !== 'string') {
+      throw new Error('discovererId must be of type string.');
+    }
+    if (applicationId !== null && applicationId !== undefined && typeof applicationId.valueOf() !== 'string') {
+      throw new Error('applicationId must be of type string.');
+    }
+    if (supervisorId !== null && supervisorId !== undefined && typeof supervisorId.valueOf() !== 'string') {
+      throw new Error('supervisorId must be of type string.');
+    }
+    if (siteOrGatewayId !== null && siteOrGatewayId !== undefined && typeof siteOrGatewayId.valueOf() !== 'string') {
+      throw new Error('siteOrGatewayId must be of type string.');
     }
     if (onlyServerState !== null && onlyServerState !== undefined && typeof onlyServerState !== 'boolean') {
       throw new Error('onlyServerState must be of type boolean.');
@@ -2742,6 +4419,42 @@ function _queryEndpoints(query, options, callback) {
   let baseUrl = this.baseUri;
   let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/endpoints/query';
   let queryParameters = [];
+  if (url !== null && url !== undefined) {
+    queryParameters.push('url=' + encodeURIComponent(url));
+  }
+  if (certificate !== null && certificate !== undefined) {
+    queryParameters.push('certificate=' + encodeURIComponent(client.serializeObject(certificate)));
+  }
+  if (securityMode !== null && securityMode !== undefined) {
+    queryParameters.push('securityMode=' + encodeURIComponent(securityMode));
+  }
+  if (securityPolicy !== null && securityPolicy !== undefined) {
+    queryParameters.push('securityPolicy=' + encodeURIComponent(securityPolicy));
+  }
+  if (activated !== null && activated !== undefined) {
+    queryParameters.push('activated=' + encodeURIComponent(activated.toString()));
+  }
+  if (connected !== null && connected !== undefined) {
+    queryParameters.push('connected=' + encodeURIComponent(connected.toString()));
+  }
+  if (endpointState !== null && endpointState !== undefined) {
+    queryParameters.push('endpointState=' + encodeURIComponent(endpointState));
+  }
+  if (includeNotSeenSince !== null && includeNotSeenSince !== undefined) {
+    queryParameters.push('includeNotSeenSince=' + encodeURIComponent(includeNotSeenSince.toString()));
+  }
+  if (discovererId !== null && discovererId !== undefined) {
+    queryParameters.push('discovererId=' + encodeURIComponent(discovererId));
+  }
+  if (applicationId !== null && applicationId !== undefined) {
+    queryParameters.push('applicationId=' + encodeURIComponent(applicationId));
+  }
+  if (supervisorId !== null && supervisorId !== undefined) {
+    queryParameters.push('supervisorId=' + encodeURIComponent(supervisorId));
+  }
+  if (siteOrGatewayId !== null && siteOrGatewayId !== undefined) {
+    queryParameters.push('siteOrGatewayId=' + encodeURIComponent(siteOrGatewayId));
+  }
   if (onlyServerState !== null && onlyServerState !== undefined) {
     queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
   }
@@ -2754,11 +4467,11 @@ function _queryEndpoints(query, options, callback) {
 
   // Create HTTP transport objects
   let httpRequest = new WebResource();
-  httpRequest.method = 'POST';
+  httpRequest.method = 'GET';
   httpRequest.url = requestUrl;
   httpRequest.headers = {};
   // Set Headers
-  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
   if(options) {
     for(let headerName in options['customHeaders']) {
       if (options['customHeaders'].hasOwnProperty(headerName)) {
@@ -2766,21 +4479,7 @@ function _queryEndpoints(query, options, callback) {
       }
     }
   }
-  // Serialize Request
-  let requestContent = null;
-  let requestModel = null;
-  try {
-    if (query !== null && query !== undefined) {
-      let requestModelMapper = new client.models['EndpointRegistrationQueryApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, query, 'query');
-      requestContent = JSON.stringify(requestModel);
-    }
-  } catch (error) {
-    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(query, null, 2)}.`);
-    return callback(serializationError);
-  }
-  httpRequest.body = requestContent;
+  httpRequest.body = null;
   // Send Request
   return client.pipeline(httpRequest, (err, response, responseBody) => {
     if (err) {
@@ -2934,8 +4633,232 @@ function _deactivateEndpoint(endpointId, options, callback) {
 }
 
 /**
- * @summary Return the service status in the form of the service status
- * api model.
+ * @summary Subscribe for endpoint events
+ *
+ * Register a user to receive endpoint events through SignalR.
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {string} [options.body] The user id that will receive endpoint
+ * events.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _subscribe2(options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let body = (options && options.body !== undefined) ? options.body : undefined;
+  // Validate
+  try {
+    if (body !== null && body !== undefined && typeof body.valueOf() !== 'string') {
+      throw new Error('body must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/endpoints/events';
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'PUT';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = {
+        required: false,
+        serializedName: 'body',
+        type: {
+          name: 'String'
+        }
+      };
+      requestModel = client.serialize(requestModelMapper, body, 'body');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(body, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Unsubscribe from endpoint events
+ *
+ * Unregister a user and stop it from receiving endpoint events.
+ *
+ * @param {string} userId The user id that will not receive any more endpoint
+ * events
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _unsubscribe2(userId, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (userId === null || userId === undefined || typeof userId.valueOf() !== 'string') {
+      throw new Error('userId cannot be null or undefined and it must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/endpoints/events/{userId}';
+  requestUrl = requestUrl.replace('{userId}', encodeURIComponent(userId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'DELETE';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Get Gateway registration information
+ *
+ * Returns a Gateway's registration and connectivity information. A Gateway id
+ * corresponds to the twin modules module identity.
+ *
+ * @param {string} gatewayId Gateway identifier
  *
  * @param {object} [options] Optional Parameters.
  *
@@ -2949,14 +4872,13 @@ function _deactivateEndpoint(endpointId, options, callback) {
  *                      {Error}  err        - The Error object if an error occurred, null otherwise.
  *
  *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link StatusResponseApiModel} for more
- *                      information.
+ *                      See {@link GatewayInfoApiModel} for more information.
  *
  *                      {object} [request]  - The HTTP Request object if an error did not occur.
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _getStatus(options, callback) {
+function _getGateway(gatewayId, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -2966,10 +4888,19 @@ function _getStatus(options, callback) {
   if (!callback) {
     throw new Error('callback cannot be null.');
   }
+  // Validate
+  try {
+    if (gatewayId === null || gatewayId === undefined || typeof gatewayId.valueOf() !== 'string') {
+      throw new Error('gatewayId cannot be null or undefined and it must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/status';
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/gateways/{GatewayId}';
+  requestUrl = requestUrl.replace('{GatewayId}', encodeURIComponent(gatewayId));
 
   // Create HTTP transport objects
   let httpRequest = new WebResource();
@@ -3024,7 +4955,7 @@ function _getStatus(options, callback) {
         parsedResponse = JSON.parse(responseBody);
         result = JSON.parse(responseBody);
         if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['StatusResponseApiModel']().mapper();
+          let resultMapper = new client.models['GatewayInfoApiModel']().mapper();
           result = client.deserialize(resultMapper, parsedResponse, 'result');
         }
       } catch (error) {
@@ -3040,18 +4971,1736 @@ function _getStatus(options, callback) {
 }
 
 /**
+ * @summary Update Gateway configuration
+ *
+ * Allows a caller to configure operations on the Gateway module identified by
+ * the Gateway id.
+ *
+ * @param {string} gatewayId Gateway identifier
+ *
+ * @param {object} body Patch request
+ *
+ * @param {string} [body.siteId] Site of the Gateway
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _updateGateway(gatewayId, body, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (gatewayId === null || gatewayId === undefined || typeof gatewayId.valueOf() !== 'string') {
+      throw new Error('gatewayId cannot be null or undefined and it must be of type string.');
+    }
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/gateways/{GatewayId}';
+  requestUrl = requestUrl.replace('{GatewayId}', encodeURIComponent(gatewayId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'PATCH';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['GatewayUpdateApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(body, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Get list of Gateways
+ *
+ * Get all registered Gateways and therefore twin modules in paged form. The
+ * returned model can contain a continuation token if more results are
+ * available. Call this operation again using the token to retrieve more
+ * results.
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {string} [options.continuationToken] Optional Continuation token
+ *
+ * @param {number} [options.pageSize] Optional number of results to return
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link GatewayListApiModel} for more information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _getListOfGateway(options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let continuationToken = (options && options.continuationToken !== undefined) ? options.continuationToken : undefined;
+  let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
+  // Validate
+  try {
+    if (continuationToken !== null && continuationToken !== undefined && typeof continuationToken.valueOf() !== 'string') {
+      throw new Error('continuationToken must be of type string.');
+    }
+    if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
+      throw new Error('pageSize must be of type number.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/gateways';
+  let queryParameters = [];
+  if (continuationToken !== null && continuationToken !== undefined) {
+    queryParameters.push('continuationToken=' + encodeURIComponent(continuationToken));
+  }
+  if (pageSize !== null && pageSize !== undefined) {
+    queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
+  }
+  if (queryParameters.length > 0) {
+    requestUrl += '?' + queryParameters.join('&');
+  }
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'GET';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['GatewayListApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Query Gateways
+ *
+ * Get all Gateways that match a specified query. The returned model can
+ * contain a continuation token if more results are available. Call the
+ * GetListOfGateway operation using the token to retrieve more results.
+ *
+ * @param {object} body Gateway query model
+ *
+ * @param {string} [body.siteId] Site of the Gateway
+ *
+ * @param {boolean} [body.connected] Included connected or disconnected
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {number} [options.pageSize] Number of results to return
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link GatewayListApiModel} for more information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _queryGateway(body, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
+  // Validate
+  try {
+    if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
+      throw new Error('pageSize must be of type number.');
+    }
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/gateways/query';
+  let queryParameters = [];
+  if (pageSize !== null && pageSize !== undefined) {
+    queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
+  }
+  if (queryParameters.length > 0) {
+    requestUrl += '?' + queryParameters.join('&');
+  }
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['GatewayQueryApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(body, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['GatewayListApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Get filtered list of Gateways
+ *
+ * Get a list of Gateways filtered using the specified query parameters. The
+ * returned model can contain a continuation token if more results are
+ * available. Call the GetListOfGateway operation using the token to retrieve
+ * more results.
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {string} [options.siteId] Site of the Gateway
+ *
+ * @param {boolean} [options.connected] Included connected or disconnected
+ *
+ * @param {number} [options.pageSize] Number of results to return
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link GatewayListApiModel} for more information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _getFilteredListOfGateway(options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let siteId = (options && options.siteId !== undefined) ? options.siteId : undefined;
+  let connected = (options && options.connected !== undefined) ? options.connected : undefined;
+  let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
+  // Validate
+  try {
+    if (siteId !== null && siteId !== undefined && typeof siteId.valueOf() !== 'string') {
+      throw new Error('siteId must be of type string.');
+    }
+    if (connected !== null && connected !== undefined && typeof connected !== 'boolean') {
+      throw new Error('connected must be of type boolean.');
+    }
+    if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
+      throw new Error('pageSize must be of type number.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/gateways/query';
+  let queryParameters = [];
+  if (siteId !== null && siteId !== undefined) {
+    queryParameters.push('siteId=' + encodeURIComponent(siteId));
+  }
+  if (connected !== null && connected !== undefined) {
+    queryParameters.push('connected=' + encodeURIComponent(connected.toString()));
+  }
+  if (pageSize !== null && pageSize !== undefined) {
+    queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
+  }
+  if (queryParameters.length > 0) {
+    requestUrl += '?' + queryParameters.join('&');
+  }
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'GET';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['GatewayListApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Subscribe to Gateway registry events
+ *
+ * Register a user to receive Gateway events through SignalR.
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {string} [options.body] The user id that will receive Gateway events.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _subscribe3(options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let body = (options && options.body !== undefined) ? options.body : undefined;
+  // Validate
+  try {
+    if (body !== null && body !== undefined && typeof body.valueOf() !== 'string') {
+      throw new Error('body must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/gateways/events';
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'PUT';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = {
+        required: false,
+        serializedName: 'body',
+        type: {
+          name: 'String'
+        }
+      };
+      requestModel = client.serialize(requestModelMapper, body, 'body');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(body, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Unsubscribe registry events
+ *
+ * Unregister a user and stop it from receiving Gateway events.
+ *
+ * @param {string} userId The user id that will not receive any more Gateway
+ * events
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _unsubscribe3(userId, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (userId === null || userId === undefined || typeof userId.valueOf() !== 'string') {
+      throw new Error('userId cannot be null or undefined and it must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/gateways/events/{userId}';
+  requestUrl = requestUrl.replace('{userId}', encodeURIComponent(userId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'DELETE';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Get publisher registration information
+ *
+ * Returns a publisher's registration and connectivity information. A publisher
+ * id corresponds to the twin modules module identity.
+ *
+ * @param {string} publisherId Publisher identifier
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {boolean} [options.onlyServerState] Whether to include only server
+ * state, or display current client state of the endpoint if available
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link PublisherApiModel} for more information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _getPublisher(publisherId, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
+  // Validate
+  try {
+    if (publisherId === null || publisherId === undefined || typeof publisherId.valueOf() !== 'string') {
+      throw new Error('publisherId cannot be null or undefined and it must be of type string.');
+    }
+    if (onlyServerState !== null && onlyServerState !== undefined && typeof onlyServerState !== 'boolean') {
+      throw new Error('onlyServerState must be of type boolean.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/publishers/{publisherId}';
+  requestUrl = requestUrl.replace('{publisherId}', encodeURIComponent(publisherId));
+  let queryParameters = [];
+  if (onlyServerState !== null && onlyServerState !== undefined) {
+    queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
+  }
+  if (queryParameters.length > 0) {
+    requestUrl += '?' + queryParameters.join('&');
+  }
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'GET';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['PublisherApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Update publisher configuration
+ *
+ * Allows a caller to configure operations on the publisher module identified
+ * by the publisher id.
+ *
+ * @param {string} publisherId Publisher identifier
+ *
+ * @param {object} body Patch request
+ *
+ * @param {string} [body.siteId] Site of the publisher
+ *
+ * @param {object} [body.configuration]
+ *
+ * @param {object} [body.configuration.capabilities] Capabilities
+ *
+ * @param {string} [body.configuration.jobCheckInterval] Interval to check job
+ *
+ * @param {string} [body.configuration.heartbeatInterval] Heartbeat interval
+ *
+ * @param {number} [body.configuration.maxWorkers] Parallel jobs
+ *
+ * @param {string} [body.configuration.jobOrchestratorUrl] Job orchestrator
+ * endpoint url
+ *
+ * @param {string} [body.logLevel] Possible values include: 'Error',
+ * 'Information', 'Debug', 'Verbose'
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _updatePublisher(publisherId, body, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (publisherId === null || publisherId === undefined || typeof publisherId.valueOf() !== 'string') {
+      throw new Error('publisherId cannot be null or undefined and it must be of type string.');
+    }
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/publishers/{publisherId}';
+  requestUrl = requestUrl.replace('{publisherId}', encodeURIComponent(publisherId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'PATCH';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['PublisherUpdateApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(body, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Get list of publishers
+ *
+ * Get all registered publishers and therefore twin modules in paged form. The
+ * returned model can contain a continuation token if more results are
+ * available. Call this operation again using the token to retrieve more
+ * results.
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {boolean} [options.onlyServerState] Whether to include only server
+ * state, or display current client state of the endpoint if available
+ *
+ * @param {string} [options.continuationToken] Optional Continuation token
+ *
+ * @param {number} [options.pageSize] Optional number of results to return
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link PublisherListApiModel} for more information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _getListOfPublisher(options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
+  let continuationToken = (options && options.continuationToken !== undefined) ? options.continuationToken : undefined;
+  let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
+  // Validate
+  try {
+    if (onlyServerState !== null && onlyServerState !== undefined && typeof onlyServerState !== 'boolean') {
+      throw new Error('onlyServerState must be of type boolean.');
+    }
+    if (continuationToken !== null && continuationToken !== undefined && typeof continuationToken.valueOf() !== 'string') {
+      throw new Error('continuationToken must be of type string.');
+    }
+    if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
+      throw new Error('pageSize must be of type number.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/publishers';
+  let queryParameters = [];
+  if (onlyServerState !== null && onlyServerState !== undefined) {
+    queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
+  }
+  if (continuationToken !== null && continuationToken !== undefined) {
+    queryParameters.push('continuationToken=' + encodeURIComponent(continuationToken));
+  }
+  if (pageSize !== null && pageSize !== undefined) {
+    queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
+  }
+  if (queryParameters.length > 0) {
+    requestUrl += '?' + queryParameters.join('&');
+  }
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'GET';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['PublisherListApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Query publishers
+ *
+ * Get all publishers that match a specified query. The returned model can
+ * contain a continuation token if more results are available. Call the
+ * GetListOfPublisher operation using the token to retrieve more results.
+ *
+ * @param {object} body Publisher query model
+ *
+ * @param {string} [body.siteId] Site for the publishers
+ *
+ * @param {boolean} [body.connected] Included connected or disconnected
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {boolean} [options.onlyServerState] Whether to include only server
+ * state, or display current client state of the endpoint if available
+ *
+ * @param {number} [options.pageSize] Number of results to return
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link PublisherListApiModel} for more information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _queryPublisher(body, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
+  let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
+  // Validate
+  try {
+    if (onlyServerState !== null && onlyServerState !== undefined && typeof onlyServerState !== 'boolean') {
+      throw new Error('onlyServerState must be of type boolean.');
+    }
+    if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
+      throw new Error('pageSize must be of type number.');
+    }
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/publishers/query';
+  let queryParameters = [];
+  if (onlyServerState !== null && onlyServerState !== undefined) {
+    queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
+  }
+  if (pageSize !== null && pageSize !== undefined) {
+    queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
+  }
+  if (queryParameters.length > 0) {
+    requestUrl += '?' + queryParameters.join('&');
+  }
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['PublisherQueryApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(body, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['PublisherListApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Get filtered list of publishers
+ *
+ * Get a list of publishers filtered using the specified query parameters. The
+ * returned model can contain a continuation token if more results are
+ * available. Call the GetListOfPublisher operation using the token to retrieve
+ * more results.
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {string} [options.siteId] Site for the publishers
+ *
+ * @param {boolean} [options.connected] Included connected or disconnected
+ *
+ * @param {boolean} [options.onlyServerState] Whether to include only server
+ * state, or display current client state of the endpoint if available
+ *
+ * @param {number} [options.pageSize] Number of results to return
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link PublisherListApiModel} for more information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _getFilteredListOfPublisher(options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let siteId = (options && options.siteId !== undefined) ? options.siteId : undefined;
+  let connected = (options && options.connected !== undefined) ? options.connected : undefined;
+  let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
+  let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
+  // Validate
+  try {
+    if (siteId !== null && siteId !== undefined && typeof siteId.valueOf() !== 'string') {
+      throw new Error('siteId must be of type string.');
+    }
+    if (connected !== null && connected !== undefined && typeof connected !== 'boolean') {
+      throw new Error('connected must be of type boolean.');
+    }
+    if (onlyServerState !== null && onlyServerState !== undefined && typeof onlyServerState !== 'boolean') {
+      throw new Error('onlyServerState must be of type boolean.');
+    }
+    if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
+      throw new Error('pageSize must be of type number.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/publishers/query';
+  let queryParameters = [];
+  if (siteId !== null && siteId !== undefined) {
+    queryParameters.push('siteId=' + encodeURIComponent(siteId));
+  }
+  if (connected !== null && connected !== undefined) {
+    queryParameters.push('connected=' + encodeURIComponent(connected.toString()));
+  }
+  if (onlyServerState !== null && onlyServerState !== undefined) {
+    queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
+  }
+  if (pageSize !== null && pageSize !== undefined) {
+    queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
+  }
+  if (queryParameters.length > 0) {
+    requestUrl += '?' + queryParameters.join('&');
+  }
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'GET';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['PublisherListApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Subscribe to publisher registry events
+ *
+ * Register a user to receive publisher events through SignalR.
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {string} [options.body] The user id that will receive publisher
+ * events.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _subscribe4(options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let body = (options && options.body !== undefined) ? options.body : undefined;
+  // Validate
+  try {
+    if (body !== null && body !== undefined && typeof body.valueOf() !== 'string') {
+      throw new Error('body must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/publishers/events';
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'PUT';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = {
+        required: false,
+        serializedName: 'body',
+        type: {
+          name: 'String'
+        }
+      };
+      requestModel = client.serialize(requestModelMapper, body, 'body');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(body, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Unsubscribe registry events
+ *
+ * Unregister a user and stop it from receiving publisher events.
+ *
+ * @param {string} userId The user id that will not receive any more publisher
+ * events
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _unsubscribe4(userId, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (userId === null || userId === undefined || typeof userId.valueOf() !== 'string') {
+      throw new Error('userId cannot be null or undefined and it must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/publishers/events/{userId}';
+  requestUrl = requestUrl.replace('{userId}', encodeURIComponent(userId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'DELETE';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
  * @summary Get supervisor registration information
  *
- * Returns a supervisor's registration and connectivity information.
- * A supervisor id corresponds to the twin modules module identity.
+ * Returns a supervisor's registration and connectivity information. A
+ * supervisor id corresponds to the twin modules module identity.
  *
  * @param {string} supervisorId Supervisor identifier
  *
  * @param {object} [options] Optional Parameters.
  *
  * @param {boolean} [options.onlyServerState] Whether to include only server
- * state, or display current client state of the endpoint if
- * available
+ * state, or display current client state of the endpoint if available
  *
  * @param {object} [options.customHeaders] Headers that will be added to the
  * request
@@ -3180,76 +6829,12 @@ function _getSupervisor(supervisorId, options, callback) {
  *
  * @param {string} supervisorId supervisor identifier
  *
- * @param {object} request Patch request
+ * @param {object} body Patch request
  *
- * @param {string} [request.siteId] Site of the supervisor
+ * @param {string} [body.siteId] Site the supervisor is part of
  *
- * @param {string} [request.discovery] Whether the supervisor is in discovery
- * mode.
- * If null, does not change. Possible values include: 'Off', 'Local',
- * 'Network', 'Fast', 'Scan'
- *
- * @param {object} [request.discoveryConfig] Supervisor discovery configuration
- *
- * @param {string} [request.discoveryConfig.addressRangesToScan] Address ranges
- * to scan (null == all wired nics)
- *
- * @param {number} [request.discoveryConfig.networkProbeTimeoutMs] Network
- * probe timeout
- *
- * @param {number} [request.discoveryConfig.maxNetworkProbes] Max network
- * probes that should ever run.
- *
- * @param {string} [request.discoveryConfig.portRangesToScan] Port ranges to
- * scan (null == all unassigned)
- *
- * @param {number} [request.discoveryConfig.portProbeTimeoutMs] Port probe
- * timeout
- *
- * @param {number} [request.discoveryConfig.maxPortProbes] Max port probes that
- * should ever run.
- *
- * @param {number} [request.discoveryConfig.minPortProbesPercent] Probes that
- * must always be there as percent of max.
- *
- * @param {number} [request.discoveryConfig.idleTimeBetweenScansSec] Delay time
- * between discovery sweeps in seconds
- *
- * @param {array} [request.discoveryConfig.discoveryUrls] List of preset
- * discovery urls to use
- *
- * @param {array} [request.discoveryConfig.locales] List of locales to filter
- * with during discovery
- *
- * @param {array} [request.discoveryConfig.callbacks] Callbacks to invoke once
- * onboarding finishes
- *
- * @param {object} [request.discoveryConfig.activationFilter] Activate all
- * twins with this filter during onboarding.
- *
- * @param {array} [request.discoveryConfig.activationFilter.trustLists]
- * Certificate trust list identifiers to use for
- * activation, if null, all certificates are
- * trusted.  If empty list, no certificates are
- * trusted which is equal to no filter.
- *
- * @param {array} [request.discoveryConfig.activationFilter.securityPolicies]
- * Endpoint security policies to filter against.
- * If set to null, all policies are in scope.
- *
- * @param {string} [request.discoveryConfig.activationFilter.securityMode]
- * Security mode level to activate. If null,
- * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
- * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
- *
- * @param {array} [request.discoveryCallbacks] Callbacks to add or remove (see
- * below)
- *
- * @param {boolean} [request.removeDiscoveryCallbacks] Whether to add or remove
- * callbacks
- *
- * @param {string} [request.logLevel] Current log level. Possible values
- * include: 'Error', 'Information', 'Debug', 'Verbose'
+ * @param {string} [body.logLevel] Possible values include: 'Error',
+ * 'Information', 'Debug', 'Verbose'
  *
  * @param {object} [options] Optional Parameters.
  *
@@ -3268,7 +6853,7 @@ function _getSupervisor(supervisorId, options, callback) {
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _updateSupervisor(supervisorId, request, options, callback) {
+function _updateSupervisor(supervisorId, body, options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -3283,8 +6868,8 @@ function _updateSupervisor(supervisorId, request, options, callback) {
     if (supervisorId === null || supervisorId === undefined || typeof supervisorId.valueOf() !== 'string') {
       throw new Error('supervisorId cannot be null or undefined and it must be of type string.');
     }
-    if (request === null || request === undefined) {
-      throw new Error('request cannot be null or undefined.');
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
     }
   } catch (error) {
     return callback(error);
@@ -3313,14 +6898,14 @@ function _updateSupervisor(supervisorId, request, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (request !== null && request !== undefined) {
+    if (body !== null && body !== undefined) {
       let requestModelMapper = new client.models['SupervisorUpdateApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, request, 'request');
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(request, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -3481,8 +7066,8 @@ function _getSupervisorStatus(supervisorId, options, callback) {
 /**
  * @summary Reset supervisor
  *
- * Allows a caller to reset the twin module using its supervisor
- * identity identifier.
+ * Allows a caller to reset the twin module using its supervisor identity
+ * identifier.
  *
  * @param {string} supervisorId supervisor identifier
  *
@@ -3581,10 +7166,10 @@ function _resetSupervisor(supervisorId, options, callback) {
 /**
  * @summary Get list of supervisors
  *
- * Get all registered supervisors and therefore twin modules in paged form.
- * The returned model can contain a continuation token if more results are
- * available.
- * Call this operation again using the token to retrieve more results.
+ * Get all registered supervisors and therefore twin modules in paged form. The
+ * returned model can contain a continuation token if more results are
+ * available. Call this operation again using the token to retrieve more
+ * results.
  *
  * @param {object} [options] Optional Parameters.
  *
@@ -3726,26 +7311,181 @@ function _getListOfSupervisors(options, callback) {
 }
 
 /**
- * @summary Get filtered list of supervisors
+ * @summary Query supervisors
  *
- * Get a list of supervisors filtered using the specified query parameters.
- * The returned model can contain a continuation token if more results are
- * available.
- * Call the GetListOfSupervisors operation using the token to retrieve
- * more results.
+ * Get all supervisors that match a specified query. The returned model can
+ * contain a continuation token if more results are available. Call the
+ * GetListOfSupervisors operation using the token to retrieve more results.
+ *
+ * @param {object} body Supervisors query model
+ *
+ * @param {string} [body.siteId] Site for the supervisors
+ *
+ * @param {boolean} [body.connected] Included connected or disconnected
  *
  * @param {object} [options] Optional Parameters.
  *
- * @param {string} [options.siteId] Site of the supervisor
+ * @param {boolean} [options.onlyServerState] Whether to include only server
+ * state, or display current client state of the endpoint if available
  *
- * @param {string} [options.discovery] Discovery mode of supervisor. Possible
- * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+ * @param {number} [options.pageSize] Number of results to return
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {object} [result]   - The deserialized result object if an error did not occur.
+ *                      See {@link SupervisorListApiModel} for more
+ *                      information.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _querySupervisors(body, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
+  let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
+  // Validate
+  try {
+    if (onlyServerState !== null && onlyServerState !== undefined && typeof onlyServerState !== 'boolean') {
+      throw new Error('onlyServerState must be of type boolean.');
+    }
+    if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
+      throw new Error('pageSize must be of type number.');
+    }
+    if (body === null || body === undefined) {
+      throw new Error('body cannot be null or undefined.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/supervisors/query';
+  let queryParameters = [];
+  if (onlyServerState !== null && onlyServerState !== undefined) {
+    queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
+  }
+  if (pageSize !== null && pageSize !== undefined) {
+    queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
+  }
+  if (queryParameters.length > 0) {
+    requestUrl += '?' + queryParameters.join('&');
+  }
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'POST';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json-patch+json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
+      }
+    }
+  }
+  // Serialize Request
+  let requestContent = null;
+  let requestModel = null;
+  try {
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = new client.models['SupervisorQueryApiModel']().mapper();
+      requestModel = client.serialize(requestModelMapper, body, 'body');
+      requestContent = JSON.stringify(requestModel);
+    }
+  } catch (error) {
+    let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
+        `payload - ${JSON.stringify(body, null, 2)}.`);
+    return callback(serializationError);
+  }
+  httpRequest.body = requestContent;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
+    // Deserialize Response
+    if (statusCode === 200) {
+      let parsedResponse = null;
+      try {
+        parsedResponse = JSON.parse(responseBody);
+        result = JSON.parse(responseBody);
+        if (parsedResponse !== null && parsedResponse !== undefined) {
+          let resultMapper = new client.models['SupervisorListApiModel']().mapper();
+          result = client.deserialize(resultMapper, parsedResponse, 'result');
+        }
+      } catch (error) {
+        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
+        deserializationError.request = msRest.stripRequest(httpRequest);
+        deserializationError.response = msRest.stripResponse(response);
+        return callback(deserializationError);
+      }
+    }
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Get filtered list of supervisors
+ *
+ * Get a list of supervisors filtered using the specified query parameters. The
+ * returned model can contain a continuation token if more results are
+ * available. Call the GetListOfSupervisors operation using the token to
+ * retrieve more results.
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {string} [options.siteId] Site for the supervisors
  *
  * @param {boolean} [options.connected] Included connected or disconnected
  *
  * @param {boolean} [options.onlyServerState] Whether to include only server
- * state, or display current client state of the endpoint if
- * available
+ * state, or display current client state of the endpoint if available
  *
  * @param {number} [options.pageSize] Number of results to return
  *
@@ -3777,7 +7517,6 @@ function _getFilteredListOfSupervisors(options, callback) {
     throw new Error('callback cannot be null.');
   }
   let siteId = (options && options.siteId !== undefined) ? options.siteId : undefined;
-  let discovery = (options && options.discovery !== undefined) ? options.discovery : undefined;
   let connected = (options && options.connected !== undefined) ? options.connected : undefined;
   let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
   let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
@@ -3785,9 +7524,6 @@ function _getFilteredListOfSupervisors(options, callback) {
   try {
     if (siteId !== null && siteId !== undefined && typeof siteId.valueOf() !== 'string') {
       throw new Error('siteId must be of type string.');
-    }
-    if (discovery !== null && discovery !== undefined && typeof discovery.valueOf() !== 'string') {
-      throw new Error('discovery must be of type string.');
     }
     if (connected !== null && connected !== undefined && typeof connected !== 'boolean') {
       throw new Error('connected must be of type boolean.');
@@ -3807,13 +7543,10 @@ function _getFilteredListOfSupervisors(options, callback) {
   let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/supervisors/query';
   let queryParameters = [];
   if (siteId !== null && siteId !== undefined) {
-    queryParameters.push('SiteId=' + encodeURIComponent(siteId));
-  }
-  if (discovery !== null && discovery !== undefined) {
-    queryParameters.push('Discovery=' + encodeURIComponent(discovery));
+    queryParameters.push('siteId=' + encodeURIComponent(siteId));
   }
   if (connected !== null && connected !== undefined) {
-    queryParameters.push('Connected=' + encodeURIComponent(connected.toString()));
+    queryParameters.push('connected=' + encodeURIComponent(connected.toString()));
   }
   if (onlyServerState !== null && onlyServerState !== undefined) {
     queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
@@ -3894,30 +7627,14 @@ function _getFilteredListOfSupervisors(options, callback) {
 }
 
 /**
- * @summary Query supervisors
+ * @summary Subscribe to supervisor registry events
  *
- * Get all supervisors that match a specified query.
- * The returned model can contain a continuation token if more results are
- * available.
- * Call the GetListOfSupervisors operation using the token to retrieve
- * more results.
- *
- * @param {object} query Supervisors query model
- *
- * @param {string} [query.siteId] Site of the supervisor
- *
- * @param {string} [query.discovery] Discovery mode of supervisor. Possible
- * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
- *
- * @param {boolean} [query.connected] Included connected or disconnected
+ * Register a user to receive supervisor events through SignalR.
  *
  * @param {object} [options] Optional Parameters.
  *
- * @param {boolean} [options.onlyServerState] Whether to include only server
- * state, or display current client state of the endpoint if
- * available
- *
- * @param {number} [options.pageSize] Number of results to return
+ * @param {string} [options.body] The user id that will receive supervisor
+ * events.
  *
  * @param {object} [options.customHeaders] Headers that will be added to the
  * request
@@ -3928,15 +7645,13 @@ function _getFilteredListOfSupervisors(options, callback) {
  *
  *                      {Error}  err        - The Error object if an error occurred, null otherwise.
  *
- *                      {object} [result]   - The deserialized result object if an error did not occur.
- *                      See {@link SupervisorListApiModel} for more
- *                      information.
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
  *
  *                      {object} [request]  - The HTTP Request object if an error did not occur.
  *
  *                      {stream} [response] - The HTTP Response stream if an error did not occur.
  */
-function _querySupervisors(query, options, callback) {
+function _subscribe5(options, callback) {
    /* jshint validthis: true */
   let client = this;
   if(!callback && typeof options === 'function') {
@@ -3946,18 +7661,11 @@ function _querySupervisors(query, options, callback) {
   if (!callback) {
     throw new Error('callback cannot be null.');
   }
-  let onlyServerState = (options && options.onlyServerState !== undefined) ? options.onlyServerState : undefined;
-  let pageSize = (options && options.pageSize !== undefined) ? options.pageSize : undefined;
+  let body = (options && options.body !== undefined) ? options.body : undefined;
   // Validate
   try {
-    if (query === null || query === undefined) {
-      throw new Error('query cannot be null or undefined.');
-    }
-    if (onlyServerState !== null && onlyServerState !== undefined && typeof onlyServerState !== 'boolean') {
-      throw new Error('onlyServerState must be of type boolean.');
-    }
-    if (pageSize !== null && pageSize !== undefined && typeof pageSize !== 'number') {
-      throw new Error('pageSize must be of type number.');
+    if (body !== null && body !== undefined && typeof body.valueOf() !== 'string') {
+      throw new Error('body must be of type string.');
     }
   } catch (error) {
     return callback(error);
@@ -3965,21 +7673,11 @@ function _querySupervisors(query, options, callback) {
 
   // Construct URL
   let baseUrl = this.baseUri;
-  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/supervisors/query';
-  let queryParameters = [];
-  if (onlyServerState !== null && onlyServerState !== undefined) {
-    queryParameters.push('onlyServerState=' + encodeURIComponent(onlyServerState.toString()));
-  }
-  if (pageSize !== null && pageSize !== undefined) {
-    queryParameters.push('pageSize=' + encodeURIComponent(pageSize.toString()));
-  }
-  if (queryParameters.length > 0) {
-    requestUrl += '?' + queryParameters.join('&');
-  }
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/supervisors/events';
 
   // Create HTTP transport objects
   let httpRequest = new WebResource();
-  httpRequest.method = 'POST';
+  httpRequest.method = 'PUT';
   httpRequest.url = requestUrl;
   httpRequest.headers = {};
   // Set Headers
@@ -3995,14 +7693,20 @@ function _querySupervisors(query, options, callback) {
   let requestContent = null;
   let requestModel = null;
   try {
-    if (query !== null && query !== undefined) {
-      let requestModelMapper = new client.models['SupervisorQueryApiModel']().mapper();
-      requestModel = client.serialize(requestModelMapper, query, 'query');
+    if (body !== null && body !== undefined) {
+      let requestModelMapper = {
+        required: false,
+        serializedName: 'body',
+        type: {
+          name: 'String'
+        }
+      };
+      requestModel = client.serialize(requestModelMapper, body, 'body');
       requestContent = JSON.stringify(requestModel);
     }
   } catch (error) {
     let serializationError = new Error(`Error "${error.message}" occurred in serializing the ` +
-        `payload - ${JSON.stringify(query, null, 2)}.`);
+        `payload - ${JSON.stringify(body, null, 2)}.`);
     return callback(serializationError);
   }
   httpRequest.body = requestContent;
@@ -4037,23 +7741,106 @@ function _querySupervisors(query, options, callback) {
     // Create Result
     let result = null;
     if (responseBody === '') responseBody = null;
-    // Deserialize Response
-    if (statusCode === 200) {
-      let parsedResponse = null;
-      try {
-        parsedResponse = JSON.parse(responseBody);
-        result = JSON.parse(responseBody);
-        if (parsedResponse !== null && parsedResponse !== undefined) {
-          let resultMapper = new client.models['SupervisorListApiModel']().mapper();
-          result = client.deserialize(resultMapper, parsedResponse, 'result');
-        }
-      } catch (error) {
-        let deserializationError = new Error(`Error ${error} occurred in deserializing the responseBody - ${responseBody}`);
-        deserializationError.request = msRest.stripRequest(httpRequest);
-        deserializationError.response = msRest.stripResponse(response);
-        return callback(deserializationError);
+
+    return callback(null, result, httpRequest, response);
+  });
+}
+
+/**
+ * @summary Unsubscribe registry events
+ *
+ * Unregister a user and stop it from receiving supervisor events.
+ *
+ * @param {string} userId The user id that will not receive any more supervisor
+ * events
+ *
+ * @param {object} [options] Optional Parameters.
+ *
+ * @param {object} [options.customHeaders] Headers that will be added to the
+ * request
+ *
+ * @param {function} callback - The callback.
+ *
+ * @returns {function} callback(err, result, request, response)
+ *
+ *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+ *
+ *                      {null} [result]   - The deserialized result object if an error did not occur.
+ *
+ *                      {object} [request]  - The HTTP Request object if an error did not occur.
+ *
+ *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+ */
+function _unsubscribe5(userId, options, callback) {
+   /* jshint validthis: true */
+  let client = this;
+  if(!callback && typeof options === 'function') {
+    callback = options;
+    options = null;
+  }
+  if (!callback) {
+    throw new Error('callback cannot be null.');
+  }
+  // Validate
+  try {
+    if (userId === null || userId === undefined || typeof userId.valueOf() !== 'string') {
+      throw new Error('userId cannot be null or undefined and it must be of type string.');
+    }
+  } catch (error) {
+    return callback(error);
+  }
+
+  // Construct URL
+  let baseUrl = this.baseUri;
+  let requestUrl = baseUrl + (baseUrl.endsWith('/') ? '' : '/') + 'v2/supervisors/events/{userId}';
+  requestUrl = requestUrl.replace('{userId}', encodeURIComponent(userId));
+
+  // Create HTTP transport objects
+  let httpRequest = new WebResource();
+  httpRequest.method = 'DELETE';
+  httpRequest.url = requestUrl;
+  httpRequest.headers = {};
+  // Set Headers
+  httpRequest.headers['Content-Type'] = 'application/json; charset=utf-8';
+  if(options) {
+    for(let headerName in options['customHeaders']) {
+      if (options['customHeaders'].hasOwnProperty(headerName)) {
+        httpRequest.headers[headerName] = options['customHeaders'][headerName];
       }
     }
+  }
+  httpRequest.body = null;
+  // Send Request
+  return client.pipeline(httpRequest, (err, response, responseBody) => {
+    if (err) {
+      return callback(err);
+    }
+    let statusCode = response.statusCode;
+    if (statusCode !== 200) {
+      let error = new Error(responseBody);
+      error.statusCode = response.statusCode;
+      error.request = msRest.stripRequest(httpRequest);
+      error.response = msRest.stripResponse(response);
+      if (responseBody === '') responseBody = null;
+      let parsedErrorResponse;
+      try {
+        parsedErrorResponse = JSON.parse(responseBody);
+        if (parsedErrorResponse) {
+          let internalError = null;
+          if (parsedErrorResponse.error) internalError = parsedErrorResponse.error;
+          error.code = internalError ? internalError.code : parsedErrorResponse.code;
+          error.message = internalError ? internalError.message : parsedErrorResponse.message;
+        }
+      } catch (defaultError) {
+        error.message = `Error "${defaultError.message}" occurred in deserializing the responseBody ` +
+                         `- "${responseBody}" for the default response.`;
+        return callback(error);
+      }
+      return callback(error);
+    }
+    // Create Result
+    let result = null;
+    if (responseBody === '') responseBody = null;
 
     return callback(null, result, httpRequest, response);
   });
@@ -4082,75 +7869,119 @@ class AzureOpcRegistryClient extends ServiceClient {
 
     this.baseUri = baseUri;
     if (!this.baseUri) {
-      this.baseUri = 'http://localhost';
+      this.baseUri = 'http://localhost:9080';
     }
     this.credentials = credentials;
 
     let packageInfo = this.getPackageJsonInfo(__dirname);
     this.addUserAgentInfo(`${packageInfo.name}/${packageInfo.version}`);
     this.models = models;
-    this._getListOfApplications = _getListOfApplications;
-    this._createApplication = _createApplication;
     this._registerServer = _registerServer;
+    this._createApplication = _createApplication;
     this._deleteAllDisabledApplications = _deleteAllDisabledApplications;
+    this._getListOfApplications = _getListOfApplications;
     this._disableApplication = _disableApplication;
     this._enableApplication = _enableApplication;
     this._discoverServer = _discoverServer;
+    this._cancel = _cancel;
     this._getApplicationRegistration = _getApplicationRegistration;
-    this._deleteApplication = _deleteApplication;
     this._updateApplicationRegistration = _updateApplicationRegistration;
+    this._deleteApplication = _deleteApplication;
     this._getListOfSites = _getListOfSites;
-    this._getFilteredListOfApplications = _getFilteredListOfApplications;
     this._queryApplications = _queryApplications;
-    this._queryApplicationsById = _queryApplicationsById;
+    this._getFilteredListOfApplications = _getFilteredListOfApplications;
+    this._subscribe = _subscribe;
+    this._unsubscribe = _unsubscribe;
+    this._getDiscoverer = _getDiscoverer;
+    this._updateDiscoverer = _updateDiscoverer;
+    this._setDiscoveryMode = _setDiscoveryMode;
+    this._getListOfDiscoverers = _getListOfDiscoverers;
+    this._queryDiscoverers = _queryDiscoverers;
+    this._getFilteredListOfDiscoverers = _getFilteredListOfDiscoverers;
+    this._subscribe1 = _subscribe1;
+    this._unsubscribe1 = _unsubscribe1;
+    this._subscribeByDiscovererId = _subscribeByDiscovererId;
+    this._subscribeByRequestId = _subscribeByRequestId;
+    this._unsubscribeByRequestId = _unsubscribeByRequestId;
+    this._unsubscribeByDiscovererId = _unsubscribeByDiscovererId;
     this._activateEndpoint = _activateEndpoint;
     this._getEndpoint = _getEndpoint;
-    this._updateEndpoint = _updateEndpoint;
     this._getListOfEndpoints = _getListOfEndpoints;
-    this._getFilteredListOfEndpoints = _getFilteredListOfEndpoints;
     this._queryEndpoints = _queryEndpoints;
+    this._getFilteredListOfEndpoints = _getFilteredListOfEndpoints;
     this._deactivateEndpoint = _deactivateEndpoint;
-    this._getStatus = _getStatus;
+    this._subscribe2 = _subscribe2;
+    this._unsubscribe2 = _unsubscribe2;
+    this._getGateway = _getGateway;
+    this._updateGateway = _updateGateway;
+    this._getListOfGateway = _getListOfGateway;
+    this._queryGateway = _queryGateway;
+    this._getFilteredListOfGateway = _getFilteredListOfGateway;
+    this._subscribe3 = _subscribe3;
+    this._unsubscribe3 = _unsubscribe3;
+    this._getPublisher = _getPublisher;
+    this._updatePublisher = _updatePublisher;
+    this._getListOfPublisher = _getListOfPublisher;
+    this._queryPublisher = _queryPublisher;
+    this._getFilteredListOfPublisher = _getFilteredListOfPublisher;
+    this._subscribe4 = _subscribe4;
+    this._unsubscribe4 = _unsubscribe4;
     this._getSupervisor = _getSupervisor;
     this._updateSupervisor = _updateSupervisor;
     this._getSupervisorStatus = _getSupervisorStatus;
     this._resetSupervisor = _resetSupervisor;
     this._getListOfSupervisors = _getListOfSupervisors;
-    this._getFilteredListOfSupervisors = _getFilteredListOfSupervisors;
     this._querySupervisors = _querySupervisors;
+    this._getFilteredListOfSupervisors = _getFilteredListOfSupervisors;
+    this._subscribe5 = _subscribe5;
+    this._unsubscribe5 = _unsubscribe5;
     msRest.addSerializationMixin(this);
   }
 
   /**
-   * @summary Get list of applications
+   * @summary Register new server
    *
-   * Get all registered applications in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
+   * Registers a server solely using a discovery url. Requires that the
+   * onboarding agent service is running and the server can be located by a
+   * supervisor in its network using the discovery url.
+   *
+   * @param {object} body Server registration request
+   *
+   * @param {string} body.discoveryUrl Discovery url to use for registration
+   *
+   * @param {string} [body.id] Registration id
+   *
+   * @param {object} [body.activationFilter]
+   *
+   * @param {array} [body.activationFilter.trustLists] Certificate trust list
+   * identifiers to use for
+   * activation, if null, all certificates are
+   * trusted.  If empty list, no certificates are
+   * trusted which is equal to no filter.
+   *
+   * @param {array} [body.activationFilter.securityPolicies] Endpoint security
+   * policies to filter against.
+   * If set to null, all policies are in scope.
+   *
+   * @param {string} [body.activationFilter.securityMode] Possible values
+   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.continuationToken] Optional Continuation
-   * token
-   *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<ApplicationInfoListApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  getListOfApplicationsWithHttpOperationResponse(options) {
+  registerServerWithHttpOperationResponse(body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._getListOfApplications(options, (err, result, request, response) => {
+      self._registerServer(body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -4161,20 +7992,34 @@ class AzureOpcRegistryClient extends ServiceClient {
   }
 
   /**
-   * @summary Get list of applications
+   * @summary Register new server
    *
-   * Get all registered applications in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
+   * Registers a server solely using a discovery url. Requires that the
+   * onboarding agent service is running and the server can be located by a
+   * supervisor in its network using the discovery url.
+   *
+   * @param {object} body Server registration request
+   *
+   * @param {string} body.discoveryUrl Discovery url to use for registration
+   *
+   * @param {string} [body.id] Registration id
+   *
+   * @param {object} [body.activationFilter]
+   *
+   * @param {array} [body.activationFilter.trustLists] Certificate trust list
+   * identifiers to use for
+   * activation, if null, all certificates are
+   * trusted.  If empty list, no certificates are
+   * trusted which is equal to no filter.
+   *
+   * @param {array} [body.activationFilter.securityPolicies] Endpoint security
+   * policies to filter against.
+   * If set to null, all policies are in scope.
+   *
+   * @param {string} [body.activationFilter.securityMode] Possible values
+   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {string} [options.continuationToken] Optional Continuation
-   * token
-   *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -4186,7 +8031,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {ApplicationInfoListApiModel} - The deserialized result object.
+   *                      @resolve {null} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -4194,15 +8039,13 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {Error}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ApplicationInfoListApiModel} for more
-   *                      information.
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  getListOfApplications(options, optionalCallback) {
+  registerServer(body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -4211,52 +8054,51 @@ class AzureOpcRegistryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._getListOfApplications(options, (err, result, request, response) => {
+        self._registerServer(body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._getListOfApplications(options, optionalCallback);
+      return self._registerServer(body, options, optionalCallback);
     }
   }
 
   /**
    * @summary Create new application
    *
-   * The application is registered using the provided information, but it
-   * is not associated with a supervisor.  This is useful for when you need
-   * to register clients or you want to register a server that is located
-   * in a network not reachable through a Twin module.
+   * The application is registered using the provided information, but it is not
+   * associated with a supervisor. This is useful for when you need to register
+   * clients or you want to register a server that is located in a network not
+   * reachable through a Twin module.
    *
-   * @param {object} request Application registration request
+   * @param {object} body Application registration request
    *
-   * @param {string} request.applicationUri Unique application uri
+   * @param {string} body.applicationUri Unique application uri
    *
-   * @param {string} [request.applicationType] Type of application. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+   * @param {string} [body.applicationType] Possible values include: 'Server',
+   * 'Client', 'ClientAndServer', 'DiscoveryServer'
    *
-   * @param {string} [request.productUri] Product uri of the application.
+   * @param {string} [body.productUri] Product uri of the application.
    *
-   * @param {string} [request.applicationName] Default name of the server or
-   * client.
+   * @param {string} [body.applicationName] Default name of the server or client.
    *
-   * @param {string} [request.locale] Locale of default name
+   * @param {string} [body.locale] Locale of default name
    *
-   * @param {string} [request.siteId] Site of the application
+   * @param {string} [body.siteId] Site of the application
    *
-   * @param {object} [request.localizedNames] Localized names key off locale id.
+   * @param {object} [body.localizedNames] Localized names key off locale id.
    *
-   * @param {array} [request.capabilities] The OPC UA defined capabilities of the
+   * @param {array} [body.capabilities] The OPC UA defined capabilities of the
    * server.
    *
-   * @param {array} [request.discoveryUrls] Discovery urls of the server.
+   * @param {array} [body.discoveryUrls] Discovery urls of the server.
    *
-   * @param {string} [request.discoveryProfileUri] The discovery profile uri of
-   * the server.
+   * @param {string} [body.discoveryProfileUri] The discovery profile uri of the
+   * server.
    *
-   * @param {string} [request.gatewayServerUri] Gateway server uri
+   * @param {string} [body.gatewayServerUri] Gateway server uri
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -4269,11 +8111,11 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  createApplicationWithHttpOperationResponse(request, options) {
+  createApplicationWithHttpOperationResponse(body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._createApplication(request, options, (err, result, request, response) => {
+      self._createApplication(body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -4286,38 +8128,37 @@ class AzureOpcRegistryClient extends ServiceClient {
   /**
    * @summary Create new application
    *
-   * The application is registered using the provided information, but it
-   * is not associated with a supervisor.  This is useful for when you need
-   * to register clients or you want to register a server that is located
-   * in a network not reachable through a Twin module.
+   * The application is registered using the provided information, but it is not
+   * associated with a supervisor. This is useful for when you need to register
+   * clients or you want to register a server that is located in a network not
+   * reachable through a Twin module.
    *
-   * @param {object} request Application registration request
+   * @param {object} body Application registration request
    *
-   * @param {string} request.applicationUri Unique application uri
+   * @param {string} body.applicationUri Unique application uri
    *
-   * @param {string} [request.applicationType] Type of application. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+   * @param {string} [body.applicationType] Possible values include: 'Server',
+   * 'Client', 'ClientAndServer', 'DiscoveryServer'
    *
-   * @param {string} [request.productUri] Product uri of the application.
+   * @param {string} [body.productUri] Product uri of the application.
    *
-   * @param {string} [request.applicationName] Default name of the server or
-   * client.
+   * @param {string} [body.applicationName] Default name of the server or client.
    *
-   * @param {string} [request.locale] Locale of default name
+   * @param {string} [body.locale] Locale of default name
    *
-   * @param {string} [request.siteId] Site of the application
+   * @param {string} [body.siteId] Site of the application
    *
-   * @param {object} [request.localizedNames] Localized names key off locale id.
+   * @param {object} [body.localizedNames] Localized names key off locale id.
    *
-   * @param {array} [request.capabilities] The OPC UA defined capabilities of the
+   * @param {array} [body.capabilities] The OPC UA defined capabilities of the
    * server.
    *
-   * @param {array} [request.discoveryUrls] Discovery urls of the server.
+   * @param {array} [body.discoveryUrls] Discovery urls of the server.
    *
-   * @param {string} [request.discoveryProfileUri] The discovery profile uri of
-   * the server.
+   * @param {string} [body.discoveryProfileUri] The discovery profile uri of the
+   * server.
    *
-   * @param {string} [request.gatewayServerUri] Gateway server uri
+   * @param {string} [body.gatewayServerUri] Gateway server uri
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -4347,7 +8188,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  createApplication(request, options, optionalCallback) {
+  createApplication(body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -4356,171 +8197,14 @@ class AzureOpcRegistryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._createApplication(request, options, (err, result, request, response) => {
+        self._createApplication(body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._createApplication(request, options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Register new server
-   *
-   * Registers a server solely using a discovery url. Requires that
-   * the onboarding agent service is running and the server can be
-   * located by a supervisor in its network using the discovery url.
-   *
-   * @param {object} request Server registration request
-   *
-   * @param {string} request.discoveryUrl Discovery url to use for registration
-   *
-   * @param {string} [request.id] Registration id
-   *
-   * @param {object} [request.callback] An optional callback hook to register.
-   *
-   * @param {string} [request.callback.uri] Uri to call - should use https scheme
-   * in which
-   * case security is enforced.
-   *
-   * @param {string} [request.callback.method] Http Method to use for callback.
-   * Possible values include: 'Get', 'Post', 'Put', 'Delete'
-   *
-   * @param {string} [request.callback.authenticationHeader] Authentication
-   * header to add or null if not needed
-   *
-   * @param {object} [request.activationFilter] Upon discovery, activate all
-   * endpoints with this filter.
-   *
-   * @param {array} [request.activationFilter.trustLists] Certificate trust list
-   * identifiers to use for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
-   *
-   * @param {array} [request.activationFilter.securityPolicies] Endpoint security
-   * policies to filter against.
-   * If set to null, all policies are in scope.
-   *
-   * @param {string} [request.activationFilter.securityMode] Security mode level
-   * to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  registerServerWithHttpOperationResponse(request, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._registerServer(request, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Register new server
-   *
-   * Registers a server solely using a discovery url. Requires that
-   * the onboarding agent service is running and the server can be
-   * located by a supervisor in its network using the discovery url.
-   *
-   * @param {object} request Server registration request
-   *
-   * @param {string} request.discoveryUrl Discovery url to use for registration
-   *
-   * @param {string} [request.id] Registration id
-   *
-   * @param {object} [request.callback] An optional callback hook to register.
-   *
-   * @param {string} [request.callback.uri] Uri to call - should use https scheme
-   * in which
-   * case security is enforced.
-   *
-   * @param {string} [request.callback.method] Http Method to use for callback.
-   * Possible values include: 'Get', 'Post', 'Put', 'Delete'
-   *
-   * @param {string} [request.callback.authenticationHeader] Authentication
-   * header to add or null if not needed
-   *
-   * @param {object} [request.activationFilter] Upon discovery, activate all
-   * endpoints with this filter.
-   *
-   * @param {array} [request.activationFilter.trustLists] Certificate trust list
-   * identifiers to use for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
-   *
-   * @param {array} [request.activationFilter.securityPolicies] Endpoint security
-   * policies to filter against.
-   * If set to null, all policies are in scope.
-   *
-   * @param {string} [request.activationFilter.securityMode] Security mode level
-   * to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  registerServer(request, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._registerServer(request, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._registerServer(request, options, optionalCallback);
+      return self._createApplication(body, options, optionalCallback);
     }
   }
 
@@ -4608,6 +8292,101 @@ class AzureOpcRegistryClient extends ServiceClient {
       });
     } else {
       return self._deleteAllDisabledApplications(options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Get list of applications
+   *
+   * Get all registered applications in paged form. The returned model can
+   * contain a continuation token if more results are available. Call this
+   * operation again using the token to retrieve more results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.continuationToken] Optional Continuation token
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<ApplicationInfoListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  getListOfApplicationsWithHttpOperationResponse(options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._getListOfApplications(options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Get list of applications
+   *
+   * Get all registered applications in paged form. The returned model can
+   * contain a continuation token if more results are available. Call this
+   * operation again using the token to retrieve more results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.continuationToken] Optional Continuation token
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {ApplicationInfoListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link ApplicationInfoListApiModel} for more
+   *                      information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getListOfApplications(options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._getListOfApplications(options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._getListOfApplications(options, optionalCallback);
     }
   }
 
@@ -4784,68 +8563,61 @@ class AzureOpcRegistryClient extends ServiceClient {
   /**
    * @summary Discover servers
    *
-   * Registers servers by running a discovery scan in a supervisor's
-   * network. Requires that the onboarding agent service is running.
+   * Registers servers by running a discovery scan in a supervisor's network.
+   * Requires that the onboarding agent service is running.
    *
-   * @param {object} request Discovery request
+   * @param {object} body Discovery request
    *
-   * @param {string} [request.id] Id of discovery request
+   * @param {string} [body.id] Id of discovery request
    *
-   * @param {string} [request.discovery] Discovery mode to use. Possible values
-   * include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+   * @param {string} [body.discovery] Possible values include: 'Off', 'Local',
+   * 'Network', 'Fast', 'Scan'
    *
-   * @param {object} [request.configuration] Scan configuration to use
+   * @param {object} [body.configuration]
    *
-   * @param {string} [request.configuration.addressRangesToScan] Address ranges
-   * to scan (null == all wired nics)
+   * @param {string} [body.configuration.addressRangesToScan] Address ranges to
+   * scan (null == all wired nics)
    *
-   * @param {number} [request.configuration.networkProbeTimeoutMs] Network probe
+   * @param {number} [body.configuration.networkProbeTimeoutMs] Network probe
    * timeout
    *
-   * @param {number} [request.configuration.maxNetworkProbes] Max network probes
+   * @param {number} [body.configuration.maxNetworkProbes] Max network probes
    * that should ever run.
    *
-   * @param {string} [request.configuration.portRangesToScan] Port ranges to scan
+   * @param {string} [body.configuration.portRangesToScan] Port ranges to scan
    * (null == all unassigned)
    *
-   * @param {number} [request.configuration.portProbeTimeoutMs] Port probe
-   * timeout
+   * @param {number} [body.configuration.portProbeTimeoutMs] Port probe timeout
    *
-   * @param {number} [request.configuration.maxPortProbes] Max port probes that
+   * @param {number} [body.configuration.maxPortProbes] Max port probes that
    * should ever run.
    *
-   * @param {number} [request.configuration.minPortProbesPercent] Probes that
-   * must always be there as percent of max.
+   * @param {number} [body.configuration.minPortProbesPercent] Probes that must
+   * always be there as percent of max.
    *
-   * @param {number} [request.configuration.idleTimeBetweenScansSec] Delay time
+   * @param {number} [body.configuration.idleTimeBetweenScansSec] Delay time
    * between discovery sweeps in seconds
    *
-   * @param {array} [request.configuration.discoveryUrls] List of preset
-   * discovery urls to use
+   * @param {array} [body.configuration.discoveryUrls] List of preset discovery
+   * urls to use
    *
-   * @param {array} [request.configuration.locales] List of locales to filter
-   * with during discovery
+   * @param {array} [body.configuration.locales] List of locales to filter with
+   * during discovery
    *
-   * @param {array} [request.configuration.callbacks] Callbacks to invoke once
-   * onboarding finishes
+   * @param {object} [body.configuration.activationFilter]
    *
-   * @param {object} [request.configuration.activationFilter] Activate all twins
-   * with this filter during onboarding.
-   *
-   * @param {array} [request.configuration.activationFilter.trustLists]
-   * Certificate trust list identifiers to use for
+   * @param {array} [body.configuration.activationFilter.trustLists] Certificate
+   * trust list identifiers to use for
    * activation, if null, all certificates are
    * trusted.  If empty list, no certificates are
    * trusted which is equal to no filter.
    *
-   * @param {array} [request.configuration.activationFilter.securityPolicies]
+   * @param {array} [body.configuration.activationFilter.securityPolicies]
    * Endpoint security policies to filter against.
    * If set to null, all policies are in scope.
    *
-   * @param {string} [request.configuration.activationFilter.securityMode]
-   * Security mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   * @param {string} [body.configuration.activationFilter.securityMode] Possible
+   * values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -4858,11 +8630,11 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  discoverServerWithHttpOperationResponse(request, options) {
+  discoverServerWithHttpOperationResponse(body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._discoverServer(request, options, (err, result, request, response) => {
+      self._discoverServer(body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -4875,68 +8647,61 @@ class AzureOpcRegistryClient extends ServiceClient {
   /**
    * @summary Discover servers
    *
-   * Registers servers by running a discovery scan in a supervisor's
-   * network. Requires that the onboarding agent service is running.
+   * Registers servers by running a discovery scan in a supervisor's network.
+   * Requires that the onboarding agent service is running.
    *
-   * @param {object} request Discovery request
+   * @param {object} body Discovery request
    *
-   * @param {string} [request.id] Id of discovery request
+   * @param {string} [body.id] Id of discovery request
    *
-   * @param {string} [request.discovery] Discovery mode to use. Possible values
-   * include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+   * @param {string} [body.discovery] Possible values include: 'Off', 'Local',
+   * 'Network', 'Fast', 'Scan'
    *
-   * @param {object} [request.configuration] Scan configuration to use
+   * @param {object} [body.configuration]
    *
-   * @param {string} [request.configuration.addressRangesToScan] Address ranges
-   * to scan (null == all wired nics)
+   * @param {string} [body.configuration.addressRangesToScan] Address ranges to
+   * scan (null == all wired nics)
    *
-   * @param {number} [request.configuration.networkProbeTimeoutMs] Network probe
+   * @param {number} [body.configuration.networkProbeTimeoutMs] Network probe
    * timeout
    *
-   * @param {number} [request.configuration.maxNetworkProbes] Max network probes
+   * @param {number} [body.configuration.maxNetworkProbes] Max network probes
    * that should ever run.
    *
-   * @param {string} [request.configuration.portRangesToScan] Port ranges to scan
+   * @param {string} [body.configuration.portRangesToScan] Port ranges to scan
    * (null == all unassigned)
    *
-   * @param {number} [request.configuration.portProbeTimeoutMs] Port probe
-   * timeout
+   * @param {number} [body.configuration.portProbeTimeoutMs] Port probe timeout
    *
-   * @param {number} [request.configuration.maxPortProbes] Max port probes that
+   * @param {number} [body.configuration.maxPortProbes] Max port probes that
    * should ever run.
    *
-   * @param {number} [request.configuration.minPortProbesPercent] Probes that
-   * must always be there as percent of max.
+   * @param {number} [body.configuration.minPortProbesPercent] Probes that must
+   * always be there as percent of max.
    *
-   * @param {number} [request.configuration.idleTimeBetweenScansSec] Delay time
+   * @param {number} [body.configuration.idleTimeBetweenScansSec] Delay time
    * between discovery sweeps in seconds
    *
-   * @param {array} [request.configuration.discoveryUrls] List of preset
-   * discovery urls to use
+   * @param {array} [body.configuration.discoveryUrls] List of preset discovery
+   * urls to use
    *
-   * @param {array} [request.configuration.locales] List of locales to filter
-   * with during discovery
+   * @param {array} [body.configuration.locales] List of locales to filter with
+   * during discovery
    *
-   * @param {array} [request.configuration.callbacks] Callbacks to invoke once
-   * onboarding finishes
+   * @param {object} [body.configuration.activationFilter]
    *
-   * @param {object} [request.configuration.activationFilter] Activate all twins
-   * with this filter during onboarding.
-   *
-   * @param {array} [request.configuration.activationFilter.trustLists]
-   * Certificate trust list identifiers to use for
+   * @param {array} [body.configuration.activationFilter.trustLists] Certificate
+   * trust list identifiers to use for
    * activation, if null, all certificates are
    * trusted.  If empty list, no certificates are
    * trusted which is equal to no filter.
    *
-   * @param {array} [request.configuration.activationFilter.securityPolicies]
+   * @param {array} [body.configuration.activationFilter.securityPolicies]
    * Endpoint security policies to filter against.
    * If set to null, all policies are in scope.
    *
-   * @param {string} [request.configuration.activationFilter.securityMode]
-   * Security mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   * @param {string} [body.configuration.activationFilter.securityMode] Possible
+   * values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -4964,7 +8729,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  discoverServer(request, options, optionalCallback) {
+  discoverServer(body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -4973,14 +8738,99 @@ class AzureOpcRegistryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._discoverServer(request, options, (err, result, request, response) => {
+        self._discoverServer(body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._discoverServer(request, options, optionalCallback);
+      return self._discoverServer(body, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Cancel discovery
+   *
+   * Cancels a discovery request using the request identifier.
+   *
+   * @param {string} requestId Discovery request
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  cancelWithHttpOperationResponse(requestId, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._cancel(requestId, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Cancel discovery
+   *
+   * Cancels a discovery request using the request identifier.
+   *
+   * @param {string} requestId Discovery request
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  cancel(requestId, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._cancel(requestId, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._cancel(requestId, options, optionalCallback);
     }
   }
 
@@ -5064,6 +8914,137 @@ class AzureOpcRegistryClient extends ServiceClient {
       });
     } else {
       return self._getApplicationRegistration(applicationId, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Update application registration
+   *
+   * The application information is updated with new properties. Note that this
+   * information might be overridden if the application is re-discovered during a
+   * discovery run (recurring or one-time).
+   *
+   * @param {string} applicationId The identifier of the application
+   *
+   * @param {object} body Application update request
+   *
+   * @param {string} [body.productUri] Product uri
+   *
+   * @param {string} [body.applicationName] Default name of the server or client.
+   *
+   * @param {string} [body.locale] Locale of default name - defaults to "en"
+   *
+   * @param {object} [body.localizedNames] Localized names keyed off locale id.
+   * To remove entry, set value for locale id to null.
+   *
+   * @param {buffer} [body.certificate] Application public cert
+   *
+   * @param {array} [body.capabilities] Capabilities of the application
+   *
+   * @param {array} [body.discoveryUrls] Discovery urls of the application
+   *
+   * @param {string} [body.discoveryProfileUri] Discovery profile uri
+   *
+   * @param {string} [body.gatewayServerUri] Gateway server uri
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  updateApplicationRegistrationWithHttpOperationResponse(applicationId, body, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._updateApplicationRegistration(applicationId, body, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Update application registration
+   *
+   * The application information is updated with new properties. Note that this
+   * information might be overridden if the application is re-discovered during a
+   * discovery run (recurring or one-time).
+   *
+   * @param {string} applicationId The identifier of the application
+   *
+   * @param {object} body Application update request
+   *
+   * @param {string} [body.productUri] Product uri
+   *
+   * @param {string} [body.applicationName] Default name of the server or client.
+   *
+   * @param {string} [body.locale] Locale of default name - defaults to "en"
+   *
+   * @param {object} [body.localizedNames] Localized names keyed off locale id.
+   * To remove entry, set value for locale id to null.
+   *
+   * @param {buffer} [body.certificate] Application public cert
+   *
+   * @param {array} [body.capabilities] Capabilities of the application
+   *
+   * @param {array} [body.discoveryUrls] Discovery urls of the application
+   *
+   * @param {string} [body.discoveryProfileUri] Discovery profile uri
+   *
+   * @param {string} [body.gatewayServerUri] Gateway server uri
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  updateApplicationRegistration(applicationId, body, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._updateApplicationRegistration(applicationId, body, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._updateApplicationRegistration(applicationId, body, options, optionalCallback);
     }
   }
 
@@ -5153,152 +9134,15 @@ class AzureOpcRegistryClient extends ServiceClient {
   }
 
   /**
-   * @summary Update application registration
-   *
-   * The application information is updated with new properties.  Note that
-   * this information might be overridden if the application is re-discovered
-   * during a discovery run (recurring or one-time).
-   *
-   * @param {string} applicationId The identifier of the application
-   *
-   * @param {object} request Application update request
-   *
-   * @param {string} [request.productUri] Product uri
-   *
-   * @param {string} [request.applicationName] Default name of the server or
-   * client.
-   *
-   * @param {string} [request.locale] Locale of default name - defaults to "en"
-   *
-   * @param {object} [request.localizedNames] Localized names keyed off locale
-   * id.
-   * To remove entry, set value for locale id to null.
-   *
-   * @param {buffer} [request.certificate] Application public cert
-   *
-   * @param {array} [request.capabilities] Capabilities of the application
-   *
-   * @param {array} [request.discoveryUrls] Discovery urls of the application
-   *
-   * @param {string} [request.discoveryProfileUri] Discovery profile uri
-   *
-   * @param {string} [request.gatewayServerUri] Gateway server uri
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  updateApplicationRegistrationWithHttpOperationResponse(applicationId, request, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._updateApplicationRegistration(applicationId, request, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Update application registration
-   *
-   * The application information is updated with new properties.  Note that
-   * this information might be overridden if the application is re-discovered
-   * during a discovery run (recurring or one-time).
-   *
-   * @param {string} applicationId The identifier of the application
-   *
-   * @param {object} request Application update request
-   *
-   * @param {string} [request.productUri] Product uri
-   *
-   * @param {string} [request.applicationName] Default name of the server or
-   * client.
-   *
-   * @param {string} [request.locale] Locale of default name - defaults to "en"
-   *
-   * @param {object} [request.localizedNames] Localized names keyed off locale
-   * id.
-   * To remove entry, set value for locale id to null.
-   *
-   * @param {buffer} [request.certificate] Application public cert
-   *
-   * @param {array} [request.capabilities] Capabilities of the application
-   *
-   * @param {array} [request.discoveryUrls] Discovery urls of the application
-   *
-   * @param {string} [request.discoveryProfileUri] Discovery profile uri
-   *
-   * @param {string} [request.gatewayServerUri] Gateway server uri
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  updateApplicationRegistration(applicationId, request, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._updateApplicationRegistration(applicationId, request, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._updateApplicationRegistration(applicationId, request, options, optionalCallback);
-    }
-  }
-
-  /**
    * @summary Get list of sites
    *
    * List all sites applications are registered in.
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.continuationToken] Optional Continuation
-   * token
+   * @param {string} [options.continuationToken] Optional Continuation token
    *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
+   * @param {number} [options.pageSize] Optional number of results to return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -5330,11 +9174,9 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.continuationToken] Optional Continuation
-   * token
+   * @param {string} [options.continuationToken] Optional Continuation token
    *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
+   * @param {number} [options.pageSize] Optional number of results to return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -5383,38 +9225,184 @@ class AzureOpcRegistryClient extends ServiceClient {
   }
 
   /**
+   * @summary Query applications
+   *
+   * List applications that match a query model. The returned model can contain a
+   * continuation token if more results are available. Call the
+   * GetListOfApplications operation using the token to retrieve more results.
+   *
+   * @param {object} body Application query
+   *
+   * @param {string} [body.applicationType] Possible values include: 'Server',
+   * 'Client', 'ClientAndServer', 'DiscoveryServer'
+   *
+   * @param {string} [body.applicationUri] Application uri
+   *
+   * @param {string} [body.productUri] Product uri
+   *
+   * @param {string} [body.applicationName] Name of application
+   *
+   * @param {string} [body.locale] Locale of application name - default is "en"
+   *
+   * @param {string} [body.capability] Application capability to query with
+   *
+   * @param {string} [body.discoveryProfileUri] Discovery profile uri
+   *
+   * @param {string} [body.gatewayServerUri] Gateway server uri
+   *
+   * @param {string} [body.siteOrGatewayId] Supervisor or site the application
+   * belongs to.
+   *
+   * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
+   * were soft deleted
+   *
+   * @param {string} [body.discovererId] Discoverer id to filter with
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<ApplicationInfoListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  queryApplicationsWithHttpOperationResponse(body, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._queryApplications(body, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Query applications
+   *
+   * List applications that match a query model. The returned model can contain a
+   * continuation token if more results are available. Call the
+   * GetListOfApplications operation using the token to retrieve more results.
+   *
+   * @param {object} body Application query
+   *
+   * @param {string} [body.applicationType] Possible values include: 'Server',
+   * 'Client', 'ClientAndServer', 'DiscoveryServer'
+   *
+   * @param {string} [body.applicationUri] Application uri
+   *
+   * @param {string} [body.productUri] Product uri
+   *
+   * @param {string} [body.applicationName] Name of application
+   *
+   * @param {string} [body.locale] Locale of application name - default is "en"
+   *
+   * @param {string} [body.capability] Application capability to query with
+   *
+   * @param {string} [body.discoveryProfileUri] Discovery profile uri
+   *
+   * @param {string} [body.gatewayServerUri] Gateway server uri
+   *
+   * @param {string} [body.siteOrGatewayId] Supervisor or site the application
+   * belongs to.
+   *
+   * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
+   * were soft deleted
+   *
+   * @param {string} [body.discovererId] Discoverer id to filter with
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {ApplicationInfoListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link ApplicationInfoListApiModel} for more
+   *                      information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  queryApplications(body, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._queryApplications(body, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._queryApplications(body, options, optionalCallback);
+    }
+  }
+
+  /**
    * @summary Get filtered list of applications
    *
    * Get a list of applications filtered using the specified query parameters.
    * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfApplications operation using the token to retrieve
-   * more results.
+   * available. Call the GetListOfApplications operation using the token to
+   * retrieve more results.
    *
-   * @param {object} query Applications Query model
+   * @param {object} body Applications Query model
    *
-   * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+   * @param {string} [body.applicationType] Possible values include: 'Server',
+   * 'Client', 'ClientAndServer', 'DiscoveryServer'
    *
-   * @param {string} [query.applicationUri] Application uri
+   * @param {string} [body.applicationUri] Application uri
    *
-   * @param {string} [query.productUri] Product uri
+   * @param {string} [body.productUri] Product uri
    *
-   * @param {string} [query.applicationName] Name of application
+   * @param {string} [body.applicationName] Name of application
    *
-   * @param {string} [query.locale] Locale of application name - default is "en"
+   * @param {string} [body.locale] Locale of application name - default is "en"
    *
-   * @param {string} [query.capability] Application capability to query with
+   * @param {string} [body.capability] Application capability to query with
    *
-   * @param {string} [query.discoveryProfileUri] Discovery profile uri
+   * @param {string} [body.discoveryProfileUri] Discovery profile uri
    *
-   * @param {string} [query.gatewayServerUri] Gateway server uri
+   * @param {string} [body.gatewayServerUri] Gateway server uri
    *
-   * @param {string} [query.siteOrSupervisorId] Supervisor or site the
-   * application belongs to.
+   * @param {string} [body.siteOrGatewayId] Supervisor or site the application
+   * belongs to.
    *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
+   * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
    * were soft deleted
+   *
+   * @param {string} [body.discovererId] Discoverer id to filter with
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -5429,11 +9417,11 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  getFilteredListOfApplicationsWithHttpOperationResponse(query, options) {
+  getFilteredListOfApplicationsWithHttpOperationResponse(body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._getFilteredListOfApplications(query, options, (err, result, request, response) => {
+      self._getFilteredListOfApplications(body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -5448,34 +9436,35 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * Get a list of applications filtered using the specified query parameters.
    * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfApplications operation using the token to retrieve
-   * more results.
+   * available. Call the GetListOfApplications operation using the token to
+   * retrieve more results.
    *
-   * @param {object} query Applications Query model
+   * @param {object} body Applications Query model
    *
-   * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
+   * @param {string} [body.applicationType] Possible values include: 'Server',
+   * 'Client', 'ClientAndServer', 'DiscoveryServer'
    *
-   * @param {string} [query.applicationUri] Application uri
+   * @param {string} [body.applicationUri] Application uri
    *
-   * @param {string} [query.productUri] Product uri
+   * @param {string} [body.productUri] Product uri
    *
-   * @param {string} [query.applicationName] Name of application
+   * @param {string} [body.applicationName] Name of application
    *
-   * @param {string} [query.locale] Locale of application name - default is "en"
+   * @param {string} [body.locale] Locale of application name - default is "en"
    *
-   * @param {string} [query.capability] Application capability to query with
+   * @param {string} [body.capability] Application capability to query with
    *
-   * @param {string} [query.discoveryProfileUri] Discovery profile uri
+   * @param {string} [body.discoveryProfileUri] Discovery profile uri
    *
-   * @param {string} [query.gatewayServerUri] Gateway server uri
+   * @param {string} [body.gatewayServerUri] Gateway server uri
    *
-   * @param {string} [query.siteOrSupervisorId] Supervisor or site the
-   * application belongs to.
+   * @param {string} [body.siteOrGatewayId] Supervisor or site the application
+   * belongs to.
    *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
+   * @param {boolean} [body.includeNotSeenSince] Whether to include apps that
    * were soft deleted
+   *
+   * @param {string} [body.discovererId] Discoverer id to filter with
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -5507,7 +9496,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  getFilteredListOfApplications(query, options, optionalCallback) {
+  getFilteredListOfApplications(body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -5516,70 +9505,41 @@ class AzureOpcRegistryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._getFilteredListOfApplications(query, options, (err, result, request, response) => {
+        self._getFilteredListOfApplications(body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._getFilteredListOfApplications(query, options, optionalCallback);
+      return self._getFilteredListOfApplications(body, options, optionalCallback);
     }
   }
 
   /**
-   * @summary Query applications
+   * @summary Subscribe for application events
    *
-   * List applications that match a query model.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfApplications operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} query Application query
-   *
-   * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
-   *
-   * @param {string} [query.applicationUri] Application uri
-   *
-   * @param {string} [query.productUri] Product uri
-   *
-   * @param {string} [query.applicationName] Name of application
-   *
-   * @param {string} [query.locale] Locale of application name - default is "en"
-   *
-   * @param {string} [query.capability] Application capability to query with
-   *
-   * @param {string} [query.discoveryProfileUri] Discovery profile uri
-   *
-   * @param {string} [query.gatewayServerUri] Gateway server uri
-   *
-   * @param {string} [query.siteOrSupervisorId] Supervisor or site the
-   * application belongs to.
-   *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
-   * were soft deleted
+   * Register a client to receive application events through SignalR.
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
+   * @param {string} [options.body] The user that will receive application
+   * events.
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<ApplicationInfoListApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  queryApplicationsWithHttpOperationResponse(query, options) {
+  subscribeWithHttpOperationResponse(options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._queryApplications(query, options, (err, result, request, response) => {
+      self._subscribe(options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -5590,43 +9550,14 @@ class AzureOpcRegistryClient extends ServiceClient {
   }
 
   /**
-   * @summary Query applications
+   * @summary Subscribe for application events
    *
-   * List applications that match a query model.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfApplications operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} query Application query
-   *
-   * @param {string} [query.applicationType] Type of application. Possible values
-   * include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
-   *
-   * @param {string} [query.applicationUri] Application uri
-   *
-   * @param {string} [query.productUri] Product uri
-   *
-   * @param {string} [query.applicationName] Name of application
-   *
-   * @param {string} [query.locale] Locale of application name - default is "en"
-   *
-   * @param {string} [query.capability] Application capability to query with
-   *
-   * @param {string} [query.discoveryProfileUri] Discovery profile uri
-   *
-   * @param {string} [query.gatewayServerUri] Gateway server uri
-   *
-   * @param {string} [query.siteOrSupervisorId] Supervisor or site the
-   * application belongs to.
-   *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include apps that
-   * were soft deleted
+   * Register a client to receive application events through SignalR.
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
+   * @param {string} [options.body] The user that will receive application
+   * events.
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -5638,7 +9569,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {ApplicationInfoListApiModel} - The deserialized result object.
+   *                      @resolve {null} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -5646,15 +9577,13 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {Error}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ApplicationInfoListApiModel} for more
-   *                      information.
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  queryApplications(query, options, optionalCallback) {
+  subscribe(options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -5663,55 +9592,40 @@ class AzureOpcRegistryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._queryApplications(query, options, (err, result, request, response) => {
+        self._subscribe(options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._queryApplications(query, options, optionalCallback);
+      return self._subscribe(options, optionalCallback);
     }
   }
 
   /**
-   * @summary Query applications by id.
+   * @summary Unsubscribe from application events
    *
-   * A query model which supports the OPC UA Global Discovery Server query.
+   * Unregister a user and stop it from receiving events.
+   *
+   * @param {string} userId The user id that will not receive any more events
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.query]
-   *
-   * @param {number} [options.query.startingRecordId] Starting record id
-   *
-   * @param {number} [options.query.maxRecordsToReturn] Max records to return
-   *
-   * @param {string} [options.query.applicationName] Application name
-   *
-   * @param {string} [options.query.applicationUri] Application uri
-   *
-   * @param {string} [options.query.applicationType] Application type. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
-   *
-   * @param {string} [options.query.productUri] Product uri
-   *
-   * @param {array} [options.query.serverCapabilities] Server capabilities
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<ApplicationRecordListApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  queryApplicationsByIdWithHttpOperationResponse(options) {
+  unsubscribeWithHttpOperationResponse(userId, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._queryApplicationsById(options, (err, result, request, response) => {
+      self._unsubscribe(userId, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -5722,28 +9636,13 @@ class AzureOpcRegistryClient extends ServiceClient {
   }
 
   /**
-   * @summary Query applications by id.
+   * @summary Unsubscribe from application events
    *
-   * A query model which supports the OPC UA Global Discovery Server query.
+   * Unregister a user and stop it from receiving events.
+   *
+   * @param {string} userId The user id that will not receive any more events
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.query]
-   *
-   * @param {number} [options.query.startingRecordId] Starting record id
-   *
-   * @param {number} [options.query.maxRecordsToReturn] Max records to return
-   *
-   * @param {string} [options.query.applicationName] Application name
-   *
-   * @param {string} [options.query.applicationUri] Application uri
-   *
-   * @param {string} [options.query.applicationType] Application type. Possible
-   * values include: 'Server', 'Client', 'ClientAndServer', 'DiscoveryServer'
-   *
-   * @param {string} [options.query.productUri] Product uri
-   *
-   * @param {array} [options.query.serverCapabilities] Server capabilities
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -5755,7 +9654,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {ApplicationRecordListApiModel} - The deserialized result object.
+   *                      @resolve {null} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -5763,15 +9662,13 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {Error}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link ApplicationRecordListApiModel} for more
-   *                      information.
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  queryApplicationsById(options, optionalCallback) {
+  unsubscribe(userId, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -5780,23 +9677,1374 @@ class AzureOpcRegistryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._queryApplicationsById(options, (err, result, request, response) => {
+        self._unsubscribe(userId, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._queryApplicationsById(options, optionalCallback);
+      return self._unsubscribe(userId, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Get discoverer registration information
+   *
+   * Returns a discoverer's registration and connectivity information. A
+   * discoverer id corresponds to the twin modules module identity.
+   *
+   * @param {string} discovererId Discoverer identifier
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<DiscovererApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  getDiscovererWithHttpOperationResponse(discovererId, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._getDiscoverer(discovererId, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Get discoverer registration information
+   *
+   * Returns a discoverer's registration and connectivity information. A
+   * discoverer id corresponds to the twin modules module identity.
+   *
+   * @param {string} discovererId Discoverer identifier
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {DiscovererApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link DiscovererApiModel} for more information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getDiscoverer(discovererId, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._getDiscoverer(discovererId, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._getDiscoverer(discovererId, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Update discoverer information
+   *
+   * Allows a caller to configure recurring discovery runs on the twin module
+   * identified by the discoverer id or update site information.
+   *
+   * @param {string} discovererId discoverer identifier
+   *
+   * @param {object} body Patch request
+   *
+   * @param {string} [body.siteId] Site the discoverer is part of
+   *
+   * @param {string} [body.discovery] Possible values include: 'Off', 'Local',
+   * 'Network', 'Fast', 'Scan'
+   *
+   * @param {object} [body.discoveryConfig]
+   *
+   * @param {string} [body.discoveryConfig.addressRangesToScan] Address ranges to
+   * scan (null == all wired nics)
+   *
+   * @param {number} [body.discoveryConfig.networkProbeTimeoutMs] Network probe
+   * timeout
+   *
+   * @param {number} [body.discoveryConfig.maxNetworkProbes] Max network probes
+   * that should ever run.
+   *
+   * @param {string} [body.discoveryConfig.portRangesToScan] Port ranges to scan
+   * (null == all unassigned)
+   *
+   * @param {number} [body.discoveryConfig.portProbeTimeoutMs] Port probe timeout
+   *
+   * @param {number} [body.discoveryConfig.maxPortProbes] Max port probes that
+   * should ever run.
+   *
+   * @param {number} [body.discoveryConfig.minPortProbesPercent] Probes that must
+   * always be there as percent of max.
+   *
+   * @param {number} [body.discoveryConfig.idleTimeBetweenScansSec] Delay time
+   * between discovery sweeps in seconds
+   *
+   * @param {array} [body.discoveryConfig.discoveryUrls] List of preset discovery
+   * urls to use
+   *
+   * @param {array} [body.discoveryConfig.locales] List of locales to filter with
+   * during discovery
+   *
+   * @param {object} [body.discoveryConfig.activationFilter]
+   *
+   * @param {array} [body.discoveryConfig.activationFilter.trustLists]
+   * Certificate trust list identifiers to use for
+   * activation, if null, all certificates are
+   * trusted.  If empty list, no certificates are
+   * trusted which is equal to no filter.
+   *
+   * @param {array} [body.discoveryConfig.activationFilter.securityPolicies]
+   * Endpoint security policies to filter against.
+   * If set to null, all policies are in scope.
+   *
+   * @param {string} [body.discoveryConfig.activationFilter.securityMode]
+   * Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   *
+   * @param {string} [body.logLevel] Possible values include: 'Error',
+   * 'Information', 'Debug', 'Verbose'
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  updateDiscovererWithHttpOperationResponse(discovererId, body, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._updateDiscoverer(discovererId, body, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Update discoverer information
+   *
+   * Allows a caller to configure recurring discovery runs on the twin module
+   * identified by the discoverer id or update site information.
+   *
+   * @param {string} discovererId discoverer identifier
+   *
+   * @param {object} body Patch request
+   *
+   * @param {string} [body.siteId] Site the discoverer is part of
+   *
+   * @param {string} [body.discovery] Possible values include: 'Off', 'Local',
+   * 'Network', 'Fast', 'Scan'
+   *
+   * @param {object} [body.discoveryConfig]
+   *
+   * @param {string} [body.discoveryConfig.addressRangesToScan] Address ranges to
+   * scan (null == all wired nics)
+   *
+   * @param {number} [body.discoveryConfig.networkProbeTimeoutMs] Network probe
+   * timeout
+   *
+   * @param {number} [body.discoveryConfig.maxNetworkProbes] Max network probes
+   * that should ever run.
+   *
+   * @param {string} [body.discoveryConfig.portRangesToScan] Port ranges to scan
+   * (null == all unassigned)
+   *
+   * @param {number} [body.discoveryConfig.portProbeTimeoutMs] Port probe timeout
+   *
+   * @param {number} [body.discoveryConfig.maxPortProbes] Max port probes that
+   * should ever run.
+   *
+   * @param {number} [body.discoveryConfig.minPortProbesPercent] Probes that must
+   * always be there as percent of max.
+   *
+   * @param {number} [body.discoveryConfig.idleTimeBetweenScansSec] Delay time
+   * between discovery sweeps in seconds
+   *
+   * @param {array} [body.discoveryConfig.discoveryUrls] List of preset discovery
+   * urls to use
+   *
+   * @param {array} [body.discoveryConfig.locales] List of locales to filter with
+   * during discovery
+   *
+   * @param {object} [body.discoveryConfig.activationFilter]
+   *
+   * @param {array} [body.discoveryConfig.activationFilter.trustLists]
+   * Certificate trust list identifiers to use for
+   * activation, if null, all certificates are
+   * trusted.  If empty list, no certificates are
+   * trusted which is equal to no filter.
+   *
+   * @param {array} [body.discoveryConfig.activationFilter.securityPolicies]
+   * Endpoint security policies to filter against.
+   * If set to null, all policies are in scope.
+   *
+   * @param {string} [body.discoveryConfig.activationFilter.securityMode]
+   * Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   *
+   * @param {string} [body.logLevel] Possible values include: 'Error',
+   * 'Information', 'Debug', 'Verbose'
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  updateDiscoverer(discovererId, body, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._updateDiscoverer(discovererId, body, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._updateDiscoverer(discovererId, body, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Enable server discovery
+   *
+   * Allows a caller to configure recurring discovery runs on the discovery
+   * module identified by the module id.
+   *
+   * @param {string} discovererId discoverer identifier
+   *
+   * @param {string} mode Discovery mode. Possible values include: 'Off',
+   * 'Local', 'Network', 'Fast', 'Scan'
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.body] Discovery configuration
+   *
+   * @param {string} [options.body.addressRangesToScan] Address ranges to scan
+   * (null == all wired nics)
+   *
+   * @param {number} [options.body.networkProbeTimeoutMs] Network probe timeout
+   *
+   * @param {number} [options.body.maxNetworkProbes] Max network probes that
+   * should ever run.
+   *
+   * @param {string} [options.body.portRangesToScan] Port ranges to scan (null ==
+   * all unassigned)
+   *
+   * @param {number} [options.body.portProbeTimeoutMs] Port probe timeout
+   *
+   * @param {number} [options.body.maxPortProbes] Max port probes that should
+   * ever run.
+   *
+   * @param {number} [options.body.minPortProbesPercent] Probes that must always
+   * be there as percent of max.
+   *
+   * @param {number} [options.body.idleTimeBetweenScansSec] Delay time between
+   * discovery sweeps in seconds
+   *
+   * @param {array} [options.body.discoveryUrls] List of preset discovery urls to
+   * use
+   *
+   * @param {array} [options.body.locales] List of locales to filter with during
+   * discovery
+   *
+   * @param {object} [options.body.activationFilter]
+   *
+   * @param {array} [options.body.activationFilter.trustLists] Certificate trust
+   * list identifiers to use for
+   * activation, if null, all certificates are
+   * trusted.  If empty list, no certificates are
+   * trusted which is equal to no filter.
+   *
+   * @param {array} [options.body.activationFilter.securityPolicies] Endpoint
+   * security policies to filter against.
+   * If set to null, all policies are in scope.
+   *
+   * @param {string} [options.body.activationFilter.securityMode] Possible values
+   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  setDiscoveryModeWithHttpOperationResponse(discovererId, mode, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._setDiscoveryMode(discovererId, mode, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Enable server discovery
+   *
+   * Allows a caller to configure recurring discovery runs on the discovery
+   * module identified by the module id.
+   *
+   * @param {string} discovererId discoverer identifier
+   *
+   * @param {string} mode Discovery mode. Possible values include: 'Off',
+   * 'Local', 'Network', 'Fast', 'Scan'
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.body] Discovery configuration
+   *
+   * @param {string} [options.body.addressRangesToScan] Address ranges to scan
+   * (null == all wired nics)
+   *
+   * @param {number} [options.body.networkProbeTimeoutMs] Network probe timeout
+   *
+   * @param {number} [options.body.maxNetworkProbes] Max network probes that
+   * should ever run.
+   *
+   * @param {string} [options.body.portRangesToScan] Port ranges to scan (null ==
+   * all unassigned)
+   *
+   * @param {number} [options.body.portProbeTimeoutMs] Port probe timeout
+   *
+   * @param {number} [options.body.maxPortProbes] Max port probes that should
+   * ever run.
+   *
+   * @param {number} [options.body.minPortProbesPercent] Probes that must always
+   * be there as percent of max.
+   *
+   * @param {number} [options.body.idleTimeBetweenScansSec] Delay time between
+   * discovery sweeps in seconds
+   *
+   * @param {array} [options.body.discoveryUrls] List of preset discovery urls to
+   * use
+   *
+   * @param {array} [options.body.locales] List of locales to filter with during
+   * discovery
+   *
+   * @param {object} [options.body.activationFilter]
+   *
+   * @param {array} [options.body.activationFilter.trustLists] Certificate trust
+   * list identifiers to use for
+   * activation, if null, all certificates are
+   * trusted.  If empty list, no certificates are
+   * trusted which is equal to no filter.
+   *
+   * @param {array} [options.body.activationFilter.securityPolicies] Endpoint
+   * security policies to filter against.
+   * If set to null, all policies are in scope.
+   *
+   * @param {string} [options.body.activationFilter.securityMode] Possible values
+   * include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  setDiscoveryMode(discovererId, mode, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._setDiscoveryMode(discovererId, mode, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._setDiscoveryMode(discovererId, mode, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Get list of discoverers
+   *
+   * Get all registered discoverers and therefore twin modules in paged form. The
+   * returned model can contain a continuation token if more results are
+   * available. Call this operation again using the token to retrieve more
+   * results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {string} [options.continuationToken] Optional Continuation token
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<DiscovererListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  getListOfDiscoverersWithHttpOperationResponse(options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._getListOfDiscoverers(options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Get list of discoverers
+   *
+   * Get all registered discoverers and therefore twin modules in paged form. The
+   * returned model can contain a continuation token if more results are
+   * available. Call this operation again using the token to retrieve more
+   * results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {string} [options.continuationToken] Optional Continuation token
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {DiscovererListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link DiscovererListApiModel} for more
+   *                      information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getListOfDiscoverers(options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._getListOfDiscoverers(options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._getListOfDiscoverers(options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Query discoverers
+   *
+   * Get all discoverers that match a specified query. The returned model can
+   * contain a continuation token if more results are available. Call the
+   * GetListOfDiscoverers operation using the token to retrieve more results.
+   *
+   * @param {object} body Discoverers query model
+   *
+   * @param {string} [body.siteId] Site of the discoverer
+   *
+   * @param {string} [body.discovery] Possible values include: 'Off', 'Local',
+   * 'Network', 'Fast', 'Scan'
+   *
+   * @param {boolean} [body.connected] Included connected or disconnected
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<DiscovererListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  queryDiscoverersWithHttpOperationResponse(body, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._queryDiscoverers(body, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Query discoverers
+   *
+   * Get all discoverers that match a specified query. The returned model can
+   * contain a continuation token if more results are available. Call the
+   * GetListOfDiscoverers operation using the token to retrieve more results.
+   *
+   * @param {object} body Discoverers query model
+   *
+   * @param {string} [body.siteId] Site of the discoverer
+   *
+   * @param {string} [body.discovery] Possible values include: 'Off', 'Local',
+   * 'Network', 'Fast', 'Scan'
+   *
+   * @param {boolean} [body.connected] Included connected or disconnected
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {DiscovererListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link DiscovererListApiModel} for more
+   *                      information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  queryDiscoverers(body, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._queryDiscoverers(body, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._queryDiscoverers(body, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Get filtered list of discoverers
+   *
+   * Get a list of discoverers filtered using the specified query parameters. The
+   * returned model can contain a continuation token if more results are
+   * available. Call the GetListOfDiscoverers operation using the token to
+   * retrieve more results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.siteId] Site of the discoverer
+   *
+   * @param {string} [options.discovery] Discovery mode of discoverer. Possible
+   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+   *
+   * @param {boolean} [options.connected] Included connected or disconnected
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<DiscovererListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  getFilteredListOfDiscoverersWithHttpOperationResponse(options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._getFilteredListOfDiscoverers(options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Get filtered list of discoverers
+   *
+   * Get a list of discoverers filtered using the specified query parameters. The
+   * returned model can contain a continuation token if more results are
+   * available. Call the GetListOfDiscoverers operation using the token to
+   * retrieve more results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.siteId] Site of the discoverer
+   *
+   * @param {string} [options.discovery] Discovery mode of discoverer. Possible
+   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+   *
+   * @param {boolean} [options.connected] Included connected or disconnected
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {DiscovererListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link DiscovererListApiModel} for more
+   *                      information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getFilteredListOfDiscoverers(options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._getFilteredListOfDiscoverers(options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._getFilteredListOfDiscoverers(options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Subscribe to discoverer registry events
+   *
+   * Register a user to receive discoverer events through SignalR.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive discoverer
+   * events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  subscribe1WithHttpOperationResponse(options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._subscribe1(options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Subscribe to discoverer registry events
+   *
+   * Register a user to receive discoverer events through SignalR.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive discoverer
+   * events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  subscribe1(options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._subscribe1(options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._subscribe1(options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Unsubscribe registry events
+   *
+   * Unregister a user and stop it from receiving discoverer events.
+   *
+   * @param {string} userId The user id that will not receive any more discoverer
+   * events
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  unsubscribe1WithHttpOperationResponse(userId, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._unsubscribe1(userId, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Unsubscribe registry events
+   *
+   * Unregister a user and stop it from receiving discoverer events.
+   *
+   * @param {string} userId The user id that will not receive any more discoverer
+   * events
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  unsubscribe1(userId, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._unsubscribe1(userId, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._unsubscribe1(userId, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Subscribe to discovery progress from discoverer
+   *
+   * Register a client to receive discovery progress events through SignalR from
+   * a particular discoverer.
+   *
+   * @param {string} discovererId The discoverer to subscribe to
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive discovery
+   * events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  subscribeByDiscovererIdWithHttpOperationResponse(discovererId, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._subscribeByDiscovererId(discovererId, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Subscribe to discovery progress from discoverer
+   *
+   * Register a client to receive discovery progress events through SignalR from
+   * a particular discoverer.
+   *
+   * @param {string} discovererId The discoverer to subscribe to
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive discovery
+   * events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  subscribeByDiscovererId(discovererId, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._subscribeByDiscovererId(discovererId, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._subscribeByDiscovererId(discovererId, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Subscribe to discovery progress for a request
+   *
+   * Register a client to receive discovery progress events through SignalR for a
+   * particular request.
+   *
+   * @param {string} requestId The request to monitor
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive discovery
+   * events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  subscribeByRequestIdWithHttpOperationResponse(requestId, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._subscribeByRequestId(requestId, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Subscribe to discovery progress for a request
+   *
+   * Register a client to receive discovery progress events through SignalR for a
+   * particular request.
+   *
+   * @param {string} requestId The request to monitor
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive discovery
+   * events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  subscribeByRequestId(requestId, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._subscribeByRequestId(requestId, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._subscribeByRequestId(requestId, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Unsubscribe from discovery progress for a request.
+   *
+   * Unregister a client and stop it from receiving discovery events for a
+   * particular request.
+   *
+   * @param {string} requestId The request to unsubscribe from
+   *
+   * @param {string} userId The user id that will not receive any more discovery
+   * progress
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  unsubscribeByRequestIdWithHttpOperationResponse(requestId, userId, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._unsubscribeByRequestId(requestId, userId, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Unsubscribe from discovery progress for a request.
+   *
+   * Unregister a client and stop it from receiving discovery events for a
+   * particular request.
+   *
+   * @param {string} requestId The request to unsubscribe from
+   *
+   * @param {string} userId The user id that will not receive any more discovery
+   * progress
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  unsubscribeByRequestId(requestId, userId, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._unsubscribeByRequestId(requestId, userId, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._unsubscribeByRequestId(requestId, userId, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Unsubscribe from discovery progress from discoverer.
+   *
+   * Unregister a client and stop it from receiving discovery events.
+   *
+   * @param {string} discovererId The discoverer to unsubscribe from
+   *
+   * @param {string} userId The user id that will not receive any more discovery
+   * progress
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  unsubscribeByDiscovererIdWithHttpOperationResponse(discovererId, userId, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._unsubscribeByDiscovererId(discovererId, userId, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Unsubscribe from discovery progress from discoverer.
+   *
+   * Unregister a client and stop it from receiving discovery events.
+   *
+   * @param {string} discovererId The discoverer to unsubscribe from
+   *
+   * @param {string} userId The user id that will not receive any more discovery
+   * progress
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  unsubscribeByDiscovererId(discovererId, userId, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._unsubscribeByDiscovererId(discovererId, userId, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._unsubscribeByDiscovererId(discovererId, userId, options, optionalCallback);
     }
   }
 
   /**
    * @summary Activate endpoint
    *
-   * Activates an endpoint for subsequent use in twin service.
-   * All endpoints must be activated using this API or through a
-   * activation filter during application registration or discovery.
+   * Activates an endpoint for subsequent use in twin service. All endpoints must
+   * be activated using this API or through a activation filter during
+   * application registration or discovery.
    *
    * @param {string} endpointId endpoint identifier
    *
@@ -5828,9 +11076,9 @@ class AzureOpcRegistryClient extends ServiceClient {
   /**
    * @summary Activate endpoint
    *
-   * Activates an endpoint for subsequent use in twin service.
-   * All endpoints must be activated using this API or through a
-   * activation filter during application registration or discovery.
+   * Activates an endpoint for subsequent use in twin service. All endpoints must
+   * be activated using this API or through a activation filter during
+   * application registration or discovery.
    *
    * @param {string} endpointId endpoint identifier
    *
@@ -5890,8 +11138,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {object} [options] Optional Parameters.
    *
    * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
+   * state, or display current client state of the endpoint if available
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -5926,8 +11173,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {object} [options] Optional Parameters.
    *
    * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
+   * state, or display current client state of the endpoint if available
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -5975,113 +11221,11 @@ class AzureOpcRegistryClient extends ServiceClient {
   }
 
   /**
-   * @summary Update endpoint information
-   *
-   * @param {string} endpointId endpoint identifier
-   *
-   * @param {object} request Endpoint update request
-   *
-   * @param {object} [request.user] User authentication to change on the
-   * endpoint.
-   *
-   * @param {string} [request.user.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   *
-   * @param {object} [request.user.value] Value to pass to server
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  updateEndpointWithHttpOperationResponse(endpointId, request, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._updateEndpoint(endpointId, request, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Update endpoint information
-   *
-   * @param {string} endpointId endpoint identifier
-   *
-   * @param {object} request Endpoint update request
-   *
-   * @param {object} [request.user] User authentication to change on the
-   * endpoint.
-   *
-   * @param {string} [request.user.type] Type of credential. Possible values
-   * include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
-   *
-   * @param {object} [request.user.value] Value to pass to server
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  updateEndpoint(endpointId, request, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._updateEndpoint(endpointId, request, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._updateEndpoint(endpointId, request, options, optionalCallback);
-    }
-  }
-
-  /**
    * @summary Get list of endpoints
    *
-   * Get all registered endpoints in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
+   * Get all registered endpoints in paged form. The returned model can contain a
+   * continuation token if more results are available. Call this operation again
+   * using the token to retrieve more results.
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -6118,10 +11262,9 @@ class AzureOpcRegistryClient extends ServiceClient {
   /**
    * @summary Get list of endpoints
    *
-   * Get all registered endpoints in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
+   * Get all registered endpoints in paged form. The returned model can contain a
+   * continuation token if more results are available. Call this operation again
+   * using the token to retrieve more results.
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -6179,21 +11322,173 @@ class AzureOpcRegistryClient extends ServiceClient {
   }
 
   /**
+   * @summary Query endpoints
+   *
+   * Return endpoints that match the specified query. The returned model can
+   * contain a continuation token if more results are available. Call the
+   * GetListOfEndpoints operation using the token to retrieve more results.
+   *
+   * @param {object} body Query to match
+   *
+   * @param {string} [body.url] Endoint url for direct server access
+   *
+   * @param {buffer} [body.certificate] Certificate of the endpoint
+   *
+   * @param {string} [body.securityMode] Possible values include: 'Best', 'Sign',
+   * 'SignAndEncrypt', 'None'
+   *
+   * @param {string} [body.securityPolicy] Security policy uri
+   *
+   * @param {boolean} [body.activated] Whether the endpoint was activated
+   *
+   * @param {boolean} [body.connected] Whether the endpoint is connected on
+   * supervisor.
+   *
+   * @param {string} [body.endpointState] Possible values include: 'Connecting',
+   * 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+   *
+   * @param {boolean} [body.includeNotSeenSince] Whether to include endpoints
+   * that were soft deleted
+   *
+   * @param {string} [body.discovererId] Discoverer id to filter with
+   *
+   * @param {string} [body.applicationId] Application id to filter
+   *
+   * @param {string} [body.supervisorId] Supervisor id to filter with
+   *
+   * @param {string} [body.siteOrGatewayId] Site or gateway id to filter with
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<EndpointInfoListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  queryEndpointsWithHttpOperationResponse(body, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._queryEndpoints(body, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Query endpoints
+   *
+   * Return endpoints that match the specified query. The returned model can
+   * contain a continuation token if more results are available. Call the
+   * GetListOfEndpoints operation using the token to retrieve more results.
+   *
+   * @param {object} body Query to match
+   *
+   * @param {string} [body.url] Endoint url for direct server access
+   *
+   * @param {buffer} [body.certificate] Certificate of the endpoint
+   *
+   * @param {string} [body.securityMode] Possible values include: 'Best', 'Sign',
+   * 'SignAndEncrypt', 'None'
+   *
+   * @param {string} [body.securityPolicy] Security policy uri
+   *
+   * @param {boolean} [body.activated] Whether the endpoint was activated
+   *
+   * @param {boolean} [body.connected] Whether the endpoint is connected on
+   * supervisor.
+   *
+   * @param {string} [body.endpointState] Possible values include: 'Connecting',
+   * 'NotReachable', 'Busy', 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
+   *
+   * @param {boolean} [body.includeNotSeenSince] Whether to include endpoints
+   * that were soft deleted
+   *
+   * @param {string} [body.discovererId] Discoverer id to filter with
+   *
+   * @param {string} [body.applicationId] Application id to filter
+   *
+   * @param {string} [body.supervisorId] Supervisor id to filter with
+   *
+   * @param {string} [body.siteOrGatewayId] Site or gateway id to filter with
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {EndpointInfoListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link EndpointInfoListApiModel} for more
+   *                      information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  queryEndpoints(body, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._queryEndpoints(body, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._queryEndpoints(body, options, optionalCallback);
+    }
+  }
+
+  /**
    * @summary Get filtered list of endpoints
    *
-   * Get a list of endpoints filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfEndpoints operation using the token to retrieve
+   * Get a list of endpoints filtered using the specified query parameters. The
+   * returned model can contain a continuation token if more results are
+   * available. Call the GetListOfEndpoints operation using the token to retrieve
    * more results.
    *
    * @param {object} [options] Optional Parameters.
    *
    * @param {string} [options.url] Endoint url for direct server access
-   *
-   * @param {string} [options.userAuthentication] Type of credential selected for
-   * authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
    *
    * @param {buffer} [options.certificate] Certificate of the endpoint
    *
@@ -6214,12 +11509,18 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
    * that were soft deleted
    *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display
-   * current client state of the endpoint if available
+   * @param {string} [options.discovererId] Discoverer id to filter with
    *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
+   * @param {string} [options.applicationId] Application id to filter
+   *
+   * @param {string} [options.supervisorId] Supervisor id to filter with
+   *
+   * @param {string} [options.siteOrGatewayId] Site or gateway id to filter with
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -6247,19 +11548,14 @@ class AzureOpcRegistryClient extends ServiceClient {
   /**
    * @summary Get filtered list of endpoints
    *
-   * Get a list of endpoints filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfEndpoints operation using the token to retrieve
+   * Get a list of endpoints filtered using the specified query parameters. The
+   * returned model can contain a continuation token if more results are
+   * available. Call the GetListOfEndpoints operation using the token to retrieve
    * more results.
    *
    * @param {object} [options] Optional Parameters.
    *
    * @param {string} [options.url] Endoint url for direct server access
-   *
-   * @param {string} [options.userAuthentication] Type of credential selected for
-   * authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
    *
    * @param {buffer} [options.certificate] Certificate of the endpoint
    *
@@ -6280,12 +11576,18 @@ class AzureOpcRegistryClient extends ServiceClient {
    * @param {boolean} [options.includeNotSeenSince] Whether to include endpoints
    * that were soft deleted
    *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display
-   * current client state of the endpoint if available
+   * @param {string} [options.discovererId] Discoverer id to filter with
    *
-   * @param {number} [options.pageSize] Optional number of results to
-   * return
+   * @param {string} [options.applicationId] Application id to filter
+   *
+   * @param {string} [options.supervisorId] Supervisor id to filter with
+   *
+   * @param {string} [options.siteOrGatewayId] Site or gateway id to filter with
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -6330,161 +11632,6 @@ class AzureOpcRegistryClient extends ServiceClient {
       });
     } else {
       return self._getFilteredListOfEndpoints(options, optionalCallback);
-    }
-  }
-
-  /**
-   * @summary Query endpoints
-   *
-   * Return endpoints that match the specified query.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfEndpoints operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} query Query to match
-   *
-   * @param {string} [query.url] Endoint url for direct server access
-   *
-   * @param {string} [query.userAuthentication] Type of credential selected for
-   * authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
-   *
-   * @param {buffer} [query.certificate] Certificate of the endpoint
-   *
-   * @param {string} [query.securityMode] Security Mode. Possible values include:
-   * 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {string} [query.securityPolicy] Security policy uri
-   *
-   * @param {boolean} [query.activated] Whether the endpoint was activated
-   *
-   * @param {boolean} [query.connected] Whether the endpoint is connected on
-   * supervisor.
-   *
-   * @param {string} [query.endpointState] The last state of the the activated
-   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
-   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-   *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include endpoints
-   * that were soft deleted
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if available
-   *
-   * @param {number} [options.pageSize] Optional number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<EndpointInfoListApiModel>} - The deserialized result object.
-   *
-   * @reject {Error} - The error object.
-   */
-  queryEndpointsWithHttpOperationResponse(query, options) {
-    let client = this;
-    let self = this;
-    return new Promise((resolve, reject) => {
-      self._queryEndpoints(query, options, (err, result, request, response) => {
-        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
-        httpOperationResponse.body = result;
-        if (err) { reject(err); }
-        else { resolve(httpOperationResponse); }
-        return;
-      });
-    });
-  }
-
-  /**
-   * @summary Query endpoints
-   *
-   * Return endpoints that match the specified query.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfEndpoints operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} query Query to match
-   *
-   * @param {string} [query.url] Endoint url for direct server access
-   *
-   * @param {string} [query.userAuthentication] Type of credential selected for
-   * authentication. Possible values include: 'None', 'UserName',
-   * 'X509Certificate', 'JwtToken'
-   *
-   * @param {buffer} [query.certificate] Certificate of the endpoint
-   *
-   * @param {string} [query.securityMode] Security Mode. Possible values include:
-   * 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {string} [query.securityPolicy] Security policy uri
-   *
-   * @param {boolean} [query.activated] Whether the endpoint was activated
-   *
-   * @param {boolean} [query.connected] Whether the endpoint is connected on
-   * supervisor.
-   *
-   * @param {string} [query.endpointState] The last state of the the activated
-   * endpoint. Possible values include: 'Connecting', 'NotReachable', 'Busy',
-   * 'NoTrust', 'CertificateInvalid', 'Ready', 'Error'
-   *
-   * @param {boolean} [query.includeNotSeenSince] Whether to include endpoints
-   * that were soft deleted
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if available
-   *
-   * @param {number} [options.pageSize] Optional number of results to return
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {function} [optionalCallback] - The optional callback.
-   *
-   * @returns {function|Promise} If a callback was passed as the last parameter
-   * then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned
-   *
-   *                      @resolve {EndpointInfoListApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error} - The error object.
-   *
-   * {function} optionalCallback(err, result, request, response)
-   *
-   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link EndpointInfoListApiModel} for more
-   *                      information.
-   *
-   *                      {object} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
-   */
-  queryEndpoints(query, options, optionalCallback) {
-    let client = this;
-    let self = this;
-    if (!optionalCallback && typeof options === 'function') {
-      optionalCallback = options;
-      options = null;
-    }
-    if (!optionalCallback) {
-      return new Promise((resolve, reject) => {
-        self._queryEndpoints(query, options, (err, result, request, response) => {
-          if (err) { reject(err); }
-          else { resolve(result); }
-          return;
-        });
-      });
-    } else {
-      return self._queryEndpoints(query, options, optionalCallback);
     }
   }
 
@@ -6574,25 +11721,29 @@ class AzureOpcRegistryClient extends ServiceClient {
   }
 
   /**
-   * @summary Return the service status in the form of the service status
-   * api model.
+   * @summary Subscribe for endpoint events
+   *
+   * Register a user to receive endpoint events through SignalR.
    *
    * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive endpoint
+   * events.
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<StatusResponseApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  getStatusWithHttpOperationResponse(options) {
+  subscribe2WithHttpOperationResponse(options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._getStatus(options, (err, result, request, response) => {
+      self._subscribe2(options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -6603,8 +11754,99 @@ class AzureOpcRegistryClient extends ServiceClient {
   }
 
   /**
-   * @summary Return the service status in the form of the service status
-   * api model.
+   * @summary Subscribe for endpoint events
+   *
+   * Register a user to receive endpoint events through SignalR.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive endpoint
+   * events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  subscribe2(options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._subscribe2(options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._subscribe2(options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Unsubscribe from endpoint events
+   *
+   * Unregister a user and stop it from receiving endpoint events.
+   *
+   * @param {string} userId The user id that will not receive any more endpoint
+   * events
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  unsubscribe2WithHttpOperationResponse(userId, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._unsubscribe2(userId, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Unsubscribe from endpoint events
+   *
+   * Unregister a user and stop it from receiving endpoint events.
+   *
+   * @param {string} userId The user id that will not receive any more endpoint
+   * events
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -6618,7 +11860,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {StatusResponseApiModel} - The deserialized result object.
+   *                      @resolve {null} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -6626,15 +11868,13 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {Error}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link StatusResponseApiModel} for more
-   *                      information.
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  getStatus(options, optionalCallback) {
+  unsubscribe2(userId, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -6643,30 +11883,1393 @@ class AzureOpcRegistryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._getStatus(options, (err, result, request, response) => {
+        self._unsubscribe2(userId, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._getStatus(options, optionalCallback);
+      return self._unsubscribe2(userId, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Get Gateway registration information
+   *
+   * Returns a Gateway's registration and connectivity information. A Gateway id
+   * corresponds to the twin modules module identity.
+   *
+   * @param {string} gatewayId Gateway identifier
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<GatewayInfoApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  getGatewayWithHttpOperationResponse(gatewayId, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._getGateway(gatewayId, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Get Gateway registration information
+   *
+   * Returns a Gateway's registration and connectivity information. A Gateway id
+   * corresponds to the twin modules module identity.
+   *
+   * @param {string} gatewayId Gateway identifier
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {GatewayInfoApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link GatewayInfoApiModel} for more information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getGateway(gatewayId, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._getGateway(gatewayId, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._getGateway(gatewayId, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Update Gateway configuration
+   *
+   * Allows a caller to configure operations on the Gateway module identified by
+   * the Gateway id.
+   *
+   * @param {string} gatewayId Gateway identifier
+   *
+   * @param {object} body Patch request
+   *
+   * @param {string} [body.siteId] Site of the Gateway
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  updateGatewayWithHttpOperationResponse(gatewayId, body, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._updateGateway(gatewayId, body, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Update Gateway configuration
+   *
+   * Allows a caller to configure operations on the Gateway module identified by
+   * the Gateway id.
+   *
+   * @param {string} gatewayId Gateway identifier
+   *
+   * @param {object} body Patch request
+   *
+   * @param {string} [body.siteId] Site of the Gateway
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  updateGateway(gatewayId, body, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._updateGateway(gatewayId, body, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._updateGateway(gatewayId, body, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Get list of Gateways
+   *
+   * Get all registered Gateways and therefore twin modules in paged form. The
+   * returned model can contain a continuation token if more results are
+   * available. Call this operation again using the token to retrieve more
+   * results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.continuationToken] Optional Continuation token
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<GatewayListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  getListOfGatewayWithHttpOperationResponse(options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._getListOfGateway(options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Get list of Gateways
+   *
+   * Get all registered Gateways and therefore twin modules in paged form. The
+   * returned model can contain a continuation token if more results are
+   * available. Call this operation again using the token to retrieve more
+   * results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.continuationToken] Optional Continuation token
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {GatewayListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link GatewayListApiModel} for more information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getListOfGateway(options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._getListOfGateway(options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._getListOfGateway(options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Query Gateways
+   *
+   * Get all Gateways that match a specified query. The returned model can
+   * contain a continuation token if more results are available. Call the
+   * GetListOfGateway operation using the token to retrieve more results.
+   *
+   * @param {object} body Gateway query model
+   *
+   * @param {string} [body.siteId] Site of the Gateway
+   *
+   * @param {boolean} [body.connected] Included connected or disconnected
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<GatewayListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  queryGatewayWithHttpOperationResponse(body, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._queryGateway(body, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Query Gateways
+   *
+   * Get all Gateways that match a specified query. The returned model can
+   * contain a continuation token if more results are available. Call the
+   * GetListOfGateway operation using the token to retrieve more results.
+   *
+   * @param {object} body Gateway query model
+   *
+   * @param {string} [body.siteId] Site of the Gateway
+   *
+   * @param {boolean} [body.connected] Included connected or disconnected
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {GatewayListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link GatewayListApiModel} for more information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  queryGateway(body, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._queryGateway(body, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._queryGateway(body, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Get filtered list of Gateways
+   *
+   * Get a list of Gateways filtered using the specified query parameters. The
+   * returned model can contain a continuation token if more results are
+   * available. Call the GetListOfGateway operation using the token to retrieve
+   * more results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.siteId] Site of the Gateway
+   *
+   * @param {boolean} [options.connected] Included connected or disconnected
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<GatewayListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  getFilteredListOfGatewayWithHttpOperationResponse(options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._getFilteredListOfGateway(options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Get filtered list of Gateways
+   *
+   * Get a list of Gateways filtered using the specified query parameters. The
+   * returned model can contain a continuation token if more results are
+   * available. Call the GetListOfGateway operation using the token to retrieve
+   * more results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.siteId] Site of the Gateway
+   *
+   * @param {boolean} [options.connected] Included connected or disconnected
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {GatewayListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link GatewayListApiModel} for more information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getFilteredListOfGateway(options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._getFilteredListOfGateway(options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._getFilteredListOfGateway(options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Subscribe to Gateway registry events
+   *
+   * Register a user to receive Gateway events through SignalR.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive Gateway events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  subscribe3WithHttpOperationResponse(options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._subscribe3(options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Subscribe to Gateway registry events
+   *
+   * Register a user to receive Gateway events through SignalR.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive Gateway events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  subscribe3(options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._subscribe3(options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._subscribe3(options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Unsubscribe registry events
+   *
+   * Unregister a user and stop it from receiving Gateway events.
+   *
+   * @param {string} userId The user id that will not receive any more Gateway
+   * events
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  unsubscribe3WithHttpOperationResponse(userId, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._unsubscribe3(userId, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Unsubscribe registry events
+   *
+   * Unregister a user and stop it from receiving Gateway events.
+   *
+   * @param {string} userId The user id that will not receive any more Gateway
+   * events
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  unsubscribe3(userId, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._unsubscribe3(userId, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._unsubscribe3(userId, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Get publisher registration information
+   *
+   * Returns a publisher's registration and connectivity information. A publisher
+   * id corresponds to the twin modules module identity.
+   *
+   * @param {string} publisherId Publisher identifier
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<PublisherApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  getPublisherWithHttpOperationResponse(publisherId, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._getPublisher(publisherId, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Get publisher registration information
+   *
+   * Returns a publisher's registration and connectivity information. A publisher
+   * id corresponds to the twin modules module identity.
+   *
+   * @param {string} publisherId Publisher identifier
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {PublisherApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link PublisherApiModel} for more information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getPublisher(publisherId, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._getPublisher(publisherId, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._getPublisher(publisherId, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Update publisher configuration
+   *
+   * Allows a caller to configure operations on the publisher module identified
+   * by the publisher id.
+   *
+   * @param {string} publisherId Publisher identifier
+   *
+   * @param {object} body Patch request
+   *
+   * @param {string} [body.siteId] Site of the publisher
+   *
+   * @param {object} [body.configuration]
+   *
+   * @param {object} [body.configuration.capabilities] Capabilities
+   *
+   * @param {string} [body.configuration.jobCheckInterval] Interval to check job
+   *
+   * @param {string} [body.configuration.heartbeatInterval] Heartbeat interval
+   *
+   * @param {number} [body.configuration.maxWorkers] Parallel jobs
+   *
+   * @param {string} [body.configuration.jobOrchestratorUrl] Job orchestrator
+   * endpoint url
+   *
+   * @param {string} [body.logLevel] Possible values include: 'Error',
+   * 'Information', 'Debug', 'Verbose'
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  updatePublisherWithHttpOperationResponse(publisherId, body, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._updatePublisher(publisherId, body, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Update publisher configuration
+   *
+   * Allows a caller to configure operations on the publisher module identified
+   * by the publisher id.
+   *
+   * @param {string} publisherId Publisher identifier
+   *
+   * @param {object} body Patch request
+   *
+   * @param {string} [body.siteId] Site of the publisher
+   *
+   * @param {object} [body.configuration]
+   *
+   * @param {object} [body.configuration.capabilities] Capabilities
+   *
+   * @param {string} [body.configuration.jobCheckInterval] Interval to check job
+   *
+   * @param {string} [body.configuration.heartbeatInterval] Heartbeat interval
+   *
+   * @param {number} [body.configuration.maxWorkers] Parallel jobs
+   *
+   * @param {string} [body.configuration.jobOrchestratorUrl] Job orchestrator
+   * endpoint url
+   *
+   * @param {string} [body.logLevel] Possible values include: 'Error',
+   * 'Information', 'Debug', 'Verbose'
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  updatePublisher(publisherId, body, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._updatePublisher(publisherId, body, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._updatePublisher(publisherId, body, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Get list of publishers
+   *
+   * Get all registered publishers and therefore twin modules in paged form. The
+   * returned model can contain a continuation token if more results are
+   * available. Call this operation again using the token to retrieve more
+   * results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {string} [options.continuationToken] Optional Continuation token
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<PublisherListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  getListOfPublisherWithHttpOperationResponse(options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._getListOfPublisher(options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Get list of publishers
+   *
+   * Get all registered publishers and therefore twin modules in paged form. The
+   * returned model can contain a continuation token if more results are
+   * available. Call this operation again using the token to retrieve more
+   * results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {string} [options.continuationToken] Optional Continuation token
+   *
+   * @param {number} [options.pageSize] Optional number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {PublisherListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link PublisherListApiModel} for more information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getListOfPublisher(options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._getListOfPublisher(options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._getListOfPublisher(options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Query publishers
+   *
+   * Get all publishers that match a specified query. The returned model can
+   * contain a continuation token if more results are available. Call the
+   * GetListOfPublisher operation using the token to retrieve more results.
+   *
+   * @param {object} body Publisher query model
+   *
+   * @param {string} [body.siteId] Site for the publishers
+   *
+   * @param {boolean} [body.connected] Included connected or disconnected
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<PublisherListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  queryPublisherWithHttpOperationResponse(body, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._queryPublisher(body, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Query publishers
+   *
+   * Get all publishers that match a specified query. The returned model can
+   * contain a continuation token if more results are available. Call the
+   * GetListOfPublisher operation using the token to retrieve more results.
+   *
+   * @param {object} body Publisher query model
+   *
+   * @param {string} [body.siteId] Site for the publishers
+   *
+   * @param {boolean} [body.connected] Included connected or disconnected
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {PublisherListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link PublisherListApiModel} for more information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  queryPublisher(body, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._queryPublisher(body, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._queryPublisher(body, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Get filtered list of publishers
+   *
+   * Get a list of publishers filtered using the specified query parameters. The
+   * returned model can contain a continuation token if more results are
+   * available. Call the GetListOfPublisher operation using the token to retrieve
+   * more results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.siteId] Site for the publishers
+   *
+   * @param {boolean} [options.connected] Included connected or disconnected
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<PublisherListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  getFilteredListOfPublisherWithHttpOperationResponse(options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._getFilteredListOfPublisher(options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Get filtered list of publishers
+   *
+   * Get a list of publishers filtered using the specified query parameters. The
+   * returned model can contain a continuation token if more results are
+   * available. Call the GetListOfPublisher operation using the token to retrieve
+   * more results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.siteId] Site for the publishers
+   *
+   * @param {boolean} [options.connected] Included connected or disconnected
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {PublisherListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link PublisherListApiModel} for more information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  getFilteredListOfPublisher(options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._getFilteredListOfPublisher(options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._getFilteredListOfPublisher(options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Subscribe to publisher registry events
+   *
+   * Register a user to receive publisher events through SignalR.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive publisher
+   * events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  subscribe4WithHttpOperationResponse(options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._subscribe4(options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Subscribe to publisher registry events
+   *
+   * Register a user to receive publisher events through SignalR.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.body] The user id that will receive publisher
+   * events.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  subscribe4(options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._subscribe4(options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._subscribe4(options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Unsubscribe registry events
+   *
+   * Unregister a user and stop it from receiving publisher events.
+   *
+   * @param {string} userId The user id that will not receive any more publisher
+   * events
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  unsubscribe4WithHttpOperationResponse(userId, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._unsubscribe4(userId, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Unsubscribe registry events
+   *
+   * Unregister a user and stop it from receiving publisher events.
+   *
+   * @param {string} userId The user id that will not receive any more publisher
+   * events
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  unsubscribe4(userId, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._unsubscribe4(userId, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._unsubscribe4(userId, options, optionalCallback);
     }
   }
 
   /**
    * @summary Get supervisor registration information
    *
-   * Returns a supervisor's registration and connectivity information.
-   * A supervisor id corresponds to the twin modules module identity.
+   * Returns a supervisor's registration and connectivity information. A
+   * supervisor id corresponds to the twin modules module identity.
    *
    * @param {string} supervisorId Supervisor identifier
    *
    * @param {object} [options] Optional Parameters.
    *
    * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
+   * state, or display current client state of the endpoint if available
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -6694,16 +13297,15 @@ class AzureOpcRegistryClient extends ServiceClient {
   /**
    * @summary Get supervisor registration information
    *
-   * Returns a supervisor's registration and connectivity information.
-   * A supervisor id corresponds to the twin modules module identity.
+   * Returns a supervisor's registration and connectivity information. A
+   * supervisor id corresponds to the twin modules module identity.
    *
    * @param {string} supervisorId Supervisor identifier
    *
    * @param {object} [options] Optional Parameters.
    *
    * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
+   * state, or display current client state of the endpoint if available
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -6758,76 +13360,12 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} supervisorId supervisor identifier
    *
-   * @param {object} request Patch request
+   * @param {object} body Patch request
    *
-   * @param {string} [request.siteId] Site of the supervisor
+   * @param {string} [body.siteId] Site the supervisor is part of
    *
-   * @param {string} [request.discovery] Whether the supervisor is in discovery
-   * mode.
-   * If null, does not change. Possible values include: 'Off', 'Local',
-   * 'Network', 'Fast', 'Scan'
-   *
-   * @param {object} [request.discoveryConfig] Supervisor discovery configuration
-   *
-   * @param {string} [request.discoveryConfig.addressRangesToScan] Address ranges
-   * to scan (null == all wired nics)
-   *
-   * @param {number} [request.discoveryConfig.networkProbeTimeoutMs] Network
-   * probe timeout
-   *
-   * @param {number} [request.discoveryConfig.maxNetworkProbes] Max network
-   * probes that should ever run.
-   *
-   * @param {string} [request.discoveryConfig.portRangesToScan] Port ranges to
-   * scan (null == all unassigned)
-   *
-   * @param {number} [request.discoveryConfig.portProbeTimeoutMs] Port probe
-   * timeout
-   *
-   * @param {number} [request.discoveryConfig.maxPortProbes] Max port probes that
-   * should ever run.
-   *
-   * @param {number} [request.discoveryConfig.minPortProbesPercent] Probes that
-   * must always be there as percent of max.
-   *
-   * @param {number} [request.discoveryConfig.idleTimeBetweenScansSec] Delay time
-   * between discovery sweeps in seconds
-   *
-   * @param {array} [request.discoveryConfig.discoveryUrls] List of preset
-   * discovery urls to use
-   *
-   * @param {array} [request.discoveryConfig.locales] List of locales to filter
-   * with during discovery
-   *
-   * @param {array} [request.discoveryConfig.callbacks] Callbacks to invoke once
-   * onboarding finishes
-   *
-   * @param {object} [request.discoveryConfig.activationFilter] Activate all
-   * twins with this filter during onboarding.
-   *
-   * @param {array} [request.discoveryConfig.activationFilter.trustLists]
-   * Certificate trust list identifiers to use for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
-   *
-   * @param {array} [request.discoveryConfig.activationFilter.securityPolicies]
-   * Endpoint security policies to filter against.
-   * If set to null, all policies are in scope.
-   *
-   * @param {string} [request.discoveryConfig.activationFilter.securityMode]
-   * Security mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {array} [request.discoveryCallbacks] Callbacks to add or remove (see
-   * below)
-   *
-   * @param {boolean} [request.removeDiscoveryCallbacks] Whether to add or remove
-   * callbacks
-   *
-   * @param {string} [request.logLevel] Current log level. Possible values
-   * include: 'Error', 'Information', 'Debug', 'Verbose'
+   * @param {string} [body.logLevel] Possible values include: 'Error',
+   * 'Information', 'Debug', 'Verbose'
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -6840,11 +13378,11 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @reject {Error} - The error object.
    */
-  updateSupervisorWithHttpOperationResponse(supervisorId, request, options) {
+  updateSupervisorWithHttpOperationResponse(supervisorId, body, options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._updateSupervisor(supervisorId, request, options, (err, result, request, response) => {
+      self._updateSupervisor(supervisorId, body, options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -6862,76 +13400,12 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * @param {string} supervisorId supervisor identifier
    *
-   * @param {object} request Patch request
+   * @param {object} body Patch request
    *
-   * @param {string} [request.siteId] Site of the supervisor
+   * @param {string} [body.siteId] Site the supervisor is part of
    *
-   * @param {string} [request.discovery] Whether the supervisor is in discovery
-   * mode.
-   * If null, does not change. Possible values include: 'Off', 'Local',
-   * 'Network', 'Fast', 'Scan'
-   *
-   * @param {object} [request.discoveryConfig] Supervisor discovery configuration
-   *
-   * @param {string} [request.discoveryConfig.addressRangesToScan] Address ranges
-   * to scan (null == all wired nics)
-   *
-   * @param {number} [request.discoveryConfig.networkProbeTimeoutMs] Network
-   * probe timeout
-   *
-   * @param {number} [request.discoveryConfig.maxNetworkProbes] Max network
-   * probes that should ever run.
-   *
-   * @param {string} [request.discoveryConfig.portRangesToScan] Port ranges to
-   * scan (null == all unassigned)
-   *
-   * @param {number} [request.discoveryConfig.portProbeTimeoutMs] Port probe
-   * timeout
-   *
-   * @param {number} [request.discoveryConfig.maxPortProbes] Max port probes that
-   * should ever run.
-   *
-   * @param {number} [request.discoveryConfig.minPortProbesPercent] Probes that
-   * must always be there as percent of max.
-   *
-   * @param {number} [request.discoveryConfig.idleTimeBetweenScansSec] Delay time
-   * between discovery sweeps in seconds
-   *
-   * @param {array} [request.discoveryConfig.discoveryUrls] List of preset
-   * discovery urls to use
-   *
-   * @param {array} [request.discoveryConfig.locales] List of locales to filter
-   * with during discovery
-   *
-   * @param {array} [request.discoveryConfig.callbacks] Callbacks to invoke once
-   * onboarding finishes
-   *
-   * @param {object} [request.discoveryConfig.activationFilter] Activate all
-   * twins with this filter during onboarding.
-   *
-   * @param {array} [request.discoveryConfig.activationFilter.trustLists]
-   * Certificate trust list identifiers to use for
-   * activation, if null, all certificates are
-   * trusted.  If empty list, no certificates are
-   * trusted which is equal to no filter.
-   *
-   * @param {array} [request.discoveryConfig.activationFilter.securityPolicies]
-   * Endpoint security policies to filter against.
-   * If set to null, all policies are in scope.
-   *
-   * @param {string} [request.discoveryConfig.activationFilter.securityMode]
-   * Security mode level to activate. If null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
-   *
-   * @param {array} [request.discoveryCallbacks] Callbacks to add or remove (see
-   * below)
-   *
-   * @param {boolean} [request.removeDiscoveryCallbacks] Whether to add or remove
-   * callbacks
-   *
-   * @param {string} [request.logLevel] Current log level. Possible values
-   * include: 'Error', 'Information', 'Debug', 'Verbose'
+   * @param {string} [body.logLevel] Possible values include: 'Error',
+   * 'Information', 'Debug', 'Verbose'
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -6959,7 +13433,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  updateSupervisor(supervisorId, request, options, optionalCallback) {
+  updateSupervisor(supervisorId, body, options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -6968,14 +13442,14 @@ class AzureOpcRegistryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._updateSupervisor(supervisorId, request, options, (err, result, request, response) => {
+        self._updateSupervisor(supervisorId, body, options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._updateSupervisor(supervisorId, request, options, optionalCallback);
+      return self._updateSupervisor(supervisorId, body, options, optionalCallback);
     }
   }
 
@@ -7069,8 +13543,8 @@ class AzureOpcRegistryClient extends ServiceClient {
   /**
    * @summary Reset supervisor
    *
-   * Allows a caller to reset the twin module using its supervisor
-   * identity identifier.
+   * Allows a caller to reset the twin module using its supervisor identity
+   * identifier.
    *
    * @param {string} supervisorId supervisor identifier
    *
@@ -7102,8 +13576,8 @@ class AzureOpcRegistryClient extends ServiceClient {
   /**
    * @summary Reset supervisor
    *
-   * Allows a caller to reset the twin module using its supervisor
-   * identity identifier.
+   * Allows a caller to reset the twin module using its supervisor identity
+   * identifier.
    *
    * @param {string} supervisorId supervisor identifier
    *
@@ -7156,10 +13630,10 @@ class AzureOpcRegistryClient extends ServiceClient {
   /**
    * @summary Get list of supervisors
    *
-   * Get all registered supervisors and therefore twin modules in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
+   * Get all registered supervisors and therefore twin modules in paged form. The
+   * returned model can contain a continuation token if more results are
+   * available. Call this operation again using the token to retrieve more
+   * results.
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -7196,10 +13670,10 @@ class AzureOpcRegistryClient extends ServiceClient {
   /**
    * @summary Get list of supervisors
    *
-   * Get all registered supervisors and therefore twin modules in paged form.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call this operation again using the token to retrieve more results.
+   * Get all registered supervisors and therefore twin modules in paged form. The
+   * returned model can contain a continuation token if more results are
+   * available. Call this operation again using the token to retrieve more
+   * results.
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -7257,26 +13731,130 @@ class AzureOpcRegistryClient extends ServiceClient {
   }
 
   /**
-   * @summary Get filtered list of supervisors
+   * @summary Query supervisors
    *
-   * Get a list of supervisors filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfSupervisors operation using the token to retrieve
-   * more results.
+   * Get all supervisors that match a specified query. The returned model can
+   * contain a continuation token if more results are available. Call the
+   * GetListOfSupervisors operation using the token to retrieve more results.
+   *
+   * @param {object} body Supervisors query model
+   *
+   * @param {string} [body.siteId] Site for the supervisors
+   *
+   * @param {boolean} [body.connected] Included connected or disconnected
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.siteId] Site of the supervisor
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
    *
-   * @param {string} [options.discovery] Discovery mode of supervisor. Possible
-   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<SupervisorListApiModel>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  querySupervisorsWithHttpOperationResponse(body, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._querySupervisors(body, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Query supervisors
+   *
+   * Get all supervisors that match a specified query. The returned model can
+   * contain a continuation token if more results are available. Call the
+   * GetListOfSupervisors operation using the token to retrieve more results.
+   *
+   * @param {object} body Supervisors query model
+   *
+   * @param {string} [body.siteId] Site for the supervisors
+   *
+   * @param {boolean} [body.connected] Included connected or disconnected
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {boolean} [options.onlyServerState] Whether to include only server
+   * state, or display current client state of the endpoint if available
+   *
+   * @param {number} [options.pageSize] Number of results to return
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {SupervisorListApiModel} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {object} [result]   - The deserialized result object if an error did not occur.
+   *                      See {@link SupervisorListApiModel} for more
+   *                      information.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  querySupervisors(body, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._querySupervisors(body, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._querySupervisors(body, options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Get filtered list of supervisors
+   *
+   * Get a list of supervisors filtered using the specified query parameters. The
+   * returned model can contain a continuation token if more results are
+   * available. Call the GetListOfSupervisors operation using the token to
+   * retrieve more results.
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {string} [options.siteId] Site for the supervisors
    *
    * @param {boolean} [options.connected] Included connected or disconnected
    *
    * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
+   * state, or display current client state of the endpoint if available
    *
    * @param {number} [options.pageSize] Number of results to return
    *
@@ -7306,24 +13884,19 @@ class AzureOpcRegistryClient extends ServiceClient {
   /**
    * @summary Get filtered list of supervisors
    *
-   * Get a list of supervisors filtered using the specified query parameters.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfSupervisors operation using the token to retrieve
-   * more results.
+   * Get a list of supervisors filtered using the specified query parameters. The
+   * returned model can contain a continuation token if more results are
+   * available. Call the GetListOfSupervisors operation using the token to
+   * retrieve more results.
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {string} [options.siteId] Site of the supervisor
-   *
-   * @param {string} [options.discovery] Discovery mode of supervisor. Possible
-   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
+   * @param {string} [options.siteId] Site for the supervisors
    *
    * @param {boolean} [options.connected] Included connected or disconnected
    *
    * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
+   * state, or display current client state of the endpoint if available
    *
    * @param {number} [options.pageSize] Number of results to return
    *
@@ -7374,45 +13947,29 @@ class AzureOpcRegistryClient extends ServiceClient {
   }
 
   /**
-   * @summary Query supervisors
+   * @summary Subscribe to supervisor registry events
    *
-   * Get all supervisors that match a specified query.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfSupervisors operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} query Supervisors query model
-   *
-   * @param {string} [query.siteId] Site of the supervisor
-   *
-   * @param {string} [query.discovery] Discovery mode of supervisor. Possible
-   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   *
-   * @param {boolean} [query.connected] Included connected or disconnected
+   * Register a user to receive supervisor events through SignalR.
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   *
-   * @param {number} [options.pageSize] Number of results to return
+   * @param {string} [options.body] The user id that will receive supervisor
+   * events.
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<SupervisorListApiModel>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
    *
    * @reject {Error} - The error object.
    */
-  querySupervisorsWithHttpOperationResponse(query, options) {
+  subscribe5WithHttpOperationResponse(options) {
     let client = this;
     let self = this;
     return new Promise((resolve, reject) => {
-      self._querySupervisors(query, options, (err, result, request, response) => {
+      self._subscribe5(options, (err, result, request, response) => {
         let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
         httpOperationResponse.body = result;
         if (err) { reject(err); }
@@ -7423,30 +13980,14 @@ class AzureOpcRegistryClient extends ServiceClient {
   }
 
   /**
-   * @summary Query supervisors
+   * @summary Subscribe to supervisor registry events
    *
-   * Get all supervisors that match a specified query.
-   * The returned model can contain a continuation token if more results are
-   * available.
-   * Call the GetListOfSupervisors operation using the token to retrieve
-   * more results.
-   *
-   * @param {object} query Supervisors query model
-   *
-   * @param {string} [query.siteId] Site of the supervisor
-   *
-   * @param {string} [query.discovery] Discovery mode of supervisor. Possible
-   * values include: 'Off', 'Local', 'Network', 'Fast', 'Scan'
-   *
-   * @param {boolean} [query.connected] Included connected or disconnected
+   * Register a user to receive supervisor events through SignalR.
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {boolean} [options.onlyServerState] Whether to include only server
-   * state, or display current client state of the endpoint if
-   * available
-   *
-   * @param {number} [options.pageSize] Number of results to return
+   * @param {string} [options.body] The user id that will receive supervisor
+   * events.
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -7458,7 +13999,7 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    * {Promise} A promise is returned
    *
-   *                      @resolve {SupervisorListApiModel} - The deserialized result object.
+   *                      @resolve {null} - The deserialized result object.
    *
    *                      @reject {Error} - The error object.
    *
@@ -7466,15 +14007,13 @@ class AzureOpcRegistryClient extends ServiceClient {
    *
    *                      {Error}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {object} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link SupervisorListApiModel} for more
-   *                      information.
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
    *
    *                      {object} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {stream} [response] - The HTTP Response stream if an error did not occur.
    */
-  querySupervisors(query, options, optionalCallback) {
+  subscribe5(options, optionalCallback) {
     let client = this;
     let self = this;
     if (!optionalCallback && typeof options === 'function') {
@@ -7483,14 +14022,101 @@ class AzureOpcRegistryClient extends ServiceClient {
     }
     if (!optionalCallback) {
       return new Promise((resolve, reject) => {
-        self._querySupervisors(query, options, (err, result, request, response) => {
+        self._subscribe5(options, (err, result, request, response) => {
           if (err) { reject(err); }
           else { resolve(result); }
           return;
         });
       });
     } else {
-      return self._querySupervisors(query, options, optionalCallback);
+      return self._subscribe5(options, optionalCallback);
+    }
+  }
+
+  /**
+   * @summary Unsubscribe registry events
+   *
+   * Unregister a user and stop it from receiving supervisor events.
+   *
+   * @param {string} userId The user id that will not receive any more supervisor
+   * events
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error} - The error object.
+   */
+  unsubscribe5WithHttpOperationResponse(userId, options) {
+    let client = this;
+    let self = this;
+    return new Promise((resolve, reject) => {
+      self._unsubscribe5(userId, options, (err, result, request, response) => {
+        let httpOperationResponse = new msRest.HttpOperationResponse(request, response);
+        httpOperationResponse.body = result;
+        if (err) { reject(err); }
+        else { resolve(httpOperationResponse); }
+        return;
+      });
+    });
+  }
+
+  /**
+   * @summary Unsubscribe registry events
+   *
+   * Unregister a user and stop it from receiving supervisor events.
+   *
+   * @param {string} userId The user id that will not receive any more supervisor
+   * events
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {function} [optionalCallback] - The optional callback.
+   *
+   * @returns {function|Promise} If a callback was passed as the last parameter
+   * then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error} - The error object.
+   *
+   * {function} optionalCallback(err, result, request, response)
+   *
+   *                      {Error}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {object} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {stream} [response] - The HTTP Response stream if an error did not occur.
+   */
+  unsubscribe5(userId, options, optionalCallback) {
+    let client = this;
+    let self = this;
+    if (!optionalCallback && typeof options === 'function') {
+      optionalCallback = options;
+      options = null;
+    }
+    if (!optionalCallback) {
+      return new Promise((resolve, reject) => {
+        self._unsubscribe5(userId, options, (err, result, request, response) => {
+          if (err) { reject(err); }
+          else { resolve(result); }
+          return;
+        });
+      });
+    } else {
+      return self._unsubscribe5(userId, options, optionalCallback);
     }
   }
 

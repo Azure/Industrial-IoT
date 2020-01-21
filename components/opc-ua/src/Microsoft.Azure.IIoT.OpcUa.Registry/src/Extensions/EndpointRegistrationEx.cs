@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Newtonsoft.Json;
@@ -40,9 +41,56 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public static DeviceTwinModel Patch(this EndpointRegistration existing,
             EndpointRegistration update) {
 
-            var twin = BaseRegistrationEx.PatchBase(existing, update);
+            var twin = new DeviceTwinModel {
+                Etag = existing?.Etag,
+                Tags = new Dictionary<string, JToken>(),
+                Properties = new TwinPropertiesModel {
+                    Desired = new Dictionary<string, JToken>()
+                }
+            };
 
             // Tags
+
+            if (update?.ApplicationId != null &&
+                update.ApplicationId != existing?.ApplicationId) {
+                twin.Tags.Add(nameof(ApplicationId), update.ApplicationId);
+            }
+
+            if (update?.IsDisabled != null &&
+                update.IsDisabled != existing?.IsDisabled) {
+                twin.Tags.Add(nameof(EntityRegistration.IsDisabled), (update?.IsDisabled ?? false) ?
+                    true : (bool?)null);
+                twin.Tags.Add(nameof(EntityRegistration.NotSeenSince), (update?.IsDisabled ?? false) ?
+                    DateTime.UtcNow : (DateTime?)null);
+            }
+
+            if (update?.SiteOrGatewayId != existing?.SiteOrGatewayId) {
+                twin.Tags.Add(nameof(EntityRegistration.SiteOrGatewayId), update?.SiteOrGatewayId);
+            }
+
+            if (update?.SupervisorId != existing?.SupervisorId) {
+                twin.Tags.Add(nameof(EndpointRegistration.SupervisorId), update?.SupervisorId);
+            }
+
+            if (update?.DiscovererId != existing?.DiscovererId) {
+                twin.Tags.Add(nameof(EndpointRegistration.DiscovererId), update?.DiscovererId);
+            }
+
+            if (update?.SiteId != existing?.SiteId) {
+                twin.Tags.Add(nameof(EntityRegistration.SiteId), update?.SiteId);
+            }
+
+            var certUpdate = update?.Certificate.DecodeAsByteArray().SequenceEqualsSafe(
+                existing?.Certificate.DecodeAsByteArray());
+            if (!(certUpdate ?? true)) {
+                twin.Tags.Add(nameof(EntityRegistration.Certificate), update?.Certificate == null ?
+                    null : JToken.FromObject(update.Certificate));
+                twin.Tags.Add(nameof(EntityRegistration.Thumbprint),
+                    update?.Certificate?.DecodeAsByteArray()?.ToSha1Hash());
+            }
+
+            twin.Tags.Add(nameof(EntityRegistration.DeviceType), update?.DeviceType);
+
 
             if (update?.EndpointRegistrationUrl != null &&
                 update.EndpointRegistrationUrl != existing?.EndpointRegistrationUrl) {
@@ -97,17 +145,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 update?.SecurityPolicy != existing?.SecurityPolicy) {
                 twin.Properties.Desired.Add(nameof(EndpointRegistration.SecurityPolicy),
                     update.SecurityPolicy);
-            }
-
-            if (update?.CredentialType != existing?.CredentialType) {
-                twin.Properties.Desired.Add(nameof(EndpointRegistration.CredentialType),
-                    update?.CredentialType == null ?
-                    null : JToken.FromObject(update?.CredentialType));
-            }
-
-            if (!JToken.DeepEquals(update?.Credential, existing?.Credential)) {
-                twin.Properties.Desired.Add(nameof(EndpointRegistration.Credential),
-                    update?.Credential);
             }
 
             var certEqual = update?.Certificate.DecodeAsByteArray().SequenceEqualsSafe(
@@ -183,6 +220,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     tags.GetValueOrDefault<string>(nameof(EndpointRegistration.Thumbprint), null),
                 SupervisorId =
                     tags.GetValueOrDefault<string>(nameof(EndpointRegistration.SupervisorId), null),
+                DiscovererId =
+                    tags.GetValueOrDefault<string>(nameof(EndpointRegistration.DiscovererId),
+                        tags.GetValueOrDefault<string>(nameof(EndpointRegistration.SupervisorId), null)),
                 Activated =
                     tags.GetValueOrDefault<bool>(nameof(EndpointRegistration.Activated), null),
                 ApplicationId =
@@ -197,22 +237,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 // Properties
 
                 Connected = connected ??
-                    properties.GetValueOrDefault(TwinProperty.kConnected, false),
+                    properties.GetValueOrDefault(TwinProperty.Connected, false),
                 Type =
-                    properties.GetValueOrDefault<string>(TwinProperty.kType, null),
+                    properties.GetValueOrDefault<string>(TwinProperty.Type, null),
                 State =
                     properties.GetValueOrDefault(nameof(EndpointRegistration.State), EndpointConnectivityState.Connecting),
                 SiteId =
-                    properties.GetValueOrDefault(TwinProperty.kSiteId,
+                    properties.GetValueOrDefault(TwinProperty.SiteId,
                         tags.GetValueOrDefault<string>(nameof(EndpointRegistration.SiteId), null)),
                 EndpointUrl =
                     properties.GetValueOrDefault<string>(nameof(EndpointRegistration.EndpointUrl), null),
                 AlternativeUrls =
                     properties.GetValueOrDefault<Dictionary<string, string>>(nameof(EndpointRegistration.AlternativeUrls), null),
-                Credential =
-                    properties.GetValueOrDefault<JToken>(nameof(EndpointRegistration.Credential), null),
-                CredentialType =
-                    properties.GetValueOrDefault<CredentialType>(nameof(EndpointRegistration.CredentialType), null),
                 SecurityMode =
                     properties.GetValueOrDefault<SecurityMode>(nameof(EndpointRegistration.SecurityMode), null),
                 SecurityPolicy =
@@ -273,6 +309,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                         null : registration.SiteId,
                     SupervisorId = string.IsNullOrEmpty(registration.SupervisorId) ?
                         null : registration.SupervisorId,
+                    DiscovererId = string.IsNullOrEmpty(registration.DiscovererId) ?
+                        null : registration.DiscovererId,
                     AuthenticationMethods = registration.AuthenticationMethods?.DecodeAsList(j =>
                         j.ToObject<AuthenticationMethodModel>()),
                     SecurityLevel = registration.SecurityLevel,
@@ -283,12 +321,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                         Url = string.IsNullOrEmpty(registration.EndpointUrl) ?
                             registration.EndpointUrlLC : registration.EndpointUrl,
                         AlternativeUrls = registration.AlternativeUrls?.DecodeAsList().ToHashSetSafe(),
-                        User = registration.CredentialType == null ? null :
-                            new CredentialModel {
-                                Value = registration.Credential,
-                                Type = registration.CredentialType == CredentialType.None ?
-                                    null : registration.CredentialType
-                            },
                         SecurityMode = registration.SecurityMode == SecurityMode.Best ?
                             null : registration.SecurityMode,
                         SecurityPolicy = string.IsNullOrEmpty(registration.SecurityPolicy) ?
@@ -308,8 +340,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Returns true if this registration matches the server endpoint
         /// model provided.
         /// </summary>
-        /// <param name="model"></param>
         /// <param name="registration"></param>
+        /// <param name="model"></param>
         /// <returns></returns>
         public static bool Matches(this EndpointRegistration registration, EndpointInfoModel model) {
             return model != null &&
@@ -324,16 +356,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Returns true if this registration matches the endpoint
         /// model provided.
         /// </summary>
-        /// <param name="endpoint"></param>
         /// <param name="registration"></param>
+        /// <param name="endpoint"></param>
         /// <returns></returns>
         public static bool Matches(this EndpointRegistration registration, EndpointModel endpoint) {
             return endpoint != null &&
                 registration.EndpointUrl == endpoint.Url &&
                 registration.AlternativeUrls.DecodeAsList().ToHashSetSafe().SetEqualsSafe(
                     endpoint.AlternativeUrls) &&
-                registration.CredentialType == (endpoint.User?.Type ?? CredentialType.None) &&
-                JToken.DeepEquals(registration.Credential, endpoint.User?.Value) &&
                 registration.SecurityMode == (endpoint.SecurityMode ?? SecurityMode.Best) &&
                 registration.SecurityPolicy == endpoint.SecurityPolicy &&
                 endpoint.Certificate.SequenceEqualsSafe(
@@ -346,9 +376,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <param name="disabled"></param>
+        /// <param name="discoverId"></param>
+        /// <param name="supervisorId"></param>
         /// <returns></returns>
         public static EndpointRegistration ToEndpointRegistration(this EndpointInfoModel model,
-            bool? disabled = null) {
+            bool? disabled = null, string discoverId = null, string supervisorId = null) {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
             }
@@ -357,7 +389,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 NotSeenSince = model.NotSeenSince,
                 ApplicationId = model.ApplicationId,
                 SiteId = model.Registration?.SiteId,
-                SupervisorId = model.Registration?.SupervisorId,
+                SupervisorId = supervisorId ?? model.Registration?.SupervisorId,
+                DiscovererId = discoverId ?? model.Registration?.DiscovererId,
                 SecurityLevel = model.Registration?.SecurityLevel,
                 EndpointRegistrationUrl = model.Registration?.EndpointUrl ??
                     model.Registration?.Endpoint.Url,
@@ -366,9 +399,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     .EncodeAsDictionary(),
                 AuthenticationMethods = model.Registration?.AuthenticationMethods?
                     .EncodeAsDictionary(JToken.FromObject),
-                Credential = model.Registration?.Endpoint.User?.Value,
-                CredentialType = model.Registration?.Endpoint.User?.Type ??
-                    CredentialType.None,
                 SecurityMode = model.Registration?.Endpoint.SecurityMode ??
                     SecurityMode.Best,
                 SecurityPolicy = model.Registration?.Endpoint.SecurityPolicy,
@@ -378,6 +408,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     .Certificate?.ToSha1Hash(),
                 ActivationState = model.ActivationState
             };
+        }
+
+        /// <summary>
+        /// Get site or gateway id from registration
+        /// </summary>
+        /// <param name="registration"></param>
+        /// <returns></returns>
+        public static string GetSiteOrGatewayId(this EndpointRegistration registration) {
+            if (registration == null) {
+                return null;
+            }
+            var siteOrGatewayId = registration?.SiteId;
+            if (siteOrGatewayId == null) {
+                var id = registration?.DiscovererId ?? registration?.SupervisorId;
+                if (id != null) {
+                    siteOrGatewayId = DiscovererModelEx.ParseDeviceId(id, out _);
+                }
+            }
+            return siteOrGatewayId;
         }
 
         /// <summary>
@@ -392,8 +441,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 registration.EndpointUrl == other.EndpointUrl &&
                 registration.AlternativeUrls.DecodeAsList().ToHashSetSafe().SetEqualsSafe(
                     other.AlternativeUrls.DecodeAsList()) &&
-                registration.CredentialType == other.CredentialType &&
-                JToken.DeepEquals(registration.Credential, other.Credential) &&
                 registration.SecurityPolicy == other.SecurityPolicy &&
                 registration.SecurityMode == other.SecurityMode &&
                 registration.Certificate.DecodeAsByteArray().SequenceEqualsSafe(

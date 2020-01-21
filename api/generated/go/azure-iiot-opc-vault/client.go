@@ -16,14 +16,13 @@ import (
     "context"
     "github.com/Azure/go-autorest/autorest"
     "github.com/Azure/go-autorest/autorest/azure"
-    "github.com/Azure/go-autorest/autorest/validation"
     "github.com/Azure/go-autorest/tracing"
     "net/http"
 )
 
 const (
 // DefaultBaseURI is the default URI used for the service Azureiiotopcvault
-DefaultBaseURI = "http://localhost")
+DefaultBaseURI = "http://localhost:9080")
 
 // BaseClient is the base client for Azureiiotopcvault.
 type BaseClient struct {
@@ -36,7 +35,9 @@ func New()BaseClient {
     return NewWithBaseURI(DefaultBaseURI, )
 }
 
-// NewWithBaseURI creates an instance of the BaseClient client.
+// NewWithBaseURI creates an instance of the BaseClient client using a custom
+// endpoint.  Use this when interacting with an Azure cloud that uses a
+// non-standard base URI (sovereign clouds, Azure stack).
 func NewWithBaseURI(baseURI string, ) BaseClient {
     return BaseClient{
         Client: autorest.NewClientWithUserAgent(UserAgent()),
@@ -112,9 +113,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // AddTrustRelationship define trust between two entities.  The entities are
-    // identifiers
-    // of application, groups, or endpoints.
+    // AddTrustRelationship define trust between two entities. The entities are
+    // identifiers of application, groups, or endpoints.
         // Parameters:
             // entityID - the entity identifier, e.g. group, etc.
             // trustedEntityID - the trusted entity identifier
@@ -183,17 +183,14 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // ApproveRequest validates the request with the application database.
-    // - If Approved:
-    // - New Key Pair request: Creates the new key pair
-    // in the requested format, signs the certificate and stores the
-    // private key for later securely in KeyVault.
-    // - Cert Signing Request: Creates and signs the certificate.
-    // Deletes the CSR from the database.
-    // Stores the signed certificate for later use in the Database.
-    // The request is in the 'Approved' or 'Rejected' state after this call.
-    // Requires Approver role.
-    // Approver needs signing rights in KeyVault.
+    // ApproveRequest validates the request with the application database. - If
+    // Approved: - New Key Pair request: Creates the new key pair in the requested
+    // format, signs the certificate and stores the private key for later securely
+    // in KeyVault. - Cert Signing Request: Creates and signs the certificate.
+    // Deletes the CSR from the database. Stores the signed certificate for later
+    // use in the Database. The request is in the 'Approved' or 'Rejected' state
+    // after this call. Requires Approver role. Approver needs signing rights in
+    // KeyVault.
         // Parameters:
             // requestID - the certificate request id
     func (client BaseClient) ApproveRequest(ctx context.Context, requestID string) (result autorest.Response, err error) {
@@ -262,8 +259,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
     // CreateGroup requires manager role.
         // Parameters:
-            // request - the create request
-    func (client BaseClient) CreateGroup(ctx context.Context, request TrustGroupRegistrationRequestAPIModel) (result TrustGroupRegistrationResponseAPIModel, err error) {
+            // body - the create request
+    func (client BaseClient) CreateGroup(ctx context.Context, body TrustGroupRegistrationRequestAPIModel) (result TrustGroupRegistrationResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.CreateGroup")
             defer func() {
@@ -274,15 +271,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-                if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.Name", Name: validation.Null, Rule: true, Chain: nil },
-                	{Target: "request.ParentID", Name: validation.Null, Rule: true, Chain: nil },
-                	{Target: "request.SubjectName", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
-                return result, validation.NewError("azureiiotopcvault.BaseClient", "CreateGroup", err.Error())
-                }
-
-                    req, err := client.CreateGroupPreparer(ctx, request)
+            req, err := client.CreateGroupPreparer(ctx, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopcvault.BaseClient", "CreateGroup", nil , "Failure preparing request")
         return
@@ -304,13 +293,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // CreateGroupPreparer prepares the CreateGroup request.
-        func (client BaseClient) CreateGroupPreparer(ctx context.Context, request TrustGroupRegistrationRequestAPIModel) (*http.Request, error) {
+        func (client BaseClient) CreateGroupPreparer(ctx context.Context, body TrustGroupRegistrationRequestAPIModel) (*http.Request, error) {
             preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPut(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPath("/v2/groups"),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -336,8 +325,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
     // CreateRoot requires manager role.
         // Parameters:
-            // request - the create request
-    func (client BaseClient) CreateRoot(ctx context.Context, request TrustGroupRootCreateRequestAPIModel) (result TrustGroupRegistrationResponseAPIModel, err error) {
+            // body - the create request
+    func (client BaseClient) CreateRoot(ctx context.Context, body TrustGroupRootCreateRequestAPIModel) (result TrustGroupRegistrationResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.CreateRoot")
             defer func() {
@@ -348,15 +337,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-                if err := validation.Validate([]validation.Validation{
-                { TargetValue: request,
-                 Constraints: []validation.Constraint{	{Target: "request.Name", Name: validation.Null, Rule: true, Chain: nil },
-                	{Target: "request.SubjectName", Name: validation.Null, Rule: true, Chain: nil },
-                	{Target: "request.Lifetime", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
-                return result, validation.NewError("azureiiotopcvault.BaseClient", "CreateRoot", err.Error())
-                }
-
-                    req, err := client.CreateRootPreparer(ctx, request)
+            req, err := client.CreateRootPreparer(ctx, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopcvault.BaseClient", "CreateRoot", nil , "Failure preparing request")
         return
@@ -378,13 +359,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // CreateRootPreparer prepares the CreateRoot request.
-        func (client BaseClient) CreateRootPreparer(ctx context.Context, request TrustGroupRootCreateRequestAPIModel) (*http.Request, error) {
+        func (client BaseClient) CreateRootPreparer(ctx context.Context, body TrustGroupRootCreateRequestAPIModel) (*http.Request, error) {
             preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPut(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPath("/v2/groups/root"),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -409,9 +390,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
     // DeleteGroup after this operation the Issuer CA, CRLs and keys become
-    // inaccessible.
-    // Use this function with extreme caution.
-    // Requires manager role.
+    // inaccessible. Use this function with extreme caution. Requires manager role.
         // Parameters:
             // groupID - the group id
     func (client BaseClient) DeleteGroup(ctx context.Context, groupID string) (result autorest.Response, err error) {
@@ -479,9 +458,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
     // DeleteRequest by purging the request it is actually physically deleted from
-    // the
-    // database, including the public key and other information.
-    // Requires Manager role.
+    // the database, including the public key and other information. Requires
+    // Manager role.
         // Parameters:
             // requestID - the certificate request id
     func (client BaseClient) DeleteRequest(ctx context.Context, requestID string) (result autorest.Response, err error) {
@@ -548,11 +526,9 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // FinishNewKeyPairRequest can be called in any state.
-    // Fetches private key in 'Completed' state.
-    // After a successful fetch in 'Completed' state, the request is
-    // moved into 'Accepted' state.
-    // Requires Writer role.
+    // FinishNewKeyPairRequest can be called in any state. Fetches private key in
+    // 'Completed' state. After a successful fetch in 'Completed' state, the
+    // request is moved into 'Accepted' state. Requires Writer role.
     func (client BaseClient) FinishNewKeyPairRequest(ctx context.Context, requestID string) (result FinishNewKeyPairRequestResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.FinishNewKeyPairRequest")
@@ -618,10 +594,9 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // FinishSigningRequest can be called in any state.
-    // After a successful fetch in 'Completed' state, the request is
-    // moved into 'Accepted' state.
-    // Requires Writer role.
+    // FinishSigningRequest can be called in any state. After a successful fetch in
+    // 'Completed' state, the request is moved into 'Accepted' state. Requires
+    // Writer role.
     func (client BaseClient) FinishSigningRequest(ctx context.Context, requestID string) (result FinishSigningRequestResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.FinishSigningRequest")
@@ -687,10 +662,9 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // GetGroup a trust group has a root certificate which issues certificates
-    // to entities.  Entities can be part of a trust group and thus
-    // trust the root certificate and all entities that the root has
-    // issued certificates for.
+    // GetGroup a trust group has a root certificate which issues certificates to
+    // entities. Entities can be part of a trust group and thus trust the root
+    // certificate and all entities that the root has issued certificates for.
         // Parameters:
             // groupID - the group id
     func (client BaseClient) GetGroup(ctx context.Context, groupID string) (result TrustGroupRegistrationAPIModel, err error) {
@@ -760,8 +734,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
     // GetIssuerCertificateChain sends the get issuer certificate chain request.
         // Parameters:
-            // serialNumber - the serial number of the
-            // Issuer CA Certificate
+            // serialNumber - the serial number of the Issuer CA Certificate
     func (client BaseClient) GetIssuerCertificateChain(ctx context.Context, serialNumber string) (result X509CertificateChainAPIModelPage, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetIssuerCertificateChain")
@@ -866,13 +839,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }
 
     // GetIssuerCertificateChain1 sends the get issuer certificate chain 1 request.
-    func (client BaseClient) GetIssuerCertificateChain1(ctx context.Context, serialNumber string) (result autorest.Response, err error) {
+    func (client BaseClient) GetIssuerCertificateChain1(ctx context.Context, serialNumber string) (result String, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetIssuerCertificateChain1")
             defer func() {
                 sc := -1
-                if result.Response != nil {
-                    sc = result.Response.StatusCode
+                if result.Response.Response != nil {
+                    sc = result.Response.Response.StatusCode
                 }
                 tracing.EndSpan(ctx, sc, err)
             }()
@@ -885,7 +858,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
                 resp, err := client.GetIssuerCertificateChain1Sender(req)
                 if err != nil {
-                result.Response = resp
+                result.Response = autorest.Response{Response: resp}
                 err = autorest.NewErrorWithError(err, "azureiiotopcvault.BaseClient", "GetIssuerCertificateChain1", resp, "Failure sending request")
                 return
                 }
@@ -920,20 +893,20 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
     // GetIssuerCertificateChain1Responder handles the response to the GetIssuerCertificateChain1 request. The method always
     // closes the http.Response Body.
-    func (client BaseClient) GetIssuerCertificateChain1Responder(resp *http.Response) (result autorest.Response, err error) {
+    func (client BaseClient) GetIssuerCertificateChain1Responder(resp *http.Response) (result String, err error) {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
         azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByUnmarshallingJSON(&result.Value),
         autorest.ByClosing())
-        result.Response = resp
+        result.Response = autorest.Response{Response: resp}
             return
         }
 
     // GetIssuerCrlChain sends the get issuer crl chain request.
         // Parameters:
-            // serialNumber - the serial number of the Issuer
-            // CA Certificate
+            // serialNumber - the serial number of the Issuer CA Certificate
     func (client BaseClient) GetIssuerCrlChain(ctx context.Context, serialNumber string) (result X509CrlChainAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetIssuerCrlChain")
@@ -1000,13 +973,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
     // GetIssuerCrlChain1 sends the get issuer crl chain 1 request.
-    func (client BaseClient) GetIssuerCrlChain1(ctx context.Context, serialNumber string) (result autorest.Response, err error) {
+    func (client BaseClient) GetIssuerCrlChain1(ctx context.Context, serialNumber string) (result String, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetIssuerCrlChain1")
             defer func() {
                 sc := -1
-                if result.Response != nil {
-                    sc = result.Response.StatusCode
+                if result.Response.Response != nil {
+                    sc = result.Response.Response.StatusCode
                 }
                 tracing.EndSpan(ctx, sc, err)
             }()
@@ -1019,7 +992,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
                 resp, err := client.GetIssuerCrlChain1Sender(req)
                 if err != nil {
-                result.Response = resp
+                result.Response = autorest.Response{Response: resp}
                 err = autorest.NewErrorWithError(err, "azureiiotopcvault.BaseClient", "GetIssuerCrlChain1", resp, "Failure sending request")
                 return
                 }
@@ -1054,13 +1027,14 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
 
     // GetIssuerCrlChain1Responder handles the response to the GetIssuerCrlChain1 request. The method always
     // closes the http.Response Body.
-    func (client BaseClient) GetIssuerCrlChain1Responder(resp *http.Response) (result autorest.Response, err error) {
+    func (client BaseClient) GetIssuerCrlChain1Responder(resp *http.Response) (result String, err error) {
         err = autorest.Respond(
         resp,
         client.ByInspecting(),
         azure.WithErrorUnlessStatusCode(http.StatusOK),
+        autorest.ByUnmarshallingJSON(&result.Value),
         autorest.ByClosing())
-        result.Response = resp
+        result.Response = autorest.Response{Response: resp}
             return
         }
 
@@ -1132,72 +1106,9 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // GetStatus sends the get status request.
-    func (client BaseClient) GetStatus(ctx context.Context) (result StatusResponseAPIModel, err error) {
-        if tracing.IsEnabled() {
-            ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.GetStatus")
-            defer func() {
-                sc := -1
-                if result.Response.Response != nil {
-                    sc = result.Response.Response.StatusCode
-                }
-                tracing.EndSpan(ctx, sc, err)
-            }()
-        }
-            req, err := client.GetStatusPreparer(ctx)
-        if err != nil {
-        err = autorest.NewErrorWithError(err, "azureiiotopcvault.BaseClient", "GetStatus", nil , "Failure preparing request")
-        return
-        }
-
-                resp, err := client.GetStatusSender(req)
-                if err != nil {
-                result.Response = autorest.Response{Response: resp}
-                err = autorest.NewErrorWithError(err, "azureiiotopcvault.BaseClient", "GetStatus", resp, "Failure sending request")
-                return
-                }
-
-                result, err = client.GetStatusResponder(resp)
-                if err != nil {
-                err = autorest.NewErrorWithError(err, "azureiiotopcvault.BaseClient", "GetStatus", resp, "Failure responding to request")
-                }
-
-        return
-        }
-
-        // GetStatusPreparer prepares the GetStatus request.
-        func (client BaseClient) GetStatusPreparer(ctx context.Context) (*http.Request, error) {
-            preparer := autorest.CreatePreparer(
-        autorest.AsGet(),
-        autorest.WithBaseURL(client.BaseURI),
-        autorest.WithPath("/v2/status"))
-        return preparer.Prepare((&http.Request{}).WithContext(ctx))
-        }
-
-        // GetStatusSender sends the GetStatus request. The method will close the
-        // http.Response Body if it receives an error.
-        func (client BaseClient) GetStatusSender(req *http.Request) (*http.Response, error) {
-            sd := autorest.GetSendDecorators(req.Context(), autorest.DoRetryForStatusCodes(client.RetryAttempts, client.RetryDuration, autorest.StatusCodesForRetry...))
-                return autorest.SendWithSender(client, req, sd...)
-                }
-
-    // GetStatusResponder handles the response to the GetStatus request. The method always
-    // closes the http.Response Body.
-    func (client BaseClient) GetStatusResponder(resp *http.Response) (result StatusResponseAPIModel, err error) {
-        err = autorest.Respond(
-        resp,
-        client.ByInspecting(),
-        azure.WithErrorUnlessStatusCode(http.StatusOK),
-        autorest.ByUnmarshallingJSON(&result),
-        autorest.ByClosing())
-        result.Response = autorest.Response{Response: resp}
-            return
-        }
-
-    // ListGroups a trust group has a root certificate which issues certificates
-    // to entities.  Entities can be part of a trust group and thus
-    // trust the root certificate and all entities that the root has
-    // issued certificates for.
+    // ListGroups a trust group has a root certificate which issues certificates to
+    // entities. Entities can be part of a trust group and thus trust the root
+    // certificate and all entities that the root has issued certificates for.
         // Parameters:
             // nextPageLink - optional, link to next page
             // pageSize - optional, the maximum number of result per page
@@ -1311,10 +1222,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }
 
     // ListRequests get all certificate requests in paged form or continue a
-    // current listing or
-    // query.
-    // The returned model can contain a link to the next page if more results are
-    // available.
+    // current listing or query. The returned model can contain a link to the next
+    // page if more results are available.
         // Parameters:
             // nextPageLink - optional, link to next page
             // pageSize - optional, the maximum number of result per page
@@ -1428,8 +1337,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             }
 
     // ListTrustedCertificates returns all certificates the entity should trust
-    // based on the
-    // applied trust configuration.
+    // based on the applied trust configuration.
         // Parameters:
             // nextPageLink - optional, link to next page
             // pageSize - optional, the maximum number of result per page
@@ -1546,13 +1454,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                     return
             }
 
-    // QueryRequests get all certificate requests in paged form.
-    // The returned model can contain a link to the next page if more results are
-    // available.  Use ListRequests to continue.
+    // QueryRequests get all certificate requests in paged form. The returned model
+    // can contain a link to the next page if more results are available. Use
+    // ListRequests to continue.
         // Parameters:
-            // query - optional, query filter
             // pageSize - optional, the maximum number of result per page
-    func (client BaseClient) QueryRequests(ctx context.Context, query *CertificateRequestQueryRequestAPIModel, pageSize *int32) (result CertificateRequestQueryResponseAPIModel, err error) {
+            // body - optional, query filter
+    func (client BaseClient) QueryRequests(ctx context.Context, pageSize *int32, body *CertificateRequestQueryRequestAPIModel) (result CertificateRequestQueryResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.QueryRequests")
             defer func() {
@@ -1563,7 +1471,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-            req, err := client.QueryRequestsPreparer(ctx, query, pageSize)
+            req, err := client.QueryRequestsPreparer(ctx, pageSize, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopcvault.BaseClient", "QueryRequests", nil , "Failure preparing request")
         return
@@ -1585,7 +1493,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // QueryRequestsPreparer prepares the QueryRequests request.
-        func (client BaseClient) QueryRequestsPreparer(ctx context.Context, query *CertificateRequestQueryRequestAPIModel, pageSize *int32) (*http.Request, error) {
+        func (client BaseClient) QueryRequestsPreparer(ctx context.Context, pageSize *int32, body *CertificateRequestQueryRequestAPIModel) (*http.Request, error) {
                     queryParameters := map[string]interface{} {
             }
                 if pageSize != nil {
@@ -1598,9 +1506,9 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPath("/v2/requests/query"),
         autorest.WithQueryParameters(queryParameters))
-                if query != nil {
+                if body != nil {
                 preparer = autorest.DecoratePreparer(preparer,
-                autorest.WithJSON(query))
+                autorest.WithJSON(body))
                 }
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
@@ -1626,8 +1534,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
     // RejectRequest the request is in the 'Rejected' state after this call.
-    // Requires Approver role.
-    // Approver needs signing rights in KeyVault.
+    // Requires Approver role. Approver needs signing rights in KeyVault.
         // Parameters:
             // requestID - the certificate request id
     func (client BaseClient) RejectRequest(ctx context.Context, requestID string) (result autorest.Response, err error) {
@@ -1694,9 +1601,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // RemoveTrustRelationship removes trust between two entities.  The entities
-    // are identifiers
-    // of application, groups, or endpoints.
+    // RemoveTrustRelationship removes trust between two entities. The entities are
+    // identifiers of application, groups, or endpoints.
         // Parameters:
             // entityID - the entity identifier, e.g. group, etc.
             // untrustedEntityID - the trusted entity identifier
@@ -1833,8 +1739,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
     // StartNewKeyPairRequest the request is in the 'New' state after this call.
     // Requires Writer or Manager role.
         // Parameters:
-            // newKeyPairRequest - the new key pair request parameters
-    func (client BaseClient) StartNewKeyPairRequest(ctx context.Context, newKeyPairRequest StartNewKeyPairRequestAPIModel) (result StartNewKeyPairRequestResponseAPIModel, err error) {
+            // body - the new key pair request parameters
+    func (client BaseClient) StartNewKeyPairRequest(ctx context.Context, body StartNewKeyPairRequestAPIModel) (result StartNewKeyPairRequestResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.StartNewKeyPairRequest")
             defer func() {
@@ -1845,15 +1751,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-                if err := validation.Validate([]validation.Validation{
-                { TargetValue: newKeyPairRequest,
-                 Constraints: []validation.Constraint{	{Target: "newKeyPairRequest.EntityID", Name: validation.Null, Rule: true, Chain: nil },
-                	{Target: "newKeyPairRequest.GroupID", Name: validation.Null, Rule: true, Chain: nil },
-                	{Target: "newKeyPairRequest.SubjectName", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
-                return result, validation.NewError("azureiiotopcvault.BaseClient", "StartNewKeyPairRequest", err.Error())
-                }
-
-                    req, err := client.StartNewKeyPairRequestPreparer(ctx, newKeyPairRequest)
+            req, err := client.StartNewKeyPairRequestPreparer(ctx, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopcvault.BaseClient", "StartNewKeyPairRequest", nil , "Failure preparing request")
         return
@@ -1875,13 +1773,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // StartNewKeyPairRequestPreparer prepares the StartNewKeyPairRequest request.
-        func (client BaseClient) StartNewKeyPairRequestPreparer(ctx context.Context, newKeyPairRequest StartNewKeyPairRequestAPIModel) (*http.Request, error) {
+        func (client BaseClient) StartNewKeyPairRequestPreparer(ctx context.Context, body StartNewKeyPairRequestAPIModel) (*http.Request, error) {
             preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPut(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPath("/v2/requests/keypair"),
-        autorest.WithJSON(newKeyPairRequest))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -1908,8 +1806,8 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
     // StartSigningRequest the request is in the 'New' state after this call.
     // Requires Writer or Manager role.
         // Parameters:
-            // signingRequest - the signing request parameters
-    func (client BaseClient) StartSigningRequest(ctx context.Context, signingRequest StartSigningRequestAPIModel) (result StartSigningRequestResponseAPIModel, err error) {
+            // body - the signing request parameters
+    func (client BaseClient) StartSigningRequest(ctx context.Context, body StartSigningRequestAPIModel) (result StartSigningRequestResponseAPIModel, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.StartSigningRequest")
             defer func() {
@@ -1920,15 +1818,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-                if err := validation.Validate([]validation.Validation{
-                { TargetValue: signingRequest,
-                 Constraints: []validation.Constraint{	{Target: "signingRequest.EntityID", Name: validation.Null, Rule: true, Chain: nil },
-                	{Target: "signingRequest.GroupID", Name: validation.Null, Rule: true, Chain: nil },
-                	{Target: "signingRequest.CertificateRequest", Name: validation.Null, Rule: true, Chain: nil }}}}); err != nil {
-                return result, validation.NewError("azureiiotopcvault.BaseClient", "StartSigningRequest", err.Error())
-                }
-
-                    req, err := client.StartSigningRequestPreparer(ctx, signingRequest)
+            req, err := client.StartSigningRequestPreparer(ctx, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopcvault.BaseClient", "StartSigningRequest", nil , "Failure preparing request")
         return
@@ -1950,13 +1840,13 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // StartSigningRequestPreparer prepares the StartSigningRequest request.
-        func (client BaseClient) StartSigningRequestPreparer(ctx context.Context, signingRequest StartSigningRequestAPIModel) (*http.Request, error) {
+        func (client BaseClient) StartSigningRequestPreparer(ctx context.Context, body StartSigningRequestAPIModel) (*http.Request, error) {
             preparer := autorest.CreatePreparer(
         autorest.AsContentType("application/json-patch+json; charset=utf-8"),
         autorest.AsPut(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPath("/v2/requests/sign"),
-        autorest.WithJSON(signingRequest))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 
@@ -1980,13 +1870,12 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
             return
         }
 
-    // UpdateGroup use this function with care and only if you are aware of
-    // the security implications.
-    // Requires manager role.
+    // UpdateGroup use this function with care and only if you are aware of the
+    // security implications. Requires manager role.
         // Parameters:
             // groupID - the group id
-            // request - the group configuration
-    func (client BaseClient) UpdateGroup(ctx context.Context, groupID string, request TrustGroupUpdateRequestAPIModel) (result autorest.Response, err error) {
+            // body - the group configuration
+    func (client BaseClient) UpdateGroup(ctx context.Context, groupID string, body TrustGroupUpdateRequestAPIModel) (result autorest.Response, err error) {
         if tracing.IsEnabled() {
             ctx = tracing.StartSpan(ctx, fqdn + "/BaseClient.UpdateGroup")
             defer func() {
@@ -1997,7 +1886,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
                 tracing.EndSpan(ctx, sc, err)
             }()
         }
-            req, err := client.UpdateGroupPreparer(ctx, groupID, request)
+            req, err := client.UpdateGroupPreparer(ctx, groupID, body)
         if err != nil {
         err = autorest.NewErrorWithError(err, "azureiiotopcvault.BaseClient", "UpdateGroup", nil , "Failure preparing request")
         return
@@ -2019,7 +1908,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         }
 
         // UpdateGroupPreparer prepares the UpdateGroup request.
-        func (client BaseClient) UpdateGroupPreparer(ctx context.Context, groupID string, request TrustGroupUpdateRequestAPIModel) (*http.Request, error) {
+        func (client BaseClient) UpdateGroupPreparer(ctx context.Context, groupID string, body TrustGroupUpdateRequestAPIModel) (*http.Request, error) {
                 pathParameters := map[string]interface{} {
                 "groupId": autorest.Encode("path",groupID),
                 }
@@ -2029,7 +1918,7 @@ func NewWithBaseURI(baseURI string, ) BaseClient {
         autorest.AsPost(),
         autorest.WithBaseURL(client.BaseURI),
         autorest.WithPathParameters("/v2/groups/{groupId}",pathParameters),
-        autorest.WithJSON(request))
+        autorest.WithJSON(body))
         return preparer.Prepare((&http.Request{}).WithContext(ctx))
         }
 

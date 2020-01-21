@@ -19,7 +19,7 @@ public class TrustGroupApiModel {
     /**
      * The name of the trust group.
      */
-    @JsonProperty(value = "name", required = true)
+    @JsonProperty(value = "name")
     private String name;
 
     /**
@@ -29,9 +29,8 @@ public class TrustGroupApiModel {
     private String parentId;
 
     /**
-     * The trust group type. Possible values include:
-     * 'ApplicationInstanceCertificate', 'HttpsCertificate',
-     * 'UserCredentialCertificate'.
+     * Possible values include: 'ApplicationInstanceCertificate',
+     * 'HttpsCertificate', 'UserCredentialCertificate'.
      */
     @JsonProperty(value = "type")
     private TrustGroupType type;
@@ -39,7 +38,7 @@ public class TrustGroupApiModel {
     /**
      * The subject name of the group as distinguished name.
      */
-    @JsonProperty(value = "subjectName", required = true)
+    @JsonProperty(value = "subjectName")
     private String subjectName;
 
     /**
@@ -55,8 +54,8 @@ public class TrustGroupApiModel {
     private Integer keySize;
 
     /**
-     * The certificate signature algorithm. Possible values include: 'Rsa256',
-     * 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'.
+     * Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss',
+     * 'Rsa384Pss', 'Rsa512Pss'.
      */
     @JsonProperty(value = "signatureAlgorithm")
     private SignatureAlgorithm signatureAlgorithm;
@@ -74,9 +73,8 @@ public class TrustGroupApiModel {
     private Integer issuedKeySize;
 
     /**
-     * The Signature algorithm for issued certificates. Possible values
-     * include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss',
-     * 'Rsa512Pss'.
+     * Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss',
+     * 'Rsa384Pss', 'Rsa512Pss'.
      */
     @JsonProperty(value = "issuedSignatureAlgorithm")
     private SignatureAlgorithm issuedSignatureAlgorithm;
@@ -122,7 +120,7 @@ public class TrustGroupApiModel {
     }
 
     /**
-     * Get the trust group type. Possible values include: 'ApplicationInstanceCertificate', 'HttpsCertificate', 'UserCredentialCertificate'.
+     * Get possible values include: 'ApplicationInstanceCertificate', 'HttpsCertificate', 'UserCredentialCertificate'.
      *
      * @return the type value
      */
@@ -131,7 +129,7 @@ public class TrustGroupApiModel {
     }
 
     /**
-     * Set the trust group type. Possible values include: 'ApplicationInstanceCertificate', 'HttpsCertificate', 'UserCredentialCertificate'.
+     * Set possible values include: 'ApplicationInstanceCertificate', 'HttpsCertificate', 'UserCredentialCertificate'.
      *
      * @param type the type value to set
      * @return the TrustGroupApiModel object itself.
@@ -202,7 +200,7 @@ public class TrustGroupApiModel {
     }
 
     /**
-     * Get the certificate signature algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'.
+     * Get possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'.
      *
      * @return the signatureAlgorithm value
      */
@@ -211,7 +209,7 @@ public class TrustGroupApiModel {
     }
 
     /**
-     * Set the certificate signature algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'.
+     * Set possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'.
      *
      * @param signatureAlgorithm the signatureAlgorithm value to set
      * @return the TrustGroupApiModel object itself.
@@ -262,7 +260,7 @@ public class TrustGroupApiModel {
     }
 
     /**
-     * Get the Signature algorithm for issued certificates. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'.
+     * Get possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'.
      *
      * @return the issuedSignatureAlgorithm value
      */
@@ -271,7 +269,7 @@ public class TrustGroupApiModel {
     }
 
     /**
-     * Set the Signature algorithm for issued certificates. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'.
+     * Set possible values include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'.
      *
      * @param issuedSignatureAlgorithm the issuedSignatureAlgorithm value to set
      * @return the TrustGroupApiModel object itself.

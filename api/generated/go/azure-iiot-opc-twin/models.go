@@ -10,7 +10,6 @@ package azureiiotopctwin
 
 import (
     "context"
-    "encoding/json"
     "github.com/Azure/go-autorest/autorest"
     "github.com/Azure/go-autorest/autorest/date"
     "github.com/Azure/go-autorest/autorest/to"
@@ -294,7 +293,7 @@ const fqdn = "go/azure-iiot-opc-twin"
             type AttributeReadRequestAPIModel struct {
             // NodeID - Node to read from or write to (mandatory)
             NodeID *string `json:"nodeId,omitempty"`
-            // Attribute - Attribute to read or write. Possible values include: 'NodeAttributeNodeClass', 'NodeAttributeBrowseName', 'NodeAttributeDisplayName', 'NodeAttributeDescription', 'NodeAttributeWriteMask', 'NodeAttributeUserWriteMask', 'NodeAttributeIsAbstract', 'NodeAttributeSymmetric', 'NodeAttributeInverseName', 'NodeAttributeContainsNoLoops', 'NodeAttributeEventNotifier', 'NodeAttributeValue', 'NodeAttributeDataType', 'NodeAttributeValueRank', 'NodeAttributeArrayDimensions', 'NodeAttributeAccessLevel', 'NodeAttributeUserAccessLevel', 'NodeAttributeMinimumSamplingInterval', 'NodeAttributeHistorizing', 'NodeAttributeExecutable', 'NodeAttributeUserExecutable', 'NodeAttributeDataTypeDefinition', 'NodeAttributeRolePermissions', 'NodeAttributeUserRolePermissions', 'NodeAttributeAccessRestrictions'
+            // Attribute - Possible values include: 'NodeAttributeNodeClass', 'NodeAttributeBrowseName', 'NodeAttributeDisplayName', 'NodeAttributeDescription', 'NodeAttributeWriteMask', 'NodeAttributeUserWriteMask', 'NodeAttributeIsAbstract', 'NodeAttributeSymmetric', 'NodeAttributeInverseName', 'NodeAttributeContainsNoLoops', 'NodeAttributeEventNotifier', 'NodeAttributeValue', 'NodeAttributeDataType', 'NodeAttributeValueRank', 'NodeAttributeArrayDimensions', 'NodeAttributeAccessLevel', 'NodeAttributeUserAccessLevel', 'NodeAttributeMinimumSamplingInterval', 'NodeAttributeHistorizing', 'NodeAttributeExecutable', 'NodeAttributeUserExecutable', 'NodeAttributeDataTypeDefinition', 'NodeAttributeRolePermissions', 'NodeAttributeUserRolePermissions', 'NodeAttributeAccessRestrictions'
             Attribute NodeAttribute `json:"attribute,omitempty"`
             }
 
@@ -302,7 +301,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             type AttributeReadResponseAPIModel struct {
             // Value - Attribute value
             Value interface{} `json:"value,omitempty"`
-            // ErrorInfo - Service result in case of error
             ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
@@ -310,7 +308,7 @@ const fqdn = "go/azure-iiot-opc-twin"
             type AttributeWriteRequestAPIModel struct {
             // NodeID - Node to write to (mandatory)
             NodeID *string `json:"nodeId,omitempty"`
-            // Attribute - Attribute to write (mandatory). Possible values include: 'NodeAttributeNodeClass', 'NodeAttributeBrowseName', 'NodeAttributeDisplayName', 'NodeAttributeDescription', 'NodeAttributeWriteMask', 'NodeAttributeUserWriteMask', 'NodeAttributeIsAbstract', 'NodeAttributeSymmetric', 'NodeAttributeInverseName', 'NodeAttributeContainsNoLoops', 'NodeAttributeEventNotifier', 'NodeAttributeValue', 'NodeAttributeDataType', 'NodeAttributeValueRank', 'NodeAttributeArrayDimensions', 'NodeAttributeAccessLevel', 'NodeAttributeUserAccessLevel', 'NodeAttributeMinimumSamplingInterval', 'NodeAttributeHistorizing', 'NodeAttributeExecutable', 'NodeAttributeUserExecutable', 'NodeAttributeDataTypeDefinition', 'NodeAttributeRolePermissions', 'NodeAttributeUserRolePermissions', 'NodeAttributeAccessRestrictions'
+            // Attribute - Possible values include: 'NodeAttributeNodeClass', 'NodeAttributeBrowseName', 'NodeAttributeDisplayName', 'NodeAttributeDescription', 'NodeAttributeWriteMask', 'NodeAttributeUserWriteMask', 'NodeAttributeIsAbstract', 'NodeAttributeSymmetric', 'NodeAttributeInverseName', 'NodeAttributeContainsNoLoops', 'NodeAttributeEventNotifier', 'NodeAttributeValue', 'NodeAttributeDataType', 'NodeAttributeValueRank', 'NodeAttributeArrayDimensions', 'NodeAttributeAccessLevel', 'NodeAttributeUserAccessLevel', 'NodeAttributeMinimumSamplingInterval', 'NodeAttributeHistorizing', 'NodeAttributeExecutable', 'NodeAttributeUserExecutable', 'NodeAttributeDataTypeDefinition', 'NodeAttributeRolePermissions', 'NodeAttributeUserRolePermissions', 'NodeAttributeAccessRestrictions'
             Attribute NodeAttribute `json:"attribute,omitempty"`
             // Value - Value to write (mandatory)
             Value interface{} `json:"value,omitempty"`
@@ -318,7 +316,6 @@ const fqdn = "go/azure-iiot-opc-twin"
 
             // AttributeWriteResponseAPIModel attribute write result
             type AttributeWriteResponseAPIModel struct {
-            // ErrorInfo - Service result in case of error
             ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
@@ -338,7 +335,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             // ReadVariableValues - Whether to read variable values on target nodes.
             // (default is false)
             ReadVariableValues *bool `json:"readVariableValues,omitempty"`
-            // Header - Optional request header
             Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
@@ -349,7 +345,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             References *[]NodeReferenceAPIModel `json:"references,omitempty"`
             // ContinuationToken - Continuation token if more results pending.
             ContinuationToken *string `json:"continuationToken,omitempty"`
-            // ErrorInfo - Service result in case of error
             ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
@@ -494,7 +489,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             // ReadVariableValues - Whether to read variable values on target nodes.
             // (default is false)
             ReadVariableValues *bool `json:"readVariableValues,omitempty"`
-            // Header - Optional request header
             Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
@@ -503,7 +497,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             autorest.Response `json:"-"`
             // Targets - Targets
             Targets *[]NodePathTargetAPIModel `json:"targets,omitempty"`
-            // ErrorInfo - Service result in case of error
             ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
@@ -512,11 +505,8 @@ const fqdn = "go/azure-iiot-opc-twin"
             // NodeID - Node to browse.
             // (default: RootFolder).
             NodeID *string `json:"nodeId,omitempty"`
-            // Direction - Direction to browse in
-            // (default: forward). Possible values include: 'Forward', 'Backward', 'Both'
+            // Direction - Possible values include: 'Forward', 'Backward', 'Both'
             Direction BrowseDirection `json:"direction,omitempty"`
-            // View - View to browse
-            // (default: null = new view = All nodes).
             View *BrowseViewAPIModel `json:"view,omitempty"`
             // ReferenceTypeID - Reference types to browse.
             // (default: hierarchical).
@@ -538,20 +528,17 @@ const fqdn = "go/azure-iiot-opc-twin"
             // ReadVariableValues - Whether to read variable values on target nodes.
             // (default is false)
             ReadVariableValues *bool `json:"readVariableValues,omitempty"`
-            // Header - Optional request header
             Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
             // BrowseResponseAPIModel browse response model
             type BrowseResponseAPIModel struct {
             autorest.Response `json:"-"`
-            // Node - Node info for the currently browsed node
             Node *NodeAPIModel `json:"node,omitempty"`
             // References - References, if included, otherwise null.
             References *[]NodeReferenceAPIModel `json:"references,omitempty"`
             // ContinuationToken - Continuation token if more results pending.
             ContinuationToken *string `json:"continuationToken,omitempty"`
-            // ErrorInfo - Service result in case of error
             ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
@@ -567,7 +554,7 @@ const fqdn = "go/azure-iiot-opc-twin"
 
             // CredentialAPIModel credential model
             type CredentialAPIModel struct {
-            // Type - Type of credential. Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
+            // Type - Possible values include: 'None', 'UserName', 'X509Certificate', 'JwtToken'
             Type CredentialType `json:"type,omitempty"`
             // Value - Value to pass to server
             Value interface{} `json:"value,omitempty"`
@@ -575,8 +562,7 @@ const fqdn = "go/azure-iiot-opc-twin"
 
             // DiagnosticsAPIModel diagnostics configuration
             type DiagnosticsAPIModel struct {
-            // Level - Requested level of response diagnostics.
-            // (default: Status). Possible values include: 'DiagnosticsLevelNone', 'DiagnosticsLevelStatus', 'DiagnosticsLevelOperations', 'DiagnosticsLevelDiagnostics', 'DiagnosticsLevelVerbose'
+            // Level - Possible values include: 'DiagnosticsLevelNone', 'DiagnosticsLevelStatus', 'DiagnosticsLevelOperations', 'DiagnosticsLevelDiagnostics', 'DiagnosticsLevelVerbose'
             Level DiagnosticsLevel `json:"level,omitempty"`
             // AuditID - Client audit log entry.
             // (default: client generated)
@@ -611,7 +597,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             // ObjectId to the actual object or objectType node.
             // If ObjectId is null, the root node (i=84) is used.
             ObjectBrowsePath *[]string `json:"objectBrowsePath,omitempty"`
-            // Header - Optional request header
             Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
@@ -620,7 +605,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             autorest.Response `json:"-"`
             // Results - Output results
             Results *[]MethodCallArgumentAPIModel `json:"results,omitempty"`
-            // ErrorInfo - Service result in case of error
             ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
@@ -630,11 +614,10 @@ const fqdn = "go/azure-iiot-opc-twin"
             Name *string `json:"name,omitempty"`
             // Description - Optional description
             Description *string `json:"description,omitempty"`
-            // Type - Data type node of the argument
             Type *NodeAPIModel `json:"type,omitempty"`
             // DefaultValue - Default value
             DefaultValue interface{} `json:"defaultValue,omitempty"`
-            // ValueRank - Optional, scalar if not set. Possible values include: 'ScalarOrOneDimension', 'Any', 'Scalar', 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions'
+            // ValueRank - Possible values include: 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions', 'ScalarOrOneDimension', 'Any', 'Scalar'
             ValueRank NodeValueRank `json:"valueRank,omitempty"`
             // ArrayDimensions - Optional, array dimension
             ArrayDimensions *[]int32 `json:"arrayDimensions,omitempty"`
@@ -648,7 +631,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             // MethodBrowsePath - An optional component path from the node identified by
             // MethodId to the actual method node.
             MethodBrowsePath *[]string `json:"methodBrowsePath,omitempty"`
-            // Header - Optional request header
             Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
@@ -661,13 +643,12 @@ const fqdn = "go/azure-iiot-opc-twin"
             InputArguments *[]MethodMetadataArgumentAPIModel `json:"inputArguments,omitempty"`
             // OutputArguments - output argument meta data
             OutputArguments *[]MethodMetadataArgumentAPIModel `json:"outputArguments,omitempty"`
-            // ErrorInfo - Service result in case of error
             ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
             // NodeAPIModel node model
             type NodeAPIModel struct {
-            // NodeClass - Type of node. Possible values include: 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType', 'ReferenceType', 'DataType', 'View'
+            // NodeClass - Possible values include: 'Object', 'Variable', 'Method', 'ObjectType', 'VariableType', 'ReferenceType', 'DataType', 'View'
             NodeClass NodeClass `json:"nodeClass,omitempty"`
             // DisplayName - Display name
             DisplayName *string `json:"displayName,omitempty"`
@@ -678,8 +659,7 @@ const fqdn = "go/azure-iiot-opc-twin"
             Description *string `json:"description,omitempty"`
             // BrowseName - Browse name
             BrowseName *string `json:"browseName,omitempty"`
-            // AccessRestrictions - Node access restrictions if any.
-            // (default: none). Possible values include: 'SigningRequired', 'EncryptionRequired', 'SessionRequired'
+            // AccessRestrictions - Possible values include: 'SigningRequired', 'EncryptionRequired', 'SessionRequired'
             AccessRestrictions NodeAccessRestrictions `json:"accessRestrictions,omitempty"`
             // WriteMask - Default write mask for the node
             // (default: 0)
@@ -694,9 +674,7 @@ const fqdn = "go/azure-iiot-opc-twin"
             // ContainsNoLoops - Whether a view contains loops. Null if
             // not a view.
             ContainsNoLoops *bool `json:"containsNoLoops,omitempty"`
-            // EventNotifier - If object or view and eventing, event notifier
-            // to subscribe to.
-            // (default: no events supported). Possible values include: 'NodeEventNotifierSubscribeToEvents', 'NodeEventNotifierHistoryRead', 'NodeEventNotifierHistoryWrite'
+            // EventNotifier - Possible values include: 'NodeEventNotifierSubscribeToEvents', 'NodeEventNotifierHistoryRead', 'NodeEventNotifierHistoryWrite'
             EventNotifier NodeEventNotifier `json:"eventNotifier,omitempty"`
             // Executable - If method node class, whether method can
             // be called.
@@ -709,18 +687,14 @@ const fqdn = "go/azure-iiot-opc-twin"
             // data type node and definition is available,
             // otherwise null.
             DataTypeDefinition interface{} `json:"dataTypeDefinition,omitempty"`
-            // AccessLevel - Default access level for variable node.
-            // (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'
+            // AccessLevel - Possible values include: 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'
             AccessLevel NodeAccessLevel `json:"accessLevel,omitempty"`
-            // UserAccessLevel - User access level for variable node or null.
-            // (default: 0). Possible values include: 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'
+            // UserAccessLevel - Possible values include: 'CurrentRead', 'CurrentWrite', 'HistoryRead', 'HistoryWrite', 'SemanticChange', 'StatusWrite', 'TimestampWrite', 'NonatomicRead', 'NonatomicWrite', 'WriteFullArrayOnly'
             UserAccessLevel NodeAccessLevel `json:"userAccessLevel,omitempty"`
             // DataType - If variable the datatype of the variable.
             // (default: null)
             DataType *string `json:"dataType,omitempty"`
-            // ValueRank - Value rank of the variable data of a variable
-            // or variable type, otherwise null.
-            // (default: scalar = -1). Possible values include: 'ScalarOrOneDimension', 'Any', 'Scalar', 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions'
+            // ValueRank - Possible values include: 'OneOrMoreDimensions', 'OneDimension', 'TwoDimensions', 'ScalarOrOneDimension', 'Any', 'Scalar'
             ValueRank NodeValueRank `json:"valueRank,omitempty"`
             // ArrayDimensions - Array dimensions of variable or variable type.
             // (default: empty array)
@@ -759,7 +733,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             type NodePathTargetAPIModel struct {
             // BrowsePath - The target browse path
             BrowsePath *[]string `json:"browsePath,omitempty"`
-            // Target - Target node
             Target *NodeAPIModel `json:"target,omitempty"`
             // RemainingPathIndex - Remaining index in path
             RemainingPathIndex *int32 `json:"remainingPathIndex,omitempty"`
@@ -767,214 +740,17 @@ const fqdn = "go/azure-iiot-opc-twin"
 
             // NodeReferenceAPIModel reference model
             type NodeReferenceAPIModel struct {
-            // ReferenceTypeID - Reference Type identifier
+            // ReferenceTypeID - Reference Type id
             ReferenceTypeID *string `json:"referenceTypeId,omitempty"`
-            // Direction - Browse direction of reference. Possible values include: 'Forward', 'Backward', 'Both'
+            // Direction - Possible values include: 'Forward', 'Backward', 'Both'
             Direction BrowseDirection `json:"direction,omitempty"`
-            // Target - Target node
             Target *NodeAPIModel `json:"target,omitempty"`
-            }
-
-            // PublishedItemAPIModel a monitored and published item
-            type PublishedItemAPIModel struct {
-            // NodeID - Node to monitor
-            NodeID *string `json:"nodeId,omitempty"`
-            // BrowsePath - An optional path from NodeId instance to
-            // the actual node.
-            BrowsePath *[]string `json:"browsePath,omitempty"`
-            // NodeAttribute - Attribute to monitor. Possible values include: 'NodeAttributeNodeClass', 'NodeAttributeBrowseName', 'NodeAttributeDisplayName', 'NodeAttributeDescription', 'NodeAttributeWriteMask', 'NodeAttributeUserWriteMask', 'NodeAttributeIsAbstract', 'NodeAttributeSymmetric', 'NodeAttributeInverseName', 'NodeAttributeContainsNoLoops', 'NodeAttributeEventNotifier', 'NodeAttributeValue', 'NodeAttributeDataType', 'NodeAttributeValueRank', 'NodeAttributeArrayDimensions', 'NodeAttributeAccessLevel', 'NodeAttributeUserAccessLevel', 'NodeAttributeMinimumSamplingInterval', 'NodeAttributeHistorizing', 'NodeAttributeExecutable', 'NodeAttributeUserExecutable', 'NodeAttributeDataTypeDefinition', 'NodeAttributeRolePermissions', 'NodeAttributeUserRolePermissions', 'NodeAttributeAccessRestrictions'
-            NodeAttribute NodeAttribute `json:"nodeAttribute,omitempty"`
-            // PublishingInterval - Publishing interval to use
-            PublishingInterval *int32 `json:"publishingInterval,omitempty"`
-            // SamplingInterval - Sampling interval to use
-            SamplingInterval *int32 `json:"samplingInterval,omitempty"`
-            }
-
-            // PublishedItemListRequestAPIModel request list of published items
-            type PublishedItemListRequestAPIModel struct {
-            // ContinuationToken - Continuation token or null to start
-            ContinuationToken *string `json:"continuationToken,omitempty"`
-            }
-
-            // PublishedItemListResponseAPIModel list of published nodes
-            type PublishedItemListResponseAPIModel struct {
-            autorest.Response `json:"-"`
-            // Items - Monitored items
-            Items *[]PublishedItemAPIModel `json:"items,omitempty"`
-            // ContinuationToken - Continuation or null if final
-            ContinuationToken *string `json:"continuationToken,omitempty"`
-            }
-
-            // PublishedItemListResponseAPIModelIterator provides access to a
-            // complete listing of PublishedItemAPIModel values.
-            type PublishedItemListResponseAPIModelIterator struct {
-                i int
-                page PublishedItemListResponseAPIModelPage
-            }
-        // NextWithContext advances to the next value.  If there was an error making
-        // the request the iterator does not advance and the error is returned.
-        func (iter * PublishedItemListResponseAPIModelIterator) NextWithContext(ctx context.Context) (err error) {
-        if tracing.IsEnabled() {
-        ctx = tracing.StartSpan(ctx, fqdn + "/PublishedItemListResponseAPIModelIterator.NextWithContext")
-        defer func() {
-        sc := -1
-        if iter.Response().Response.Response != nil {
-        sc = iter.Response().Response.Response.StatusCode
-        }
-        tracing.EndSpan(ctx, sc, err)
-        }()
-        }
-        iter.i++
-        if iter.i < len(iter. page.Values()) {
-        return nil
-        }
-        err = iter.page.NextWithContext(ctx)
-        if err != nil {
-        iter. i--
-        return err
-        }
-        iter.i = 0
-        return nil
-        }
-        // Next advances to the next value.  If there was an error making
-        // the request the iterator does not advance and the error is returned.
-        // Deprecated: Use NextWithContext() instead.
-        func (iter * PublishedItemListResponseAPIModelIterator) Next() error {
-        return iter.NextWithContext(context.Background())
-        }
-        // NotDone returns true if the enumeration should be started or is not yet complete.
-        func (iter PublishedItemListResponseAPIModelIterator) NotDone() bool {
-        return iter.page.NotDone() && iter.i < len(iter. page.Values())
-        }
-        // Response returns the raw server response from the last page request.
-        func (iter PublishedItemListResponseAPIModelIterator) Response() PublishedItemListResponseAPIModel {
-        return iter.page.Response()
-        }
-        // Value returns the current value or a zero-initialized value if the
-        // iterator has advanced beyond the end of the collection.
-        func (iter PublishedItemListResponseAPIModelIterator) Value() PublishedItemAPIModel {
-        if !iter.page.NotDone() {
-        return PublishedItemAPIModel{}
-        }
-        return iter.page.Values()[iter.i]
-        }
-        // Creates a new instance of the PublishedItemListResponseAPIModelIterator type.
-        func NewPublishedItemListResponseAPIModelIterator (page PublishedItemListResponseAPIModelPage) PublishedItemListResponseAPIModelIterator {
-            return PublishedItemListResponseAPIModelIterator{page: page}
-        }
-
-
-                // IsEmpty returns true if the ListResult contains no values.
-                func (pilram PublishedItemListResponseAPIModel) IsEmpty() bool {
-                return pilram.Value == nil || len(*pilram.Value) == 0
-                }
-
-                    // publishedItemListResponseAPIModelPreparer prepares a request to retrieve the next set of results.
-                    // It returns nil if no more results exist.
-                    func (pilram PublishedItemListResponseAPIModel) publishedItemListResponseAPIModelPreparer(ctx context.Context) (*http.Request, error) {
-                    if pilram.ContinuationToken == nil || len(to.String(pilram.ContinuationToken)) < 1 {
-                    return nil, nil
-                    }
-                    return autorest.Prepare((&http.Request{}).WithContext(ctx),
-                    autorest.AsJSON(),
-                    autorest.AsGet(),
-                    autorest.WithBaseURL(to.String( pilram.ContinuationToken)));
-                    }
-
-            // PublishedItemListResponseAPIModelPage contains a page of
-            // PublishedItemAPIModel values.
-            type PublishedItemListResponseAPIModelPage struct {
-                fn func(context.Context, PublishedItemListResponseAPIModel) (PublishedItemListResponseAPIModel, error)
-                pilram PublishedItemListResponseAPIModel
-            }
-
-        // NextWithContext advances to the next page of values.  If there was an error making
-        // the request the page does not advance and the error is returned.
-        func (page * PublishedItemListResponseAPIModelPage) NextWithContext(ctx context.Context) (err error) {
-        if tracing.IsEnabled() {
-        ctx = tracing.StartSpan(ctx, fqdn + "/PublishedItemListResponseAPIModelPage.NextWithContext")
-        defer func() {
-        sc := -1
-        if page.Response().Response.Response != nil {
-        sc = page.Response().Response.Response.StatusCode
-        }
-        tracing.EndSpan(ctx, sc, err)
-        }()
-        }
-        next, err := page.fn(ctx, page.pilram)
-        if err != nil {
-        return err
-        }
-        page.pilram = next
-        return nil
-        }
-
-        // Next advances to the next page of values.  If there was an error making
-        // the request the page does not advance and the error is returned.
-        // Deprecated: Use NextWithContext() instead.
-        func (page * PublishedItemListResponseAPIModelPage) Next() error {
-        return page.NextWithContext(context.Background())
-        }
-        // NotDone returns true if the page enumeration should be started or is not yet complete.
-        func (page PublishedItemListResponseAPIModelPage) NotDone() bool {
-        return !page.pilram.IsEmpty()
-        }
-        // Response returns the raw server response from the last page request.
-        func (page PublishedItemListResponseAPIModelPage) Response() PublishedItemListResponseAPIModel {
-        return page.pilram
-        }
-        // Values returns the slice of values for the current page or nil if there are no values.
-        func (page PublishedItemListResponseAPIModelPage) Values() []PublishedItemAPIModel {
-        if page.pilram.IsEmpty() {
-        return nil
-        }
-        return *page.pilram.Value
-        }
-        // Creates a new instance of the PublishedItemListResponseAPIModelPage type.
-        func NewPublishedItemListResponseAPIModelPage (getNextPage func(context.Context, PublishedItemListResponseAPIModel) (PublishedItemListResponseAPIModel, error)) PublishedItemListResponseAPIModelPage {
-            return PublishedItemListResponseAPIModelPage{fn: getNextPage}
-        }
-
-            // PublishStartRequestAPIModel publish request
-            type PublishStartRequestAPIModel struct {
-            // Item - Item to publish
-            Item *PublishedItemAPIModel `json:"item,omitempty"`
-            // Header - Optional request header
-            Header *RequestHeaderAPIModel `json:"header,omitempty"`
-            }
-
-            // PublishStartResponseAPIModel result of publish request
-            type PublishStartResponseAPIModel struct {
-            autorest.Response `json:"-"`
-            // ErrorInfo - Service result in case of error
-            ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
-            }
-
-            // PublishStopRequestAPIModel unpublish request
-            type PublishStopRequestAPIModel struct {
-            // NodeID - Node of published item to unpublish
-            NodeID *string `json:"nodeId,omitempty"`
-            // BrowsePath - An optional path from NodeId instance to
-            // the actual node.
-            BrowsePath *[]string `json:"browsePath,omitempty"`
-            // NodeAttribute - Attribute of item to unpublish. Possible values include: 'NodeAttributeNodeClass', 'NodeAttributeBrowseName', 'NodeAttributeDisplayName', 'NodeAttributeDescription', 'NodeAttributeWriteMask', 'NodeAttributeUserWriteMask', 'NodeAttributeIsAbstract', 'NodeAttributeSymmetric', 'NodeAttributeInverseName', 'NodeAttributeContainsNoLoops', 'NodeAttributeEventNotifier', 'NodeAttributeValue', 'NodeAttributeDataType', 'NodeAttributeValueRank', 'NodeAttributeArrayDimensions', 'NodeAttributeAccessLevel', 'NodeAttributeUserAccessLevel', 'NodeAttributeMinimumSamplingInterval', 'NodeAttributeHistorizing', 'NodeAttributeExecutable', 'NodeAttributeUserExecutable', 'NodeAttributeDataTypeDefinition', 'NodeAttributeRolePermissions', 'NodeAttributeUserRolePermissions', 'NodeAttributeAccessRestrictions'
-            NodeAttribute NodeAttribute `json:"nodeAttribute,omitempty"`
-            // Diagnostics - Optional diagnostics configuration
-            Diagnostics *DiagnosticsAPIModel `json:"diagnostics,omitempty"`
-            }
-
-            // PublishStopResponseAPIModel result of unpublish request
-            type PublishStopResponseAPIModel struct {
-            autorest.Response `json:"-"`
-            // ErrorInfo - Service result in case of error
-            ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
             // ReadRequestAPIModel request node attribute read
             type ReadRequestAPIModel struct {
             // Attributes - Attributes to read
             Attributes *[]AttributeReadRequestAPIModel `json:"attributes,omitempty"`
-            // Header - Optional request header
             Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
@@ -987,11 +763,9 @@ const fqdn = "go/azure-iiot-opc-twin"
 
             // RequestHeaderAPIModel request header model
             type RequestHeaderAPIModel struct {
-            // Elevation - Optional User elevation
             Elevation *CredentialAPIModel `json:"elevation,omitempty"`
             // Locales - Optional list of locales in preference order.
             Locales *[]string `json:"locales,omitempty"`
-            // Diagnostics - Optional diagnostics configuration
             Diagnostics *DiagnosticsAPIModel `json:"diagnostics,omitempty"`
             }
 
@@ -999,7 +773,7 @@ const fqdn = "go/azure-iiot-opc-twin"
             type RolePermissionAPIModel struct {
             // RoleID - Identifier of the role object.
             RoleID *string `json:"roleId,omitempty"`
-            // Permissions - Permissions assigned for the role. Possible values include: 'Browse', 'ReadRolePermissions', 'WriteAttribute', 'WriteRolePermissions', 'WriteHistorizing', 'Read', 'Write', 'ReadHistory', 'InsertHistory', 'ModifyHistory', 'DeleteHistory', 'ReceiveEvents', 'Call', 'AddReference', 'RemoveReference', 'DeleteNode', 'AddNode'
+            // Permissions - Possible values include: 'Browse', 'ReadRolePermissions', 'WriteAttribute', 'WriteRolePermissions', 'WriteHistorizing', 'Read', 'Write', 'ReadHistory', 'InsertHistory', 'ModifyHistory', 'DeleteHistory', 'ReceiveEvents', 'Call', 'AddReference', 'RemoveReference', 'DeleteNode', 'AddNode'
             Permissions RolePermissions `json:"permissions,omitempty"`
             }
 
@@ -1012,43 +786,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             // Diagnostics - Additional diagnostics information
             Diagnostics interface{} `json:"diagnostics,omitempty"`
             }
-
-            // StatusResponseAPIModel status response model
-            type StatusResponseAPIModel struct {
-            autorest.Response `json:"-"`
-            // Name - Name of this service
-            Name *string `json:"name,omitempty"`
-            // Status - Operational status
-            Status *string `json:"status,omitempty"`
-            // CurrentTime - READ-ONLY; Current time
-            CurrentTime *string `json:"currentTime,omitempty"`
-            // StartTime - READ-ONLY; Start time of service
-            StartTime *string `json:"startTime,omitempty"`
-            // UpTime - READ-ONLY; Up time of service
-            UpTime *int64 `json:"upTime,omitempty"`
-            // UID - READ-ONLY; Value generated at bootstrap by each instance of the service and
-            // used to correlate logs coming from the same instance. The value
-            // changes every time the service starts.
-            UID *string `json:"uid,omitempty"`
-            // Properties - READ-ONLY; A property bag with details about the service
-            Properties map[string]*string `json:"properties"`
-            // Dependencies - READ-ONLY; A property bag with details about the internal dependencies
-            Dependencies map[string]*string `json:"dependencies"`
-            // Metadata - READ-ONLY; Optional meta data.
-            Metadata map[string]*string `json:"$metadata"`
-            }
-
-        // MarshalJSON is the custom marshaler for StatusResponseAPIModel.
-        func (sram StatusResponseAPIModel)MarshalJSON() ([]byte, error){
-        objectMap := make(map[string]interface{})
-                if(sram.Name != nil) {
-                objectMap["name"] = sram.Name
-                }
-                if(sram.Status != nil) {
-                objectMap["status"] = sram.Status
-                }
-                return json.Marshal(objectMap)
-        }
 
             // ValueReadRequestAPIModel node value read request webservice api
             // model
@@ -1063,7 +800,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             // an array, string or bytestring.
             // See 7.22 of part 4: NumericRange.
             IndexRange *string `json:"indexRange,omitempty"`
-            // Header - Optional request header
             Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
@@ -1082,7 +818,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             ServerPicoseconds *int32 `json:"serverPicoseconds,omitempty"`
             // ServerTimestamp - Timestamp of when value was read at server.
             ServerTimestamp *date.Time `json:"serverTimestamp,omitempty"`
-            // ErrorInfo - Service result in case of error
             ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
@@ -1105,14 +840,12 @@ const fqdn = "go/azure-iiot-opc-twin"
             DataType *string `json:"dataType,omitempty"`
             // IndexRange - Index range to write
             IndexRange *string `json:"indexRange,omitempty"`
-            // Header - Optional request header
             Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 
             // ValueWriteResponseAPIModel value write response model
             type ValueWriteResponseAPIModel struct {
             autorest.Response `json:"-"`
-            // ErrorInfo - Service result in case of error
             ErrorInfo *ServiceResultAPIModel `json:"errorInfo,omitempty"`
             }
 
@@ -1120,7 +853,6 @@ const fqdn = "go/azure-iiot-opc-twin"
             type WriteRequestAPIModel struct {
             // Attributes - Attributes to update
             Attributes *[]AttributeWriteRequestAPIModel `json:"attributes,omitempty"`
-            // Header - Optional request header
             Header *RequestHeaderAPIModel `json:"header,omitempty"`
             }
 

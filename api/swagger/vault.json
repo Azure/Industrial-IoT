@@ -1,13 +1,21 @@
 {
   "swagger": "2.0",
   "info": {
-    "version": "v2",
     "title": "Opc-Vault-Service",
-    "description": "Azure Industrial IoT OPC UA Vault Service"
+    "description": "Azure Industrial IoT OPC UA Vault Service",
+    "contact": {
+      "url": "https://www.github.com/Azure/Industrial-IoT"
+    },
+    "license": {
+      "name": "MIT LICENSE",
+      "url": "https://opensource.org/licenses/MIT"
+    },
+    "version": "v2"
   },
+  "host": "localhost:9080",
   "schemes": [
-    "https",
-    "http"
+    "http",
+    "https"
   ],
   "paths": {
     "/v2/certificates/{serialNumber}": {
@@ -17,15 +25,14 @@
         ],
         "summary": "Get Issuer CA Certificate chain.",
         "operationId": "GetIssuerCertificateChain",
-        "consumes": [],
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "serialNumber",
             "in": "path",
-            "description": "the serial number of the\r\n            Issuer CA Certificate",
+            "name": "serialNumber",
+            "description": "the serial number of the Issuer CA Certificate",
             "required": true,
             "type": "string"
           }
@@ -57,15 +64,14 @@
         ],
         "summary": "Get Issuer CA CRL chain.",
         "operationId": "GetIssuerCrlChain",
-        "consumes": [],
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "serialNumber",
             "in": "path",
-            "description": "the serial number of the Issuer\r\n            CA Certificate",
+            "name": "serialNumber",
+            "description": "the serial number of the Issuer CA Certificate",
             "required": true,
             "type": "string"
           }
@@ -94,14 +100,13 @@
         ],
         "summary": "Get Issuer Certificate for Authority Information\r\nAccess endpoint.",
         "operationId": "GetIssuerCertificateChain",
-        "consumes": [],
         "produces": [
           "application/pkix-cert"
         ],
         "parameters": [
           {
-            "name": "serialNumber",
             "in": "path",
+            "name": "serialNumber",
             "description": "",
             "required": true,
             "type": "string"
@@ -109,7 +114,11 @@
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "schema": {
+              "format": "binary",
+              "type": "string"
+            }
           }
         }
       }
@@ -121,14 +130,13 @@
         ],
         "summary": "Get Issuer CRL in CRL Distribution Endpoint.",
         "operationId": "GetIssuerCrlChain",
-        "consumes": [],
         "produces": [
           "application/pkix-crl"
         ],
         "parameters": [
           {
-            "name": "serialNumber",
             "in": "path",
+            "name": "serialNumber",
             "description": "",
             "required": true,
             "type": "string"
@@ -136,7 +144,11 @@
         ],
         "responses": {
           "200": {
-            "description": "Success"
+            "description": "Success",
+            "schema": {
+              "format": "binary",
+              "type": "string"
+            }
           }
         }
       }
@@ -147,7 +159,7 @@
           "Requests"
         ],
         "summary": "Create a certificate request with a certificate signing request (CSR).",
-        "description": "The request is in the 'New' state after this call.\r\nRequires Writer or Manager role.",
+        "description": "The request is in the 'New' state after this call. Requires Writer or Manager role.",
         "operationId": "StartSigningRequest",
         "consumes": [
           "application/json-patch+json",
@@ -160,8 +172,8 @@
         ],
         "parameters": [
           {
-            "name": "signingRequest",
             "in": "body",
+            "name": "body",
             "description": "The signing request parameters",
             "required": true,
             "schema": {
@@ -192,16 +204,15 @@
           "Requests"
         ],
         "summary": "Fetch signing request results.",
-        "description": "Can be called in any state.\r\nAfter a successful fetch in 'Completed' state, the request is\r\nmoved into 'Accepted' state.\r\nRequires Writer role.",
+        "description": "Can be called in any state. After a successful fetch in 'Completed' state, the request is moved into 'Accepted' state. Requires Writer role.",
         "operationId": "FinishSigningRequest",
-        "consumes": [],
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "requestId",
             "in": "path",
+            "name": "requestId",
             "description": "",
             "required": true,
             "type": "string"
@@ -230,7 +241,7 @@
           "Requests"
         ],
         "summary": "Create a certificate request with a new key pair.",
-        "description": "The request is in the 'New' state after this call.\r\nRequires Writer or Manager role.",
+        "description": "The request is in the 'New' state after this call. Requires Writer or Manager role.",
         "operationId": "StartNewKeyPairRequest",
         "consumes": [
           "application/json-patch+json",
@@ -243,8 +254,8 @@
         ],
         "parameters": [
           {
-            "name": "newKeyPairRequest",
             "in": "body",
+            "name": "body",
             "description": "The new key pair request parameters",
             "required": true,
             "schema": {
@@ -275,16 +286,15 @@
           "Requests"
         ],
         "summary": "Fetch certificate request result.",
-        "description": "Can be called in any state.\r\nFetches private key in 'Completed' state.\r\nAfter a successful fetch in 'Completed' state, the request is\r\nmoved into 'Accepted' state.\r\nRequires Writer role.",
+        "description": "Can be called in any state. Fetches private key in 'Completed' state. After a successful fetch in 'Completed' state, the request is moved into 'Accepted' state. Requires Writer role.",
         "operationId": "FinishNewKeyPairRequest",
-        "consumes": [],
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "requestId",
             "in": "path",
+            "name": "requestId",
             "description": "",
             "required": true,
             "type": "string"
@@ -313,16 +323,12 @@
           "Requests"
         ],
         "summary": "Approve the certificate request.",
-        "description": " Validates the request with the application database.\r\n- If Approved:\r\n  - New Key Pair request: Creates the new key pair\r\n        in the requested format, signs the certificate and stores the\r\n        private key for later securely in KeyVault.\r\n  - Cert Signing Request: Creates and signs the certificate.\r\n        Deletes the CSR from the database.\r\n Stores the signed certificate for later use in the Database.\r\n The request is in the 'Approved' or 'Rejected' state after this call.\r\n Requires Approver role.\r\n Approver needs signing rights in KeyVault.",
+        "description": " Validates the request with the application database. - If Approved: - New Key Pair request: Creates the new key pair in the requested format, signs the certificate and stores the private key for later securely in KeyVault. - Cert Signing Request: Creates and signs the certificate. Deletes the CSR from the database. Stores the signed certificate for later use in the Database. The request is in the 'Approved' or 'Rejected' state after this call. Requires Approver role. Approver needs signing rights in KeyVault.",
         "operationId": "ApproveRequest",
-        "consumes": [],
-        "produces": [
-          "application/json"
-        ],
         "parameters": [
           {
-            "name": "requestId",
             "in": "path",
+            "name": "requestId",
             "description": "The certificate request id",
             "required": true,
             "type": "string"
@@ -348,16 +354,12 @@
           "Requests"
         ],
         "summary": "Reject the certificate request.",
-        "description": "The request is in the 'Rejected' state after this call.\r\nRequires Approver role.\r\nApprover needs signing rights in KeyVault.",
+        "description": "The request is in the 'Rejected' state after this call. Requires Approver role. Approver needs signing rights in KeyVault.",
         "operationId": "RejectRequest",
-        "consumes": [],
-        "produces": [
-          "application/json"
-        ],
         "parameters": [
           {
-            "name": "requestId",
             "in": "path",
+            "name": "requestId",
             "description": "The certificate request id",
             "required": true,
             "type": "string"
@@ -383,16 +385,12 @@
           "Requests"
         ],
         "summary": "Cancel request",
-        "description": "The request is in the 'Accepted' state after this call.\r\nRequires Writer role.",
+        "description": "The request is in the 'Accepted' state after this call. Requires Writer role.",
         "operationId": "AcceptRequest",
-        "consumes": [],
-        "produces": [
-          "application/json"
-        ],
         "parameters": [
           {
-            "name": "requestId",
             "in": "path",
+            "name": "requestId",
             "description": "The certificate request id",
             "required": true,
             "type": "string"
@@ -413,20 +411,48 @@
       }
     },
     "/v2/requests/{requestId}": {
+      "delete": {
+        "tags": [
+          "Requests"
+        ],
+        "summary": "Delete request. Physically delete the request.",
+        "description": "By purging the request it is actually physically deleted from the database, including the public key and other information. Requires Manager role.",
+        "operationId": "DeleteRequest",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "requestId",
+            "description": "The certificate request id",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success"
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
+      },
       "get": {
         "tags": [
           "Requests"
         ],
         "summary": "Get a specific certificate request.",
         "operationId": "GetRequest",
-        "consumes": [],
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "requestId",
             "in": "path",
+            "name": "requestId",
             "description": "The certificate request id",
             "required": true,
             "type": "string"
@@ -447,39 +473,6 @@
             ]
           }
         ]
-      },
-      "delete": {
-        "tags": [
-          "Requests"
-        ],
-        "summary": "Delete request. Physically delete the request.",
-        "description": "By purging the request it is actually physically deleted from the\r\ndatabase, including the public key and other information.\r\nRequires Manager role.",
-        "operationId": "DeleteRequest",
-        "consumes": [],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [
-          {
-            "name": "requestId",
-            "in": "path",
-            "description": "The certificate request id",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
       }
     },
     "/v2/requests/query": {
@@ -488,7 +481,7 @@
           "Requests"
         ],
         "summary": "Query for certificate requests.",
-        "description": "Get all certificate requests in paged form.\r\nThe returned model can contain a link to the next page if more results are\r\navailable.  Use ListRequests to continue.",
+        "description": "Get all certificate requests in paged form. The returned model can contain a link to the next page if more results are available. Use ListRequests to continue.",
         "operationId": "QueryRequests",
         "consumes": [
           "application/json-patch+json",
@@ -501,21 +494,19 @@
         ],
         "parameters": [
           {
-            "name": "query",
+            "in": "query",
+            "name": "pageSize",
+            "description": "optional, the maximum number of result per page",
+            "type": "integer",
+            "format": "int32"
+          },
+          {
             "in": "body",
+            "name": "body",
             "description": "optional, query filter",
-            "required": false,
             "schema": {
               "$ref": "#/definitions/CertificateRequestQueryRequestApiModel"
             }
-          },
-          {
-            "name": "pageSize",
-            "in": "query",
-            "description": "optional, the maximum number of result per page",
-            "required": false,
-            "type": "integer",
-            "format": "int32"
           }
         ],
         "responses": {
@@ -541,25 +532,22 @@
           "Requests"
         ],
         "summary": "Lists certificate requests.",
-        "description": "Get all certificate requests in paged form or continue a current listing or\r\nquery.\r\nThe returned model can contain a link to the next page if more results are\r\navailable.",
+        "description": "Get all certificate requests in paged form or continue a current listing or query. The returned model can contain a link to the next page if more results are available.",
         "operationId": "ListRequests",
-        "consumes": [],
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "nextPageLink",
             "in": "query",
+            "name": "nextPageLink",
             "description": "optional, link to next page",
-            "required": false,
             "type": "string"
           },
           {
-            "name": "pageSize",
             "in": "query",
+            "name": "pageSize",
             "description": "optional, the maximum number of result per page",
-            "required": false,
             "type": "integer",
             "format": "int32"
           }
@@ -584,53 +572,28 @@
         }
       }
     },
-    "/v2/status": {
-      "get": {
-        "tags": [
-          "Status"
-        ],
-        "summary": "Return the service status in the form of the service status\r\napi model.",
-        "operationId": "GetStatus",
-        "consumes": [],
-        "produces": [
-          "application/json"
-        ],
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": "Success",
-            "schema": {
-              "$ref": "#/definitions/StatusResponseApiModel"
-            }
-          }
-        }
-      }
-    },
     "/v2/groups": {
       "get": {
         "tags": [
           "TrustGroups"
         ],
         "summary": "Get information about all groups.",
-        "description": "A trust group has a root certificate which issues certificates\r\nto entities.  Entities can be part of a trust group and thus\r\ntrust the root certificate and all entities that the root has\r\nissued certificates for.",
+        "description": "A trust group has a root certificate which issues certificates to entities. Entities can be part of a trust group and thus trust the root certificate and all entities that the root has issued certificates for.",
         "operationId": "ListGroups",
-        "consumes": [],
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "nextPageLink",
             "in": "query",
+            "name": "nextPageLink",
             "description": "optional, link to next page",
-            "required": false,
             "type": "string"
           },
           {
-            "name": "pageSize",
             "in": "query",
+            "name": "pageSize",
             "description": "optional, the maximum number of result per page",
-            "required": false,
             "type": "integer",
             "format": "int32"
           }
@@ -672,8 +635,8 @@
         ],
         "parameters": [
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The create request",
             "required": true,
             "schema": {
@@ -704,16 +667,15 @@
           "TrustGroups"
         ],
         "summary": "Get group information.",
-        "description": "A trust group has a root certificate which issues certificates\r\nto entities.  Entities can be part of a trust group and thus\r\ntrust the root certificate and all entities that the root has\r\nissued certificates for.",
+        "description": "A trust group has a root certificate which issues certificates to entities. Entities can be part of a trust group and thus trust the root certificate and all entities that the root has issued certificates for.",
         "operationId": "GetGroup",
-        "consumes": [],
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "groupId",
             "in": "path",
+            "name": "groupId",
             "description": "The group id",
             "required": true,
             "type": "string"
@@ -740,7 +702,7 @@
           "TrustGroups"
         ],
         "summary": "Update group registration.",
-        "description": "Use this function with care and only if you are aware of\r\nthe security implications.\r\nRequires manager role.",
+        "description": "Use this function with care and only if you are aware of the security implications. Requires manager role.",
         "operationId": "UpdateGroup",
         "consumes": [
           "application/json-patch+json",
@@ -748,20 +710,17 @@
           "text/json",
           "application/*+json"
         ],
-        "produces": [
-          "application/json"
-        ],
         "parameters": [
           {
-            "name": "groupId",
             "in": "path",
+            "name": "groupId",
             "description": "The group id",
             "required": true,
             "type": "string"
           },
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The group configuration",
             "required": true,
             "schema": {
@@ -787,16 +746,12 @@
           "TrustGroups"
         ],
         "summary": "Delete a group.",
-        "description": "After this operation the Issuer CA, CRLs and keys become inaccessible.\r\nUse this function with extreme caution.\r\nRequires manager role.",
+        "description": "After this operation the Issuer CA, CRLs and keys become inaccessible. Use this function with extreme caution. Requires manager role.",
         "operationId": "DeleteGroup",
-        "consumes": [],
-        "produces": [
-          "application/json"
-        ],
         "parameters": [
           {
-            "name": "groupId",
             "in": "path",
+            "name": "groupId",
             "description": "The group id",
             "required": true,
             "type": "string"
@@ -835,8 +790,8 @@
         ],
         "parameters": [
           {
-            "name": "request",
             "in": "body",
+            "name": "body",
             "description": "The create request",
             "required": true,
             "schema": {
@@ -868,14 +823,10 @@
         ],
         "summary": "Renew a group CA Certificate.",
         "operationId": "RenewIssuerCertificate",
-        "consumes": [],
-        "produces": [
-          "application/json"
-        ],
         "parameters": [
           {
-            "name": "groupId",
             "in": "path",
+            "name": "groupId",
             "description": "",
             "required": true,
             "type": "string"
@@ -901,23 +852,19 @@
           "TrustLists"
         ],
         "summary": "Add trust relationship",
-        "description": "Define trust between two entities.  The entities are identifiers\r\nof application, groups, or endpoints.",
+        "description": "Define trust between two entities. The entities are identifiers of application, groups, or endpoints.",
         "operationId": "AddTrustRelationship",
-        "consumes": [],
-        "produces": [
-          "application/json"
-        ],
         "parameters": [
           {
-            "name": "entityId",
             "in": "path",
+            "name": "entityId",
             "description": "The entity identifier, e.g. group, etc.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "trustedEntityId",
             "in": "path",
+            "name": "trustedEntityId",
             "description": "The trusted entity identifier",
             "required": true,
             "type": "string"
@@ -943,32 +890,29 @@
           "TrustLists"
         ],
         "summary": "List trusted certificates",
-        "description": "Returns all certificates the entity should trust based on the\r\napplied trust configuration.",
+        "description": "Returns all certificates the entity should trust based on the applied trust configuration.",
         "operationId": "ListTrustedCertificates",
-        "consumes": [],
         "produces": [
           "application/json"
         ],
         "parameters": [
           {
-            "name": "entityId",
             "in": "path",
+            "name": "entityId",
             "description": "",
             "required": true,
             "type": "string"
           },
           {
-            "name": "nextPageLink",
             "in": "query",
+            "name": "nextPageLink",
             "description": "optional, link to next page",
-            "required": false,
             "type": "string"
           },
           {
-            "name": "pageSize",
             "in": "query",
+            "name": "pageSize",
             "description": "optional, the maximum number of result per page",
-            "required": false,
             "type": "integer",
             "format": "int32"
           }
@@ -999,23 +943,19 @@
           "TrustLists"
         ],
         "summary": "Remove a trust relationship",
-        "description": "Removes trust between two entities.  The entities are identifiers\r\nof application, groups, or endpoints.",
+        "description": "Removes trust between two entities. The entities are identifiers of application, groups, or endpoints.",
         "operationId": "RemoveTrustRelationship",
-        "consumes": [],
-        "produces": [
-          "application/json"
-        ],
         "parameters": [
           {
-            "name": "entityId",
             "in": "path",
+            "name": "entityId",
             "description": "The entity identifier, e.g. group, etc.",
             "required": true,
             "type": "string"
           },
           {
-            "name": "untrustedEntityId",
             "in": "path",
+            "name": "untrustedEntityId",
             "description": "The trusted entity identifier",
             "required": true,
             "type": "string"
@@ -1037,25 +977,8 @@
     }
   },
   "definitions": {
-    "X509CertificateChainApiModel": {
-      "description": "Certificate chain",
-      "type": "object",
-      "properties": {
-        "chain": {
-          "description": "Chain",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/X509CertificateApiModel"
-          }
-        }
-      }
-    },
     "X509CertificateApiModel": {
       "description": "Certificate model",
-      "required": [
-        "certificate"
-      ],
       "type": "object",
       "properties": {
         "subject": {
@@ -1086,25 +1009,21 @@
         }
       }
     },
-    "X509CrlChainApiModel": {
-      "description": "Crl collection model",
+    "X509CertificateChainApiModel": {
+      "description": "Certificate chain",
       "type": "object",
       "properties": {
         "chain": {
           "description": "Chain",
-          "uniqueItems": false,
           "type": "array",
           "items": {
-            "$ref": "#/definitions/X509CrlApiModel"
+            "$ref": "#/definitions/X509CertificateApiModel"
           }
         }
       }
     },
     "X509CrlApiModel": {
       "description": "A X509 certificate revocation list.",
-      "required": [
-        "crl"
-      ],
       "type": "object",
       "properties": {
         "issuer": {
@@ -1117,13 +1036,31 @@
         }
       }
     },
+    "X509CrlChainApiModel": {
+      "description": "Crl chain model",
+      "type": "object",
+      "properties": {
+        "chain": {
+          "description": "Chain",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/X509CrlApiModel"
+          }
+        }
+      }
+    },
+    "NotFoundResult": {
+      "type": "object",
+      "properties": {
+        "statusCode": {
+          "format": "int32",
+          "type": "integer",
+          "readOnly": true
+        }
+      }
+    },
     "StartSigningRequestApiModel": {
       "description": "Signing request",
-      "required": [
-        "entityId",
-        "groupId",
-        "certificateRequest"
-      ],
       "type": "object",
       "properties": {
         "entityId": {
@@ -1142,9 +1079,6 @@
     },
     "StartSigningRequestResponseApiModel": {
       "description": "Signing request response",
-      "required": [
-        "requestId"
-      ],
       "type": "object",
       "properties": {
         "requestId": {
@@ -1153,17 +1087,46 @@
         }
       }
     },
-    "FinishSigningRequestResponseApiModel": {
-      "description": "Finish request results",
+    "CertificateRequestState": {
+      "description": "The certificate request states.",
+      "enum": [
+        "New",
+        "Approved",
+        "Rejected",
+        "Failure",
+        "Completed",
+        "Accepted"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "CertificateRequestState",
+        "modelAsString": false
+      }
+    },
+    "CertificateRequestType": {
+      "description": "The certificate request type.",
+      "enum": [
+        "SigningRequest",
+        "KeyPairRequest"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "CertificateRequestType",
+        "modelAsString": false
+      }
+    },
+    "VaultOperationContextApiModel": {
+      "description": "Vault operation log model",
       "type": "object",
       "properties": {
-        "request": {
-          "$ref": "#/definitions/CertificateRequestRecordApiModel",
-          "description": "Request"
+        "authorityId": {
+          "description": "User",
+          "type": "string"
         },
-        "certificate": {
-          "$ref": "#/definitions/X509CertificateApiModel",
-          "description": "Signed certificate"
+        "time": {
+          "format": "date-time",
+          "description": "Operation time",
+          "type": "string"
         }
       }
     },
@@ -1184,77 +1147,53 @@
           "type": "string"
         },
         "state": {
-          "description": "Request state",
-          "enum": [
-            "New",
-            "Approved",
-            "Rejected",
-            "Failure",
-            "Completed",
-            "Accepted"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "CertificateRequestState",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/CertificateRequestState"
         },
         "type": {
-          "description": "Request type",
-          "enum": [
-            "SigningRequest",
-            "KeyPairRequest"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "CertificateRequestType",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/CertificateRequestType"
         },
         "errorInfo": {
           "description": "Error diagnostics",
           "type": "object"
         },
         "submitted": {
-          "$ref": "#/definitions/VaultOperationContextApiModel",
-          "description": "Request time"
+          "$ref": "#/definitions/VaultOperationContextApiModel"
         },
         "approved": {
-          "$ref": "#/definitions/VaultOperationContextApiModel",
-          "description": "Approved or rejected"
+          "$ref": "#/definitions/VaultOperationContextApiModel"
         },
         "accepted": {
-          "$ref": "#/definitions/VaultOperationContextApiModel",
-          "description": "Finished"
+          "$ref": "#/definitions/VaultOperationContextApiModel"
         }
       }
     },
-    "VaultOperationContextApiModel": {
-      "description": "Vault operation log model",
-      "required": [
-        "time"
-      ],
+    "FinishSigningRequestResponseApiModel": {
+      "description": "Finish request results",
       "type": "object",
       "properties": {
-        "authorityId": {
-          "description": "User",
-          "type": "string"
+        "request": {
+          "$ref": "#/definitions/CertificateRequestRecordApiModel"
         },
-        "time": {
-          "format": "date-time",
-          "description": "Operation time",
-          "type": "string"
+        "certificate": {
+          "$ref": "#/definitions/X509CertificateApiModel"
         }
+      }
+    },
+    "TrustGroupType": {
+      "description": "Trust group types",
+      "enum": [
+        "ApplicationInstanceCertificate",
+        "HttpsCertificate",
+        "UserCredentialCertificate"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "TrustGroupType",
+        "modelAsString": false
       }
     },
     "StartNewKeyPairRequestApiModel": {
       "description": "New key pair request",
-      "required": [
-        "entityId",
-        "groupId",
-        "certificateType",
-        "subjectName"
-      ],
       "type": "object",
       "properties": {
         "entityId": {
@@ -1266,17 +1205,7 @@
           "type": "string"
         },
         "certificateType": {
-          "description": "Type",
-          "enum": [
-            "ApplicationInstanceCertificate",
-            "HttpsCertificate",
-            "UserCredentialCertificate"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "TrustGroupType",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/TrustGroupType"
         },
         "subjectName": {
           "description": "Subject name",
@@ -1284,7 +1213,6 @@
         },
         "domainNames": {
           "description": "Domain names",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "type": "string"
@@ -1294,9 +1222,6 @@
     },
     "StartNewKeyPairRequestResponseApiModel": {
       "description": "New key pair response",
-      "required": [
-        "requestId"
-      ],
       "type": "object",
       "properties": {
         "requestId": {
@@ -1305,22 +1230,17 @@
         }
       }
     },
-    "FinishNewKeyPairRequestResponseApiModel": {
-      "description": "Finish request results",
-      "type": "object",
-      "properties": {
-        "request": {
-          "$ref": "#/definitions/CertificateRequestRecordApiModel",
-          "description": "Request"
-        },
-        "certificate": {
-          "$ref": "#/definitions/X509CertificateApiModel",
-          "description": "Signed certificate"
-        },
-        "privateKey": {
-          "$ref": "#/definitions/PrivateKeyApiModel",
-          "description": "Private key"
-        }
+    "PrivateKeyType": {
+      "description": "Key type",
+      "enum": [
+        "RSA",
+        "ECC",
+        "AES"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "PrivateKeyType",
+        "modelAsString": false
       }
     },
     "PrivateKeyApiModel": {
@@ -1328,17 +1248,7 @@
       "type": "object",
       "properties": {
         "kty": {
-          "description": "Key type",
-          "enum": [
-            "RSA",
-            "ECC",
-            "AES"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "PrivateKeyType",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/PrivateKeyType"
         },
         "n": {
           "format": "byte",
@@ -1372,11 +1282,10 @@
         },
         "q": {
           "format": "byte",
-          "description": "RSA secret prime, with p &lt; q",
+          "description": "RSA secret prime, with p < q",
           "type": "string"
         },
         "crv": {
-          "description": "The curve for ECC algorithms",
           "type": "string"
         },
         "x": {
@@ -1401,9 +1310,38 @@
         },
         "key_hsm": {
           "format": "byte",
-          "description": "HSM Token, used with \"Bring Your Own Key\"",
           "type": "string"
         }
+      }
+    },
+    "FinishNewKeyPairRequestResponseApiModel": {
+      "description": "Finish request results",
+      "type": "object",
+      "properties": {
+        "request": {
+          "$ref": "#/definitions/CertificateRequestRecordApiModel"
+        },
+        "certificate": {
+          "$ref": "#/definitions/X509CertificateApiModel"
+        },
+        "privateKey": {
+          "$ref": "#/definitions/PrivateKeyApiModel"
+        }
+      }
+    },
+    "CertificateRequestStateNullable": {
+      "enum": [
+        "New",
+        "Approved",
+        "Rejected",
+        "Failure",
+        "Completed",
+        "Accepted"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "CertificateRequestState",
+        "modelAsString": false
       }
     },
     "CertificateRequestQueryRequestApiModel": {
@@ -1415,20 +1353,7 @@
           "type": "string"
         },
         "state": {
-          "description": "The certificate request state",
-          "enum": [
-            "New",
-            "Approved",
-            "Rejected",
-            "Failure",
-            "Completed",
-            "Accepted"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "CertificateRequestState",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/CertificateRequestStateNullable"
         }
       }
     },
@@ -1438,7 +1363,6 @@
       "properties": {
         "requests": {
           "description": "The query result.",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/CertificateRequestRecordApiModel"
@@ -1450,107 +1374,24 @@
         }
       }
     },
-    "StatusResponseApiModel": {
-      "description": "Status model",
-      "type": "object",
-      "properties": {
-        "name": {
-          "description": "Name of this service",
-          "type": "string"
-        },
-        "status": {
-          "description": "Operational status",
-          "type": "string"
-        },
-        "currentTime": {
-          "description": "Current time",
-          "type": "string",
-          "readOnly": true
-        },
-        "startTime": {
-          "description": "Start time of service",
-          "type": "string",
-          "readOnly": true
-        },
-        "upTime": {
-          "format": "int64",
-          "description": "Up time of service",
-          "type": "integer",
-          "readOnly": true
-        },
-        "uid": {
-          "description": "Value generated at bootstrap by each instance of the service and\r\nused to correlate logs coming from the same instance. The value\r\nchanges every time the service starts.",
-          "type": "string",
-          "readOnly": true
-        },
-        "properties": {
-          "description": "A property bag with details about the service",
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          },
-          "readOnly": true
-        },
-        "dependencies": {
-          "description": "A property bag with details about the internal dependencies",
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          },
-          "readOnly": true
-        },
-        "$metadata": {
-          "description": "Optional meta data.",
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          },
-          "readOnly": true
-        }
-      }
-    },
-    "TrustGroupRegistrationListApiModel": {
-      "description": "Trust group registration collection model",
-      "type": "object",
-      "properties": {
-        "registrations": {
-          "description": "Group registrations",
-          "uniqueItems": false,
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/TrustGroupRegistrationApiModel"
-          }
-        },
-        "nextPageLink": {
-          "description": "Next link",
-          "type": "string"
-        }
-      }
-    },
-    "TrustGroupRegistrationApiModel": {
-      "description": "Trust group registration model",
-      "required": [
-        "id",
-        "group"
+    "SignatureAlgorithm": {
+      "description": "Signature algorithm",
+      "enum": [
+        "Rsa256",
+        "Rsa384",
+        "Rsa512",
+        "Rsa256Pss",
+        "Rsa384Pss",
+        "Rsa512Pss"
       ],
-      "type": "object",
-      "properties": {
-        "id": {
-          "description": "The registered id of the trust group",
-          "type": "string"
-        },
-        "group": {
-          "$ref": "#/definitions/TrustGroupApiModel",
-          "description": "Trust group"
-        }
+      "type": "string",
+      "x-ms-enum": {
+        "name": "SignatureAlgorithm",
+        "modelAsString": false
       }
     },
     "TrustGroupApiModel": {
       "description": "Trust group model",
-      "required": [
-        "name",
-        "subjectName"
-      ],
       "type": "object",
       "properties": {
         "name": {
@@ -1562,24 +1403,14 @@
           "type": "string"
         },
         "type": {
-          "description": "The trust group type",
-          "default": "ApplicationInstanceCertificate",
-          "enum": [
-            "ApplicationInstanceCertificate",
-            "HttpsCertificate",
-            "UserCredentialCertificate"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "TrustGroupType",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/TrustGroupType"
         },
         "subjectName": {
           "description": "The subject name of the group as distinguished name.",
           "type": "string"
         },
         "lifetime": {
+          "format": "date-span",
           "description": "The lifetime of the trust group certificate.",
           "type": "string"
         },
@@ -1589,22 +1420,10 @@
           "type": "integer"
         },
         "signatureAlgorithm": {
-          "description": "The certificate signature algorithm.",
-          "enum": [
-            "Rsa256",
-            "Rsa384",
-            "Rsa512",
-            "Rsa256Pss",
-            "Rsa384Pss",
-            "Rsa512Pss"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "SignatureAlgorithm",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/SignatureAlgorithm"
         },
         "issuedLifetime": {
+          "format": "date-span",
           "description": "The issued certificate lifetime in months.",
           "type": "string"
         },
@@ -1614,30 +1433,57 @@
           "type": "integer"
         },
         "issuedSignatureAlgorithm": {
-          "description": "The Signature algorithm for issued certificates",
-          "enum": [
-            "Rsa256",
-            "Rsa384",
-            "Rsa512",
-            "Rsa256Pss",
-            "Rsa384Pss",
-            "Rsa512Pss"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "SignatureAlgorithm",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/SignatureAlgorithm"
         }
+      }
+    },
+    "TrustGroupRegistrationApiModel": {
+      "description": "Trust group registration model",
+      "type": "object",
+      "properties": {
+        "id": {
+          "description": "The registered id of the trust group",
+          "type": "string"
+        },
+        "group": {
+          "$ref": "#/definitions/TrustGroupApiModel"
+        }
+      }
+    },
+    "TrustGroupRegistrationListApiModel": {
+      "description": "Trust group registration collection model",
+      "type": "object",
+      "properties": {
+        "registrations": {
+          "description": "Group registrations",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TrustGroupRegistrationApiModel"
+          }
+        },
+        "nextPageLink": {
+          "description": "Next link",
+          "type": "string"
+        }
+      }
+    },
+    "SignatureAlgorithmNullable": {
+      "enum": [
+        "Rsa256",
+        "Rsa384",
+        "Rsa512",
+        "Rsa256Pss",
+        "Rsa384Pss",
+        "Rsa512Pss"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "SignatureAlgorithm",
+        "modelAsString": false
       }
     },
     "TrustGroupRegistrationRequestApiModel": {
       "description": "Trust group registration request model",
-      "required": [
-        "name",
-        "parentId",
-        "subjectName"
-      ],
       "type": "object",
       "properties": {
         "name": {
@@ -1653,6 +1499,7 @@
           "type": "string"
         },
         "issuedLifetime": {
+          "format": "date-span",
           "description": "The lifetime of certificates issued in the group.",
           "type": "string"
         },
@@ -1662,28 +1509,12 @@
           "type": "integer"
         },
         "issuedSignatureAlgorithm": {
-          "description": "The issued certificate signature algorithm.",
-          "enum": [
-            "Rsa256",
-            "Rsa384",
-            "Rsa512",
-            "Rsa256Pss",
-            "Rsa384Pss",
-            "Rsa512Pss"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "SignatureAlgorithm",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/SignatureAlgorithmNullable"
         }
       }
     },
     "TrustGroupRegistrationResponseApiModel": {
       "description": "Trust group registration response model",
-      "required": [
-        "id"
-      ],
       "type": "object",
       "properties": {
         "id": {
@@ -1701,6 +1532,7 @@
           "type": "string"
         },
         "issuedLifetime": {
+          "format": "date-span",
           "description": "The issued certificate lifetime.",
           "type": "string"
         },
@@ -1710,30 +1542,12 @@
           "type": "integer"
         },
         "issuedSignatureAlgorithm": {
-          "description": "The issued certificate key size in bits.",
-          "enum": [
-            "Rsa256",
-            "Rsa384",
-            "Rsa512",
-            "Rsa256Pss",
-            "Rsa384Pss",
-            "Rsa512Pss"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "SignatureAlgorithm",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/SignatureAlgorithmNullable"
         }
       }
     },
     "TrustGroupRootCreateRequestApiModel": {
       "description": "Trust group root registration model",
-      "required": [
-        "name",
-        "subjectName",
-        "lifetime"
-      ],
       "type": "object",
       "properties": {
         "name": {
@@ -1741,24 +1555,14 @@
           "type": "string"
         },
         "type": {
-          "description": "The trust group type.",
-          "default": "ApplicationInstanceCertificate",
-          "enum": [
-            "ApplicationInstanceCertificate",
-            "HttpsCertificate",
-            "UserCredentialCertificate"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "TrustGroupType",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/TrustGroupType"
         },
         "subjectName": {
           "description": "The subject name of the group as distinguished name.",
           "type": "string"
         },
         "lifetime": {
+          "format": "date-span",
           "description": "The lifetime of the trust group root certificate.",
           "type": "string"
         },
@@ -1768,22 +1572,10 @@
           "type": "integer"
         },
         "signatureAlgorithm": {
-          "description": "The certificate signature algorithm.",
-          "enum": [
-            "Rsa256",
-            "Rsa384",
-            "Rsa512",
-            "Rsa256Pss",
-            "Rsa384Pss",
-            "Rsa512Pss"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "SignatureAlgorithm",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/SignatureAlgorithmNullable"
         },
         "issuedLifetime": {
+          "format": "date-span",
           "description": "The issued certificate lifetime.",
           "type": "string"
         },
@@ -1793,20 +1585,7 @@
           "type": "integer"
         },
         "issuedSignatureAlgorithm": {
-          "description": "The issued certificate signature algorithm.",
-          "enum": [
-            "Rsa256",
-            "Rsa384",
-            "Rsa512",
-            "Rsa256Pss",
-            "Rsa384Pss",
-            "Rsa512Pss"
-          ],
-          "type": "string",
-          "x-ms-enum": {
-            "name": "SignatureAlgorithm",
-            "modelAsString": false
-          }
+          "$ref": "#/definitions/SignatureAlgorithmNullable"
         }
       }
     },
@@ -1816,7 +1595,6 @@
       "properties": {
         "certificates": {
           "description": "Certificates",
-          "uniqueItems": false,
           "type": "array",
           "items": {
             "$ref": "#/definitions/X509CertificateApiModel"
@@ -1831,12 +1609,12 @@
   },
   "securityDefinitions": {
     "oauth2": {
+      "type": "oauth2",
       "flow": "implicit",
       "authorizationUrl": "https://login.microsoftonline.com/6e660ce4-d51a-4585-80c6-58035e212354/oauth2/authorize",
       "scopes": {
         "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication": "Access http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication operations"
       },
-      "type": "oauth2",
       "description": "Implicit oauth2 token flow."
     }
   },
@@ -1852,10 +1630,6 @@
     {
       "name": "Requests",
       "description": "Certificate request services."
-    },
-    {
-      "name": "Status",
-      "description": "Status checks"
     },
     {
       "name": "TrustGroups",

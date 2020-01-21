@@ -40,6 +40,19 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.v2.Supervisor {
             return true;
         }
 
+        /// <summary>
+        /// Cancel discovery
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<bool> CancelAsync(DiscoveryCancelApiModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            await _discover.CancelAsync(request.ToServiceModel());
+            return true;
+        }
+
         private readonly IDiscoveryServices _discover;
     }
 }

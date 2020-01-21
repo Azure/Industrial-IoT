@@ -13,11 +13,16 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <summary>
         /// Content encoding of event
         /// </summary>
-        public const string kContentEncoding = "ContentEncoding";
+        public const string ContentEncoding = "ContentEncoding";
 
         /// <summary>
         /// Content type of event.
         /// </summary>
-        public const string kContentType = "ContentType";
+        public const string ContentType = "ContentType";
+
+        /// <summary>
+        /// Event schema.
+        /// </summary>
+        public const string EventSchema = "EventSchema";
     }
 }

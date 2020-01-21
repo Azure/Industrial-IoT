@@ -1,0 +1,66 @@
+﻿@page "/gateways"
+@page "/gateways/{page}"
+
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.Azure.IIoT.App.Services
+@using Microsoft.Azure.IIoT.App.Components.Pager
+@using Microsoft.Azure.IIoT.App.Data
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
+
+@inject NavigationManager NavigationManager
+@inject Registry RegistryHelper
+
+<h1>Gateways</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Site Id</th>
+            <th>Connection Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var gateway in pagedGatewayList.Results)
+        {
+            <tr>
+                <td>@gateway.Id</td>
+                @{ string siteId = gateway.SiteId == null ? "--" : gateway.SiteId;}
+                <td>@siteId</td>
+                @{string connectStatus = gateway.Connected == null ? "--" : gateway.Connected == true ? "Connected" : "Disconnected";}
+                <td>@connectStatus</td> 
+            </tr>
+        }
+    </tbody>
+</table>
+
+<Pager Result=@gatewayList PageChanged=@((Page) => PagerPageChanged(Page)) />
+
+@code {
+
+    [Parameter]
+    public string Page { get; set; } = "1";
+
+    public const int PageLength = 10;
+
+    /// <summary>
+    /// Notify page change
+    /// </summary>
+    /// <param name="page"></param>
+    public void PagerPageChanged(int page)
+    {
+        pagedGatewayList = gatewayList.GetPaged(page, PageLength);
+        NavigationManager.NavigateTo("/gateways/" + page);
+    }
+
+    /// <inheritdoc/>
+    protected override async Task OnInitializedAsync()
+    {
+        gatewayList = await RegistryHelper.GetGatewayListAsync();
+        Page = "1";
+        pagedGatewayList = gatewayList.GetPaged(Int32.Parse(Page), PageLength);
+    }
+
+    private PagedResult<GatewayApiModel> gatewayList = new PagedResult<GatewayApiModel>();
+    private PagedResult<GatewayApiModel> pagedGatewayList = new PagedResult<GatewayApiModel>();
+}

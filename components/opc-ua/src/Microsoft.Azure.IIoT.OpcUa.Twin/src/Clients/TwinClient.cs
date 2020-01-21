@@ -5,25 +5,23 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.Azure.IIoT.Module;
-    using Microsoft.Azure.IIoT.Hub;
     using Serilog;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
     using System.Diagnostics;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Implements node and publish services through command control against
     /// the OPC twin module receiving service requests via device method calls.
     /// </summary>
     public sealed class TwinClient : IBrowseServices<string>, IHistoricAccessServices<string>,
-        INodeServices<string>, IPublishServices<string>, IUploadServices<string> {
+        INodeServices<string>, IUploadServices<string> {
 
         /// <summary>
         /// Create service
@@ -33,36 +31,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
         public TwinClient(IMethodClient client, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        }
-
-        /// <inheritdoc/>
-        public async Task<PublishStartResultModel> NodePublishStartAsync(string endpointId,
-            PublishStartRequestModel request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-            var result = await CallServiceOnTwin<PublishStartRequestModel, PublishStartResultModel>(
-                "PublishStart_V2", endpointId, request);
-            return result;
-        }
-
-        /// <inheritdoc/>
-        public async Task<PublishStopResultModel> NodePublishStopAsync(string endpointId,
-            PublishStopRequestModel request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-            var result = await CallServiceOnTwin<PublishStopRequestModel, PublishStopResultModel>(
-                "PublishStop_V2", endpointId, request);
-            return result;
-        }
-
-        /// <inheritdoc/>
-        public async Task<PublishedItemListResultModel> NodePublishListAsync(
-            string endpointId, PublishedItemListRequestModel request) {
-            var result = await CallServiceOnTwin<PublishedItemListRequestModel, PublishedItemListResultModel>(
-                "PublishList_V2", endpointId, request);
-            return result;
         }
 
         /// <inheritdoc/>

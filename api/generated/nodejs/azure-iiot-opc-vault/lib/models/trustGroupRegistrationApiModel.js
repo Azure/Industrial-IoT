@@ -17,13 +17,13 @@
 class TrustGroupRegistrationApiModel {
   /**
    * Create a TrustGroupRegistrationApiModel.
-   * @property {string} id The registered id of the trust group
-   * @property {object} group Trust group
+   * @property {string} [id] The registered id of the trust group
+   * @property {object} [group]
    * @property {string} [group.name] The name of the trust group.
    * @property {string} [group.parentId] The identifer of the parent trust
    * group.
-   * @property {string} [group.type] The trust group type. Possible values
-   * include: 'ApplicationInstanceCertificate', 'HttpsCertificate',
+   * @property {string} [group.type] Possible values include:
+   * 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
    * @property {string} [group.subjectName] The subject name of the group as
    * distinguished name.
@@ -31,16 +31,15 @@ class TrustGroupRegistrationApiModel {
    * certificate.
    * @property {number} [group.keySize] The trust group certificate key size in
    * bits.
-   * @property {string} [group.signatureAlgorithm] The certificate signature
-   * algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-   * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @property {string} [group.signatureAlgorithm] Possible values include:
+   * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    * @property {string} [group.issuedLifetime] The issued certificate lifetime
    * in months.
    * @property {number} [group.issuedKeySize] The issued certificate key size
    * in bits.
-   * @property {string} [group.issuedSignatureAlgorithm] The Signature
-   * algorithm for issued certificates. Possible values include: 'Rsa256',
-   * 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @property {string} [group.issuedSignatureAlgorithm] Possible values
+   * include: 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss',
+   * 'Rsa512Pss'
    */
   constructor() {
   }
@@ -60,14 +59,14 @@ class TrustGroupRegistrationApiModel {
         className: 'TrustGroupRegistrationApiModel',
         modelProperties: {
           id: {
-            required: true,
+            required: false,
             serializedName: 'id',
             type: {
               name: 'String'
             }
           },
           group: {
-            required: true,
+            required: false,
             serializedName: 'group',
             type: {
               name: 'Composite',

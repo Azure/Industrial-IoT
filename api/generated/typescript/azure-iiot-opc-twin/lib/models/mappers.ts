@@ -48,7 +48,6 @@ export const CredentialApiModel: msRest.CompositeMapper = {
     modelProperties: {
       type: {
         serializedName: "type",
-        defaultValue: 'None',
         type: {
           name: "Enum",
           allowedValues: [
@@ -413,12 +412,12 @@ export const NodeApiModel: msRest.CompositeMapper = {
         type: {
           name: "Enum",
           allowedValues: [
-            "ScalarOrOneDimension",
-            "Any",
-            "Scalar",
             "OneOrMoreDimensions",
             "OneDimension",
-            "TwoDimensions"
+            "TwoDimensions",
+            "ScalarOrOneDimension",
+            "Any",
+            "Scalar"
           ]
         }
       },
@@ -805,7 +804,6 @@ export const MethodMetadataRequestApiModel: msRest.CompositeMapper = {
     className: "MethodMetadataRequestApiModel",
     modelProperties: {
       methodId: {
-        required: true,
         serializedName: "methodId",
         type: {
           name: "String"
@@ -869,12 +867,12 @@ export const MethodMetadataArgumentApiModel: msRest.CompositeMapper = {
         type: {
           name: "Enum",
           allowedValues: [
-            "ScalarOrOneDimension",
-            "Any",
-            "Scalar",
             "OneOrMoreDimensions",
             "OneDimension",
-            "TwoDimensions"
+            "TwoDimensions",
+            "ScalarOrOneDimension",
+            "Any",
+            "Scalar"
           ]
         }
       },
@@ -1054,250 +1052,6 @@ export const MethodCallResponseApiModel: msRest.CompositeMapper = {
   }
 };
 
-export const PublishedItemApiModel: msRest.CompositeMapper = {
-  serializedName: "PublishedItemApiModel",
-  type: {
-    name: "Composite",
-    className: "PublishedItemApiModel",
-    modelProperties: {
-      nodeId: {
-        required: true,
-        serializedName: "nodeId",
-        type: {
-          name: "String"
-        }
-      },
-      browsePath: {
-        serializedName: "browsePath",
-        type: {
-          name: "Sequence",
-          element: {
-            type: {
-              name: "String"
-            }
-          }
-        }
-      },
-      nodeAttribute: {
-        serializedName: "nodeAttribute",
-        type: {
-          name: "Enum",
-          allowedValues: [
-            "NodeClass",
-            "BrowseName",
-            "DisplayName",
-            "Description",
-            "WriteMask",
-            "UserWriteMask",
-            "IsAbstract",
-            "Symmetric",
-            "InverseName",
-            "ContainsNoLoops",
-            "EventNotifier",
-            "Value",
-            "DataType",
-            "ValueRank",
-            "ArrayDimensions",
-            "AccessLevel",
-            "UserAccessLevel",
-            "MinimumSamplingInterval",
-            "Historizing",
-            "Executable",
-            "UserExecutable",
-            "DataTypeDefinition",
-            "RolePermissions",
-            "UserRolePermissions",
-            "AccessRestrictions"
-          ]
-        }
-      },
-      publishingInterval: {
-        serializedName: "publishingInterval",
-        type: {
-          name: "Number"
-        }
-      },
-      samplingInterval: {
-        serializedName: "samplingInterval",
-        type: {
-          name: "Number"
-        }
-      }
-    }
-  }
-};
-
-export const PublishStartRequestApiModel: msRest.CompositeMapper = {
-  serializedName: "PublishStartRequestApiModel",
-  type: {
-    name: "Composite",
-    className: "PublishStartRequestApiModel",
-    modelProperties: {
-      item: {
-        required: true,
-        serializedName: "item",
-        type: {
-          name: "Composite",
-          className: "PublishedItemApiModel"
-        }
-      },
-      header: {
-        serializedName: "header",
-        type: {
-          name: "Composite",
-          className: "RequestHeaderApiModel"
-        }
-      }
-    }
-  }
-};
-
-export const PublishStartResponseApiModel: msRest.CompositeMapper = {
-  serializedName: "PublishStartResponseApiModel",
-  type: {
-    name: "Composite",
-    className: "PublishStartResponseApiModel",
-    modelProperties: {
-      errorInfo: {
-        serializedName: "errorInfo",
-        type: {
-          name: "Composite",
-          className: "ServiceResultApiModel"
-        }
-      }
-    }
-  }
-};
-
-export const PublishStopRequestApiModel: msRest.CompositeMapper = {
-  serializedName: "PublishStopRequestApiModel",
-  type: {
-    name: "Composite",
-    className: "PublishStopRequestApiModel",
-    modelProperties: {
-      nodeId: {
-        required: true,
-        serializedName: "nodeId",
-        type: {
-          name: "String"
-        }
-      },
-      browsePath: {
-        serializedName: "browsePath",
-        type: {
-          name: "Sequence",
-          element: {
-            type: {
-              name: "String"
-            }
-          }
-        }
-      },
-      nodeAttribute: {
-        serializedName: "nodeAttribute",
-        type: {
-          name: "Enum",
-          allowedValues: [
-            "NodeClass",
-            "BrowseName",
-            "DisplayName",
-            "Description",
-            "WriteMask",
-            "UserWriteMask",
-            "IsAbstract",
-            "Symmetric",
-            "InverseName",
-            "ContainsNoLoops",
-            "EventNotifier",
-            "Value",
-            "DataType",
-            "ValueRank",
-            "ArrayDimensions",
-            "AccessLevel",
-            "UserAccessLevel",
-            "MinimumSamplingInterval",
-            "Historizing",
-            "Executable",
-            "UserExecutable",
-            "DataTypeDefinition",
-            "RolePermissions",
-            "UserRolePermissions",
-            "AccessRestrictions"
-          ]
-        }
-      },
-      diagnostics: {
-        serializedName: "diagnostics",
-        type: {
-          name: "Composite",
-          className: "DiagnosticsApiModel"
-        }
-      }
-    }
-  }
-};
-
-export const PublishStopResponseApiModel: msRest.CompositeMapper = {
-  serializedName: "PublishStopResponseApiModel",
-  type: {
-    name: "Composite",
-    className: "PublishStopResponseApiModel",
-    modelProperties: {
-      errorInfo: {
-        serializedName: "errorInfo",
-        type: {
-          name: "Composite",
-          className: "ServiceResultApiModel"
-        }
-      }
-    }
-  }
-};
-
-export const PublishedItemListRequestApiModel: msRest.CompositeMapper = {
-  serializedName: "PublishedItemListRequestApiModel",
-  type: {
-    name: "Composite",
-    className: "PublishedItemListRequestApiModel",
-    modelProperties: {
-      continuationToken: {
-        serializedName: "continuationToken",
-        type: {
-          name: "String"
-        }
-      }
-    }
-  }
-};
-
-export const PublishedItemListResponseApiModel: msRest.CompositeMapper = {
-  serializedName: "PublishedItemListResponseApiModel",
-  type: {
-    name: "Composite",
-    className: "PublishedItemListResponseApiModel",
-    modelProperties: {
-      items: {
-        serializedName: "items",
-        type: {
-          name: "Sequence",
-          element: {
-            type: {
-              name: "Composite",
-              className: "PublishedItemApiModel"
-            }
-          }
-        }
-      },
-      continuationToken: {
-        serializedName: "continuationToken",
-        type: {
-          name: "String"
-        }
-      }
-    }
-  }
-};
-
 export const ValueReadRequestApiModel: msRest.CompositeMapper = {
   serializedName: "ValueReadRequestApiModel",
   type: {
@@ -1305,7 +1059,6 @@ export const ValueReadRequestApiModel: msRest.CompositeMapper = {
     className: "ValueReadRequestApiModel",
     modelProperties: {
       nodeId: {
-        required: true,
         serializedName: "nodeId",
         type: {
           name: "String"
@@ -1518,92 +1271,6 @@ export const ReadResponseApiModel: msRest.CompositeMapper = {
   }
 };
 
-export const StatusResponseApiModel: msRest.CompositeMapper = {
-  serializedName: "StatusResponseApiModel",
-  type: {
-    name: "Composite",
-    className: "StatusResponseApiModel",
-    modelProperties: {
-      name: {
-        serializedName: "name",
-        type: {
-          name: "String"
-        }
-      },
-      status: {
-        serializedName: "status",
-        type: {
-          name: "String"
-        }
-      },
-      currentTime: {
-        readOnly: true,
-        serializedName: "currentTime",
-        type: {
-          name: "String"
-        }
-      },
-      startTime: {
-        readOnly: true,
-        serializedName: "startTime",
-        type: {
-          name: "String"
-        }
-      },
-      upTime: {
-        readOnly: true,
-        serializedName: "upTime",
-        type: {
-          name: "Number"
-        }
-      },
-      uid: {
-        readOnly: true,
-        serializedName: "uid",
-        type: {
-          name: "String"
-        }
-      },
-      properties: {
-        readOnly: true,
-        serializedName: "properties",
-        type: {
-          name: "Dictionary",
-          value: {
-            type: {
-              name: "String"
-            }
-          }
-        }
-      },
-      dependencies: {
-        readOnly: true,
-        serializedName: "dependencies",
-        type: {
-          name: "Dictionary",
-          value: {
-            type: {
-              name: "String"
-            }
-          }
-        }
-      },
-      metadata: {
-        readOnly: true,
-        serializedName: "$metadata",
-        type: {
-          name: "Dictionary",
-          value: {
-            type: {
-              name: "String"
-            }
-          }
-        }
-      }
-    }
-  }
-};
-
 export const ValueWriteRequestApiModel: msRest.CompositeMapper = {
   serializedName: "ValueWriteRequestApiModel",
   type: {
@@ -1611,7 +1278,6 @@ export const ValueWriteRequestApiModel: msRest.CompositeMapper = {
     className: "ValueWriteRequestApiModel",
     modelProperties: {
       nodeId: {
-        required: true,
         serializedName: "nodeId",
         type: {
           name: "String"

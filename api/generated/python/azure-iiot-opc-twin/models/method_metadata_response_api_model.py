@@ -23,7 +23,7 @@ class MethodMetadataResponseApiModel(Model):
     :param output_arguments: output argument meta data
     :type output_arguments:
      list[~azure-iiot-opc-twin.models.MethodMetadataArgumentApiModel]
-    :param error_info: Service result in case of error
+    :param error_info:
     :type error_info: ~azure-iiot-opc-twin.models.ServiceResultApiModel
     """
 

@@ -32,8 +32,8 @@ namespace Microsoft.Azure.IIoT.Http.Default {
         /// <summary>
         /// Create client
         /// </summary>
-        /// <param name="logger"></param>
         /// <param name="factory"></param>
+        /// <param name="logger"></param>
         public HttpClient(IHttpClientFactory factory, ILogger logger) {
             _factory = factory ?? new HttpClientFactory(null, logger);
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -113,10 +113,11 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                             ResourceId = httpRequest.ResourceId,
                             StatusCode = response.StatusCode,
                             Headers = response.Headers,
+                            ContentHeaders = response.Content.Headers,
                             Content = await response.Content.ReadAsByteArrayAsync()
                         };
                         if (result.IsError()) {
-                            _logger.Error("{method} to {uri} returned {code} (took {elapsed}).",
+                            _logger.Warning("{method} to {uri} returned {code} (took {elapsed}).",
                                 httpMethod, httpRequest.Uri, response.StatusCode, sw.Elapsed,
                                  result.GetContentAsString(Encoding.UTF8));
                         }
@@ -132,7 +133,9 @@ namespace Microsoft.Azure.IIoT.Http.Default {
                     if (e.InnerException != null) {
                         errorMessage += " - " + e.InnerException.Message;
                     }
-                    _logger.Error(e, "{method} to {uri} failed (after {elapsed}) : {message}!",
+                    _logger.Warning("{method} to {uri} failed (after {elapsed}) : {message}!",
+                        httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
+                    _logger.Verbose(e, "{method} to {uri} failed (after {elapsed}) : {message}!",
                         httpMethod, httpRequest.Uri, sw.Elapsed, errorMessage);
                     throw new HttpRequestException(errorMessage, e);
                 }
@@ -202,6 +205,9 @@ namespace Microsoft.Azure.IIoT.Http.Default {
 
             /// <inheritdoc/>
             public HttpResponseHeaders Headers { get; internal set; }
+
+            /// <inheritdoc/>
+            public HttpContentHeaders ContentHeaders { get; internal set; }
 
             /// <inheritdoc/>
             public byte[] Content { get; internal set; }

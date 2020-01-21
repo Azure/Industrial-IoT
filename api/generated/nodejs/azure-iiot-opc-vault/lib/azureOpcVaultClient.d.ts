@@ -39,8 +39,7 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Get Issuer CA Certificate chain.
    *
-   * @param {string} serialNumber the serial number of the
-   * Issuer CA Certificate
+   * @param {string} serialNumber the serial number of the Issuer CA Certificate
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -58,8 +57,7 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Get Issuer CA Certificate chain.
    *
-   * @param {string} serialNumber the serial number of the
-   * Issuer CA Certificate
+   * @param {string} serialNumber the serial number of the Issuer CA Certificate
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -97,8 +95,7 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Get Issuer CA CRL chain.
    *
-   * @param {string} serialNumber the serial number of the Issuer
-   * CA Certificate
+   * @param {string} serialNumber the serial number of the Issuer CA Certificate
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -116,8 +113,7 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Get Issuer CA CRL chain.
    *
-   * @param {string} serialNumber the serial number of the Issuer
-   * CA Certificate
+   * @param {string} serialNumber the serial number of the Issuer CA Certificate
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -164,11 +160,11 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<String>} - The deserialized result object.
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  getIssuerCertificateChain1WithHttpOperationResponse(serialNumber: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+  getIssuerCertificateChain1WithHttpOperationResponse(serialNumber: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<string>>;
 
   /**
    * @summary Get Issuer Certificate for Authority Information
@@ -188,7 +184,7 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    * {Promise} A promise is returned.
    *
-   *                      @resolve {null} - The deserialized result object.
+   *                      @resolve {String} - The deserialized result object.
    *
    *                      @reject {Error|ServiceError} - The error object.
    *
@@ -196,15 +192,15 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *                      {String} [result]   - The deserialized result object if an error did not occur.
    *
    *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  getIssuerCertificateChain1(serialNumber: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
-  getIssuerCertificateChain1(serialNumber: string, callback: ServiceCallback<void>): void;
-  getIssuerCertificateChain1(serialNumber: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+  getIssuerCertificateChain1(serialNumber: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<string>;
+  getIssuerCertificateChain1(serialNumber: string, callback: ServiceCallback<string>): void;
+  getIssuerCertificateChain1(serialNumber: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<string>): void;
 
 
   /**
@@ -219,11 +215,11 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    * @returns {Promise} A promise is returned
    *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   * @resolve {HttpOperationResponse<String>} - The deserialized result object.
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  getIssuerCrlChain1WithHttpOperationResponse(serialNumber: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+  getIssuerCrlChain1WithHttpOperationResponse(serialNumber: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<string>>;
 
   /**
    * @summary Get Issuer CRL in CRL Distribution Endpoint.
@@ -242,7 +238,7 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    * {Promise} A promise is returned.
    *
-   *                      @resolve {null} - The deserialized result object.
+   *                      @resolve {String} - The deserialized result object.
    *
    *                      @reject {Error|ServiceError} - The error object.
    *
@@ -250,32 +246,31 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
    *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *                      {String} [result]   - The deserialized result object if an error did not occur.
    *
    *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  getIssuerCrlChain1(serialNumber: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
-  getIssuerCrlChain1(serialNumber: string, callback: ServiceCallback<void>): void;
-  getIssuerCrlChain1(serialNumber: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+  getIssuerCrlChain1(serialNumber: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<string>;
+  getIssuerCrlChain1(serialNumber: string, callback: ServiceCallback<string>): void;
+  getIssuerCrlChain1(serialNumber: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<string>): void;
 
 
   /**
    * @summary Create a certificate request with a certificate signing request
    * (CSR).
    *
-   * The request is in the 'New' state after this call.
-   * Requires Writer or Manager role.
+   * The request is in the 'New' state after this call. Requires Writer or
+   * Manager role.
    *
-   * @param {object} signingRequest The signing request parameters
+   * @param {object} body The signing request parameters
    *
-   * @param {string} signingRequest.entityId Id of entity to sign a certificate
-   * for
+   * @param {string} [body.entityId] Id of entity to sign a certificate for
    *
-   * @param {string} signingRequest.groupId Certificate group id
+   * @param {string} [body.groupId] Certificate group id
    *
-   * @param {object} signingRequest.certificateRequest Request
+   * @param {object} [body.certificateRequest] Request
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -288,23 +283,22 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  startSigningRequestWithHttpOperationResponse(signingRequest: models.StartSigningRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.StartSigningRequestResponseApiModel>>;
+  startSigningRequestWithHttpOperationResponse(body: models.StartSigningRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.StartSigningRequestResponseApiModel>>;
 
   /**
    * @summary Create a certificate request with a certificate signing request
    * (CSR).
    *
-   * The request is in the 'New' state after this call.
-   * Requires Writer or Manager role.
+   * The request is in the 'New' state after this call. Requires Writer or
+   * Manager role.
    *
-   * @param {object} signingRequest The signing request parameters
+   * @param {object} body The signing request parameters
    *
-   * @param {string} signingRequest.entityId Id of entity to sign a certificate
-   * for
+   * @param {string} [body.entityId] Id of entity to sign a certificate for
    *
-   * @param {string} signingRequest.groupId Certificate group id
+   * @param {string} [body.groupId] Certificate group id
    *
-   * @param {object} signingRequest.certificateRequest Request
+   * @param {object} [body.certificateRequest] Request
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -334,18 +328,16 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  startSigningRequest(signingRequest: models.StartSigningRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.StartSigningRequestResponseApiModel>;
-  startSigningRequest(signingRequest: models.StartSigningRequestApiModel, callback: ServiceCallback<models.StartSigningRequestResponseApiModel>): void;
-  startSigningRequest(signingRequest: models.StartSigningRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.StartSigningRequestResponseApiModel>): void;
+  startSigningRequest(body: models.StartSigningRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.StartSigningRequestResponseApiModel>;
+  startSigningRequest(body: models.StartSigningRequestApiModel, callback: ServiceCallback<models.StartSigningRequestResponseApiModel>): void;
+  startSigningRequest(body: models.StartSigningRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.StartSigningRequestResponseApiModel>): void;
 
 
   /**
    * @summary Fetch signing request results.
    *
-   * Can be called in any state.
-   * After a successful fetch in 'Completed' state, the request is
-   * moved into 'Accepted' state.
-   * Requires Writer role.
+   * Can be called in any state. After a successful fetch in 'Completed' state,
+   * the request is moved into 'Accepted' state. Requires Writer role.
    *
    * @param {string} requestId
    *
@@ -365,10 +357,8 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Fetch signing request results.
    *
-   * Can be called in any state.
-   * After a successful fetch in 'Completed' state, the request is
-   * moved into 'Accepted' state.
-   * Requires Writer role.
+   * Can be called in any state. After a successful fetch in 'Completed' state,
+   * the request is moved into 'Accepted' state. Requires Writer role.
    *
    * @param {string} requestId
    *
@@ -408,22 +398,22 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Create a certificate request with a new key pair.
    *
-   * The request is in the 'New' state after this call.
-   * Requires Writer or Manager role.
+   * The request is in the 'New' state after this call. Requires Writer or
+   * Manager role.
    *
-   * @param {object} newKeyPairRequest The new key pair request parameters
+   * @param {object} body The new key pair request parameters
    *
-   * @param {string} newKeyPairRequest.entityId Entity id
+   * @param {string} [body.entityId] Entity id
    *
-   * @param {string} newKeyPairRequest.groupId Certificate group
+   * @param {string} [body.groupId] Certificate group
    *
-   * @param {string} newKeyPairRequest.certificateType Type. Possible values
-   * include: 'ApplicationInstanceCertificate', 'HttpsCertificate',
+   * @param {string} [body.certificateType] Possible values include:
+   * 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
    *
-   * @param {string} newKeyPairRequest.subjectName Subject name
+   * @param {string} [body.subjectName] Subject name
    *
-   * @param {array} [newKeyPairRequest.domainNames] Domain names
+   * @param {array} [body.domainNames] Domain names
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -436,27 +426,27 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  startNewKeyPairRequestWithHttpOperationResponse(newKeyPairRequest: models.StartNewKeyPairRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.StartNewKeyPairRequestResponseApiModel>>;
+  startNewKeyPairRequestWithHttpOperationResponse(body: models.StartNewKeyPairRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.StartNewKeyPairRequestResponseApiModel>>;
 
   /**
    * @summary Create a certificate request with a new key pair.
    *
-   * The request is in the 'New' state after this call.
-   * Requires Writer or Manager role.
+   * The request is in the 'New' state after this call. Requires Writer or
+   * Manager role.
    *
-   * @param {object} newKeyPairRequest The new key pair request parameters
+   * @param {object} body The new key pair request parameters
    *
-   * @param {string} newKeyPairRequest.entityId Entity id
+   * @param {string} [body.entityId] Entity id
    *
-   * @param {string} newKeyPairRequest.groupId Certificate group
+   * @param {string} [body.groupId] Certificate group
    *
-   * @param {string} newKeyPairRequest.certificateType Type. Possible values
-   * include: 'ApplicationInstanceCertificate', 'HttpsCertificate',
+   * @param {string} [body.certificateType] Possible values include:
+   * 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
    *
-   * @param {string} newKeyPairRequest.subjectName Subject name
+   * @param {string} [body.subjectName] Subject name
    *
-   * @param {array} [newKeyPairRequest.domainNames] Domain names
+   * @param {array} [body.domainNames] Domain names
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -486,19 +476,17 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  startNewKeyPairRequest(newKeyPairRequest: models.StartNewKeyPairRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.StartNewKeyPairRequestResponseApiModel>;
-  startNewKeyPairRequest(newKeyPairRequest: models.StartNewKeyPairRequestApiModel, callback: ServiceCallback<models.StartNewKeyPairRequestResponseApiModel>): void;
-  startNewKeyPairRequest(newKeyPairRequest: models.StartNewKeyPairRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.StartNewKeyPairRequestResponseApiModel>): void;
+  startNewKeyPairRequest(body: models.StartNewKeyPairRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.StartNewKeyPairRequestResponseApiModel>;
+  startNewKeyPairRequest(body: models.StartNewKeyPairRequestApiModel, callback: ServiceCallback<models.StartNewKeyPairRequestResponseApiModel>): void;
+  startNewKeyPairRequest(body: models.StartNewKeyPairRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.StartNewKeyPairRequestResponseApiModel>): void;
 
 
   /**
    * @summary Fetch certificate request result.
    *
-   * Can be called in any state.
-   * Fetches private key in 'Completed' state.
-   * After a successful fetch in 'Completed' state, the request is
-   * moved into 'Accepted' state.
-   * Requires Writer role.
+   * Can be called in any state. Fetches private key in 'Completed' state. After
+   * a successful fetch in 'Completed' state, the request is moved into
+   * 'Accepted' state. Requires Writer role.
    *
    * @param {string} requestId
    *
@@ -518,11 +506,9 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Fetch certificate request result.
    *
-   * Can be called in any state.
-   * Fetches private key in 'Completed' state.
-   * After a successful fetch in 'Completed' state, the request is
-   * moved into 'Accepted' state.
-   * Requires Writer role.
+   * Can be called in any state. Fetches private key in 'Completed' state. After
+   * a successful fetch in 'Completed' state, the request is moved into
+   * 'Accepted' state. Requires Writer role.
    *
    * @param {string} requestId
    *
@@ -562,17 +548,13 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Approve the certificate request.
    *
-   * Validates the request with the application database.
-   * - If Approved:
-   * - New Key Pair request: Creates the new key pair
-   * in the requested format, signs the certificate and stores the
-   * private key for later securely in KeyVault.
-   * - Cert Signing Request: Creates and signs the certificate.
-   * Deletes the CSR from the database.
-   * Stores the signed certificate for later use in the Database.
-   * The request is in the 'Approved' or 'Rejected' state after this call.
-   * Requires Approver role.
-   * Approver needs signing rights in KeyVault.
+   * Validates the request with the application database. - If Approved: - New
+   * Key Pair request: Creates the new key pair in the requested format, signs
+   * the certificate and stores the private key for later securely in KeyVault. -
+   * Cert Signing Request: Creates and signs the certificate. Deletes the CSR
+   * from the database. Stores the signed certificate for later use in the
+   * Database. The request is in the 'Approved' or 'Rejected' state after this
+   * call. Requires Approver role. Approver needs signing rights in KeyVault.
    *
    * @param {string} requestId The certificate request id
    *
@@ -592,17 +574,13 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Approve the certificate request.
    *
-   * Validates the request with the application database.
-   * - If Approved:
-   * - New Key Pair request: Creates the new key pair
-   * in the requested format, signs the certificate and stores the
-   * private key for later securely in KeyVault.
-   * - Cert Signing Request: Creates and signs the certificate.
-   * Deletes the CSR from the database.
-   * Stores the signed certificate for later use in the Database.
-   * The request is in the 'Approved' or 'Rejected' state after this call.
-   * Requires Approver role.
-   * Approver needs signing rights in KeyVault.
+   * Validates the request with the application database. - If Approved: - New
+   * Key Pair request: Creates the new key pair in the requested format, signs
+   * the certificate and stores the private key for later securely in KeyVault. -
+   * Cert Signing Request: Creates and signs the certificate. Deletes the CSR
+   * from the database. Stores the signed certificate for later use in the
+   * Database. The request is in the 'Approved' or 'Rejected' state after this
+   * call. Requires Approver role. Approver needs signing rights in KeyVault.
    *
    * @param {string} requestId The certificate request id
    *
@@ -640,9 +618,8 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Reject the certificate request.
    *
-   * The request is in the 'Rejected' state after this call.
-   * Requires Approver role.
-   * Approver needs signing rights in KeyVault.
+   * The request is in the 'Rejected' state after this call. Requires Approver
+   * role. Approver needs signing rights in KeyVault.
    *
    * @param {string} requestId The certificate request id
    *
@@ -662,9 +639,8 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Reject the certificate request.
    *
-   * The request is in the 'Rejected' state after this call.
-   * Requires Approver role.
-   * Approver needs signing rights in KeyVault.
+   * The request is in the 'Rejected' state after this call. Requires Approver
+   * role. Approver needs signing rights in KeyVault.
    *
    * @param {string} requestId The certificate request id
    *
@@ -702,8 +678,8 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Cancel request
    *
-   * The request is in the 'Accepted' state after this call.
-   * Requires Writer role.
+   * The request is in the 'Accepted' state after this call. Requires Writer
+   * role.
    *
    * @param {string} requestId The certificate request id
    *
@@ -723,8 +699,8 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Cancel request
    *
-   * The request is in the 'Accepted' state after this call.
-   * Requires Writer role.
+   * The request is in the 'Accepted' state after this call. Requires Writer
+   * role.
    *
    * @param {string} requestId The certificate request id
    *
@@ -757,6 +733,66 @@ export default class AzureOpcVaultClient extends ServiceClient {
   acceptRequest(requestId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
   acceptRequest(requestId: string, callback: ServiceCallback<void>): void;
   acceptRequest(requestId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+
+
+  /**
+   * @summary Delete request. Physically delete the request.
+   *
+   * By purging the request it is actually physically deleted from the database,
+   * including the public key and other information. Requires Manager role.
+   *
+   * @param {string} requestId The certificate request id
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @returns {Promise} A promise is returned
+   *
+   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
+   *
+   * @reject {Error|ServiceError} - The error object.
+   */
+  deleteRequestWithHttpOperationResponse(requestId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+
+  /**
+   * @summary Delete request. Physically delete the request.
+   *
+   * By purging the request it is actually physically deleted from the database,
+   * including the public key and other information. Requires Manager role.
+   *
+   * @param {string} requestId The certificate request id
+   *
+   * @param {object} [options] Optional Parameters.
+   *
+   * @param {object} [options.customHeaders] Headers that will be added to the
+   * request
+   *
+   * @param {ServiceCallback} [optionalCallback] - The optional callback.
+   *
+   * @returns {ServiceCallback|Promise} If a callback was passed as the last
+   * parameter then it returns the callback else returns a Promise.
+   *
+   * {Promise} A promise is returned.
+   *
+   *                      @resolve {null} - The deserialized result object.
+   *
+   *                      @reject {Error|ServiceError} - The error object.
+   *
+   * {ServiceCallback} optionalCallback(err, result, request, response)
+   *
+   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
+   *
+   *                      {null} [result]   - The deserialized result object if an error did not occur.
+   *
+   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
+   *
+   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
+   */
+  deleteRequest(requestId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  deleteRequest(requestId: string, callback: ServiceCallback<void>): void;
+  deleteRequest(requestId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
 
 
   /**
@@ -816,86 +852,23 @@ export default class AzureOpcVaultClient extends ServiceClient {
 
 
   /**
-   * @summary Delete request. Physically delete the request.
-   *
-   * By purging the request it is actually physically deleted from the
-   * database, including the public key and other information.
-   * Requires Manager role.
-   *
-   * @param {string} requestId The certificate request id
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<null>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  deleteRequestWithHttpOperationResponse(requestId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
-
-  /**
-   * @summary Delete request. Physically delete the request.
-   *
-   * By purging the request it is actually physically deleted from the
-   * database, including the public key and other information.
-   * Requires Manager role.
-   *
-   * @param {string} requestId The certificate request id
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {null} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {null} [result]   - The deserialized result object if an error did not occur.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  deleteRequest(requestId: string, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
-  deleteRequest(requestId: string, callback: ServiceCallback<void>): void;
-  deleteRequest(requestId: string, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
-
-
-  /**
    * @summary Query for certificate requests.
    *
-   * Get all certificate requests in paged form.
-   * The returned model can contain a link to the next page if more results are
-   * available.  Use ListRequests to continue.
+   * Get all certificate requests in paged form. The returned model can contain a
+   * link to the next page if more results are available. Use ListRequests to
+   * continue.
    *
    * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.query] optional, query filter
-   *
-   * @param {string} [options.query.entityId] The entity id to filter with
-   *
-   * @param {string} [options.query.state] The certificate request state.
-   * Possible values include: 'New', 'Approved', 'Rejected', 'Failure',
-   * 'Completed', 'Accepted'
    *
    * @param {number} [options.pageSize] optional, the maximum number of result
    * per page
+   *
+   * @param {object} [options.body] optional, query filter
+   *
+   * @param {string} [options.body.entityId] The entity id to filter with
+   *
+   * @param {string} [options.body.state] Possible values include: 'New',
+   * 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -906,27 +879,26 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  queryRequestsWithHttpOperationResponse(options?: { query? : models.CertificateRequestQueryRequestApiModel, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.CertificateRequestQueryResponseApiModel>>;
+  queryRequestsWithHttpOperationResponse(options?: { pageSize? : number, body? : models.CertificateRequestQueryRequestApiModel, customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.CertificateRequestQueryResponseApiModel>>;
 
   /**
    * @summary Query for certificate requests.
    *
-   * Get all certificate requests in paged form.
-   * The returned model can contain a link to the next page if more results are
-   * available.  Use ListRequests to continue.
+   * Get all certificate requests in paged form. The returned model can contain a
+   * link to the next page if more results are available. Use ListRequests to
+   * continue.
    *
    * @param {object} [options] Optional Parameters.
    *
-   * @param {object} [options.query] optional, query filter
-   *
-   * @param {string} [options.query.entityId] The entity id to filter with
-   *
-   * @param {string} [options.query.state] The certificate request state.
-   * Possible values include: 'New', 'Approved', 'Rejected', 'Failure',
-   * 'Completed', 'Accepted'
-   *
    * @param {number} [options.pageSize] optional, the maximum number of result
    * per page
+   *
+   * @param {object} [options.body] optional, query filter
+   *
+   * @param {string} [options.body.entityId] The entity id to filter with
+   *
+   * @param {string} [options.body.state] Possible values include: 'New',
+   * 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'
    *
    * @param {object} [options.customHeaders] Headers that will be added to the
    * request
@@ -954,18 +926,17 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  queryRequests(options?: { query? : models.CertificateRequestQueryRequestApiModel, pageSize? : number, customHeaders? : { [headerName: string]: string; } }): Promise<models.CertificateRequestQueryResponseApiModel>;
+  queryRequests(options?: { pageSize? : number, body? : models.CertificateRequestQueryRequestApiModel, customHeaders? : { [headerName: string]: string; } }): Promise<models.CertificateRequestQueryResponseApiModel>;
   queryRequests(callback: ServiceCallback<models.CertificateRequestQueryResponseApiModel>): void;
-  queryRequests(options: { query? : models.CertificateRequestQueryRequestApiModel, pageSize? : number, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.CertificateRequestQueryResponseApiModel>): void;
+  queryRequests(options: { pageSize? : number, body? : models.CertificateRequestQueryRequestApiModel, customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.CertificateRequestQueryResponseApiModel>): void;
 
 
   /**
    * @summary Lists certificate requests.
    *
    * Get all certificate requests in paged form or continue a current listing or
-   * query.
-   * The returned model can contain a link to the next page if more results are
-   * available.
+   * query. The returned model can contain a link to the next page if more
+   * results are available.
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -989,9 +960,8 @@ export default class AzureOpcVaultClient extends ServiceClient {
    * @summary Lists certificate requests.
    *
    * Get all certificate requests in paged form or continue a current listing or
-   * query.
-   * The returned model can contain a link to the next page if more results are
-   * available.
+   * query. The returned model can contain a link to the next page if more
+   * results are available.
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -1032,66 +1002,11 @@ export default class AzureOpcVaultClient extends ServiceClient {
 
 
   /**
-   * @summary Return the service status in the form of the service status
-   * api model.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @returns {Promise} A promise is returned
-   *
-   * @resolve {HttpOperationResponse<StatusResponseApiModel>} - The deserialized result object.
-   *
-   * @reject {Error|ServiceError} - The error object.
-   */
-  getStatusWithHttpOperationResponse(options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.StatusResponseApiModel>>;
-
-  /**
-   * @summary Return the service status in the form of the service status
-   * api model.
-   *
-   * @param {object} [options] Optional Parameters.
-   *
-   * @param {object} [options.customHeaders] Headers that will be added to the
-   * request
-   *
-   * @param {ServiceCallback} [optionalCallback] - The optional callback.
-   *
-   * @returns {ServiceCallback|Promise} If a callback was passed as the last
-   * parameter then it returns the callback else returns a Promise.
-   *
-   * {Promise} A promise is returned.
-   *
-   *                      @resolve {StatusResponseApiModel} - The deserialized result object.
-   *
-   *                      @reject {Error|ServiceError} - The error object.
-   *
-   * {ServiceCallback} optionalCallback(err, result, request, response)
-   *
-   *                      {Error|ServiceError}  err        - The Error object if an error occurred, null otherwise.
-   *
-   *                      {StatusResponseApiModel} [result]   - The deserialized result object if an error did not occur.
-   *                      See {@link StatusResponseApiModel} for more
-   *                      information.
-   *
-   *                      {WebResource} [request]  - The HTTP Request object if an error did not occur.
-   *
-   *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
-   */
-  getStatus(options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.StatusResponseApiModel>;
-  getStatus(callback: ServiceCallback<models.StatusResponseApiModel>): void;
-  getStatus(options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.StatusResponseApiModel>): void;
-
-
-  /**
    * @summary Get information about all groups.
    *
-   * A trust group has a root certificate which issues certificates
-   * to entities.  Entities can be part of a trust group and thus
-   * trust the root certificate and all entities that the root has
-   * issued certificates for.
+   * A trust group has a root certificate which issues certificates to entities.
+   * Entities can be part of a trust group and thus trust the root certificate
+   * and all entities that the root has issued certificates for.
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -1114,10 +1029,9 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Get information about all groups.
    *
-   * A trust group has a root certificate which issues certificates
-   * to entities.  Entities can be part of a trust group and thus
-   * trust the root certificate and all entities that the root has
-   * issued certificates for.
+   * A trust group has a root certificate which issues certificates to entities.
+   * Entities can be part of a trust group and thus trust the root certificate
+   * and all entities that the root has issued certificates for.
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -1162,24 +1076,23 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    * Requires manager role.
    *
-   * @param {object} request The create request
+   * @param {object} body The create request
    *
-   * @param {string} request.name The new name of the trust group
+   * @param {string} [body.name] The new name of the trust group
    *
-   * @param {string} request.parentId The identifer of the parent trust group.
+   * @param {string} [body.parentId] The identifer of the parent trust group.
    *
-   * @param {string} request.subjectName The subject name of the group as
+   * @param {string} [body.subjectName] The subject name of the group as
    * distinguished name.
    *
-   * @param {string} [request.issuedLifetime] The lifetime of certificates issued
-   * in the group.
+   * @param {string} [body.issuedLifetime] The lifetime of certificates issued in
+   * the group.
    *
-   * @param {number} [request.issuedKeySize] The issued certificate key size in
+   * @param {number} [body.issuedKeySize] The issued certificate key size in
    * bits.
    *
-   * @param {string} [request.issuedSignatureAlgorithm] The issued certificate
-   * signature algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-   * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @param {string} [body.issuedSignatureAlgorithm] Possible values include:
+   * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -1192,31 +1105,30 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  createGroupWithHttpOperationResponse(request: models.TrustGroupRegistrationRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.TrustGroupRegistrationResponseApiModel>>;
+  createGroupWithHttpOperationResponse(body: models.TrustGroupRegistrationRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.TrustGroupRegistrationResponseApiModel>>;
 
   /**
    * @summary Create new sub-group of an existing group.
    *
    * Requires manager role.
    *
-   * @param {object} request The create request
+   * @param {object} body The create request
    *
-   * @param {string} request.name The new name of the trust group
+   * @param {string} [body.name] The new name of the trust group
    *
-   * @param {string} request.parentId The identifer of the parent trust group.
+   * @param {string} [body.parentId] The identifer of the parent trust group.
    *
-   * @param {string} request.subjectName The subject name of the group as
+   * @param {string} [body.subjectName] The subject name of the group as
    * distinguished name.
    *
-   * @param {string} [request.issuedLifetime] The lifetime of certificates issued
-   * in the group.
+   * @param {string} [body.issuedLifetime] The lifetime of certificates issued in
+   * the group.
    *
-   * @param {number} [request.issuedKeySize] The issued certificate key size in
+   * @param {number} [body.issuedKeySize] The issued certificate key size in
    * bits.
    *
-   * @param {string} [request.issuedSignatureAlgorithm] The issued certificate
-   * signature algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-   * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @param {string} [body.issuedSignatureAlgorithm] Possible values include:
+   * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -1246,18 +1158,17 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  createGroup(request: models.TrustGroupRegistrationRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.TrustGroupRegistrationResponseApiModel>;
-  createGroup(request: models.TrustGroupRegistrationRequestApiModel, callback: ServiceCallback<models.TrustGroupRegistrationResponseApiModel>): void;
-  createGroup(request: models.TrustGroupRegistrationRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.TrustGroupRegistrationResponseApiModel>): void;
+  createGroup(body: models.TrustGroupRegistrationRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.TrustGroupRegistrationResponseApiModel>;
+  createGroup(body: models.TrustGroupRegistrationRequestApiModel, callback: ServiceCallback<models.TrustGroupRegistrationResponseApiModel>): void;
+  createGroup(body: models.TrustGroupRegistrationRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.TrustGroupRegistrationResponseApiModel>): void;
 
 
   /**
    * @summary Get group information.
    *
-   * A trust group has a root certificate which issues certificates
-   * to entities.  Entities can be part of a trust group and thus
-   * trust the root certificate and all entities that the root has
-   * issued certificates for.
+   * A trust group has a root certificate which issues certificates to entities.
+   * Entities can be part of a trust group and thus trust the root certificate
+   * and all entities that the root has issued certificates for.
    *
    * @param {string} groupId The group id
    *
@@ -1277,10 +1188,9 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Get group information.
    *
-   * A trust group has a root certificate which issues certificates
-   * to entities.  Entities can be part of a trust group and thus
-   * trust the root certificate and all entities that the root has
-   * issued certificates for.
+   * A trust group has a root certificate which issues certificates to entities.
+   * Entities can be part of a trust group and thus trust the root certificate
+   * and all entities that the root has issued certificates for.
    *
    * @param {string} groupId The group id
    *
@@ -1320,24 +1230,22 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Update group registration.
    *
-   * Use this function with care and only if you are aware of
-   * the security implications.
-   * Requires manager role.
+   * Use this function with care and only if you are aware of the security
+   * implications. Requires manager role.
    *
    * @param {string} groupId The group id
    *
-   * @param {object} request The group configuration
+   * @param {object} body The group configuration
    *
-   * @param {string} [request.name] The name of the trust group
+   * @param {string} [body.name] The name of the trust group
    *
-   * @param {string} [request.issuedLifetime] The issued certificate lifetime.
+   * @param {string} [body.issuedLifetime] The issued certificate lifetime.
    *
-   * @param {number} [request.issuedKeySize] The issued certificate key size in
+   * @param {number} [body.issuedKeySize] The issued certificate key size in
    * bits.
    *
-   * @param {string} [request.issuedSignatureAlgorithm] The issued certificate
-   * key size in bits. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-   * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @param {string} [body.issuedSignatureAlgorithm] Possible values include:
+   * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -1350,29 +1258,27 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  updateGroupWithHttpOperationResponse(groupId: string, request: models.TrustGroupUpdateRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
+  updateGroupWithHttpOperationResponse(groupId: string, body: models.TrustGroupUpdateRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<void>>;
 
   /**
    * @summary Update group registration.
    *
-   * Use this function with care and only if you are aware of
-   * the security implications.
-   * Requires manager role.
+   * Use this function with care and only if you are aware of the security
+   * implications. Requires manager role.
    *
    * @param {string} groupId The group id
    *
-   * @param {object} request The group configuration
+   * @param {object} body The group configuration
    *
-   * @param {string} [request.name] The name of the trust group
+   * @param {string} [body.name] The name of the trust group
    *
-   * @param {string} [request.issuedLifetime] The issued certificate lifetime.
+   * @param {string} [body.issuedLifetime] The issued certificate lifetime.
    *
-   * @param {number} [request.issuedKeySize] The issued certificate key size in
+   * @param {number} [body.issuedKeySize] The issued certificate key size in
    * bits.
    *
-   * @param {string} [request.issuedSignatureAlgorithm] The issued certificate
-   * key size in bits. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-   * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @param {string} [body.issuedSignatureAlgorithm] Possible values include:
+   * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -1400,17 +1306,16 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  updateGroup(groupId: string, request: models.TrustGroupUpdateRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
-  updateGroup(groupId: string, request: models.TrustGroupUpdateRequestApiModel, callback: ServiceCallback<void>): void;
-  updateGroup(groupId: string, request: models.TrustGroupUpdateRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
+  updateGroup(groupId: string, body: models.TrustGroupUpdateRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<void>;
+  updateGroup(groupId: string, body: models.TrustGroupUpdateRequestApiModel, callback: ServiceCallback<void>): void;
+  updateGroup(groupId: string, body: models.TrustGroupUpdateRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<void>): void;
 
 
   /**
    * @summary Delete a group.
    *
-   * After this operation the Issuer CA, CRLs and keys become inaccessible.
-   * Use this function with extreme caution.
-   * Requires manager role.
+   * After this operation the Issuer CA, CRLs and keys become inaccessible. Use
+   * this function with extreme caution. Requires manager role.
    *
    * @param {string} groupId The group id
    *
@@ -1430,9 +1335,8 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Delete a group.
    *
-   * After this operation the Issuer CA, CRLs and keys become inaccessible.
-   * Use this function with extreme caution.
-   * Requires manager role.
+   * After this operation the Issuer CA, CRLs and keys become inaccessible. Use
+   * this function with extreme caution. Requires manager role.
    *
    * @param {string} groupId The group id
    *
@@ -1472,34 +1376,32 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    * Requires manager role.
    *
-   * @param {object} request The create request
+   * @param {object} body The create request
    *
-   * @param {string} request.name The new name of the trust group root
+   * @param {string} [body.name] The new name of the trust group root
    *
-   * @param {string} [request.type] The trust group type. Possible values
-   * include: 'ApplicationInstanceCertificate', 'HttpsCertificate',
+   * @param {string} [body.type] Possible values include:
+   * 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
    *
-   * @param {string} request.subjectName The subject name of the group as
+   * @param {string} [body.subjectName] The subject name of the group as
    * distinguished name.
    *
-   * @param {string} request.lifetime The lifetime of the trust group root
+   * @param {string} [body.lifetime] The lifetime of the trust group root
    * certificate.
    *
-   * @param {number} [request.keySize] The certificate key size in bits.
+   * @param {number} [body.keySize] The certificate key size in bits.
    *
-   * @param {string} [request.signatureAlgorithm] The certificate signature
-   * algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-   * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @param {string} [body.signatureAlgorithm] Possible values include: 'Rsa256',
+   * 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    *
-   * @param {string} [request.issuedLifetime] The issued certificate lifetime.
+   * @param {string} [body.issuedLifetime] The issued certificate lifetime.
    *
-   * @param {number} [request.issuedKeySize] The issued certificate key size in
+   * @param {number} [body.issuedKeySize] The issued certificate key size in
    * bits.
    *
-   * @param {string} [request.issuedSignatureAlgorithm] The issued certificate
-   * signature algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-   * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @param {string} [body.issuedSignatureAlgorithm] Possible values include:
+   * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -1512,41 +1414,39 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    * @reject {Error|ServiceError} - The error object.
    */
-  createRootWithHttpOperationResponse(request: models.TrustGroupRootCreateRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.TrustGroupRegistrationResponseApiModel>>;
+  createRootWithHttpOperationResponse(body: models.TrustGroupRootCreateRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<HttpOperationResponse<models.TrustGroupRegistrationResponseApiModel>>;
 
   /**
    * @summary Create new root group.
    *
    * Requires manager role.
    *
-   * @param {object} request The create request
+   * @param {object} body The create request
    *
-   * @param {string} request.name The new name of the trust group root
+   * @param {string} [body.name] The new name of the trust group root
    *
-   * @param {string} [request.type] The trust group type. Possible values
-   * include: 'ApplicationInstanceCertificate', 'HttpsCertificate',
+   * @param {string} [body.type] Possible values include:
+   * 'ApplicationInstanceCertificate', 'HttpsCertificate',
    * 'UserCredentialCertificate'
    *
-   * @param {string} request.subjectName The subject name of the group as
+   * @param {string} [body.subjectName] The subject name of the group as
    * distinguished name.
    *
-   * @param {string} request.lifetime The lifetime of the trust group root
+   * @param {string} [body.lifetime] The lifetime of the trust group root
    * certificate.
    *
-   * @param {number} [request.keySize] The certificate key size in bits.
+   * @param {number} [body.keySize] The certificate key size in bits.
    *
-   * @param {string} [request.signatureAlgorithm] The certificate signature
-   * algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-   * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @param {string} [body.signatureAlgorithm] Possible values include: 'Rsa256',
+   * 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    *
-   * @param {string} [request.issuedLifetime] The issued certificate lifetime.
+   * @param {string} [body.issuedLifetime] The issued certificate lifetime.
    *
-   * @param {number} [request.issuedKeySize] The issued certificate key size in
+   * @param {number} [body.issuedKeySize] The issued certificate key size in
    * bits.
    *
-   * @param {string} [request.issuedSignatureAlgorithm] The issued certificate
-   * signature algorithm. Possible values include: 'Rsa256', 'Rsa384', 'Rsa512',
-   * 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
+   * @param {string} [body.issuedSignatureAlgorithm] Possible values include:
+   * 'Rsa256', 'Rsa384', 'Rsa512', 'Rsa256Pss', 'Rsa384Pss', 'Rsa512Pss'
    *
    * @param {object} [options] Optional Parameters.
    *
@@ -1576,9 +1476,9 @@ export default class AzureOpcVaultClient extends ServiceClient {
    *
    *                      {http.IncomingMessage} [response] - The HTTP Response stream if an error did not occur.
    */
-  createRoot(request: models.TrustGroupRootCreateRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.TrustGroupRegistrationResponseApiModel>;
-  createRoot(request: models.TrustGroupRootCreateRequestApiModel, callback: ServiceCallback<models.TrustGroupRegistrationResponseApiModel>): void;
-  createRoot(request: models.TrustGroupRootCreateRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.TrustGroupRegistrationResponseApiModel>): void;
+  createRoot(body: models.TrustGroupRootCreateRequestApiModel, options?: { customHeaders? : { [headerName: string]: string; } }): Promise<models.TrustGroupRegistrationResponseApiModel>;
+  createRoot(body: models.TrustGroupRootCreateRequestApiModel, callback: ServiceCallback<models.TrustGroupRegistrationResponseApiModel>): void;
+  createRoot(body: models.TrustGroupRootCreateRequestApiModel, options: { customHeaders? : { [headerName: string]: string; } }, callback: ServiceCallback<models.TrustGroupRegistrationResponseApiModel>): void;
 
 
   /**
@@ -1638,8 +1538,8 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Add trust relationship
    *
-   * Define trust between two entities.  The entities are identifiers
-   * of application, groups, or endpoints.
+   * Define trust between two entities. The entities are identifiers of
+   * application, groups, or endpoints.
    *
    * @param {string} entityId The entity identifier, e.g. group, etc.
    *
@@ -1661,8 +1561,8 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Add trust relationship
    *
-   * Define trust between two entities.  The entities are identifiers
-   * of application, groups, or endpoints.
+   * Define trust between two entities. The entities are identifiers of
+   * application, groups, or endpoints.
    *
    * @param {string} entityId The entity identifier, e.g. group, etc.
    *
@@ -1702,8 +1602,8 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary List trusted certificates
    *
-   * Returns all certificates the entity should trust based on the
-   * applied trust configuration.
+   * Returns all certificates the entity should trust based on the applied trust
+   * configuration.
    *
    * @param {string} entityId
    *
@@ -1728,8 +1628,8 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary List trusted certificates
    *
-   * Returns all certificates the entity should trust based on the
-   * applied trust configuration.
+   * Returns all certificates the entity should trust based on the applied trust
+   * configuration.
    *
    * @param {string} entityId
    *
@@ -1774,8 +1674,8 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Remove a trust relationship
    *
-   * Removes trust between two entities.  The entities are identifiers
-   * of application, groups, or endpoints.
+   * Removes trust between two entities. The entities are identifiers of
+   * application, groups, or endpoints.
    *
    * @param {string} entityId The entity identifier, e.g. group, etc.
    *
@@ -1797,8 +1697,8 @@ export default class AzureOpcVaultClient extends ServiceClient {
   /**
    * @summary Remove a trust relationship
    *
-   * Removes trust between two entities.  The entities are identifiers
-   * of application, groups, or endpoints.
+   * Removes trust between two entities. The entities are identifiers of
+   * application, groups, or endpoints.
    *
    * @param {string} entityId The entity identifier, e.g. group, etc.
    *

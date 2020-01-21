@@ -17,13 +17,11 @@ module azure.iiot.opc.twin
       # (default: RootFolder).
       attr_accessor :node_id
 
-      # @return [BrowseDirection] Direction to browse in
-      # (default: forward). Possible values include: 'Forward', 'Backward',
-      # 'Both'
+      # @return [BrowseDirection] Possible values include: 'Forward',
+      # 'Backward', 'Both'
       attr_accessor :direction
 
-      # @return [BrowseViewApiModel] View to browse
-      # (default: null = new view = All nodes).
+      # @return [BrowseViewApiModel]
       attr_accessor :view
 
       # @return [String] Reference types to browse.
@@ -51,7 +49,7 @@ module azure.iiot.opc.twin
       # (default is false). Default value: false .
       attr_accessor :read_variable_values
 
-      # @return [RequestHeaderApiModel] Optional request header
+      # @return [RequestHeaderApiModel]
       attr_accessor :header
 
 

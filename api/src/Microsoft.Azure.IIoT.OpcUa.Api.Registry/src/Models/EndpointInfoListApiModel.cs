@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     public class EndpointInfoListApiModel {
 
         /// <summary>
-        /// Registrations
+        /// Endpoint registrations
         /// </summary>
         [JsonProperty(PropertyName = "items")]
         public List<EndpointInfoApiModel> Items { get; set; }

@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
     using Newtonsoft.Json;
     using System;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Deletes data at times
@@ -16,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// The timestamps to delete
         /// </summary>
         [JsonProperty(PropertyName = "reqTimes")]
+        [Required]
         public DateTime[] ReqTimes { get; set; }
     }
 }

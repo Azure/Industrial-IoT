@@ -35,9 +35,7 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         /// <param name="endTime">End time to read until</param>
         /// <param name="processingInterval">Interval to process</param>
         /// <param name="aggregateTypeId">The aggregate type node ids</param>
-        /// <param name="aggregateConfiguration">A configuration for the
-        /// aggregate</param>
-        public ReadProcessedValuesDetailsApiModel(System.DateTime? startTime = default(System.DateTime?), System.DateTime? endTime = default(System.DateTime?), double? processingInterval = default(double?), string aggregateTypeId = default(string), AggregateConfigApiModel aggregateConfiguration = default(AggregateConfigApiModel))
+        public ReadProcessedValuesDetailsApiModel(System.DateTime? startTime = default(System.DateTime?), System.DateTime? endTime = default(System.DateTime?), double? processingInterval = default(double?), string aggregateTypeId = default(string), AggregateConfigurationApiModel aggregateConfiguration = default(AggregateConfigurationApiModel))
         {
             StartTime = startTime;
             EndTime = endTime;
@@ -77,10 +75,9 @@ namespace Microsoft.Azure.IIoT.Opc.History.Models
         public string AggregateTypeId { get; set; }
 
         /// <summary>
-        /// Gets or sets a configuration for the aggregate
         /// </summary>
         [JsonProperty(PropertyName = "aggregateConfiguration")]
-        public AggregateConfigApiModel AggregateConfiguration { get; set; }
+        public AggregateConfigurationApiModel AggregateConfiguration { get; set; }
 
     }
 }

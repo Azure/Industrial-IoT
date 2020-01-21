@@ -13,7 +13,7 @@ package com.microsoft.azure.iiot.opc.registry.models;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * Application registration request.
+ * Server registration request.
  */
 public class ServerRegistrationRequestApiModel {
     /**
@@ -29,13 +29,7 @@ public class ServerRegistrationRequestApiModel {
     private String id;
 
     /**
-     * An optional callback hook to register.
-     */
-    @JsonProperty(value = "callback")
-    private CallbackApiModel callback;
-
-    /**
-     * Upon discovery, activate all endpoints with this filter.
+     * The activationFilter property.
      */
     @JsonProperty(value = "activationFilter")
     private EndpointActivationFilterApiModel activationFilter;
@@ -81,27 +75,7 @@ public class ServerRegistrationRequestApiModel {
     }
 
     /**
-     * Get an optional callback hook to register.
-     *
-     * @return the callback value
-     */
-    public CallbackApiModel callback() {
-        return this.callback;
-    }
-
-    /**
-     * Set an optional callback hook to register.
-     *
-     * @param callback the callback value to set
-     * @return the ServerRegistrationRequestApiModel object itself.
-     */
-    public ServerRegistrationRequestApiModel withCallback(CallbackApiModel callback) {
-        this.callback = callback;
-        return this;
-    }
-
-    /**
-     * Get upon discovery, activate all endpoints with this filter.
+     * Get the activationFilter value.
      *
      * @return the activationFilter value
      */
@@ -110,7 +84,7 @@ public class ServerRegistrationRequestApiModel {
     }
 
     /**
-     * Set upon discovery, activate all endpoints with this filter.
+     * Set the activationFilter value.
      *
      * @param activationFilter the activationFilter value to set
      * @return the ServerRegistrationRequestApiModel object itself.

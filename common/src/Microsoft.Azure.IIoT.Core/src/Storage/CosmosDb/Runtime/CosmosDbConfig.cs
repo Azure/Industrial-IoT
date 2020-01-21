@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime {
-    using Microsoft.Azure.IIoT.Storage.CosmosDb;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
 
@@ -18,8 +17,10 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime {
 
         /// <inheritdoc/>
         public string DbConnectionString => GetStringOrDefault(kCosmosDbConnectionString,
-            GetStringOrDefault("PCS_TELEMETRY_DOCUMENTDB_CONNSTRING",
-                GetStringOrDefault("_DB_CS", null)));
+            GetStringOrDefault(PcsVariable.PCS_COSMOSDB_CONNSTRING,
+                GetStringOrDefault("PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING",
+                GetStringOrDefault("PCS_TELEMETRY_DOCUMENTDB_CONNSTRING",
+                    GetStringOrDefault("_DB_CS", null)))));
         /// <inheritdoc/>
         public int? ThroughputUnits => GetIntOrDefault(kCosmosDbThroughputUnits,
             GetIntOrDefault("PCS_COSMOSDB_THROUGHPUT", 400));
@@ -28,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime {
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
-        public CosmosDbConfig(IConfigurationRoot configuration) :
+        public CosmosDbConfig(IConfiguration configuration) :
             base(configuration) {
         }
     }

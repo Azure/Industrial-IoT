@@ -1279,9 +1279,6 @@ namespace Opc.Ua.Encoders {
             if (values == null) {
                 WriteNull(property);
             }
-            else if (values.Count == 0 && IgnoreDefaultValues) {
-                WriteNull(property);
-            }
             else {
                 PushArray(property, values.Count);
                 foreach (var value in values) {

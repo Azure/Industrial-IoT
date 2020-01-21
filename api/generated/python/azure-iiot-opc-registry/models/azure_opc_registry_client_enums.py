@@ -12,14 +12,6 @@
 from enum import Enum
 
 
-class CallbackMethodType(Enum):
-
-    get = "Get"
-    post = "Post"
-    put = "Put"
-    delete = "Delete"
-
-
 class SecurityMode(Enum):
 
     best = "Best"
@@ -55,10 +47,17 @@ class CredentialType(Enum):
 
 class SecurityAssessment(Enum):
 
-    unknown = "Unknown"
     low = "Low"
     medium = "Medium"
     high = "High"
+
+
+class TraceLogLevel(Enum):
+
+    error = "Error"
+    information = "Information"
+    debug = "Debug"
+    verbose = "Verbose"
 
 
 class EndpointActivationState(Enum):
@@ -77,11 +76,3 @@ class EndpointConnectivityState(Enum):
     certificate_invalid = "CertificateInvalid"
     ready = "Ready"
     error = "Error"
-
-
-class SupervisorLogLevel(Enum):
-
-    error = "Error"
-    information = "Information"
-    debug = "Debug"
-    verbose = "Verbose"

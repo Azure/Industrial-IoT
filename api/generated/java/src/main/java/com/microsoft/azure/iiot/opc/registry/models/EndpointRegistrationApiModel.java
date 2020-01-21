@@ -36,7 +36,19 @@ public class EndpointRegistrationApiModel {
     private String siteId;
 
     /**
-     * Endpoint information of the registration.
+     * Supervisor that manages the endpoint.
+     */
+    @JsonProperty(value = "supervisorId")
+    private String supervisorId;
+
+    /**
+     * Discoverer that registered the endpoint.
+     */
+    @JsonProperty(value = "discovererId")
+    private String discovererId;
+
+    /**
+     * The endpoint property.
      */
     @JsonProperty(value = "endpoint", required = true)
     private EndpointApiModel endpoint;
@@ -115,7 +127,47 @@ public class EndpointRegistrationApiModel {
     }
 
     /**
-     * Get endpoint information of the registration.
+     * Get supervisor that manages the endpoint.
+     *
+     * @return the supervisorId value
+     */
+    public String supervisorId() {
+        return this.supervisorId;
+    }
+
+    /**
+     * Set supervisor that manages the endpoint.
+     *
+     * @param supervisorId the supervisorId value to set
+     * @return the EndpointRegistrationApiModel object itself.
+     */
+    public EndpointRegistrationApiModel withSupervisorId(String supervisorId) {
+        this.supervisorId = supervisorId;
+        return this;
+    }
+
+    /**
+     * Get discoverer that registered the endpoint.
+     *
+     * @return the discovererId value
+     */
+    public String discovererId() {
+        return this.discovererId;
+    }
+
+    /**
+     * Set discoverer that registered the endpoint.
+     *
+     * @param discovererId the discovererId value to set
+     * @return the EndpointRegistrationApiModel object itself.
+     */
+    public EndpointRegistrationApiModel withDiscovererId(String discovererId) {
+        this.discovererId = discovererId;
+        return this;
+    }
+
+    /**
+     * Get the endpoint value.
      *
      * @return the endpoint value
      */
@@ -124,7 +176,7 @@ public class EndpointRegistrationApiModel {
     }
 
     /**
-     * Set endpoint information of the registration.
+     * Set the endpoint value.
      *
      * @param endpoint the endpoint value to set
      * @return the EndpointRegistrationApiModel object itself.

@@ -4,9 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub {
+
     /// <summary>
     /// Event processor
     /// </summary>
-    public interface IEventProcessorHost : IHost {
+    public interface IEventProcessorHost : IHostProcess {
     }
 }

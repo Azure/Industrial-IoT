@@ -26,15 +26,8 @@ import com.microsoft.azure.iiot.opc.twin.models.MethodCallRequestApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.MethodCallResponseApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.MethodMetadataRequestApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.MethodMetadataResponseApiModel;
-import com.microsoft.azure.iiot.opc.twin.models.PublishedItemListRequestApiModel;
-import com.microsoft.azure.iiot.opc.twin.models.PublishedItemListResponseApiModel;
-import com.microsoft.azure.iiot.opc.twin.models.PublishStartRequestApiModel;
-import com.microsoft.azure.iiot.opc.twin.models.PublishStartResponseApiModel;
-import com.microsoft.azure.iiot.opc.twin.models.PublishStopRequestApiModel;
-import com.microsoft.azure.iiot.opc.twin.models.PublishStopResponseApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.ReadRequestApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.ReadResponseApiModel;
-import com.microsoft.azure.iiot.opc.twin.models.StatusResponseApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.ValueReadRequestApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.ValueReadResponseApiModel;
 import com.microsoft.azure.iiot.opc.twin.models.ValueWriteRequestApiModel;
@@ -71,7 +64,7 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
      * Initializes an instance of AzureOpcTwinClient client.
      */
     public AzureOpcTwinClientImpl() {
-        this("http://localhost");
+        this("http://localhost:9080");
     }
 
     /**
@@ -91,7 +84,7 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
      * @param restBuilder the builder for building an Retrofit client, bundled with user configurations
      */
     public AzureOpcTwinClientImpl(OkHttpClient.Builder clientBuilder, Retrofit.Builder restBuilder) {
-        this("http://localhost", clientBuilder, restBuilder);
+        this("http://localhost:9080", clientBuilder, restBuilder);
         initialize();
     }
 
@@ -130,86 +123,143 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
      * used by Retrofit to perform actually REST calls.
      */
     interface AzureOpcTwinClientService {
+        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient browse" })
+        @POST("v2/browse/{endpointId}")
+        Observable<Response<ResponseBody>> browse(@Path("endpointId") String endpointId, @Body BrowseRequestApiModel body);
+
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient getSetOfUniqueNodes" })
         @GET("v2/browse/{endpointId}")
         Observable<Response<ResponseBody>> getSetOfUniqueNodes(@Path("endpointId") String endpointId, @Query("nodeId") String nodeId);
 
-        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient browse" })
-        @POST("v2/browse/{endpointId}")
-        Observable<Response<ResponseBody>> browse(@Path("endpointId") String endpointId, @Body BrowseRequestApiModel request);
+        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient browseNext" })
+        @POST("v2/browse/{endpointId}/next")
+        Observable<Response<ResponseBody>> browseNext(@Path("endpointId") String endpointId, @Body BrowseNextRequestApiModel body);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient getNextSetOfUniqueNodes" })
         @GET("v2/browse/{endpointId}/next")
         Observable<Response<ResponseBody>> getNextSetOfUniqueNodes(@Path("endpointId") String endpointId, @Query("continuationToken") String continuationToken);
 
-        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient browseNext" })
-        @POST("v2/browse/{endpointId}/next")
-        Observable<Response<ResponseBody>> browseNext(@Path("endpointId") String endpointId, @Body BrowseNextRequestApiModel request);
-
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient browseUsingPath" })
         @POST("v2/browse/{endpointId}/path")
-        Observable<Response<ResponseBody>> browseUsingPath(@Path("endpointId") String endpointId, @Body BrowsePathRequestApiModel request);
+        Observable<Response<ResponseBody>> browseUsingPath(@Path("endpointId") String endpointId, @Body BrowsePathRequestApiModel body);
 
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient getCallMetadata" })
         @POST("v2/call/{endpointId}/metadata")
-        Observable<Response<ResponseBody>> getCallMetadata(@Path("endpointId") String endpointId, @Body MethodMetadataRequestApiModel request);
+        Observable<Response<ResponseBody>> getCallMetadata(@Path("endpointId") String endpointId, @Body MethodMetadataRequestApiModel body);
 
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient callMethod" })
         @POST("v2/call/{endpointId}")
-        Observable<Response<ResponseBody>> callMethod(@Path("endpointId") String endpointId, @Body MethodCallRequestApiModel request);
+        Observable<Response<ResponseBody>> callMethod(@Path("endpointId") String endpointId, @Body MethodCallRequestApiModel body);
 
-        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient startPublishingValues" })
-        @POST("v2/publish/{endpointId}/start")
-        Observable<Response<ResponseBody>> startPublishingValues(@Path("endpointId") String endpointId, @Body PublishStartRequestApiModel request);
-
-        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient stopPublishingValues" })
-        @POST("v2/publish/{endpointId}/stop")
-        Observable<Response<ResponseBody>> stopPublishingValues(@Path("endpointId") String endpointId, @Body PublishStopRequestApiModel request);
-
-        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient getNextListOfPublishedNodes" })
-        @GET("v2/publish/{endpointId}")
-        Observable<Response<ResponseBody>> getNextListOfPublishedNodes(@Path("endpointId") String endpointId, @Query("continuationToken") String continuationToken);
-
-        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient getFirstListOfPublishedNodes" })
-        @POST("v2/publish/{endpointId}")
-        Observable<Response<ResponseBody>> getFirstListOfPublishedNodes(@Path("endpointId") String endpointId, @Body PublishedItemListRequestApiModel request);
+        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient readValue" })
+        @POST("v2/read/{endpointId}")
+        Observable<Response<ResponseBody>> readValue(@Path("endpointId") String endpointId, @Body ValueReadRequestApiModel body);
 
         @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient getValue" })
         @GET("v2/read/{endpointId}")
         Observable<Response<ResponseBody>> getValue(@Path("endpointId") String endpointId, @Query("nodeId") String nodeId);
 
-        @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient readValue" })
-        @POST("v2/read/{endpointId}")
-        Observable<Response<ResponseBody>> readValue(@Path("endpointId") String endpointId, @Body ValueReadRequestApiModel request);
-
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient readAttributes" })
         @POST("v2/read/{endpointId}/attributes")
-        Observable<Response<ResponseBody>> readAttributes(@Path("endpointId") String endpointId, @Body ReadRequestApiModel request);
-
-        @Headers({ "Content-Type: application/json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient getStatus" })
-        @GET("v2/status")
-        Observable<Response<ResponseBody>> getStatus();
+        Observable<Response<ResponseBody>> readAttributes(@Path("endpointId") String endpointId, @Body ReadRequestApiModel body);
 
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient writeValue" })
         @POST("v2/write/{endpointId}")
-        Observable<Response<ResponseBody>> writeValue(@Path("endpointId") String endpointId, @Body ValueWriteRequestApiModel request);
+        Observable<Response<ResponseBody>> writeValue(@Path("endpointId") String endpointId, @Body ValueWriteRequestApiModel body);
 
         @Headers({ "Content-Type: application/json-patch+json; charset=utf-8", "x-ms-logging-context: com.microsoft.azure.iiot.opc.twin.AzureOpcTwinClient writeAttributes" })
         @POST("v2/write/{endpointId}/attributes")
-        Observable<Response<ResponseBody>> writeAttributes(@Path("endpointId") String endpointId, @Body WriteRequestApiModel request);
+        Observable<Response<ResponseBody>> writeAttributes(@Path("endpointId") String endpointId, @Body WriteRequestApiModel body);
 
     }
 
     /**
+     * Browse node references.
+     * Browse a node on the specified endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
+     *
+     * @param endpointId The identifier of the activated endpoint.
+     * @param body The browse request
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @throws RestException thrown if the request is rejected by server
+     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
+     * @return the BrowseResponseApiModel object if successful.
+     */
+    public BrowseResponseApiModel browse(String endpointId, BrowseRequestApiModel body) {
+        return browseWithServiceResponseAsync(endpointId, body).toBlocking().single().body();
+    }
+
+    /**
+     * Browse node references.
+     * Browse a node on the specified endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
+     *
+     * @param endpointId The identifier of the activated endpoint.
+     * @param body The browse request
+     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the {@link ServiceFuture} object
+     */
+    public ServiceFuture<BrowseResponseApiModel> browseAsync(String endpointId, BrowseRequestApiModel body, final ServiceCallback<BrowseResponseApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(browseWithServiceResponseAsync(endpointId, body), serviceCallback);
+    }
+
+    /**
+     * Browse node references.
+     * Browse a node on the specified endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
+     *
+     * @param endpointId The identifier of the activated endpoint.
+     * @param body The browse request
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the BrowseResponseApiModel object
+     */
+    public Observable<BrowseResponseApiModel> browseAsync(String endpointId, BrowseRequestApiModel body) {
+        return browseWithServiceResponseAsync(endpointId, body).map(new Func1<ServiceResponse<BrowseResponseApiModel>, BrowseResponseApiModel>() {
+            @Override
+            public BrowseResponseApiModel call(ServiceResponse<BrowseResponseApiModel> response) {
+                return response.body();
+            }
+        });
+    }
+
+    /**
+     * Browse node references.
+     * Browse a node on the specified endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
+     *
+     * @param endpointId The identifier of the activated endpoint.
+     * @param body The browse request
+     * @throws IllegalArgumentException thrown if parameters fail the validation
+     * @return the observable to the BrowseResponseApiModel object
+     */
+    public Observable<ServiceResponse<BrowseResponseApiModel>> browseWithServiceResponseAsync(String endpointId, BrowseRequestApiModel body) {
+        if (endpointId == null) {
+            throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
+        }
+        if (body == null) {
+            throw new IllegalArgumentException("Parameter body is required and cannot be null.");
+        }
+        Validator.validate(body);
+        return service.browse(endpointId, body)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<BrowseResponseApiModel>>>() {
+                @Override
+                public Observable<ServiceResponse<BrowseResponseApiModel>> call(Response<ResponseBody> response) {
+                    try {
+                        ServiceResponse<BrowseResponseApiModel> clientResponse = browseDelegate(response);
+                        return Observable.just(clientResponse);
+                    } catch (Throwable t) {
+                        return Observable.error(t);
+                    }
+                }
+            });
+    }
+
+    private ServiceResponse<BrowseResponseApiModel> browseDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<BrowseResponseApiModel, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<BrowseResponseApiModel>() { }.getType())
+                .build(response);
+    }
+
+    /**
      * Browse set of unique target nodes.
-     * Browse the set of unique hierarchically referenced target nodes on the endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     The root node id to browse from can be provided as part of the query
-     parameters.
-     If it is not provided, the RootFolder node is browsed. Note that this
-     is the same as the POST method with the model containing the node id
-     and the targetNodesOnly flag set to true.
+     * Browse the set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. The root node id to browse from can be provided as part of the query parameters. If it is not provided, the RootFolder node is browsed. Note that this is the same as the POST method with the model containing the node id and the targetNodesOnly flag set to true.
      *
      * @param endpointId The identifier of the activated endpoint.
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -223,14 +273,7 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Browse set of unique target nodes.
-     * Browse the set of unique hierarchically referenced target nodes on the endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     The root node id to browse from can be provided as part of the query
-     parameters.
-     If it is not provided, the RootFolder node is browsed. Note that this
-     is the same as the POST method with the model containing the node id
-     and the targetNodesOnly flag set to true.
+     * Browse the set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. The root node id to browse from can be provided as part of the query parameters. If it is not provided, the RootFolder node is browsed. Note that this is the same as the POST method with the model containing the node id and the targetNodesOnly flag set to true.
      *
      * @param endpointId The identifier of the activated endpoint.
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
@@ -243,14 +286,7 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Browse set of unique target nodes.
-     * Browse the set of unique hierarchically referenced target nodes on the endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     The root node id to browse from can be provided as part of the query
-     parameters.
-     If it is not provided, the RootFolder node is browsed. Note that this
-     is the same as the POST method with the model containing the node id
-     and the targetNodesOnly flag set to true.
+     * Browse the set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. The root node id to browse from can be provided as part of the query parameters. If it is not provided, the RootFolder node is browsed. Note that this is the same as the POST method with the model containing the node id and the targetNodesOnly flag set to true.
      *
      * @param endpointId The identifier of the activated endpoint.
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -267,14 +303,7 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Browse set of unique target nodes.
-     * Browse the set of unique hierarchically referenced target nodes on the endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     The root node id to browse from can be provided as part of the query
-     parameters.
-     If it is not provided, the RootFolder node is browsed. Note that this
-     is the same as the POST method with the model containing the node id
-     and the targetNodesOnly flag set to true.
+     * Browse the set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. The root node id to browse from can be provided as part of the query parameters. If it is not provided, the RootFolder node is browsed. Note that this is the same as the POST method with the model containing the node id and the targetNodesOnly flag set to true.
      *
      * @param endpointId The identifier of the activated endpoint.
      * @throws IllegalArgumentException thrown if parameters fail the validation
@@ -301,14 +330,7 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Browse set of unique target nodes.
-     * Browse the set of unique hierarchically referenced target nodes on the endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     The root node id to browse from can be provided as part of the query
-     parameters.
-     If it is not provided, the RootFolder node is browsed. Note that this
-     is the same as the POST method with the model containing the node id
-     and the targetNodesOnly flag set to true.
+     * Browse the set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. The root node id to browse from can be provided as part of the query parameters. If it is not provided, the RootFolder node is browsed. Note that this is the same as the POST method with the model containing the node id and the targetNodesOnly flag set to true.
      *
      * @param endpointId The identifier of the activated endpoint.
      * @param nodeId The node to browse or omit to browse the root node (i=84)
@@ -323,14 +345,7 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Browse set of unique target nodes.
-     * Browse the set of unique hierarchically referenced target nodes on the endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     The root node id to browse from can be provided as part of the query
-     parameters.
-     If it is not provided, the RootFolder node is browsed. Note that this
-     is the same as the POST method with the model containing the node id
-     and the targetNodesOnly flag set to true.
+     * Browse the set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. The root node id to browse from can be provided as part of the query parameters. If it is not provided, the RootFolder node is browsed. Note that this is the same as the POST method with the model containing the node id and the targetNodesOnly flag set to true.
      *
      * @param endpointId The identifier of the activated endpoint.
      * @param nodeId The node to browse or omit to browse the root node (i=84)
@@ -344,14 +359,7 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Browse set of unique target nodes.
-     * Browse the set of unique hierarchically referenced target nodes on the endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     The root node id to browse from can be provided as part of the query
-     parameters.
-     If it is not provided, the RootFolder node is browsed. Note that this
-     is the same as the POST method with the model containing the node id
-     and the targetNodesOnly flag set to true.
+     * Browse the set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. The root node id to browse from can be provided as part of the query parameters. If it is not provided, the RootFolder node is browsed. Note that this is the same as the POST method with the model containing the node id and the targetNodesOnly flag set to true.
      *
      * @param endpointId The identifier of the activated endpoint.
      * @param nodeId The node to browse or omit to browse the root node (i=84)
@@ -369,14 +377,7 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Browse set of unique target nodes.
-     * Browse the set of unique hierarchically referenced target nodes on the endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     The root node id to browse from can be provided as part of the query
-     parameters.
-     If it is not provided, the RootFolder node is browsed. Note that this
-     is the same as the POST method with the model containing the node id
-     and the targetNodesOnly flag set to true.
+     * Browse the set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. The root node id to browse from can be provided as part of the query parameters. If it is not provided, the RootFolder node is browsed. Note that this is the same as the POST method with the model containing the node id and the targetNodesOnly flag set to true.
      *
      * @param endpointId The identifier of the activated endpoint.
      * @param nodeId The node to browse or omit to browse the root node (i=84)
@@ -408,83 +409,75 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     }
 
     /**
-     * Browse node references.
-     * Browse a node on the specified endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Browse next set of references.
+     * Browse next set of references on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The browse request
+     * @param body The request body with continuation token.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the BrowseResponseApiModel object if successful.
+     * @return the BrowseNextResponseApiModel object if successful.
      */
-    public BrowseResponseApiModel browse(String endpointId, BrowseRequestApiModel request) {
-        return browseWithServiceResponseAsync(endpointId, request).toBlocking().single().body();
+    public BrowseNextResponseApiModel browseNext(String endpointId, BrowseNextRequestApiModel body) {
+        return browseNextWithServiceResponseAsync(endpointId, body).toBlocking().single().body();
     }
 
     /**
-     * Browse node references.
-     * Browse a node on the specified endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Browse next set of references.
+     * Browse next set of references on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The browse request
+     * @param body The request body with continuation token.
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    public ServiceFuture<BrowseResponseApiModel> browseAsync(String endpointId, BrowseRequestApiModel request, final ServiceCallback<BrowseResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(browseWithServiceResponseAsync(endpointId, request), serviceCallback);
+    public ServiceFuture<BrowseNextResponseApiModel> browseNextAsync(String endpointId, BrowseNextRequestApiModel body, final ServiceCallback<BrowseNextResponseApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(browseNextWithServiceResponseAsync(endpointId, body), serviceCallback);
     }
 
     /**
-     * Browse node references.
-     * Browse a node on the specified endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Browse next set of references.
+     * Browse next set of references on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The browse request
+     * @param body The request body with continuation token.
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the BrowseResponseApiModel object
+     * @return the observable to the BrowseNextResponseApiModel object
      */
-    public Observable<BrowseResponseApiModel> browseAsync(String endpointId, BrowseRequestApiModel request) {
-        return browseWithServiceResponseAsync(endpointId, request).map(new Func1<ServiceResponse<BrowseResponseApiModel>, BrowseResponseApiModel>() {
+    public Observable<BrowseNextResponseApiModel> browseNextAsync(String endpointId, BrowseNextRequestApiModel body) {
+        return browseNextWithServiceResponseAsync(endpointId, body).map(new Func1<ServiceResponse<BrowseNextResponseApiModel>, BrowseNextResponseApiModel>() {
             @Override
-            public BrowseResponseApiModel call(ServiceResponse<BrowseResponseApiModel> response) {
+            public BrowseNextResponseApiModel call(ServiceResponse<BrowseNextResponseApiModel> response) {
                 return response.body();
             }
         });
     }
 
     /**
-     * Browse node references.
-     * Browse a node on the specified endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Browse next set of references.
+     * Browse next set of references on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The browse request
+     * @param body The request body with continuation token.
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the BrowseResponseApiModel object
+     * @return the observable to the BrowseNextResponseApiModel object
      */
-    public Observable<ServiceResponse<BrowseResponseApiModel>> browseWithServiceResponseAsync(String endpointId, BrowseRequestApiModel request) {
+    public Observable<ServiceResponse<BrowseNextResponseApiModel>> browseNextWithServiceResponseAsync(String endpointId, BrowseNextRequestApiModel body) {
         if (endpointId == null) {
             throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
         }
-        if (request == null) {
-            throw new IllegalArgumentException("Parameter request is required and cannot be null.");
+        if (body == null) {
+            throw new IllegalArgumentException("Parameter body is required and cannot be null.");
         }
-        Validator.validate(request);
-        return service.browse(endpointId, request)
-            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<BrowseResponseApiModel>>>() {
+        Validator.validate(body);
+        return service.browseNext(endpointId, body)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<BrowseNextResponseApiModel>>>() {
                 @Override
-                public Observable<ServiceResponse<BrowseResponseApiModel>> call(Response<ResponseBody> response) {
+                public Observable<ServiceResponse<BrowseNextResponseApiModel>> call(Response<ResponseBody> response) {
                     try {
-                        ServiceResponse<BrowseResponseApiModel> clientResponse = browseDelegate(response);
+                        ServiceResponse<BrowseNextResponseApiModel> clientResponse = browseNextDelegate(response);
                         return Observable.just(clientResponse);
                     } catch (Throwable t) {
                         return Observable.error(t);
@@ -493,20 +486,15 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
             });
     }
 
-    private ServiceResponse<BrowseResponseApiModel> browseDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
-        return this.restClient().responseBuilderFactory().<BrowseResponseApiModel, RestException>newInstance(this.serializerAdapter())
-                .register(200, new TypeToken<BrowseResponseApiModel>() { }.getType())
+    private ServiceResponse<BrowseNextResponseApiModel> browseNextDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<BrowseNextResponseApiModel, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<BrowseNextResponseApiModel>() { }.getType())
                 .build(response);
     }
 
     /**
      * Browse next set of unique target nodes.
-     * Browse the next set of unique hierarchically referenced target nodes on the
-     endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     Note that this is the same as the POST method with the model containing
-     the continuation token and the targetNodesOnly flag set to true.
+     * Browse the next set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. Note that this is the same as the POST method with the model containing the continuation token and the targetNodesOnly flag set to true.
      *
      * @param endpointId The identifier of the activated endpoint.
      * @param continuationToken Continuation token from GetSetOfUniqueNodes operation
@@ -521,12 +509,7 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Browse next set of unique target nodes.
-     * Browse the next set of unique hierarchically referenced target nodes on the
-     endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     Note that this is the same as the POST method with the model containing
-     the continuation token and the targetNodesOnly flag set to true.
+     * Browse the next set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. Note that this is the same as the POST method with the model containing the continuation token and the targetNodesOnly flag set to true.
      *
      * @param endpointId The identifier of the activated endpoint.
      * @param continuationToken Continuation token from GetSetOfUniqueNodes operation
@@ -540,12 +523,7 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Browse next set of unique target nodes.
-     * Browse the next set of unique hierarchically referenced target nodes on the
-     endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     Note that this is the same as the POST method with the model containing
-     the continuation token and the targetNodesOnly flag set to true.
+     * Browse the next set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. Note that this is the same as the POST method with the model containing the continuation token and the targetNodesOnly flag set to true.
      *
      * @param endpointId The identifier of the activated endpoint.
      * @param continuationToken Continuation token from GetSetOfUniqueNodes operation
@@ -563,12 +541,7 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Browse next set of unique target nodes.
-     * Browse the next set of unique hierarchically referenced target nodes on the
-     endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     Note that this is the same as the POST method with the model containing
-     the continuation token and the targetNodesOnly flag set to true.
+     * Browse the next set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. Note that this is the same as the POST method with the model containing the continuation token and the targetNodesOnly flag set to true.
      *
      * @param endpointId The identifier of the activated endpoint.
      * @param continuationToken Continuation token from GetSetOfUniqueNodes operation
@@ -603,146 +576,45 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     }
 
     /**
-     * Browse next set of references.
-     * Browse next set of references on the endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The request body with continuation token.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the BrowseNextResponseApiModel object if successful.
-     */
-    public BrowseNextResponseApiModel browseNext(String endpointId, BrowseNextRequestApiModel request) {
-        return browseNextWithServiceResponseAsync(endpointId, request).toBlocking().single().body();
-    }
-
-    /**
-     * Browse next set of references.
-     * Browse next set of references on the endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The request body with continuation token.
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    public ServiceFuture<BrowseNextResponseApiModel> browseNextAsync(String endpointId, BrowseNextRequestApiModel request, final ServiceCallback<BrowseNextResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(browseNextWithServiceResponseAsync(endpointId, request), serviceCallback);
-    }
-
-    /**
-     * Browse next set of references.
-     * Browse next set of references on the endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The request body with continuation token.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the BrowseNextResponseApiModel object
-     */
-    public Observable<BrowseNextResponseApiModel> browseNextAsync(String endpointId, BrowseNextRequestApiModel request) {
-        return browseNextWithServiceResponseAsync(endpointId, request).map(new Func1<ServiceResponse<BrowseNextResponseApiModel>, BrowseNextResponseApiModel>() {
-            @Override
-            public BrowseNextResponseApiModel call(ServiceResponse<BrowseNextResponseApiModel> response) {
-                return response.body();
-            }
-        });
-    }
-
-    /**
-     * Browse next set of references.
-     * Browse next set of references on the endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The request body with continuation token.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the BrowseNextResponseApiModel object
-     */
-    public Observable<ServiceResponse<BrowseNextResponseApiModel>> browseNextWithServiceResponseAsync(String endpointId, BrowseNextRequestApiModel request) {
-        if (endpointId == null) {
-            throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
-        }
-        if (request == null) {
-            throw new IllegalArgumentException("Parameter request is required and cannot be null.");
-        }
-        Validator.validate(request);
-        return service.browseNext(endpointId, request)
-            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<BrowseNextResponseApiModel>>>() {
-                @Override
-                public Observable<ServiceResponse<BrowseNextResponseApiModel>> call(Response<ResponseBody> response) {
-                    try {
-                        ServiceResponse<BrowseNextResponseApiModel> clientResponse = browseNextDelegate(response);
-                        return Observable.just(clientResponse);
-                    } catch (Throwable t) {
-                        return Observable.error(t);
-                    }
-                }
-            });
-    }
-
-    private ServiceResponse<BrowseNextResponseApiModel> browseNextDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
-        return this.restClient().responseBuilderFactory().<BrowseNextResponseApiModel, RestException>newInstance(this.serializerAdapter())
-                .register(200, new TypeToken<BrowseNextResponseApiModel>() { }.getType())
-                .build(response);
-    }
-
-    /**
      * Browse using a browse path.
-     * Browse using a path from the specified node id.
-     This call uses TranslateBrowsePathsToNodeIds service under the hood.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Browse using a path from the specified node id. This call uses TranslateBrowsePathsToNodeIds service under the hood. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The browse path request
+     * @param body The browse path request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the BrowsePathResponseApiModel object if successful.
      */
-    public BrowsePathResponseApiModel browseUsingPath(String endpointId, BrowsePathRequestApiModel request) {
-        return browseUsingPathWithServiceResponseAsync(endpointId, request).toBlocking().single().body();
+    public BrowsePathResponseApiModel browseUsingPath(String endpointId, BrowsePathRequestApiModel body) {
+        return browseUsingPathWithServiceResponseAsync(endpointId, body).toBlocking().single().body();
     }
 
     /**
      * Browse using a browse path.
-     * Browse using a path from the specified node id.
-     This call uses TranslateBrowsePathsToNodeIds service under the hood.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Browse using a path from the specified node id. This call uses TranslateBrowsePathsToNodeIds service under the hood. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The browse path request
+     * @param body The browse path request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    public ServiceFuture<BrowsePathResponseApiModel> browseUsingPathAsync(String endpointId, BrowsePathRequestApiModel request, final ServiceCallback<BrowsePathResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(browseUsingPathWithServiceResponseAsync(endpointId, request), serviceCallback);
+    public ServiceFuture<BrowsePathResponseApiModel> browseUsingPathAsync(String endpointId, BrowsePathRequestApiModel body, final ServiceCallback<BrowsePathResponseApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(browseUsingPathWithServiceResponseAsync(endpointId, body), serviceCallback);
     }
 
     /**
      * Browse using a browse path.
-     * Browse using a path from the specified node id.
-     This call uses TranslateBrowsePathsToNodeIds service under the hood.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Browse using a path from the specified node id. This call uses TranslateBrowsePathsToNodeIds service under the hood. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The browse path request
+     * @param body The browse path request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the BrowsePathResponseApiModel object
      */
-    public Observable<BrowsePathResponseApiModel> browseUsingPathAsync(String endpointId, BrowsePathRequestApiModel request) {
-        return browseUsingPathWithServiceResponseAsync(endpointId, request).map(new Func1<ServiceResponse<BrowsePathResponseApiModel>, BrowsePathResponseApiModel>() {
+    public Observable<BrowsePathResponseApiModel> browseUsingPathAsync(String endpointId, BrowsePathRequestApiModel body) {
+        return browseUsingPathWithServiceResponseAsync(endpointId, body).map(new Func1<ServiceResponse<BrowsePathResponseApiModel>, BrowsePathResponseApiModel>() {
             @Override
             public BrowsePathResponseApiModel call(ServiceResponse<BrowsePathResponseApiModel> response) {
                 return response.body();
@@ -752,25 +624,22 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Browse using a browse path.
-     * Browse using a path from the specified node id.
-     This call uses TranslateBrowsePathsToNodeIds service under the hood.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Browse using a path from the specified node id. This call uses TranslateBrowsePathsToNodeIds service under the hood. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The browse path request
+     * @param body The browse path request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the BrowsePathResponseApiModel object
      */
-    public Observable<ServiceResponse<BrowsePathResponseApiModel>> browseUsingPathWithServiceResponseAsync(String endpointId, BrowsePathRequestApiModel request) {
+    public Observable<ServiceResponse<BrowsePathResponseApiModel>> browseUsingPathWithServiceResponseAsync(String endpointId, BrowsePathRequestApiModel body) {
         if (endpointId == null) {
             throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
         }
-        if (request == null) {
-            throw new IllegalArgumentException("Parameter request is required and cannot be null.");
+        if (body == null) {
+            throw new IllegalArgumentException("Parameter body is required and cannot be null.");
         }
-        Validator.validate(request);
-        return service.browseUsingPath(endpointId, request)
+        Validator.validate(body);
+        return service.browseUsingPath(endpointId, body)
             .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<BrowsePathResponseApiModel>>>() {
                 @Override
                 public Observable<ServiceResponse<BrowsePathResponseApiModel>> call(Response<ResponseBody> response) {
@@ -792,53 +661,44 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Get method meta data.
-     * Return method meta data to support a user interface displaying forms to
-     input and output arguments.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Return method meta data to support a user interface displaying forms to input and output arguments. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The method metadata request
+     * @param body The method metadata request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the MethodMetadataResponseApiModel object if successful.
      */
-    public MethodMetadataResponseApiModel getCallMetadata(String endpointId, MethodMetadataRequestApiModel request) {
-        return getCallMetadataWithServiceResponseAsync(endpointId, request).toBlocking().single().body();
+    public MethodMetadataResponseApiModel getCallMetadata(String endpointId, MethodMetadataRequestApiModel body) {
+        return getCallMetadataWithServiceResponseAsync(endpointId, body).toBlocking().single().body();
     }
 
     /**
      * Get method meta data.
-     * Return method meta data to support a user interface displaying forms to
-     input and output arguments.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Return method meta data to support a user interface displaying forms to input and output arguments. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The method metadata request
+     * @param body The method metadata request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    public ServiceFuture<MethodMetadataResponseApiModel> getCallMetadataAsync(String endpointId, MethodMetadataRequestApiModel request, final ServiceCallback<MethodMetadataResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(getCallMetadataWithServiceResponseAsync(endpointId, request), serviceCallback);
+    public ServiceFuture<MethodMetadataResponseApiModel> getCallMetadataAsync(String endpointId, MethodMetadataRequestApiModel body, final ServiceCallback<MethodMetadataResponseApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(getCallMetadataWithServiceResponseAsync(endpointId, body), serviceCallback);
     }
 
     /**
      * Get method meta data.
-     * Return method meta data to support a user interface displaying forms to
-     input and output arguments.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Return method meta data to support a user interface displaying forms to input and output arguments. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The method metadata request
+     * @param body The method metadata request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the MethodMetadataResponseApiModel object
      */
-    public Observable<MethodMetadataResponseApiModel> getCallMetadataAsync(String endpointId, MethodMetadataRequestApiModel request) {
-        return getCallMetadataWithServiceResponseAsync(endpointId, request).map(new Func1<ServiceResponse<MethodMetadataResponseApiModel>, MethodMetadataResponseApiModel>() {
+    public Observable<MethodMetadataResponseApiModel> getCallMetadataAsync(String endpointId, MethodMetadataRequestApiModel body) {
+        return getCallMetadataWithServiceResponseAsync(endpointId, body).map(new Func1<ServiceResponse<MethodMetadataResponseApiModel>, MethodMetadataResponseApiModel>() {
             @Override
             public MethodMetadataResponseApiModel call(ServiceResponse<MethodMetadataResponseApiModel> response) {
                 return response.body();
@@ -848,25 +708,22 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Get method meta data.
-     * Return method meta data to support a user interface displaying forms to
-     input and output arguments.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Return method meta data to support a user interface displaying forms to input and output arguments. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The method metadata request
+     * @param body The method metadata request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the MethodMetadataResponseApiModel object
      */
-    public Observable<ServiceResponse<MethodMetadataResponseApiModel>> getCallMetadataWithServiceResponseAsync(String endpointId, MethodMetadataRequestApiModel request) {
+    public Observable<ServiceResponse<MethodMetadataResponseApiModel>> getCallMetadataWithServiceResponseAsync(String endpointId, MethodMetadataRequestApiModel body) {
         if (endpointId == null) {
             throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
         }
-        if (request == null) {
-            throw new IllegalArgumentException("Parameter request is required and cannot be null.");
+        if (body == null) {
+            throw new IllegalArgumentException("Parameter body is required and cannot be null.");
         }
-        Validator.validate(request);
-        return service.getCallMetadata(endpointId, request)
+        Validator.validate(body);
+        return service.getCallMetadata(endpointId, body)
             .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<MethodMetadataResponseApiModel>>>() {
                 @Override
                 public Observable<ServiceResponse<MethodMetadataResponseApiModel>> call(Response<ResponseBody> response) {
@@ -888,50 +745,44 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Call a method.
-     * Invoke method node with specified input arguments.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Invoke method node with specified input arguments. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The method call request
+     * @param body The method call request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the MethodCallResponseApiModel object if successful.
      */
-    public MethodCallResponseApiModel callMethod(String endpointId, MethodCallRequestApiModel request) {
-        return callMethodWithServiceResponseAsync(endpointId, request).toBlocking().single().body();
+    public MethodCallResponseApiModel callMethod(String endpointId, MethodCallRequestApiModel body) {
+        return callMethodWithServiceResponseAsync(endpointId, body).toBlocking().single().body();
     }
 
     /**
      * Call a method.
-     * Invoke method node with specified input arguments.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Invoke method node with specified input arguments. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The method call request
+     * @param body The method call request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    public ServiceFuture<MethodCallResponseApiModel> callMethodAsync(String endpointId, MethodCallRequestApiModel request, final ServiceCallback<MethodCallResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(callMethodWithServiceResponseAsync(endpointId, request), serviceCallback);
+    public ServiceFuture<MethodCallResponseApiModel> callMethodAsync(String endpointId, MethodCallRequestApiModel body, final ServiceCallback<MethodCallResponseApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(callMethodWithServiceResponseAsync(endpointId, body), serviceCallback);
     }
 
     /**
      * Call a method.
-     * Invoke method node with specified input arguments.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Invoke method node with specified input arguments. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The method call request
+     * @param body The method call request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the MethodCallResponseApiModel object
      */
-    public Observable<MethodCallResponseApiModel> callMethodAsync(String endpointId, MethodCallRequestApiModel request) {
-        return callMethodWithServiceResponseAsync(endpointId, request).map(new Func1<ServiceResponse<MethodCallResponseApiModel>, MethodCallResponseApiModel>() {
+    public Observable<MethodCallResponseApiModel> callMethodAsync(String endpointId, MethodCallRequestApiModel body) {
+        return callMethodWithServiceResponseAsync(endpointId, body).map(new Func1<ServiceResponse<MethodCallResponseApiModel>, MethodCallResponseApiModel>() {
             @Override
             public MethodCallResponseApiModel call(ServiceResponse<MethodCallResponseApiModel> response) {
                 return response.body();
@@ -941,24 +792,22 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Call a method.
-     * Invoke method node with specified input arguments.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Invoke method node with specified input arguments. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The method call request
+     * @param body The method call request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the MethodCallResponseApiModel object
      */
-    public Observable<ServiceResponse<MethodCallResponseApiModel>> callMethodWithServiceResponseAsync(String endpointId, MethodCallRequestApiModel request) {
+    public Observable<ServiceResponse<MethodCallResponseApiModel>> callMethodWithServiceResponseAsync(String endpointId, MethodCallRequestApiModel body) {
         if (endpointId == null) {
             throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
         }
-        if (request == null) {
-            throw new IllegalArgumentException("Parameter request is required and cannot be null.");
+        if (body == null) {
+            throw new IllegalArgumentException("Parameter body is required and cannot be null.");
         }
-        Validator.validate(request);
-        return service.callMethod(endpointId, request)
+        Validator.validate(body);
+        return service.callMethod(endpointId, body)
             .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<MethodCallResponseApiModel>>>() {
                 @Override
                 public Observable<ServiceResponse<MethodCallResponseApiModel>> call(Response<ResponseBody> response) {
@@ -979,83 +828,75 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     }
 
     /**
-     * Start publishing node values.
-     * Start publishing variable node values to IoT Hub.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Read variable value.
+     * Read a variable node's value. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The publish request
+     * @param body The read value request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the PublishStartResponseApiModel object if successful.
+     * @return the ValueReadResponseApiModel object if successful.
      */
-    public PublishStartResponseApiModel startPublishingValues(String endpointId, PublishStartRequestApiModel request) {
-        return startPublishingValuesWithServiceResponseAsync(endpointId, request).toBlocking().single().body();
+    public ValueReadResponseApiModel readValue(String endpointId, ValueReadRequestApiModel body) {
+        return readValueWithServiceResponseAsync(endpointId, body).toBlocking().single().body();
     }
 
     /**
-     * Start publishing node values.
-     * Start publishing variable node values to IoT Hub.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Read variable value.
+     * Read a variable node's value. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The publish request
+     * @param body The read value request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    public ServiceFuture<PublishStartResponseApiModel> startPublishingValuesAsync(String endpointId, PublishStartRequestApiModel request, final ServiceCallback<PublishStartResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(startPublishingValuesWithServiceResponseAsync(endpointId, request), serviceCallback);
+    public ServiceFuture<ValueReadResponseApiModel> readValueAsync(String endpointId, ValueReadRequestApiModel body, final ServiceCallback<ValueReadResponseApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(readValueWithServiceResponseAsync(endpointId, body), serviceCallback);
     }
 
     /**
-     * Start publishing node values.
-     * Start publishing variable node values to IoT Hub.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Read variable value.
+     * Read a variable node's value. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The publish request
+     * @param body The read value request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the PublishStartResponseApiModel object
+     * @return the observable to the ValueReadResponseApiModel object
      */
-    public Observable<PublishStartResponseApiModel> startPublishingValuesAsync(String endpointId, PublishStartRequestApiModel request) {
-        return startPublishingValuesWithServiceResponseAsync(endpointId, request).map(new Func1<ServiceResponse<PublishStartResponseApiModel>, PublishStartResponseApiModel>() {
+    public Observable<ValueReadResponseApiModel> readValueAsync(String endpointId, ValueReadRequestApiModel body) {
+        return readValueWithServiceResponseAsync(endpointId, body).map(new Func1<ServiceResponse<ValueReadResponseApiModel>, ValueReadResponseApiModel>() {
             @Override
-            public PublishStartResponseApiModel call(ServiceResponse<PublishStartResponseApiModel> response) {
+            public ValueReadResponseApiModel call(ServiceResponse<ValueReadResponseApiModel> response) {
                 return response.body();
             }
         });
     }
 
     /**
-     * Start publishing node values.
-     * Start publishing variable node values to IoT Hub.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Read variable value.
+     * Read a variable node's value. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The publish request
+     * @param body The read value request
      * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the PublishStartResponseApiModel object
+     * @return the observable to the ValueReadResponseApiModel object
      */
-    public Observable<ServiceResponse<PublishStartResponseApiModel>> startPublishingValuesWithServiceResponseAsync(String endpointId, PublishStartRequestApiModel request) {
+    public Observable<ServiceResponse<ValueReadResponseApiModel>> readValueWithServiceResponseAsync(String endpointId, ValueReadRequestApiModel body) {
         if (endpointId == null) {
             throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
         }
-        if (request == null) {
-            throw new IllegalArgumentException("Parameter request is required and cannot be null.");
+        if (body == null) {
+            throw new IllegalArgumentException("Parameter body is required and cannot be null.");
         }
-        Validator.validate(request);
-        return service.startPublishingValues(endpointId, request)
-            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<PublishStartResponseApiModel>>>() {
+        Validator.validate(body);
+        return service.readValue(endpointId, body)
+            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<ValueReadResponseApiModel>>>() {
                 @Override
-                public Observable<ServiceResponse<PublishStartResponseApiModel>> call(Response<ResponseBody> response) {
+                public Observable<ServiceResponse<ValueReadResponseApiModel>> call(Response<ResponseBody> response) {
                     try {
-                        ServiceResponse<PublishStartResponseApiModel> clientResponse = startPublishingValuesDelegate(response);
+                        ServiceResponse<ValueReadResponseApiModel> clientResponse = readValueDelegate(response);
                         return Observable.just(clientResponse);
                     } catch (Throwable t) {
                         return Observable.error(t);
@@ -1064,292 +905,15 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
             });
     }
 
-    private ServiceResponse<PublishStartResponseApiModel> startPublishingValuesDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
-        return this.restClient().responseBuilderFactory().<PublishStartResponseApiModel, RestException>newInstance(this.serializerAdapter())
-                .register(200, new TypeToken<PublishStartResponseApiModel>() { }.getType())
-                .build(response);
-    }
-
-    /**
-     * Stop publishing node values.
-     * Stop publishing variable node values to IoT Hub.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The unpublish request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the PublishStopResponseApiModel object if successful.
-     */
-    public PublishStopResponseApiModel stopPublishingValues(String endpointId, PublishStopRequestApiModel request) {
-        return stopPublishingValuesWithServiceResponseAsync(endpointId, request).toBlocking().single().body();
-    }
-
-    /**
-     * Stop publishing node values.
-     * Stop publishing variable node values to IoT Hub.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The unpublish request
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    public ServiceFuture<PublishStopResponseApiModel> stopPublishingValuesAsync(String endpointId, PublishStopRequestApiModel request, final ServiceCallback<PublishStopResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(stopPublishingValuesWithServiceResponseAsync(endpointId, request), serviceCallback);
-    }
-
-    /**
-     * Stop publishing node values.
-     * Stop publishing variable node values to IoT Hub.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The unpublish request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the PublishStopResponseApiModel object
-     */
-    public Observable<PublishStopResponseApiModel> stopPublishingValuesAsync(String endpointId, PublishStopRequestApiModel request) {
-        return stopPublishingValuesWithServiceResponseAsync(endpointId, request).map(new Func1<ServiceResponse<PublishStopResponseApiModel>, PublishStopResponseApiModel>() {
-            @Override
-            public PublishStopResponseApiModel call(ServiceResponse<PublishStopResponseApiModel> response) {
-                return response.body();
-            }
-        });
-    }
-
-    /**
-     * Stop publishing node values.
-     * Stop publishing variable node values to IoT Hub.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The unpublish request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the PublishStopResponseApiModel object
-     */
-    public Observable<ServiceResponse<PublishStopResponseApiModel>> stopPublishingValuesWithServiceResponseAsync(String endpointId, PublishStopRequestApiModel request) {
-        if (endpointId == null) {
-            throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
-        }
-        if (request == null) {
-            throw new IllegalArgumentException("Parameter request is required and cannot be null.");
-        }
-        Validator.validate(request);
-        return service.stopPublishingValues(endpointId, request)
-            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<PublishStopResponseApiModel>>>() {
-                @Override
-                public Observable<ServiceResponse<PublishStopResponseApiModel>> call(Response<ResponseBody> response) {
-                    try {
-                        ServiceResponse<PublishStopResponseApiModel> clientResponse = stopPublishingValuesDelegate(response);
-                        return Observable.just(clientResponse);
-                    } catch (Throwable t) {
-                        return Observable.error(t);
-                    }
-                }
-            });
-    }
-
-    private ServiceResponse<PublishStopResponseApiModel> stopPublishingValuesDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
-        return this.restClient().responseBuilderFactory().<PublishStopResponseApiModel, RestException>newInstance(this.serializerAdapter())
-                .register(200, new TypeToken<PublishStopResponseApiModel>() { }.getType())
-                .build(response);
-    }
-
-    /**
-     * Get next set of published nodes.
-     * Returns next set of currently published node ids for an endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param continuationToken The continuation token to continue with
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the PublishedItemListResponseApiModel object if successful.
-     */
-    public PublishedItemListResponseApiModel getNextListOfPublishedNodes(String endpointId, String continuationToken) {
-        return getNextListOfPublishedNodesWithServiceResponseAsync(endpointId, continuationToken).toBlocking().single().body();
-    }
-
-    /**
-     * Get next set of published nodes.
-     * Returns next set of currently published node ids for an endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param continuationToken The continuation token to continue with
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    public ServiceFuture<PublishedItemListResponseApiModel> getNextListOfPublishedNodesAsync(String endpointId, String continuationToken, final ServiceCallback<PublishedItemListResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(getNextListOfPublishedNodesWithServiceResponseAsync(endpointId, continuationToken), serviceCallback);
-    }
-
-    /**
-     * Get next set of published nodes.
-     * Returns next set of currently published node ids for an endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param continuationToken The continuation token to continue with
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the PublishedItemListResponseApiModel object
-     */
-    public Observable<PublishedItemListResponseApiModel> getNextListOfPublishedNodesAsync(String endpointId, String continuationToken) {
-        return getNextListOfPublishedNodesWithServiceResponseAsync(endpointId, continuationToken).map(new Func1<ServiceResponse<PublishedItemListResponseApiModel>, PublishedItemListResponseApiModel>() {
-            @Override
-            public PublishedItemListResponseApiModel call(ServiceResponse<PublishedItemListResponseApiModel> response) {
-                return response.body();
-            }
-        });
-    }
-
-    /**
-     * Get next set of published nodes.
-     * Returns next set of currently published node ids for an endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param continuationToken The continuation token to continue with
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the PublishedItemListResponseApiModel object
-     */
-    public Observable<ServiceResponse<PublishedItemListResponseApiModel>> getNextListOfPublishedNodesWithServiceResponseAsync(String endpointId, String continuationToken) {
-        if (endpointId == null) {
-            throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
-        }
-        if (continuationToken == null) {
-            throw new IllegalArgumentException("Parameter continuationToken is required and cannot be null.");
-        }
-        return service.getNextListOfPublishedNodes(endpointId, continuationToken)
-            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<PublishedItemListResponseApiModel>>>() {
-                @Override
-                public Observable<ServiceResponse<PublishedItemListResponseApiModel>> call(Response<ResponseBody> response) {
-                    try {
-                        ServiceResponse<PublishedItemListResponseApiModel> clientResponse = getNextListOfPublishedNodesDelegate(response);
-                        return Observable.just(clientResponse);
-                    } catch (Throwable t) {
-                        return Observable.error(t);
-                    }
-                }
-            });
-    }
-
-    private ServiceResponse<PublishedItemListResponseApiModel> getNextListOfPublishedNodesDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
-        return this.restClient().responseBuilderFactory().<PublishedItemListResponseApiModel, RestException>newInstance(this.serializerAdapter())
-                .register(200, new TypeToken<PublishedItemListResponseApiModel>() { }.getType())
-                .build(response);
-    }
-
-    /**
-     * Get currently published nodes.
-     * Returns currently published node ids for an endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The list request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the PublishedItemListResponseApiModel object if successful.
-     */
-    public PublishedItemListResponseApiModel getFirstListOfPublishedNodes(String endpointId, PublishedItemListRequestApiModel request) {
-        return getFirstListOfPublishedNodesWithServiceResponseAsync(endpointId, request).toBlocking().single().body();
-    }
-
-    /**
-     * Get currently published nodes.
-     * Returns currently published node ids for an endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The list request
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    public ServiceFuture<PublishedItemListResponseApiModel> getFirstListOfPublishedNodesAsync(String endpointId, PublishedItemListRequestApiModel request, final ServiceCallback<PublishedItemListResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(getFirstListOfPublishedNodesWithServiceResponseAsync(endpointId, request), serviceCallback);
-    }
-
-    /**
-     * Get currently published nodes.
-     * Returns currently published node ids for an endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The list request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the PublishedItemListResponseApiModel object
-     */
-    public Observable<PublishedItemListResponseApiModel> getFirstListOfPublishedNodesAsync(String endpointId, PublishedItemListRequestApiModel request) {
-        return getFirstListOfPublishedNodesWithServiceResponseAsync(endpointId, request).map(new Func1<ServiceResponse<PublishedItemListResponseApiModel>, PublishedItemListResponseApiModel>() {
-            @Override
-            public PublishedItemListResponseApiModel call(ServiceResponse<PublishedItemListResponseApiModel> response) {
-                return response.body();
-            }
-        });
-    }
-
-    /**
-     * Get currently published nodes.
-     * Returns currently published node ids for an endpoint.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The list request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the PublishedItemListResponseApiModel object
-     */
-    public Observable<ServiceResponse<PublishedItemListResponseApiModel>> getFirstListOfPublishedNodesWithServiceResponseAsync(String endpointId, PublishedItemListRequestApiModel request) {
-        if (endpointId == null) {
-            throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
-        }
-        if (request == null) {
-            throw new IllegalArgumentException("Parameter request is required and cannot be null.");
-        }
-        Validator.validate(request);
-        return service.getFirstListOfPublishedNodes(endpointId, request)
-            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<PublishedItemListResponseApiModel>>>() {
-                @Override
-                public Observable<ServiceResponse<PublishedItemListResponseApiModel>> call(Response<ResponseBody> response) {
-                    try {
-                        ServiceResponse<PublishedItemListResponseApiModel> clientResponse = getFirstListOfPublishedNodesDelegate(response);
-                        return Observable.just(clientResponse);
-                    } catch (Throwable t) {
-                        return Observable.error(t);
-                    }
-                }
-            });
-    }
-
-    private ServiceResponse<PublishedItemListResponseApiModel> getFirstListOfPublishedNodesDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
-        return this.restClient().responseBuilderFactory().<PublishedItemListResponseApiModel, RestException>newInstance(this.serializerAdapter())
-                .register(200, new TypeToken<PublishedItemListResponseApiModel>() { }.getType())
+    private ServiceResponse<ValueReadResponseApiModel> readValueDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
+        return this.restClient().responseBuilderFactory().<ValueReadResponseApiModel, RestException>newInstance(this.serializerAdapter())
+                .register(200, new TypeToken<ValueReadResponseApiModel>() { }.getType())
                 .build(response);
     }
 
     /**
      * Get variable value.
-     * Get a variable node's value using its node id.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Get a variable node's value using its node id. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
      * @param nodeId The node to read
@@ -1364,9 +928,7 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Get variable value.
-     * Get a variable node's value using its node id.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Get a variable node's value using its node id. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
      * @param nodeId The node to read
@@ -1380,9 +942,7 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Get variable value.
-     * Get a variable node's value using its node id.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Get a variable node's value using its node id. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
      * @param nodeId The node to read
@@ -1400,9 +960,7 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Get variable value.
-     * Get a variable node's value using its node id.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Get a variable node's value using its node id. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
      * @param nodeId The node to read
@@ -1437,143 +995,45 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     }
 
     /**
-     * Read variable value.
-     * Read a variable node's value.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The read value request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the ValueReadResponseApiModel object if successful.
-     */
-    public ValueReadResponseApiModel readValue(String endpointId, ValueReadRequestApiModel request) {
-        return readValueWithServiceResponseAsync(endpointId, request).toBlocking().single().body();
-    }
-
-    /**
-     * Read variable value.
-     * Read a variable node's value.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The read value request
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    public ServiceFuture<ValueReadResponseApiModel> readValueAsync(String endpointId, ValueReadRequestApiModel request, final ServiceCallback<ValueReadResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(readValueWithServiceResponseAsync(endpointId, request), serviceCallback);
-    }
-
-    /**
-     * Read variable value.
-     * Read a variable node's value.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The read value request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ValueReadResponseApiModel object
-     */
-    public Observable<ValueReadResponseApiModel> readValueAsync(String endpointId, ValueReadRequestApiModel request) {
-        return readValueWithServiceResponseAsync(endpointId, request).map(new Func1<ServiceResponse<ValueReadResponseApiModel>, ValueReadResponseApiModel>() {
-            @Override
-            public ValueReadResponseApiModel call(ServiceResponse<ValueReadResponseApiModel> response) {
-                return response.body();
-            }
-        });
-    }
-
-    /**
-     * Read variable value.
-     * Read a variable node's value.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
-     *
-     * @param endpointId The identifier of the activated endpoint.
-     * @param request The read value request
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the ValueReadResponseApiModel object
-     */
-    public Observable<ServiceResponse<ValueReadResponseApiModel>> readValueWithServiceResponseAsync(String endpointId, ValueReadRequestApiModel request) {
-        if (endpointId == null) {
-            throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
-        }
-        if (request == null) {
-            throw new IllegalArgumentException("Parameter request is required and cannot be null.");
-        }
-        Validator.validate(request);
-        return service.readValue(endpointId, request)
-            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<ValueReadResponseApiModel>>>() {
-                @Override
-                public Observable<ServiceResponse<ValueReadResponseApiModel>> call(Response<ResponseBody> response) {
-                    try {
-                        ServiceResponse<ValueReadResponseApiModel> clientResponse = readValueDelegate(response);
-                        return Observable.just(clientResponse);
-                    } catch (Throwable t) {
-                        return Observable.error(t);
-                    }
-                }
-            });
-    }
-
-    private ServiceResponse<ValueReadResponseApiModel> readValueDelegate(Response<ResponseBody> response) throws RestException, IOException, IllegalArgumentException {
-        return this.restClient().responseBuilderFactory().<ValueReadResponseApiModel, RestException>newInstance(this.serializerAdapter())
-                .register(200, new TypeToken<ValueReadResponseApiModel>() { }.getType())
-                .build(response);
-    }
-
-    /**
      * Read node attributes.
-     * Read attributes of a node.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Read attributes of a node. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The read request
+     * @param body The read request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the ReadResponseApiModel object if successful.
      */
-    public ReadResponseApiModel readAttributes(String endpointId, ReadRequestApiModel request) {
-        return readAttributesWithServiceResponseAsync(endpointId, request).toBlocking().single().body();
+    public ReadResponseApiModel readAttributes(String endpointId, ReadRequestApiModel body) {
+        return readAttributesWithServiceResponseAsync(endpointId, body).toBlocking().single().body();
     }
 
     /**
      * Read node attributes.
-     * Read attributes of a node.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Read attributes of a node. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The read request
+     * @param body The read request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    public ServiceFuture<ReadResponseApiModel> readAttributesAsync(String endpointId, ReadRequestApiModel request, final ServiceCallback<ReadResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(readAttributesWithServiceResponseAsync(endpointId, request), serviceCallback);
+    public ServiceFuture<ReadResponseApiModel> readAttributesAsync(String endpointId, ReadRequestApiModel body, final ServiceCallback<ReadResponseApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(readAttributesWithServiceResponseAsync(endpointId, body), serviceCallback);
     }
 
     /**
      * Read node attributes.
-     * Read attributes of a node.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Read attributes of a node. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The read request
+     * @param body The read request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the ReadResponseApiModel object
      */
-    public Observable<ReadResponseApiModel> readAttributesAsync(String endpointId, ReadRequestApiModel request) {
-        return readAttributesWithServiceResponseAsync(endpointId, request).map(new Func1<ServiceResponse<ReadResponseApiModel>, ReadResponseApiModel>() {
+    public Observable<ReadResponseApiModel> readAttributesAsync(String endpointId, ReadRequestApiModel body) {
+        return readAttributesWithServiceResponseAsync(endpointId, body).map(new Func1<ServiceResponse<ReadResponseApiModel>, ReadResponseApiModel>() {
             @Override
             public ReadResponseApiModel call(ServiceResponse<ReadResponseApiModel> response) {
                 return response.body();
@@ -1583,24 +1043,22 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Read node attributes.
-     * Read attributes of a node.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Read attributes of a node. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The read request
+     * @param body The read request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the ReadResponseApiModel object
      */
-    public Observable<ServiceResponse<ReadResponseApiModel>> readAttributesWithServiceResponseAsync(String endpointId, ReadRequestApiModel request) {
+    public Observable<ServiceResponse<ReadResponseApiModel>> readAttributesWithServiceResponseAsync(String endpointId, ReadRequestApiModel body) {
         if (endpointId == null) {
             throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
         }
-        if (request == null) {
-            throw new IllegalArgumentException("Parameter request is required and cannot be null.");
+        if (body == null) {
+            throw new IllegalArgumentException("Parameter body is required and cannot be null.");
         }
-        Validator.validate(request);
-        return service.readAttributes(endpointId, request)
+        Validator.validate(body);
+        return service.readAttributes(endpointId, body)
             .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<ReadResponseApiModel>>>() {
                 @Override
                 public Observable<ServiceResponse<ReadResponseApiModel>> call(Response<ResponseBody> response) {
@@ -1621,120 +1079,45 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
     }
 
     /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @throws RestException thrown if the request is rejected by server
-     * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
-     * @return the StatusResponseApiModel object if successful.
-     */
-    public StatusResponseApiModel getStatus() {
-        return getStatusWithServiceResponseAsync().toBlocking().single().body();
-    }
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the {@link ServiceFuture} object
-     */
-    public ServiceFuture<StatusResponseApiModel> getStatusAsync(final ServiceCallback<StatusResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(getStatusWithServiceResponseAsync(), serviceCallback);
-    }
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the StatusResponseApiModel object
-     */
-    public Observable<StatusResponseApiModel> getStatusAsync() {
-        return getStatusWithServiceResponseAsync().map(new Func1<ServiceResponse<StatusResponseApiModel>, StatusResponseApiModel>() {
-            @Override
-            public StatusResponseApiModel call(ServiceResponse<StatusResponseApiModel> response) {
-                return response.body();
-            }
-        });
-    }
-
-    /**
-     * Return the service status in the form of the service status
-     api model.
-     *
-     * @throws IllegalArgumentException thrown if parameters fail the validation
-     * @return the observable to the StatusResponseApiModel object
-     */
-    public Observable<ServiceResponse<StatusResponseApiModel>> getStatusWithServiceResponseAsync() {
-        return service.getStatus()
-            .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<StatusResponseApiModel>>>() {
-                @Override
-                public Observable<ServiceResponse<StatusResponseApiModel>> call(Response<ResponseBody> response) {
-                    try {
-                        ServiceResponse<StatusResponseApiModel> clientResponse = getStatusDelegate(response);
-                        return Observable.just(clientResponse);
-                    } catch (Throwable t) {
-                        return Observable.error(t);
-                    }
-                }
-            });
-    }
-
-    private ServiceResponse<StatusResponseApiModel> getStatusDelegate(Response<ResponseBody> response) throws RestException, IOException {
-        return this.restClient().responseBuilderFactory().<StatusResponseApiModel, RestException>newInstance(this.serializerAdapter())
-                .register(200, new TypeToken<StatusResponseApiModel>() { }.getType())
-                .build(response);
-    }
-
-    /**
      * Write variable value.
-     * Write variable node's value.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Write variable node's value. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The write value request
+     * @param body The write value request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the ValueWriteResponseApiModel object if successful.
      */
-    public ValueWriteResponseApiModel writeValue(String endpointId, ValueWriteRequestApiModel request) {
-        return writeValueWithServiceResponseAsync(endpointId, request).toBlocking().single().body();
+    public ValueWriteResponseApiModel writeValue(String endpointId, ValueWriteRequestApiModel body) {
+        return writeValueWithServiceResponseAsync(endpointId, body).toBlocking().single().body();
     }
 
     /**
      * Write variable value.
-     * Write variable node's value.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Write variable node's value. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The write value request
+     * @param body The write value request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    public ServiceFuture<ValueWriteResponseApiModel> writeValueAsync(String endpointId, ValueWriteRequestApiModel request, final ServiceCallback<ValueWriteResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(writeValueWithServiceResponseAsync(endpointId, request), serviceCallback);
+    public ServiceFuture<ValueWriteResponseApiModel> writeValueAsync(String endpointId, ValueWriteRequestApiModel body, final ServiceCallback<ValueWriteResponseApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(writeValueWithServiceResponseAsync(endpointId, body), serviceCallback);
     }
 
     /**
      * Write variable value.
-     * Write variable node's value.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Write variable node's value. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The write value request
+     * @param body The write value request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the ValueWriteResponseApiModel object
      */
-    public Observable<ValueWriteResponseApiModel> writeValueAsync(String endpointId, ValueWriteRequestApiModel request) {
-        return writeValueWithServiceResponseAsync(endpointId, request).map(new Func1<ServiceResponse<ValueWriteResponseApiModel>, ValueWriteResponseApiModel>() {
+    public Observable<ValueWriteResponseApiModel> writeValueAsync(String endpointId, ValueWriteRequestApiModel body) {
+        return writeValueWithServiceResponseAsync(endpointId, body).map(new Func1<ServiceResponse<ValueWriteResponseApiModel>, ValueWriteResponseApiModel>() {
             @Override
             public ValueWriteResponseApiModel call(ServiceResponse<ValueWriteResponseApiModel> response) {
                 return response.body();
@@ -1744,24 +1127,22 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Write variable value.
-     * Write variable node's value.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Write variable node's value. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The write value request
+     * @param body The write value request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the ValueWriteResponseApiModel object
      */
-    public Observable<ServiceResponse<ValueWriteResponseApiModel>> writeValueWithServiceResponseAsync(String endpointId, ValueWriteRequestApiModel request) {
+    public Observable<ServiceResponse<ValueWriteResponseApiModel>> writeValueWithServiceResponseAsync(String endpointId, ValueWriteRequestApiModel body) {
         if (endpointId == null) {
             throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
         }
-        if (request == null) {
-            throw new IllegalArgumentException("Parameter request is required and cannot be null.");
+        if (body == null) {
+            throw new IllegalArgumentException("Parameter body is required and cannot be null.");
         }
-        Validator.validate(request);
-        return service.writeValue(endpointId, request)
+        Validator.validate(body);
+        return service.writeValue(endpointId, body)
             .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<ValueWriteResponseApiModel>>>() {
                 @Override
                 public Observable<ServiceResponse<ValueWriteResponseApiModel>> call(Response<ResponseBody> response) {
@@ -1783,50 +1164,44 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Write node attributes.
-     * Write any attribute of a node.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Write any attribute of a node. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The batch write request
+     * @param body The batch write request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @throws RestException thrown if the request is rejected by server
      * @throws RuntimeException all other wrapped checked exceptions if the request fails to be sent
      * @return the WriteResponseApiModel object if successful.
      */
-    public WriteResponseApiModel writeAttributes(String endpointId, WriteRequestApiModel request) {
-        return writeAttributesWithServiceResponseAsync(endpointId, request).toBlocking().single().body();
+    public WriteResponseApiModel writeAttributes(String endpointId, WriteRequestApiModel body) {
+        return writeAttributesWithServiceResponseAsync(endpointId, body).toBlocking().single().body();
     }
 
     /**
      * Write node attributes.
-     * Write any attribute of a node.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Write any attribute of a node. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The batch write request
+     * @param body The batch write request
      * @param serviceCallback the async ServiceCallback to handle successful and failed responses.
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the {@link ServiceFuture} object
      */
-    public ServiceFuture<WriteResponseApiModel> writeAttributesAsync(String endpointId, WriteRequestApiModel request, final ServiceCallback<WriteResponseApiModel> serviceCallback) {
-        return ServiceFuture.fromResponse(writeAttributesWithServiceResponseAsync(endpointId, request), serviceCallback);
+    public ServiceFuture<WriteResponseApiModel> writeAttributesAsync(String endpointId, WriteRequestApiModel body, final ServiceCallback<WriteResponseApiModel> serviceCallback) {
+        return ServiceFuture.fromResponse(writeAttributesWithServiceResponseAsync(endpointId, body), serviceCallback);
     }
 
     /**
      * Write node attributes.
-     * Write any attribute of a node.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Write any attribute of a node. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The batch write request
+     * @param body The batch write request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the WriteResponseApiModel object
      */
-    public Observable<WriteResponseApiModel> writeAttributesAsync(String endpointId, WriteRequestApiModel request) {
-        return writeAttributesWithServiceResponseAsync(endpointId, request).map(new Func1<ServiceResponse<WriteResponseApiModel>, WriteResponseApiModel>() {
+    public Observable<WriteResponseApiModel> writeAttributesAsync(String endpointId, WriteRequestApiModel body) {
+        return writeAttributesWithServiceResponseAsync(endpointId, body).map(new Func1<ServiceResponse<WriteResponseApiModel>, WriteResponseApiModel>() {
             @Override
             public WriteResponseApiModel call(ServiceResponse<WriteResponseApiModel> response) {
                 return response.body();
@@ -1836,24 +1211,22 @@ public class AzureOpcTwinClientImpl extends ServiceClient implements AzureOpcTwi
 
     /**
      * Write node attributes.
-     * Write any attribute of a node.
-     The endpoint must be activated and connected and the module client
-     and server must trust each other.
+     * Write any attribute of a node. The endpoint must be activated and connected and the module client and server must trust each other.
      *
      * @param endpointId The identifier of the activated endpoint.
-     * @param request The batch write request
+     * @param body The batch write request
      * @throws IllegalArgumentException thrown if parameters fail the validation
      * @return the observable to the WriteResponseApiModel object
      */
-    public Observable<ServiceResponse<WriteResponseApiModel>> writeAttributesWithServiceResponseAsync(String endpointId, WriteRequestApiModel request) {
+    public Observable<ServiceResponse<WriteResponseApiModel>> writeAttributesWithServiceResponseAsync(String endpointId, WriteRequestApiModel body) {
         if (endpointId == null) {
             throw new IllegalArgumentException("Parameter endpointId is required and cannot be null.");
         }
-        if (request == null) {
-            throw new IllegalArgumentException("Parameter request is required and cannot be null.");
+        if (body == null) {
+            throw new IllegalArgumentException("Parameter body is required and cannot be null.");
         }
-        Validator.validate(request);
-        return service.writeAttributes(endpointId, request)
+        Validator.validate(body);
+        return service.writeAttributes(endpointId, body)
             .flatMap(new Func1<Response<ResponseBody>, Observable<ServiceResponse<WriteResponseApiModel>>>() {
                 @Override
                 public Observable<ServiceResponse<WriteResponseApiModel>> call(Response<ResponseBody> response) {

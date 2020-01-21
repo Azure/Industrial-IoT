@@ -11,40 +11,6 @@
 import * as msRest from "@azure/ms-rest-js";
 
 
-export const CallbackApiModel: msRest.CompositeMapper = {
-  serializedName: "CallbackApiModel",
-  type: {
-    name: "Composite",
-    className: "CallbackApiModel",
-    modelProperties: {
-      uri: {
-        serializedName: "uri",
-        type: {
-          name: "String"
-        }
-      },
-      method: {
-        serializedName: "method",
-        type: {
-          name: "Enum",
-          allowedValues: [
-            "Get",
-            "Post",
-            "Put",
-            "Delete"
-          ]
-        }
-      },
-      authenticationHeader: {
-        serializedName: "authenticationHeader",
-        type: {
-          name: "String"
-        }
-      }
-    }
-  }
-};
-
 export const EndpointActivationFilterApiModel: msRest.CompositeMapper = {
   serializedName: "EndpointActivationFilterApiModel",
   type: {
@@ -106,13 +72,6 @@ export const ServerRegistrationRequestApiModel: msRest.CompositeMapper = {
         serializedName: "id",
         type: {
           name: "String"
-        }
-      },
-      callback: {
-        serializedName: "callback",
-        type: {
-          name: "Composite",
-          className: "CallbackApiModel"
         }
       },
       activationFilter: {
@@ -395,8 +354,8 @@ export const ApplicationInfoApiModel: msRest.CompositeMapper = {
           name: "String"
         }
       },
-      supervisorId: {
-        serializedName: "supervisorId",
+      discovererId: {
+        serializedName: "discovererId",
         type: {
           name: "String"
         }
@@ -529,18 +488,6 @@ export const DiscoveryConfigApiModel: msRest.CompositeMapper = {
           }
         }
       },
-      callbacks: {
-        serializedName: "callbacks",
-        type: {
-          name: "Sequence",
-          element: {
-            type: {
-              name: "Composite",
-              className: "CallbackApiModel"
-            }
-          }
-        }
-      },
       activationFilter: {
         serializedName: "activationFilter",
         type: {
@@ -588,35 +535,6 @@ export const DiscoveryRequestApiModel: msRest.CompositeMapper = {
   }
 };
 
-export const CredentialApiModel: msRest.CompositeMapper = {
-  serializedName: "CredentialApiModel",
-  type: {
-    name: "Composite",
-    className: "CredentialApiModel",
-    modelProperties: {
-      type: {
-        serializedName: "type",
-        defaultValue: 'None',
-        type: {
-          name: "Enum",
-          allowedValues: [
-            "None",
-            "UserName",
-            "X509Certificate",
-            "JwtToken"
-          ]
-        }
-      },
-      value: {
-        serializedName: "value",
-        type: {
-          name: "Object"
-        }
-      }
-    }
-  }
-};
-
 export const EndpointApiModel: msRest.CompositeMapper = {
   serializedName: "EndpointApiModel",
   type: {
@@ -644,16 +562,8 @@ export const EndpointApiModel: msRest.CompositeMapper = {
           }
         }
       },
-      user: {
-        serializedName: "user",
-        type: {
-          name: "Composite",
-          className: "CredentialApiModel"
-        }
-      },
       securityMode: {
         serializedName: "securityMode",
-        defaultValue: 'Best',
         type: {
           name: "Enum",
           allowedValues: [
@@ -695,7 +605,6 @@ export const AuthenticationMethodApiModel: msRest.CompositeMapper = {
       },
       credentialType: {
         serializedName: "credentialType",
-        defaultValue: 'None',
         type: {
           name: "Enum",
           allowedValues: [
@@ -743,6 +652,18 @@ export const EndpointRegistrationApiModel: msRest.CompositeMapper = {
       },
       siteId: {
         serializedName: "siteId",
+        type: {
+          name: "String"
+        }
+      },
+      supervisorId: {
+        serializedName: "supervisorId",
+        type: {
+          name: "String"
+        }
+      },
+      discovererId: {
+        serializedName: "discovererId",
         type: {
           name: "String"
         }
@@ -808,7 +729,6 @@ export const ApplicationRegistrationApiModel: msRest.CompositeMapper = {
         type: {
           name: "Enum",
           allowedValues: [
-            "Unknown",
             "Low",
             "Medium",
             "High"
@@ -991,8 +911,8 @@ export const ApplicationRegistrationQueryApiModel: msRest.CompositeMapper = {
           name: "String"
         }
       },
-      siteOrSupervisorId: {
-        serializedName: "siteOrSupervisorId",
+      siteOrGatewayId: {
+        serializedName: "siteOrGatewayId",
         type: {
           name: "String"
         }
@@ -1002,146 +922,189 @@ export const ApplicationRegistrationQueryApiModel: msRest.CompositeMapper = {
         type: {
           name: "Boolean"
         }
+      },
+      discovererId: {
+        serializedName: "discovererId",
+        type: {
+          name: "String"
+        }
       }
     }
   }
 };
 
-export const ApplicationRecordQueryApiModel: msRest.CompositeMapper = {
-  serializedName: "ApplicationRecordQueryApiModel",
+export const DiscovererApiModel: msRest.CompositeMapper = {
+  serializedName: "DiscovererApiModel",
   type: {
     name: "Composite",
-    className: "ApplicationRecordQueryApiModel",
+    className: "DiscovererApiModel",
     modelProperties: {
-      startingRecordId: {
-        serializedName: "startingRecordId",
-        type: {
-          name: "Number"
-        }
-      },
-      maxRecordsToReturn: {
-        serializedName: "maxRecordsToReturn",
-        type: {
-          name: "Number"
-        }
-      },
-      applicationName: {
-        serializedName: "applicationName",
+      id: {
+        required: true,
+        serializedName: "id",
         type: {
           name: "String"
         }
       },
-      applicationUri: {
-        serializedName: "applicationUri",
+      siteId: {
+        serializedName: "siteId",
         type: {
           name: "String"
         }
       },
-      applicationType: {
-        serializedName: "applicationType",
+      discovery: {
+        serializedName: "discovery",
         type: {
           name: "Enum",
           allowedValues: [
-            "Server",
-            "Client",
-            "ClientAndServer",
-            "DiscoveryServer"
+            "Off",
+            "Local",
+            "Network",
+            "Fast",
+            "Scan"
           ]
         }
       },
-      productUri: {
-        serializedName: "productUri",
+      discoveryConfig: {
+        serializedName: "discoveryConfig",
+        type: {
+          name: "Composite",
+          className: "DiscoveryConfigApiModel"
+        }
+      },
+      logLevel: {
+        serializedName: "logLevel",
+        type: {
+          name: "Enum",
+          allowedValues: [
+            "Error",
+            "Information",
+            "Debug",
+            "Verbose"
+          ]
+        }
+      },
+      outOfSync: {
+        serializedName: "outOfSync",
+        type: {
+          name: "Boolean"
+        }
+      },
+      connected: {
+        serializedName: "connected",
+        type: {
+          name: "Boolean"
+        }
+      }
+    }
+  }
+};
+
+export const DiscovererUpdateApiModel: msRest.CompositeMapper = {
+  serializedName: "DiscovererUpdateApiModel",
+  type: {
+    name: "Composite",
+    className: "DiscovererUpdateApiModel",
+    modelProperties: {
+      siteId: {
+        serializedName: "siteId",
         type: {
           name: "String"
         }
       },
-      serverCapabilities: {
-        serializedName: "serverCapabilities",
+      discovery: {
+        serializedName: "discovery",
         type: {
-          name: "Sequence",
-          element: {
-            type: {
-              name: "String"
-            }
-          }
-        }
-      }
-    }
-  }
-};
-
-export const ApplicationRecordApiModel: msRest.CompositeMapper = {
-  serializedName: "ApplicationRecordApiModel",
-  type: {
-    name: "Composite",
-    className: "ApplicationRecordApiModel",
-    modelProperties: {
-      recordId: {
-        required: true,
-        serializedName: "recordId",
-        type: {
-          name: "Number"
+          name: "Enum",
+          allowedValues: [
+            "Off",
+            "Local",
+            "Network",
+            "Fast",
+            "Scan"
+          ]
         }
       },
-      application: {
-        required: true,
-        serializedName: "application",
+      discoveryConfig: {
+        serializedName: "discoveryConfig",
         type: {
           name: "Composite",
-          className: "ApplicationInfoApiModel"
+          className: "DiscoveryConfigApiModel"
+        }
+      },
+      logLevel: {
+        serializedName: "logLevel",
+        type: {
+          name: "Enum",
+          allowedValues: [
+            "Error",
+            "Information",
+            "Debug",
+            "Verbose"
+          ]
         }
       }
     }
   }
 };
 
-export const ApplicationRecordListApiModel: msRest.CompositeMapper = {
-  serializedName: "ApplicationRecordListApiModel",
+export const DiscovererListApiModel: msRest.CompositeMapper = {
+  serializedName: "DiscovererListApiModel",
   type: {
     name: "Composite",
-    className: "ApplicationRecordListApiModel",
+    className: "DiscovererListApiModel",
     modelProperties: {
-      applications: {
-        serializedName: "applications",
+      items: {
+        serializedName: "items",
         type: {
           name: "Sequence",
           element: {
             type: {
               name: "Composite",
-              className: "ApplicationRecordApiModel"
+              className: "DiscovererApiModel"
             }
           }
         }
       },
-      lastCounterResetTime: {
-        required: true,
-        serializedName: "lastCounterResetTime",
+      continuationToken: {
+        serializedName: "continuationToken",
         type: {
-          name: "DateTime"
-        }
-      },
-      nextRecordId: {
-        required: true,
-        serializedName: "nextRecordId",
-        type: {
-          name: "Number"
+          name: "String"
         }
       }
     }
   }
 };
 
-export const EndpointRegistrationUpdateApiModel: msRest.CompositeMapper = {
-  serializedName: "EndpointRegistrationUpdateApiModel",
+export const DiscovererQueryApiModel: msRest.CompositeMapper = {
+  serializedName: "DiscovererQueryApiModel",
   type: {
     name: "Composite",
-    className: "EndpointRegistrationUpdateApiModel",
+    className: "DiscovererQueryApiModel",
     modelProperties: {
-      user: {
-        serializedName: "user",
+      siteId: {
+        serializedName: "siteId",
         type: {
-          name: "Composite",
-          className: "CredentialApiModel"
+          name: "String"
+        }
+      },
+      discovery: {
+        serializedName: "discovery",
+        type: {
+          name: "Enum",
+          allowedValues: [
+            "Off",
+            "Local",
+            "Network",
+            "Fast",
+            "Scan"
+          ]
+        }
+      },
+      connected: {
+        serializedName: "connected",
+        type: {
+          name: "Boolean"
         }
       }
     }
@@ -1251,18 +1214,6 @@ export const EndpointRegistrationQueryApiModel: msRest.CompositeMapper = {
           name: "String"
         }
       },
-      userAuthentication: {
-        serializedName: "userAuthentication",
-        type: {
-          name: "Enum",
-          allowedValues: [
-            "None",
-            "UserName",
-            "X509Certificate",
-            "JwtToken"
-          ]
-        }
-      },
       certificate: {
         serializedName: "certificate",
         type: {
@@ -1319,91 +1270,58 @@ export const EndpointRegistrationQueryApiModel: msRest.CompositeMapper = {
         type: {
           name: "Boolean"
         }
+      },
+      discovererId: {
+        serializedName: "discovererId",
+        type: {
+          name: "String"
+        }
+      },
+      applicationId: {
+        serializedName: "applicationId",
+        type: {
+          name: "String"
+        }
+      },
+      supervisorId: {
+        serializedName: "supervisorId",
+        type: {
+          name: "String"
+        }
+      },
+      siteOrGatewayId: {
+        serializedName: "siteOrGatewayId",
+        type: {
+          name: "String"
+        }
       }
     }
   }
 };
 
-export const StatusResponseApiModel: msRest.CompositeMapper = {
-  serializedName: "StatusResponseApiModel",
+export const GatewayApiModel: msRest.CompositeMapper = {
+  serializedName: "GatewayApiModel",
   type: {
     name: "Composite",
-    className: "StatusResponseApiModel",
+    className: "GatewayApiModel",
     modelProperties: {
-      name: {
-        serializedName: "name",
+      id: {
+        required: true,
+        serializedName: "id",
         type: {
           name: "String"
         }
       },
-      status: {
-        serializedName: "status",
+      siteId: {
+        serializedName: "siteId",
         type: {
           name: "String"
         }
       },
-      currentTime: {
-        readOnly: true,
-        serializedName: "currentTime",
+      connected: {
+        serializedName: "connected",
         type: {
-          name: "String"
-        }
-      },
-      startTime: {
-        readOnly: true,
-        serializedName: "startTime",
-        type: {
-          name: "String"
-        }
-      },
-      upTime: {
-        readOnly: true,
-        serializedName: "upTime",
-        type: {
-          name: "Number"
-        }
-      },
-      uid: {
-        readOnly: true,
-        serializedName: "uid",
-        type: {
-          name: "String"
-        }
-      },
-      properties: {
-        readOnly: true,
-        serializedName: "properties",
-        type: {
-          name: "Dictionary",
-          value: {
-            type: {
-              name: "String"
-            }
-          }
-        }
-      },
-      dependencies: {
-        readOnly: true,
-        serializedName: "dependencies",
-        type: {
-          name: "Dictionary",
-          value: {
-            type: {
-              name: "String"
-            }
-          }
-        }
-      },
-      metadata: {
-        readOnly: true,
-        serializedName: "$metadata",
-        type: {
-          name: "Dictionary",
-          value: {
-            type: {
-              name: "String"
-            }
-          }
+          name: "Boolean"
         }
       }
     }
@@ -1429,27 +1347,6 @@ export const SupervisorApiModel: msRest.CompositeMapper = {
           name: "String"
         }
       },
-      discovery: {
-        serializedName: "discovery",
-        defaultValue: 'Off',
-        type: {
-          name: "Enum",
-          allowedValues: [
-            "Off",
-            "Local",
-            "Network",
-            "Fast",
-            "Scan"
-          ]
-        }
-      },
-      discoveryConfig: {
-        serializedName: "discoveryConfig",
-        type: {
-          name: "Composite",
-          className: "DiscoveryConfigApiModel"
-        }
-      },
       certificate: {
         serializedName: "certificate",
         type: {
@@ -1458,7 +1355,6 @@ export const SupervisorApiModel: msRest.CompositeMapper = {
       },
       logLevel: {
         serializedName: "logLevel",
-        defaultValue: 'Information',
         type: {
           name: "Enum",
           allowedValues: [
@@ -1485,6 +1381,318 @@ export const SupervisorApiModel: msRest.CompositeMapper = {
   }
 };
 
+export const PublisherConfigApiModel: msRest.CompositeMapper = {
+  serializedName: "PublisherConfigApiModel",
+  type: {
+    name: "Composite",
+    className: "PublisherConfigApiModel",
+    modelProperties: {
+      capabilities: {
+        serializedName: "capabilities",
+        type: {
+          name: "Dictionary",
+          value: {
+            type: {
+              name: "String"
+            }
+          }
+        }
+      },
+      jobCheckInterval: {
+        serializedName: "jobCheckInterval",
+        type: {
+          name: "String"
+        }
+      },
+      heartbeatInterval: {
+        serializedName: "heartbeatInterval",
+        type: {
+          name: "String"
+        }
+      },
+      maxWorkers: {
+        serializedName: "maxWorkers",
+        type: {
+          name: "Number"
+        }
+      },
+      jobOrchestratorUrl: {
+        serializedName: "jobOrchestratorUrl",
+        type: {
+          name: "String"
+        }
+      }
+    }
+  }
+};
+
+export const PublisherApiModel: msRest.CompositeMapper = {
+  serializedName: "PublisherApiModel",
+  type: {
+    name: "Composite",
+    className: "PublisherApiModel",
+    modelProperties: {
+      id: {
+        required: true,
+        serializedName: "id",
+        type: {
+          name: "String"
+        }
+      },
+      siteId: {
+        serializedName: "siteId",
+        type: {
+          name: "String"
+        }
+      },
+      certificate: {
+        serializedName: "certificate",
+        type: {
+          name: "ByteArray"
+        }
+      },
+      logLevel: {
+        serializedName: "logLevel",
+        type: {
+          name: "Enum",
+          allowedValues: [
+            "Error",
+            "Information",
+            "Debug",
+            "Verbose"
+          ]
+        }
+      },
+      configuration: {
+        serializedName: "configuration",
+        type: {
+          name: "Composite",
+          className: "PublisherConfigApiModel"
+        }
+      },
+      outOfSync: {
+        serializedName: "outOfSync",
+        type: {
+          name: "Boolean"
+        }
+      },
+      connected: {
+        serializedName: "connected",
+        type: {
+          name: "Boolean"
+        }
+      }
+    }
+  }
+};
+
+export const GatewayModulesApiModel: msRest.CompositeMapper = {
+  serializedName: "GatewayModulesApiModel",
+  type: {
+    name: "Composite",
+    className: "GatewayModulesApiModel",
+    modelProperties: {
+      supervisor: {
+        serializedName: "supervisor",
+        type: {
+          name: "Composite",
+          className: "SupervisorApiModel"
+        }
+      },
+      publisher: {
+        serializedName: "publisher",
+        type: {
+          name: "Composite",
+          className: "PublisherApiModel"
+        }
+      },
+      discoverer: {
+        serializedName: "discoverer",
+        type: {
+          name: "Composite",
+          className: "DiscovererApiModel"
+        }
+      }
+    }
+  }
+};
+
+export const GatewayInfoApiModel: msRest.CompositeMapper = {
+  serializedName: "GatewayInfoApiModel",
+  type: {
+    name: "Composite",
+    className: "GatewayInfoApiModel",
+    modelProperties: {
+      gateway: {
+        required: true,
+        serializedName: "gateway",
+        type: {
+          name: "Composite",
+          className: "GatewayApiModel"
+        }
+      },
+      modules: {
+        serializedName: "modules",
+        type: {
+          name: "Composite",
+          className: "GatewayModulesApiModel"
+        }
+      }
+    }
+  }
+};
+
+export const GatewayUpdateApiModel: msRest.CompositeMapper = {
+  serializedName: "GatewayUpdateApiModel",
+  type: {
+    name: "Composite",
+    className: "GatewayUpdateApiModel",
+    modelProperties: {
+      siteId: {
+        serializedName: "siteId",
+        type: {
+          name: "String"
+        }
+      }
+    }
+  }
+};
+
+export const GatewayListApiModel: msRest.CompositeMapper = {
+  serializedName: "GatewayListApiModel",
+  type: {
+    name: "Composite",
+    className: "GatewayListApiModel",
+    modelProperties: {
+      items: {
+        serializedName: "items",
+        type: {
+          name: "Sequence",
+          element: {
+            type: {
+              name: "Composite",
+              className: "GatewayApiModel"
+            }
+          }
+        }
+      },
+      continuationToken: {
+        serializedName: "continuationToken",
+        type: {
+          name: "String"
+        }
+      }
+    }
+  }
+};
+
+export const GatewayQueryApiModel: msRest.CompositeMapper = {
+  serializedName: "GatewayQueryApiModel",
+  type: {
+    name: "Composite",
+    className: "GatewayQueryApiModel",
+    modelProperties: {
+      siteId: {
+        serializedName: "siteId",
+        type: {
+          name: "String"
+        }
+      },
+      connected: {
+        serializedName: "connected",
+        type: {
+          name: "Boolean"
+        }
+      }
+    }
+  }
+};
+
+export const PublisherUpdateApiModel: msRest.CompositeMapper = {
+  serializedName: "PublisherUpdateApiModel",
+  type: {
+    name: "Composite",
+    className: "PublisherUpdateApiModel",
+    modelProperties: {
+      siteId: {
+        serializedName: "siteId",
+        type: {
+          name: "String"
+        }
+      },
+      configuration: {
+        serializedName: "configuration",
+        type: {
+          name: "Composite",
+          className: "PublisherConfigApiModel"
+        }
+      },
+      logLevel: {
+        serializedName: "logLevel",
+        type: {
+          name: "Enum",
+          allowedValues: [
+            "Error",
+            "Information",
+            "Debug",
+            "Verbose"
+          ]
+        }
+      }
+    }
+  }
+};
+
+export const PublisherListApiModel: msRest.CompositeMapper = {
+  serializedName: "PublisherListApiModel",
+  type: {
+    name: "Composite",
+    className: "PublisherListApiModel",
+    modelProperties: {
+      items: {
+        serializedName: "items",
+        type: {
+          name: "Sequence",
+          element: {
+            type: {
+              name: "Composite",
+              className: "PublisherApiModel"
+            }
+          }
+        }
+      },
+      continuationToken: {
+        serializedName: "continuationToken",
+        type: {
+          name: "String"
+        }
+      }
+    }
+  }
+};
+
+export const PublisherQueryApiModel: msRest.CompositeMapper = {
+  serializedName: "PublisherQueryApiModel",
+  type: {
+    name: "Composite",
+    className: "PublisherQueryApiModel",
+    modelProperties: {
+      siteId: {
+        serializedName: "siteId",
+        type: {
+          name: "String"
+        }
+      },
+      connected: {
+        serializedName: "connected",
+        type: {
+          name: "Boolean"
+        }
+      }
+    }
+  }
+};
+
 export const SupervisorUpdateApiModel: msRest.CompositeMapper = {
   serializedName: "SupervisorUpdateApiModel",
   type: {
@@ -1495,45 +1703,6 @@ export const SupervisorUpdateApiModel: msRest.CompositeMapper = {
         serializedName: "siteId",
         type: {
           name: "String"
-        }
-      },
-      discovery: {
-        serializedName: "discovery",
-        defaultValue: 'Off',
-        type: {
-          name: "Enum",
-          allowedValues: [
-            "Off",
-            "Local",
-            "Network",
-            "Fast",
-            "Scan"
-          ]
-        }
-      },
-      discoveryConfig: {
-        serializedName: "discoveryConfig",
-        type: {
-          name: "Composite",
-          className: "DiscoveryConfigApiModel"
-        }
-      },
-      discoveryCallbacks: {
-        serializedName: "discoveryCallbacks",
-        type: {
-          name: "Sequence",
-          element: {
-            type: {
-              name: "Composite",
-              className: "CallbackApiModel"
-            }
-          }
-        }
-      },
-      removeDiscoveryCallbacks: {
-        serializedName: "removeDiscoveryCallbacks",
-        type: {
-          name: "Boolean"
         }
       },
       logLevel: {
@@ -1659,19 +1828,6 @@ export const SupervisorQueryApiModel: msRest.CompositeMapper = {
         serializedName: "siteId",
         type: {
           name: "String"
-        }
-      },
-      discovery: {
-        serializedName: "discovery",
-        type: {
-          name: "Enum",
-          allowedValues: [
-            "Off",
-            "Local",
-            "Network",
-            "Fast",
-            "Scan"
-          ]
         }
       },
       connected: {

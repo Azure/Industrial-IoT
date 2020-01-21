@@ -17,8 +17,8 @@ namespace Opc.Ua.Nodeset {
         /// <summary>
         /// Convert to node models
         /// </summary>
-        /// <param name="context"></param>
         /// <param name="collection"></param>
+        /// <param name="context"></param>
         /// <returns></returns>
         public static IEnumerable<BaseNodeModel> ToNodeModels(this NodeStateCollection collection,
             ISystemContext context) {
@@ -28,8 +28,8 @@ namespace Opc.Ua.Nodeset {
         /// <summary>
         /// Convert to node state collection
         /// </summary>
-        /// <param name="context"></param>
         /// <param name="nodes"></param>
+        /// <param name="context"></param>
         /// <returns></returns>
         public static NodeStateCollection ToNodeStateCollection(this IEnumerable<BaseNodeModel> nodes,
             ISystemContext context) {

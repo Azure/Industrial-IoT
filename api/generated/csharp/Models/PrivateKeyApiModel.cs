@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// <summary>
         /// Initializes a new instance of the PrivateKeyApiModel class.
         /// </summary>
-        /// <param name="kty">Key type. Possible values include: 'RSA', 'ECC',
+        /// <param name="kty">Possible values include: 'RSA', 'ECC',
         /// 'AES'</param>
         /// <param name="n">RSA modulus.</param>
         /// <param name="e">RSA public exponent, in Base64.</param>
@@ -37,14 +37,11 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         /// <param name="dq">RSA Private Key Parameter</param>
         /// <param name="qi">RSA Private Key Parameter</param>
         /// <param name="p">RSA secret prime</param>
-        /// <param name="q">RSA secret prime, with p &amp;lt; q</param>
-        /// <param name="crv">The curve for ECC algorithms</param>
+        /// <param name="q">RSA secret prime, with p &lt; q</param>
         /// <param name="x">X coordinate for the Elliptic Curve point.</param>
         /// <param name="y">Y coordinate for the Elliptic Curve point.</param>
         /// <param name="d">RSA private exponent or ECC private key.</param>
         /// <param name="k">Symmetric key</param>
-        /// <param name="keyHsm">HSM Token, used with "Bring Your Own
-        /// Key"</param>
         public PrivateKeyApiModel(PrivateKeyType? kty = default(PrivateKeyType?), byte[] n = default(byte[]), byte[] e = default(byte[]), byte[] dp = default(byte[]), byte[] dq = default(byte[]), byte[] qi = default(byte[]), byte[] p = default(byte[]), byte[] q = default(byte[]), string crv = default(string), byte[] x = default(byte[]), byte[] y = default(byte[]), byte[] d = default(byte[]), byte[] k = default(byte[]), byte[] keyHsm = default(byte[]))
         {
             Kty = kty;
@@ -70,7 +67,7 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         partial void CustomInit();
 
         /// <summary>
-        /// Gets or sets key type. Possible values include: 'RSA', 'ECC', 'AES'
+        /// Gets or sets possible values include: 'RSA', 'ECC', 'AES'
         /// </summary>
         [JsonProperty(PropertyName = "kty")]
         public PrivateKeyType? Kty { get; set; }
@@ -112,13 +109,12 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         public byte[] P { get; set; }
 
         /// <summary>
-        /// Gets or sets RSA secret prime, with p &amp;amp;lt; q
+        /// Gets or sets RSA secret prime, with p &amp;lt; q
         /// </summary>
         [JsonProperty(PropertyName = "q")]
         public byte[] Q { get; set; }
 
         /// <summary>
-        /// Gets or sets the curve for ECC algorithms
         /// </summary>
         [JsonProperty(PropertyName = "crv")]
         public string Crv { get; set; }
@@ -148,7 +144,6 @@ namespace Microsoft.Azure.IIoT.Opc.Vault.Models
         public byte[] K { get; set; }
 
         /// <summary>
-        /// Gets or sets HSM Token, used with "Bring Your Own Key"
         /// </summary>
         [JsonProperty(PropertyName = "key_hsm")]
         public byte[] KeyHsm { get; set; }

@@ -25,10 +25,8 @@ class EndpointActivationFilterApiModel {
    * @property {array} [securityPolicies] Endpoint security policies to filter
    * against.
    * If set to null, all policies are in scope.
-   * @property {string} [securityMode] Security mode level to activate. If
-   * null,
-   * then Microsoft.Azure.IIoT.OpcUa.Registry.Models.SecurityMode.Best is
-   * assumed. Possible values include: 'Best', 'Sign', 'SignAndEncrypt', 'None'
+   * @property {string} [securityMode] Possible values include: 'Best', 'Sign',
+   * 'SignAndEncrypt', 'None'
    */
   constructor() {
   }

@@ -15,13 +15,13 @@ from msrest.serialization import Model
 class BrowseResponseApiModel(Model):
     """browse response model.
 
-    :param node: Node info for the currently browsed node
+    :param node:
     :type node: ~azure-iiot-opc-twin.models.NodeApiModel
     :param references: References, if included, otherwise null.
     :type references: list[~azure-iiot-opc-twin.models.NodeReferenceApiModel]
     :param continuation_token: Continuation token if more results pending.
     :type continuation_token: str
-    :param error_info: Service result in case of error
+    :param error_info:
     :type error_info: ~azure-iiot-opc-twin.models.ServiceResultApiModel
     """
 

@@ -20,18 +20,18 @@ class CertificateRequestRecordApiModel {
    * @property {string} [requestId] Request id
    * @property {string} [entityId] Application id
    * @property {string} [groupId] Trust group
-   * @property {string} [state] Request state. Possible values include: 'New',
-   * 'Approved', 'Rejected', 'Failure', 'Completed', 'Accepted'
-   * @property {string} [type] Request type. Possible values include:
-   * 'SigningRequest', 'KeyPairRequest'
+   * @property {string} [state] Possible values include: 'New', 'Approved',
+   * 'Rejected', 'Failure', 'Completed', 'Accepted'
+   * @property {string} [type] Possible values include: 'SigningRequest',
+   * 'KeyPairRequest'
    * @property {object} [errorInfo] Error diagnostics
-   * @property {object} [submitted] Request time
+   * @property {object} [submitted]
    * @property {string} [submitted.authorityId] User
    * @property {date} [submitted.time] Operation time
-   * @property {object} [approved] Approved or rejected
+   * @property {object} [approved]
    * @property {string} [approved.authorityId] User
    * @property {date} [approved.time] Operation time
-   * @property {object} [accepted] Finished
+   * @property {object} [accepted]
    * @property {string} [accepted.authorityId] User
    * @property {date} [accepted.time] Operation time
    */

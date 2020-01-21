@@ -10,7 +10,7 @@
 module azure.iiot.opc.registry
   module Models
     #
-    # Application registration request
+    # Server registration request
     #
     class ServerRegistrationRequestApiModel
       # @return [String] Discovery url to use for registration
@@ -19,11 +19,7 @@ module azure.iiot.opc.registry
       # @return [String] Registration id
       attr_accessor :id
 
-      # @return [CallbackApiModel] An optional callback hook to register.
-      attr_accessor :callback
-
-      # @return [EndpointActivationFilterApiModel] Upon discovery, activate all
-      # endpoints with this filter.
+      # @return [EndpointActivationFilterApiModel]
       attr_accessor :activation_filter
 
 
@@ -54,15 +50,6 @@ module azure.iiot.opc.registry
                 serialized_name: 'id',
                 type: {
                   name: 'String'
-                }
-              },
-              callback: {
-                client_side_validation: true,
-                required: false,
-                serialized_name: 'callback',
-                type: {
-                  name: 'Composite',
-                  class_name: 'CallbackApiModel'
                 }
               },
               activation_filter: {

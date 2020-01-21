@@ -36,8 +36,8 @@ namespace Microsoft.Azure.IIoT.Crypto {
         /// </summary>
         /// <param name="certificateName"></param>
         /// <param name="subjectName"></param>
-        /// <param name="lifetime"></param>
         /// <param name="notBefore"></param>
+        /// <param name="lifetime"></param>
         /// <param name="keyParams"></param>
         /// <param name="policies"></param>
         /// <param name="extensions"></param>
@@ -59,8 +59,8 @@ namespace Microsoft.Azure.IIoT.Crypto {
         /// <param name="subjectName"></param>
         /// <param name="notBefore"></param>
         /// <param name="keyParams"></param>
-        /// <param name="extensions"></param>
         /// <param name="policies"></param>
+        /// <param name="extensions"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<Certificate> NewIssuerCertificateAsync(string issuerCertificate,

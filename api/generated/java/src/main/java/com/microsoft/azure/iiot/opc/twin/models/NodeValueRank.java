@@ -17,15 +17,6 @@ import com.fasterxml.jackson.annotation.JsonValue;
  * Defines values for NodeValueRank.
  */
 public enum NodeValueRank {
-    /** Enum value ScalarOrOneDimension. */
-    SCALAR_OR_ONE_DIMENSION("ScalarOrOneDimension"),
-
-    /** Enum value Any. */
-    ANY("Any"),
-
-    /** Enum value Scalar. */
-    SCALAR("Scalar"),
-
     /** Enum value OneOrMoreDimensions. */
     ONE_OR_MORE_DIMENSIONS("OneOrMoreDimensions"),
 
@@ -33,7 +24,16 @@ public enum NodeValueRank {
     ONE_DIMENSION("OneDimension"),
 
     /** Enum value TwoDimensions. */
-    TWO_DIMENSIONS("TwoDimensions");
+    TWO_DIMENSIONS("TwoDimensions"),
+
+    /** Enum value ScalarOrOneDimension. */
+    SCALAR_OR_ONE_DIMENSION("ScalarOrOneDimension"),
+
+    /** Enum value Any. */
+    ANY("Any"),
+
+    /** Enum value Scalar. */
+    SCALAR("Scalar");
 
     /** The actual serialized value for a NodeValueRank instance. */
     private String value;

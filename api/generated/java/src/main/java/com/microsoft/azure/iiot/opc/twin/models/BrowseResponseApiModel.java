@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class BrowseResponseApiModel {
     /**
-     * Node info for the currently browsed node.
+     * The node property.
      */
     @JsonProperty(value = "node")
     private NodeApiModel node;
@@ -36,13 +36,13 @@ public class BrowseResponseApiModel {
     private String continuationToken;
 
     /**
-     * Service result in case of error.
+     * The errorInfo property.
      */
     @JsonProperty(value = "errorInfo")
     private ServiceResultApiModel errorInfo;
 
     /**
-     * Get node info for the currently browsed node.
+     * Get the node value.
      *
      * @return the node value
      */
@@ -51,7 +51,7 @@ public class BrowseResponseApiModel {
     }
 
     /**
-     * Set node info for the currently browsed node.
+     * Set the node value.
      *
      * @param node the node value to set
      * @return the BrowseResponseApiModel object itself.
@@ -102,7 +102,7 @@ public class BrowseResponseApiModel {
     }
 
     /**
-     * Get service result in case of error.
+     * Get the errorInfo value.
      *
      * @return the errorInfo value
      */
@@ -111,7 +111,7 @@ public class BrowseResponseApiModel {
     }
 
     /**
-     * Set service result in case of error.
+     * Set the errorInfo value.
      *
      * @param errorInfo the errorInfo value to set
      * @return the BrowseResponseApiModel object itself.

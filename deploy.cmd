@@ -7,6 +7,7 @@
 set current-path=%~dp0
 rem // remove trailing slash
 set current-path=%current-path:~0,-1%
-pushd %current-path%\services\deploy
+pushd %current-path%\deploy\scripts
+shift
 powershell ./deploy.ps1 %*
 popd

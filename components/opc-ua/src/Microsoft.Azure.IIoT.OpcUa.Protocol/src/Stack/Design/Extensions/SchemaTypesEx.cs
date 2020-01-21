@@ -58,7 +58,7 @@ namespace Opc.Ua.Design.Schema {
                 case ModellingRule.Mandatory:
                     return Objects.ModellingRule_Mandatory;
                 case ModellingRule.MandatoryShared:
-                    return Objects.ModellingRule_MandatoryShared;
+                    return 79; // TODO
                 case ModellingRule.Optional:
                     return Objects.ModellingRule_Optional;
                 case ModellingRule.MandatoryPlaceholder:

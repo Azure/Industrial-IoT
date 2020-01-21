@@ -20,18 +20,64 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
     public static partial class AzureOpcTwinClientExtensions
     {
             /// <summary>
+            /// Browse node references
+            /// </summary>
+            /// <remarks>
+            /// Browse a node on the specified endpoint. The endpoint must be activated and
+            /// connected and the module client and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='body'>
+            /// The browse request
+            /// </param>
+            public static BrowseResponseApiModel Browse(this IAzureOpcTwinClient operations, string endpointId, BrowseRequestApiModel body)
+            {
+                return operations.BrowseAsync(endpointId, body).GetAwaiter().GetResult();
+            }
+
+            /// <summary>
+            /// Browse node references
+            /// </summary>
+            /// <remarks>
+            /// Browse a node on the specified endpoint. The endpoint must be activated and
+            /// connected and the module client and server must trust each other.
+            /// </remarks>
+            /// <param name='operations'>
+            /// The operations group for this extension method.
+            /// </param>
+            /// <param name='endpointId'>
+            /// The identifier of the activated endpoint.
+            /// </param>
+            /// <param name='body'>
+            /// The browse request
+            /// </param>
+            /// <param name='cancellationToken'>
+            /// The cancellation token.
+            /// </param>
+            public static async Task<BrowseResponseApiModel> BrowseAsync(this IAzureOpcTwinClient operations, string endpointId, BrowseRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                using (var _result = await operations.BrowseWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
+                {
+                    return _result.Body;
+                }
+            }
+
+            /// <summary>
             /// Browse set of unique target nodes
             /// </summary>
             /// <remarks>
             /// Browse the set of unique hierarchically referenced target nodes on the
-            /// endpoint.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
-            /// The root node id to browse from can be provided as part of the query
-            /// parameters.
-            /// If it is not provided, the RootFolder node is browsed. Note that this
-            /// is the same as the POST method with the model containing the node id
-            /// and the targetNodesOnly flag set to true.
+            /// endpoint. The endpoint must be activated and connected and the module
+            /// client and server must trust each other. The root node id to browse from
+            /// can be provided as part of the query parameters. If it is not provided, the
+            /// RootFolder node is browsed. Note that this is the same as the POST method
+            /// with the model containing the node id and the targetNodesOnly flag set to
+            /// true.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -52,14 +98,12 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// </summary>
             /// <remarks>
             /// Browse the set of unique hierarchically referenced target nodes on the
-            /// endpoint.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
-            /// The root node id to browse from can be provided as part of the query
-            /// parameters.
-            /// If it is not provided, the RootFolder node is browsed. Note that this
-            /// is the same as the POST method with the model containing the node id
-            /// and the targetNodesOnly flag set to true.
+            /// endpoint. The endpoint must be activated and connected and the module
+            /// client and server must trust each other. The root node id to browse from
+            /// can be provided as part of the query parameters. If it is not provided, the
+            /// RootFolder node is browsed. Note that this is the same as the POST method
+            /// with the model containing the node id and the targetNodesOnly flag set to
+            /// true.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -82,12 +126,12 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             }
 
             /// <summary>
-            /// Browse node references
+            /// Browse next set of references
             /// </summary>
             /// <remarks>
-            /// Browse a node on the specified endpoint.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Browse next set of references on the endpoint. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -95,21 +139,21 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
-            /// The browse request
+            /// <param name='body'>
+            /// The request body with continuation token.
             /// </param>
-            public static BrowseResponseApiModel Browse(this IAzureOpcTwinClient operations, string endpointId, BrowseRequestApiModel request)
+            public static BrowseNextResponseApiModel BrowseNext(this IAzureOpcTwinClient operations, string endpointId, BrowseNextRequestApiModel body)
             {
-                return operations.BrowseAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.BrowseNextAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
-            /// Browse node references
+            /// Browse next set of references
             /// </summary>
             /// <remarks>
-            /// Browse a node on the specified endpoint.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Browse next set of references on the endpoint. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -117,15 +161,15 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
-            /// The browse request
+            /// <param name='body'>
+            /// The request body with continuation token.
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<BrowseResponseApiModel> BrowseAsync(this IAzureOpcTwinClient operations, string endpointId, BrowseRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<BrowseNextResponseApiModel> BrowseNextAsync(this IAzureOpcTwinClient operations, string endpointId, BrowseNextRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.BrowseWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.BrowseNextWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -136,11 +180,10 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// </summary>
             /// <remarks>
             /// Browse the next set of unique hierarchically referenced target nodes on the
-            /// endpoint.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
-            /// Note that this is the same as the POST method with the model containing
-            /// the continuation token and the targetNodesOnly flag set to true.
+            /// endpoint. The endpoint must be activated and connected and the module
+            /// client and server must trust each other. Note that this is the same as the
+            /// POST method with the model containing the continuation token and the
+            /// targetNodesOnly flag set to true.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -161,11 +204,10 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// </summary>
             /// <remarks>
             /// Browse the next set of unique hierarchically referenced target nodes on the
-            /// endpoint.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
-            /// Note that this is the same as the POST method with the model containing
-            /// the continuation token and the targetNodesOnly flag set to true.
+            /// endpoint. The endpoint must be activated and connected and the module
+            /// client and server must trust each other. Note that this is the same as the
+            /// POST method with the model containing the continuation token and the
+            /// targetNodesOnly flag set to true.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -188,12 +230,13 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             }
 
             /// <summary>
-            /// Browse next set of references
+            /// Browse using a browse path
             /// </summary>
             /// <remarks>
-            /// Browse next set of references on the endpoint.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Browse using a path from the specified node id. This call uses
+            /// TranslateBrowsePathsToNodeIds service under the hood. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -201,50 +244,22 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
-            /// The request body with continuation token.
+            /// <param name='body'>
+            /// The browse path request
             /// </param>
-            public static BrowseNextResponseApiModel BrowseNext(this IAzureOpcTwinClient operations, string endpointId, BrowseNextRequestApiModel request)
+            public static BrowsePathResponseApiModel BrowseUsingPath(this IAzureOpcTwinClient operations, string endpointId, BrowsePathRequestApiModel body)
             {
-                return operations.BrowseNextAsync(endpointId, request).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Browse next set of references
-            /// </summary>
-            /// <remarks>
-            /// Browse next set of references on the endpoint.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='endpointId'>
-            /// The identifier of the activated endpoint.
-            /// </param>
-            /// <param name='request'>
-            /// The request body with continuation token.
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<BrowseNextResponseApiModel> BrowseNextAsync(this IAzureOpcTwinClient operations, string endpointId, BrowseNextRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.BrowseNextWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
+                return operations.BrowseUsingPathAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Browse using a browse path
             /// </summary>
             /// <remarks>
-            /// Browse using a path from the specified node id.
-            /// This call uses TranslateBrowsePathsToNodeIds service under the hood.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Browse using a path from the specified node id. This call uses
+            /// TranslateBrowsePathsToNodeIds service under the hood. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -252,38 +267,15 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
-            /// The browse path request
-            /// </param>
-            public static BrowsePathResponseApiModel BrowseUsingPath(this IAzureOpcTwinClient operations, string endpointId, BrowsePathRequestApiModel request)
-            {
-                return operations.BrowseUsingPathAsync(endpointId, request).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Browse using a browse path
-            /// </summary>
-            /// <remarks>
-            /// Browse using a path from the specified node id.
-            /// This call uses TranslateBrowsePathsToNodeIds service under the hood.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='endpointId'>
-            /// The identifier of the activated endpoint.
-            /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The browse path request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<BrowsePathResponseApiModel> BrowseUsingPathAsync(this IAzureOpcTwinClient operations, string endpointId, BrowsePathRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<BrowsePathResponseApiModel> BrowseUsingPathAsync(this IAzureOpcTwinClient operations, string endpointId, BrowsePathRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.BrowseUsingPathWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.BrowseUsingPathWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -294,9 +286,8 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// </summary>
             /// <remarks>
             /// Return method meta data to support a user interface displaying forms to
-            /// input and output arguments.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// input and output arguments. The endpoint must be activated and connected
+            /// and the module client and server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -304,12 +295,12 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The method metadata request
             /// </param>
-            public static MethodMetadataResponseApiModel GetCallMetadata(this IAzureOpcTwinClient operations, string endpointId, MethodMetadataRequestApiModel request)
+            public static MethodMetadataResponseApiModel GetCallMetadata(this IAzureOpcTwinClient operations, string endpointId, MethodMetadataRequestApiModel body)
             {
-                return operations.GetCallMetadataAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.GetCallMetadataAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
@@ -317,9 +308,8 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// </summary>
             /// <remarks>
             /// Return method meta data to support a user interface displaying forms to
-            /// input and output arguments.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// input and output arguments. The endpoint must be activated and connected
+            /// and the module client and server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -327,15 +317,15 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The method metadata request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<MethodMetadataResponseApiModel> GetCallMetadataAsync(this IAzureOpcTwinClient operations, string endpointId, MethodMetadataRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<MethodMetadataResponseApiModel> GetCallMetadataAsync(this IAzureOpcTwinClient operations, string endpointId, MethodMetadataRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.GetCallMetadataWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.GetCallMetadataWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -345,9 +335,9 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// Call a method
             /// </summary>
             /// <remarks>
-            /// Invoke method node with specified input arguments.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Invoke method node with specified input arguments. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -355,21 +345,21 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The method call request
             /// </param>
-            public static MethodCallResponseApiModel CallMethod(this IAzureOpcTwinClient operations, string endpointId, MethodCallRequestApiModel request)
+            public static MethodCallResponseApiModel CallMethod(this IAzureOpcTwinClient operations, string endpointId, MethodCallRequestApiModel body)
             {
-                return operations.CallMethodAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.CallMethodAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Call a method
             /// </summary>
             /// <remarks>
-            /// Invoke method node with specified input arguments.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Invoke method node with specified input arguments. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -377,27 +367,26 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The method call request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<MethodCallResponseApiModel> CallMethodAsync(this IAzureOpcTwinClient operations, string endpointId, MethodCallRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<MethodCallResponseApiModel> CallMethodAsync(this IAzureOpcTwinClient operations, string endpointId, MethodCallRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.CallMethodWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.CallMethodWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
             }
 
             /// <summary>
-            /// Start publishing node values
+            /// Read variable value
             /// </summary>
             /// <remarks>
-            /// Start publishing variable node values to IoT Hub.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Read a variable node's value. The endpoint must be activated and connected
+            /// and the module client and server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -405,21 +394,20 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
-            /// The publish request
+            /// <param name='body'>
+            /// The read value request
             /// </param>
-            public static PublishStartResponseApiModel StartPublishingValues(this IAzureOpcTwinClient operations, string endpointId, PublishStartRequestApiModel request)
+            public static ValueReadResponseApiModel ReadValue(this IAzureOpcTwinClient operations, string endpointId, ValueReadRequestApiModel body)
             {
-                return operations.StartPublishingValuesAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.ReadValueAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
-            /// Start publishing node values
+            /// Read variable value
             /// </summary>
             /// <remarks>
-            /// Start publishing variable node values to IoT Hub.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Read a variable node's value. The endpoint must be activated and connected
+            /// and the module client and server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -427,165 +415,15 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
-            /// The publish request
+            /// <param name='body'>
+            /// The read value request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<PublishStartResponseApiModel> StartPublishingValuesAsync(this IAzureOpcTwinClient operations, string endpointId, PublishStartRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<ValueReadResponseApiModel> ReadValueAsync(this IAzureOpcTwinClient operations, string endpointId, ValueReadRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.StartPublishingValuesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
-            /// Stop publishing node values
-            /// </summary>
-            /// <remarks>
-            /// Stop publishing variable node values to IoT Hub.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='endpointId'>
-            /// The identifier of the activated endpoint.
-            /// </param>
-            /// <param name='request'>
-            /// The unpublish request
-            /// </param>
-            public static PublishStopResponseApiModel StopPublishingValues(this IAzureOpcTwinClient operations, string endpointId, PublishStopRequestApiModel request)
-            {
-                return operations.StopPublishingValuesAsync(endpointId, request).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Stop publishing node values
-            /// </summary>
-            /// <remarks>
-            /// Stop publishing variable node values to IoT Hub.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='endpointId'>
-            /// The identifier of the activated endpoint.
-            /// </param>
-            /// <param name='request'>
-            /// The unpublish request
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<PublishStopResponseApiModel> StopPublishingValuesAsync(this IAzureOpcTwinClient operations, string endpointId, PublishStopRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.StopPublishingValuesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
-            /// Get next set of published nodes
-            /// </summary>
-            /// <remarks>
-            /// Returns next set of currently published node ids for an endpoint.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='endpointId'>
-            /// The identifier of the activated endpoint.
-            /// </param>
-            /// <param name='continuationToken'>
-            /// The continuation token to continue with
-            /// </param>
-            public static PublishedItemListResponseApiModel GetNextListOfPublishedNodes(this IAzureOpcTwinClient operations, string endpointId, string continuationToken)
-            {
-                return operations.GetNextListOfPublishedNodesAsync(endpointId, continuationToken).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Get next set of published nodes
-            /// </summary>
-            /// <remarks>
-            /// Returns next set of currently published node ids for an endpoint.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='endpointId'>
-            /// The identifier of the activated endpoint.
-            /// </param>
-            /// <param name='continuationToken'>
-            /// The continuation token to continue with
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<PublishedItemListResponseApiModel> GetNextListOfPublishedNodesAsync(this IAzureOpcTwinClient operations, string endpointId, string continuationToken, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.GetNextListOfPublishedNodesWithHttpMessagesAsync(endpointId, continuationToken, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
-            /// Get currently published nodes
-            /// </summary>
-            /// <remarks>
-            /// Returns currently published node ids for an endpoint.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='endpointId'>
-            /// The identifier of the activated endpoint.
-            /// </param>
-            /// <param name='request'>
-            /// The list request
-            /// </param>
-            public static PublishedItemListResponseApiModel GetFirstListOfPublishedNodes(this IAzureOpcTwinClient operations, string endpointId, PublishedItemListRequestApiModel request)
-            {
-                return operations.GetFirstListOfPublishedNodesAsync(endpointId, request).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Get currently published nodes
-            /// </summary>
-            /// <remarks>
-            /// Returns currently published node ids for an endpoint.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='endpointId'>
-            /// The identifier of the activated endpoint.
-            /// </param>
-            /// <param name='request'>
-            /// The list request
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<PublishedItemListResponseApiModel> GetFirstListOfPublishedNodesAsync(this IAzureOpcTwinClient operations, string endpointId, PublishedItemListRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.GetFirstListOfPublishedNodesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.ReadValueWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -595,9 +433,9 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// Get variable value
             /// </summary>
             /// <remarks>
-            /// Get a variable node's value using its node id.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Get a variable node's value using its node id. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -617,9 +455,9 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// Get variable value
             /// </summary>
             /// <remarks>
-            /// Get a variable node's value using its node id.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Get a variable node's value using its node id. The endpoint must be
+            /// activated and connected and the module client and server must trust each
+            /// other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -642,12 +480,11 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             }
 
             /// <summary>
-            /// Read variable value
+            /// Read node attributes
             /// </summary>
             /// <remarks>
-            /// Read a variable node's value.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Read attributes of a node. The endpoint must be activated and connected and
+            /// the module client and server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -655,49 +492,20 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
-            /// The read value request
+            /// <param name='body'>
+            /// The read request
             /// </param>
-            public static ValueReadResponseApiModel ReadValue(this IAzureOpcTwinClient operations, string endpointId, ValueReadRequestApiModel request)
+            public static ReadResponseApiModel ReadAttributes(this IAzureOpcTwinClient operations, string endpointId, ReadRequestApiModel body)
             {
-                return operations.ReadValueAsync(endpointId, request).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Read variable value
-            /// </summary>
-            /// <remarks>
-            /// Read a variable node's value.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='endpointId'>
-            /// The identifier of the activated endpoint.
-            /// </param>
-            /// <param name='request'>
-            /// The read value request
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<ValueReadResponseApiModel> ReadValueAsync(this IAzureOpcTwinClient operations, string endpointId, ValueReadRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.ReadValueWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
+                return operations.ReadAttributesAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Read node attributes
             /// </summary>
             /// <remarks>
-            /// Read attributes of a node.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Read attributes of a node. The endpoint must be activated and connected and
+            /// the module client and server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -705,67 +513,15 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
-            /// The read request
-            /// </param>
-            public static ReadResponseApiModel ReadAttributes(this IAzureOpcTwinClient operations, string endpointId, ReadRequestApiModel request)
-            {
-                return operations.ReadAttributesAsync(endpointId, request).GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Read node attributes
-            /// </summary>
-            /// <remarks>
-            /// Read attributes of a node.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
-            /// </remarks>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='endpointId'>
-            /// The identifier of the activated endpoint.
-            /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The read request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<ReadResponseApiModel> ReadAttributesAsync(this IAzureOpcTwinClient operations, string endpointId, ReadRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<ReadResponseApiModel> ReadAttributesAsync(this IAzureOpcTwinClient operations, string endpointId, ReadRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.ReadAttributesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
-                {
-                    return _result.Body;
-                }
-            }
-
-            /// <summary>
-            /// Return the service status in the form of the service status
-            /// api model.
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            public static StatusResponseApiModel GetStatus(this IAzureOpcTwinClient operations)
-            {
-                return operations.GetStatusAsync().GetAwaiter().GetResult();
-            }
-
-            /// <summary>
-            /// Return the service status in the form of the service status
-            /// api model.
-            /// </summary>
-            /// <param name='operations'>
-            /// The operations group for this extension method.
-            /// </param>
-            /// <param name='cancellationToken'>
-            /// The cancellation token.
-            /// </param>
-            public static async Task<StatusResponseApiModel> GetStatusAsync(this IAzureOpcTwinClient operations, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                using (var _result = await operations.GetStatusWithHttpMessagesAsync(null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.ReadAttributesWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -775,9 +531,8 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// Write variable value
             /// </summary>
             /// <remarks>
-            /// Write variable node's value.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Write variable node's value. The endpoint must be activated and connected
+            /// and the module client and server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -785,21 +540,20 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The write value request
             /// </param>
-            public static ValueWriteResponseApiModel WriteValue(this IAzureOpcTwinClient operations, string endpointId, ValueWriteRequestApiModel request)
+            public static ValueWriteResponseApiModel WriteValue(this IAzureOpcTwinClient operations, string endpointId, ValueWriteRequestApiModel body)
             {
-                return operations.WriteValueAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.WriteValueAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Write variable value
             /// </summary>
             /// <remarks>
-            /// Write variable node's value.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Write variable node's value. The endpoint must be activated and connected
+            /// and the module client and server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -807,15 +561,15 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The write value request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<ValueWriteResponseApiModel> WriteValueAsync(this IAzureOpcTwinClient operations, string endpointId, ValueWriteRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<ValueWriteResponseApiModel> WriteValueAsync(this IAzureOpcTwinClient operations, string endpointId, ValueWriteRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.WriteValueWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.WriteValueWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }
@@ -825,9 +579,8 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// Write node attributes
             /// </summary>
             /// <remarks>
-            /// Write any attribute of a node.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Write any attribute of a node. The endpoint must be activated and connected
+            /// and the module client and server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -835,21 +588,20 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The batch write request
             /// </param>
-            public static WriteResponseApiModel WriteAttributes(this IAzureOpcTwinClient operations, string endpointId, WriteRequestApiModel request)
+            public static WriteResponseApiModel WriteAttributes(this IAzureOpcTwinClient operations, string endpointId, WriteRequestApiModel body)
             {
-                return operations.WriteAttributesAsync(endpointId, request).GetAwaiter().GetResult();
+                return operations.WriteAttributesAsync(endpointId, body).GetAwaiter().GetResult();
             }
 
             /// <summary>
             /// Write node attributes
             /// </summary>
             /// <remarks>
-            /// Write any attribute of a node.
-            /// The endpoint must be activated and connected and the module client
-            /// and server must trust each other.
+            /// Write any attribute of a node. The endpoint must be activated and connected
+            /// and the module client and server must trust each other.
             /// </remarks>
             /// <param name='operations'>
             /// The operations group for this extension method.
@@ -857,15 +609,15 @@ namespace Microsoft.Azure.IIoT.Opc.Twin
             /// <param name='endpointId'>
             /// The identifier of the activated endpoint.
             /// </param>
-            /// <param name='request'>
+            /// <param name='body'>
             /// The batch write request
             /// </param>
             /// <param name='cancellationToken'>
             /// The cancellation token.
             /// </param>
-            public static async Task<WriteResponseApiModel> WriteAttributesAsync(this IAzureOpcTwinClient operations, string endpointId, WriteRequestApiModel request, CancellationToken cancellationToken = default(CancellationToken))
+            public static async Task<WriteResponseApiModel> WriteAttributesAsync(this IAzureOpcTwinClient operations, string endpointId, WriteRequestApiModel body, CancellationToken cancellationToken = default(CancellationToken))
             {
-                using (var _result = await operations.WriteAttributesWithHttpMessagesAsync(endpointId, request, null, cancellationToken).ConfigureAwait(false))
+                using (var _result = await operations.WriteAttributesWithHttpMessagesAsync(endpointId, body, null, cancellationToken).ConfigureAwait(false))
                 {
                     return _result.Body;
                 }

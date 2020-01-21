@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     using Newtonsoft.Json;
     using System.Collections.Generic;
+    using System.ComponentModel;
 
     /// <summary>
     /// Application registration update request
@@ -17,13 +18,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "productUri",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string ProductUri { get; set; }
 
         /// <summary>
-        /// Default name of the application
+        /// Default name of the server or client.
         /// </summary>
         [JsonProperty(PropertyName = "applicationName",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string ApplicationName { get; set; }
 
         /// <summary>
@@ -31,14 +34,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "locale",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string Locale { get; set; }
 
         /// <summary>
-        /// Localized names of application keyed on locale.
-        /// Set value to null to remove loc entry.
+        /// Localized names keyed off locale id.
+        /// To remove entry, set value for locale id to null.
         /// </summary>
         [JsonProperty(PropertyName = "localizedNames",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public Dictionary<string, string> LocalizedNames { get; set; }
 
         /// <summary>
@@ -46,6 +51,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "certificate",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public byte[] Certificate { get; set; }
 
         /// <summary>
@@ -53,6 +59,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "capabilities",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public HashSet<string> Capabilities { get; set; }
 
         /// <summary>
@@ -60,6 +67,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "discoveryUrls",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public HashSet<string> DiscoveryUrls { get; set; }
 
         /// <summary>
@@ -67,6 +75,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "discoveryProfileUri",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string DiscoveryProfileUri { get; set; }
 
         /// <summary>
@@ -74,6 +83,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "gatewayServerUri",
             NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
         public string GatewayServerUri { get; set; }
     }
 }

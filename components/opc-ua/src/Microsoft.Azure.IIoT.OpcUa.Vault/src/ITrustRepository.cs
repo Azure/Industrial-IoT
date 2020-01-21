@@ -43,8 +43,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault {
         /// subject.
         /// </summary>
         /// <param name="subjectId"></param>
-        /// <param name="objectId"></param>
         /// <param name="direction"></param>
+        /// <param name="objectId"></param>
         /// <param name="ct"></param>
         /// <returns>Relationships deleted</returns>
         Task DeleteAsync(string subjectId, TrustDirectionType? direction = null,

@@ -15,7 +15,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Storage {
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
     /// Cosmos db certificate request database
@@ -63,8 +62,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Storage {
 
         /// <inheritdoc/>
         public async Task<CertificateRequestModel> UpdateAsync(string requestId,
-            Func<CertificateRequestModel, bool> predicate,
-            CancellationToken ct) {
+            Func<CertificateRequestModel, bool> predicate, CancellationToken ct) {
             if (string.IsNullOrEmpty(requestId)) {
                 throw new ArgumentNullException(nameof(requestId));
             }

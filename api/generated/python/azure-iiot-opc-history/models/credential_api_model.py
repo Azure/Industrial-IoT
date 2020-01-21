@@ -15,8 +15,8 @@ from msrest.serialization import Model
 class CredentialApiModel(Model):
     """Credential model.
 
-    :param type: Type of credential. Possible values include: 'None',
-     'UserName', 'X509Certificate', 'JwtToken'. Default value: "None" .
+    :param type: Possible values include: 'None', 'UserName',
+     'X509Certificate', 'JwtToken'
     :type type: str or ~azure-iiot-opc-history.models.CredentialType
     :param value: Value to pass to server
     :type value: object
@@ -27,7 +27,7 @@ class CredentialApiModel(Model):
         'value': {'key': 'value', 'type': 'object'},
     }
 
-    def __init__(self, type="None", value=None):
+    def __init__(self, type=None, value=None):
         super(CredentialApiModel, self).__init__()
         self.type = type
         self.value = value

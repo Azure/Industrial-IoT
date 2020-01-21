@@ -29,7 +29,7 @@ module azure.iiot.opc.history
     #
     def initialize(credentials = nil, base_url = nil, options = nil)
       super(credentials, options)
-      @base_url = base_url || 'http://localhost'
+      @base_url = base_url || 'http://localhost:9080'
 
       fail ArgumentError, 'invalid type of credentials input parameter' unless credentials.is_a?(MsRest::ServiceClientCredentials) unless credentials.nil?
       @credentials = credentials
@@ -97,71 +97,65 @@ module azure.iiot.opc.history
     #
     # Delete value history at specified times
     #
-    # Delete value history using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Delete value history using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request
-    # [HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel] The history
-    # update request
+    # @param body [DeleteValuesAtTimesDetailsApiModelHistoryUpdateRequestApiModel]
+    # The history update request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [HistoryUpdateResponseApiModel] operation results.
     #
-    def history_delete_values_at_times(endpoint_id, request, custom_headers:nil)
-      response = history_delete_values_at_times_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_delete_values_at_times(endpoint_id, body, custom_headers:nil)
+      response = history_delete_values_at_times_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Delete value history at specified times
     #
-    # Delete value history using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Delete value history using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request
-    # [HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel] The history
-    # update request
+    # @param body [DeleteValuesAtTimesDetailsApiModelHistoryUpdateRequestApiModel]
+    # The history update request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def history_delete_values_at_times_with_http_info(endpoint_id, request, custom_headers:nil)
-      history_delete_values_at_times_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_delete_values_at_times_with_http_info(endpoint_id, body, custom_headers:nil)
+      history_delete_values_at_times_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Delete value history at specified times
     #
-    # Delete value history using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Delete value history using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request
-    # [HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel] The history
-    # update request
+    # @param body [DeleteValuesAtTimesDetailsApiModelHistoryUpdateRequestApiModel]
+    # The history update request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def history_delete_values_at_times_async(endpoint_id, request, custom_headers:nil)
+    def history_delete_values_at_times_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
 
       # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::HistoryUpdateRequestApiModelDeleteValuesAtTimesDetailsApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_mapper = azure.iiot.opc.history::Models::DeleteValuesAtTimesDetailsApiModelHistoryUpdateRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/delete/{endpointId}/values/pick'
@@ -206,68 +200,65 @@ module azure.iiot.opc.history
     #
     # Delete historic values
     #
-    # Delete historic values using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Delete historic values using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel] The
+    # @param body [DeleteValuesDetailsApiModelHistoryUpdateRequestApiModel] The
     # history update request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [HistoryUpdateResponseApiModel] operation results.
     #
-    def history_delete_values(endpoint_id, request, custom_headers:nil)
-      response = history_delete_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_delete_values(endpoint_id, body, custom_headers:nil)
+      response = history_delete_values_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Delete historic values
     #
-    # Delete historic values using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Delete historic values using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel] The
+    # @param body [DeleteValuesDetailsApiModelHistoryUpdateRequestApiModel] The
     # history update request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def history_delete_values_with_http_info(endpoint_id, request, custom_headers:nil)
-      history_delete_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_delete_values_with_http_info(endpoint_id, body, custom_headers:nil)
+      history_delete_values_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Delete historic values
     #
-    # Delete historic values using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Delete historic values using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel] The
+    # @param body [DeleteValuesDetailsApiModelHistoryUpdateRequestApiModel] The
     # history update request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def history_delete_values_async(endpoint_id, request, custom_headers:nil)
+    def history_delete_values_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
 
       # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::HistoryUpdateRequestApiModelDeleteValuesDetailsApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_mapper = azure.iiot.opc.history::Models::DeleteValuesDetailsApiModelHistoryUpdateRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/delete/{endpointId}/values'
@@ -312,71 +303,65 @@ module azure.iiot.opc.history
     #
     # Delete historic values
     #
-    # Delete historic values using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Delete historic values using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request
-    # [HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel] The history
-    # update request
+    # @param body [DeleteModifiedValuesDetailsApiModelHistoryUpdateRequestApiModel]
+    # The history update request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [HistoryUpdateResponseApiModel] operation results.
     #
-    def history_delete_modified_values(endpoint_id, request, custom_headers:nil)
-      response = history_delete_modified_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_delete_modified_values(endpoint_id, body, custom_headers:nil)
+      response = history_delete_modified_values_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Delete historic values
     #
-    # Delete historic values using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Delete historic values using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request
-    # [HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel] The history
-    # update request
+    # @param body [DeleteModifiedValuesDetailsApiModelHistoryUpdateRequestApiModel]
+    # The history update request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def history_delete_modified_values_with_http_info(endpoint_id, request, custom_headers:nil)
-      history_delete_modified_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_delete_modified_values_with_http_info(endpoint_id, body, custom_headers:nil)
+      history_delete_modified_values_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Delete historic values
     #
-    # Delete historic values using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Delete historic values using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request
-    # [HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel] The history
-    # update request
+    # @param body [DeleteModifiedValuesDetailsApiModelHistoryUpdateRequestApiModel]
+    # The history update request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def history_delete_modified_values_async(endpoint_id, request, custom_headers:nil)
+    def history_delete_modified_values_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
 
       # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::HistoryUpdateRequestApiModelDeleteModifiedValuesDetailsApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_mapper = azure.iiot.opc.history::Models::DeleteModifiedValuesDetailsApiModelHistoryUpdateRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/delete/{endpointId}/values/modified'
@@ -421,68 +406,65 @@ module azure.iiot.opc.history
     #
     # Delete historic events
     #
-    # Delete historic events using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Delete historic events using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel] The
+    # @param body [DeleteEventsDetailsApiModelHistoryUpdateRequestApiModel] The
     # history update request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [HistoryUpdateResponseApiModel] operation results.
     #
-    def history_delete_events(endpoint_id, request, custom_headers:nil)
-      response = history_delete_events_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_delete_events(endpoint_id, body, custom_headers:nil)
+      response = history_delete_events_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Delete historic events
     #
-    # Delete historic events using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Delete historic events using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel] The
+    # @param body [DeleteEventsDetailsApiModelHistoryUpdateRequestApiModel] The
     # history update request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def history_delete_events_with_http_info(endpoint_id, request, custom_headers:nil)
-      history_delete_events_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_delete_events_with_http_info(endpoint_id, body, custom_headers:nil)
+      history_delete_events_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Delete historic events
     #
-    # Delete historic events using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Delete historic events using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel] The
+    # @param body [DeleteEventsDetailsApiModelHistoryUpdateRequestApiModel] The
     # history update request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def history_delete_events_async(endpoint_id, request, custom_headers:nil)
+    def history_delete_events_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
 
       # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::HistoryUpdateRequestApiModelDeleteEventsDetailsApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_mapper = azure.iiot.opc.history::Models::DeleteEventsDetailsApiModelHistoryUpdateRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/delete/{endpointId}/events'
@@ -527,65 +509,65 @@ module azure.iiot.opc.history
     #
     # Read history using json details
     #
-    # Read node history if available using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Read node history if available using historic access. The endpoint must be
+    # activated and connected and the module client and server must trust each
+    # other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadRequestApiModelJToken] The history read request
+    # @param body [JTokenHistoryReadRequestApiModel] The history read request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
-    # @return [HistoryReadResponseApiModelJToken] operation results.
+    # @return [JTokenHistoryReadResponseApiModel] operation results.
     #
-    def history_read_raw(endpoint_id, request, custom_headers:nil)
-      response = history_read_raw_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_read_raw(endpoint_id, body, custom_headers:nil)
+      response = history_read_raw_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Read history using json details
     #
-    # Read node history if available using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Read node history if available using historic access. The endpoint must be
+    # activated and connected and the module client and server must trust each
+    # other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadRequestApiModelJToken] The history read request
+    # @param body [JTokenHistoryReadRequestApiModel] The history read request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def history_read_raw_with_http_info(endpoint_id, request, custom_headers:nil)
-      history_read_raw_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_read_raw_with_http_info(endpoint_id, body, custom_headers:nil)
+      history_read_raw_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Read history using json details
     #
-    # Read node history if available using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Read node history if available using historic access. The endpoint must be
+    # activated and connected and the module client and server must trust each
+    # other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadRequestApiModelJToken] The history read request
+    # @param body [JTokenHistoryReadRequestApiModel] The history read request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def history_read_raw_async(endpoint_id, request, custom_headers:nil)
+    def history_read_raw_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
 
       # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::HistoryReadRequestApiModelJToken.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_mapper = azure.iiot.opc.history::Models::JTokenHistoryReadRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/history/read/{endpointId}'
@@ -614,7 +596,7 @@ module azure.iiot.opc.history
         if status_code == 200
           begin
             parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::HistoryReadResponseApiModelJToken.mapper()
+            result_mapper = azure.iiot.opc.history::Models::JTokenHistoryReadResponseApiModel.mapper()
             result.body = self.deserialize(result_mapper, parsed_response)
           rescue Exception => e
             fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
@@ -630,57 +612,57 @@ module azure.iiot.opc.history
     #
     # Read next batch of history as json
     #
-    # Read next batch of node history values using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Read next batch of node history values using historic access. The endpoint
+    # must be activated and connected and the module client and server must trust
+    # each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadNextRequestApiModel] The history read next request
+    # @param body [HistoryReadNextRequestApiModel] The history read next request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
-    # @return [HistoryReadNextResponseApiModelJToken] operation results.
+    # @return [JTokenHistoryReadNextResponseApiModel] operation results.
     #
-    def history_read_raw_next(endpoint_id, request, custom_headers:nil)
-      response = history_read_raw_next_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_read_raw_next(endpoint_id, body, custom_headers:nil)
+      response = history_read_raw_next_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Read next batch of history as json
     #
-    # Read next batch of node history values using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Read next batch of node history values using historic access. The endpoint
+    # must be activated and connected and the module client and server must trust
+    # each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadNextRequestApiModel] The history read next request
+    # @param body [HistoryReadNextRequestApiModel] The history read next request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def history_read_raw_next_with_http_info(endpoint_id, request, custom_headers:nil)
-      history_read_raw_next_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_read_raw_next_with_http_info(endpoint_id, body, custom_headers:nil)
+      history_read_raw_next_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Read next batch of history as json
     #
-    # Read next batch of node history values using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Read next batch of node history values using historic access. The endpoint
+    # must be activated and connected and the module client and server must trust
+    # each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadNextRequestApiModel] The history read next request
+    # @param body [HistoryReadNextRequestApiModel] The history read next request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def history_read_raw_next_async(endpoint_id, request, custom_headers:nil)
+    def history_read_raw_next_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
@@ -688,7 +670,7 @@ module azure.iiot.opc.history
 
       # Serialize Request
       request_mapper = azure.iiot.opc.history::Models::HistoryReadNextRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/history/read/{endpointId}/next'
@@ -717,7 +699,7 @@ module azure.iiot.opc.history
         if status_code == 200
           begin
             parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::HistoryReadNextResponseApiModelJToken.mapper()
+            result_mapper = azure.iiot.opc.history::Models::JTokenHistoryReadNextResponseApiModel.mapper()
             result.body = self.deserialize(result_mapper, parsed_response)
           rescue Exception => e
             fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
@@ -733,68 +715,62 @@ module azure.iiot.opc.history
     #
     # Update node history using raw json
     #
-    # Update node history using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Update node history using historic access. The endpoint must be activated and
+    # connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryUpdateRequestApiModelJToken] The history update
-    # request
+    # @param body [JTokenHistoryUpdateRequestApiModel] The history update request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [HistoryUpdateResponseApiModel] operation results.
     #
-    def history_update_raw(endpoint_id, request, custom_headers:nil)
-      response = history_update_raw_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_update_raw(endpoint_id, body, custom_headers:nil)
+      response = history_update_raw_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Update node history using raw json
     #
-    # Update node history using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Update node history using historic access. The endpoint must be activated and
+    # connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryUpdateRequestApiModelJToken] The history update
-    # request
+    # @param body [JTokenHistoryUpdateRequestApiModel] The history update request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def history_update_raw_with_http_info(endpoint_id, request, custom_headers:nil)
-      history_update_raw_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_update_raw_with_http_info(endpoint_id, body, custom_headers:nil)
+      history_update_raw_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Update node history using raw json
     #
-    # Update node history using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Update node history using historic access. The endpoint must be activated and
+    # connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryUpdateRequestApiModelJToken] The history update
-    # request
+    # @param body [JTokenHistoryUpdateRequestApiModel] The history update request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def history_update_raw_async(endpoint_id, request, custom_headers:nil)
+    def history_update_raw_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
 
       # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::HistoryUpdateRequestApiModelJToken.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_mapper = azure.iiot.opc.history::Models::JTokenHistoryUpdateRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/history/update/{endpointId}'
@@ -839,68 +815,65 @@ module azure.iiot.opc.history
     #
     # Insert historic values
     #
-    # Insert historic values using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Insert historic values using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryUpdateRequestApiModelInsertValuesDetailsApiModel] The
+    # @param body [InsertValuesDetailsApiModelHistoryUpdateRequestApiModel] The
     # history insert request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [HistoryUpdateResponseApiModel] operation results.
     #
-    def history_insert_values(endpoint_id, request, custom_headers:nil)
-      response = history_insert_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_insert_values(endpoint_id, body, custom_headers:nil)
+      response = history_insert_values_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Insert historic values
     #
-    # Insert historic values using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Insert historic values using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryUpdateRequestApiModelInsertValuesDetailsApiModel] The
+    # @param body [InsertValuesDetailsApiModelHistoryUpdateRequestApiModel] The
     # history insert request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def history_insert_values_with_http_info(endpoint_id, request, custom_headers:nil)
-      history_insert_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_insert_values_with_http_info(endpoint_id, body, custom_headers:nil)
+      history_insert_values_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Insert historic values
     #
-    # Insert historic values using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Insert historic values using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryUpdateRequestApiModelInsertValuesDetailsApiModel] The
+    # @param body [InsertValuesDetailsApiModelHistoryUpdateRequestApiModel] The
     # history insert request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def history_insert_values_async(endpoint_id, request, custom_headers:nil)
+    def history_insert_values_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
 
       # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::HistoryUpdateRequestApiModelInsertValuesDetailsApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_mapper = azure.iiot.opc.history::Models::InsertValuesDetailsApiModelHistoryUpdateRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/insert/{endpointId}/values'
@@ -945,68 +918,65 @@ module azure.iiot.opc.history
     #
     # Insert historic events
     #
-    # Insert historic events using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Insert historic events using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryUpdateRequestApiModelInsertEventsDetailsApiModel] The
+    # @param body [InsertEventsDetailsApiModelHistoryUpdateRequestApiModel] The
     # history insert request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [HistoryUpdateResponseApiModel] operation results.
     #
-    def history_insert_events(endpoint_id, request, custom_headers:nil)
-      response = history_insert_events_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_insert_events(endpoint_id, body, custom_headers:nil)
+      response = history_insert_events_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Insert historic events
     #
-    # Insert historic events using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Insert historic events using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryUpdateRequestApiModelInsertEventsDetailsApiModel] The
+    # @param body [InsertEventsDetailsApiModelHistoryUpdateRequestApiModel] The
     # history insert request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def history_insert_events_with_http_info(endpoint_id, request, custom_headers:nil)
-      history_insert_events_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_insert_events_with_http_info(endpoint_id, body, custom_headers:nil)
+      history_insert_events_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Insert historic events
     #
-    # Insert historic events using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Insert historic events using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryUpdateRequestApiModelInsertEventsDetailsApiModel] The
+    # @param body [InsertEventsDetailsApiModelHistoryUpdateRequestApiModel] The
     # history insert request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def history_insert_events_async(endpoint_id, request, custom_headers:nil)
+    def history_insert_events_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
 
       # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::HistoryUpdateRequestApiModelInsertEventsDetailsApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_mapper = azure.iiot.opc.history::Models::InsertEventsDetailsApiModelHistoryUpdateRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/insert/{endpointId}/events'
@@ -1051,69 +1021,69 @@ module azure.iiot.opc.history
     #
     # Read historic events
     #
-    # Read historic events of a node if available using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Read historic events of a node if available using historic access. The
+    # endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadRequestApiModelReadEventsDetailsApiModel] The
-    # history read request
+    # @param body [ReadEventsDetailsApiModelHistoryReadRequestApiModel] The history
+    # read request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
-    # @return [HistoryReadResponseApiModelHistoricEventApiModelSequence] operation
+    # @return [HistoricEventApiModelSequenceHistoryReadResponseApiModel] operation
     # results.
     #
-    def history_read_events(endpoint_id, request, custom_headers:nil)
-      response = history_read_events_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_read_events(endpoint_id, body, custom_headers:nil)
+      response = history_read_events_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Read historic events
     #
-    # Read historic events of a node if available using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Read historic events of a node if available using historic access. The
+    # endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadRequestApiModelReadEventsDetailsApiModel] The
-    # history read request
+    # @param body [ReadEventsDetailsApiModelHistoryReadRequestApiModel] The history
+    # read request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def history_read_events_with_http_info(endpoint_id, request, custom_headers:nil)
-      history_read_events_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_read_events_with_http_info(endpoint_id, body, custom_headers:nil)
+      history_read_events_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Read historic events
     #
-    # Read historic events of a node if available using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Read historic events of a node if available using historic access. The
+    # endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadRequestApiModelReadEventsDetailsApiModel] The
-    # history read request
+    # @param body [ReadEventsDetailsApiModelHistoryReadRequestApiModel] The history
+    # read request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def history_read_events_async(endpoint_id, request, custom_headers:nil)
+    def history_read_events_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
 
       # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::HistoryReadRequestApiModelReadEventsDetailsApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_mapper = azure.iiot.opc.history::Models::ReadEventsDetailsApiModelHistoryReadRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/read/{endpointId}/events'
@@ -1142,7 +1112,7 @@ module azure.iiot.opc.history
         if status_code == 200
           begin
             parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::HistoryReadResponseApiModelHistoricEventApiModelSequence.mapper()
+            result_mapper = azure.iiot.opc.history::Models::HistoricEventApiModelSequenceHistoryReadResponseApiModel.mapper()
             result.body = self.deserialize(result_mapper, parsed_response)
           rescue Exception => e
             fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
@@ -1158,58 +1128,58 @@ module azure.iiot.opc.history
     #
     # Read next batch of historic events
     #
-    # Read next batch of historic events of a node using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Read next batch of historic events of a node using historic access. The
+    # endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadNextRequestApiModel] The history read next request
+    # @param body [HistoryReadNextRequestApiModel] The history read next request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
-    # @return [HistoryReadNextResponseApiModelHistoricEventApiModelSequence]
+    # @return [HistoricEventApiModelSequenceHistoryReadNextResponseApiModel]
     # operation results.
     #
-    def history_read_events_next(endpoint_id, request, custom_headers:nil)
-      response = history_read_events_next_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_read_events_next(endpoint_id, body, custom_headers:nil)
+      response = history_read_events_next_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Read next batch of historic events
     #
-    # Read next batch of historic events of a node using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Read next batch of historic events of a node using historic access. The
+    # endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadNextRequestApiModel] The history read next request
+    # @param body [HistoryReadNextRequestApiModel] The history read next request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def history_read_events_next_with_http_info(endpoint_id, request, custom_headers:nil)
-      history_read_events_next_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_read_events_next_with_http_info(endpoint_id, body, custom_headers:nil)
+      history_read_events_next_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Read next batch of historic events
     #
-    # Read next batch of historic events of a node using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Read next batch of historic events of a node using historic access. The
+    # endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadNextRequestApiModel] The history read next request
+    # @param body [HistoryReadNextRequestApiModel] The history read next request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def history_read_events_next_async(endpoint_id, request, custom_headers:nil)
+    def history_read_events_next_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
@@ -1217,7 +1187,7 @@ module azure.iiot.opc.history
 
       # Serialize Request
       request_mapper = azure.iiot.opc.history::Models::HistoryReadNextRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/read/{endpointId}/events/next'
@@ -1246,7 +1216,7 @@ module azure.iiot.opc.history
         if status_code == 200
           begin
             parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::HistoryReadNextResponseApiModelHistoricEventApiModelSequence.mapper()
+            result_mapper = azure.iiot.opc.history::Models::HistoricEventApiModelSequenceHistoryReadNextResponseApiModel.mapper()
             result.body = self.deserialize(result_mapper, parsed_response)
           rescue Exception => e
             fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
@@ -1263,20 +1233,20 @@ module azure.iiot.opc.history
     # Read historic processed values at specified times
     #
     # Read processed history values of a node if available using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # The endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadRequestApiModelReadValuesDetailsApiModel] The
-    # history read request
+    # @param body [ReadValuesDetailsApiModelHistoryReadRequestApiModel] The history
+    # read request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
-    # @return [HistoryReadResponseApiModelHistoricValueApiModelSequence] operation
+    # @return [HistoricValueApiModelSequenceHistoryReadResponseApiModel] operation
     # results.
     #
-    def history_read_values(endpoint_id, request, custom_headers:nil)
-      response = history_read_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_read_values(endpoint_id, body, custom_headers:nil)
+      response = history_read_values_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
@@ -1284,47 +1254,47 @@ module azure.iiot.opc.history
     # Read historic processed values at specified times
     #
     # Read processed history values of a node if available using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # The endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadRequestApiModelReadValuesDetailsApiModel] The
-    # history read request
+    # @param body [ReadValuesDetailsApiModelHistoryReadRequestApiModel] The history
+    # read request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def history_read_values_with_http_info(endpoint_id, request, custom_headers:nil)
-      history_read_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_read_values_with_http_info(endpoint_id, body, custom_headers:nil)
+      history_read_values_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Read historic processed values at specified times
     #
     # Read processed history values of a node if available using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # The endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadRequestApiModelReadValuesDetailsApiModel] The
-    # history read request
+    # @param body [ReadValuesDetailsApiModelHistoryReadRequestApiModel] The history
+    # read request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def history_read_values_async(endpoint_id, request, custom_headers:nil)
+    def history_read_values_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
 
       # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::HistoryReadRequestApiModelReadValuesDetailsApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_mapper = azure.iiot.opc.history::Models::ReadValuesDetailsApiModelHistoryReadRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/read/{endpointId}/values'
@@ -1353,7 +1323,7 @@ module azure.iiot.opc.history
         if status_code == 200
           begin
             parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::HistoryReadResponseApiModelHistoricValueApiModelSequence.mapper()
+            result_mapper = azure.iiot.opc.history::Models::HistoricValueApiModelSequenceHistoryReadResponseApiModel.mapper()
             result.body = self.deserialize(result_mapper, parsed_response)
           rescue Exception => e
             fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
@@ -1369,69 +1339,69 @@ module azure.iiot.opc.history
     #
     # Read historic values at specified times
     #
-    # Read historic values of a node if available using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Read historic values of a node if available using historic access. The
+    # endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel]
-    # The history read request
+    # @param body [ReadValuesAtTimesDetailsApiModelHistoryReadRequestApiModel] The
+    # history read request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
-    # @return [HistoryReadResponseApiModelHistoricValueApiModelSequence] operation
+    # @return [HistoricValueApiModelSequenceHistoryReadResponseApiModel] operation
     # results.
     #
-    def history_read_values_at_times(endpoint_id, request, custom_headers:nil)
-      response = history_read_values_at_times_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_read_values_at_times(endpoint_id, body, custom_headers:nil)
+      response = history_read_values_at_times_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Read historic values at specified times
     #
-    # Read historic values of a node if available using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Read historic values of a node if available using historic access. The
+    # endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel]
-    # The history read request
+    # @param body [ReadValuesAtTimesDetailsApiModelHistoryReadRequestApiModel] The
+    # history read request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def history_read_values_at_times_with_http_info(endpoint_id, request, custom_headers:nil)
-      history_read_values_at_times_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_read_values_at_times_with_http_info(endpoint_id, body, custom_headers:nil)
+      history_read_values_at_times_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Read historic values at specified times
     #
-    # Read historic values of a node if available using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Read historic values of a node if available using historic access. The
+    # endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel]
-    # The history read request
+    # @param body [ReadValuesAtTimesDetailsApiModelHistoryReadRequestApiModel] The
+    # history read request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def history_read_values_at_times_async(endpoint_id, request, custom_headers:nil)
+    def history_read_values_at_times_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
 
       # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::HistoryReadRequestApiModelReadValuesAtTimesDetailsApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_mapper = azure.iiot.opc.history::Models::ReadValuesAtTimesDetailsApiModelHistoryReadRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/read/{endpointId}/values/pick'
@@ -1460,7 +1430,7 @@ module azure.iiot.opc.history
         if status_code == 200
           begin
             parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::HistoryReadResponseApiModelHistoricValueApiModelSequence.mapper()
+            result_mapper = azure.iiot.opc.history::Models::HistoricValueApiModelSequenceHistoryReadResponseApiModel.mapper()
             result.body = self.deserialize(result_mapper, parsed_response)
           rescue Exception => e
             fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
@@ -1477,20 +1447,20 @@ module azure.iiot.opc.history
     # Read historic processed values at specified times
     #
     # Read processed history values of a node if available using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # The endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel]
+    # @param body [ReadProcessedValuesDetailsApiModelHistoryReadRequestApiModel]
     # The history read request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
-    # @return [HistoryReadResponseApiModelHistoricValueApiModelSequence] operation
+    # @return [HistoricValueApiModelSequenceHistoryReadResponseApiModel] operation
     # results.
     #
-    def history_read_processed_values(endpoint_id, request, custom_headers:nil)
-      response = history_read_processed_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_read_processed_values(endpoint_id, body, custom_headers:nil)
+      response = history_read_processed_values_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
@@ -1498,47 +1468,47 @@ module azure.iiot.opc.history
     # Read historic processed values at specified times
     #
     # Read processed history values of a node if available using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # The endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel]
+    # @param body [ReadProcessedValuesDetailsApiModelHistoryReadRequestApiModel]
     # The history read request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def history_read_processed_values_with_http_info(endpoint_id, request, custom_headers:nil)
-      history_read_processed_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_read_processed_values_with_http_info(endpoint_id, body, custom_headers:nil)
+      history_read_processed_values_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Read historic processed values at specified times
     #
     # Read processed history values of a node if available using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # The endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel]
+    # @param body [ReadProcessedValuesDetailsApiModelHistoryReadRequestApiModel]
     # The history read request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def history_read_processed_values_async(endpoint_id, request, custom_headers:nil)
+    def history_read_processed_values_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
 
       # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::HistoryReadRequestApiModelReadProcessedValuesDetailsApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_mapper = azure.iiot.opc.history::Models::ReadProcessedValuesDetailsApiModelHistoryReadRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/read/{endpointId}/values/processed'
@@ -1567,7 +1537,7 @@ module azure.iiot.opc.history
         if status_code == 200
           begin
             parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::HistoryReadResponseApiModelHistoricValueApiModelSequence.mapper()
+            result_mapper = azure.iiot.opc.history::Models::HistoricValueApiModelSequenceHistoryReadResponseApiModel.mapper()
             result.body = self.deserialize(result_mapper, parsed_response)
           rescue Exception => e
             fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
@@ -1584,20 +1554,20 @@ module azure.iiot.opc.history
     # Read historic modified values at specified times
     #
     # Read processed history values of a node if available using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # The endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel]
-    # The history read request
+    # @param body [ReadModifiedValuesDetailsApiModelHistoryReadRequestApiModel] The
+    # history read request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
-    # @return [HistoryReadResponseApiModelHistoricValueApiModelSequence] operation
+    # @return [HistoricValueApiModelSequenceHistoryReadResponseApiModel] operation
     # results.
     #
-    def history_read_modified_values(endpoint_id, request, custom_headers:nil)
-      response = history_read_modified_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_read_modified_values(endpoint_id, body, custom_headers:nil)
+      response = history_read_modified_values_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
@@ -1605,47 +1575,47 @@ module azure.iiot.opc.history
     # Read historic modified values at specified times
     #
     # Read processed history values of a node if available using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # The endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel]
-    # The history read request
+    # @param body [ReadModifiedValuesDetailsApiModelHistoryReadRequestApiModel] The
+    # history read request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def history_read_modified_values_with_http_info(endpoint_id, request, custom_headers:nil)
-      history_read_modified_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_read_modified_values_with_http_info(endpoint_id, body, custom_headers:nil)
+      history_read_modified_values_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Read historic modified values at specified times
     #
     # Read processed history values of a node if available using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # The endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel]
-    # The history read request
+    # @param body [ReadModifiedValuesDetailsApiModelHistoryReadRequestApiModel] The
+    # history read request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def history_read_modified_values_async(endpoint_id, request, custom_headers:nil)
+    def history_read_modified_values_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
 
       # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::HistoryReadRequestApiModelReadModifiedValuesDetailsApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_mapper = azure.iiot.opc.history::Models::ReadModifiedValuesDetailsApiModelHistoryReadRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/read/{endpointId}/values/modified'
@@ -1674,7 +1644,7 @@ module azure.iiot.opc.history
         if status_code == 200
           begin
             parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::HistoryReadResponseApiModelHistoricValueApiModelSequence.mapper()
+            result_mapper = azure.iiot.opc.history::Models::HistoricValueApiModelSequenceHistoryReadResponseApiModel.mapper()
             result.body = self.deserialize(result_mapper, parsed_response)
           rescue Exception => e
             fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
@@ -1690,58 +1660,58 @@ module azure.iiot.opc.history
     #
     # Read next batch of historic values
     #
-    # Read next batch of historic values of a node using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Read next batch of historic values of a node using historic access. The
+    # endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadNextRequestApiModel] The history read next request
+    # @param body [HistoryReadNextRequestApiModel] The history read next request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
-    # @return [HistoryReadNextResponseApiModelHistoricValueApiModelSequence]
+    # @return [HistoricValueApiModelSequenceHistoryReadNextResponseApiModel]
     # operation results.
     #
-    def history_read_value_next(endpoint_id, request, custom_headers:nil)
-      response = history_read_value_next_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_read_value_next(endpoint_id, body, custom_headers:nil)
+      response = history_read_value_next_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Read next batch of historic values
     #
-    # Read next batch of historic values of a node using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Read next batch of historic values of a node using historic access. The
+    # endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadNextRequestApiModel] The history read next request
+    # @param body [HistoryReadNextRequestApiModel] The history read next request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def history_read_value_next_with_http_info(endpoint_id, request, custom_headers:nil)
-      history_read_value_next_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_read_value_next_with_http_info(endpoint_id, body, custom_headers:nil)
+      history_read_value_next_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Read next batch of historic values
     #
-    # Read next batch of historic values of a node using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Read next batch of historic values of a node using historic access. The
+    # endpoint must be activated and connected and the module client and server
+    # must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryReadNextRequestApiModel] The history read next request
+    # @param body [HistoryReadNextRequestApiModel] The history read next request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def history_read_value_next_async(endpoint_id, request, custom_headers:nil)
+    def history_read_value_next_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
@@ -1749,7 +1719,7 @@ module azure.iiot.opc.history
 
       # Serialize Request
       request_mapper = azure.iiot.opc.history::Models::HistoryReadNextRequestApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/read/{endpointId}/values/next'
@@ -1778,7 +1748,7 @@ module azure.iiot.opc.history
         if status_code == 200
           begin
             parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::HistoryReadNextResponseApiModelHistoricValueApiModelSequence.mapper()
+            result_mapper = azure.iiot.opc.history::Models::HistoricValueApiModelSequenceHistoryReadNextResponseApiModel.mapper()
             result.body = self.deserialize(result_mapper, parsed_response)
           rescue Exception => e
             fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
@@ -1794,68 +1764,65 @@ module azure.iiot.opc.history
     #
     # Replace historic values
     #
-    # Replace historic values using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Replace historic values using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel] The
+    # @param body [ReplaceValuesDetailsApiModelHistoryUpdateRequestApiModel] The
     # history replace request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [HistoryUpdateResponseApiModel] operation results.
     #
-    def history_replace_values(endpoint_id, request, custom_headers:nil)
-      response = history_replace_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_replace_values(endpoint_id, body, custom_headers:nil)
+      response = history_replace_values_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Replace historic values
     #
-    # Replace historic values using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Replace historic values using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel] The
+    # @param body [ReplaceValuesDetailsApiModelHistoryUpdateRequestApiModel] The
     # history replace request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def history_replace_values_with_http_info(endpoint_id, request, custom_headers:nil)
-      history_replace_values_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_replace_values_with_http_info(endpoint_id, body, custom_headers:nil)
+      history_replace_values_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Replace historic values
     #
-    # Replace historic values using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Replace historic values using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel] The
+    # @param body [ReplaceValuesDetailsApiModelHistoryUpdateRequestApiModel] The
     # history replace request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def history_replace_values_async(endpoint_id, request, custom_headers:nil)
+    def history_replace_values_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
 
       # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::HistoryUpdateRequestApiModelReplaceValuesDetailsApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_mapper = azure.iiot.opc.history::Models::ReplaceValuesDetailsApiModelHistoryUpdateRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/replace/{endpointId}/values'
@@ -1900,68 +1867,65 @@ module azure.iiot.opc.history
     #
     # Replace historic events
     #
-    # Replace historic events using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Replace historic events using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel] The
+    # @param body [ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel] The
     # history replace request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [HistoryUpdateResponseApiModel] operation results.
     #
-    def history_replace_events(endpoint_id, request, custom_headers:nil)
-      response = history_replace_events_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_replace_events(endpoint_id, body, custom_headers:nil)
+      response = history_replace_events_async(endpoint_id, body, custom_headers:custom_headers).value!
       response.body unless response.nil?
     end
 
     #
     # Replace historic events
     #
-    # Replace historic events using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Replace historic events using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel] The
+    # @param body [ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel] The
     # history replace request
     # @param custom_headers [Hash{String => String}] A hash of custom headers that
     # will be added to the HTTP request.
     #
     # @return [MsRest::HttpOperationResponse] HTTP response information.
     #
-    def history_replace_events_with_http_info(endpoint_id, request, custom_headers:nil)
-      history_replace_events_async(endpoint_id, request, custom_headers:custom_headers).value!
+    def history_replace_events_with_http_info(endpoint_id, body, custom_headers:nil)
+      history_replace_events_async(endpoint_id, body, custom_headers:custom_headers).value!
     end
 
     #
     # Replace historic events
     #
-    # Replace historic events using historic access.
-    # The endpoint must be activated and connected and the module client
-    # and server must trust each other.
+    # Replace historic events using historic access. The endpoint must be activated
+    # and connected and the module client and server must trust each other.
     #
     # @param endpoint_id [String] The identifier of the activated endpoint.
-    # @param request [HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel] The
+    # @param body [ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel] The
     # history replace request
     # @param [Hash{String => String}] A hash of custom headers that will be added
     # to the HTTP request.
     #
     # @return [Concurrent::Promise] Promise object which holds the HTTP response.
     #
-    def history_replace_events_async(endpoint_id, request, custom_headers:nil)
+    def history_replace_events_async(endpoint_id, body, custom_headers:nil)
       fail ArgumentError, 'endpoint_id is nil' if endpoint_id.nil?
-      fail ArgumentError, 'request is nil' if request.nil?
+      fail ArgumentError, 'body is nil' if body.nil?
 
 
       request_headers = {}
       request_headers['Content-Type'] = 'application/json-patch+json; charset=utf-8'
 
       # Serialize Request
-      request_mapper = azure.iiot.opc.history::Models::HistoryUpdateRequestApiModelReplaceEventsDetailsApiModel.mapper()
-      request_content = self.serialize(request_mapper,  request)
+      request_mapper = azure.iiot.opc.history::Models::ReplaceEventsDetailsApiModelHistoryUpdateRequestApiModel.mapper()
+      request_content = self.serialize(request_mapper,  body)
       request_content = request_content != nil ? JSON.generate(request_content, quirks_mode: true) : nil
 
       path_template = 'v2/replace/{endpointId}/events'
@@ -1991,84 +1955,6 @@ module azure.iiot.opc.history
           begin
             parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
             result_mapper = azure.iiot.opc.history::Models::HistoryUpdateResponseApiModel.mapper()
-            result.body = self.deserialize(result_mapper, parsed_response)
-          rescue Exception => e
-            fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)
-          end
-        end
-
-        result
-      end
-
-      promise.execute
-    end
-
-    #
-    # Return the service status in the form of the service status
-    # api model.
-    #
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [StatusResponseApiModel] operation results.
-    #
-    def get_status(custom_headers:nil)
-      response = get_status_async(custom_headers:custom_headers).value!
-      response.body unless response.nil?
-    end
-
-    #
-    # Return the service status in the form of the service status
-    # api model.
-    #
-    # @param custom_headers [Hash{String => String}] A hash of custom headers that
-    # will be added to the HTTP request.
-    #
-    # @return [MsRest::HttpOperationResponse] HTTP response information.
-    #
-    def get_status_with_http_info(custom_headers:nil)
-      get_status_async(custom_headers:custom_headers).value!
-    end
-
-    #
-    # Return the service status in the form of the service status
-    # api model.
-    #
-    # @param [Hash{String => String}] A hash of custom headers that will be added
-    # to the HTTP request.
-    #
-    # @return [Concurrent::Promise] Promise object which holds the HTTP response.
-    #
-    def get_status_async(custom_headers:nil)
-
-
-      request_headers = {}
-      request_headers['Content-Type'] = 'application/json; charset=utf-8'
-      path_template = 'v2/status'
-
-      request_url = @base_url || self.base_url
-
-      options = {
-          middlewares: [[MsRest::RetryPolicyMiddleware, times: 3, retry: 0.02], [:cookie_jar]],
-          headers: request_headers.merge(custom_headers || {}),
-          base_url: request_url
-      }
-      promise = self.make_request_async(:get, path_template, options)
-
-      promise = promise.then do |result|
-        http_response = result.response
-        status_code = http_response.status
-        response_content = http_response.body
-        unless status_code == 200
-          error_model = JSON.load(response_content)
-          fail MsRest::HttpOperationError.new(result.request, http_response, error_model)
-        end
-
-        # Deserialize Response
-        if status_code == 200
-          begin
-            parsed_response = response_content.to_s.empty? ? nil : JSON.load(response_content)
-            result_mapper = azure.iiot.opc.history::Models::StatusResponseApiModel.mapper()
             result.body = self.deserialize(result_mapper, parsed_response)
           rescue Exception => e
             fail MsRest::DeserializationError.new('Error occurred in deserializing the response', e.message, e.backtrace, result)

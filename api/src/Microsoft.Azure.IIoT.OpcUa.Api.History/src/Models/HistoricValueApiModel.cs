@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
     /// </summary>
     public class HistoricValueApiModel {
 
-        /// <summary>
+        /// <summary>,
         /// The value of data value.
         /// </summary>
         [JsonProperty(PropertyName = "value",

@@ -13,41 +13,21 @@ from msrest.serialization import Model
 
 
 class SupervisorUpdateApiModel(Model):
-    """Supervisor registration update request.
+    """Supervisor update request.
 
-    :param site_id: Site of the supervisor
+    :param site_id: Site the supervisor is part of
     :type site_id: str
-    :param discovery: Whether the supervisor is in discovery mode.
-     If null, does not change. Possible values include: 'Off', 'Local',
-     'Network', 'Fast', 'Scan'. Default value: "Off" .
-    :type discovery: str or ~azure-iiot-opc-registry.models.DiscoveryMode
-    :param discovery_config: Supervisor discovery configuration
-    :type discovery_config:
-     ~azure-iiot-opc-registry.models.DiscoveryConfigApiModel
-    :param discovery_callbacks: Callbacks to add or remove (see below)
-    :type discovery_callbacks:
-     list[~azure-iiot-opc-registry.models.CallbackApiModel]
-    :param remove_discovery_callbacks: Whether to add or remove callbacks
-    :type remove_discovery_callbacks: bool
-    :param log_level: Current log level. Possible values include: 'Error',
-     'Information', 'Debug', 'Verbose'
-    :type log_level: str or ~azure-iiot-opc-registry.models.SupervisorLogLevel
+    :param log_level: Possible values include: 'Error', 'Information',
+     'Debug', 'Verbose'
+    :type log_level: str or ~azure-iiot-opc-registry.models.TraceLogLevel
     """
 
     _attribute_map = {
         'site_id': {'key': 'siteId', 'type': 'str'},
-        'discovery': {'key': 'discovery', 'type': 'DiscoveryMode'},
-        'discovery_config': {'key': 'discoveryConfig', 'type': 'DiscoveryConfigApiModel'},
-        'discovery_callbacks': {'key': 'discoveryCallbacks', 'type': '[CallbackApiModel]'},
-        'remove_discovery_callbacks': {'key': 'removeDiscoveryCallbacks', 'type': 'bool'},
-        'log_level': {'key': 'logLevel', 'type': 'SupervisorLogLevel'},
+        'log_level': {'key': 'logLevel', 'type': 'TraceLogLevel'},
     }
 
-    def __init__(self, site_id=None, discovery="Off", discovery_config=None, discovery_callbacks=None, remove_discovery_callbacks=None, log_level=None):
+    def __init__(self, site_id=None, log_level=None):
         super(SupervisorUpdateApiModel, self).__init__()
         self.site_id = site_id
-        self.discovery = discovery
-        self.discovery_config = discovery_config
-        self.discovery_callbacks = discovery_callbacks
-        self.remove_discovery_callbacks = remove_discovery_callbacks
         self.log_level = log_level

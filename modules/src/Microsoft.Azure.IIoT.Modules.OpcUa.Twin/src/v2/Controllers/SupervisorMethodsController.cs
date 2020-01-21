@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge;
     using Microsoft.Azure.IIoT.Module.Framework;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.History;
@@ -27,22 +27,18 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
         /// Create controller with service
         /// </summary>
         /// <param name="supervisor"></param>
-        /// <param name="browse"></param>
-        /// <param name="discover"></param>
         /// <param name="activator"></param>
         /// <param name="nodes"></param>
         /// <param name="historian"></param>
-        /// <param name="publisher"></param>
+        /// <param name="browse"></param>
         public SupervisorMethodsController(ISupervisorServices supervisor,
-            IDiscoveryServices discover, IActivationServices<string> activator,
+            IActivationServices<string> activator,
             INodeServices<EndpointModel> nodes, IHistoricAccessServices<EndpointModel> historian,
-            IBrowseServices<EndpointModel> browse, IPublishServices<EndpointModel> publisher) {
+            IBrowseServices<EndpointModel> browse) {
             _supervisor = supervisor ?? throw new ArgumentNullException(nameof(supervisor));
             _browse = browse ?? throw new ArgumentNullException(nameof(browse));
             _historian = historian ?? throw new ArgumentNullException(nameof(historian));
             _nodes = nodes ?? throw new ArgumentNullException(nameof(nodes));
-            _publisher = publisher ?? throw new ArgumentNullException(nameof(publisher));
-            _discover = discover ?? throw new ArgumentNullException(nameof(discover));
             _activator = activator ?? throw new ArgumentNullException(nameof(activator));
         }
 
@@ -62,67 +58,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
         public async Task<SupervisorStatusApiModel> GetStatusAsync() {
             var result = await _supervisor.GetStatusAsync();
             return new SupervisorStatusApiModel(result);
-        }
-
-        /// <summary>
-        /// Discover application
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        public async Task<bool> DiscoverAsync(DiscoveryRequestApiModel request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-            await _discover.DiscoverAsync(request.ToServiceModel());
-            return true;
-        }
-
-        /// <summary>
-        /// Publish
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        public async Task<PublishStartResponseApiModel> PublishStartAsync(
-            EndpointApiModel endpoint, PublishStartRequestApiModel request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-            var result = await _publisher.NodePublishStartAsync(
-                endpoint.ToServiceModel(), request.ToServiceModel());
-            return new PublishStartResponseApiModel(result);
-        }
-
-        /// <summary>
-        /// Unpublish
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        public async Task<PublishStopResponseApiModel> PublishStopAsync(
-            EndpointApiModel endpoint, PublishStopRequestApiModel request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-            var result = await _publisher.NodePublishStopAsync(
-                endpoint.ToServiceModel(), request.ToServiceModel());
-            return new PublishStopResponseApiModel(result);
-        }
-
-        /// <summary>
-        /// List published nodes
-        /// </summary>
-        /// <param name="endpoint"></param>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        public async Task<PublishedItemListResponseApiModel> PublishListAsync(
-            EndpointApiModel endpoint, PublishedItemListRequestApiModel request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
-            var result = await _publisher.NodePublishListAsync(
-                endpoint.ToServiceModel(), request.ToServiceModel());
-            return new PublishedItemListResponseApiModel(result);
         }
 
         /// <summary>
@@ -376,7 +311,5 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
         private readonly IBrowseServices<EndpointModel> _browse;
         private readonly IHistoricAccessServices<EndpointModel> _historian;
         private readonly INodeServices<EndpointModel> _nodes;
-        private readonly IPublishServices<EndpointModel> _publisher;
-        private readonly IDiscoveryServices _discover;
     }
 }

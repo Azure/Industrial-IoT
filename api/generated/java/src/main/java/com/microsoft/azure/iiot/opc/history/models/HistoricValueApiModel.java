@@ -55,7 +55,7 @@ public class HistoricValueApiModel {
     private Integer serverPicoseconds;
 
     /**
-     * modification information when reading modifications.
+     * The modificationInfo property.
      */
     @JsonProperty(value = "modificationInfo")
     private ModificationInfoApiModel modificationInfo;
@@ -183,7 +183,7 @@ public class HistoricValueApiModel {
     }
 
     /**
-     * Get modification information when reading modifications.
+     * Get the modificationInfo value.
      *
      * @return the modificationInfo value
      */
@@ -192,7 +192,7 @@ public class HistoricValueApiModel {
     }
 
     /**
-     * Set modification information when reading modifications.
+     * Set the modificationInfo value.
      *
      * @param modificationInfo the modificationInfo value to set
      * @return the HistoricValueApiModel object itself.

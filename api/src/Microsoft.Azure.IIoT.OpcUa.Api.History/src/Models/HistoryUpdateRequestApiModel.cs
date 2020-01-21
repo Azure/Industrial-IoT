@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
     using Newtonsoft.Json;
+    using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Request node history update
@@ -12,7 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
     public class HistoryUpdateRequestApiModel<T> {
 
         /// <summary>
-        /// Node to update 
+        /// Node to update
         /// </summary>
         [JsonProperty(PropertyName = "nodeId")]
         public string NodeId { get; set; }
@@ -32,6 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// is updated at edge using above node address.
         /// </summary>
         [JsonProperty(PropertyName = "details")]
+        [Required]
         public T Details { get; set; }
 
         /// <summary>

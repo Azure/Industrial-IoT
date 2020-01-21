@@ -31,12 +31,12 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         /// Initializes a new instance of the RolePermissionApiModel class.
         /// </summary>
         /// <param name="roleId">Identifier of the role object.</param>
-        /// <param name="permissions">Permissions assigned for the role.
-        /// Possible values include: 'Browse', 'ReadRolePermissions',
-        /// 'WriteAttribute', 'WriteRolePermissions', 'WriteHistorizing',
-        /// 'Read', 'Write', 'ReadHistory', 'InsertHistory', 'ModifyHistory',
-        /// 'DeleteHistory', 'ReceiveEvents', 'Call', 'AddReference',
-        /// 'RemoveReference', 'DeleteNode', 'AddNode'</param>
+        /// <param name="permissions">Possible values include: 'Browse',
+        /// 'ReadRolePermissions', 'WriteAttribute', 'WriteRolePermissions',
+        /// 'WriteHistorizing', 'Read', 'Write', 'ReadHistory',
+        /// 'InsertHistory', 'ModifyHistory', 'DeleteHistory', 'ReceiveEvents',
+        /// 'Call', 'AddReference', 'RemoveReference', 'DeleteNode',
+        /// 'AddNode'</param>
         public RolePermissionApiModel(string roleId, RolePermissions? permissions = default(RolePermissions?))
         {
             RoleId = roleId;
@@ -56,12 +56,11 @@ namespace Microsoft.Azure.IIoT.Opc.Twin.Models
         public string RoleId { get; set; }
 
         /// <summary>
-        /// Gets or sets permissions assigned for the role. Possible values
-        /// include: 'Browse', 'ReadRolePermissions', 'WriteAttribute',
-        /// 'WriteRolePermissions', 'WriteHistorizing', 'Read', 'Write',
-        /// 'ReadHistory', 'InsertHistory', 'ModifyHistory', 'DeleteHistory',
-        /// 'ReceiveEvents', 'Call', 'AddReference', 'RemoveReference',
-        /// 'DeleteNode', 'AddNode'
+        /// Gets or sets possible values include: 'Browse',
+        /// 'ReadRolePermissions', 'WriteAttribute', 'WriteRolePermissions',
+        /// 'WriteHistorizing', 'Read', 'Write', 'ReadHistory',
+        /// 'InsertHistory', 'ModifyHistory', 'DeleteHistory', 'ReceiveEvents',
+        /// 'Call', 'AddReference', 'RemoveReference', 'DeleteNode', 'AddNode'
         /// </summary>
         [JsonProperty(PropertyName = "permissions")]
         public RolePermissions? Permissions { get; set; }

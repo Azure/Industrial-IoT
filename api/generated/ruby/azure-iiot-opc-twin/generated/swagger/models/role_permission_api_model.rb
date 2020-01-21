@@ -16,12 +16,11 @@ module azure.iiot.opc.twin
       # @return [String] Identifier of the role object.
       attr_accessor :role_id
 
-      # @return [RolePermissions] Permissions assigned for the role. Possible
-      # values include: 'Browse', 'ReadRolePermissions', 'WriteAttribute',
-      # 'WriteRolePermissions', 'WriteHistorizing', 'Read', 'Write',
-      # 'ReadHistory', 'InsertHistory', 'ModifyHistory', 'DeleteHistory',
-      # 'ReceiveEvents', 'Call', 'AddReference', 'RemoveReference',
-      # 'DeleteNode', 'AddNode'
+      # @return [RolePermissions] Possible values include: 'Browse',
+      # 'ReadRolePermissions', 'WriteAttribute', 'WriteRolePermissions',
+      # 'WriteHistorizing', 'Read', 'Write', 'ReadHistory', 'InsertHistory',
+      # 'ModifyHistory', 'DeleteHistory', 'ReceiveEvents', 'Call',
+      # 'AddReference', 'RemoveReference', 'DeleteNode', 'AddNode'
       attr_accessor :permissions
 
 

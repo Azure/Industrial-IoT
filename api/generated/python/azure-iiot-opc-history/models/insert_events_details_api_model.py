@@ -15,8 +15,8 @@ from msrest.serialization import Model
 class InsertEventsDetailsApiModel(Model):
     """Insert historic events.
 
-    :param filter: The filter to use to select the events
-    :type filter: object
+    :param filter:
+    :type filter: ~azure-iiot-opc-history.models.EventFilterApiModel
     :param events: The new events to insert
     :type events: list[~azure-iiot-opc-history.models.HistoricEventApiModel]
     """
@@ -26,7 +26,7 @@ class InsertEventsDetailsApiModel(Model):
     }
 
     _attribute_map = {
-        'filter': {'key': 'filter', 'type': 'object'},
+        'filter': {'key': 'filter', 'type': 'EventFilterApiModel'},
         'events': {'key': 'events', 'type': '[HistoricEventApiModel]'},
     }
 
