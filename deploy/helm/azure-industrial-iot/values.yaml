@@ -9,69 +9,100 @@ image:
   # image.pullPolicy defines value of imagePullPolicy of deployments.
   pullPolicy: IfNotPresent
 
-Azure:
-  TenantId: null
+# Details of Azure resources that components of Azure Industrial IoT solution will connect to.
+azure:
+  # azure.tenantId is Guid id of the tenant that contains Azure resources.
+  tenantId: null
 
-  IoTHub:
-    Name: null
+  # Details of Azure IoT Hub that microservices will communicate with.
+  iotHub:
+    # azure.iotHub.name is the name of IoT Hub that microservices will consume IoT data from.
+    name: null
 
-    EventHub:
-      Endpoint: null
-      PartitionCount: null
-      ConsumerGroup: null
+    # Details of built-in EventHub of IoT Hub.
+    eventHub:
+      # azure.iotHub.eventHub.endpoint is Event Hub-compatible endpoint of built-in EventHub of IoT Hub.
+      endpoint: null
+      # azure.iotHub.eventHub.partitionCount is number of artitoins of built-in EventHub.
+      partitionCount: null
+      # azure.iotHub.eventHub.consumerGroup is name of consumer group of built-in EventHub for onboarding events. Its value is usually 'onboarding'.
+      consumerGroup: null
 
-    SharedAccessPolicies:
+    sharedAccessPolicies:
       iothubowner:
-        ConnectionString: null
+        # azure.iotHub.sharedAccessPolicies.iothubowner.connectionString is IoT Hub connection string for iothubowner policy.
+        # We require iothubowner policy because microservices will perform management activities on IoT Hub.
+        connectionString: null
 
-  CosmosDB:
-    ConnectionString: null
+  # Details of Azure CosmosDB that microservices will use as database.
+  # The following CosmosDB containers will be created (<db_name>.<container_name>):
+  #   - iiot_opc.iiot_opc-indices
+  #   - iiot_opc.iiot_opc-requests
+  #   - OpcVault.AppsAndCertRequests
+  cosmosDB:
+    # azure.cosmosDB.connectionString is connection string for CosmosDB. It should provide read-write permissions.
+    connectionString: null
 
-  StorageAccount:
-    Name: null
-    AccessKey: null
-    EndpointSuffix: core.windows.net
+  # This provides details of Azure Storage Account that is configured in IoT Hub as storage endpoint.
+  storageAccount:
+    # azure.storageAccount.name is the name of storage account.
+    name: null
+    # azure.storageAccount.accessKey is access key for storage account. Note that is is the key and not the connection string.
+    accessKey: null
+    # azure.storageAccount.endpointSuffix is blob endpoint suffix of Azure environment.
+    # For Azure Public Cloud it should be 'core.windows.net'. It will be different if you are on a specific Azure government cloud.
+    endpointSuffix: core.windows.net
 
-  EventHubNamespace:
-    SharedAccessPolicies:
-      RootManageSharedAccessKey:
-        ConnectionString: null
+  # Details of Azure Event Hub Namespace that microservices will use.
+  eventHubNamespace:
+    sharedAccessPolicies:
+      rootManageSharedAccessKey:
+        # azure.eventHubNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString is the connection string of RootManageSharedAccessKey key of Event hub Namespace.
+        # RootManageSharedAccessKey key is required because microservices will create new Event Hubs within the namespace.
+        connectionString: null
 
-    EventHub:
-      Name: null
+    eventHub:
+      name: null
 
-  ServiceBusNamespace:
-    SharedAccessPolicies:
-      RootManageSharedAccessKey:
-        ConnectionString: null
+  # Details of Azure Service Bus Namespace that microservices will use.
+  serviceBusNamespace:
+    sharedAccessPolicies:
+      rootManageSharedAccessKey:
+        # azure.serviceBusNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString is connection string of RootManageSharedAccessKey key of Service Bus Namespace.
+        # RootManageSharedAccessKey key is required because microservices will create new Service Bus.
+        connectionString: null
 
-  KeyVault:
-    URI: null
+  # Details of Azure Key Vault that microservices will use.
+  keyVault:
+    # azure.keyVault.uri is the URI of Key Vault, also referred as DNS Name.
+    uri: null
 
-  LogAnalyticsWorkspace:
-    Name: null
+  # Details of Azure Log Analytics Workspace that microservices will use.
+  logAnalyticsWorkspace:
+    # azure.logAnalyticsWorkspace.name is the name of Log Analytics workspace instance.
+    name: null
 
-  ApplicationInsights:
-    Name: null
-    InstrumentationKey: null
+  applicationInsights:
+    name: null
+    instrumentationKey: null
 
-  AppService:
-    URL: null
+  appService:
+    url: null
 
-  SignalR:
-    ConnectionString: null
+  signalR:
+    connectionString: null
 
-  ServicesApp:
-    CorsWhitelist: '*'
-    Auth:
-      HttpsRedirectPort: 0
-      Required: true
-      Audience: null
+  servicesApp:
+    corsWhitelist: '*'
+    auth:
+      httpsRedirectPort: 0
+      required: true
+      audience: null
 
-  ClientsApp:
-    Auth:
-      AadAppId: null
-      Authority: https://login.microsoftonline.com/
+  clientsApp:
+    auth:
+      aadAppId: null
+      authority: https://login.microsoftonline.com/
 
 deployment:
   microServices:
