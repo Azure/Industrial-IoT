@@ -1,3 +1,4 @@
+{{- if .Values.deployment.microServices.vault.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -25,3 +26,4 @@ spec:
   - port: 9044
     protocol: TCP
     name: rest
+{{- end }}

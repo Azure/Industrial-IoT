@@ -67,10 +67,12 @@ Azure:
       AadAppId: null
       Authority: https://login.microsoftonline.com/
 
-Deployment:
-  MicroServices:
+deployment:
+  microServices:
     registry:
+      enabled: true
       replicas: 1
+      # extraArgs: []
       resources:
         requests:
           memory: "64Mi"
@@ -79,7 +81,9 @@ Deployment:
           memory: "512Mi"
           cpu: "250m"
     twin:
+      enabled: true
       replicas: 1
+      # extraArgs: []
       resources:
         requests:
           memory: "64Mi"
@@ -88,7 +92,9 @@ Deployment:
           memory: "512Mi"
           cpu: "250m"
     history:
+      enabled: true
       replicas: 1
+      # extraArgs: []
       resources:
         requests:
           memory: "64Mi"
@@ -97,7 +103,9 @@ Deployment:
           memory: "512Mi"
           cpu: "250m"
     gateway:
+      enabled: true
       replicas: 1
+      # extraArgs: []
       resources:
         requests:
           memory: "64Mi"
@@ -106,7 +114,9 @@ Deployment:
           memory: "512Mi"
           cpu: "250m"
     vault:
+      enabled: true
       replicas: 1
+      # extraArgs: []
       resources:
         requests:
           memory: "64Mi"
@@ -115,7 +125,9 @@ Deployment:
           memory: "512Mi"
           cpu: "250m"
     alerting:
+      enabled: true
       replicas: 1
+      # extraArgs: []
       resources:
         requests:
           memory: "64Mi"
@@ -124,7 +136,9 @@ Deployment:
           memory: "512Mi"
           cpu: "250m"
     onboarding:
+      enabled: true
       replicas: 1
+      # extraArgs: []
       resources:
         requests:
           memory: "64Mi"
@@ -133,7 +147,9 @@ Deployment:
           memory: "512Mi"
           cpu: "250m"
     jobs:
+      enabled: true
       replicas: 1
+      # extraArgs: []
       resources:
         requests:
           memory: "64Mi"
@@ -141,8 +157,10 @@ Deployment:
         limits:
           memory: "512Mi"
           cpu: "250m"
-    model-processor:
+    modelProcessor:
+      enabled: true
       replicas: 1
+      # extraArgs: []
       resources:
         requests:
           memory: "64Mi"
@@ -150,8 +168,10 @@ Deployment:
         limits:
           memory: "512Mi"
           cpu: "250m"
-    blob-notification:
+    blobNotification:
+      enabled: true
       replicas: 1
+      # extraArgs: []
       resources:
         requests:
           memory: "64Mi"
@@ -160,7 +180,7 @@ Deployment:
           memory: "512Mi"
           cpu: "250m"
 
-  Ingress:
+  ingress:
     tls:
       crt: null
       key: null

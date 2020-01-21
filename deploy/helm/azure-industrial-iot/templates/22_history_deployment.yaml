@@ -1,3 +1,4 @@
+{{- if .Values.deployment.microServices.history.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -12,7 +13,7 @@ metadata:
     app.kubernetes.io/component: opc-history
     app.kubernetes.io/part-of: azure-industrial-iot
 spec:
-  replicas: 1
+  replicas: {{ .Values.deployment.microServices.history.replicas }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
@@ -35,13 +36,19 @@ spec:
       - name: history-service-container
         image: {{ .Values.Image.Registry }}/opc-history-service:{{ .Values.Image.Tag }}
         imagePullPolicy: {{ .Values.Image.PullPolicy }}
+        {{- if .Values.deployment.microServices.history.extraArgs }}
+        args:
+          {{- range .Values.deployment.microServices.history.extraArgs }}
+          - {{ . }}
+          {{- end }}
+        {{- end }}
         resources:
           requests:
-            memory: "64Mi"
-            cpu: "50m"
+            memory: {{ .Values.deployment.microServices.history.resources.requests.memory }}
+            cpu: {{ .Values.deployment.microServices.history.resources.requests.cpu }}
           limits:
-            memory: "512Mi"
-            cpu: "250m"
+            memory: {{ .Values.deployment.microServices.history.resources.limits.memory }}
+            cpu: {{ .Values.deployment.microServices.history.resources.limits.cpu }}
         ports:
         - containerPort: 443
         - containerPort: 9043
@@ -111,3 +118,4 @@ spec:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
+{{- end }}

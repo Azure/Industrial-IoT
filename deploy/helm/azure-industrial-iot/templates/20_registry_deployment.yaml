@@ -1,3 +1,4 @@
+{{- if .Values.deployment.microServices.registry.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -12,7 +13,7 @@ metadata:
     app.kubernetes.io/component: opc-registry
     app.kubernetes.io/part-of: azure-industrial-iot
 spec:
-  replicas: 1
+  replicas: {{ .Values.deployment.microServices.registry.replicas }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
@@ -35,13 +36,19 @@ spec:
       - name: registry-service-container
         image: {{ .Values.Image.Registry }}/opc-registry-service:{{ .Values.Image.Tag }}
         imagePullPolicy: {{ .Values.Image.PullPolicy }}
+        {{- if .Values.deployment.microServices.registry.extraArgs }}
+        args:
+          {{- range .Values.deployment.microServices.registry.extraArgs }}
+          - {{ . }}
+          {{- end }}
+        {{- end }}
         resources:
           requests:
-            memory: "64Mi"
-            cpu: "50m"
+            memory: {{ .Values.deployment.microServices.registry.resources.requests.memory }}
+            cpu: {{ .Values.deployment.microServices.registry.resources.requests.cpu }}
           limits:
-            memory: "512Mi"
-            cpu: "250m"
+            memory: {{ .Values.deployment.microServices.registry.resources.limits.memory }}
+            cpu: {{ .Values.deployment.microServices.registry.resources.limits.cpu }}
         ports:
         - containerPort: 443
         - containerPort: 9042
@@ -116,3 +123,4 @@ spec:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
+{{- end }}

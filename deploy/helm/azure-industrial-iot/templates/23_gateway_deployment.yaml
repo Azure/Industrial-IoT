@@ -1,3 +1,4 @@
+{{- if .Values.deployment.microServices.gateway.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -12,7 +13,7 @@ metadata:
     app.kubernetes.io/component: opc-gateway
     app.kubernetes.io/part-of: azure-industrial-iot
 spec:
-  replicas: 1
+  replicas: {{ .Values.deployment.microServices.gateway.replicas }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
@@ -35,13 +36,19 @@ spec:
       - name: gateway-service-container
         image: {{ .Values.Image.Registry }}/opc-gateway-service:{{ .Values.Image.Tag }}
         imagePullPolicy: {{ .Values.Image.PullPolicy }}
+        {{- if .Values.deployment.microServices.gateway.extraArgs }}
+        args:
+          {{- range .Values.deployment.microServices.gateway.extraArgs }}
+          - {{ . }}
+          {{- end }}
+        {{- end }}
         resources:
           requests:
-            memory: "64Mi"
-            cpu: "50m"
+            memory: {{ .Values.deployment.microServices.gateway.resources.requests.memory }}
+            cpu: {{ .Values.deployment.microServices.gateway.resources.requests.cpu }}
           limits:
-            memory: "512Mi"
-            cpu: "250m"
+            memory: {{ .Values.deployment.microServices.gateway.resources.limits.memory }}
+            cpu: {{ .Values.deployment.microServices.gateway.resources.limits.cpu }}
         ports:
         - containerPort: 443
         - containerPort: 9040
@@ -117,3 +124,4 @@ spec:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
+{{- end }}

@@ -1,3 +1,4 @@
+{{- if .Values.deployment.microServices.alerting.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -12,7 +13,7 @@ metadata:
     app.kubernetes.io/component: opc-alerting
     app.kubernetes.io/part-of: azure-industrial-iot
 spec:
-  replicas: 1
+  replicas: {{ .Values.deployment.microServices.alerting.replicas }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
@@ -35,13 +36,19 @@ spec:
       - name: alerting-service-container
         image: {{ .Values.Image.Registry }}/opc-alerting-service:{{ .Values.Image.Tag }}
         imagePullPolicy: {{ .Values.Image.PullPolicy }}
+        {{- if .Values.deployment.microServices.alerting.extraArgs }}
+        args:
+          {{- range .Values.deployment.microServices.alerting.extraArgs }}
+          - {{ . }}
+          {{- end }}
+        {{- end }}
         resources:
           requests:
-            memory: "64Mi"
-            cpu: "50m"
+            memory: {{ .Values.deployment.microServices.alerting.resources.requests.memory }}
+            cpu: {{ .Values.deployment.microServices.alerting.resources.requests.cpu }}
           limits:
-            memory: "512Mi"
-            cpu: "250m"
+            memory: {{ .Values.deployment.microServices.alerting.resources.limits.memory }}
+            cpu: {{ .Values.deployment.microServices.alerting.resources.limits.cpu }}
         env:
         - name: PCS_KEYVAULT_URL
           valueFrom:
@@ -73,3 +80,4 @@ spec:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
+{{- end }}

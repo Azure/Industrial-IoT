@@ -1,3 +1,4 @@
+{{- if .Values.deployment.microServices.jobs.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -12,7 +13,7 @@ metadata:
     app.kubernetes.io/component: opc-jobs
     app.kubernetes.io/part-of: azure-industrial-iot
 spec:
-  replicas: 1
+  replicas: {{ .Values.deployment.microServices.jobs.replicas }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
@@ -35,13 +36,19 @@ spec:
       - name: jobs-service-container
         image: {{ .Values.Image.Registry }}/opc-jobs-service:{{ .Values.Image.Tag }}
         imagePullPolicy: {{ .Values.Image.PullPolicy }}
+        {{- if .Values.deployment.microServices.jobs.extraArgs }}
+        args:
+          {{- range .Values.deployment.microServices.jobs.extraArgs }}
+          - {{ . }}
+          {{- end }}
+        {{- end }}
         resources:
           requests:
-            memory: "64Mi"
-            cpu: "50m"
+            memory: {{ .Values.deployment.microServices.jobs.resources.requests.memory }}
+            cpu: {{ .Values.deployment.microServices.jobs.resources.requests.cpu }}
           limits:
-            memory: "512Mi"
-            cpu: "250m"
+            memory: {{ .Values.deployment.microServices.jobs.resources.limits.memory }}
+            cpu: {{ .Values.deployment.microServices.jobs.resources.limits.cpu }}
         env:
         - name: PCS_KEYVAULT_URL
           valueFrom:
@@ -68,3 +75,4 @@ spec:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
+{{- end }}

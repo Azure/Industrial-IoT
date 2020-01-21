@@ -1,3 +1,4 @@
+{{- if .Values.deployment.microServices.onboarding.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -12,7 +13,7 @@ metadata:
     app.kubernetes.io/component: opc-onboarding
     app.kubernetes.io/part-of: azure-industrial-iot
 spec:
-  replicas: 1
+  replicas: {{ .Values.deployment.microServices.onboarding.replicas }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
@@ -35,13 +36,19 @@ spec:
       - name: onboarding-service-container
         image: {{ .Values.Image.Registry }}/opc-onboarding-service:{{ .Values.Image.Tag }}
         imagePullPolicy: {{ .Values.Image.PullPolicy }}
+        {{- if .Values.deployment.microServices.onboarding.extraArgs }}
+        args:
+          {{- range .Values.deployment.microServices.onboarding.extraArgs }}
+          - {{ . }}
+          {{- end }}
+        {{- end }}
         resources:
           requests:
-            memory: "64Mi"
-            cpu: "50m"
+            memory: {{ .Values.deployment.microServices.onboarding.resources.requests.memory }}
+            cpu: {{ .Values.deployment.microServices.onboarding.resources.requests.cpu }}
           limits:
-            memory: "512Mi"
-            cpu: "250m"
+            memory: {{ .Values.deployment.microServices.onboarding.resources.limits.memory }}
+            cpu: {{ .Values.deployment.microServices.onboarding.resources.limits.cpu }}
         env:
         - name: PCS_KEYVAULT_URL
           valueFrom:
@@ -103,3 +110,4 @@ spec:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
+{{- end }}
