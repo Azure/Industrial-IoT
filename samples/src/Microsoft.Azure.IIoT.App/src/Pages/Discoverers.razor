@@ -50,12 +50,14 @@
                     @connectStatus
                 </td>
                 <td>
-                    @if (discoverer.DiscovererModel.Connected == true) {
+                    @if (discoverer.DiscovererModel.Connected == true)
+                    {
                         <input type="checkbox" enabled @bind="@discoverer.ScanStatus" @onclick="@(() => SetScan(discoverer, true,
                                                                                                                 discoverer.DiscovererModel.DiscoveryConfig?.AddressRangesToScan,
                                                                                                                 discoverer.DiscovererModel.DiscoveryConfig?.PortRangesToScan))" />
                     }
-                    else {
+                    else
+                    {
                         <input type="checkbox" disabled @bind="@discoverer.ScanStatus" />
                     }
 
@@ -86,7 +88,9 @@
         }
     </tbody>
 </table>
-<div class="results @_scanResult"> Scan Results:
+<div class="loader-pos @_spinner"></div>
+<div class="results @_scanResult">
+    Scan Results:
     <div class="events">
         @_eventResult
     </div>
@@ -137,6 +141,8 @@
     private string _eventResult { get; set; }
     private string _scanResult { get; set; } = "hidden";
     private IAsyncDisposable _discovererEvent { get; set; }
+    private IAsyncDisposable _discovery { get; set; }
+    private string _spinner { get; set; }
 
 
     /// <summary>
@@ -151,50 +157,67 @@
     }
 
     /// <summary>
-    /// OnInitializedAsync
+    /// OnInitialized
     /// </summary>
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        discovererList = await RegistryHelper.GetDiscovererListAsync();
-        Page = "1";
-        pagedDiscovererList = discovererList.GetPaged(Int32.Parse(Page), PageLength);
-        _discovererEvent = await RegistryServiceEvents.SubscribeDiscovererEventsAsync(null, DiscovererEvent);
+        _spinner = "loader-big";
+    }
+
+    /// <summary>
+    /// OnAfterRenderAsync
+    /// </summary>
+    /// <param name="firstRender"></param>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            discovererList = await RegistryHelper.GetDiscovererListAsync();
+            Page = "1";
+            pagedDiscovererList = discovererList.GetPaged(Int32.Parse(Page), PageLength);
+            _spinner = "";
+            StateHasChanged();
+            
+            _discovererEvent = await RegistryServiceEvents.SubscribeDiscovererEventsAsync(null, DiscovererEvent);
+        }
     }
 
     /// <summary>
     /// Enable discoverer scan
     /// </summary>
     /// <param name="discoverer"></param>
-    /// /// <param name="forceScan"></param>
-    /// /// <param name="ipMask"></param>
-    /// /// <param name="portRange"></param>
+    /// <param name="forceScan"></param>
+    /// <param name="ipMask"></param>
+    /// <param name="portRange"></param>
     private async Task SetScan(DiscovererInfo discoverer, bool forceScan, string ipMask = null, string portRange = null)
     {
-        var discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByDiscovererIdAsync(
-                discoverer.DiscovererModel.Id, null, async data => {
+        _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByDiscovererIdAsync(
+                discoverer.DiscovererModel.Id, null, async data =>
+                {
                     await InvokeAsync(() => ScanProgress(data));
                 });
 
         try
         {
             _eventResult = string.Empty;
+
+            if (discoverer.ScanStatus == true)
+            {
+                discoverer.IsSearching = true;
+                _scanResult = "visible";
+                DiscovererData = discoverer;
+            }
+            else
+            {
+                discoverer.IsSearching = false;
+                _scanResult = "hidden";
+                await _discovery.DisposeAsync();
+            }
             await RegistryHelper.SetScanAsync(discoverer, ipMask, portRange, forceScan);
         }
         catch
         {
-            await discovery.DisposeAsync();
-        }
-
-        if (discoverer.ScanStatus == true)
-        {
-            discoverer.IsSearching = true;
-            _scanResult = "visible";
-            DiscovererData = discoverer;
-        }
-        else
-        {
-            await discovery.DisposeAsync();
-            _scanResult = "hidden";
+            await _discovery.DisposeAsync();
         }
     }
 
@@ -223,7 +246,8 @@
     /// <param name="ev"></param>
     private void ScanProgress(DiscoveryProgressApiModel ev)
     {
-        switch (ev.EventType) {
+        switch (ev.EventType)
+        {
             case DiscoveryProgressType.Pending:
                 _eventResult += string.Format("{0}: {1} waiting...", ev.DiscovererId, ev.Total) + System.Environment.NewLine;
                 break;
@@ -270,21 +294,24 @@
             case DiscoveryProgressType.Cancelled:
                 _eventResult += "==========================================" + System.Environment.NewLine;
                 _eventResult += string.Format("{0}: Cancelled.", ev.DiscovererId) + System.Environment.NewLine;
-                if (DiscovererData != null) {
+                if (DiscovererData != null)
+                {
                     DiscovererData.IsSearching = false;
                 }
                 break;
             case DiscoveryProgressType.Error:
                 _eventResult += "==========================================" + System.Environment.NewLine;
                 _eventResult += string.Format("{0}: Failure.", ev.DiscovererId) + System.Environment.NewLine;
-                if (DiscovererData != null) {
+                if (DiscovererData != null)
+                {
                     DiscovererData.IsSearching = false;
                 }
                 break;
             case DiscoveryProgressType.Finished:
                 _eventResult += "==========================================" + System.Environment.NewLine;
                 _eventResult += string.Format("{0}: Completed.", ev.DiscovererId) + System.Environment.NewLine;
-                if (DiscovererData != null) {
+                if (DiscovererData != null)
+                {
                     DiscovererData.IsSearching = false;
                 }
                 break;

@@ -35,6 +35,7 @@
         }
     </tbody>
 </table>
+<div class="loader-pos @_spinner"></div>
 
 <Pager Result=@applicationList PageChanged=@((Page) => PagerPageChanged(Page)) />
 
@@ -44,6 +45,7 @@
     public string Page { get; set; } = "1";
 
     public const int PageLength = 10;
+    private string _spinner { get; set; }
 
     /// <summary>
     /// Notify page change
@@ -54,11 +56,27 @@
         NavigationManager.NavigateTo("/applications/" + page);
     }
 
-    /// <inheritdoc/>
-    protected override async Task OnInitializedAsync() {
-        applicationList = await RegistryHelper.GetApplicationListAsync();
-        Page = "1";
-        pagedapplicationList = applicationList.GetPaged(Int32.Parse(Page), PageLength);
+    /// <summary>
+    /// OnInitialized
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        _spinner = "loader-big";
+    }
+
+    /// <summary>
+    /// OnAfterRenderAsync
+    /// </summary>
+    /// <param name="firstRender"></param>
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender)
+        {
+            applicationList = await RegistryHelper.GetApplicationListAsync();
+            Page = "1";
+            pagedapplicationList = applicationList.GetPaged(Int32.Parse(Page), PageLength);
+            _spinner = "";
+            StateHasChanged();
+        }
     }
 
     private PagedResult<ApplicationInfoApiModel> applicationList =
