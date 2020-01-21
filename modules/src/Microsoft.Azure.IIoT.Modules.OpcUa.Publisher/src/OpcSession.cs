@@ -1299,7 +1299,7 @@ namespace OpcPublisher
         /// </summary>
         private IOpcUaSubscription CreateSubscription(int requestedPublishingInterval, out int revisedPublishingInterval)
         {
-            IOpcUaSubscription subscription = new OpcUaSubscription(OpcUaClientSession.DefaultSubscription())
+            IOpcUaSubscription subscription = new OpcUaSubscription(OpcUaClientSession.DefaultSubscription)
             {
                 PublishingInterval = requestedPublishingInterval,
             };

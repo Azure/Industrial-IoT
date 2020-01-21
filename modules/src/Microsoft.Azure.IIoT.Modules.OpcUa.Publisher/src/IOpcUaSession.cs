@@ -20,7 +20,7 @@ namespace OpcPublisher
 
         event KeepAliveEventHandler KeepAlive;
 
-        Subscription DefaultSubscription();
+        Subscription DefaultSubscription { get; }
 
         bool AddSubscription(IOpcUaSubscription subscription);
 
