@@ -70,7 +70,7 @@ Get-ChildItem $BuildRoot -Recurse -Include "container.json" | ForEach-Object {
         $tagPrefix = "$($metadata.tag)-"
     }
 
-    $releaseImageName = "$($Registry).azurecr.io/$($imageName):$($tagPrefix)$($Version)"
+    $releaseImageName = "$($Registry).azurecr.io/public/$($imageName):$($tagPrefix)$($Version)"
     Write-Host "Pulling $($releaseImageName)..."
     $argumentList = @("pull", $releaseImageName)
     & docker $argumentList
@@ -80,7 +80,7 @@ Get-ChildItem $BuildRoot -Recurse -Include "container.json" | ForEach-Object {
 
     # tag release image with release tags
     $tags | ForEach-Object {
-        $taggedImageName = "$($Registry).azurecr.io/$($imageName):$($tagPrefix)$($_)"
+        $taggedImageName = "$($Registry).azurecr.io/public/$($imageName):$($tagPrefix)$($_)"
 
         Write-Host "Tagging $($releaseImageName) as $($_) and pushing..."
         $argumentList = @("tag", $releaseImageName, $taggedImageName)
