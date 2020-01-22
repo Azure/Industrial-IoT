@@ -286,17 +286,19 @@ $definitions | ForEach-Object {
     )
 
     $argumentList += $buildContext
-    $jobs += Start-Job -Name $platform -ArgumentList $argumentList `
+    $jobs += Start-Job -Name $image -ArgumentList $argumentList `
         -ScriptBlock {
-        Write-Host "az $($args)"
+        Write-Host "Running az $($args | OutString)..."
         & az $args 2>&1 | ForEach-Object { "$_" }
         if ($LastExitCode -ne 0) {
-            Write-Warning "az $($args) failed - 2nd attempt..."
+            Write-Warning "az $($args | OutString) failed - trying 2nd attempt..."
             & az $args 2>&1 | ForEach-Object { "$_" }
             if ($LastExitCode -ne 0) {
-                throw "Error: 'az $($args)' 2nd attempt failed with $($LastExitCode)."
+                Write-Warning "az $($args | OutString) failed - throwing..."
+                throw "Error: 'az $($args | OutString)' 2nd attempt failed with $($LastExitCode)."
             }
         }
+        Write-Host "... az $($args | OutString) completed"
     }
     # Append to manifest
     if (![string]::IsNullOrEmpty($os)) {
