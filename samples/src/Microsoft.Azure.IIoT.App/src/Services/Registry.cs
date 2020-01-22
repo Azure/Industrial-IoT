@@ -90,7 +90,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 }
             }
             catch (Exception e) {
-                Trace.TraceWarning("Can not get discoverers as list");
+                Trace.TraceWarning("Can not get discoverers list");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceWarning(errorMessage);
                 pageResult.Results.Add(new DiscovererInfo {

@@ -12,7 +12,7 @@
     protected override async Task OnInitializedAsync()
     {
         var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        if (authState.User == null) // cache.Count == 0)
+        if (authState.User == null) 
         {
             NavigationManager.NavigateTo("AzureAD/Account/SignIn", true);
         }
