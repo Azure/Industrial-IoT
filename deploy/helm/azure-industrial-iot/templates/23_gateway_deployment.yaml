@@ -30,6 +30,9 @@ spec:
         app.kubernetes.io/version: {{ .Chart.AppVersion }}
         app.kubernetes.io/component: opc-gateway
         app.kubernetes.io/part-of: azure-industrial-iot
+      annotations:
+        # Required to detect deployment change when 10_industrial_iot_env_secret.yaml is changed.
+        checksum/config: {{ include (print $.Template.BasePath "/10_industrial_iot_env_secret.yaml") . | sha256sum }}
     spec:
       # serviceAccountName: industrial-iot-serviceaccount
       containers:
