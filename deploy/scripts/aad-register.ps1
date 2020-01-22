@@ -94,7 +94,7 @@ Function Get-RequiredPermissions() {
                 Write-Warning "Service principal $($applicationDisplayName) not found."
             }
             else {
-                $requiredAccess.ResourceAppId = $sp.AppId
+                $requiredAccess.ResourceAppId = $sp.AppId.Trim().Split(" ")[0]
                 $requiredAccess.ResourceAccess =  
                 New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.ResourceAccess]
 
@@ -132,7 +132,7 @@ Function New-AppRole() {
         $appRole = New-Object Microsoft.Open.AzureAD.Model.AppRole
         $appRole.AllowedMemberTypes = New-Object System.Collections.Generic.List[string]
         $appRole.AllowedMemberTypes.Add("User");
-        $appRole.Id = New-Guid
+        $appRole.Id = [guid]::NewGuid()
         $appRole.IsEnabled = $true
         $appRole.Value = $value;
     }
