@@ -52,6 +52,7 @@ $metadata = Get-Content -Raw -Path (join-path $Path "container.json") `
     | ConvertFrom-Json
 
 # get and set build information from gitversion, git or version content
+$latestTag = "latest"
 $sourceTag = $env:Version_Prefix
 if ([string]::IsNullOrEmpty($sourceTag)) {
     try {
@@ -112,6 +113,7 @@ if ([string]::IsNullOrEmpty($branchName)) {
 }
 
 # Set namespace name based on branch name
+$releaseBuild = $false
 if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
     Write-Warning "Error - Branch '$($branchName)' invalid - using default."
     $namespace = "deletemesoon/"
@@ -122,15 +124,16 @@ else {
     if ($namespace.StartsWith("feature/")) {
         $namespace = $namespace.Replace("feature/", "")
     }
-    elseif ($namespace.StartsWith("release/")) {
-        $namespace = "master"
+    elseif ($namespace.StartsWith("release/") -or ($namespace -eq "master")) {
+        $namespace = "public"
+        $releaseBuild = $true
     }
     $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
     $namespace = "$($namespace)/"
 
-    if (![string]::IsNullOrEmpty($Registry)) {
+    if (![string]::IsNullOrEmpty($Registry) -and ($Registry -ne "industrialiot")) {
         # if we build from release or from master and registry is provided we leave namespace empty
-        if ($branchName.StartsWith("release/") -or ($branchName -eq "master")) {
+        if ($releaseBuild) {
             $namespace = ""
         }
     }
@@ -150,7 +153,14 @@ if (![string]::IsNullOrEmpty($Subscription)) {
 if ([string]::IsNullOrEmpty($Registry)) {
     $Registry = $env.BUILD_REGISTRY
     if ([string]::IsNullOrEmpty($Registry)) {
-        $Registry = "industrialiotdev"
+        if ($releaseBuild) {
+            # Make sure we do not override latest in release builds - this is done manually later.
+            $latestTag = "preview"
+            $Registry = "industrialiot"
+        }
+        else {
+            $Registry = "industrialiotdev"
+        }
         Write-Warning "No registry specified - using $($Registry).azurecr.io."
     }
 }
@@ -184,22 +194,12 @@ if (![string]::IsNullOrEmpty($metadata.tag)) {
     $tagPrefix = "$($metadata.tag)-"
 }
 
-# do not push latest during master / release builds - release to latest happens later
-if (![string]::IsNullOrEmpty($namespace)) {
-    Write-Host "Pushing '$($sourceTag)' build for $($branchName) to $($namespace)."
-    $topTag = "latest"
-}
-else {
-    Write-Host "Pushing '$($sourceTag)' build as preview build."
-    $topTag = "preview"
-}
-
-$fullImageName = "$($Registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)$($topTag)$($tagPostfix)"
+$fullImageName = "$($Registry).azurecr.io/$($namespace)$($imageName):$($tagPrefix)$($sourceTag)$($tagPostfix)"
 Write-Host "Full image name: $($fullImageName)"
 
 $manifest = @" 
 image: $($fullImageName)
-tags: [$($sourceTag)]
+tags: [$($tagPrefix)$($latestTag)$($tagPostfix)]
 manifests:
 "@
 
