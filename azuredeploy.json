@@ -82,6 +82,12 @@
                     "clientAppSecret": {
                         "value": "[parameters('clientAppSecret')]"
                     },
+                    "dockerServer": {
+                        "value": "mcr.microsoft.com"
+                    },
+                    "imagesTag": {
+                        "value": "preview"
+                    },
                     "edgePassword": {
                         "value": "[parameters('edgePassword')]"
                     },
