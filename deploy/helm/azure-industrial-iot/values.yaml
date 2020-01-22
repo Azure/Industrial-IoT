@@ -79,6 +79,7 @@ azure:
     # azure.keyVault.uri is the URI of Key Vault, also referred as DNS Name.
     uri: null
 
+  # This value is not used at the moment, so it can be skipped.
   # Details of Azure Log Analytics Workspace that microservices will use.
   logAnalyticsWorkspace:
     # azure.logAnalyticsWorkspace.name is the name of Log Analytics workspace instance.
