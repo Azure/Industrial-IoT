@@ -74,7 +74,7 @@ Function Select-Context() {
 
     $contextFile = Join-Path $script:ScriptDir ".user"
     if (!$context) {
-        if (8) {
+        if (Test-Path $contextFile) {
             $profile = Import-AzContext -Path $contextFile
             if (($null -ne $profile) `
                     -and ($null -ne $profile.Context) `
