@@ -61,7 +61,9 @@ azure:
         # RootManageSharedAccessKey key is required because microservices will create new Event Hubs within the namespace.
         connectionString: null
 
+    # This value is not used at the moment, so it can be skipped.
     eventHub:
+      # azure.eventHubNamespace.eventHub.name is the name of the Event Hub within the Namespace that should be used.
       name: null
 
   # Details of Azure Service Bus Namespace that microservices will use.
@@ -82,14 +84,21 @@ azure:
     # azure.logAnalyticsWorkspace.name is the name of Log Analytics workspace instance.
     name: null
 
+  # Provide details of your Application Insights instance to enable microservices to send telemetry and logs there.
   applicationInsights:
+    # azure.applicationInsights.name is the name of Application Insights instance.
     name: null
+    # azure.applicationInsights.instrumentationKey is the instrumentation key of Application Insights instance.
     instrumentationKey: null
 
+  # This value is not used at the moment, so it can be skipped.
   appService:
+    # azure.appService.url is URL on which App Service instance is available externally.
     url: null
 
+  # This value is not used at the moment, so it can be skipped.
   signalR:
+    # azure.signalR.connectionString is the connection string for your SignalR instance.
     connectionString: null
 
   servicesApp:
@@ -99,9 +108,14 @@ azure:
       required: true
       audience: null
 
+  # Those are details of App Registration for clients, which is required if you want to open web UIs of the
+  # microservices (some of them provide swagger for API testing) or want to connect to them using CLI
+  # application. For more details about configuration of App Registration please check README.
   clientsApp:
     auth:
+      # azure.clientsApp.auth.aadAppId is AppId of AAD App Registration for clients.
       aadAppId: null
+      # azure.clientsApp.auth.authority is authentication authority that should authenticate users and provide Access Tokens.
       authority: https://login.microsoftonline.com/
 
 deployment:
@@ -226,8 +240,3 @@ deployment:
         limits:
           memory: "256Mi"
           cpu: "150m"
-
-  ingress:
-    tls:
-      crt: null
-      key: null
