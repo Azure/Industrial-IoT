@@ -104,6 +104,7 @@ azure:
 
   auth:
     # azure.auth.required defines whether to require authentication for all exposed web APIs.
+    # NOTE: This should never be set to false in a production environment.
     # If it is set to false, then servicesApp and clientsApp sections can be skipped.
     required: true
 

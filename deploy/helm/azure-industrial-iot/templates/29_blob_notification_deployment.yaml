@@ -73,6 +73,7 @@ spec:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_EVENTHUB_CONNSTRING
+        {{- /*
         - name: PCS_IOTHUBREACT_HUB_ENDPOINT
           valueFrom:
             secretKeyRef:
@@ -93,6 +94,7 @@ spec:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_IOTHUBREACT_HUB_CONSUMERGROUP
+        */}}
         - name: PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
           valueFrom:
             secretKeyRef:
