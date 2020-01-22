@@ -102,21 +102,27 @@ azure:
     # azure.signalR.connectionString is the connection string for your SignalR instance.
     connectionString: null
 
-  servicesApp:
+  auth:
+    # azure.auth.required defines whether to require authentication for all exposed web APIs.
+    # If it is set to false, then servicesApp and clientsApp sections can be skipped.
+    required: true
+
+    # azure.auth.corsWhitelist is cross-origin resource sharing whitelist for all web APIs.
     corsWhitelist: '*'
-    auth:
-      httpsRedirectPort: 0
-      required: true
+
+    # Those are details of AAD App Registration for services.
+    # For more details about configuration of AAD App Registration please check README.
+    servicesApp:
+      # azure.auth.servicesApp.audience is identifier URI of AAD App Registration for services.
       audience: null
 
-  # Those are details of App Registration for clients, which is required if you want to open web UIs of the
-  # microservices (some of them provide swagger for API testing) or want to connect to them using CLI
-  # application. For more details about configuration of App Registration please check README.
-  clientsApp:
-    auth:
-      # azure.clientsApp.auth.aadAppId is AppId of AAD App Registration for clients.
-      aadAppId: null
-      # azure.clientsApp.auth.authority is authentication authority that should authenticate users and provide Access Tokens.
+    # Those are details of AAD App Registration for clients. That is required so that one can open web UIs of the
+    # microservices (some of them provide swagger for API testing) or connect to them using CLI application.
+    # For more details about configuration of AAD App Registration please check README.
+    clientsApp:
+      # azure.auth.clientsApp.appId is AppId of AAD App Registration for clients.
+      appId: null
+      # azure.auth.clientsApp.authority is authentication authority that should authenticate users and provide Access Tokens.
       authority: https://login.microsoftonline.com/
 
 deployment:
