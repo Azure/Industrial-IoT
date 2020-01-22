@@ -24,6 +24,7 @@ jobs:
   dependsOn: imagesprep
   strategy:
     matrix: $[ dependencies.imagesprep.outputs['acrmatrix.acrMatrix'] ]
+    maxParallel: 18
   variables:
     skipComponentGovernanceDetection: true
   steps:
