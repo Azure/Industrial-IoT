@@ -287,7 +287,7 @@ $definitions | ForEach-Object {
     $argumentList += $buildContext
 
     # $jobs += Start-Job -Name $image -ArgumentList $argumentList -ScriptBlock 
-    {
+    # {
         #  $argumentList = $args
 
         Write-Host "Building ... az $($argumentList | Out-String)..."
@@ -300,7 +300,8 @@ $definitions | ForEach-Object {
             }
         }
         Write-Host "... az $($argumentList | Out-String) completed"
-    }
+    # }
+    
     # Append to manifest
     if (![string]::IsNullOrEmpty($os)) {
         $manifest +=
