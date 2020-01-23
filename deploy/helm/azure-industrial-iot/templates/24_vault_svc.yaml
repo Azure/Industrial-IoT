@@ -12,6 +12,13 @@ metadata:
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
     app.kubernetes.io/component: opc-vault
     app.kubernetes.io/part-of: azure-industrial-iot
+{{- if .Values.deployment.microServices.vault.extraLabels }}
+{{ toYaml .Values.deployment.microServices.vault.extraLabels | indent 4 }}
+{{- end }}
+{{- if .Values.deployment.microServices.vault.service.annotations }}
+  annotations:
+{{ toYaml .Values.deployment.microServices.vault.service.annotations | indent 4 }}
+{{- end }}
 spec:
   type: ClusterIP
   selector:

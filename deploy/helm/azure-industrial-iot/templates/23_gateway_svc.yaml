@@ -12,6 +12,13 @@ metadata:
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
     app.kubernetes.io/component: opc-gateway
     app.kubernetes.io/part-of: azure-industrial-iot
+{{- if .Values.deployment.microServices.gateway.extraLabels }}
+{{ toYaml .Values.deployment.microServices.gateway.extraLabels | indent 4 }}
+{{- end }}
+{{- if .Values.deployment.microServices.gateway.service.annotations }}
+  annotations:
+{{ toYaml .Values.deployment.microServices.gateway.service.annotations | indent 4 }}
+{{- end }}
 spec:
   type: ClusterIP
   selector:

@@ -146,6 +146,8 @@ deployment:
       # .Values.deployment.microServices.registry.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
+      service:
+        annotations: {}
 
     # deployment.microServices.twin contains values specific to yaml definitions of deployment and service kubernetes resources for opc-twin-service.
     twin:
@@ -165,6 +167,8 @@ deployment:
       # .Values.deployment.microServices.twin.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
+      service:
+        annotations: {}
 
     # deployment.microServices.history contains values specific to yaml definitions of deployment and service kubernetes resources for opc-history-service.
     history:
@@ -184,6 +188,8 @@ deployment:
       # .Values.deployment.microServices.history.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
+      service:
+        annotations: {}
 
     # deployment.microServices.gateway contains values specific to yaml definitions of deployment and service kubernetes resources for opc-gateway-service.
     gateway:
@@ -203,6 +209,8 @@ deployment:
       # .Values.deployment.microServices.gateway.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
+      service:
+        annotations: {}
 
     # deployment.microServices.vault contains values specific to yaml definitions of deployment and service kubernetes resources for opc-vault-service.
     vault:
@@ -222,6 +230,8 @@ deployment:
       # .Values.deployment.microServices.vault.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
+      service:
+        annotations: {}
 
     # deployment.microServices.alerting contains values specific to yaml definitions of deployment kubernetes resource for opc-alerting-service.
     alerting:
