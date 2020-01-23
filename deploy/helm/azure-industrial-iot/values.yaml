@@ -131,6 +131,9 @@ deployment:
     # deployment.microServices.registry contains values specific to yaml definitions of deployment and service kubernetes resources for opc-registry-service .
     registry:
       enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
       replicas: 1
       extraArgs: []
       resources:
@@ -147,6 +150,9 @@ deployment:
     # deployment.microServices.twin contains values specific to yaml definitions of deployment and service kubernetes resources for opc-twin-service.
     twin:
       enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
       replicas: 1
       extraArgs: []
       resources:
@@ -163,6 +169,9 @@ deployment:
     # deployment.microServices.history contains values specific to yaml definitions of deployment and service kubernetes resources for opc-history-service.
     history:
       enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
       replicas: 1
       extraArgs: []
       resources:
@@ -179,6 +188,9 @@ deployment:
     # deployment.microServices.gateway contains values specific to yaml definitions of deployment and service kubernetes resources for opc-gateway-service.
     gateway:
       enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
       replicas: 1
       extraArgs: []
       resources:
@@ -195,6 +207,9 @@ deployment:
     # deployment.microServices.vault contains values specific to yaml definitions of deployment and service kubernetes resources for opc-vault-service.
     vault:
       enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
       replicas: 1
       extraArgs: []
       resources:
@@ -211,6 +226,9 @@ deployment:
     # deployment.microServices.alerting contains values specific to yaml definitions of deployment kubernetes resource for opc-alerting-service.
     alerting:
       enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
       replicas: 1
       extraArgs: []
       resources:
@@ -227,6 +245,9 @@ deployment:
     # deployment.microServices.onboarding contains values specific to yaml definitions of deployment kubernetes resource for opc-onboarding-service.
     onboarding:
       enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
       replicas: 1
       extraArgs: []
       resources:
@@ -243,6 +264,9 @@ deployment:
     # deployment.microServices.jobs contains values specific to yaml definitions of deployment kubernetes resource for opc-jobs-service.
     jobs:
       enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
       replicas: 1
       extraArgs: []
       resources:
@@ -259,6 +283,9 @@ deployment:
     # deployment.microServices.modelProcessor contains values specific to yaml definitions of deployment kubernetes resource for opc-processor-service.
     modelProcessor:
       enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
       replicas: 1
       extraArgs: []
       resources:
@@ -275,6 +302,9 @@ deployment:
     # deployment.microServices.blobNotification contains values specific to yaml definitions of deployment kubernetes resource for blob-notification-service.
     blobNotification:
       enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
       replicas: 1
       extraArgs: []
       resources:

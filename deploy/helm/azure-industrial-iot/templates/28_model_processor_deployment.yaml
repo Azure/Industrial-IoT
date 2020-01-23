@@ -12,6 +12,13 @@ metadata:
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
     app.kubernetes.io/component: opc-processor
     app.kubernetes.io/part-of: azure-industrial-iot
+{{- if .Values.deployment.microServices.modelProcessor.extraLabels }}
+{{ toYaml .Values.deployment.microServices.modelProcessor.extraLabels | indent 4 }}
+{{- end }}
+{{- if .Values.deployment.microServices.modelProcessor.deploymentAnnotations }}
+  annotations:
+{{ toYaml .Values.deployment.microServices.modelProcessor.deploymentAnnotations | indent 4 }}
+{{- end }}
 spec:
   replicas: {{ .Values.deployment.microServices.modelProcessor.replicas }}
   selector:
@@ -30,9 +37,15 @@ spec:
         app.kubernetes.io/version: {{ .Chart.AppVersion }}
         app.kubernetes.io/component: opc-processor
         app.kubernetes.io/part-of: azure-industrial-iot
+{{- if .Values.deployment.microServices.modelProcessor.extraLabels }}
+{{ toYaml .Values.deployment.microServices.modelProcessor.extraLabels | indent 8 }}
+{{- end }}
       annotations:
         # Required to detect deployment change when 10_industrial_iot_env_secret.yaml is changed.
         checksum/config: {{ include (print $.Template.BasePath "/10_industrial_iot_env_secret.yaml") . | sha256sum }}
+{{- if .Values.deployment.microServices.modelProcessor.podAnnotations }}
+{{ toYaml .Values.deployment.microServices.modelProcessor.podAnnotations | indent 8 }}
+{{- end }}
     spec:
       # serviceAccountName: industrial-iot-serviceaccount
       containers:
