@@ -132,7 +132,7 @@ deployment:
     registry:
       enabled: true
       replicas: 1
-      # extraArgs: []
+      extraArgs: []
       resources:
         requests:
           memory: "64Mi"
@@ -140,11 +140,15 @@ deployment:
         limits:
           memory: "256Mi"
           cpu: "150m"
+      # .Values.deployment.microServices.registry.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []
+
     # deployment.microServices.twin contains values specific to yaml definitions of deployment and service kubernetes resources for opc-twin-service.
     twin:
       enabled: true
       replicas: 1
-      # extraArgs: []
+      extraArgs: []
       resources:
         requests:
           memory: "64Mi"
@@ -152,11 +156,15 @@ deployment:
         limits:
           memory: "256Mi"
           cpu: "150m"
+      # .Values.deployment.microServices.twin.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []
+
     # deployment.microServices.history contains values specific to yaml definitions of deployment and service kubernetes resources for opc-history-service.
     history:
       enabled: true
       replicas: 1
-      # extraArgs: []
+      extraArgs: []
       resources:
         requests:
           memory: "64Mi"
@@ -164,11 +172,15 @@ deployment:
         limits:
           memory: "256Mi"
           cpu: "150m"
+      # .Values.deployment.microServices.history.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []
+
     # deployment.microServices.gateway contains values specific to yaml definitions of deployment and service kubernetes resources for opc-gateway-service.
     gateway:
       enabled: true
       replicas: 1
-      # extraArgs: []
+      extraArgs: []
       resources:
         requests:
           memory: "64Mi"
@@ -176,11 +188,15 @@ deployment:
         limits:
           memory: "256Mi"
           cpu: "150m"
+      # .Values.deployment.microServices.gateway.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []
+
     # deployment.microServices.vault contains values specific to yaml definitions of deployment and service kubernetes resources for opc-vault-service.
     vault:
       enabled: true
       replicas: 1
-      # extraArgs: []
+      extraArgs: []
       resources:
         requests:
           memory: "64Mi"
@@ -188,11 +204,15 @@ deployment:
         limits:
           memory: "256Mi"
           cpu: "150m"
+      # .Values.deployment.microServices.vault.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []
+
     # deployment.microServices.alerting contains values specific to yaml definitions of deployment kubernetes resource for opc-alerting-service.
     alerting:
       enabled: true
       replicas: 1
-      # extraArgs: []
+      extraArgs: []
       resources:
         requests:
           memory: "64Mi"
@@ -200,11 +220,15 @@ deployment:
         limits:
           memory: "256Mi"
           cpu: "150m"
+      # .Values.deployment.microServices.alerting.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []
+
     # deployment.microServices.onboarding contains values specific to yaml definitions of deployment kubernetes resource for opc-onboarding-service.
     onboarding:
       enabled: true
       replicas: 1
-      # extraArgs: []
+      extraArgs: []
       resources:
         requests:
           memory: "64Mi"
@@ -212,11 +236,15 @@ deployment:
         limits:
           memory: "256Mi"
           cpu: "150m"
+      # .Values.deployment.microServices.onboarding.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []
+
     # deployment.microServices.jobs contains values specific to yaml definitions of deployment kubernetes resource for opc-jobs-service.
     jobs:
       enabled: true
       replicas: 1
-      # extraArgs: []
+      extraArgs: []
       resources:
         requests:
           memory: "64Mi"
@@ -224,11 +252,15 @@ deployment:
         limits:
           memory: "256Mi"
           cpu: "150m"
+      # .Values.deployment.microServices.jobs.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []
+
     # deployment.microServices.modelProcessor contains values specific to yaml definitions of deployment kubernetes resource for opc-processor-service.
     modelProcessor:
       enabled: true
       replicas: 1
-      # extraArgs: []
+      extraArgs: []
       resources:
         requests:
           memory: "64Mi"
@@ -236,11 +268,15 @@ deployment:
         limits:
           memory: "256Mi"
           cpu: "150m"
+      # .Values.deployment.microServices.modelProcessor.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []
+
     # deployment.microServices.blobNotification contains values specific to yaml definitions of deployment kubernetes resource for blob-notification-service.
     blobNotification:
       enabled: true
       replicas: 1
-      # extraArgs: []
+      extraArgs: []
       resources:
         requests:
           memory: "64Mi"
@@ -248,3 +284,6 @@ deployment:
         limits:
           memory: "256Mi"
           cpu: "150m"
+      # .Values.deployment.microServices.blobNotification.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []

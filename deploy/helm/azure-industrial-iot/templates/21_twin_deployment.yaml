@@ -121,4 +121,7 @@ spec:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
+{{- if .Values.deployment.microServices.twin.extraEnv }}
+{{ toYaml .Values.deployment.microServices.twin.extraEnv | indent 8 }}
+{{- end }}
 {{- end }}
