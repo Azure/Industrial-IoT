@@ -48,6 +48,10 @@ spec:
 {{- end }}
     spec:
       # serviceAccountName: industrial-iot-serviceaccount
+{{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.image.pullSecrets | indent 6 }}
+{{- end }}
       containers:
       - name: gateway-service-container
         image: {{ .Values.image.registry }}/opc-gateway-service:{{ .Values.image.tag }}

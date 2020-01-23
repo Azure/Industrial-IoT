@@ -8,6 +8,11 @@ image:
   tag: 2.5.2
   # image.pullPolicy defines value of imagePullPolicy of deployments.
   pullPolicy: IfNotPresent
+  # image.pullSecrets defined docker-registry secrets that should be used for private container registries.
+  # Use standard shceme of imagePullSecrets as shown bellow:
+  # pullSecrets
+  # - name: myRegistryKey
+  pullSecrets: []
 
 # Details of Azure resources that components of Azure Industrial IoT solution will connect to.
 azure:
