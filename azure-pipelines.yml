@@ -29,4 +29,4 @@ stages:
   jobs:
   - template: tools/templates/acrbuild.yml
     parameters:
-      useNugets: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
+      buildDebug: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}

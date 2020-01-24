@@ -2,7 +2,7 @@
 # Build images in acr
 #
 parameters:
-  useNugets: 'False'
+  buildDebug: 'False'
 jobs:
 - job: imagesprep
   displayName: Prepare Image Jobs
@@ -49,6 +49,7 @@ jobs:
   - task: AzureCLI@1
     name: acrbuildd
     displayName: Build Debug Images
+    condition: and(succeeded(), ne('${{ parameters.buildDebug }}', 'False'))
     inputs:
       azureSubscription: azureiiot
       scriptLocation: inlineScript
