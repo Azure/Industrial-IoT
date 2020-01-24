@@ -27,10 +27,8 @@ spec:
     app.kubernetes.io/component: opc-twin
     app.kubernetes.io/part-of: azure-industrial-iot
   ports:
-  - port: 443
-    protocol: TCP
-    name: https
   - port: 9041
+    targetPort: 9041
     protocol: TCP
-    name: rest
+    name: http
 {{- end }}

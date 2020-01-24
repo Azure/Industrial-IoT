@@ -27,10 +27,8 @@ spec:
     app.kubernetes.io/component: opc-history
     app.kubernetes.io/part-of: azure-industrial-iot
   ports:
-  - port: 443
-    protocol: TCP
-    name: https
   - port: 9043
+    targetPort: 9043
     protocol: TCP
-    name: rest
+    name: http
 {{- end }}

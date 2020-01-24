@@ -27,13 +27,12 @@ spec:
     app.kubernetes.io/component: opc-gateway
     app.kubernetes.io/part-of: azure-industrial-iot
   ports:
-  - port: 443
-    protocol: TCP
-    name: https
   - port: 9040
+    targetPort: 9040
     protocol: TCP
-    name: rest
+    name: http
   - port: 51111
+    targetPort: 51111
     protocol: TCP
     name: opc-ua-access
 {{- end }}

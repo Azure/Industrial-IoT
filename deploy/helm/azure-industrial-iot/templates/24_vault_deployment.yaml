@@ -70,7 +70,6 @@ spec:
             memory: {{ .Values.deployment.microServices.vault.resources.limits.memory }}
             cpu: {{ .Values.deployment.microServices.vault.resources.limits.cpu }}
         ports:
-        - containerPort: 443
         - containerPort: 9044
         env:
         - name: PCS_KEYVAULT_URL
