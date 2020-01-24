@@ -29,4 +29,7 @@ stages:
   jobs:
   - template: tools/templates/acrbuild.yml
     parameters:
-      buildDebug: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
+      buildDebug: 'False'
+  - template: tools/templates/acrbuild.yml
+    parameters:
+      buildDebug: 'True'
