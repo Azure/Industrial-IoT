@@ -151,8 +151,20 @@ deployment:
       # .Values.deployment.microServices.registry.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
+
       service:
         annotations: {}
+        type: ClusterIP
+        port: 9042
+        # Exposed as a headless service:
+        # https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
+        clusterIP: null
+        # List of IP addresses at which the service is available
+        # Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+        externalIPs: []
+        loadBalancerIP: null
+        loadBalancerSourceRanges: []
+        nodePort: null
 
     # deployment.microServices.twin contains values specific to yaml definitions of deployment and service kubernetes resources for opc-twin-service.
     twin:
@@ -172,8 +184,20 @@ deployment:
       # .Values.deployment.microServices.twin.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
+
       service:
         annotations: {}
+        type: ClusterIP
+        port: 9041
+        # Exposed as a headless service:
+        # https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
+        clusterIP: null
+        # List of IP addresses at which the service is available
+        # Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+        externalIPs: []
+        loadBalancerIP: null
+        loadBalancerSourceRanges: []
+        nodePort: null
 
     # deployment.microServices.history contains values specific to yaml definitions of deployment and service kubernetes resources for opc-history-service.
     history:
@@ -193,8 +217,20 @@ deployment:
       # .Values.deployment.microServices.history.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
+
       service:
         annotations: {}
+        type: ClusterIP
+        port: 9043
+        # Exposed as a headless service:
+        # https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
+        clusterIP: null
+        # List of IP addresses at which the service is available
+        # Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+        externalIPs: []
+        loadBalancerIP: null
+        loadBalancerSourceRanges: []
+        nodePort: null
 
     # deployment.microServices.gateway contains values specific to yaml definitions of deployment and service kubernetes resources for opc-gateway-service.
     gateway:
@@ -214,8 +250,22 @@ deployment:
       # .Values.deployment.microServices.gateway.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
+
       service:
         annotations: {}
+        type: ClusterIP
+        port: 9040
+        opcPort: 51111
+        # Exposed as a headless service:
+        # https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
+        clusterIP: null
+        # List of IP addresses at which the service is available
+        # Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+        externalIPs: []
+        loadBalancerIP: null
+        loadBalancerSourceRanges: []
+        nodePort: null
+        opcNodePort: null
 
     # deployment.microServices.vault contains values specific to yaml definitions of deployment and service kubernetes resources for opc-vault-service.
     vault:
@@ -235,8 +285,20 @@ deployment:
       # .Values.deployment.microServices.vault.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
+
       service:
         annotations: {}
+        type: ClusterIP
+        port: 9044
+        # Exposed as a headless service:
+        # https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
+        clusterIP: null
+        # List of IP addresses at which the service is available
+        # Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+        externalIPs: []
+        loadBalancerIP: null
+        loadBalancerSourceRanges: []
+        nodePort: null
 
     # deployment.microServices.alerting contains values specific to yaml definitions of deployment kubernetes resource for opc-alerting-service.
     alerting:
