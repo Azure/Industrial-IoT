@@ -49,6 +49,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             X509Certificate2 certificate = null;
 
             // use existing certificate, if it is there
+            applicationConfiguration.SecurityConfiguration.ApplicationCertificate.SubjectName =
+                Utils.ReplaceDCLocalhost(applicationConfiguration.SecurityConfiguration.ApplicationCertificate.SubjectName, Utils.GetHostName());
             certificate = applicationConfiguration.SecurityConfiguration.ApplicationCertificate.Find(true).Result;
 
             // create a self signed certificate if there is none
@@ -59,7 +61,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     null,
                     applicationConfiguration.ApplicationUri,
                     applicationConfiguration.ApplicationName,
-                    applicationConfiguration.ApplicationName,
+                    applicationConfiguration.SecurityConfiguration.ApplicationCertificate.SubjectName,
                     null,
                     CertificateFactory.defaultKeySize,
                     DateTime.UtcNow - TimeSpan.FromDays(1),

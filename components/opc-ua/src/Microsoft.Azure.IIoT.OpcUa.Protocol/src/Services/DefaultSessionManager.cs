@@ -48,7 +48,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     var sessionName = id.ToString();
                     var applicationConfiguration = _clientConfig.ToApplicationConfiguration(true);
                     var endpointConfiguration = _clientConfig.ToEndpointConfiguration();
-                    var endpointDescription = new EndpointDescription(id.Connection.Endpoint.Url);
+                    var endpointDescription = CoreClientUtils.SelectEndpoint(
+                        id.Connection.Endpoint.Url, 
+                        id.Connection.Endpoint.SecurityMode == SecurityMode.Best, 
+                        15000);
                     var configuredEndpoint = new ConfiguredEndpoint(
                         null, endpointDescription, endpointConfiguration);
 
@@ -57,6 +60,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     using (new PerfMarker(_logger, sessionName)) {
                         var userIdentity = connection.User.ToStackModel() ??
                             new UserIdentity(new AnonymousIdentityToken());
+
                         var session = await Session.Create(
                             applicationConfiguration, configuredEndpoint,
                             true, sessionName, _clientConfig.DefaultSessionTimeout,
