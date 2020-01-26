@@ -5,14 +5,6 @@
     <Description>Azure Industrial IoT OPC UA Protocol and Stack services</Description>
   </PropertyGroup>
   <ItemGroup>
-    <None Remove="Stack\Design\BuiltIn\BuiltInTypes.xml" />
-    <None Remove="Stack\Design\BuiltIn\StandardTypes.csv" />
-    <None Remove="Stack\Design\BuiltIn\StandardTypes.xml" />
-    <None Remove="Stack\Types\BuiltIn\BuiltInTypes.xml" />
-    <None Remove="Stack\Types\BuiltIn\BuiltInTypes.xsd" />
-    <None Remove="Stack\Types\BuiltIn\UA Core Services.xml" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Stack\Design\BuiltIn\BuiltInTypes.xml" />
     <EmbeddedResource Include="Stack\Design\BuiltIn\StandardTypes.csv" />
     <EmbeddedResource Include="Stack\Design\BuiltIn\StandardTypes.xml" />
@@ -21,6 +13,11 @@
     <EmbeddedResource Include="Stack\Types\BuiltIn\UA Core Services.xml" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.IIoT.Opc.Ua.Client" Version="1.4.389-g50f5ec1d12" />
+    <PackageReference Include="Microsoft.Azure.IIoT.Opc.Ua.Client.ComplexTypes" Version="1.4.389-g50f5ec1d12" />
+    <PackageReference Include="Microsoft.Azure.IIoT.Opc.Ua.Configuration" Version="1.4.389-g50f5ec1d12" />
+    <PackageReference Include="Microsoft.Azure.IIoT.Opc.Ua.Core" Version="1.4.389-g50f5ec1d12" />
+    <PackageReference Include="Microsoft.Azure.IIoT.Opc.Ua.Server" Version="1.4.389-g50f5ec1d12" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Ini" Version="3.1.0" />
     <PackageReference Include="System.Private.ServiceModel" Version="4.7.0" />
@@ -41,16 +38,9 @@
   <Choose>
     <When Condition="'$(Configuration)'=='Release'">
       <ItemGroup>
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua" Version="1.4.358.30" />
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes" Version="1.4.358.30" />
       </ItemGroup>
     </When>
-    <Otherwise>
-      <ItemGroup>
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Symbols" Version="1.4.358.30" />
-        <PackageReference Include="OPCFoundation.NetStandard.Opc.Ua.Client.ComplexTypes.Symbols" Version="1.4.358.30" />
-      </ItemGroup>
-    </Otherwise>
+    <Otherwise />
   </Choose>
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
