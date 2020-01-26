@@ -4,11 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
-    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
+    using Microsoft.Azure.IIoT.Processor;
+    using Microsoft.Azure.IIoT.Processor.Models;
     using Microsoft.Azure.IIoT.Hub;
-    using Newtonsoft.Json.Linq;
+    using Opc.Ua;
+    using Opc.Ua.PubSub;
+    using Opc.Ua.Encoders;
     using Serilog;
     using System;
+    using System.IO;
     using System.Collections.Generic;
     using System.Linq;
     using System.Text;
@@ -17,17 +21,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     /// <summary>
     /// Publisher message handling
     /// </summary>
-    public sealed class SubscriberCdmSampleHandler : IDeviceTelemetryHandler {
+    public sealed class SubscriberSampleHandler : IDeviceTelemetryHandler {
 
         /// <inheritdoc/>
-        public string MessageSchema => MessageSchemaTypes.LegacySubscriberSample;
+        public string MessageSchema => Core.MessageSchemaTypes.NetworkMessageJson;
 
         /// <summary>
         /// Create handler
         /// </summary>
         /// <param name="handlers"></param>
         /// <param name="logger"></param>
-        public SubscriberCdmSampleHandler(IEnumerable<ISubscriberSampleProcessor> handlers, ILogger logger) {
+        public SubscriberSampleHandler(IEnumerable<IMonitoredItemSampleProcessor> handlers, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _handlers = handlers?.ToList() ?? throw new ArgumentNullException(nameof(handlers));
         }
@@ -36,35 +40,64 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         public async Task HandleAsync(string deviceId, string moduleId,
             byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
             var json = Encoding.UTF8.GetString(payload);
-            IEnumerable<JToken> messages;
-            try {
-                var parsed = JToken.Parse(json);
-                if (parsed.Type == JTokenType.Array) {
-                    messages = parsed as JArray;
-                }
-                else {
-                    messages = parsed.YieldReturn();
-                }
-            }
-            catch (Exception ex) {
-                _logger.Error(ex, "Failed to parse json {json}", json);
-                return;
-            }
-            foreach (var message in messages) {
-                try {
-                    var sample = message.ToSubscriberSampleModel();
-                    if (sample == null) {
-                        continue;
+            var context = new ServiceMessageContext();
+            using (var stream = new MemoryStream(payload)) {
+                using (var decoder = new JsonDecoderEx(stream, context)) {
+                    var result = decoder.ReadEncodeable(null, typeof(NetworkMessage)) as NetworkMessage;
+                    foreach (var message in result.Messages) {
+                        try {
+                            var sample = new MonitoredItemSampleModel() { 
+                                
+                            };
+                            
+                            if (sample == null) {
+                                continue;
+                            }
+                            await Task.WhenAll(_handlers.Select(h => h.HandleSampleAsync(
+                                sample)));
+                        }
+                        catch (Exception ex) {
+                            _logger.Error(ex,
+                                "Subscriber message {message} failed with exception - skip",
+                                    message);
+                        }
                     }
-                    await Task.WhenAll(_handlers.Select(h => h.OnSubscriberSampleAsync(
-                        sample)));
-                }
-                catch (Exception ex) {
-                    _logger.Error(ex,
-                        "Subscriber message {message} failed with exception - skip",
-                            message);
                 }
             }
+           
+            /*
+                        IEnumerable<JToken> messages;
+                        try {
+                            var parsed = JToken.Parse(json);
+                            if (parsed.Type == JTokenType.Array) {
+                                messages = parsed as JArray;
+                            }
+                            else {
+                                messages = parsed.YieldReturn();
+                            }
+                        }
+                        catch (Exception ex) {
+                            _logger.Error(ex, "Failed to parse json {json}", json);
+                            return;
+                        }
+                        foreach (var message in messages) {
+                            try {
+
+
+                                var sample = message.ToServiceModel();
+                                if (sample == null) {
+                                    continue;
+                                }
+                                await Task.WhenAll(_handlers.Select(h => h.HandleSampleAsync(
+                                    sample)));
+                            }
+                            catch (Exception ex) {
+                                _logger.Error(ex,
+                                    "Subscriber message {message} failed with exception - skip",
+                                        message);
+                            }
+                        }
+            */
         }
 
         /// <inheritdoc/>
@@ -73,6 +106,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         }
 
         private readonly ILogger _logger;
-        private readonly List<ISubscriberSampleProcessor> _handlers;
+        private readonly List<IMonitoredItemSampleProcessor> _handlers;
     }
 }

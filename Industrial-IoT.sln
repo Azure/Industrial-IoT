@@ -256,6 +256,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Servic
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux", "services\src\Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux\src\Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux.csproj", "{A22C4232-6BC6-47B1-9C9F-255F8A1E6621}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Processor", "common\src\Microsoft.Azure.IIoT.Processor\src\Microsoft.Azure.IIoT.Processor.csproj", "{D3529D7C-E25D-4BE3-AAB9-3645D6435672}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -674,6 +676,10 @@ Global
 		{A22C4232-6BC6-47B1-9C9F-255F8A1E6621}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A22C4232-6BC6-47B1-9C9F-255F8A1E6621}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A22C4232-6BC6-47B1-9C9F-255F8A1E6621}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3529D7C-E25D-4BE3-AAB9-3645D6435672}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3529D7C-E25D-4BE3-AAB9-3645D6435672}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3529D7C-E25D-4BE3-AAB9-3645D6435672}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3529D7C-E25D-4BE3-AAB9-3645D6435672}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -799,6 +805,7 @@ Global
 		{BD256FCA-20DB-4FE4-8664-DAE7E0883C69} = {ADB416A3-C375-4362-B2C0-3A35DA4CB5F8}
 		{1BC793A2-7035-4B4B-AF31-983AD756EEFB} = {ADB416A3-C375-4362-B2C0-3A35DA4CB5F8}
 		{A22C4232-6BC6-47B1-9C9F-255F8A1E6621} = {ADB416A3-C375-4362-B2C0-3A35DA4CB5F8}
+		{D3529D7C-E25D-4BE3-AAB9-3645D6435672} = {FEE95825-2E34-45AF-BDED-52F9C7412BF5}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F09EFCEA-59F6-4A16-9CB6-7E865A3F62D8}

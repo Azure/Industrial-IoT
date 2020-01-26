@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
     using Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.Runtime;
-    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers;
+    using Microsoft.Azure.IIoT.Processor.Handlers;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Core.Messaging.EventHub;
     using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
@@ -129,7 +129,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
                 .AsImplementedInterfaces().SingleInstance();
 
             // Handle opc-ua pub/sub subscriber messages
-            builder.RegisterType<MonitoredItemSampleHandler>()
+            builder.RegisterType<MonitoredItemSampleModelHandler>()
                 .AsImplementedInterfaces().SingleInstance();
             // ... forward samples to clients
 

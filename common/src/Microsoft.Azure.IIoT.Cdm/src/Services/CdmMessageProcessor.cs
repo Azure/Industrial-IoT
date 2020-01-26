@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Cdm.Services {
-    using Microsoft.Azure.IIoT.Cdm.Models;
+    using Microsoft.Azure.IIoT.Processor.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.CommonDataModel.ObjectModel.Cdm;
     using Microsoft.CommonDataModel.ObjectModel.Enums;
@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
             _cacheUploadTimer = new Timer(CacheTimer_ElapesedAsync);
             _cacheUploadTriggered = false;
             _cacheUploadInterval = TimeSpan.FromSeconds(20);
-            _cacheList = new List<SubscriberCdmSampleModel>(_cacheListSize);
+            _cacheList = new List<MonitoredItemSampleModel>(_cacheListSize);
 
             _cdmCorpus = new CdmCorpusDefinition();
             _cdmCorpus.SetEventCallback(new EventCallback {
@@ -76,7 +76,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
         /// <param name="properties"></param>
         /// <param name="partitionKey"></param>
         /// <returns></returns>
-        public async Task ProcessAsync(SubscriberCdmSampleModel payload,
+        public async Task ProcessAsync(MonitoredItemSampleModel payload,
             IDictionary<string, string> properties = null,
             string partitionKey = null) {
             await ProcessCdmSampleAsync(payload);
@@ -157,7 +157,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
         private async Task PerformWriteCache() {
             var sw = Stopwatch.StartNew();
             _logger.Information("Sending processed CDM data ...");
-            try {                
+            try {
                 if (_cacheList.Count == 0) {
                     _logger.Information("End sending processed CDM data - empty buffer");
                     return;
@@ -176,7 +176,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
                     var csvTrait = partition.ExhibitsTraits.Item("is.partition.format.CSV");
                     var partitionLocation = _cdmCorpus.Storage.CorpusPathToAdapterPath(partition.Location);
 
-                    await _storage.WriteInCsvPartition<SubscriberCdmSampleModel>(
+                    await _storage.WriteInCsvPartition<MonitoredItemSampleModel>(
                         partitionLocation,
                         _cacheList,
                         csvTrait?.Arguments?.FetchValue("delimiter") ?? kCsvPartitionsDelimiter);
@@ -192,7 +192,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
                 _logger.Warning("Failed to send processed CDM data after {elapsed} : {message}",
                      sw.Elapsed, errorMessage);
             }
-            finally {                
+            finally {
                 _cacheList!.Clear();
             }
             sw.Stop();
@@ -215,7 +215,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
             }
         }
 
-        private async Task ProcessCdmSampleAsync(SubscriberCdmSampleModel payload) {
+        private async Task ProcessCdmSampleAsync(MonitoredItemSampleModel payload) {
             try {
                 await _lock.WaitAsync();
                 _cacheList.Add(payload);
@@ -286,6 +286,24 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
                 CdmObjectType.DataTypeRef, "integer", true);
             value.DataFormat = CdmDataFormat.Int64;
             publisherSampleEntity.Attributes.Add(value);
+
+            var type = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
+                CdmObjectType.TypeAttributeDef, "Type", false);
+            type.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
+                CdmObjectType.PurposeRef, "hasA", true);
+            type.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
+                CdmObjectType.DataTypeRef, "integer", true);
+            type.DataFormat = CdmDataFormat.Int64;
+            publisherSampleEntity.Attributes.Add(type);
+
+            var status = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
+                CdmObjectType.TypeAttributeDef, "Status", false);
+            status.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
+                CdmObjectType.PurposeRef, "hasA", true);
+            status.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
+                CdmObjectType.DataTypeRef, "integer", true);
+            status.DataFormat = CdmDataFormat.String;
+            publisherSampleEntity.Attributes.Add(status);
 
             var timestamp = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
                 CdmObjectType.TypeAttributeDef, "Timestamp", false);
@@ -377,7 +395,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
         private readonly TimeSpan _cacheUploadInterval;
         private bool _cacheUploadTriggered;
         private readonly int _cacheListSize;
-        private readonly List<SubscriberCdmSampleModel> _cacheList;
+        private readonly List<MonitoredItemSampleModel> _cacheList;
 
         private static readonly string kPublisherSampleEntityName = "PublisherSampleModel";
         private static readonly string kCsvPartitionsDelimiter = ",";
