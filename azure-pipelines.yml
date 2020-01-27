@@ -22,12 +22,19 @@ stages:
       sign: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
   - template: tools/templates/iiot_deployment_linux.yml
   - template: tools/templates/iiot_deployment_mac.yml
-- stage: images
-  displayName: 'Create and Push Images'
+- stage: imagesr
+  displayName: 'Create and Push Release Images'
   dependsOn:
-  - pack
-  - iiot_deployment
+  - build
   jobs:
   - template: tools/templates/acrbuild.yml
     parameters:
-      useNugets: ${{ startsWith(variables['Build.SourceBranch'], 'refs/heads/') }}
+      buildDebug: 'False'
+- stage: imagesd
+  displayName: 'Create and Push Debug Images'
+  dependsOn:
+  - build
+  jobs:
+  - template: tools/templates/acrbuild.yml
+    parameters:
+      buildDebug: 'True'
