@@ -62,13 +62,10 @@ spec:
           - {{ . }}
           {{- end }}
         {{- end }}
+{{- if .Values.deployment.microServices.history.resources }}
         resources:
-          requests:
-            memory: {{ .Values.deployment.microServices.history.resources.requests.memory }}
-            cpu: {{ .Values.deployment.microServices.history.resources.requests.cpu }}
-          limits:
-            memory: {{ .Values.deployment.microServices.history.resources.limits.memory }}
-            cpu: {{ .Values.deployment.microServices.history.resources.limits.cpu }}
+{{ toYaml .Values.deployment.microServices.history.resources | indent 10 }}
+{{- end }}
         ports:
         - containerPort: 9043
         env:

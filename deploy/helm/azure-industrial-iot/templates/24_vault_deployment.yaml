@@ -62,13 +62,10 @@ spec:
           - {{ . }}
           {{- end }}
         {{- end }}
+{{- if .Values.deployment.microServices.vault.resources }}
         resources:
-          requests:
-            memory: {{ .Values.deployment.microServices.vault.resources.requests.memory }}
-            cpu: {{ .Values.deployment.microServices.vault.resources.requests.cpu }}
-          limits:
-            memory: {{ .Values.deployment.microServices.vault.resources.limits.memory }}
-            cpu: {{ .Values.deployment.microServices.vault.resources.limits.cpu }}
+{{ toYaml .Values.deployment.microServices.vault.resources | indent 10 }}
+{{- end }}
         ports:
         - containerPort: 9044
         env:

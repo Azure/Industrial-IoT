@@ -62,13 +62,10 @@ spec:
           - {{ . }}
           {{- end }}
         {{- end }}
+{{- if .Values.deployment.microServices.alerting.resources }}
         resources:
-          requests:
-            memory: {{ .Values.deployment.microServices.alerting.resources.requests.memory }}
-            cpu: {{ .Values.deployment.microServices.alerting.resources.requests.cpu }}
-          limits:
-            memory: {{ .Values.deployment.microServices.alerting.resources.limits.memory }}
-            cpu: {{ .Values.deployment.microServices.alerting.resources.limits.cpu }}
+{{ toYaml .Values.deployment.microServices.alerting.resources | indent 10 }}
+{{- end }}
         env:
         - name: PCS_KEYVAULT_URL
           valueFrom:

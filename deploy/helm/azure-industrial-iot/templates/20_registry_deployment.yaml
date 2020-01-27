@@ -62,13 +62,10 @@ spec:
           - {{ . }}
           {{- end }}
         {{- end }}
+{{- if .Values.deployment.microServices.registry.resources }}
         resources:
-          requests:
-            memory: {{ .Values.deployment.microServices.registry.resources.requests.memory }}
-            cpu: {{ .Values.deployment.microServices.registry.resources.requests.cpu }}
-          limits:
-            memory: {{ .Values.deployment.microServices.registry.resources.limits.memory }}
-            cpu: {{ .Values.deployment.microServices.registry.resources.limits.cpu }}
+{{ toYaml .Values.deployment.microServices.registry.resources | indent 10 }}
+{{- end }}
         ports:
         - containerPort: 9042
         env:

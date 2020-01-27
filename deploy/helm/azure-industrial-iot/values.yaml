@@ -141,13 +141,15 @@ deployment:
       extraLabels: {}
       replicas: 1
       extraArgs: []
-      resources:
-        requests:
-          memory: "64Mi"
-          cpu: "50m"
-        limits:
-          memory: "256Mi"
-          cpu: "150m"
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+
       # .Values.deployment.microServices.registry.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
@@ -174,13 +176,15 @@ deployment:
       extraLabels: {}
       replicas: 1
       extraArgs: []
-      resources:
-        requests:
-          memory: "64Mi"
-          cpu: "50m"
-        limits:
-          memory: "256Mi"
-          cpu: "150m"
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+
       # .Values.deployment.microServices.twin.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
@@ -207,13 +211,15 @@ deployment:
       extraLabels: {}
       replicas: 1
       extraArgs: []
-      resources:
-        requests:
-          memory: "64Mi"
-          cpu: "50m"
-        limits:
-          memory: "256Mi"
-          cpu: "150m"
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+
       # .Values.deployment.microServices.history.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
@@ -240,13 +246,15 @@ deployment:
       extraLabels: {}
       replicas: 1
       extraArgs: []
-      resources:
-        requests:
-          memory: "64Mi"
-          cpu: "50m"
-        limits:
-          memory: "256Mi"
-          cpu: "150m"
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+
       # .Values.deployment.microServices.gateway.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
@@ -275,13 +283,15 @@ deployment:
       extraLabels: {}
       replicas: 1
       extraArgs: []
-      resources:
-        requests:
-          memory: "64Mi"
-          cpu: "50m"
-        limits:
-          memory: "256Mi"
-          cpu: "150m"
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+
       # .Values.deployment.microServices.vault.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
@@ -308,13 +318,15 @@ deployment:
       extraLabels: {}
       replicas: 1
       extraArgs: []
-      resources:
-        requests:
-          memory: "64Mi"
-          cpu: "50m"
-        limits:
-          memory: "256Mi"
-          cpu: "150m"
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+
       # .Values.deployment.microServices.alerting.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
@@ -327,13 +339,15 @@ deployment:
       extraLabels: {}
       replicas: 1
       extraArgs: []
-      resources:
-        requests:
-          memory: "64Mi"
-          cpu: "50m"
-        limits:
-          memory: "256Mi"
-          cpu: "150m"
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+
       # .Values.deployment.microServices.onboarding.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
@@ -346,13 +360,15 @@ deployment:
       extraLabels: {}
       replicas: 1
       extraArgs: []
-      resources:
-        requests:
-          memory: "64Mi"
-          cpu: "50m"
-        limits:
-          memory: "256Mi"
-          cpu: "150m"
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+
       # .Values.deployment.microServices.jobs.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
@@ -365,13 +381,15 @@ deployment:
       extraLabels: {}
       replicas: 1
       extraArgs: []
-      resources:
-        requests:
-          memory: "64Mi"
-          cpu: "50m"
-        limits:
-          memory: "256Mi"
-          cpu: "150m"
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+
       # .Values.deployment.microServices.modelProcessor.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
@@ -384,13 +402,15 @@ deployment:
       extraLabels: {}
       replicas: 1
       extraArgs: []
-      resources:
-        requests:
-          memory: "64Mi"
-          cpu: "50m"
-        limits:
-          memory: "256Mi"
-          cpu: "150m"
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+
       # .Values.deployment.microServices.blobNotification.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []

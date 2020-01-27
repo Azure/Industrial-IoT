@@ -62,13 +62,10 @@ spec:
           - {{ . }}
           {{- end }}
         {{- end }}
+{{- if .Values.deployment.microServices.twin.resources }}
         resources:
-          requests:
-            memory: {{ .Values.deployment.microServices.twin.resources.requests.memory }}
-            cpu: {{ .Values.deployment.microServices.twin.resources.requests.cpu }}
-          limits:
-            memory: {{ .Values.deployment.microServices.twin.resources.limits.memory }}
-            cpu: {{ .Values.deployment.microServices.twin.resources.limits.cpu }}
+{{ toYaml .Values.deployment.microServices.twin.resources | indent 10 }}
+{{- end }}
         ports:
         - containerPort: 9041
         env:

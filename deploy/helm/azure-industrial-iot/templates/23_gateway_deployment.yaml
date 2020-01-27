@@ -62,13 +62,10 @@ spec:
           - {{ . }}
           {{- end }}
         {{- end }}
+{{- if .Values.deployment.microServices.gateway.resources }}
         resources:
-          requests:
-            memory: {{ .Values.deployment.microServices.gateway.resources.requests.memory }}
-            cpu: {{ .Values.deployment.microServices.gateway.resources.requests.cpu }}
-          limits:
-            memory: {{ .Values.deployment.microServices.gateway.resources.limits.memory }}
-            cpu: {{ .Values.deployment.microServices.gateway.resources.limits.cpu }}
+{{ toYaml .Values.deployment.microServices.gateway.resources | indent 10 }}
+{{- end }}
         ports:
         - containerPort: 9040
         - containerPort: 51111

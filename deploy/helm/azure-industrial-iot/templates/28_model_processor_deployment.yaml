@@ -62,13 +62,10 @@ spec:
           - {{ . }}
           {{- end }}
         {{- end }}
+{{- if .Values.deployment.microServices.modelProcessor.resources }}
         resources:
-          requests:
-            memory: {{ .Values.deployment.microServices.modelProcessor.resources.requests.memory }}
-            cpu: {{ .Values.deployment.microServices.modelProcessor.resources.requests.cpu }}
-          limits:
-            memory: {{ .Values.deployment.microServices.modelProcessor.resources.limits.memory }}
-            cpu: {{ .Values.deployment.microServices.modelProcessor.resources.limits.cpu }}
+{{ toYaml .Values.deployment.microServices.modelProcessor.resources | indent 10 }}
+{{- end }}
         env:
         - name: PCS_KEYVAULT_URL
           valueFrom:
