@@ -42,9 +42,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
             
             MonitoredItemMessage message;
             try {
-                var context = new ServiceMessageContext();
                 using (var stream = new MemoryStream(payload)) {
-                    using (var decoder = new BinaryDecoder(stream, context)) {
+                    using (var decoder = new BinaryDecoder(stream, ServiceMessageContext.GlobalContext)) {
                         var result = decoder.ReadEncodeable(null, typeof(MonitoredItemMessage)) as MonitoredItemMessage;
                         message = result;
                     }

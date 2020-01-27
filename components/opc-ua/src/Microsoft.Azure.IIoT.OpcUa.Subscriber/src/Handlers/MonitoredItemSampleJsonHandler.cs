@@ -39,14 +39,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         }
 
         /// <inheritdoc/>
-        public async Task HandleAsync(string deviceId, string moduleId,  
+        public async Task HandleAsync(string deviceId, string moduleId,
             byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
             
             MonitoredItemMessage message;
             try {
-                var context = new ServiceMessageContext();
                 using (var stream = new MemoryStream(payload)) {
-                    using (var decoder = new JsonDecoderEx(stream, context)) {
+                    using (var decoder = new JsonDecoderEx(stream, ServiceMessageContext.GlobalContext)) {
                         var result = decoder.ReadEncodeable(null, typeof(MonitoredItemMessage)) as MonitoredItemMessage;
                         message = result;
                     }

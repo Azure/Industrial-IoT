@@ -40,9 +40,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         public async Task HandleAsync(string deviceId, string moduleId,
             byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
             var json = Encoding.UTF8.GetString(payload);
-            var context = new ServiceMessageContext();
             using (var stream = new MemoryStream(payload)) {
-                using (var decoder = new BinaryDecoder(stream, context)) {
+                using (var decoder = new BinaryDecoder(stream, ServiceMessageContext.GlobalContext)) {
                     var networkMessage = decoder.ReadEncodeable(null, typeof(NetworkMessage)) as NetworkMessage;
                     foreach (var message in networkMessage.Messages) {
                         foreach (var datapoint in message.Payload) {
