@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using Prometheus;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -125,6 +126,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
         /// <param name="endpoint"></param>
         /// <returns></returns>
         private async Task CheckEndpointInfoAsync(EndpointInfoModel endpoint) {
+            _checkEndpoint.Inc();
             var mode = endpoint.Registration.Endpoint.SecurityMode ?? SecurityMode.None;
             var policy = endpoint.Registration.Endpoint.SecurityPolicy ?? "None";
 
@@ -172,6 +174,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
         /// <param name="application"></param>
         /// <returns></returns>
         private async Task CheckApplicationInfoAsync(ApplicationInfoModel application) {
+            _checkApplication.Inc();
             // Test application certificate
             var certEncoded = application.Certificate;
             if (certEncoded == null) {
@@ -313,5 +316,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
         private readonly IIoTHubTelemetryServices _client;
         private readonly ILogger _logger;
         private readonly IMetricsLogger _metrics;
+        private static readonly Counter _checkEndpoint = Metrics.CreateCounter("iiot_registry_check_endpoint", "calls to check endpoints");
+        private static readonly Counter _checkApplication = Metrics.CreateCounter("iiot_registry_check_application", "calls to check application");
     }
 }

@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Prometheus;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -28,6 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <inheritdoc/>
         public async Task ProcessDiscoveryResultsAsync(string discovererId, DiscoveryResultModel result,
             IEnumerable<DiscoveryEventModel> events) {
+            _processDiscoveryResults.Inc();
             if (string.IsNullOrEmpty(discovererId)) {
                 throw new ArgumentNullException(nameof(discovererId));
             }
@@ -74,5 +76,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         private readonly IGatewayRegistry _gateways;
         private readonly IApplicationBulkProcessor _applications;
+        private static readonly Counter _processDiscoveryResults = Metrics.CreateCounter("iiot_registry_process_discovery_results", "calls to process discovery results");
     }
 }
