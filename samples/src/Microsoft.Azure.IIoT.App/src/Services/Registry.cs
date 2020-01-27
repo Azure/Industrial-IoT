@@ -140,62 +140,68 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// SetScanAsync
         /// </summary>
         /// <param name="discoverer"></param>
-        /// <param name="ipMask"></param>
-        /// <param name="portRange"></param>
-        /// <param name="forceScan"></param>
         /// <returns></returns>
-        public async Task SetScanAsync(DiscovererInfo discoverer, DiscoveryConfigApiModel config, bool forceScan) {
-            var model = new DiscoveryConfigApiModel();
+        public async Task SetDiscoveryAsync(DiscovererInfo discoverer) {
+            var model = discoverer.DiscovererModel.DiscoveryConfig;
 
             DiscoveryMode discoveryMode;
 
-            if (forceScan == true) {
-                model.AddressRangesToScan = string.Empty;
-                model.PortRangesToScan = string.Empty;
-            }
-            else {
-                if (discoverer.DiscovererModel.DiscoveryConfig != null) {
-                    model = discoverer.DiscovererModel.DiscoveryConfig;
-                }
-            }
-
-            if (discoverer.ScanStatus == true && forceScan == true) {
+            if (discoverer.ScanStatus == true) {
                 discoveryMode = DiscoveryMode.Fast;
             }
             else {
                 discoveryMode = DiscoveryMode.Off;
             }
-
-            if (config.AddressRangesToScan != null) {
-                model.AddressRangesToScan = config.AddressRangesToScan;
-            }
-            if (config.PortRangesToScan != null) {
-                model.PortRangesToScan = config.PortRangesToScan;
-            }
-            if (config.ActivationFilter != null) {
-                model.ActivationFilter = config.ActivationFilter;
-            }
-            if (config.MaxNetworkProbes != null && config.MaxNetworkProbes != 0) {
-                model.MaxNetworkProbes = config.MaxNetworkProbes;
-            }
-            if (config.MaxPortProbes != null && config.MaxPortProbes != 0) {
-                model.MaxPortProbes = config.MaxPortProbes;
-            }
-            if (config.NetworkProbeTimeoutMs != null && config.NetworkProbeTimeoutMs != 0) {
-                model.NetworkProbeTimeoutMs = config.NetworkProbeTimeoutMs;
-            }
-            if (config.PortProbeTimeoutMs != null && config.PortProbeTimeoutMs != 0) {
-                model.PortProbeTimeoutMs = config.PortProbeTimeoutMs;
-            }
-            if (config.IdleTimeBetweenScansSec != null && config.IdleTimeBetweenScansSec != 0) {
-                model.IdleTimeBetweenScansSec = config.IdleTimeBetweenScansSec;
-            }
-            else {
-                model.IdleTimeBetweenScansSec = _5MINUTES;
-            }
             
             try {
                 await _registryService.SetDiscoveryModeAsync(discoverer.DiscovererModel.Id, discoveryMode, model);
+            }
+            catch (Exception exception) {
+                var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
+                Trace.TraceError(errorMessageTrace);
+            }
+        }
+
+        /// <summary>
+        /// UpdateDiscovererAsync
+        /// </summary>
+        /// <param name="discoverer"></param>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        public async Task UpdateDiscovererAsync(DiscovererInfo discoverer, DiscoveryConfigApiModel config) {
+            var model = new DiscovererUpdateApiModel();
+            model.DiscoveryConfig = discoverer.DiscovererModel.DiscoveryConfig;
+
+            if (config.AddressRangesToScan != null) {
+                model.DiscoveryConfig.AddressRangesToScan = config.AddressRangesToScan;
+            }
+            if (config.PortRangesToScan != null) {
+                model.DiscoveryConfig.PortRangesToScan = config.PortRangesToScan;
+            }
+            if (config.ActivationFilter != null) {
+                model.DiscoveryConfig.ActivationFilter = config.ActivationFilter;
+            }
+            if (config.MaxNetworkProbes != null && config.MaxNetworkProbes != 0) {
+                model.DiscoveryConfig.MaxNetworkProbes = config.MaxNetworkProbes;
+            }
+            if (config.MaxPortProbes != null && config.MaxPortProbes != 0) {
+                model.DiscoveryConfig.MaxPortProbes = config.MaxPortProbes;
+            }
+            if (config.NetworkProbeTimeoutMs != null && config.NetworkProbeTimeoutMs != 0) {
+                model.DiscoveryConfig.NetworkProbeTimeoutMs = config.NetworkProbeTimeoutMs;
+            }
+            if (config.PortProbeTimeoutMs != null && config.PortProbeTimeoutMs != 0) {
+                model.DiscoveryConfig.PortProbeTimeoutMs = config.PortProbeTimeoutMs;
+            }
+            if (config.IdleTimeBetweenScansSec != null && config.IdleTimeBetweenScansSec != 0) {
+                model.DiscoveryConfig.IdleTimeBetweenScansSec = config.IdleTimeBetweenScansSec;
+            }
+            else {
+                model.DiscoveryConfig.IdleTimeBetweenScansSec = _5MINUTES;
+            }
+
+            try {
+                await _registryService.UpdateDiscovererAsync(discoverer.DiscovererModel.Id, model);
             }
             catch (Exception exception) {
                 var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");

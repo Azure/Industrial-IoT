@@ -51,8 +51,7 @@
             <td>
                 @if (discoverer.DiscovererModel.Connected == true)
                 {
-                    <input type="checkbox" enabled @bind="@discoverer.ScanStatus" @onclick="@(async() => await SetScanAsync(discoverer, true,
-                                                                                                                discoverer.DiscovererModel.DiscoveryConfig))" />
+                    <input type="checkbox" enabled @bind="@discoverer.ScanStatus" @onclick="@(async() => await SetScanAsync(discoverer))" />
                 }
                 else
                 {
@@ -81,8 +80,10 @@
                 @{ string ActivationFilter = "--";}
                 @if (discoverer.DiscovererModel.DiscoveryConfig != null)
                 {
-                    ScanMask = discoverer.DiscovererModel.DiscoveryConfig?.AddressRangesToScan == null ? "Default" : discoverer.DiscovererModel.DiscoveryConfig.AddressRangesToScan;
-                    PortRange = discoverer.DiscovererModel.DiscoveryConfig?.PortRangesToScan == null ? "Default" : discoverer.DiscovererModel.DiscoveryConfig.PortRangesToScan;
+                    ScanMask = discoverer.DiscovererModel.DiscoveryConfig?.AddressRangesToScan == null ? "Default" : discoverer.DiscovererModel.DiscoveryConfig?.AddressRangesToScan == "" ? "Default" :
+                        discoverer.DiscovererModel.DiscoveryConfig.AddressRangesToScan;
+                    PortRange = discoverer.DiscovererModel.DiscoveryConfig?.PortRangesToScan == null ? "Default" : discoverer.DiscovererModel.DiscoveryConfig?.PortRangesToScan == "" ? "Default" :
+                        discoverer.DiscovererModel.DiscoveryConfig.PortRangesToScan;
                     MaxNetworkProbes = discoverer.DiscovererModel.DiscoveryConfig?.MaxNetworkProbes == null ? "Default" : discoverer.DiscovererModel.DiscoveryConfig.MaxNetworkProbes.ToString();
                     MaxPortProbes = discoverer.DiscovererModel.DiscoveryConfig?.MaxPortProbes == null ? "Default" : discoverer.DiscovererModel.DiscoveryConfig.MaxPortProbes.ToString();
                     NetworkProbeTimeoutMs = discoverer.DiscovererModel.DiscoveryConfig?.NetworkProbeTimeoutMs == null ? "Default" : discoverer.DiscovererModel.DiscoveryConfig.NetworkProbeTimeoutMs.ToString();
@@ -179,7 +180,7 @@
                 </div>
                 <hr />
                 <div>
-                    <button @onclick="@(async() => await SetScanAsync(DiscovererData, true, DiscovererData.DiscovererModel.DiscoveryConfig))" type="button" class="btn btn-primary">Apply</button>
+                    <button @onclick="@(async() => await UpdateDiscovererConfigAsync(DiscovererData, DiscovererData.DiscovererModel.DiscoveryConfig))" type="button" class="btn btn-primary">Apply</button>
                 </div>
             </form>
         </div>
@@ -239,7 +240,7 @@
             pagedDiscovererList = discovererList.GetPaged(Int32.Parse(Page), PageLength);
             _spinner = "";
             StateHasChanged();
-            
+
             _discovererEvent = await RegistryServiceEvents.SubscribeDiscovererEventsAsync(null, DiscovererEvent);
         }
     }
@@ -251,7 +252,7 @@
     /// <param name="forceScan"></param>
     /// <param name="ipMask"></param>
     /// <param name="portRange"></param>
-    private async Task SetScanAsync(DiscovererInfo discoverer, bool forceScan, DiscoveryConfigApiModel config)
+    private async Task SetScanAsync(DiscovererInfo discoverer)
     {
         _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByDiscovererIdAsync(
                 discoverer.DiscovererModel.Id, null, async data =>
@@ -275,12 +276,17 @@
                 _scanResult = "hidden";
                 await _discovery.DisposeAsync();
             }
-            await RegistryHelper.SetScanAsync(discoverer, config, forceScan);
+            await RegistryHelper.SetDiscoveryAsync(discoverer);
         }
         catch
         {
             await _discovery.DisposeAsync();
         }
+    }
+
+    private async Task UpdateDiscovererConfigAsync(DiscovererInfo discoverer, DiscoveryConfigApiModel config)
+    {
+        await RegistryHelper.UpdateDiscovererAsync(discoverer, config);
     }
 
     /// <summary>
