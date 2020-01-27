@@ -284,16 +284,16 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
                 CdmObjectType.PurposeRef, "hasA", true);
             value.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
                 CdmObjectType.DataTypeRef, "integer", true);
-            value.DataFormat = CdmDataFormat.Int64;
+            value.DataFormat = CdmDataFormat.String;
             publisherSampleEntity.Attributes.Add(value);
 
             var type = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
-                CdmObjectType.TypeAttributeDef, "Type", false);
+                CdmObjectType.TypeAttributeDef, "TypeId", false);
             type.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
                 CdmObjectType.PurposeRef, "hasA", true);
             type.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
                 CdmObjectType.DataTypeRef, "integer", true);
-            type.DataFormat = CdmDataFormat.Int64;
+            type.DataFormat = CdmDataFormat.String;
             publisherSampleEntity.Attributes.Add(type);
 
             var status = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
