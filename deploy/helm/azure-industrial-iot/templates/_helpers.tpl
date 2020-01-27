@@ -69,3 +69,7 @@ If release name contains chart name it will be used as a full name.
 {{- define "azure-industrial-iot.blob-notification.fullname" -}}
 {{- printf "%s-%s" .Release.Name "blob-notification" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
+
+{{- define "azure-industrial-iot.ingress.fullname" -}}
+{{- printf "%s-%s" .Release.Name "ingress" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}

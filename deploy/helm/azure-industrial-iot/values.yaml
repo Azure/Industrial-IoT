@@ -394,3 +394,41 @@ deployment:
       # .Values.deployment.microServices.blobNotification.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
+
+  ingress:
+    enabled: false
+    extraLabels: {}
+
+    # Our recommended values to use with NGINX Ingress Controller.
+    #
+    # annotations:
+    #   kubernetes.io/ingress.class: nginx
+    #   nginx.ingress.kubernetes.io/rewrite-target: /$1
+    annotations: {}
+
+    # host for the Ingress. We do not support multiple hosts at the moment.
+    # hostName: null
+
+    # Our recommended values to use with NGINX Ingress Controller.
+    #
+    # paths:
+    #   registry: /registry/(.*)
+    #   twin: /twin/(.*)
+    #   history: /history/(.*)
+    #   gateway: /ua/(.*)
+    #   vault: /vault/(.*)
+    paths:
+      registry: null
+      twin: null
+      history: null
+      gateway: null
+      vault: null
+
+    # Ingress TLS configuration. Secrets must be manually created in the namespace.
+    # The value should be alligned with hostName property.
+    #
+    # tls:
+    # - secretName: industrial-iot-tls
+    #   hosts:
+    #   - myapp.domain.com
+    tls: []
