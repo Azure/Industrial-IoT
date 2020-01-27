@@ -70,7 +70,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                     SourcePicoseconds = message.Value.SourcePicoseconds,
                     ServerPicoseconds = message.Value.ServerPicoseconds,
                     SourceTimestamp = message.Value.SourceTimestamp,
-                    ServerTimestamp = message.Value.ServerTimestamp,
+                    ServerTimestamp = message.Value.ServerTimestamp
                 };
                 await Task.WhenAll(_handlers.Select(h => h.HandleSampleAsync(sample)));
             }

@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using Opc.Ua.PubSub;
+    using Opc.Ua.Encoders;
     using Serilog;
     using System;
     using System.IO;
@@ -45,7 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
             try {
                 var context = new ServiceMessageContext();
                 using (var stream = new MemoryStream(payload)) {
-                    using (var decoder = new BinaryDecoder(stream, context)) {
+                    using (var decoder = new JsonDecoderEx(stream, context)) {
                         var result = decoder.ReadEncodeable(null, typeof(MonitoredItemMessage)) as MonitoredItemMessage;
                         message = result;
                     }
@@ -71,7 +72,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                     SourcePicoseconds = message.Value.SourcePicoseconds,
                     ServerPicoseconds = message.Value.ServerPicoseconds,
                     SourceTimestamp = message.Value.SourceTimestamp,
-                    ServerTimestamp = message.Value.ServerTimestamp,
+                    ServerTimestamp = message.Value.ServerTimestamp
                 };
                 await Task.WhenAll(_handlers.Select(h => h.HandleSampleAsync(sample)));
             }

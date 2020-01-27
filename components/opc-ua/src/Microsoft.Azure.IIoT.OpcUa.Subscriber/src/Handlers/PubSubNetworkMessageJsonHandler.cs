@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     using Microsoft.Azure.IIoT.Processor;
     using Microsoft.Azure.IIoT.Processor.Models;
     using Microsoft.Azure.IIoT.Hub;
+    using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using Opc.Ua.PubSub;
     using Opc.Ua.Encoders;
@@ -21,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     /// <summary>
     /// Publisher message handling
     /// </summary>
-    public sealed class SubscriberSampleHandler : IDeviceTelemetryHandler {
+    public sealed class PubSubNetworkMessageJsonHandler : IDeviceTelemetryHandler {
 
         /// <inheritdoc/>
         public string MessageSchema => Core.MessageSchemaTypes.NetworkMessageJson;
@@ -31,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         /// </summary>
         /// <param name="handlers"></param>
         /// <param name="logger"></param>
-        public SubscriberSampleHandler(IEnumerable<IMonitoredItemSampleProcessor> handlers, ILogger logger) {
+        public PubSubNetworkMessageJsonHandler(IEnumerable<IMonitoredItemSampleProcessor> handlers, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _handlers = handlers?.ToList() ?? throw new ArgumentNullException(nameof(handlers));
         }
@@ -43,48 +44,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream(payload)) {
                 using (var decoder = new JsonDecoderEx(stream, context)) {
-                    var result = decoder.ReadEncodeable(null, typeof(NetworkMessage)) as NetworkMessage;
-                    foreach (var message in result.Messages) {
-                        try {
-                            var sample = new MonitoredItemSampleModel() { 
-                                
-                            };
-                            
-                            if (sample == null) {
-                                continue;
-                            }
-                            await Task.WhenAll(_handlers.Select(h => h.HandleSampleAsync(
-                                sample)));
-                        }
-                        catch (Exception ex) {
-                            _logger.Error(ex,
-                                "Subscriber message {message} failed with exception - skip",
-                                    message);
-                        }
-                    }
-                }
-            }
-           
-            /*
-                        IEnumerable<JToken> messages;
-                        try {
-                            var parsed = JToken.Parse(json);
-                            if (parsed.Type == JTokenType.Array) {
-                                messages = parsed as JArray;
-                            }
-                            else {
-                                messages = parsed.YieldReturn();
-                            }
-                        }
-                        catch (Exception ex) {
-                            _logger.Error(ex, "Failed to parse json {json}", json);
-                            return;
-                        }
-                        foreach (var message in messages) {
+                    var networkMessage = decoder.ReadEncodeable(null, typeof(NetworkMessage)) as NetworkMessage;
+                    foreach (var message in networkMessage.Messages) {
+                        foreach (var datapoint in message.Payload) {
                             try {
-
-
-                                var sample = message.ToServiceModel();
+                                var sample = new MonitoredItemSampleModel() {
+                                    Value = new JObject {
+                                        { "Body", datapoint.Value.WrappedValue.Value.ToString() },
+                                        { "Type", datapoint.Value.WrappedValue.Value.GetType().ToString() }
+                                    },
+                                    Status = StatusCode.LookupSymbolicId(datapoint.Value.StatusCode.Code),
+                                    TypeId = message.TypeId.ToString(),
+                                    DataSetId = message.DataSetWriterId,
+                                    Timestamp = DateTime.UtcNow,
+                                    SubscriptionId = "network message",
+                                    EndpointId = networkMessage.PublisherId,
+                                    NodeId = datapoint.Key,
+                                    SourcePicoseconds = datapoint.Value.SourcePicoseconds,
+                                    ServerPicoseconds = datapoint.Value.ServerPicoseconds,
+                                    SourceTimestamp = datapoint.Value.SourceTimestamp,
+                                    ServerTimestamp = datapoint.Value.ServerTimestamp
+                                };
                                 if (sample == null) {
                                     continue;
                                 }
@@ -97,7 +77,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                                         message);
                             }
                         }
-            */
+                    }
+                }
+            }
         }
 
         /// <inheritdoc/>
