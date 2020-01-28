@@ -14,6 +14,12 @@ image:
   # - name: myRegistryKey
   pullSecrets: []
 
+# String to partially override azure-industrial-iot.fullname template (will maintain the release name).
+# nameOverride:
+
+# String to fully override azure-industrial-iot.fullname template.
+# fullnameOverride:
+
 # Details of Azure resources that components of Azure Industrial IoT solution will connect to.
 azure:
   # azure.tenantId is Guid id of the tenant that contains Azure resources.
