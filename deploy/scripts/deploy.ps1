@@ -59,6 +59,7 @@ param(
     [string] $acrSubscriptionName,
     $aadConfig,
     $context = $null,
+    [switch] $testAllDeploymentOptions,
     [string] $environmentName = "AzureCloud"
 )
 
@@ -226,14 +227,14 @@ Function Select-RegistryCredentials() {
 # Select location
 #*******************************************************************************************************
 Function Select-ResourceGroupLocation() {
-    $locations = Get-AzLocation -Pre | Where-Object { 
+    $locations = Get-AzLocation | Where-Object { 
         foreach ($provider in $script:requiredProviders) {
             if ($_.Providers -notcontains $provider) {
                 return $false
             }
         }
         return $true 
-    } 
+    }
 
     if (![string]::IsNullOrEmpty($script:resourceGroupLocation)) {
         foreach ($location in $locations) {
@@ -716,6 +717,41 @@ Function New-Deployment() {
 }
 
 #*******************************************************************************************************
+# Test all deployment options and resource locations one by one
+#*******************************************************************************************************
+Function Test-All-Deployment-Options() {
+    Param(
+        $context
+    )
+
+    $script:interactive = $false
+    $script:deleteOnErrorPrompt = $false
+
+    @("local", "services", "app", "all") | ForEach-Object {
+        $script:type = $_
+        Get-AzLocation | Where-Object { 
+            foreach ($provider in $script:requiredProviders) {
+                if ($_.Providers -notcontains $provider) {
+                    return $false
+                }
+            }
+            return $true 
+        } | ForEach-Object {
+            $script:resourceGroupLocation = $_
+            Remove-AzResourceGroup -ResourceGroupName $script:resourceGroupName -Force | Out-Null
+            try {
+                Write-Host("Deploying $($script:type) in $($script:resourceGroupLocation)...")
+                New-Deployment -context $context | Out-Null
+            }
+            catch {
+Write-Error("$($script:type) in $($script:resourceGroupLocation) failed with $($_.Exception.Message)")
+Write-Error($_)
+            }
+        }
+    }
+}
+
+#*******************************************************************************************************
 # Script body
 #*******************************************************************************************************
 $ErrorActionPreference = "Stop"
@@ -740,5 +776,10 @@ Write-Host "Signing in ..."
 Import-Module Az
 $script:context = Select-Context -context $script:context `
     -environment (Get-AzEnvironment -Name $script:environmentName)
-$deleteOnErrorPrompt = Select-ResourceGroup
+
+$script:deleteOnErrorPrompt = Select-ResourceGroup
+if ($testAllDeploymentOptions.IsPresent) {
+    Test-All-Deployment-Options -context $script:context
+    return
+}
 New-Deployment -context $script:context
