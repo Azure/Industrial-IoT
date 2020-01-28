@@ -17,27 +17,27 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime {
         /// </summary>
         private const string kOpenApi_EnabledKey = "OpenApi:Enabled";
         private const string kOpenApi_UseV2Key = "OpenApi:UseV2";
-        private const string kOpenApi_AppIdKey = "OpenApi:AppId";
-        private const string kOpenApi_AppSecretKey = "OpenApi:AppSecret";
+        private const string kAuth_AppIdKey = "Auth:AppId";
+        private const string kAuth_AppSecretKey = "Auth:AppSecret";
         private const string kAuth_RequiredKey = "Auth:Required";
 
         /// <summary>Enabled</summary>
         public bool UIEnabled => GetBoolOrDefault(kOpenApi_EnabledKey,
-            !WithAuth || !string.IsNullOrEmpty(OpenApiAppId)); // Disable with auth but no appid
+            !WithAuth || !string.IsNullOrEmpty(AppId)); // Disable with auth but no appid
         /// <summary>Auth enabled</summary>
         public bool WithAuth => GetBoolOrDefault(kAuth_RequiredKey,
-            GetBoolOrDefault("PCS_AUTH_REQUIRED", !string.IsNullOrEmpty(OpenApiAppId)));
+            GetBoolOrDefault("PCS_AUTH_REQUIRED", !string.IsNullOrEmpty(AppId)));
         /// <summary>Generate swagger.json</summary>
         public bool UseV2 => GetBoolOrDefault(kOpenApi_UseV2Key,
             GetBoolOrDefault("PCS_SWAGGER_V2", true));
 
         /// <summary>Application id</summary>
-        public string OpenApiAppId => GetStringOrDefault(kOpenApi_AppIdKey,
+        public string AppId => GetStringOrDefault(kAuth_AppIdKey,
             GetStringOrDefault(PcsVariable.PCS_AUTH_CLIENT_APPID,
             GetStringOrDefault("PCS_WEBUI_AUTH_AAD_APPID")))?.Trim();
 
         /// <summary>App secret</summary>
-        public string OpenApiAppSecret => GetStringOrDefault(kOpenApi_AppSecretKey,
+        public string AppSecret => GetStringOrDefault(kAuth_AppSecretKey,
             GetStringOrDefault(PcsVariable.PCS_AUTH_CLIENT_SECRET,
             GetStringOrDefault("PCS_APPLICATION_SECRET")))?.Trim();
 
