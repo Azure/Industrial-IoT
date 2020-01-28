@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
-    using Microsoft.Azure.IIoT.Processor.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
 
     /// <summary>
     /// Publisher sample model extensions

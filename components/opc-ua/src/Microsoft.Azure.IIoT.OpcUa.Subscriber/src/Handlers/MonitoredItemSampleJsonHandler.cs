@@ -5,8 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.Processor;
-    using Microsoft.Azure.IIoT.Processor.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber;
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using Opc.Ua.Extensions;
@@ -44,8 +44,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
             
             MonitoredItemMessage message;
             try {
+                var context = new ServiceMessageContext();
                 using (var stream = new MemoryStream(payload)) {
-                    using (var decoder = new JsonDecoderEx(stream, ServiceMessageContext.GlobalContext)) {
+                    using (var decoder = new JsonDecoderEx(stream, context)) {
                         var result = decoder.ReadEncodeable(null, typeof(MonitoredItemMessage)) as MonitoredItemMessage;
                         message = result;
                     }

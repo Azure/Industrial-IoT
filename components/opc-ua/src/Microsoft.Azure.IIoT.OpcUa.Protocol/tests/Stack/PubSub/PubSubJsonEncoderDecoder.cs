@@ -54,8 +54,10 @@ namespace Opc.Ua.PubSub.Tests {
 
             byte[] buffer;
             string json;
+            var context = new ServiceMessageContext();
             using (var stream = new MemoryStream()) {
-                using (var encoder = new JsonEncoderEx(stream, ServiceMessageContext.GlobalContext)) {
+                
+                using (var encoder = new JsonEncoderEx(stream, context)) {
                     networkMessage.Encode(encoder);
                 }
                 buffer = stream.ToArray();
@@ -63,7 +65,7 @@ namespace Opc.Ua.PubSub.Tests {
             }
 
             using (var stream = new MemoryStream(buffer)) {
-                using (var decoder = new JsonDecoderEx(stream, ServiceMessageContext.GlobalContext)) {
+                using (var decoder = new JsonDecoderEx(stream, context)) {
                     var result = decoder.ReadEncodeable(null, typeof(NetworkMessage)) as NetworkMessage;
                     Assert.Equal(networkMessage, result);
                 }

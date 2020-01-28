@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux {
     using Microsoft.Azure.IIoT.Core.Messaging.EventHub;
     using Microsoft.Azure.IIoT.Messaging.SignalR.Services;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
-    using Microsoft.Azure.IIoT.Processor.Handlers;
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
     using Microsoft.Azure.IIoT.Hub.Processor.Services;

@@ -8,8 +8,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
     using Microsoft.Azure.IIoT.Messaging.EventHub.Services;
     using Microsoft.Azure.IIoT.Messaging.EventHub.Runtime;
     using Microsoft.Azure.IIoT.Messaging;
-    using Microsoft.Azure.IIoT.Processor.Handlers;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers;
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Processors;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Processor.EventHub;

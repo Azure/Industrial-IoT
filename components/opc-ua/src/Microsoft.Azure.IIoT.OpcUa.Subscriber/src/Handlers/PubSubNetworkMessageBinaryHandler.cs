@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
-    using Microsoft.Azure.IIoT.Processor;
-    using Microsoft.Azure.IIoT.Processor.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber;
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Microsoft.Azure.IIoT.Hub;
     using Newtonsoft.Json.Linq;
     using Opc.Ua;
@@ -41,7 +41,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
             byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
             var json = Encoding.UTF8.GetString(payload);
             using (var stream = new MemoryStream(payload)) {
-                using (var decoder = new BinaryDecoder(stream, ServiceMessageContext.GlobalContext)) {
+                var context = new ServiceMessageContext();
+                using (var decoder = new BinaryDecoder(stream, context)) {
                     var networkMessage = decoder.ReadEncodeable(null, typeof(NetworkMessage)) as NetworkMessage;
                     foreach (var message in networkMessage.Messages) {
                         foreach (var datapoint in message.Payload) {

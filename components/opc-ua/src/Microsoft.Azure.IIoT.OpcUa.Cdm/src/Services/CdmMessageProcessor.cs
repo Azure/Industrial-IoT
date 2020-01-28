@@ -3,8 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Cdm.Services {
-    using Microsoft.Azure.IIoT.Processor.Models;
+namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
+    using Microsoft.Azure.IIoT.Cdm;
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.CommonDataModel.ObjectModel.Cdm;
     using Microsoft.CommonDataModel.ObjectModel.Enums;
@@ -76,7 +77,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
         /// <param name="properties"></param>
         /// <param name="partitionKey"></param>
         /// <returns></returns>
-        public async Task ProcessAsync(MonitoredItemSampleModel payload,
+        public async Task ProcessAsync<T>(T payload,
             IDictionary<string, string> properties = null,
             string partitionKey = null) {
             await ProcessCdmSampleAsync(payload);
@@ -215,10 +216,10 @@ namespace Microsoft.Azure.IIoT.Cdm.Services {
             }
         }
 
-        private async Task ProcessCdmSampleAsync(MonitoredItemSampleModel payload) {
+        private async Task ProcessCdmSampleAsync<T>(T payload) {
             try {
                 await _lock.WaitAsync();
-                _cacheList.Add(payload);
+                _cacheList.Add(payload as MonitoredItemSampleModel);
                 if (!_cacheUploadTriggered && _cacheList.Count >= _cacheListSize) {
                     Try.Op(() => _cacheUploadTimer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan));
                     _cacheUploadTriggered = true;

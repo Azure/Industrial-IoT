@@ -3,7 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Cdm.Storage {
+namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
+    using Microsoft.Azure.IIoT.Cdm;
     using Microsoft.Azure.IIoT.Http;
     using Serilog;
     using System;

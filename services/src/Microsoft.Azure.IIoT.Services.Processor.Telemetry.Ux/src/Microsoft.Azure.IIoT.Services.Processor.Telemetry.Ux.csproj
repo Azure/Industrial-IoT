@@ -17,7 +17,7 @@
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Auth.ActiveDirectory\src\Microsoft.Azure.IIoT.Auth.ActiveDirectory.csproj" />
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Hub.Processor\src\Microsoft.Azure.IIoT.Hub.Processor.csproj" />
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Messaging.SignalR\src\Microsoft.Azure.IIoT.Messaging.SignalR.csproj" />
-    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Processor\src\Microsoft.Azure.IIoT.Processor.csproj" />
+    <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Subscriber\src\Microsoft.Azure.IIoT.OpcUa.Subscriber.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

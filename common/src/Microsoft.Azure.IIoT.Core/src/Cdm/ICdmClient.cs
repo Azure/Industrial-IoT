@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Cdm {
-    using Microsoft.Azure.IIoT.Processor.Models;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -27,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Cdm {
         /// <param name="properties"></param>
         /// <param name="partitionKey"></param>
         /// <returns></returns>
-        Task ProcessAsync(MonitoredItemSampleModel payload,
+        Task ProcessAsync<T>(T payload,
             IDictionary<string, string> properties = null, string partitionKey = null);
 
         /// <summary>
