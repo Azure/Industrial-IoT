@@ -69,9 +69,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
         /// <inheritdoc/>
         public bool WithAuth => !string.IsNullOrEmpty(_auth.AppId) && _openApi.WithAuth;
         /// <inheritdoc/>
-        public string OpenApiAppId => _openApi.OpenApiAppId;
+        public string OpenApiAppId => _openApi.AppId;
         /// <inheritdoc/>
-        public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
+        public string OpenApiAppSecret => _openApi.AppSecret;
         /// <inheritdoc/>
         public bool UseV2 => _openApi.UseV2;
 

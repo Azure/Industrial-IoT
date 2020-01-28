@@ -74,9 +74,9 @@ namespace Microsoft.OpenApi.Models {
                 foreach (var info in infos) {
                     if (config.WithAuth) {
                         options.OAuthAppName(info.Title);
-                        options.OAuthClientId(config.OpenApiAppId);
-                        if (!string.IsNullOrEmpty(config.OpenApiAppSecret)) {
-                            options.OAuthClientSecret(config.OpenApiAppSecret);
+                        options.OAuthClientId(config.AppId);
+                        if (!string.IsNullOrEmpty(config.AppSecret)) {
+                            options.OAuthClientSecret(config.AppSecret);
                         }
                         var resource = config as IAuthConfig;
                         if (!string.IsNullOrEmpty(resource?.Audience)) {

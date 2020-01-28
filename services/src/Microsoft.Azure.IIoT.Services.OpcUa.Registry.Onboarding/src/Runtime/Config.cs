@@ -71,9 +71,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Runtime {
         /// <inheritdoc/>
         public bool WithAuth => _openApi.WithAuth;
         /// <inheritdoc/>
-        public string OpenApiAppId => _openApi.OpenApiAppId;
+        public string OpenApiAppId => _openApi.AppId;
         /// <inheritdoc/>
-        public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
+        public string OpenApiAppSecret => _openApi.AppSecret;
         /// <inheritdoc/>
         public bool UseV2 => _openApi.UseV2;
 
