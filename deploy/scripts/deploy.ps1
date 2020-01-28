@@ -196,7 +196,7 @@ Function Select-RegistryCredentials() {
     
     try {
         $registry = Get-AzContainerRegistry -DefaultProfile $containerContext `
-            | Where-Object { $_.Name -eq $script:acrRegistryName }
+        | Where-Object { $_.Name -eq $script:acrRegistryName }
     }
     catch {
         $registry = $null
@@ -217,8 +217,8 @@ Function Select-RegistryCredentials() {
         return $null
     }
     return @{
-        dockerServer = $registry.LoginServer
-        dockerUser =  $creds.Username
+        dockerServer   = $registry.LoginServer
+        dockerUser     = $creds.Username
         dockerPassword = $creds.Password
     }
 }
@@ -424,48 +424,52 @@ Function New-Deployment() {
     
     $templateParameters = @{ }
     
-    # Try get repo name / TODO
-    $repo = "https://github.com/Azure/Industrial-IoT"
-    
-    # Try get branch name
-    $branchName = $env:BUILD_SOURCEBRANCH
-    if (![string]::IsNullOrEmpty($branchName)) {
-        if ($branchName.StartsWith("refs/heads/")) {
-            $branchName = $branchName.Replace("refs/heads/", "")
+    if ([string]::IsNullOrEmpty($script:repo)) {
+        # Try get repo name / TODO
+        $script:repo = "https://github.com/Azure/Industrial-IoT"
+    }
+
+    if ([string]::IsNullOrEmpty($script:branchName)) {
+        # Try get branch name
+        $script:branchName = $env:BUILD_SOURCEBRANCH
+        if (![string]::IsNullOrEmpty($script:branchName)) {
+            if ($script:branchName.StartsWith("refs/heads/")) {
+                $script:branchName = $script:branchName.Replace("refs/heads/", "")
+            }
+            else {
+                $script:branchName = $null
+            }
         }
-        else {
-            $branchName = $null
+        if ([string]::IsNullOrEmpty($script:branchName)) {
+            try {
+                $argumentList = @("rev-parse", "--abbrev-ref", "@{upstream}")
+                $symbolic = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
+                if ($LastExitCode -ne 0) {
+                    throw "git $($argumentList) failed with $($LastExitCode)."
+                }
+                $remote = $symbolic.Split('/')[0]
+                $argumentList = @("remote", "get-url", $remote)
+                $giturl = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
+                if ($LastExitCode -ne 0) {
+                    throw "git $($argumentList) failed with $($LastExitCode)."
+                }
+                $script:repo = $giturl
+                $script:branchName = $symbolic.Replace("$($remote)/", "")
+                if ($script:branchName -eq "HEAD") {
+                    Write-Warning "$($symbolic) is not a branch - using master."
+                    $script:branchName = "master"
+                }
+            }
+            catch {
+                Write-Warning "$($_.Exception.Message).  Using master branch."
+                $script:repo = "https://github.com/Azure/Industrial-IoT"
+                $script:branchName = "master"
+            }
         }
     }
-    if ([string]::IsNullOrEmpty($branchName)) {
-        try {
-            $argumentList = @("rev-parse", "--abbrev-ref", "@{upstream}")
-            $symbolic = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
-            if ($LastExitCode -ne 0) {
-                throw "git $($argumentList) failed with $($LastExitCode)."
-            }
-            $remote = $symbolic.Split('/')[0]
-            $argumentList = @("remote", "get-url", $remote)
-            $giturl = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
-            if ($LastExitCode -ne 0) {
-                throw "git $($argumentList) failed with $($LastExitCode)."
-            }
-            $repo = $giturl
-            $branchName = $symbolic.Replace("$($remote)/", "")
-            if ($branchName -eq "HEAD") {
-                Write-Warning "$($symbolic) is not a branch - using master."
-                $branchName = "master"
-            }
-        }
-        catch {
-            Write-Warning "$($_.Exception.Message).  Using master branch."
-            $repo = "https://github.com/Azure/Industrial-IoT"
-            $branchName = "master"
-        }
-    }
-    Write-Host "Deployment will use '$($branchName)' branch in '$($repo)'."
-    $templateParameters.Add("branchName", $branchName)
-    $templateParameters.Add("repoUrl", $repo)
+    Write-Host "Deployment will use '$($script:branchName)' branch in '$($script:repo)'."
+    $templateParameters.Add("branchName", $script:branchName)
+    $templateParameters.Add("repoUrl", $script:repo)
 
     if ($script:type -eq "local") {
         if ([string]::IsNullOrEmpty($script:applicationName)`
@@ -493,7 +497,7 @@ Function New-Deployment() {
             $templateParameters.Add("dockerPassword", $creds.dockerPassword)
             
             # see acr-build.ps1 for naming logic
-            $namespace = $branchName
+            $namespace = $script:branchName
             if ($namespace.StartsWith("feature/")) {
                 $namespace = $namespace.Replace("feature/", "")
             }
@@ -690,14 +694,14 @@ Function New-Deployment() {
 
             $deleteResourceGroup = $false
             if (!$script:interactive) {
-                $deleteResourceGroup = $deleteOnErrorPrompt
+                $deleteResourceGroup = $script:deleteOnErrorPrompt
             }
             else {
                 $retry = Read-Host -Prompt "Try again? [y/n]"
                 if ($retry -match "[yY]") {
                     continue
                 }
-                if ($deleteOnErrorPrompt) {
+                if ($script:deleteOnErrorPrompt) {
                     $reply = Read-Host -Prompt "Delete resource group? [y/n]"
                     $deleteResourceGroup = ($reply -match "[yY]")
                 }
@@ -749,7 +753,7 @@ Function Test-All-Deployment-Options() {
         } | ForEach-Object {
             $script:resourceGroupLocation = $_.Location
             $resourceGroup = Get-AzResourceGroup -Name $script:resourceGroupName `
-                -ErrorAction SilentlyContinue  | Out-Null
+                -ErrorAction SilentlyContinue | Out-Null
             if ($resourceGroup) {
                 Remove-AzResourceGroup -ResourceGroupName $script:resourceGroupName -Force `
                     -ErrorAction SilentlyContinue | Out-Null
@@ -760,8 +764,8 @@ Function Test-All-Deployment-Options() {
                 New-Deployment -context $context | Out-Null
             }
             catch {
-Write-Host("$($script:type) in $($script:resourceGroupLocation) failed with $($_.Exception.Message)")
-Write-Host($_)
+                Write-Host("$($script:type) in $($script:resourceGroupLocation) failed with $($_.Exception.Message)")
+                Write-Host($_)
             }
         }
     }
