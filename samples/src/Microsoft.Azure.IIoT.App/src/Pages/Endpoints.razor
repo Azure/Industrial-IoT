@@ -44,7 +44,7 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var endpoint in pagedendpointList.Results) {
+        @foreach (var endpoint in _pagedendpointList.Results) {
             <tr>
                 @if (endpoint.ActivationState == EndpointActivationState.ActivatedAndConnected ||
                      endpoint.ActivationState == EndpointActivationState.Activated) {
@@ -82,8 +82,9 @@
         }
     </tbody>
 </table>
+<div class="loader-pos @_spinner"></div>
 
-<Pager Result=@endpointList PageChanged=@((Page) => PagerPageChanged(Page)) />
+<Pager Result=@_endpointList PageChanged=@((Page) => PagerPageChanged(Page)) />
 
 @code {
 
@@ -97,21 +98,43 @@
     public string ApplicationId { get; set; } = string.Empty;
 
     public const int PageLength = 10;
+    private PagedResult<EndpointInfoApiModel> _endpointList =
+        new PagedResult<EndpointInfoApiModel>();
+    private PagedResult<EndpointInfoApiModel> _pagedendpointList =
+        new PagedResult<EndpointInfoApiModel>();
+    private string _spinner { get; set; }
 
     /// <summary>
     /// Notify page change
     /// </summary>
     /// <param name="page"></param>
     public void PagerPageChanged(int page) {
-        pagedendpointList = endpointList.GetPaged(page, PageLength);
+        _pagedendpointList = _endpointList.GetPaged(page, PageLength);
         NavigationManager.NavigateTo("/endpoints/" + page);
     }
 
-    /// <inheritdoc/>
-    protected override async Task OnInitializedAsync() {
-        endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId);
-        Page = "1";
-        pagedendpointList = endpointList.GetPaged(Int32.Parse(Page), PageLength);
+    /// <summary>
+    /// OnInitialized
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        _spinner = "loader-big";
+    }
+
+    /// <summary>
+    /// OnAfterRenderAsync
+    /// </summary>
+    /// <param name="firstRender"></param>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId);
+            Page = "1";
+            _pagedendpointList = _endpointList.GetPaged(Int32.Parse(Page), PageLength);
+            _spinner = "";
+            StateHasChanged();
+        }
     }
 
     /// <summary>
@@ -129,8 +152,8 @@
             await RegistryService.DeactivateEndpointAsync(endpointId);
         }
 
-        endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId);
-        pagedendpointList = endpointList.GetPaged(Int32.Parse(Page), PageLength);
+        _endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId);
+        _pagedendpointList = _endpointList.GetPaged(Int32.Parse(Page), PageLength);
         await Task.CompletedTask;
         this.StateHasChanged();
     }
@@ -151,9 +174,4 @@
         }
 
     }
-
-    public PagedResult<EndpointInfoApiModel> endpointList =
-        new PagedResult<EndpointInfoApiModel>();
-    public PagedResult<EndpointInfoApiModel> pagedendpointList =
-        new PagedResult<EndpointInfoApiModel>();
 }
