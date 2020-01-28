@@ -8,7 +8,7 @@ This article will walk you through the steps to discover and register OPC UA ser
 
 You should have already successfully deployed all Microservices and at least one IoT Edge Gateway with the Industrial IoT Modules.  If you have not, please follow the instructions in:
 
-1. [Deploy the Industrial IoT Microservices to Azure](deploy/howto-deploy-microservices.md).
+1. [Deploy the Industrial IoT Microservices to Azure](deploy/readme.md).
 
 2. [Install Industrial IoT Edge](deploy/howto-install-iot-edge.md)
 
