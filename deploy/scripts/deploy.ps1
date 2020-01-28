@@ -723,10 +723,20 @@ Function Test-All-Deployment-Options() {
     Param(
         $context
     )
+        
+    while ([string]::IsNullOrEmpty($script:resourceGroupName) `
+            -or ($script:resourceGroupName -notmatch "^[a-z0-9-_]*$")) {
+        Write-Host
+        $script:resourceGroupName = Read-Host "Please provide a name for the test resource group"
+    }
 
+    $script:repo = "https://github.com/Azure/Industrial-IoT"
+    $script:branchName = "master"
     $script:interactive = $false
     $script:deleteOnErrorPrompt = $false
-
+    # register aad application
+    $script:aadConfig = & (Join-Path $script:ScriptDir "aad-register.ps1") `
+        -Context $context -Name $script:aadApplicationName
     @("local", "services", "app", "all") | ForEach-Object {
         $script:type = $_
         Get-AzLocation | Where-Object { 
@@ -737,15 +747,21 @@ Function Test-All-Deployment-Options() {
             }
             return $true 
         } | ForEach-Object {
-            $script:resourceGroupLocation = $_
-            Remove-AzResourceGroup -ResourceGroupName $script:resourceGroupName -Force | Out-Null
+            $script:resourceGroupLocation = $_.Location
+            $resourceGroup = Get-AzResourceGroup -Name $script:resourceGroupName `
+                -ErrorAction SilentlyContinue  | Out-Null
+            if ($resourceGroup) {
+                Remove-AzResourceGroup -ResourceGroupName $script:resourceGroupName -Force `
+                    -ErrorAction SilentlyContinue | Out-Null
+            }
+            New-AzResourceGroup -Name $script:resourceGroupName -Location $script:resourceGroupLocation
             try {
                 Write-Host("Deploying $($script:type) in $($script:resourceGroupLocation)...")
                 New-Deployment -context $context | Out-Null
             }
             catch {
-Write-Error("$($script:type) in $($script:resourceGroupLocation) failed with $($_.Exception.Message)")
-Write-Error($_)
+Write-Host("$($script:type) in $($script:resourceGroupLocation) failed with $($_.Exception.Message)")
+Write-Host($_)
             }
         }
     }
@@ -777,9 +793,10 @@ Import-Module Az
 $script:context = Select-Context -context $script:context `
     -environment (Get-AzEnvironment -Name $script:environmentName)
 
-$script:deleteOnErrorPrompt = Select-ResourceGroup
 if ($testAllDeploymentOptions.IsPresent) {
     Test-All-Deployment-Options -context $script:context
     return
 }
+
+$script:deleteOnErrorPrompt = Select-ResourceGroup
 New-Deployment -context $script:context
