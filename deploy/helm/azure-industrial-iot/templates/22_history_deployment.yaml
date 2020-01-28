@@ -47,7 +47,7 @@ spec:
 {{ toYaml .Values.deployment.microServices.history.podAnnotations | indent 8 }}
 {{- end }}
     spec:
-      # serviceAccountName: industrial-iot-serviceaccount
+      serviceAccountName: {{ template "azure-industrial-iot.serviceAccountName" . }}
 {{- if .Values.image.pullSecrets }}
       imagePullSecrets:
 {{ toYaml .Values.image.pullSecrets | indent 6 }}

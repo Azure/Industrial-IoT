@@ -131,6 +131,21 @@ azure:
       # azure.auth.clientsApp.authority is authentication authority that should authenticate users and provide Access Tokens.
       authority: https://login.microsoftonline.com/
 
+# Role-based access control.
+# Ref: https://kubernetes.io/docs/admin/authorization/rbac/
+rbac:
+  # Specifies whether RBAC resources should be created
+  create: true
+
+# Service Account for pods of all microservices.
+# ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+serviceAccount:
+  # Specifies whether a ServiceAccount should be created
+  create: true
+  # The name of the ServiceAccount to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
 deployment:
   microServices:
     # deployment.microServices.registry contains values specific to yaml definitions of deployment and service kubernetes resources for opc-registry-service .

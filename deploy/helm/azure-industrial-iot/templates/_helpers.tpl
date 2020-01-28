@@ -24,12 +24,27 @@ If release name contains chart name it will be used as a full name.
 {{- end -}}
 {{- end -}}
 
-{{/* Name of secret that contains details of Azure resources.*/}}
+{{/*
+Create the name of the service account to use.
+*/}}
+{{- define "azure-industrial-iot.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create -}}
+{{ default (include "azure-industrial-iot.fullname" .) .Values.serviceAccount.name }}
+{{- else -}}
+{{ default "default" .Values.serviceAccount.name }}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Create the name of secret that will contain details of Azure resources.
+*/}}
 {{- define "azure-industrial-iot.env.fullname" -}}
 {{- printf "%s-%s" .Release.Name "azure-industrial-iot-env" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{/* Names of Industrial-IoT microservices.*/}}
+{{/*
+Create the names of Industrial-IoT microservices.
+*/}}
 {{- define "azure-industrial-iot.registry.fullname" -}}
 {{- printf "%s-%s" .Release.Name "registry" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
