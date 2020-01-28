@@ -741,31 +741,35 @@ Function Test-All-Deployment-Options() {
     # register aad application
     $script:aadConfig = & (Join-Path $script:ScriptDir "aad-register.ps1") `
         -Context $context -Name $script:aadApplicationName
-    @("local", "services", "app", "all") | ForEach-Object {
-        $script:type = $_
-        Get-AzLocation | Where-Object { 
-            foreach ($provider in $script:requiredProviders) {
-                if ($_.Providers -notcontains $provider) {
-                    return $false
-                }
+    
+    Get-AzLocation | Where-Object { 
+        foreach ($provider in $script:requiredProviders) {
+            if ($_.Providers -notcontains $provider) {
+                return $false
             }
-            return $true 
-        } | ForEach-Object {
-            $script:resourceGroupLocation = $_.Location
-            $resourceGroup = Get-AzResourceGroup -Name $script:resourceGroupName `
-                -ErrorAction SilentlyContinue | Out-Null
-            if ($resourceGroup) {
-                Remove-AzResourceGroup -ResourceGroupName $script:resourceGroupName -Force `
-                    -ErrorAction SilentlyContinue | Out-Null
-            }
-            New-AzResourceGroup -Name $script:resourceGroupName -Location $script:resourceGroupLocation
+        }
+        return $true 
+    } | ForEach-Object {
+        $script:resourceGroupLocation = $_.Location
+
+        @("local", "services", "app", "all") | ForEach-Object {
+            $script:type = $
+
+            Write-Host("Deploying $($script:type) in $($script:resourceGroupLocation)...")
+            Remove-AzResourceGroup -ResourceGroupName $script:resourceGroupName -Force `
+                -ErrorAction SilentlyContinue  | Out-Null
+            New-AzResourceGroup -Name $script:resourceGroupName -Location $script:resourceGroupLocation `
+                -ErrorAction SilentlyContinue  | Out-Null
             try {
-                Write-Host("Deploying $($script:type) in $($script:resourceGroupLocation)...")
                 New-Deployment -context $context | Out-Null
             }
             catch {
-                Write-Host("$($script:type) in $($script:resourceGroupLocation) failed with $($_.Exception.Message)")
-                Write-Host($_)
+Write-Host
+Write-Host
+Write-Host("$($script:type) in $($script:resourceGroupLocation) failed with $($_.Exception.Message)")
+Write-Host($_)
+Write-Host
+Write-Host
             }
         }
     }
