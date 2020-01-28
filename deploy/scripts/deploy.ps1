@@ -751,25 +751,32 @@ Function Test-All-Deployment-Options() {
         return $true 
     } | ForEach-Object {
         $script:resourceGroupLocation = $_.Location
+        foreach ($deployType in @("local", "services", "app", "all")) {
+            $script:type = $deployType
+            $testGroup = $"($script:resourceGroupName)_$($script:resourceGroupLocation)_$($script:type)"
+            $existing = Get-AzResourceGroup -ResourceGroupName $testGroup `
+                -ErrorAction SilentlyContinue | Out-Null
+            if (!$existing) {
+                try {
+                    Write-Host("Deploying to $($testGroup)...")
+                    New-AzResourceGroup -Name $testGroup -Location $script:resourceGroupLocation | Out-Null
+                    New-Deployment -context $context | Out-Null
 
-        @("local", "services", "app", "all") | ForEach-Object {
-            $script:type = $
+                    Remove-AzResourceGroup -ResourceGroupName $testGroup -Force `
+                        -ErrorAction SilentlyContinue | Out-Null
+                    New-AzResourceGroup -Name $testGroup -Location $script:resourceGroupLocation`
+                        -ErrorAction SilentlyContinue | Out-Null
+                }
+                catch {
+                    Write-Host
+                    Write-Host
+                    Write-Host("$($script:type) in $($script:resourceGroupLocation) failed with $($_.Exception.Message)")
+                    Write-Host($_)
+                    Write-Host
+                    Write-Host
 
-            Write-Host("Deploying $($script:type) in $($script:resourceGroupLocation)...")
-            Remove-AzResourceGroup -ResourceGroupName $script:resourceGroupName -Force `
-                -ErrorAction SilentlyContinue  | Out-Null
-            New-AzResourceGroup -Name $script:resourceGroupName -Location $script:resourceGroupLocation `
-                -ErrorAction SilentlyContinue  | Out-Null
-            try {
-                New-Deployment -context $context | Out-Null
-            }
-            catch {
-Write-Host
-Write-Host
-Write-Host("$($script:type) in $($script:resourceGroupLocation) failed with $($_.Exception.Message)")
-Write-Host($_)
-Write-Host
-Write-Host
+                    break
+                }
             }
         }
     }
