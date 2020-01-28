@@ -26,13 +26,13 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
         bool UseV2 { get; }
 
         /// <summary>
-        /// The AAD application id for the openapi UI client.
+        /// The AAD application id for the client.
         /// </summary>
-        string OpenApiAppId { get; }
+        string AppId { get; }
 
         /// <summary>
         /// AAD Client / Application secret (optional)
         /// </summary>
-        string OpenApiAppSecret { get; }
+        string AppSecret { get; }
     }
 }
