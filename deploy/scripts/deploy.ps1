@@ -223,18 +223,31 @@ Function Select-RegistryCredentials() {
     }
 }
 
+
 #*******************************************************************************************************
-# Select location
+# Get locations
 #*******************************************************************************************************
-Function Select-ResourceGroupLocation() {
-    $locations = Get-AzLocation | Where-Object { 
+Function Get-ResourceGroupLocations() {
+    return Get-AzLocation | Where-Object { 
         foreach ($provider in $script:requiredProviders) {
             if ($_.Providers -notcontains $provider) {
                 return $false
             }
         }
         return $true 
+    } | Where-Object {
+        return $_.Location -notin @(
+            "centralus", "westus2", "eastus2", "southcentralus", "canadaeast",
+            "brazilsouth", "koreacentral", "japaneast",
+            "uksouth", "francecentral")
     }
+}
+
+#*******************************************************************************************************
+# Select location
+#*******************************************************************************************************
+Function Select-ResourceGroupLocation() {
+    $locations = Get-ResourceGroupLocations
 
     if (![string]::IsNullOrEmpty($script:resourceGroupLocation)) {
         foreach ($location in $locations) {
@@ -247,7 +260,6 @@ Function Select-ResourceGroupLocation() {
             throw "Location '$script:resourceGroupLocation' is not a valid location."
         }
     }
-
     Write-Host "Please choose a location for your deployment:"
     1..$locations.Count | ForEach-Object { Write-Host "[$($_)] $($locations[$_-1].DisplayName)" }
     while ($true) {
@@ -731,8 +743,9 @@ Function Test-All-Deployment-Options() {
     while ([string]::IsNullOrEmpty($script:resourceGroupName) `
             -or ($script:resourceGroupName -notmatch "^[a-z0-9-_]*$")) {
         Write-Host
-        $script:resourceGroupName = Read-Host "Please provide a name for the test resource group"
+        $script:resourceGroupName = Read-Host "Please provide test resource group prefix"
     }
+    $testGroup = $script:resourceGroupName
 
     $script:repo = "https://github.com/Azure/Industrial-IoT"
     $script:branchName = "master"
@@ -741,37 +754,31 @@ Function Test-All-Deployment-Options() {
     # register aad application
     $script:aadConfig = & (Join-Path $script:ScriptDir "aad-register.ps1") `
         -Context $context -Name $script:aadApplicationName
-    
-    Get-AzLocation | Where-Object { 
-        foreach ($provider in $script:requiredProviders) {
-            if ($_.Providers -notcontains $provider) {
-                return $false
-            }
-        }
-        return $true 
-    } | ForEach-Object {
+
+    Get-ResourceGroupLocations | ForEach-Object {
         $script:resourceGroupLocation = $_.Location
-        foreach ($deployType in @("local", "services", "app", "all")) {
+        foreach ($deployType in @("all", "app", "services", "local")) {
             $script:type = $deployType
-            $testGroup = $"($script:resourceGroupName)_$($script:resourceGroupLocation)_$($script:type)"
-            $existing = Get-AzResourceGroup -ResourceGroupName $testGroup `
-                -ErrorAction SilentlyContinue | Out-Null
+            $script:resourceGroupName = "$($testGroup)_$($script:resourceGroupLocation)_$($script:type)"
+            $existing = Get-AzResourceGroup -ResourceGroupName $script:resourceGroupName `
+                -ErrorAction SilentlyContinue
             if (!$existing) {
                 try {
-                    Write-Host("Deploying to $($testGroup)...")
-                    New-AzResourceGroup -Name $testGroup -Location $script:resourceGroupLocation | Out-Null
+                    Write-Host("Deploying to $($script:resourceGroupName)...")
+                    New-AzResourceGroup -Name $script:resourceGroupName -Location $script:resourceGroupLocation | Out-Null
+                    $script:applicationName = $script:resourceGroupName.Replace("_", "")
                     New-Deployment -context $context | Out-Null
 
-                    Remove-AzResourceGroup -ResourceGroupName $testGroup -Force `
+                    Remove-AzResourceGroup -ResourceGroupName $script:resourceGroupName -Force `
                         -ErrorAction SilentlyContinue | Out-Null
-                    New-AzResourceGroup -Name $testGroup -Location $script:resourceGroupLocation`
+                    New-AzResourceGroup -Name $script:resourceGroupName -Location $script:resourceGroupLocation `
                         -ErrorAction SilentlyContinue | Out-Null
                 }
                 catch {
                     Write-Host
                     Write-Host
-                    Write-Host("$($script:type) in $($script:resourceGroupLocation) failed with $($_.Exception.Message)")
-                    Write-Host($_)
+                    Write-Warning("$($script:type) in $($script:resourceGroupLocation) failed with $($_.Exception.Message)")
+                    Write-Warning($_)
                     Write-Host
                     Write-Host
 
@@ -798,6 +805,7 @@ $script:requiredProviders = @(
     "microsoft.storage",
     "microsoft.keyvault",
     "microsoft.managedidentity",
+    "microsoft.timeSeriesInsights",
     "microsoft.web",
     "microsoft.compute",
     "microsoft.containerregistry"
