@@ -223,24 +223,52 @@ Function Select-RegistryCredentials() {
     }
 }
 
+#*******************************************************************************************************
+# Filter locations for provider and resource type
+#*******************************************************************************************************
+Function Select-ResourceGroupLocations() {
+    param (
+        $locations,
+        $provider,
+        $typeName
+    )
+    $regions = @()
+    foreach ($item in $(Get-AzResourceProvider -ProviderNamespace $provider)) {
+        foreach ($resourceType in $item.ResourceTypes) { 
+            if ($resourceType.ResourceTypeName -eq $typeName) {
+                foreach ($region in $resourceType.Locations) { 
+                    $regions += $region
+                }
+            }
+        }
+    }
+    if ($regions.Count -gt 0) {
+        $locations = $locations | Where-Object {
+            return $_.DisplayName -in $regions
+        }
+    }
+    return $locations
+}
 
 #*******************************************************************************************************
 # Get locations
 #*******************************************************************************************************
 Function Get-ResourceGroupLocations() {
-    return Get-AzLocation | Where-Object { 
+    # Filter resource namespaces
+    $locations = Get-AzLocation | Where-Object { 
         foreach ($provider in $script:requiredProviders) {
             if ($_.Providers -notcontains $provider) {
                 return $false
             }
         }
         return $true 
-    } | Where-Object {
-        return $_.Location -notin @(
-            "centralus", "westus2", "eastus2", "southcentralus", "canadaeast",
-            "brazilsouth", "koreacentral", "japaneast",
-            "uksouth", "francecentral")
     }
+  
+    # Filter resource types - TODO read parameters from table
+    $locations = Select-ResourceGroupLocations -locations $locations `
+        -provider "Microsoft.Devices" -typeName "ProvisioningServices"
+
+    return $locations
 }
 
 #*******************************************************************************************************
@@ -805,7 +833,7 @@ $script:requiredProviders = @(
     "microsoft.storage",
     "microsoft.keyvault",
     "microsoft.managedidentity",
-    "microsoft.timeSeriesInsights",
+    "microsoft.timeseriesinsights",
     "microsoft.web",
     "microsoft.compute",
     "microsoft.containerregistry"
