@@ -232,28 +232,28 @@ values.
 
 ### Azure Resources
 
-| Parameter                                                                                   | Description | Default                              |
-|---------------------------------------------------------------------------------------------|-------------|--------------------------------------|
-| `azure.tenantId`                                                                            |             | `null`                               |
-| `azure.iotHub.name`                                                                         |             | `null`                               |
-| `azure.iotHub.eventHub.endpoint`                                                            |             | `null`                               |
-| `azure.iotHub.eventHub.partitionCount`                                                      |             | `null`                               |
-| `azure.iotHub.eventHub.consumerGroup`                                                       |             | `null`                               |
-| `azure.iotHub.sharedAccessPolicies.iothubowner.connectionString`                            |             | `null`                               |
-| `azure.cosmosDB.connectionString`                                                           |             | `null`                               |
-| `azure.storageAccount.name`                                                                 |             | `null`                               |
-| `azure.storageAccount.accessKey`                                                            |             | `null`                               |
-| `azure.storageAccount.endpointSuffix`                                                       |             | `core.windows.net`                   |
-| `azure.eventHubNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString`   |             | `null`                               |
-| `azure.serviceBusNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString` |             | `null`                               |
-| `azure.keyVault.uri`                                                                        |             | `null`                               |
-| `azure.applicationInsights.name`                                                            |             | `null`                               |
-| `azure.applicationInsights.instrumentationKey`                                              |             | `null`                               |
-| `azure.auth.required`                                                                       |             | `true`                               |
-| `azure.auth.corsWhitelist`                                                                  |             | `*`                                  |
-| `azure.auth.servicesApp.audience`                                                           |             | `null`                               |
-| `azure.auth.clientsApp.appId`                                                               |             | `null`                               |
-| `azure.auth.clientsApp.authority`                                                           |             | `https://login.microsoftonline.com/` |
+| Parameter                                                                                   | Description                                                                   | Default                              |
+|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|--------------------------------------|
+| `azure.tenantId`                                                                            | Azure tenant id (GUID)                                                        | `null`                               |
+| `azure.iotHub.name`                                                                         | Name of IoT Hub                                                               | `null`                               |
+| `azure.iotHub.eventHub.endpoint`                                                            | Event Hub-compatible endpoint of built-in EventHub of IoT Hub                 | `null`                               |
+| `azure.iotHub.eventHub.partitionCount`                                                      | Number of partitions of built-in EventHub of IoT Hub                          | `null`                               |
+| `azure.iotHub.eventHub.consumerGroup`                                                       | Consumer group for built-in EventHub of IoT Hub                               | `null`                               |
+| `azure.iotHub.sharedAccessPolicies.iothubowner.connectionString`                            | Connection string of `iothubowner` policy of IoT Hub                          | `null`                               |
+| `azure.cosmosDB.connectionString`                                                           | Cosmos DB connection string with read-write permissions                       | `null`                               |
+| `azure.storageAccount.name`                                                                 | Name of Storage Account                                                       | `null`                               |
+| `azure.storageAccount.accessKey`                                                            | Access key for storage account, **not** connection string                     | `null`                               |
+| `azure.storageAccount.endpointSuffix`                                                       | Blob endpoint suffix of Azure Environment                                     | `core.windows.net`                   |
+| `azure.eventHubNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString`   | Connection string of `RootManageSharedAccessKey` key of Event Hub namespace   | `null`                               |
+| `azure.serviceBusNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString` | Connection string of `RootManageSharedAccessKey` key of Service Bus namespace | `null`                               |
+| `azure.keyVault.uri`                                                                        | Key Vault URI, also referred as DNS Name                                      | `null`                               |
+| `azure.applicationInsights.name`                                                            | Name of Application Insights instance                                         | `null`                               |
+| `azure.applicationInsights.instrumentationKey`                                              | Instrumentation key of Application Insights instance                          | `null`                               |
+| `azure.auth.required`                                                                       | If true, authentication will be required for all exposed web APIs             | `true`                               |
+| `azure.auth.corsWhitelist`                                                                  | Cross-origin resource sharing whitelist for all web APIs                      | `*`                                  |
+| `azure.auth.servicesApp.audience`                                                           | Application ID URI for **ServicesApp**                                        | `null`                               |
+| `azure.auth.clientsApp.appId`                                                               | Application (client) ID for **ClientsApp**, also referred to as `AppId`       | `null`                               |
+| `azure.auth.clientsApp.authority`                                                           | Authority that should authenticate users and provide Access Tokens            | `https://login.microsoftonline.com/` |
 
 ### RBAC
 

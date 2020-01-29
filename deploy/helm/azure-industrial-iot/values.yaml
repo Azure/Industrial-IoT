@@ -22,7 +22,7 @@ image:
 
 # Details of Azure resources that components of Azure Industrial IoT solution will connect to.
 azure:
-  # azure.tenantId is Guid id of the tenant that contains Azure resources.
+  # azure.tenantId is Guid TenantId of the tenant that contains Azure resources.
   tenantId: null
 
   # Details of Azure IoT Hub that microservices will communicate with.
@@ -34,7 +34,7 @@ azure:
     eventHub:
       # azure.iotHub.eventHub.endpoint is Event Hub-compatible endpoint of built-in EventHub of IoT Hub.
       endpoint: null
-      # azure.iotHub.eventHub.partitionCount is number of artitoins of built-in EventHub.
+      # azure.iotHub.eventHub.partitionCount is number of partitions of built-in EventHub.
       partitionCount: null
       # azure.iotHub.eventHub.consumerGroup is name of consumer group of built-in EventHub for onboarding events. Its value is usually 'onboarding'.
       consumerGroup: null
