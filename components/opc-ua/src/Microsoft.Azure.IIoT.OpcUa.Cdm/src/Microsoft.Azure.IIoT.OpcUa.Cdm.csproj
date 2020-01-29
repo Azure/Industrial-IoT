@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Azure Industrial IoT Core Azure Cdm Implementations</Description>
     <VersionSuffix>$(PrereleaseSuffix)</VersionSuffix>
@@ -9,8 +9,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.CommonDataModel.ObjectModel.Adapter.Adls" Version="0.9.0-preview21" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Core\src\Microsoft.Azure.IIoT.Core.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>
 </Project>

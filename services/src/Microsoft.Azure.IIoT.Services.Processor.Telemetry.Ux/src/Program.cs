@@ -119,7 +119,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux {
                 .AsImplementedInterfaces().SingleInstance();
 
             // Handle opc-ua pub/sub subscriber messages
-            builder.RegisterType<MonitoredItemSampleHandler>()
+            builder.RegisterType<MonitoredItemSampleModelHandler>()
                 .AsImplementedInterfaces().SingleInstance();
             // ... forward samples to clients
             builder.RegisterType<MonitoredItemMessagePublisher>()

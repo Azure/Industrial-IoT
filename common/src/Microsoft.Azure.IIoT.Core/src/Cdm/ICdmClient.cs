@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.Cdm {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Cdm.Models;
 
     /// <summary>
     /// Handler for the CDM storage
@@ -27,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Cdm {
         /// <param name="properties"></param>
         /// <param name="partitionKey"></param>
         /// <returns></returns>
-        Task ProcessAsync(SubscriberCdmSampleModel payload,
+        Task ProcessAsync<T>(T payload,
             IDictionary<string, string> properties = null, string partitionKey = null);
 
         /// <summary>
