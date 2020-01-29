@@ -113,7 +113,7 @@ The following details of the Azure Event Hub namespace would be required:
   This can be obtained with the following command:
 
   ```bash
-  az eventhubs namespace authorization-rule keys list --resource-group MyResourceGroup --namespace-name mynamespace  --name RootManageSharedAccessKey --query "primaryConnectionString"
+  az eventhubs namespace authorization-rule keys list --resource-group MyResourceGroup --namespace-name mynamespace --name RootManageSharedAccessKey --query "primaryConnectionString"
   ```
 
   Both `primaryConnectionString` and `secondaryConnectionString` would work. `RootManageSharedAccessKey` is
@@ -153,9 +153,68 @@ The following details of the Azure Key Vault would be required:
 
 #### Azure AAD App Registration
 
+Details of AAD App Registration are required if you want to enable authentication for components of
+Azure Industrial IoT solution. In that case, web APIs of components will require an Access Token for
+each API call. If using Swagger, you would have to click on `Authorize` button to authenticate, before you
+can try out API calls. The authentication will happen against your Azure Active Directory (AAD). For this
+we require two apps to be registered in your AAD:
+
+* One for components of Azure Industrial IoT, we refer to this as **ServicesApp**
+* One for web clients accessing web interfaces of Azure Industrial IoT components, we refer to this as
+  **ClientsApp**.
+
+Here are the steps to [create AAD App Registrations](https://github.com/Azure/Industrial-IoT/blob/master/docs/deploy/howto-register-applications.md).
+
+> **NOTE:** For any production deployment of Azure Industrial IoT solution it is required that those AAD
+App Registrations are created and details are provided to the chart. And we strongly recommend having those
+for non-production deployments as well, particularly if you have enables Ingress. If you choose to not have
+them, then you would have to disable authentication by setting `azure.auth.required=false`.
+
+The following details of AAD App Registrations will be required:
+
+* Application ID URI for **ServicesApp**. This can be obtained with the following command:
+
+  ```bash
+  az ad app show --id 00000000-0000-0000-0000-000000000000 --query "identifierUris[0]"
+  ```
+
+  Here you should use object ID of **ServicesApp** AAD App Registrations instead of
+  `00000000-0000-0000-0000-000000000000`.
+
+* Application (client) ID for **ClientsApp**. This is also referred to as AppId.
+  This can be obtained with the following command:
+
+  ```bash
+  az ad app show --id 00000000-0000-0000-0000-000000000000 --query "appId"
+  ```
+
+  Here you should use object ID of **ClientsApp** AAD App Registrations instead of
+  `00000000-0000-0000-0000-000000000000`.
+
 ### Optional Azure Resources
 
 #### Azure Application Insights
+
+You can enable delivery of telemetry and logs from components of Azure Industrial IoT to an Azure
+Application Insights instance if you have one. Here are the steps to
+[create an Application Insights resource](https://docs.microsoft.com/azure/azure-monitor/app/create-new-resource).
+
+To run the command below you will require `application-insights` extension for Azure CLI. To install it
+run the following command:
+
+```bash
+az extension add --name application-insights
+```
+
+The following details of the Azure Application Insights would be required:
+
+* Name of your Azure Application Insights instance.
+* Instrumentation key for your Azure Application Insights instance.
+  This can be obtained with the following command:
+
+  ```bash
+  az monitor app-insights component show --resource-group MyResourceGroup --app MyAppInsights --query "instrumentationKey"
+  ```
 
 ## Configuration
 
