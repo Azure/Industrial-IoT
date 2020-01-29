@@ -11,4 +11,7 @@
     <EmbeddedResource Remove="Hosting\**" />
     <None Remove="Hosting\**" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
 </Project>
