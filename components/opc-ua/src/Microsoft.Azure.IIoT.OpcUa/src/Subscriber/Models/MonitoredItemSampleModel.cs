@@ -23,6 +23,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         public JToken Value { get; set; }
 
         /// <summary>
+        /// Value's Status code string representation 
+        /// </summary>
+        public string Status { get; set; }
+        
+        /// <summary>
         /// Type id
         /// </summary>
         public string TypeId { get; set; }

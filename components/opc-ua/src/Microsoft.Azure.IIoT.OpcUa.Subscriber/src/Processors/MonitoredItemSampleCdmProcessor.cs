@@ -3,10 +3,10 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
-    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
+namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Processors {
     using Microsoft.Azure.IIoT.Cdm;
-    using Microsoft.Azure.IIoT.Cdm.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber;
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using System;
     using System.Threading.Tasks;
 
@@ -30,18 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
 
         /// <inheritdoc/>
         public Task HandleSampleAsync(MonitoredItemSampleModel sample) {
-            var cdmModel = new SubscriberCdmSampleModel() {
-                SubscriptionId = sample.SubscriptionId,
-                EndpointId = sample.EndpointId,
-                DataSetId = sample.DataSetId,
-                NodeId = sample.NodeId,
-                Value = sample.Value.ToString(),
-                // Set timestamp as source timestamp - todo make configurable
-                Timestamp = sample.SourceTimestamp,
-                ServerTimestamp = sample.ServerTimestamp,
-                SourceTimestamp = sample.SourceTimestamp
-            };
-            return _client.ProcessAsync(cdmModel);
+            return _client.ProcessAsync(sample);
         }
 
         /// <inheritdoc/>

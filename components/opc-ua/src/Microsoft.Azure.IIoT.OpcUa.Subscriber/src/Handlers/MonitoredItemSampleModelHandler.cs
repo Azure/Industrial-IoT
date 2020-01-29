@@ -1,34 +1,34 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Core;
     using Microsoft.Azure.IIoT.Hub;
+    using Newtonsoft.Json.Linq;
     using Serilog;
     using System;
     using System.Text;
     using System.Threading.Tasks;
     using System.Collections.Generic;
     using System.Linq;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Publisher message handling
     /// </summary>
-    public sealed class MonitoredItemSampleHandler : IDeviceTelemetryHandler {
+    public sealed class MonitoredItemSampleModelHandler : IDeviceTelemetryHandler {
 
         /// <inheritdoc/>
-        public string MessageSchema => Core.MessageSchemaTypes.MonitoredItemMessageJson;
+        public string MessageSchema => Core.MessageSchemaTypes.MonitoredItemMessageModelJson;
 
         /// <summary>
         /// Create handler
         /// </summary>
         /// <param name="handlers"></param>
         /// <param name="logger"></param>
-        public MonitoredItemSampleHandler(IEnumerable<IMonitoredItemSampleProcessor> handlers, ILogger logger) {
+        public MonitoredItemSampleModelHandler(IEnumerable<IMonitoredItemSampleProcessor> handlers, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _handlers = handlers?.ToList() ?? throw new ArgumentNullException(nameof(handlers));
         }
