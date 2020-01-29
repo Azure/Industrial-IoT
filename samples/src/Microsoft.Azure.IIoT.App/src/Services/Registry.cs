@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.App.Data;
+    using Microsoft.Azure.IIoT.App.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
     using System;
@@ -27,10 +28,10 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// </summary>
         /// <param name="discovererId"></param>
         /// <returns>EndpointInfoApiModel</returns>
-        public async Task<PagedResult<EndpointInfoApiModel>> GetEndpointListAsync(
+        public async Task<PagedResult<EndpointInfo>> GetEndpointListAsync(
             string discovererId, string applicationId) {
 
-            var pageResult = new PagedResult<EndpointInfoApiModel>();
+            var pageResult = new PagedResult<EndpointInfo>();
 
             try {
                 var model = new EndpointRegistrationQueryApiModel();
@@ -39,7 +40,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
                 var endpoints = await _registryService.QueryAllEndpointsAsync(model);
                 foreach (var endpoint in endpoints) {
-                    pageResult.Results.Add(endpoint);
+                    pageResult.Results.Add(new EndpointInfo {
+                        EndpointModel = endpoint
+                    });
                 }
             }
             catch (Exception e) {
@@ -152,7 +155,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             else {
                 discoveryMode = DiscoveryMode.Off;
             }
-            
+
             try {
                 await _registryService.SetDiscoveryModeAsync(discoverer.DiscovererModel.Id, discoveryMode, model);
             }

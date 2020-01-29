@@ -253,6 +253,9 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                                 case "query":
                                     await QueryEndpointsAsync(options);
                                     break;
+                                case "validate":
+                                    await GetEndpointCertificateAsync(options);
+                                    break;
                                 case "activate":
                                     await ActivateEndpointsAsync(options);
                                     break;
@@ -550,6 +553,9 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                                     break;
                                 case "update":
                                     await UpdateGatewayAsync(options);
+                                    break;
+                                case "monitor":
+                                    await MonitorGatewaysAsync();
                                     break;
                                 case "list":
                                     await ListGatewaysAsync(options);
@@ -1132,6 +1138,21 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 new GatewayUpdateApiModel {
                     SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
                 });
+        }
+
+        /// <summary>
+        /// Monitor gateways
+        /// </summary>
+        private async Task MonitorGatewaysAsync() {
+            var events = _scope.Resolve<IRegistryServiceEvents>();
+            Console.WriteLine("Press any key to stop.");
+            var complete = await events.SubscribeGatewayEventsAsync(null, PrintEvent);
+            try {
+                Console.ReadKey();
+            }
+            finally {
+                await complete.DisposeAsync();
+            }
         }
 
         private string _groupId;
@@ -2245,6 +2266,14 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         }
 
         /// <summary>
+        /// Get endpoint certificate
+        /// </summary>
+        private async Task GetEndpointCertificateAsync(CliOptions options) {
+            var result = await _registry.GetEndpointCertificateAsync(GetEndpointId(options));
+            PrintResult(options, result);
+        }
+
+        /// <summary>
         /// Monitor endpoints
         /// </summary>
         private async Task MonitorEndpointsAsync() {
@@ -2623,6 +2652,14 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Print event
         /// </summary>
+        private static Task PrintEvent(GatewayEventApiModel ev) {
+            Console.WriteLine(JsonConvertEx.SerializeObjectPretty(ev));
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Print event
+        /// </summary>
         private static Task PrintEvent(DiscovererEventApiModel ev) {
             Console.WriteLine(JsonConvertEx.SerializeObjectPretty(ev));
             return Task.CompletedTask;
@@ -2955,16 +2992,21 @@ Commands and Options
         -A, --all       Return all endpoints (unpaged)
         -F, --format    Json format for result
 
-     activate    Activate endpoints
-        with ...
-        -i, --id        Id of endpoint or ...
-        -m, --mode      Security mode (default:SignAndEncrypt)
-
      get         Get endpoint
         with ...
         -i, --id        Id of endpoint to retrieve (mandatory)
         -S, --server    Return only server state (default:false)
         -F, --format    Json format for result
+
+     validate    Get endpoint certificate chain and validate
+        with ...
+        -i, --id        Id of endpoint to retrieve (mandatory)
+        -F, --format    Json format for result
+
+     activate    Activate endpoints
+        with ...
+        -i, --id        Id of endpoint or ...
+        -m, --mode      Security mode (default:SignAndEncrypt)
 
      deactivate  Deactivate endpoints
         with ...
@@ -3080,6 +3122,8 @@ Commands and Options
         -i, --id        Gateway id to select.
         -c, --clear     Clear current selection
         -s, --show      Show current selection
+
+     monitor     Monitor changes to gateways.
 
      update      Update gateway
         with ...

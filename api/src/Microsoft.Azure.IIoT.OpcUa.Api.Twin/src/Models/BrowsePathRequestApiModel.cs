@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
 
         /// <summary>
         /// Node to browse from.
-        /// (default: RootFolder).
+        /// (defaults to root folder).
         /// </summary>
         [JsonProperty(PropertyName = "nodeId",
             NullValueHandling = NullValueHandling.Ignore)]

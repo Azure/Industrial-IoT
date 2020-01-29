@@ -106,8 +106,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             var r = fix.Build<PublisherRegistration>()
                 .FromFactory(() => new PublisherRegistration(
                     fix.Create<string>(), fix.Create<string>()))
-                .With(x => x.Certificate, cert.EncodeAsDictionary())
-                .With(x => x.Thumbprint, cert.ToSha1Hash())
                 .Without(x => x.IsDisabled)
                 .Without(x => x.NotSeenSince)
                 .Create();

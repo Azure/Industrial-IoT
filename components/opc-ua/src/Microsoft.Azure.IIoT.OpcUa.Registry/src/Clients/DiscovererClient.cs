@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
     using System.Threading;
 
     /// <summary>
-    /// Implements discovery through twin supervisor
+    /// Implements discovery through discovery module
     /// </summary>
     public sealed class DiscovererClient : IDiscovererClient {
 

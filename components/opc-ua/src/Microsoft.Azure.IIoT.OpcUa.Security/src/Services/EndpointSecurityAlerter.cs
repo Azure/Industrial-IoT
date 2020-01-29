@@ -65,40 +65,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
 
         /// <inheritdoc/>
         public Task OnEndpointUpdatedAsync(RegistryOperationContextModel context,
-            EndpointInfoModel endpoint) {
-            using (_metrics.TrackDuration(nameof(OnEndpointUpdatedAsync))) {
-                return CheckEndpointInfoAsync(endpoint);
-            }
+            EndpointInfoModel endpoint, bool isPatch) {
+            return isPatch ? Task.CompletedTask : CheckEndpointInfoAsync(endpoint);
         }
 
         /// <inheritdoc/>
         public Task OnEndpointDeletedAsync(RegistryOperationContextModel context,
-            EndpointInfoModel endpoint) {
+            string endpointId, EndpointInfoModel endpoint) {
             return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
         public Task OnEndpointNewAsync(RegistryOperationContextModel context,
             EndpointInfoModel endpoint) {
-            using (_metrics.TrackDuration(nameof(OnEndpointNewAsync))) {
-                return CheckEndpointInfoAsync(endpoint);
-            }
+            return CheckEndpointInfoAsync(endpoint);
         }
 
         /// <inheritdoc/>
         public Task OnApplicationNewAsync(RegistryOperationContextModel context,
             ApplicationInfoModel application) {
-            using (_metrics.TrackDuration(nameof(OnApplicationNewAsync))) {
-                return CheckApplicationInfoAsync(application);
-            }
+            return CheckApplicationInfoAsync(application);
         }
 
         /// <inheritdoc/>
         public Task OnApplicationUpdatedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application) {
-            using (_metrics.TrackDuration(nameof(OnApplicationUpdatedAsync))) {
-                return CheckApplicationInfoAsync(application);
-            }
+            ApplicationInfoModel application, bool isPatch) {
+            return isPatch ? Task.CompletedTask : CheckApplicationInfoAsync(application);
         }
 
         /// <inheritdoc/>
@@ -115,7 +107,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
 
         /// <inheritdoc/>
         public Task OnApplicationDeletedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application) {
+            string applicationId, ApplicationInfoModel application) {
             return Task.CompletedTask;
         }
 
@@ -125,44 +117,49 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
         /// <param name="endpoint"></param>
         /// <returns></returns>
         private async Task CheckEndpointInfoAsync(EndpointInfoModel endpoint) {
-            var mode = endpoint.Registration.Endpoint.SecurityMode ?? SecurityMode.None;
-            var policy = endpoint.Registration.Endpoint.SecurityPolicy ?? "None";
+            using (_metrics.TrackDuration(nameof(CheckEndpointInfoAsync))) {
+                var mode = endpoint.Registration.Endpoint.SecurityMode ?? SecurityMode.None;
+                var policy = endpoint.Registration.Endpoint.SecurityPolicy ?? "None";
 
-            var unsecure = mode.Equals(SecurityMode.None) || policy.Contains("None");
-            if (unsecure) {
-                await SendEndpointAlertAsync(endpoint, "Unsecured endpoint found.",
-                    $"SecurityMode: {mode}, SecurityProfile: {policy}");
-                _metrics.TrackEvent("endpointSecurityPolicyNone");
-            }
+                var unsecure = mode.Equals(SecurityMode.None) || policy.Contains("None");
+                if (unsecure) {
+                    await SendEndpointAlertAsync(endpoint, "Unsecured endpoint found.",
+                        $"SecurityMode: {mode}, SecurityProfile: {policy}");
+                    _metrics.TrackEvent("endpointSecurityPolicyNone");
+                }
 
-            // Test endpoint certificate
-            var certEncoded = endpoint.Registration.Endpoint.Certificate;
-            if (certEncoded == null && !unsecure) {
-                await SendEndpointAlertAsync(endpoint,
-                    "Secure endpoint without certificate found.", "No Certificate");
-                _metrics.TrackEvent("endpointWithoutCertificate");
-            }
-            else {
-                using (var cert = new X509Certificate2(certEncoded)) {
-                    if (cert.SubjectName.RawData.SequenceEqual(cert.IssuerName.RawData)) {
-                        await SendEndpointAlertAsync(endpoint,
-                            "Endpoint with self-signed certificate found.",
-                            $"Certificate is self signed by {cert.SubjectName.Name}");
-                    }
-                    else if (cert.NotAfter < DateTime.UtcNow) {
-                        await SendEndpointAlertAsync(endpoint,
-                            "Endpoint has expired certificate.",
-                            $"Certificate expired {cert.NotAfter}");
-                    }
-                    else if (cert.NotBefore > DateTime.UtcNow) {
-                        await SendEndpointAlertAsync(endpoint,
-                            "Endpoint has certificate that is not yet valid.",
-                            $"Certificate is valid from {cert.NotBefore}");
-                    }
-                    else {
-                        _logger.Verbose("Application certificate is valid.");
+                // TODO Retrieve certificate from edge.
+#if FALSE
+                // Test endpoint certificate
+                var certEncoded = endpoint.Registration.Endpoint.Certificate;
+                if (certEncoded == null && !unsecure) {
+                    await SendEndpointAlertAsync(endpoint,
+                        "Secure endpoint without certificate found.", "No Certificate");
+                    _metrics.TrackEvent("endpointWithoutCertificate");
+                }
+                else {
+                    using (var cert = new X509Certificate2(certEncoded)) {
+                        if (cert.SubjectName.RawData.SequenceEqual(cert.IssuerName.RawData)) {
+                            await SendEndpointAlertAsync(endpoint,
+                                "Endpoint with self-signed certificate found.",
+                                $"Certificate is self signed by {cert.SubjectName.Name}");
+                        }
+                        else if (cert.NotAfter < DateTime.UtcNow) {
+                            await SendEndpointAlertAsync(endpoint,
+                                "Endpoint has expired certificate.",
+                                $"Certificate expired {cert.NotAfter}");
+                        }
+                        else if (cert.NotBefore > DateTime.UtcNow) {
+                            await SendEndpointAlertAsync(endpoint,
+                                "Endpoint has certificate that is not yet valid.",
+                                $"Certificate is valid from {cert.NotBefore}");
+                        }
+                        else {
+                            _logger.Verbose("Application certificate is valid.");
+                        }
                     }
                 }
+#endif
             }
         }
 
@@ -172,33 +169,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
         /// <param name="application"></param>
         /// <returns></returns>
         private async Task CheckApplicationInfoAsync(ApplicationInfoModel application) {
-            // Test application certificate
-            var certEncoded = application.Certificate;
-            if (certEncoded == null) {
-                await SendApplicationAlertAsync(application,
-                    "Application without certificate found.", "No Certificate");
-            }
-            else {
-                using (var cert = new X509Certificate2(certEncoded)) {
-                    if (cert.SubjectName.RawData.SequenceEqual(cert.IssuerName.RawData)) {
-                        await SendApplicationAlertAsync(application,
-                            "Application with self-signed certificate found.",
-                            $"Certificate is self signed by {cert.SubjectName.Name}");
-                    }
-                    else if (cert.NotAfter < DateTime.UtcNow) {
-                        await SendApplicationAlertAsync(application,
-                            "Application has expired certificate.",
-                            $"Certificate expired {cert.NotAfter}");
-                    }
-                    else if (cert.NotBefore > DateTime.UtcNow) {
-                        await SendApplicationAlertAsync(application,
-                            "Application has certificate that is not yet valid.",
-                            $"Certificate is valid from {cert.NotBefore}");
-                    }
-                    else {
-                        _logger.Verbose("Application certificate is valid.");
+            using (_metrics.TrackDuration(nameof(CheckApplicationInfoAsync))) {
+                // TODO Retrieve certificate from edge.
+#if FALSE
+                // Test application certificate
+                var certEncoded = application.Certificate;
+                if (certEncoded == null) {
+                    await SendApplicationAlertAsync(application,
+                        "Application without certificate found.", "No Certificate");
+                }
+                else {
+                    using (var cert = new X509Certificate2(certEncoded)) {
+                        if (cert.SubjectName.RawData.SequenceEqual(cert.IssuerName.RawData)) {
+                            await SendApplicationAlertAsync(application,
+                                "Application with self-signed certificate found.",
+                                $"Certificate is self signed by {cert.SubjectName.Name}");
+                        }
+                        else if (cert.NotAfter < DateTime.UtcNow) {
+                            await SendApplicationAlertAsync(application,
+                                "Application has expired certificate.",
+                                $"Certificate expired {cert.NotAfter}");
+                        }
+                        else if (cert.NotBefore > DateTime.UtcNow) {
+                            await SendApplicationAlertAsync(application,
+                                "Application has certificate that is not yet valid.",
+                                $"Certificate is valid from {cert.NotBefore}");
+                        }
+                        else {
+                            _logger.Verbose("Application certificate is valid.");
+                        }
                     }
                 }
+#else
+                await Task.CompletedTask;
+#endif
             }
         }
 

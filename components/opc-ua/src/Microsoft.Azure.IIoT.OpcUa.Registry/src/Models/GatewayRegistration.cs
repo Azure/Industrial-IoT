@@ -17,12 +17,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <inheritdoc/>
         public override string DeviceType => IdentityType.Gateway;
 
-        /// <inheritdoc/>
-        public override string Thumbprint => null;
-
-        /// <inheritdoc/>
-        public override Dictionary<string, string> Certificate => null;
-
         /// <summary>
         /// Create registration - for testing purposes
         /// </summary>

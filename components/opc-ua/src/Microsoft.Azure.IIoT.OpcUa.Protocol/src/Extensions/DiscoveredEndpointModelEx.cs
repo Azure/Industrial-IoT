@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System.Collections.Generic;
+    using System;
 
     /// <summary>
     /// Discovered Endpoint Model extensions
@@ -46,7 +47,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                                 result.Description.Server.ApplicationName.Text
                         },
                     NotSeenSince = null,
-                    Certificate = result.Description.ServerCertificate,
                     Capabilities = new HashSet<string>(result.Capabilities)
                 },
                 Endpoints = new List<EndpointRegistrationModel> {
@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                                 result.AccessibleEndpointUrl,
                                 result.Description.EndpointUrl,
                             },
-                            Certificate = result.Description.ServerCertificate,
+                            Certificate = result.Description.ServerCertificate?.ToThumbprint(),
                             SecurityMode = result.Description.SecurityMode.ToServiceType() ??
                                 SecurityMode.None,
                             SecurityPolicy = result.Description.SecurityPolicyUri

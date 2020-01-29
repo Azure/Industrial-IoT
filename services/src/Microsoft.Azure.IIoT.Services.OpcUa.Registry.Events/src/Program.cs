@@ -125,6 +125,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Events {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<EndpointEventBusSubscriber>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<GatewayEventBusSubscriber>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<SupervisorEventBusSubscriber>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<PublisherEventBusSubscriber>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<DiscovererEventBusSubscriber>()
+                .AsImplementedInterfaces().SingleInstance();
             // ...
 
             // Register forwarders

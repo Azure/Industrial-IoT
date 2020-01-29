@@ -9,6 +9,7 @@
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
 
 @inject NavigationManager NavigationManager
+@inject RegistryServiceEvents RegistryServiceEvents
 @inject Registry RegistryHelper
 
 <h1>Assets</h1>
@@ -23,15 +24,15 @@
     </thead>
     <tbody>
         @foreach (var application in _pagedapplicationList.Results) {
-        <tr>
-            <td>
-                <a href='endpoints/@RegistryHelper.PathAll/@application.ApplicationId'>
-                    @application.ApplicationName
-                </a>
-            </td>
-            <td>@application.ApplicationUri</td>
-            <td>@application.SiteId</td>
-        </tr>
+            <tr>
+                <td>
+                    <a href='endpoints/@RegistryHelper.PathAll/@application.ApplicationId'>
+                        @application.ApplicationName
+                    </a>
+                </td>
+                <td>@application.ApplicationUri</td>
+                <td>@application.SiteId</td>
+            </tr>
         }
     </tbody>
 </table>
@@ -44,6 +45,7 @@
     [Parameter]
     public string Page { get; set; } = "1";
 
+    private IAsyncDisposable _applicationEvents { get; set; }
     public const int PageLength = 10;
     private PagedResult<ApplicationInfoApiModel> _applicationList =
         new PagedResult<ApplicationInfoApiModel>();
@@ -55,8 +57,7 @@
     /// Notify page change
     /// </summary>
     /// <param name="page"></param>
-    public void PagerPageChanged(int page) 
-    {
+    public void PagerPageChanged(int page) {
         _pagedapplicationList = _applicationList.GetPaged(page, PageLength);
         NavigationManager.NavigateTo("/applications/" + page);
     }
@@ -64,8 +65,7 @@
     /// <summary>
     /// OnInitialized
     /// </summary>
-    protected override void OnInitialized()
-    {
+    protected override void OnInitialized() {
         _spinner = "loader-big";
     }
 
@@ -73,15 +73,28 @@
     /// OnAfterRenderAsync
     /// </summary>
     /// <param name="firstRender"></param>
-    protected override async Task OnAfterRenderAsync(bool firstRender) 
-    {
-        if (firstRender)
-        {
+    protected override async Task OnAfterRenderAsync(bool firstRender) {
+        if (firstRender) {
             _applicationList = await RegistryHelper.GetApplicationListAsync();
             Page = "1";
             _pagedapplicationList = _applicationList.GetPaged(Int32.Parse(Page), PageLength);
             _spinner = "";
             StateHasChanged();
+
+            _applicationEvents = await RegistryServiceEvents.SubscribeApplicationEventsAsync(null,
+                ev => InvokeAsync(() => ApplicationEvent(ev)));
+        }
+    }
+
+    private Task ApplicationEvent(ApplicationEventApiModel ev) {
+        _applicationList.Results.Update(ev);
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    public async void Dispose() {
+        if (_applicationEvents != null) {
+            await _applicationEvents.DisposeAsync();
         }
     }
 }

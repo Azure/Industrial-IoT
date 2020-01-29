@@ -140,8 +140,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     .ToList().EncodeAsDictionary())
                 .With(x => x.DiscoveryUrls, fix.CreateMany<string>()
                     .ToList().EncodeAsDictionary())
-                .Without(x => x.Certificate)
-                .Without(x => x.Thumbprint)
                 .Without(x => x.IsDisabled)
                 .Without(x => x.NotSeenSince)
                 .Create();

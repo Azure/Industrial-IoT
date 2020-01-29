@@ -5,8 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
@@ -22,7 +24,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
     using System.Threading.Tasks;
     using Xunit;
     using Xunit.Sdk;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
 
     public class PublisherJobClientTests {
 
@@ -367,6 +368,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
             }
 
             public Task<EndpointInfoModel> GetEndpointAsync(string endpointId, bool onlyServerState = false, CancellationToken ct = default) {
+                throw new NotImplementedException();
+            }
+
+            public Task<X509CertificateChainModel> GetEndpointCertificateAsync(string endpointId, CancellationToken ct = default) {
                 throw new NotImplementedException();
             }
 

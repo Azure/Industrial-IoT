@@ -103,6 +103,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
 
 
         [Theory]
+        [InlineData(5 * 1024 * 1024)]
         [InlineData(1000 * 1024)]
         [InlineData(100000)]
         [InlineData(20)]
@@ -163,6 +164,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
         }
 
         [Theory]
+        [InlineData(5 * 1024 * 1024)]
         [InlineData(1000 * 1024)]
         [InlineData(100000)]
         [InlineData(20)]

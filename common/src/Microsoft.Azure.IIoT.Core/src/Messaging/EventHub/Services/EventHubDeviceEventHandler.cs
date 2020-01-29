@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
     /// Default Event Hub message handler implementation
     /// </summary>
     public sealed class EventHubDeviceEventHandler : IEventHandler {
+
         /// <summary>
         /// Create processor factory
         /// </summary>
@@ -25,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
             if (handlers == null) {
                 throw new ArgumentNullException(nameof(handlers));
             }
-            _handlers = handlers.ToDictionary(h => h.MessageSchema, h => h);
+            _handlers = handlers.ToDictionary(h => h.MessageSchema.ToLowerInvariant(), h => h);
             _unknown = unknown;
         }
 
@@ -33,7 +34,7 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
         public async Task HandleAsync(byte[] eventData, IDictionary<string, string> properties,
             Func<Task> checkpoint) {
 
-            // try to get event's properties 
+            // try to get event's properties
             properties.TryGetValue(CommonProperties.DeviceId, out var deviceId);
             properties.TryGetValue(CommonProperties.ModuleId, out var moduleId);
 

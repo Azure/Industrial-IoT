@@ -18,5 +18,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
         [JsonProperty(PropertyName = "chain",
             NullValueHandling = NullValueHandling.Ignore)]
         public List<X509CertificateApiModel> Chain { get; set; }
+
+        /// <summary>
+        /// Chain validation status if validated
+        /// </summary>
+        [JsonProperty(PropertyName = "status",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public List<X509ChainStatus> Status { get; set; }
     }
 }

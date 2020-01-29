@@ -192,6 +192,8 @@ namespace Microsoft.Azure.IIoT.App {
 
             services.AddRazorPages();
             services.AddServerSideBlazor();
+          //  services.AddSignalR()
+          //      .AddAzureSignalR(Config.SignalRConnString);
         }
 
         /// <summary>

@@ -5,6 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Serilog;
@@ -23,9 +25,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// Create registry services
         /// </summary>
         /// <param name="iothub"></param>
+        /// <param name="broker"></param>
         /// <param name="logger"></param>
-        public DiscovererRegistry(IIoTHubTwinServices iothub, ILogger logger) {
+        public DiscovererRegistry(IIoTHubTwinServices iothub,
+            IRegistryEventBroker<IDiscovererRegistryListener> broker, ILogger logger) {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
+            _broker = broker ?? throw new ArgumentNullException(nameof(broker));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -144,8 +149,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                         }
                     }
                     // Patch
-                    await _iothub.PatchAsync(registration.Patch(
+                    twin = await _iothub.PatchAsync(registration.Patch(
                         patched.ToDiscovererRegistration()), false, ct);
+
+                    // Send update to through broker
+                    registration = twin.ToEntityRegistration(true) as DiscovererRegistration;
+                    await _broker.NotifyAllAsync(l => l.OnDiscovererUpdatedAsync(null,
+                        registration.ToServiceModel()));
                     return;
                 }
                 catch (ResourceOutOfDateException ex) {
@@ -212,6 +222,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         private readonly IIoTHubTwinServices _iothub;
+        private readonly IRegistryEventBroker<IDiscovererRegistryListener> _broker;
         private readonly ILogger _logger;
     }
 }

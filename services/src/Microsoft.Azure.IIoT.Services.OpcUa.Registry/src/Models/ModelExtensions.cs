@@ -33,7 +33,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models {
                 ApplicationName = model.ApplicationName,
                 Locale = model.Locale,
                 LocalizedNames = model.LocalizedNames,
-                Certificate = model.Certificate,
                 ProductUri = model.ProductUri,
                 SiteId = model.SiteId,
                 HostAddresses = model.HostAddresses,
@@ -167,7 +166,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models {
                 LocalizedNames = model.LocalizedNames?
                     .ToDictionary(k => k.Key, v => v.Value),
                 ProductUri = model.ProductUri,
-                Certificate = model.Certificate,
                 Capabilities = model.Capabilities,
                 DiscoveryUrls = model.DiscoveryUrls,
                 GatewayServerUri = model.GatewayServerUri,
@@ -619,7 +617,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models {
                 Id = model.Id,
                 SiteId = model.SiteId,
                 LogLevel = (IIoT.OpcUa.Api.Registry.Models.TraceLogLevel?)model.LogLevel,
-                Certificate = model.Certificate,
                 Configuration = model.Configuration.ToApiModel(),
                 OutOfSync = model.OutOfSync,
                 Connected = model.Connected
@@ -762,7 +759,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models {
                 Id = model.Id,
                 SiteId = model.SiteId,
                 LogLevel = (IIoT.OpcUa.Api.Registry.Models.TraceLogLevel?)model.LogLevel,
-                Certificate = model.Certificate,
                 OutOfSync = model.OutOfSync,
                 Connected = model.Connected
             };
@@ -837,5 +833,45 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models {
                 LogLevel = (IIoT.OpcUa.Registry.Models.TraceLogLevel?)model.LogLevel
             };
         }
+
+        /// <summary>
+        /// Create api model
+        /// </summary>
+        /// <param name="model"></param>
+        public static X509CertificateApiModel ToApiModel(
+            this X509CertificateModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new X509CertificateApiModel {
+                Certificate = model.Certificate,
+                NotAfterUtc = model.NotAfterUtc,
+                NotBeforeUtc = model.NotBeforeUtc,
+                SerialNumber = model.SerialNumber,
+                Subject = model.Subject,
+                SelfSigned = model.SelfSigned,
+                Thumbprint = model.Thumbprint
+            };
+        }
+
+        /// <summary>
+        /// Create collection
+        /// </summary>
+        /// <param name="model"></param>
+        public static X509CertificateChainApiModel ToApiModel(
+            this X509CertificateChainModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new X509CertificateChainApiModel {
+                Status = model.Status?
+                    .Select(s => (IIoT.OpcUa.Api.Registry.Models.X509ChainStatus)s)
+                    .ToList(),
+                Chain = model.Chain?
+                    .Select(c => c.ToApiModel())
+                    .ToList()
+            };
+        }
+
     }
 }

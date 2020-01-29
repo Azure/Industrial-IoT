@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using System.Net;
+    using System;
     using System.Threading.Tasks;
     using Xunit;
 
@@ -26,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                     new VariantEncoderFactory(), _server.Logger),
                 new EndpointModel {
                     Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
-                    Certificate = _server.Certificate?.RawData
+                    Certificate = _server.Certificate?.RawData?.ToThumbprint()
                 });
         }
 

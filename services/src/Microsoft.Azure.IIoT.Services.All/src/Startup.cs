@@ -139,6 +139,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
                     Task.Run(() => Processor.Events.Program.Main(args), _cts.Token),
                     Task.Run(() => Processor.Telemetry.Cdm.Program.Main(args), _cts.Token),
                     Task.Run(() => Processor.Telemetry.Ux.Program.Main(args), _cts.Token),
+                    Task.Run(() => Processor.Tunnel.Program.Main(args), _cts.Token),
                     Task.Run(() => Common.Identity.Program.Main(args), _cts.Token),
                     Task.Run(() => Common.Hub.Fileupload.Program.Main(args), _cts.Token),
                     Task.Run(() => OpcUa.Registry.Discovery.Program.Main(args), _cts.Token),

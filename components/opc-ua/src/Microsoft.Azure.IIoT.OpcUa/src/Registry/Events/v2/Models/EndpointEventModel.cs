@@ -22,8 +22,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2.Models {
         public RegistryOperationContextModel Context { get; set; }
 
         /// <summary>
+        /// Endpoint id
+        /// </summary>
+        public string Id { get; set; }
+
+        /// <summary>
         /// Endpoint info
         /// </summary>
         public EndpointInfoModel Endpoint { get; set; }
+
+        /// <summary>
+        /// The event is a patch
+        /// </summary>
+        public bool? IsPatch { get; set; }
     }
 }

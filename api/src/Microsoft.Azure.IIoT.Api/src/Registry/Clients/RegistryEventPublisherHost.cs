@@ -17,7 +17,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
     /// Application registry event publisher
     /// </summary>
     public class RegistryEventPublisherHost : IHostProcess, IDisposable,
-        IEventHandler<ApplicationEventModel>, IEventHandler<EndpointEventModel> {
+        IEventHandler<ApplicationEventModel>, IEventHandler<EndpointEventModel>,
+        IEventHandler<GatewayEventModel>, IEventHandler<PublisherEventModel>,
+        IEventHandler<DiscovererEventModel>, IEventHandler<SupervisorEventModel> {
 
         /// <summary>
         /// Create event publisher
@@ -83,7 +85,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
 
         /// <inheritdoc/>
         public Task HandleAsync(ApplicationEventModel eventData) {
-            // Send to supervisor listeners
             var arguments = new object[] { eventData.ToApiModel() };
             return _callback.MulticastAsync(EventTargets.Applications,
                 EventTargets.ApplicationEventTarget, arguments);
@@ -91,10 +92,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
 
         /// <inheritdoc/>
         public Task HandleAsync(EndpointEventModel eventData) {
-            // Send to supervisor listeners
             var arguments = new object[] { eventData.ToApiModel() };
             return _callback.MulticastAsync(EventTargets.Endpoints,
                 EventTargets.EndpointEventTarget, arguments);
+        }
+
+        /// <inheritdoc/>
+        public Task HandleAsync(GatewayEventModel eventData) {
+            var arguments = new object[] { eventData.ToApiModel() };
+            return _callback.MulticastAsync(EventTargets.Gateways,
+                EventTargets.GatewayEventTarget, arguments);
+        }
+
+        /// <inheritdoc/>
+        public Task HandleAsync(PublisherEventModel eventData) {
+            var arguments = new object[] { eventData.ToApiModel() };
+            return _callback.MulticastAsync(EventTargets.Publishers,
+                EventTargets.PublisherEventTarget, arguments);
+        }
+
+        /// <inheritdoc/>
+        public Task HandleAsync(SupervisorEventModel eventData) {
+            var arguments = new object[] { eventData.ToApiModel() };
+            return _callback.MulticastAsync(EventTargets.Supervisors,
+                EventTargets.SupervisorEventTarget, arguments);
+        }
+
+        /// <inheritdoc/>
+        public Task HandleAsync(DiscovererEventModel eventData) {
+            var arguments = new object[] { eventData.ToApiModel() };
+            return _callback.MulticastAsync(EventTargets.Discoverers,
+                EventTargets.DiscovererEventTarget, arguments);
         }
 
         /// <inheritdoc/>

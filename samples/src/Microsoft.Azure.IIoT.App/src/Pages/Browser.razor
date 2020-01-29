@@ -256,7 +256,7 @@
     {
         if ((bool)ev.Value)
         {
-            var result = await Publisher.StartPublishing(endpointId, node.Id, 1000, 1000);
+            var result = await Publisher.StartPublishingAsync(endpointId, node.Id, 1000, 1000);
             if (result)
             {
                 node.PublishedItem = new OpcUa.Api.Publisher.Models.PublishedItemApiModel()
@@ -275,7 +275,7 @@
         }
         else
         {
-            var result = await Publisher.StopPublishing(endpointId, node.Id);
+            var result = await Publisher.StopPublishingAsync(endpointId, node.Id);
             if (result)
             {
                 node.PublishedItem = null;

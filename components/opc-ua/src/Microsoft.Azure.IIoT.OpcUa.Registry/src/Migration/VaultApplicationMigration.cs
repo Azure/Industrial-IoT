@@ -123,7 +123,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Migration {
                 Updated = ToServiceModel(
                     application.UpdateTime, null),
                 ApplicationId = null,
-                Certificate = null,
                 HostAddresses = null,
                 NotSeenSince = null,
                 SiteId = null,

@@ -43,10 +43,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         public string SecurityPolicy { get; set; }
 
         /// <summary>
-        /// Endpoint certificate that was registered.
+        /// Endpoint certificate thumbprint
         /// </summary>
         [JsonProperty(PropertyName = "certificate",
             NullValueHandling = NullValueHandling.Ignore)]
-        public byte[] Certificate { get; set; }
+        public string Certificate { get; set; }
     }
 }

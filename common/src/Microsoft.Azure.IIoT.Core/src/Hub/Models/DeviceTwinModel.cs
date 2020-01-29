@@ -83,7 +83,7 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// </summary>
         [JsonProperty(PropertyName = "statusUpdatedTime",
             NullValueHandling = NullValueHandling.Ignore)]
-        public DateTime? StatusUpdatedTime { get; set; }
+        public DateTimeOffset? StatusUpdatedTime { get; set; }
 
         /// <summary>
         /// Corresponding Device's ConnectionState
@@ -97,6 +97,6 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// </summary>
         [JsonProperty(PropertyName = "lastActivityTime",
             NullValueHandling = NullValueHandling.Ignore)]
-        public DateTime? LastActivityTime { get; set; }
+        public DateTimeOffset? LastActivityTime { get; set; }
     }
 }

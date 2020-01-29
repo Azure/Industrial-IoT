@@ -56,7 +56,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 return null;
             }
 
-            var user = _ctx.HttpContext.User;
+            var user = _ctx.HttpContext?.User;
             // User id should be known, we need it to sign in on behalf of...
             if (user == null) {
                 _handler.Handle(_ctx.HttpContext,

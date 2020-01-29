@@ -40,10 +40,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
         /// <inheritdoc/>
         public override bool Equals(object obj) {
-            var registration = obj as SupervisorRegistration;
-            return base.Equals(registration) &&
-                ModuleId == registration.ModuleId &&
-                LogLevel == registration.LogLevel;
+            if (!(obj is SupervisorRegistration registration)) {
+                return false;
+            }
+            if (!base.Equals(registration)) {
+                return false;
+            }
+            if (ModuleId != registration.ModuleId) {
+                return false;
+            }
+            if (LogLevel != registration.LogLevel) {
+                return false;
+            }
+            return true;
         }
 
         /// <inheritdoc/>

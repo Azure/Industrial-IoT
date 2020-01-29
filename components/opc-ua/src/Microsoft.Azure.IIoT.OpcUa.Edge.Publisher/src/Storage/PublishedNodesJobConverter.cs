@@ -3,7 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Module;
     using Newtonsoft.Json;
@@ -17,7 +19,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using System.Threading.Tasks;
     using Serilog;
     using System.Diagnostics;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
 
     /// <summary>
     /// Published nodes
@@ -80,8 +81,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                     },
                     User = _cryptoProvider != null &&
                         item.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ? null :
-                            ToUserNamePasswordCredentialAsync(
-                                item.EncryptedAuthUsername, item.EncryptedAuthPassword).Result
+                            ToUserNamePasswordCredentialAsync(item).Result
                     },
                     // Select and batch nodes into published data set sources
                     item => GetNodeModels(item),
@@ -164,33 +164,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <param name="opcNodes"></param>
         /// <param name="legacyCliModel">The legacy command line arguments</param>
         /// <returns></returns>
-        private static TimeSpan? GetPublishingIntervalFromNodes(IEnumerable<OpcNodeModel> opcNodes, LegacyCliModel legacyCliModel) {
-            var interval = opcNodes.FirstOrDefault(x => x.OpcPublishingInterval != null)?.OpcPublishingIntervalTimespan;
+        private static TimeSpan? GetPublishingIntervalFromNodes(IEnumerable<OpcNodeModel> opcNodes, 
+            LegacyCliModel legacyCliModel) {
+            var interval = opcNodes
+                .FirstOrDefault(x => x.OpcPublishingInterval != null)?.OpcPublishingIntervalTimespan;
             return interval ?? legacyCliModel.DefaultPublishingInterval;
         }
 
         /// <summary>
         /// Convert to credential model
         /// </summary>
-        /// <param name="encryptedUser"></param>
-        /// <param name="encryptedPassword"></param>
+        /// <param name="entry"></param>
         /// <returns></returns>
-        private async Task<CredentialModel> ToUserNamePasswordCredentialAsync(string encryptedUser,
-            string encryptedPassword) {
-            if (_cryptoProvider == null) {
-                return null;
+        private async Task<CredentialModel> ToUserNamePasswordCredentialAsync(
+            PublishedNodesEntryModel entry) {
+            var user = entry.Username;
+            var password = entry.Password;
+            if (string.IsNullOrEmpty(user)) {
+                if (_cryptoProvider == null || string.IsNullOrEmpty(entry.EncryptedAuthUsername)) {
+                    return null;
+                }
+
+                const string kInitializationVector = "alKGJdfsgidfasdO"; // See previous publisher
+                var userBytes = await _cryptoProvider.DecryptAsync(kInitializationVector,
+                    Convert.FromBase64String(entry.EncryptedAuthUsername));
+                user = Encoding.UTF8.GetString(userBytes);
+                if (entry.EncryptedAuthPassword != null) {
+                    var passwordBytes = await _cryptoProvider.DecryptAsync(kInitializationVector,
+                        Convert.FromBase64String(entry.EncryptedAuthPassword));
+                    password = Encoding.UTF8.GetString(passwordBytes);
+                }
             }
-            const string kInitializationVector = "alKGJdfsgidfasdO"; // See previous publisher
-            var user = await _cryptoProvider.DecryptAsync(kInitializationVector,
-                Convert.FromBase64String(encryptedUser));
-            var password = await _cryptoProvider.DecryptAsync(kInitializationVector,
-                Convert.FromBase64String(encryptedPassword));
             return new CredentialModel {
                 Type = CredentialType.UserName,
-                Value = JToken.FromObject(new {
-                    user = Encoding.UTF8.GetString(user),
-                    password = Encoding.UTF8.GetString(password)
-                })
+                Value = JToken.FromObject(new { user, password })
             };
         }
 
@@ -216,8 +223,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             /// </summary>
             [JsonIgnore]
             public TimeSpan? OpcSamplingIntervalTimespan {
-                get => OpcSamplingInterval.HasValue ? TimeSpan.FromMilliseconds(OpcSamplingInterval.Value) : (TimeSpan?)null;
-                set => OpcSamplingInterval = value != null ? (int)value.Value.TotalMilliseconds : (int?)null;
+                get => OpcSamplingInterval.HasValue ? 
+                    TimeSpan.FromMilliseconds(OpcSamplingInterval.Value) : (TimeSpan?)null;
+                set => OpcSamplingInterval = value != null ? 
+                    (int)value.Value.TotalMilliseconds : (int?)null;
             }
 
             /// <summary> Publishing interval </summary>
@@ -229,8 +238,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             /// </summary>
             [JsonIgnore]
             public TimeSpan? OpcPublishingIntervalTimespan {
-                get => OpcPublishingInterval.HasValue ? TimeSpan.FromMilliseconds(OpcPublishingInterval.Value) : (TimeSpan?)null;
-                set => OpcPublishingInterval = value != null ? (int)value.Value.TotalMilliseconds : (int?)null;
+                get => OpcPublishingInterval.HasValue ? 
+                    TimeSpan.FromMilliseconds(OpcPublishingInterval.Value) : (TimeSpan?)null;
+                set => OpcPublishingInterval = value != null ? 
+                    (int)value.Value.TotalMilliseconds : (int?)null;
             }
 
             /// <summary> Display name </summary>
@@ -246,8 +257,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             /// </summary>
             [JsonIgnore]
             public TimeSpan? HeartbeatIntervalTimespan {
-                get => HeartbeatInterval.HasValue ? TimeSpan.FromSeconds(HeartbeatInterval.Value) : (TimeSpan?)null;
-                set => HeartbeatInterval = value != null ? (int)value.Value.TotalSeconds : (int?)null;
+                get => HeartbeatInterval.HasValue ?
+                    TimeSpan.FromSeconds(HeartbeatInterval.Value) : (TimeSpan?)null;
+                set => HeartbeatInterval = value != null ? 
+                    (int)value.Value.TotalSeconds : (int?)null;
             }
 
             /// <summary> Skip first value </summary>
@@ -290,6 +303,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
 
             /// <summary> encrypted password </summary>
             public string EncryptedAuthPassword { get; set; }
+
+            /// <summary> unencrypted username </summary>
+            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            public string Username { get; set; }
+
+            /// <summary> unencrypted password </summary>
+            public string Password { get; set; }
 
             /// <summary> Nodes defined in the collection. </summary>
             [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]

@@ -4,24 +4,25 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.Azure.IIoT.Module;
     using Serilog;
+    using Newtonsoft.Json.Linq;
     using Newtonsoft.Json;
     using System;
     using System.Threading.Tasks;
     using System.Diagnostics;
     using System.Linq;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Represents the supervisor api surface for browse and node operations.
+    /// Represents the supervisor api surface.
     /// </summary>
     public sealed class SupervisorClient : IBrowseServices<EndpointRegistrationModel>,
-        IHistoricAccessServices<EndpointRegistrationModel>, INodeServices<EndpointRegistrationModel> {
+        IHistoricAccessServices<EndpointRegistrationModel>,
+        INodeServices<EndpointRegistrationModel> {
 
         /// <summary>
         /// Create service
@@ -36,7 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
         /// <inheritdoc/>
         public async Task<BrowseResultModel> NodeBrowseFirstAsync(
             EndpointRegistrationModel registration, BrowseRequestModel request) {
-            return await CallServiceOnSupervisor<BrowseRequestModel, BrowseResultModel>(
+            return await CallServiceOnSupervisorAsync<BrowseRequestModel, BrowseResultModel>(
                 "Browse_V2", registration, request);
         }
 
@@ -49,7 +50,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (string.IsNullOrEmpty(request.ContinuationToken)) {
                 throw new ArgumentNullException(nameof(request.ContinuationToken));
             }
-            return await CallServiceOnSupervisor<BrowseNextRequestModel, BrowseNextResultModel>(
+            return await CallServiceOnSupervisorAsync<BrowseNextRequestModel, BrowseNextResultModel>(
                 "BrowseNext_V2", registration, request);
         }
 
@@ -63,7 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
                 request.BrowsePaths.Any(p => p == null || p.Length == 0)) {
                 throw new ArgumentNullException(nameof(request.BrowsePaths));
             }
-            return await CallServiceOnSupervisor<BrowsePathRequestModel, BrowsePathResultModel>(
+            return await CallServiceOnSupervisorAsync<BrowsePathRequestModel, BrowsePathResultModel>(
                 "BrowsePath_V2", registration, request);
         }
 
@@ -73,7 +74,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            return await CallServiceOnSupervisor<ValueReadRequestModel, ValueReadResultModel>(
+            return await CallServiceOnSupervisorAsync<ValueReadRequestModel, ValueReadResultModel>(
                 "ValueRead_V2", registration, request);
         }
 
@@ -86,7 +87,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request.Value == null) {
                 throw new ArgumentNullException(nameof(request.Value));
             }
-            return await CallServiceOnSupervisor<ValueWriteRequestModel, ValueWriteResultModel>(
+            return await CallServiceOnSupervisorAsync<ValueWriteRequestModel, ValueWriteResultModel>(
                 "ValueWrite_V2", registration, request);
         }
 
@@ -96,7 +97,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            return await CallServiceOnSupervisor<MethodMetadataRequestModel, MethodMetadataResultModel>(
+            return await CallServiceOnSupervisorAsync<MethodMetadataRequestModel, MethodMetadataResultModel>(
                 "MethodMetadata_V2", registration, request);
         }
 
@@ -106,7 +107,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            return await CallServiceOnSupervisor<MethodCallRequestModel, MethodCallResultModel>(
+            return await CallServiceOnSupervisorAsync<MethodCallRequestModel, MethodCallResultModel>(
                 "MethodCall_V2", registration, request);
         }
 
@@ -122,7 +123,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request.Attributes.Any(r => string.IsNullOrEmpty(r.NodeId))) {
                 throw new ArgumentException(nameof(request.Attributes));
             }
-            return await CallServiceOnSupervisor<ReadRequestModel, ReadResultModel>(
+            return await CallServiceOnSupervisorAsync<ReadRequestModel, ReadResultModel>(
                 "NodeRead_V2", registration, request);
         }
 
@@ -138,7 +139,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request.Attributes.Any(r => string.IsNullOrEmpty(r.NodeId))) {
                 throw new ArgumentException(nameof(request.Attributes));
             }
-            return await CallServiceOnSupervisor<WriteRequestModel, WriteResultModel>(
+            return await CallServiceOnSupervisorAsync<WriteRequestModel, WriteResultModel>(
                 "NodeWrite_V2", registration, request);
         }
 
@@ -148,7 +149,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            return await CallServiceOnSupervisor<HistoryReadRequestModel<JToken>, HistoryReadResultModel<JToken>>(
+            return await CallServiceOnSupervisorAsync<HistoryReadRequestModel<JToken>, HistoryReadResultModel<JToken>>(
                 "HistoryRead_V2", registration, request);
         }
 
@@ -161,7 +162,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (string.IsNullOrEmpty(request.ContinuationToken)) {
                 throw new ArgumentNullException(nameof(request.ContinuationToken));
             }
-            return await CallServiceOnSupervisor<HistoryReadNextRequestModel, HistoryReadNextResultModel<JToken>>(
+            return await CallServiceOnSupervisorAsync<HistoryReadNextRequestModel, HistoryReadNextResultModel<JToken>>(
                 "HistoryRead_V2", registration, request);
         }
 
@@ -174,10 +175,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
             if (request.Details == null) {
                 throw new ArgumentNullException(nameof(request.Details));
             }
-            return await CallServiceOnSupervisor<HistoryUpdateRequestModel<JToken>, HistoryUpdateResultModel>(
+            return await CallServiceOnSupervisorAsync<HistoryUpdateRequestModel<JToken>, HistoryUpdateResultModel>(
                 "HistoryUpdate_V2", registration, request);
         }
-
 
         /// <summary>
         /// helper to invoke service
@@ -188,7 +188,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Clients {
         /// <param name="registration"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        private async Task<R> CallServiceOnSupervisor<T, R>(string service,
+        private async Task<R> CallServiceOnSupervisorAsync<T, R>(string service,
             EndpointRegistrationModel registration, T request) {
             if (registration == null) {
                 throw new ArgumentNullException(nameof(registration));

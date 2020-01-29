@@ -8,9 +8,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
     using Opc.Ua;
     using Opc.Ua.Client;
+    using Opc.Ua.Extensions;
     using Serilog;
     using System;
     using System.Collections.Concurrent;
@@ -18,15 +21,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
     using System.Diagnostics;
     using System.Linq;
     using System.Runtime.InteropServices;
-    using System.Security.Cryptography.X509Certificates;
     using System.Threading;
     using System.Threading.Tasks;
+    using System.Security.Cryptography.X509Certificates;
 
     /// <summary>
     /// Opc ua stack based service client
     /// </summary>
     public class ClientServices : IClientHost, IEndpointServices, IEndpointDiscovery,
-        IDisposable {
+        ICertificateServices<EndpointModel>, IDisposable {
 
         /// <summary>
         /// Create client host services
@@ -212,6 +215,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     discoveryUrl, sw.Elapsed);
             }
             return results;
+        }
+
+        /// <inheritdoc/>
+        public async Task<byte[]> GetEndpointCertificateAsync(
+            EndpointModel endpoint, CancellationToken ct) {
+            if (string.IsNullOrEmpty(endpoint?.Url)) {
+                throw new ArgumentNullException(nameof(endpoint.Url));
+            }
+            var configuration = EndpointConfiguration.Create(_appConfig);
+            configuration.OperationTimeout = 20000;
+            var discoveryUrl = new Uri(endpoint.Url);
+            using (var client = DiscoveryClient.Create(discoveryUrl, configuration)) {
+                // Get endpoint descriptions from endpoint url
+                var endpoints = await client.GetEndpointsAsync(null,
+                    client.Endpoint.EndpointUrl, null, null);
+
+                // Match to provided endpoint info
+                var ep = endpoints.Endpoints?.FirstOrDefault(e => e.IsSameAs(endpoint));
+                if (ep == null) {
+                    _logger.Debug("No endpoints at {discoveryUrl}...", discoveryUrl);
+                    throw new ResourceNotFoundException("Endpoint not found");
+                }
+                _logger.Debug("Found endpoint at {discoveryUrl}...", discoveryUrl);
+                return ep.ServerCertificate;
+            }
         }
 
         /// <inheritdoc/>

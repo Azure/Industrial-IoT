@@ -21,12 +21,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public string Url { get; set; }
 
         /// <summary>
-        /// Certificate of the endpoint
+        /// Endpoint certificate thumbprint
         /// </summary>
         [JsonProperty(PropertyName = "certificate",
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
-        public byte[] Certificate { get; set; }
+        public string Certificate { get; set; }
 
         /// <summary>
         /// Security Mode
@@ -65,7 +65,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "endpointState",
             NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DefaultValue(EndpointConnectivityState.Disconnected)]
         public EndpointConnectivityState? EndpointState { get; set; }
 
         /// <summary>

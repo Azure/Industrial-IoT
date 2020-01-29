@@ -51,9 +51,9 @@
                 </td>
                 @{string SiteId = publisher.SiteId == null ? "--" : publisher.SiteId;}
                 <td>@SiteId</td>
-                @{string OutOfSync = publisher.OutOfSync == null ? "--" : publisher.OutOfSync == true ? "Out Of Sync" : "Synced";}
+                @{string OutOfSync = publisher.OutOfSync == true ? "Synching..." : "";}
                 <td>@OutOfSync</td>
-                @{string ConnectStatus = publisher.Connected == null ? "--" : publisher.Connected == true ? "Connected" : "Disconnected";}
+                @{string ConnectStatus = publisher.Connected == true ? "Connected" : "Disconnected";}
                 <td>@ConnectStatus</td>
             </tr>
         }
@@ -106,12 +106,14 @@
             _spinner = "";
             StateHasChanged();
 
-            _publisherEvent = await RegistryServiceEvents.SubscribePublisherEventsAsync(null, PublisherEvent);
+            _publisherEvent = await RegistryServiceEvents.SubscribePublisherEventsAsync(null,
+                ev => InvokeAsync(() => PublisherEvent(ev)));
         }
     }
 
     private Task PublisherEvent(PublisherEventApiModel ev)
     {
+        _publisherList.Results.Update(ev);
         StateHasChanged();
         return Task.CompletedTask;
     }

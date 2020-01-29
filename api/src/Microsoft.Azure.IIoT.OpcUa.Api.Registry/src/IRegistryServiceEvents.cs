@@ -32,6 +32,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
             string userId, Func<EndpointEventApiModel, Task> callback);
 
         /// <summary>
+        /// Subscribe to gateway events
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="callback"></param>
+        /// <returns></returns>
+        Task<IAsyncDisposable> SubscribeGatewayEventsAsync(
+            string userId, Func<GatewayEventApiModel, Task> callback);
+
+        /// <summary>
         /// Subscribe to supervisor events
         /// </summary>
         /// <param name="userId"></param>

@@ -178,7 +178,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         /// <returns></returns>
         [HttpPut("events")]
         public async Task SubscribeAsync([FromBody]string userId) {
-            await _events.SubscribeAsync("Gateways", userId);
+            await _events.SubscribeAsync("gateways", userId);
         }
 
         /// <summary>
@@ -192,7 +192,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         /// <returns></returns>
         [HttpDelete("events/{userId}")]
         public async Task UnsubscribeAsync(string userId) {
-            await _events.UnsubscribeAsync("Gateways", userId);
+            await _events.UnsubscribeAsync("gateways", userId);
         }
 
         private readonly IGatewayRegistry _Gateways;

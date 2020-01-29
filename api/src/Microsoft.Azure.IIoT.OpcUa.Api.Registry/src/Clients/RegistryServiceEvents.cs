@@ -76,6 +76,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         }
 
         /// <inheritdoc/>
+        public async Task<IAsyncDisposable> SubscribeGatewayEventsAsync(
+            string userId, Func<GatewayEventApiModel, Task> callback) {
+            if (callback == null) {
+                throw new ArgumentNullException(nameof(callback));
+            }
+            var registrar = await _client.GetRegistrarAsync(userId);
+            try {
+                var registration = registrar.Register(EventTargets.GatewayEventTarget, callback);
+                try {
+                    await _api.SubscribeGatewayEventsAsync(registrar.UserId);
+                    return new AsyncDisposable(registration,
+                        () => _api.UnsubscribeGatewayEventsAsync(registrar.UserId));
+                }
+                catch {
+                    registration.Dispose();
+                    throw;
+                }
+            }
+            catch {
+                registrar.Dispose();
+                throw;
+            }
+        }
+
+        /// <inheritdoc/>
         public async Task<IAsyncDisposable> SubscribeSupervisorEventsAsync(
             string userId, Func<SupervisorEventApiModel, Task> callback) {
             if (callback == null) {

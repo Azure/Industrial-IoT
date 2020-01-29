@@ -81,6 +81,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 }
                 catch (Exception e) {
                     _logger.Debug(e, "Create device failed in CreateOrUpdate");
+                    throw;
                 }
                 if (!string.IsNullOrEmpty(twin.ModuleId)) {
                     // Try create module
@@ -231,17 +232,11 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 throw new ArgumentNullException(nameof(deviceId));
             }
             return Retry.WithExponentialBackoff(_logger, ct, async () => {
-
-                try {
-                    var request = NewRequest(
-                   $"/twins/{ToResourceId(deviceId, moduleId)}");
-                    var response = await _httpClient.GetAsync(request, ct);
-                    response.Validate();
-                    return response.GetContent<DeviceTwinModel>();
-                }
-                catch (ResourceNotFoundException) {
-                    return null;
-                }
+                var request = NewRequest(
+                    $"/twins/{ToResourceId(deviceId, moduleId)}");
+                var response = await _httpClient.GetAsync(request, ct);
+                response.Validate();
+                return response.GetContent<DeviceTwinModel>();
             }, kMaxRetryCount);
         }
 

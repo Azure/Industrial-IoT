@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
             if (handlers == null) {
                 throw new ArgumentNullException(nameof(handlers));
             }
-            _handlers = handlers.ToDictionary(h => h.MessageSchema, h => h);
+            _handlers = handlers.ToDictionary(h => h.MessageSchema.ToLowerInvariant(), h => h);
             _unknown = unknown;
         }
 

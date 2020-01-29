@@ -132,7 +132,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
                 return null;
             }
             return new EndpointModel {
-                Certificate = model.Certificate?.ToArray(),
+                Certificate = model.Certificate,
                 AlternativeUrls = model.AlternativeUrls.ToHashSetSafe(),
                 SecurityMode = model.SecurityMode,
                 SecurityPolicy = model.SecurityPolicy,

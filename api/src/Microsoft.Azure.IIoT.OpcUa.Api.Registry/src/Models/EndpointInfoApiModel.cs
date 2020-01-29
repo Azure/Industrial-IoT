@@ -41,7 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         [JsonProperty(PropertyName = "endpointState",
             NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null), ReadOnly(true)]
+        [DefaultValue(EndpointConnectivityState.Disconnected), ReadOnly(true)]
         public EndpointConnectivityState? EndpointState { get; set; }
 
         /// <summary>

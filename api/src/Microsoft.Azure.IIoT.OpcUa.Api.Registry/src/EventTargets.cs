@@ -36,6 +36,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         public const string SupervisorEventTarget = "SupervisorEvent";
 
         /// <summary>
+        /// Gateway event type
+        /// </summary>
+        public const string GatewayEventTarget = "GatewayEvent";
+
+        /// <summary>
+        /// Gateways group
+        /// </summary>
+        public const string Gateways = "gateways";
+
+        /// <summary>
         /// Supervisors group
         /// </summary>
         public const string Supervisors = "supervisors";

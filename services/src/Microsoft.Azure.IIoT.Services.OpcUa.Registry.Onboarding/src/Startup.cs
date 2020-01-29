@@ -150,8 +150,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
             appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
 
             // Print some useful information at bootstrap time
-            log.Information("{service} web service started with id {id}", ServiceInfo.Name,
-                Uptime.ProcessId);
+            log.Information("{service} web service started with id {id}",
+                ServiceInfo.Name, ServiceInfo.Id);
         }
 
         /// <summary>
@@ -203,6 +203,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
                 .AsImplementedInterfaces().SingleInstance();
 #endif
             // which need additional registry services
+            builder.RegisterType<CertificateClient>()
+                .AsImplementedInterfaces();
             builder.RegisterType<ActivationClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<OnboardingClient>()

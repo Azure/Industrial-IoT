@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
@@ -31,12 +32,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <param name="broker"></param>
         /// <param name="logger"></param>
         /// <param name="activator"></param>
+        /// <param name="certificates"></param>
         /// <param name="events"></param>
-        public EndpointRegistry(IIoTHubTwinServices iothub, IEndpointEventBroker broker,
-            ILogger logger, IActivationServices<EndpointRegistrationModel> activator,
-            IApplicationRegistryEvents events = null) {
+        public EndpointRegistry(IIoTHubTwinServices iothub,
+            IRegistryEventBroker<IEndpointRegistryListener> broker,
+            IActivationServices<EndpointRegistrationModel> activator,
+            ICertificateServices<EndpointRegistrationModel> certificates, ILogger logger,
+            IRegistryEvents<IApplicationRegistryListener> events = null) {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _certificates = certificates ?? throw new ArgumentNullException(nameof(certificates));
             _activator = activator ?? throw new ArgumentNullException(nameof(activator));
             _broker = broker ?? throw new ArgumentNullException(nameof(broker));
 
@@ -115,9 +120,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     $"'{model.SiteOrGatewayId}' ";
             }
             if (model?.Certificate != null) {
-                // If cert provided, include it in search
-                query += $"AND tags.{nameof(EntityRegistration.Thumbprint)} = " +
-                    $"{model.Certificate.ToSha1Hash()} ";
+                // If cert thumbprint provided, include it in search
+                query += $"AND tags.{nameof(EndpointRegistration.Thumbprint)} = " +
+                    $"{model.Certificate} ";
             }
             if (model?.SecurityMode != null) {
                 // If SecurityMode provided, include it in search
@@ -166,6 +171,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     .Select(s => s.ToServiceModel())
                     .ToList()
             };
+        }
+
+        /// <inheritdoc/>
+        public async Task<X509CertificateChainModel> GetEndpointCertificateAsync(
+            string endpointId, CancellationToken ct) {
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentException(nameof(endpointId));
+            }
+
+            // Get existing endpoint - get should always throw
+            var twin = await _iothub.GetAsync(endpointId, null, ct);
+
+            // Convert to twin registration
+            var registration = twin.ToEntityRegistration(true) as EndpointRegistration;
+            if (registration == null) {
+                throw new ResourceNotFoundException(
+                    $"{endpointId} is not an endpoint registration.");
+            }
+            if (string.IsNullOrEmpty(registration.SupervisorId)) {
+                throw new ArgumentException(
+                    $"Twin {endpointId} not registered with a supervisor.");
+            }
+
+            var endpoint = registration.ToServiceModel();
+            var rawCertificates = await _certificates.GetEndpointCertificateAsync(
+                endpoint.Registration, ct);
+            return rawCertificates.ToCertificateChain();
         }
 
         /// <inheritdoc/>
@@ -243,7 +275,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         /// <inheritdoc/>
         public Task OnApplicationUpdatedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application) {
+            ApplicationInfoModel application, bool isPatch) {
             return Task.CompletedTask;
         }
 
@@ -319,10 +351,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         /// <inheritdoc/>
         public async Task OnApplicationDeletedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application) {
+            string applicationId, ApplicationInfoModel application) {
             // Get all endpoint registrations and for each one, call delete, if failure,
             // stop half way and throw and do not complete.
-            var endpoints = await GetEndpointsAsync(application.ApplicationId, true);
+            var endpoints = await GetEndpointsAsync(applicationId, true);
             foreach (var registration in endpoints) {
                 var endpoint = registration.ToServiceModel();
                 try {
@@ -334,7 +366,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                         registration.Id);
                 }
                 await _iothub.DeleteAsync(registration.DeviceId);
-                await _broker.NotifyAllAsync(l => l.OnEndpointDeletedAsync(context, endpoint));
+                await _broker.NotifyAllAsync(l => l.OnEndpointDeletedAsync(context,
+                    endpoint.Registration.Id, endpoint));
             }
         }
 
@@ -388,45 +421,47 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var unchanged = 0;
             var removed = 0;
 
-            // Remove or disable an endpoint
-            foreach (var item in remove) {
-                try {
-                    // Only touch applications the discoverer owns.
-                    if (item.DiscovererId == discovererId) {
-                        if (hardDelete) {
-                            var device = await _iothub.GetAsync(item.DeviceId);
-                            // First we update any registration
-                            var existingEndpoint = device.ToEndpointRegistration(false);
-                            if (!string.IsNullOrEmpty(existingEndpoint.SupervisorId)) {
-                                await SetSupervisorTwinSecretAsync(existingEndpoint.SupervisorId,
-                                    device.Id, null);
+            if (!(result.RegisterOnly ?? false)) {
+                // Remove or disable an endpoint
+                foreach (var item in remove) {
+                    try {
+                        // Only touch applications the discoverer owns.
+                        if (item.DiscovererId == discovererId) {
+                            if (hardDelete) {
+                                var device = await _iothub.GetAsync(item.DeviceId);
+                                // First we update any registration
+                                var existingEndpoint = device.ToEndpointRegistration(false);
+                                if (!string.IsNullOrEmpty(existingEndpoint.SupervisorId)) {
+                                    await SetSupervisorTwinSecretAsync(existingEndpoint.SupervisorId,
+                                        device.Id, null);
+                                }
+                                // Then hard delete...
+                                await _iothub.DeleteAsync(item.DeviceId);
+                                await _broker.NotifyAllAsync(l => l.OnEndpointDeletedAsync(context,
+                                    item.DeviceId, item.ToServiceModel()));
                             }
-                            // Then hard delete...
-                            await _iothub.DeleteAsync(item.DeviceId);
-                            await _broker.NotifyAllAsync(l => l.OnEndpointDeletedAsync(context,
-                                item.ToServiceModel()));
-                        }
-                        else if (!(item.IsDisabled ?? false)) {
-                            var endpoint = item.ToServiceModel();
-                            var update = endpoint.ToEndpointRegistration(true);
-                            await _iothub.PatchAsync(item.Patch(update), true);
-                            await _broker.NotifyAllAsync(
-                                l => l.OnEndpointDisabledAsync(context, endpoint));
+                            else if (!(item.IsDisabled ?? false)) {
+                                var endpoint = item.ToServiceModel();
+                                var update = endpoint.ToEndpointRegistration(true);
+                                await _iothub.PatchAsync(item.Patch(update), true);
+                                await _broker.NotifyAllAsync(
+                                    l => l.OnEndpointDisabledAsync(context, endpoint));
+                            }
+                            else {
+                                unchanged++;
+                                continue;
+                            }
+                            removed++;
                         }
                         else {
+                            // Skip the ones owned by other supervisors
                             unchanged++;
-                            continue;
                         }
-                        removed++;
                     }
-                    else {
-                        // Skip the ones owned by other supervisors
+                    catch (Exception ex) {
                         unchanged++;
+                        _logger.Error(ex, "Exception during discovery removal.");
                     }
-                }
-                catch (Exception ex) {
-                    unchanged++;
-                    _logger.Error(ex, "Exception during discovery removal.");
                 }
             }
 
@@ -438,13 +473,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                         // Get the new one we will patch over the existing one...
                         var patch = change.First(x =>
                             EndpointRegistrationEx.Logical.Equals(x, exists));
-                        await ApplyActivationFilterAsync(result.DiscoveryConfig?.ActivationFilter,
-                            patch, context);
+                        if (exists.Activated ?? false) {
+                            patch.ActivationState = exists.ActivationState;
+                        }
+                        else {
+                            await ApplyActivationFilterAsync(result.DiscoveryConfig?.ActivationFilter,
+                                patch, context);
+                        }
                         if (exists != patch) {
                             await _iothub.PatchAsync(exists.Patch(patch), true);
                             var endpoint = patch.ToServiceModel();
-                            await _broker.NotifyAllAsync(
-                                l => l.OnEndpointUpdatedAsync(context, endpoint));
+
+                           // await _broker.NotifyAllAsync(
+                           //     l => l.OnEndpointUpdatedAsync(context, endpoint));
                             if (exists.IsDisabled ?? false) {
                                 await _broker.NotifyAllAsync(
                                     l => l.OnEndpointEnabledAsync(context, endpoint));
@@ -706,7 +747,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         private readonly IActivationServices<EndpointRegistrationModel> _activator;
-        private readonly IEndpointEventBroker _broker;
+        private readonly ICertificateServices<EndpointRegistrationModel> _certificates;
+        private readonly IRegistryEventBroker<IEndpointRegistryListener> _broker;
         private readonly Action _unregister;
         private readonly IIoTHubTwinServices _iothub;
         private readonly ILogger _logger;

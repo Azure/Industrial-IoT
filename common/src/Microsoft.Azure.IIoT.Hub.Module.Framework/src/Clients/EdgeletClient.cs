@@ -102,16 +102,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <summary>
-        /// Parse version out of image name
-        /// </summary>
-        /// <param name="image"></param>
-        /// <returns></returns>
-        private static string GetVersionFromImageName(string image) {
-            var index = image?.LastIndexOf(':') ?? -1;
-            return index == -1 ? null : image.Substring(index + 1);
-        }
-
-        /// <summary>
         /// Edgelet create certificate response
         /// </summary>
         public class EdgeletCertificateResponse {

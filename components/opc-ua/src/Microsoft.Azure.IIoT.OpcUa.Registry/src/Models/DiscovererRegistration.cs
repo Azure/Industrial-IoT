@@ -111,35 +111,72 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
         /// <inheritdoc/>
         public override bool Equals(object obj) {
-            var registration = obj as DiscovererRegistration;
-            return base.Equals(registration) &&
-                ModuleId == registration.ModuleId &&
-                LogLevel == registration.LogLevel &&
-                Discovery == registration.Discovery &&
-                AddressRangesToScan == registration.AddressRangesToScan &&
-                EqualityComparer<TimeSpan?>.Default.Equals(
-                    NetworkProbeTimeout, registration.NetworkProbeTimeout) &&
-                EqualityComparer<int?>.Default.Equals(
-                    MaxNetworkProbes, registration.MaxNetworkProbes) &&
-                PortRangesToScan == registration.PortRangesToScan &&
-                EqualityComparer<TimeSpan?>.Default.Equals(
-                    PortProbeTimeout, registration.PortProbeTimeout) &&
-                EqualityComparer<int?>.Default.Equals(
-                    MaxPortProbes, registration.MaxPortProbes) &&
-                EqualityComparer<int?>.Default.Equals(
-                    MinPortProbesPercent, registration.MinPortProbesPercent) &&
-                EqualityComparer<TimeSpan?>.Default.Equals(
-                    IdleTimeBetweenScans, registration.IdleTimeBetweenScans) &&
-                EqualityComparer<SecurityMode?>.Default.Equals(
-                    SecurityModeFilter, registration.SecurityModeFilter) &&
-                TrustListsFilter.DecodeAsList().SequenceEqualsSafe(
-                    registration.TrustListsFilter.DecodeAsList()) &&
-                SecurityPoliciesFilter.DecodeAsList().SequenceEqualsSafe(
-                    registration.SecurityPoliciesFilter.DecodeAsList()) &&
-                DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
-                    registration.DiscoveryUrls.DecodeAsList()) &&
-                Locales.DecodeAsList().SequenceEqualsSafe(
-                    registration.Locales.DecodeAsList());
+            if (!(obj is DiscovererRegistration registration)) {
+                return false;
+            }
+            if (!base.Equals(registration)) {
+                return false;
+            }
+            if (ModuleId != registration.ModuleId) {
+                return false;
+            }
+            if (LogLevel != registration.LogLevel) {
+                return false;
+            }
+            if (Discovery != registration.Discovery) {
+                return false;
+            }
+            if (AddressRangesToScan != registration.AddressRangesToScan) {
+                return false;
+            }
+            if (!EqualityComparer<TimeSpan?>.Default.Equals(
+                    NetworkProbeTimeout, registration.NetworkProbeTimeout)) {
+                return false;
+            }
+            if (!EqualityComparer<int?>.Default.Equals(
+                    MaxNetworkProbes, registration.MaxNetworkProbes)) {
+                return false;
+            }
+            if (PortRangesToScan != registration.PortRangesToScan) {
+                return false;
+            }
+            if (!EqualityComparer<TimeSpan?>.Default.Equals(
+                    PortProbeTimeout, registration.PortProbeTimeout)) {
+                return false;
+            }
+            if (!EqualityComparer<int?>.Default.Equals(
+                    MaxPortProbes, registration.MaxPortProbes)) {
+                return false;
+            }
+            if (!EqualityComparer<int?>.Default.Equals(
+                    MinPortProbesPercent, registration.MinPortProbesPercent)) {
+                return false;
+            }
+            if (!EqualityComparer<TimeSpan?>.Default.Equals(
+                    IdleTimeBetweenScans, registration.IdleTimeBetweenScans)) {
+                return false;
+            }
+            if (!EqualityComparer<SecurityMode?>.Default.Equals(
+                    SecurityModeFilter, registration.SecurityModeFilter)) {
+                return false;
+            }
+            if (!TrustListsFilter.DecodeAsList().SequenceEqualsSafe(
+                    registration.TrustListsFilter.DecodeAsList())) {
+                return false;
+            }
+            if (!SecurityPoliciesFilter.DecodeAsList().SequenceEqualsSafe(
+                    registration.SecurityPoliciesFilter.DecodeAsList())) {
+                return false;
+            }
+            if (!DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
+                    registration.DiscoveryUrls.DecodeAsList())) {
+                return false;
+            }
+            if (!Locales.DecodeAsList().SequenceEqualsSafe(
+                    registration.Locales.DecodeAsList())) {
+                return false;
+            }
+            return true;
         }
 
         /// <inheritdoc/>

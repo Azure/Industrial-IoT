@@ -160,7 +160,6 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             CancellationToken ct) {
             try {
                 Twin twin = null;
-
                 if (string.IsNullOrEmpty(moduleId)) {
                     twin = await _registry.GetTwinAsync(deviceId, ct);
                 }

@@ -55,11 +55,19 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
         }
 
         /// <summary>
-        /// Endpoint certificate thumbprint to validate
+        /// Endpoint certificate (Legacy)
         /// </summary>
         public Dictionary<string, string> Certificate {
             get => _certificate.EncodeAsDictionary();
             set => _certificate = value.DecodeAsByteArray();
+        }
+
+        /// <summary>
+        /// Endpoint certificate thumbprint to validate
+        /// </summary>
+        public string Thumbprint {
+            get => string.IsNullOrEmpty(_thumbprint) ? null : _thumbprint;
+            set => _thumbprint = string.IsNullOrEmpty(value) ? null : value;
         }
 
         /// <summary>
@@ -86,7 +94,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                     SecurityPolicy = _securityPolicy,
                     Url = _endpointUrl,
                     AlternativeUrls = _alternativeUrls?.DecodeAsList().ToHashSetSafe(),
-                    Certificate = _certificate
+                    Certificate = _thumbprint ?? _certificate?.ToThumbprint()
                 });
         }
 
@@ -94,6 +102,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
         private string _securityPolicy;
         private SecurityMode? _securityMode;
         private byte[] _certificate;
+        private string _thumbprint;
 #pragma warning disable IDE0032 // Use auto property
         private Dictionary<string, string> _alternativeUrls;
 #pragma warning restore IDE0032 // Use auto property

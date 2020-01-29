@@ -29,14 +29,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Supervisor public client cert
-        /// </summary>
-        [JsonProperty(PropertyName = "certificate",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public byte[] Certificate { get; set; }
-
-        /// <summary>
         /// Current log level
         /// </summary>
         [JsonProperty(PropertyName = "logLevel",

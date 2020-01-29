@@ -7,12 +7,13 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Api.Runtime;
+    using Microsoft.Azure.IIoT.Messaging.SignalR;
+    using Microsoft.Azure.IIoT.Messaging.SignalR.Runtime;
     using Microsoft.Extensions.Configuration;
-
     /// <summary>
     /// Configuration aggregation
     /// </summary>
-    public class Config : ApiConfig, IClientConfig {
+    public class Config : ApiConfig, IClientConfig, ISignalRServiceConfig {
 
         /// <inheritdoc/>
         public string AppId => _auth.AppId;
@@ -25,6 +26,9 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
         /// <inheritdoc/>
         public string Domain => _auth.Domain;
 
+        /// <inheritdoc/>
+        public string SignalRConnString => _sr.SignalRConnString;
+
         /// <summary>
         /// Configuration constructor
         /// </summary>
@@ -32,8 +36,10 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
         public Config(IConfiguration configuration) :
             base(configuration) {
             _auth = new ApiClientConfig(configuration);
+            _sr = new SignalRServiceConfig(configuration);
         }
 
         private readonly ApiClientConfig _auth;
+        private readonly SignalRServiceConfig _sr;
     }
 }

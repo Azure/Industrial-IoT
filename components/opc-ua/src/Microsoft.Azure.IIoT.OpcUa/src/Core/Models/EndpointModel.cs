@@ -33,8 +33,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         public SecurityMode? SecurityMode { get; set; }
 
         /// <summary>
-        /// Certificate that was used to register the endpoint with
+        /// Certificate thumbprint of the endpoint.
         /// </summary>
-        public byte[] Certificate { get; set; }
+        public string Certificate { get; set; }
     }
 }

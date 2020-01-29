@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using System;
 
     /// <summary>
@@ -49,9 +48,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
         public DateTime? NotAfterUtc { get; set; }
 
         /// <summary>
+        /// Self signed
+        /// </summary>
+        [JsonProperty(PropertyName = "selfSigned",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public bool? SelfSigned { get; set; }
+
+        /// <summary>
         /// Raw data
         /// </summary>
         [JsonProperty(PropertyName = "certificate")]
-        public JToken Certificate { get; set; }
+        public byte[] Certificate { get; set; }
     }
 }

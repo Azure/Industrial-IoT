@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
     /// <summary>
     /// Application event extensions
     /// </summary>
-    public static class ApplicationEventEx {
+    public static partial class ApplicationEventEx {
 
         /// <summary>
         /// Convert to api model
@@ -21,6 +21,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
             this ApplicationEventModel model) {
             return new ApplicationEventApiModel {
                 EventType = (ApplicationEventType)model.EventType,
+                Id = model.Id,
+                IsPatch = model.IsPatch,
                 Application = model.Application.Map<ApplicationInfoApiModel>()
             };
         }

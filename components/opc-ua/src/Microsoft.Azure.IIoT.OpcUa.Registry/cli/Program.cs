@@ -421,8 +421,8 @@ Operations (Mutually exclusive):
 
             /// <inheritdoc/>
             public Task OnApplicationDeletedAsync(RegistryOperationContextModel context,
-                ApplicationInfoModel application) {
-                Console.WriteLine($"Deleted {application.ApplicationId}");
+                string applicationId, ApplicationInfoModel application) {
+                Console.WriteLine($"Deleted {applicationId}");
                 return Task.CompletedTask;
             }
 
@@ -449,7 +449,7 @@ Operations (Mutually exclusive):
 
             /// <inheritdoc/>
             public Task OnApplicationUpdatedAsync(RegistryOperationContextModel context,
-                ApplicationInfoModel application) {
+                ApplicationInfoModel application, bool isPatch) {
                 Console.WriteLine($"Updated {application.ApplicationId}");
                 return Task.CompletedTask;
             }
@@ -470,8 +470,8 @@ Operations (Mutually exclusive):
 
             /// <inheritdoc/>
             public Task OnEndpointDeletedAsync(RegistryOperationContextModel context,
-                EndpointInfoModel endpoint) {
-                Console.WriteLine($"Deleted {endpoint.Registration.Id}");
+                string endpointId, EndpointInfoModel endpoint) {
+                Console.WriteLine($"Deleted {endpointId}");
                 return Task.CompletedTask;
             }
 
@@ -498,7 +498,7 @@ Operations (Mutually exclusive):
 
             /// <inheritdoc/>
             public Task OnEndpointUpdatedAsync(RegistryOperationContextModel context,
-                EndpointInfoModel endpoint) {
+                EndpointInfoModel endpoint, bool isPatch) {
                 Console.WriteLine($"Updated {endpoint.Registration.Id}");
                 return Task.CompletedTask;
             }

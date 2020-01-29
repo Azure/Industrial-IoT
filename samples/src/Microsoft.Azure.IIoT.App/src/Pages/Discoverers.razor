@@ -241,7 +241,8 @@
             _spinner = "";
             StateHasChanged();
 
-            _discovererEvent = await RegistryServiceEvents.SubscribeDiscovererEventsAsync(null, DiscovererEvent);
+            _discovererEvent = await RegistryServiceEvents.SubscribeDiscovererEventsAsync(null,
+                ev => InvokeAsync(() => DiscovererEvent(ev)));
         }
     }
 
@@ -393,6 +394,7 @@
     /// <param name="ev"></param>
     private Task DiscovererEvent(DiscovererEventApiModel ev)
     {
+        discovererList.Results.Update(ev);
         StateHasChanged();
         return Task.CompletedTask;
     }

@@ -11,14 +11,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Azure.IIoT.Http;
+    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System.Threading.Tasks;
     using System.ComponentModel.DataAnnotations;
     using System;
-    using Microsoft.Azure.IIoT.Http;
     using System.Linq;
-    using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
 
     /// <summary>
     /// Configure discovery

@@ -14,7 +14,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Events.Runtime {
     /// <summary>
     /// Eventing agent configuration
     /// </summary>
-    public class Config : DiagnosticsConfig, ISignalRServiceConfig, IServiceBusConfig {
+    public class Config : DiagnosticsConfig, ISignalRServiceConfig,
+        IServiceBusConfig {
 
         /// <inheritdoc/>
         public string ServiceBusConnString => _sb.ServiceBusConnString;

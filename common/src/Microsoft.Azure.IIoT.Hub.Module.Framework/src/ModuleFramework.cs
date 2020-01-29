@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
     using Microsoft.Azure.IIoT.Module.Framework.Hosting;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Tasks.Default;
     using Microsoft.Azure.IIoT.Tasks;
@@ -27,8 +26,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
             builder.RegisterType<EventSourceBroker>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ModuleHost>()
-                .AsImplementedInterfaces().InstancePerLifetimeScope();
-            builder.RegisterType<ChunkMethodClient>()
                 .AsImplementedInterfaces().InstancePerLifetimeScope();
 
             // Auto wire property for circular dependency resolution
@@ -51,8 +48,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework {
                 .AsImplementedInterfaces().SingleInstance()
                 .IfNotRegistered(typeof(ITaskScheduler));
 #endif
-            // Register http client module
-            builder.RegisterModule<HttpClientModule>();
+            // Register http (tunnel) client module
+            builder.RegisterModule<HttpTunnelClient>();
+
+            // Register edgelet client (uses http)
             builder.RegisterType<EdgeletClient>()
                 .AsImplementedInterfaces().SingleInstance();
 

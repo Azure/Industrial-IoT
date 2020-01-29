@@ -24,16 +24,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         Updated,
 
         /// <summary>
-        /// Connected
-        /// </summary>
-        Connected,
-
-        /// <summary>
-        /// Disconnected
-        /// </summary>
-        Disconnected,
-
-        /// <summary>
         /// Deleted
         /// </summary>
         Deleted,

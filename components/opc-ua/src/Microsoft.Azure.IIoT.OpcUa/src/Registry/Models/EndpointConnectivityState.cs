@@ -14,6 +14,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     public enum EndpointConnectivityState {
 
         /// <summary>
+        /// Client disconnected
+        /// </summary>
+        Disconnected,
+
+        /// <summary>
         /// Client connecting to endpoint
         /// </summary>
         Connecting,

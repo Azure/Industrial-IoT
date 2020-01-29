@@ -144,28 +144,65 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
         /// <inheritdoc/>
         public override bool Equals(object obj) {
-            var registration = obj as ApplicationRegistration;
-            return base.Equals(registration) &&
-                DiscovererId == registration.DiscovererId &&
-                ApplicationId == registration.ApplicationId &&
-                ApplicationType == registration.ApplicationType &&
-                ApplicationUriLC == registration.ApplicationUriLC &&
-                DiscoveryProfileUri == registration.DiscoveryProfileUri &&
-                UpdateTime == registration.UpdateTime &&
-                UpdateAuthorityId == registration.UpdateAuthorityId &&
-                CreateAuthorityId == registration.CreateAuthorityId &&
-                CreateTime == registration.CreateTime &&
-                GatewayServerUri == registration.GatewayServerUri &&
-                ProductUri == registration.ProductUri &&
-                HostAddresses.DecodeAsList().SequenceEqualsSafe(
-                    registration.HostAddresses.DecodeAsList()) &&
-                ApplicationName == registration.ApplicationName &&
-                LocalizedNames.DictionaryEqualsSafe(
-                    registration.LocalizedNames) &&
-                Capabilities.DecodeAsSet().SetEqualsSafe(
-                    registration.Capabilities.DecodeAsSet()) &&
-                DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
-                    registration.DiscoveryUrls.DecodeAsList());
+            if (!(obj is ApplicationRegistration registration)) {
+                return false;
+            }
+            if (!base.Equals(registration)) {
+                return false;
+            }
+            if (DiscovererId != registration.DiscovererId) {
+                return false;
+            }
+            if (ApplicationId != registration.ApplicationId) {
+                return false;
+            }
+            if (ApplicationType != registration.ApplicationType) {
+                return false;
+            }
+            if (ApplicationUriLC != registration.ApplicationUriLC) {
+                return false;
+            }
+            if (DiscoveryProfileUri != registration.DiscoveryProfileUri) {
+                return false;
+            }
+            if (UpdateTime != registration.UpdateTime) {
+                return false;
+            }
+            if (UpdateAuthorityId != registration.UpdateAuthorityId) {
+                return false;
+            }
+            if (CreateAuthorityId != registration.CreateAuthorityId) {
+                return false;
+            }
+            if (CreateTime != registration.CreateTime) {
+                return false;
+            }
+            if (GatewayServerUri != registration.GatewayServerUri) {
+                return false;
+            }
+            if (ProductUri != registration.ProductUri) {
+                return false;
+            }
+            if (!HostAddresses.DecodeAsList().SequenceEqualsSafe(
+               registration.HostAddresses.DecodeAsList())) {
+                return false;
+            }
+            if (ApplicationName != registration.ApplicationName) {
+                return false;
+            }
+            if (!LocalizedNames.DictionaryEqualsSafe(
+                registration.LocalizedNames)) {
+                return false;
+            }
+            if (!Capabilities.DecodeAsSet().SetEqualsSafe(
+                registration.Capabilities.DecodeAsSet())) {
+                return false;
+            }
+            if (!DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
+                registration.DiscoveryUrls.DecodeAsList())) {
+                return false;
+            }
+            return true;
         }
 
         /// <inheritdoc/>

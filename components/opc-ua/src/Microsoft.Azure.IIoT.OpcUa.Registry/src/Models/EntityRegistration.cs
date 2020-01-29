@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
-    using Microsoft.Azure.IIoT.Hub;
     using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
@@ -52,16 +51,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public virtual DateTime? NotSeenSince { get; set; }
 
         /// <summary>
-        /// Certificate hash
-        /// </summary>
-        public virtual string Thumbprint { get; set; }
-
-        /// <summary>
-        /// The certificate of the endpoint
-        /// </summary>
-        public virtual Dictionary<string, string> Certificate { get; set; }
-
-        /// <summary>
         /// Reported Type
         /// </summary>
         public virtual string Type { get; set; }
@@ -73,15 +62,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
         /// <inheritdoc/>
         public override bool Equals(object obj) {
-            var registration = obj as EntityRegistration;
-            return registration != null &&
-                DeviceId == registration.DeviceId &&
-                DeviceType == registration.DeviceType &&
-                SiteId == registration.SiteId &&
-                (IsDisabled ?? false) == (registration.IsDisabled ?? false) &&
-                NotSeenSince == registration.NotSeenSince &&
-                Certificate.DecodeAsByteArray().SequenceEqualsSafe(
-                    registration.Certificate.DecodeAsByteArray());
+            if (!(obj is EntityRegistration registration)) {
+                return false;
+            }
+            if (DeviceId != registration.DeviceId) {
+                return false;
+            }
+            if (DeviceType != registration.DeviceType) {
+                return false;
+            }
+            if (SiteId != registration.SiteId) {
+                return false;
+            }
+            if ((IsDisabled ?? false) != (registration.IsDisabled ?? false)) {
+                return false;
+            }
+            if (NotSeenSince != registration.NotSeenSince) {
+                return false;
+            }
+            return true;
         }
 
         /// <inheritdoc/>
@@ -105,8 +104,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 EqualityComparer<bool>.Default.GetHashCode(IsDisabled ?? false);
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<DateTime?>.Default.GetHashCode(NotSeenSince);
-            hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(Thumbprint);
             return hashCode;
         }
     }

@@ -5,14 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Microsoft.Azure.IIoT.Module.Framework.Services;
-    using Microsoft.Azure.IIoT.Module.Models;
     using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Azure.IIoT.Hub;
-    using Serilog;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.Devices.Client;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -38,19 +36,28 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <summary>
+        /// Property Di to prevent circular dependency between host and invoker
+        /// </summary>
+        public IEnumerable<IMethodInvoker> ExternalInvokers {
+            set {
+                foreach (var invoker in value) {
+                    _calltable.AddOrUpdate(invoker.MethodName, invoker);
+                }
+            }
+        }
+
+        /// <summary>
         /// Create router
         /// </summary>
         /// <param name="logger"></param>
-        /// <param name="invokers"></param>
-        public MethodRouter(ILogger logger, IEnumerable<IMethodInvoker> invokers = null) {
+        public MethodRouter(ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-            _calltable = invokers?.ToDictionary(i => i.MethodName, i => i) ??
-                new Dictionary<string, IMethodInvoker>();
-
-            // Create chunk server
-            var server = new ChunkMethodServer(this, logger);
-            _calltable.Add(MethodNames.Call, new ChunkMethodServerInvoker(server)); ;
+            // Create chunk server always
+            var server = new ChunkMethodServer(logger);
+            _calltable = new Dictionary<string, IMethodInvoker> {
+                { server.MethodName, server }
+            };
         }
 
         /// <inheritdoc/>
@@ -82,7 +89,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 throw new NotSupportedException(
                     $"Unknown controller method {method} called.");
             }
-            return await invoker.InvokeAsync(payload, contentType);
+            return await invoker.InvokeAsync(payload, contentType, this);
         }
 
         /// <summary>
@@ -138,38 +145,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <summary>
-        /// Manage chunked messages
-        /// </summary>
-        private class ChunkMethodServerInvoker : IMethodInvoker {
-
-            /// <inheritdoc/>
-            public string MethodName => MethodNames.Call;
-
-            /// <summary>
-            /// Create invoker
-            /// </summary>
-            /// <param name="server"></param>
-            public ChunkMethodServerInvoker(IChunkMethodServer server) {
-                _server = server;
-            }
-
-            /// <inheritdoc/>
-            public async Task<byte[]> InvokeAsync(byte[] payload, string contentType) {
-                var data = JsonConvertEx.DeserializeObject<MethodChunkModel>(
-                    Encoding.UTF8.GetString(payload));
-                data = await _server.ProcessAsync(data);
-                return Encoding.UTF8.GetBytes(JsonConvertEx.SerializeObject(data));
-            }
-
-            /// <inheritdoc/>
-            public void Dispose() {
-                _server.Dispose();
-            }
-
-            private readonly IChunkMethodServer _server;
-        }
-
-        /// <summary>
         /// Encapsulates invoking a matching service on the controller
         /// </summary>
         private class DynamicInvoker : IMethodInvoker {
@@ -198,11 +173,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
 
             /// <inheritdoc/>
-            public async Task<byte[]> InvokeAsync(byte[] payload, string contentType) {
+            public async Task<byte[]> InvokeAsync(byte[] payload, string contentType,
+                IMethodHandler handler) {
                 Exception e = null;
                 foreach (var invoker in _invokers) {
                     try {
-                        return await invoker.InvokeAsync(payload, contentType);
+                        return await invoker.InvokeAsync(payload, contentType, handler);
                     }
                     catch (Exception ex) {
                         // Save last, and continue
@@ -237,7 +213,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// </summary>
             private class DefaultFilter : ExceptionFilterAttribute {
                 public override Exception Filter(Exception exception, out int status) {
-                    status = (int)MethodResposeStatusCode.BadRequest;
+                    status = (int)MethodResponseStatusCode.BadRequest;
                     return exception;
                 }
             }
@@ -265,7 +241,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
 
             /// <inheritdoc/>
-            public Task<byte[]> InvokeAsync(byte[] payload, string contentType) {
+            public Task<byte[]> InvokeAsync(byte[] payload, string contentType,
+                IMethodHandler handler) {
                 object task;
                 try {
                     object[] inputs;

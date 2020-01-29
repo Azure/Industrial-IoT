@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             if (!secret.IsBase64()) {
                 throw new ArgumentException("not base64", nameof(secret));
             }
-            await CallServiceOnSupervisor("ActivateEndpoint_V2", registration.SupervisorId, new {
+            await CallServiceOnSupervisorAsync("ActivateEndpoint_V2", registration.SupervisorId, new {
                 registration.Id,
                 Secret = secret
             }, ct);
@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
             if (string.IsNullOrEmpty(registration.Id)) {
                 throw new ArgumentNullException(nameof(registration.Id));
             }
-            await CallServiceOnSupervisor("DeactivateEndpoint_V2", registration.SupervisorId,
+            await CallServiceOnSupervisorAsync("DeactivateEndpoint_V2", registration.SupervisorId,
                 registration.Id, ct);
         }
 
@@ -76,7 +76,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Clients {
         /// <param name="payload"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task CallServiceOnSupervisor(string service, string supervisorId,
+        private async Task CallServiceOnSupervisorAsync(string service, string supervisorId,
             object payload, CancellationToken ct) {
             var sw = Stopwatch.StartNew();
             var deviceId = SupervisorModelEx.ParseDeviceId(supervisorId,

@@ -43,7 +43,6 @@ namespace Microsoft.Azure.IIoT.Http {
             Encoding encoding, MediaTypeHeaderValue mediaType) {
             request.Content = new StringContent(content, encoding,
                 mediaType.MediaType);
-            request.Content.Headers.ContentType = mediaType;
             return request;
         }
 

@@ -78,10 +78,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2.Models {
         public string SecurityPolicy { get; set; }
 
         /// <summary>
-        /// Certificate to validate against or null to trust none.
+        /// Certificate thumbprint to validate against or 
+        /// null to trust none.
         /// </summary>
         [JsonProperty(PropertyName = "certificate",
             NullValueHandling = NullValueHandling.Ignore)]
-        public byte[] Certificate { get; set; }
+        public string Certificate { get; set; }
     }
 }

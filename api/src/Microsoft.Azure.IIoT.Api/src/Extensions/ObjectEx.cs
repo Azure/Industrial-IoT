@@ -19,6 +19,9 @@ namespace System {
         /// <param name="model"></param>
         /// <returns></returns>
         internal static T Map<T>(this object model) {
+            if (model == null) {
+                return default;
+            }
             return JsonConvertEx.DeserializeObject<T>(
                 JsonConvertEx.SerializeObject(model));
         }

@@ -18,10 +18,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public PublisherEventType EventType { get; set; }
 
         /// <summary>
-        /// Application
+        /// Publisher id
+        /// </summary>
+        [JsonProperty(PropertyName = "id",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string Id { get; set; }
+
+        /// <summary>
+        /// Publisher
         /// </summary>
         [JsonProperty(PropertyName = "publisher",
             NullValueHandling = NullValueHandling.Ignore)]
         public PublisherApiModel Publisher { get; set; }
+
+        /// <summary>
+        /// The information is provided as a patch
+        /// </summary>
+        [JsonProperty(PropertyName = "isPatch",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public bool? IsPatch { get; set; }
     }
 }

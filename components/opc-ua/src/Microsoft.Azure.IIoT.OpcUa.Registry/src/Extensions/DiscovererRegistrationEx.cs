@@ -337,6 +337,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="registration"></param>
         /// <returns></returns>
         public static DiscovererModel ToServiceModel(this DiscovererRegistration registration) {
+            if (registration == null) {
+                return null;
+            }
             return new DiscovererModel {
                 Discovery = registration.Discovery != DiscoveryMode.Off ?
                     registration.Discovery : (DiscoveryMode?)null,
@@ -427,6 +430,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="other"></param>
         internal static bool IsInSyncWith(this DiscovererRegistration registration,
             DiscovererRegistration other) {
+            if (registration == null) {
+                return other == null;
+            }
             return
                 other != null &&
                 registration.SiteId == other.SiteId &&

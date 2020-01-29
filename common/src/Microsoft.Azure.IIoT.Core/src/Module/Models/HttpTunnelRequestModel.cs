@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Module.Models {
     using Newtonsoft.Json;
-    using System;
     using System.Collections.Generic;
 
     /// <summary>
@@ -41,14 +40,15 @@ namespace Microsoft.Azure.IIoT.Module.Models {
         /// <summary>
         /// Headers
         /// </summary>
-        [JsonProperty(PropertyName = "headers",
+        [JsonProperty(PropertyName = "requestHeaders",
             NullValueHandling = NullValueHandling.Ignore)]
-        public Dictionary<string, List<string>> Headers { get; set; }
+        public Dictionary<string, List<string>> RequestHeaders { get; set; }
 
         /// <summary>
-        /// Number of chunks that follow
+        /// Headers
         /// </summary>
-        [JsonProperty(PropertyName = "chunks")]
-        public int Chunks { get; set; }
+        [JsonProperty(PropertyName = "contentHeaders",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public Dictionary<string, List<string>> ContentHeaders { get; set; }
     }
 }

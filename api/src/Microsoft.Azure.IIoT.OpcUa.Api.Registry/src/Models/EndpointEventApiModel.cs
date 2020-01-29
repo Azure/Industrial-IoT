@@ -18,10 +18,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public EndpointEventType EventType { get; set; }
 
         /// <summary>
+        /// Endpoint id
+        /// </summary>
+        [JsonProperty(PropertyName = "id",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string Id { get; set; }
+
+        /// <summary>
         /// Endpoint info
         /// </summary>
         [JsonProperty(PropertyName = "endpoint",
             NullValueHandling = NullValueHandling.Ignore)]
         public EndpointInfoApiModel Endpoint { get; set; }
+
+        /// <summary>
+        /// The information is provided as a patch
+        /// </summary>
+        [JsonProperty(PropertyName = "isPatch",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public bool? IsPatch { get; set; }
     }
 }

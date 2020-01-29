@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
     public sealed class DiscoveryEventHandler : IDeviceTelemetryHandler {
 
         /// <inheritdoc/>
-        public string MessageSchema => MessageSchemaTypes.DiscoveryEvents;
+        public string MessageSchema => Models.MessageSchemaTypes.DiscoveryEvents;
 
         /// <summary>
         /// Create handler

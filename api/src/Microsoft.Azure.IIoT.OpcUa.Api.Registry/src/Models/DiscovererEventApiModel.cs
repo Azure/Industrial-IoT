@@ -18,10 +18,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public DiscovererEventType EventType { get; set; }
 
         /// <summary>
+        /// Discoverer id
+        /// </summary>
+        [JsonProperty(PropertyName = "id",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string Id { get; set; }
+
+        /// <summary>
         /// Discoverer
         /// </summary>
         [JsonProperty(PropertyName = "discoverer",
             NullValueHandling = NullValueHandling.Ignore)]
         public DiscovererApiModel Discoverer { get; set; }
+
+        /// <summary>
+        /// The information is provided as a patch
+        /// </summary>
+        [JsonProperty(PropertyName = "isPatch",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public bool? IsPatch { get; set; }
     }
 }

@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.Module {
     using System;
     using System.Threading.Tasks;
     using System.Threading;
+    using System.Text;
 
     public class TestChunkServer : IJsonMethodClient, IMethodHandler {
 
@@ -19,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Module {
             Func<string, byte[], string, byte[]> handler) {
             MaxMethodPayloadCharacterCount = size;
             _handler = handler;
-            _server = new ChunkMethodServer(this, TraceLogger.Create());
+            _server = new ChunkMethodServer(TraceLogger.Create());
         }
 
         public IMethodClient CreateClient() {
@@ -31,9 +32,10 @@ namespace Microsoft.Azure.IIoT.Module {
         public async Task<string> CallMethodAsync(string deviceId,
             string moduleId, string method, string json, TimeSpan? timeout,
             CancellationToken ct) {
-            var processed = await _server.ProcessAsync(
-                JsonConvertEx.DeserializeObject<MethodChunkModel>(json));
-            return JsonConvertEx.SerializeObject(processed);
+            var payload = Encoding.UTF8.GetBytes(json);
+            var processed = await _server.InvokeAsync(payload,
+                ContentMimeType.Json, this);
+            return Encoding.UTF8.GetString(processed);
         }
 
         public Task<byte[]> InvokeAsync(string method, byte[] payload, string contentType) {

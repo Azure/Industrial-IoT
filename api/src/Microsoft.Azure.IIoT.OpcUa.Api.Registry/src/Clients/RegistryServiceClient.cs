@@ -592,6 +592,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
         }
 
         /// <inheritdoc/>
+        public async Task<X509CertificateChainApiModel> GetEndpointCertificateAsync(
+            string endpointId, CancellationToken ct) {
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
+            }
+            var uri = new UriBuilder($"{_serviceUri}/v2/endpoints/{endpointId}/certificate");
+            var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
+            response.Validate();
+            return response.GetContent<X509CertificateChainApiModel>();
+        }
+
+        /// <inheritdoc/>
         public async Task ActivateEndpointAsync(string endpointId, CancellationToken ct) {
             if (string.IsNullOrEmpty(endpointId)) {
                 throw new ArgumentNullException(nameof(endpointId));
@@ -786,6 +799,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return response.GetContent<GatewayInfoApiModel>();
+        }
+
+        /// <inheritdoc/>
+        public async Task SubscribeGatewayEventsAsync(string userId, CancellationToken ct) {
+            if (string.IsNullOrEmpty(userId)) {
+                throw new ArgumentNullException(nameof(userId));
+            }
+            var request = _httpClient.NewRequest(
+                $"{_serviceUri}/v2/gateways/events", _resourceId);
+            request.SetContent<string>(userId);
+            var response = await _httpClient.PutAsync(request, ct).ConfigureAwait(false);
+            response.Validate();
+        }
+
+        /// <inheritdoc/>
+        public async Task UnsubscribeGatewayEventsAsync(string userId,
+            CancellationToken ct) {
+            if (string.IsNullOrEmpty(userId)) {
+                throw new ArgumentNullException(nameof(userId));
+            }
+            var request = _httpClient.NewRequest(
+                $"{_serviceUri}/v2/gateways/events/{userId}", _resourceId);
+            var response = await _httpClient.DeleteAsync(request, ct).ConfigureAwait(false);
+            response.Validate();
         }
 
         private readonly IHttpClient _httpClient;

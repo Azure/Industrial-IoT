@@ -180,6 +180,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
             CancellationToken ct = default);
 
         /// <summary>
+        /// Get endpoint certificate
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<X509CertificateChainApiModel> GetEndpointCertificateAsync(
+            string endpointId, CancellationToken ct = default);
+
+        /// <summary>
         /// Set endpoint activation state to activated
         /// </summary>
         /// <param name="endpointId"></param>
@@ -210,8 +219,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
             int? pageSize = null, CancellationToken ct = default);
 
         /// <summary>
-        /// Find endpoint based on specified critiria. Pass continuation
-        /// token if any is returned to ListTwins to retrieve
+        /// Find endpoint based on specified criteria. Pass continuation
+        /// token if any is returned to ListEndpointsAsync to retrieve
         /// the remaining items
         /// </summary>
         /// <param name="query"></param>
@@ -551,6 +560,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// <returns></returns>
         Task<GatewayListApiModel> QueryGatewaysAsync(
             GatewayQueryApiModel query, int? pageSize = null,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Subscribe client to gateway events
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task SubscribeGatewayEventsAsync(string userId,
+            CancellationToken ct = default);
+
+        /// <summary>
+        /// Unsubscribe client from gateway events
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task UnsubscribeGatewayEventsAsync(string userId,
             CancellationToken ct = default);
     }
 }
