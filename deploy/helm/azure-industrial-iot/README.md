@@ -232,9 +232,28 @@ values.
 
 ### Azure Resources
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-|           |             |         |
+| Parameter                                                                                   | Description | Default                              |
+|---------------------------------------------------------------------------------------------|-------------|--------------------------------------|
+| `azure.tenantId`                                                                            |             | `null`                               |
+| `azure.iotHub.name`                                                                         |             | `null`                               |
+| `azure.iotHub.eventHub.endpoint`                                                            |             | `null`                               |
+| `azure.iotHub.eventHub.partitionCount`                                                      |             | `null`                               |
+| `azure.iotHub.eventHub.consumerGroup`                                                       |             | `null`                               |
+| `azure.iotHub.sharedAccessPolicies.iothubowner.connectionString`                            |             | `null`                               |
+| `azure.cosmosDB.connectionString`                                                           |             | `null`                               |
+| `azure.storageAccount.name`                                                                 |             | `null`                               |
+| `azure.storageAccount.accessKey`                                                            |             | `null`                               |
+| `azure.storageAccount.endpointSuffix`                                                       |             | `core.windows.net`                   |
+| `azure.eventHubNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString`   |             | `null`                               |
+| `azure.serviceBusNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString` |             | `null`                               |
+| `azure.keyVault.uri`                                                                        |             | `null`                               |
+| `azure.applicationInsights.name`                                                            |             | `null`                               |
+| `azure.applicationInsights.instrumentationKey`                                              |             | `null`                               |
+| `azure.auth.required`                                                                       |             | `true`                               |
+| `azure.auth.corsWhitelist`                                                                  |             | `*`                                  |
+| `azure.auth.servicesApp.audience`                                                           |             | `null`                               |
+| `azure.auth.clientsApp.appId`                                                               |             | `null`                               |
+| `azure.auth.clientsApp.authority`                                                           |             | `https://login.microsoftonline.com/` |
 
 ### RBAC
 
