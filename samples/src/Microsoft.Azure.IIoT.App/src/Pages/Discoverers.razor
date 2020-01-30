@@ -302,6 +302,10 @@
     private void OpenDrawer(DiscovererInfo discoverer)
     {
         IsOpened = true;
+        if (discoverer.DiscovererModel.DiscoveryConfig == null)
+        {
+            discoverer.DiscovererModel.DiscoveryConfig = new DiscoveryConfigApiModel();
+        }
         DiscovererData = discoverer;
     }
 

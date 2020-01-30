@@ -141,8 +141,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <returns></returns>
         public async Task<string> SetDiscoveryAsync(DiscovererInfo discoverer) {
             var model = discoverer.DiscovererModel.DiscoveryConfig;
-
             DiscoveryMode discoveryMode;
+
+            if (model == null) {
+                model = new DiscoveryConfigApiModel();
+            }
 
             if (discoverer.ScanStatus == true) {
                 discoveryMode = DiscoveryMode.Fast;
