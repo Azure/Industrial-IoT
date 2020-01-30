@@ -304,23 +304,23 @@ Deployment resource parameters in `values.yaml`.
 Use names from Azure Industrial IoT components list instead of `registry` for parameters for a different
 micro-service.
 
-| Parameter                                                 | Description                                                             | Default |
-|-----------------------------------------------------------|-------------------------------------------------------------------------|---------|
-| `deployment.microServices.registry.enabled`               | If true, resources associated with `registry` component will be created | `true`  |
-| `deployment.microServices.registry.deploymentAnnotations` | Annotations for the Deployment resource                                 | `{}`    |
-| `deployment.microServices.registry.podAnnotations`        | Annotations for the Pod within the Deployment resource                  | `{}`    |
-| `deployment.microServices.registry.extraLabels`           | Extra labels to add                                                     | `{}`    |
-| `deployment.microServices.registry.replicas`              | Number of replicas                                                      | `1`     |
-| `deployment.microServices.registry.extraArgs`             | Extra arguments to pass to the Pod                                      | `[]`    |
-| `deployment.microServices.registry.extraEnv`              | Extra environment variables to set for the Pod                          | `[]`    |
-| `deployment.microServices.registry.resources`             | Definition of resource requests and limits for the Pod                  | `{}`    |
+| Parameter                                                 | Description                                                              | Default |
+|-----------------------------------------------------------|--------------------------------------------------------------------------|---------|
+| `deployment.microServices.registry.enabled`               | If true, resources associated with `registry` component will be created  | `true`  |
+| `deployment.microServices.registry.deploymentAnnotations` | Annotations for the Deployment resource                                  | `{}`    |
+| `deployment.microServices.registry.podAnnotations`        | Annotations for the Pod within the Deployment resource                   | `{}`    |
+| `deployment.microServices.registry.extraLabels`           | Extra labels for the Deployment resource (will also be added to the Pod) | `{}`    |
+| `deployment.microServices.registry.replicas`              | Number of replicas                                                       | `1`     |
+| `deployment.microServices.registry.extraArgs`             | Extra arguments to pass to the Pod                                       | `[]`    |
+| `deployment.microServices.registry.extraEnv`              | Extra environment variables to set for the Pod                           | `[]`    |
+| `deployment.microServices.registry.resources`             | Definition of resource requests and limits for the Pod                   | `{}`    |
 
 ### Service Resource Configuration
 
 Service resource parameters in `values.yaml`.
 
-Please note that the only parameter that has different values for different components is `port`. Those
-are the service ports exposed by components:
+Please note that the only parameter that has different values for different components is `port`.
+Those are the service ports exposed by components:
 
 | Component                                        | Default service port |
 |--------------------------------------------------|----------------------|
@@ -346,8 +346,39 @@ micro-service.
 
 ### Ingress Resource Configuration
 
+Our Ingress resource template uses
+[fanout](https://kubernetes.io/docs/concepts/services-networking/ingress/#simple-fanout)
+configuration to expose components with web APIs.
+
 Ingress resource parameters in `values.yaml`.
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-|           |             |         |
+| Parameter                           | Description                                                                                                            | Default |
+|-------------------------------------|------------------------------------------------------------------------------------------------------------------------|---------|
+| `deployment.ingress.enabled`        | If true, one Ingress resource will be created for enabled Services                                                     | `false` |
+| `deployment.ingress.hostName`       | Host for the Ingress rule, multiple hosts are not supported                                                            | `null`  |
+| `deployment.ingress.extraLabels`    | Extra labels for the Ingress resource                                                                                  | `{}`    |
+| `deployment.ingress.annotations`    | Annotations for the Ingress resource                                                                                   | `{}`    |
+| `deployment.ingress.tls`            | Ingress [TLS configuration](https://kubernetes.io/docs/concepts/services-networking/ingress/#tls)                      | `[]`    |
+| `deployment.ingress.paths.registry` | Path on which `registry` component should be exposed. Should be set to enable for `registry`. See below for reference. | `null`  |
+| `deployment.ingress.paths.twin`     | Path on which `registry` component should be exposed. Should be set to enable for `registry`. See below for reference. | `null`  |
+| `deployment.ingress.paths.history`  | Path on which `registry` component should be exposed. Should be set to enable for `registry`. See below for reference. | `null`  |
+| `deployment.ingress.paths.gateway`  | Path on which `registry` component should be exposed. Should be set to enable for `registry`. See below for reference. | `null`  |
+| `deployment.ingress.paths.vault`    | Path on which `registry` component should be exposed. Should be set to enable for `registry`. See below for reference. | `null`  |
+
+If you are using [NGINX Ingress Controller](https://www.nginx.com/products/nginx/kubernetes-ingress-controller/),
+here are reference values for `deployment.ingress`:
+
+```yaml
+deployment:
+  ingress:
+    enabled: false
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/rewrite-target: /$1
+    paths:
+      registry: /registry/(.*)
+      twin: /twin/(.*)
+      history: /history/(.*)
+      gateway: /ua/(.*)
+      vault: /vault/(.*)
+```
