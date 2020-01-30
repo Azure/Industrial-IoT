@@ -167,7 +167,7 @@ Here are the steps to [create AAD App Registrations](https://github.com/Azure/In
 
 > **NOTE:** For any production deployment of Azure Industrial IoT solution it is required that those AAD
 App Registrations are created and details are provided to the chart. And we strongly recommend having those
-for non-production deployments as well, particularly if you have enables Ingress. If you choose to not have
+for non-production deployments as well, particularly if you have enabled Ingress. If you choose to not have
 them, then you would have to disable authentication by setting `azure.auth.required=false`.
 
 The following details of AAD App Registrations will be required:
@@ -381,4 +381,53 @@ deployment:
       history: /history/(.*)
       gateway: /ua/(.*)
       vault: /vault/(.*)
+```
+
+### Minimal Configuration
+
+Below is a reference of minimal `values.yaml` to provide to the chart. Note that it **disables**
+authentication. You have to fill in all value in `<>`.
+
+> **NOTE:** For any production deployment of Azure Industrial IoT solution it is required that AAD
+App Registrations are created and details are provided to the chart. And we strongly recommend having those
+for non-production deployments as well, particularly if you have enabled Ingress.
+
+```yaml
+azure:
+  tenantId: <TenantId>
+
+  iotHub:
+    name: <IoTHubName>
+
+    eventHub:
+      endpoint: <IoTHubEventHubEndpoint>
+      partitionCount: <IoTHubEventHubPartitions>
+      consumerGroup: <IoTHubEventHubConsumerGroup>
+
+    sharedAccessPolicies:
+      iothubowner:
+        connectionString: <IoTHubConnectionString>
+
+  cosmosDB:
+    connectionString: <CosmosDBConnectionString>
+
+  storageAccount:
+    name: <StorageAccountName>
+    accessKey: <StorageAccountAccessKey>
+
+  eventHubNamespace:
+    sharedAccessPolicies:
+      rootManageSharedAccessKey:
+        connectionString: <EventHubNamespaceConnectionString>
+
+  serviceBusNamespace:
+    sharedAccessPolicies:
+      rootManageSharedAccessKey:
+        connectionString: <ServiceBusNamespaceConnectionString>
+
+  keyVault:
+    uri: <KeyVaultURI>
+
+  auth:
+    required: false
 ```
