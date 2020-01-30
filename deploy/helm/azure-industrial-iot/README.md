@@ -298,7 +298,7 @@ Here is the list of all Azure Industrial IoT components that are deployed by thi
 | `modelProcessor`      | [Model Importer Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/graph.md)                  | `mcr.microsoft.com/iot/opc-processor-service:2.5.2`     |
 | `blobNotification`    | Blob Notification Service                                                                                           | `mcr.microsoft.com/iot/blob-notification-service:2.5.2` |
 
-### Deployment Resource Configuration
+#### Deployment Resource Configuration
 
 Deployment resource parameters in `values.yaml`.
 Use names from Azure Industrial IoT components list instead of `registry` for parameters for a different
@@ -315,7 +315,7 @@ micro-service.
 | `deployment.microServices.registry.extraEnv`              | Extra environment variables to set for the Pod                           | `[]`    |
 | `deployment.microServices.registry.resources`             | Definition of resource requests and limits for the Pod                   | `{}`    |
 
-### Service Resource Configuration
+#### Service Resource Configuration
 
 Service resource parameters in `values.yaml`.
 
@@ -344,7 +344,7 @@ micro-service.
 | `deployment.microServices.registry.service.loadBalancerSourceRanges` | Client IPs can access the Network Load Balancer                                                                                                            | `[]`        |
 | `deployment.microServices.registry.service.nodePort`                 | Port to be used as the service NodePort, used for Services of type [`NodePort`](https://kubernetes.io/docs/concepts/services-networking/service/#nodeport) | `null`      |
 
-### Ingress Resource Configuration
+#### Ingress Resource Configuration
 
 Our Ingress resource template uses
 [fanout](https://kubernetes.io/docs/concepts/services-networking/ingress/#simple-fanout)
