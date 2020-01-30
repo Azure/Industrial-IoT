@@ -371,7 +371,7 @@ here are reference values for `deployment.ingress`:
 ```yaml
 deployment:
   ingress:
-    enabled: false
+    enabled: true
     annotations:
       kubernetes.io/ingress.class: nginx
       nginx.ingress.kubernetes.io/rewrite-target: /$1
