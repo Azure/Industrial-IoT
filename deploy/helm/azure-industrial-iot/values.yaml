@@ -170,6 +170,7 @@ deployment:
       #   limits:
       #     memory: "256Mi"
       #     cpu: "150m"
+      resources: {}
 
       # .Values.deployment.microServices.registry.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
@@ -205,6 +206,7 @@ deployment:
       #   limits:
       #     memory: "256Mi"
       #     cpu: "150m"
+      resources: {}
 
       # .Values.deployment.microServices.twin.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
@@ -240,6 +242,7 @@ deployment:
       #   limits:
       #     memory: "256Mi"
       #     cpu: "150m"
+      resources: {}
 
       # .Values.deployment.microServices.history.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
@@ -275,6 +278,7 @@ deployment:
       #   limits:
       #     memory: "256Mi"
       #     cpu: "150m"
+      resources: {}
 
       # .Values.deployment.microServices.gateway.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
@@ -312,6 +316,7 @@ deployment:
       #   limits:
       #     memory: "256Mi"
       #     cpu: "150m"
+      resources: {}
 
       # .Values.deployment.microServices.vault.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
@@ -347,6 +352,7 @@ deployment:
       #   limits:
       #     memory: "256Mi"
       #     cpu: "150m"
+      resources: {}
 
       # .Values.deployment.microServices.alerting.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
@@ -368,6 +374,7 @@ deployment:
       #   limits:
       #     memory: "256Mi"
       #     cpu: "150m"
+      resources: {}
 
       # .Values.deployment.microServices.onboarding.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
@@ -389,6 +396,7 @@ deployment:
       #   limits:
       #     memory: "256Mi"
       #     cpu: "150m"
+      resources: {}
 
       # .Values.deployment.microServices.jobs.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
@@ -410,6 +418,7 @@ deployment:
       #   limits:
       #     memory: "256Mi"
       #     cpu: "150m"
+      resources: {}
 
       # .Values.deployment.microServices.modelProcessor.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
@@ -431,6 +440,7 @@ deployment:
       #   limits:
       #     memory: "256Mi"
       #     cpu: "150m"
+      resources: {}
 
       # .Values.deployment.microServices.blobNotification.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
@@ -448,7 +458,7 @@ deployment:
     annotations: {}
 
     # host for the Ingress. We do not support multiple hosts at the moment.
-    # hostName: null
+    hostName: null
 
     # Our recommended values to use with NGINX Ingress Controller.
     #
