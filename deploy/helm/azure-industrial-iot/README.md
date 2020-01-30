@@ -270,6 +270,84 @@ values.
 
 ### Deployed Components
 
+**Documentation**: [Azure Industrial IoT Platform Components](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/readme.md)
+
+Azure Industrial IoT comprises of ten micro-services that this chart will deploy as
+[Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) resources. Five of them
+expose web APIs. So for those the chart will also create [Service](https://kubernetes.io/docs/concepts/services-networking/service/)
+resources. For those five we also provide one [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/)
+that can be enabled.
+
+All micro-services have the same configuration parameters in `values.yaml`, so we will list them only for
+one service (`registry`) bellow. The ones that also have a Service resource associated with them have
+additional configuration parameters for that. But again, we will list configuration parameters for Service
+resource only for one micro-service (`registry`).
+
+Here is the list of all Azure Industrial IoT components that are deployed by this chart:
+
+| Name in `values.yaml` | Description                                                                                                         | Default Image                                           |
+|-----------------------|---------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------|
+| `registry`            | [Registry Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/registry.md)              | `mcr.microsoft.com/iot/opc-registry-service:2.5.2`      |
+| `twin`                | [OPC Twin Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/twin.md)                  | `mcr.microsoft.com/iot/opc-twin-service:2.5.2`          |
+| `history`             | [OPC Historian Access Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/history.md)   | `mcr.microsoft.com/iot/opc-history-service:2.5.2`       |
+| `gateway`             | [OPC Gateway Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/gateway.md)            | `mcr.microsoft.com/iot/opc-gateway-service:2.5.2`       |
+| `vault`               | [OPC Vault Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/vault.md)                | `mcr.microsoft.com/iot/opc-vault-service:2.5.2`         |
+| `alerting`            | [Registry Security Alerting Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/security.md)   | `mcr.microsoft.com/iot/opc-alerting-service:2.5.2`      |
+| `onboarding`          | [Registry Onboarding Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/onboarding.md) | `mcr.microsoft.com/iot/opc-onboarding-service:2.5.2`    |
+| `jobs`                | [Jobs Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/jobs.md)                      | `mcr.microsoft.com/iot/opc-jobs-service:2.5.2`          |
+| `modelProcessor`      | [Model Importer Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/graph.md)                  | `mcr.microsoft.com/iot/opc-processor-service:2.5.2`     |
+| `blobNotification`    | Blob Notification Service                                                                                           | `mcr.microsoft.com/iot/blob-notification-service:2.5.2` |
+
+### Deployment Resource Configuration
+
+Deployment resource parameters in `values.yaml`.
+Use names from Azure Industrial IoT components list instead of `registry` for parameters for a different
+micro-service.
+
+| Parameter                                                 | Description                                                             | Default |
+|-----------------------------------------------------------|-------------------------------------------------------------------------|---------|
+| `deployment.microServices.registry.enabled`               | If true, resources associated with `registry` component will be created | `true`  |
+| `deployment.microServices.registry.deploymentAnnotations` | Annotations for the Deployment resource                                 | `{}`    |
+| `deployment.microServices.registry.podAnnotations`        | Annotations for the Pod within the Deployment resource                  | `{}`    |
+| `deployment.microServices.registry.extraLabels`           | Extra labels to add                                                     | `{}`    |
+| `deployment.microServices.registry.replicas`              | Number of replicas                                                      | `1`     |
+| `deployment.microServices.registry.extraArgs`             | Extra arguments to pass to the Pod                                      | `[]`    |
+| `deployment.microServices.registry.extraEnv`              | Extra environment variables to set for the Pod                          | `[]`    |
+| `deployment.microServices.registry.resources`             | Definition of resource requests and limits for the Pod                  | `{}`    |
+
+### Service Resource Configuration
+
+Service resource parameters in `values.yaml`.
+
+Please note that the only parameter that has different values for different components is `port`. Those
+are the service ports exposed by components:
+
+| Component                                        | Default service port |
+|--------------------------------------------------|----------------------|
+| `deployment.microServices.registry.service.port` | `9042`               |
+| `deployment.microServices.twin.service.port`     | `9041`               |
+| `deployment.microServices.history.service.port`  | `9043`               |
+| `deployment.microServices.gateway.service.port`  | `9040`               |
+| `deployment.microServices.vault.service.port`    | `9044`               |
+
+Use names from Azure Industrial IoT components list instead of `registry` for parameters for a different
+micro-service.
+
+| Parameter                                                            | Description | Default     |
+|----------------------------------------------------------------------|-------------|-------------|
+| `deployment.microServices.registry.service.annotations`              |             | `{}`        |
+| `deployment.microServices.registry.service.type`                     |             | `ClusterIP` |
+| `deployment.microServices.registry.service.port`                     |             | `9042`      |
+| `deployment.microServices.registry.service.clusterIP`                |             | `null`      |
+| `deployment.microServices.registry.service.externalIPs`              |             | `[]`        |
+| `deployment.microServices.registry.service.loadBalancerIP`           |             | `null`      |
+| `deployment.microServices.registry.service.loadBalancerSourceRanges` |             | `[]`        |
+| `deployment.microServices.registry.service.nodePort`                 |             | `null`      |
+
+### Ingress Resource Configuration
+
+Ingress resource parameters in `values.yaml`.
+
 | Parameter | Description | Default |
 |-----------|-------------|---------|
 |           |             |         |
