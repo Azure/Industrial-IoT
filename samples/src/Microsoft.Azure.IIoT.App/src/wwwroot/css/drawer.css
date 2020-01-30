@@ -105,18 +105,3 @@
     text-overflow: ellipsis;
 }
 
-/* When the height of the screen is less than @screen-sm-min pixels, 
-   change the font-size of the links and position the 
-   close button again, so they don't overlap */
-@media screen and (max-height: @screen-sm-min) {
-    .drawer a {
-        font-size: 20px;
-    }
-}
-
-@media (max-width: @screen-xs-min) {
-    .drawer.drawer-right-open,
-    .drawer.drawer-right-open-big {
-        width: 100%;
-    }
-}
