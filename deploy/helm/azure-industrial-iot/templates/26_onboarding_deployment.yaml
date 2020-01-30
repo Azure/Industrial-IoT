@@ -54,7 +54,7 @@ spec:
 {{- end }}
       containers:
       - name: onboarding-service-container
-        image: {{ .Values.image.registry }}/opc-onboarding-service:{{ .Values.image.tag }}
+        image: {{ .Values.image.registry }}/{{ .Values.deployment.microServices.onboarding.imageRepository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         {{- if .Values.deployment.microServices.onboarding.extraArgs }}
         args:

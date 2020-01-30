@@ -54,7 +54,7 @@ spec:
 {{- end }}
       containers:
       - name: vault-service-container
-        image: {{ .Values.image.registry }}/opc-vault-service:{{ .Values.image.tag }}
+        image: {{ .Values.image.registry }}/{{ .Values.deployment.microServices.vault.imageRepository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         {{- if .Values.deployment.microServices.vault.extraArgs }}
         args:

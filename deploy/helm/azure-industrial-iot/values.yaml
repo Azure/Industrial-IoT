@@ -3,7 +3,7 @@
 # Details of Docker images.
 image:
   # image.registry is URL of Docker registry from where images will be pulled.
-  registry: mcr.microsoft.com/iot
+  registry: mcr.microsoft.com
   # image.tag defines which version of Docker images to pull.
   tag: 2.5.2
   # image.pullPolicy defines value of imagePullPolicy of deployments.
@@ -161,6 +161,7 @@ deployment:
       podAnnotations: {}
       extraLabels: {}
       replicas: 1
+      imageRepository: iot/opc-registry-service
       extraArgs: []
 
       # resources:
@@ -197,6 +198,7 @@ deployment:
       podAnnotations: {}
       extraLabels: {}
       replicas: 1
+      imageRepository: iot/opc-twin-service
       extraArgs: []
 
       # resources:
@@ -233,6 +235,7 @@ deployment:
       podAnnotations: {}
       extraLabels: {}
       replicas: 1
+      imageRepository: iot/opc-history-service
       extraArgs: []
 
       # resources:
@@ -269,6 +272,7 @@ deployment:
       podAnnotations: {}
       extraLabels: {}
       replicas: 1
+      imageRepository: iot/opc-gateway-service
       extraArgs: []
 
       # resources:
@@ -307,6 +311,7 @@ deployment:
       podAnnotations: {}
       extraLabels: {}
       replicas: 1
+      imageRepository: iot/opc-vault-service
       extraArgs: []
 
       # resources:
@@ -343,6 +348,7 @@ deployment:
       podAnnotations: {}
       extraLabels: {}
       replicas: 1
+      imageRepository: iot/opc-alerting-service
       extraArgs: []
 
       # resources:
@@ -365,6 +371,7 @@ deployment:
       podAnnotations: {}
       extraLabels: {}
       replicas: 1
+      imageRepository: iot/opc-onboarding-service
       extraArgs: []
 
       # resources:
@@ -387,6 +394,7 @@ deployment:
       podAnnotations: {}
       extraLabels: {}
       replicas: 1
+      imageRepository: iot/opc-jobs-service
       extraArgs: []
 
       # resources:
@@ -409,6 +417,7 @@ deployment:
       podAnnotations: {}
       extraLabels: {}
       replicas: 1
+      imageRepository: iot/opc-processor-service
       extraArgs: []
 
       # resources:
@@ -431,6 +440,7 @@ deployment:
       podAnnotations: {}
       extraLabels: {}
       replicas: 1
+      imageRepository: iot/blob-notification-service
       extraArgs: []
 
       # resources:

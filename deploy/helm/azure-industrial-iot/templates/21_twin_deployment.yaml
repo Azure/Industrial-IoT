@@ -54,7 +54,7 @@ spec:
 {{- end }}
       containers:
       - name: twin-service-container
-        image: {{ .Values.image.registry }}/opc-twin-service:{{ .Values.image.tag }}
+        image: {{ .Values.image.registry }}/{{ .Values.deployment.microServices.twin.imageRepository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         {{- if .Values.deployment.microServices.twin.extraArgs }}
         args:

@@ -300,35 +300,42 @@ Here is the list of all Azure Industrial IoT components that are deployed by thi
 
 #### Deployment Resource Configuration
 
-Deployment resource parameters in `values.yaml`.
+[Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) resource parameters in `values.yaml`.
+
 Use names from Azure Industrial IoT components list instead of `registry` for parameters for a different
 micro-service.
 
-| Parameter                                                 | Description                                                              | Default |
-|-----------------------------------------------------------|--------------------------------------------------------------------------|---------|
-| `deployment.microServices.registry.enabled`               | If true, resources associated with `registry` component will be created  | `true`  |
-| `deployment.microServices.registry.deploymentAnnotations` | Annotations for the Deployment resource                                  | `{}`    |
-| `deployment.microServices.registry.podAnnotations`        | Annotations for the Pod within the Deployment resource                   | `{}`    |
-| `deployment.microServices.registry.extraLabels`           | Extra labels for the Deployment resource (will also be added to the Pod) | `{}`    |
-| `deployment.microServices.registry.replicas`              | Number of replicas                                                       | `1`     |
-| `deployment.microServices.registry.extraArgs`             | Extra arguments to pass to the Pod                                       | `[]`    |
-| `deployment.microServices.registry.extraEnv`              | Extra environment variables to set for the Pod                           | `[]`    |
-| `deployment.microServices.registry.resources`             | Definition of resource requests and limits for the Pod                   | `{}`    |
+| Parameter                                                 | Description                                                              | Default                    |
+|-----------------------------------------------------------|--------------------------------------------------------------------------|----------------------------|
+| `deployment.microServices.registry.enabled`               | If true, resources associated with `registry` component will be created  | `true`                     |
+| `deployment.microServices.registry.deploymentAnnotations` | Annotations for the Deployment resource                                  | `{}`                       |
+| `deployment.microServices.registry.podAnnotations`        | Annotations for the Pod within the Deployment resource                   | `{}`                       |
+| `deployment.microServices.registry.extraLabels`           | Extra labels for the Deployment resource (will also be added to the Pod) | `{}`                       |
+| `deployment.microServices.registry.replicas`              | Number of replicas                                                       | `1`                        |
+| `deployment.microServices.registry.imageRepository`       | Docker Image Repository                                                  | `iot/opc-registry-service` |
+| `deployment.microServices.registry.extraArgs`             | Extra arguments to pass to the Pod                                       | `[]`                       |
+| `deployment.microServices.registry.extraEnv`              | Extra environment variables to set for the Pod                           | `[]`                       |
+| `deployment.microServices.registry.resources`             | Definition of resource requests and limits for the Pod                   | `{}`                       |
+
+Please note that the only parameter that has different values for different components is `imageRepository`.
+Those are the values of `imageRepository` for all components:
+
+| Configuration Parameter for Components                      | Default Image Repository        |
+|-------------------------------------------------------------|---------------------------------|
+| `deployment.microServices.registry.imageRepository`         | `iot/opc-registry-service`      |
+| `deployment.microServices.twin.imageRepository`             | `iot/opc-twin-service`          |
+| `deployment.microServices.history.imageRepository`          | `iot/opc-history-service`       |
+| `deployment.microServices.gateway.imageRepository`          | `iot/opc-gateway-service`       |
+| `deployment.microServices.vault.imageRepository`            | `iot/opc-vault-service`         |
+| `deployment.microServices.alerting.imageRepository`         | `iot/opc-alerting-service`      |
+| `deployment.microServices.onboarding.imageRepository`       | `iot/opc-onboarding-service`    |
+| `deployment.microServices.jobs.imageRepository`             | `iot/opc-jobs-service`          |
+| `deployment.microServices.modelProcessor.imageRepository`   | `iot/opc-processor-service`     |
+| `deployment.microServices.blobNotification.imageRepository` | `iot/blob-notification-service` |
 
 #### Service Resource Configuration
 
-Service resource parameters in `values.yaml`.
-
-Please note that the only parameter that has different values for different components is `port`.
-Those are the service ports exposed by components:
-
-| Component                                        | Default service port |
-|--------------------------------------------------|----------------------|
-| `deployment.microServices.registry.service.port` | `9042`               |
-| `deployment.microServices.twin.service.port`     | `9041`               |
-| `deployment.microServices.history.service.port`  | `9043`               |
-| `deployment.microServices.gateway.service.port`  | `9040`               |
-| `deployment.microServices.vault.service.port`    | `9044`               |
+[Service](https://kubernetes.io/docs/concepts/services-networking/service/) resource parameters in `values.yaml`.
 
 Use names from Azure Industrial IoT components list instead of `registry` for parameters for a different
 micro-service.
@@ -344,13 +351,24 @@ micro-service.
 | `deployment.microServices.registry.service.loadBalancerSourceRanges` | Client IPs can access the Network Load Balancer                                                                                                            | `[]`        |
 | `deployment.microServices.registry.service.nodePort`                 | Port to be used as the service NodePort, used for Services of type [`NodePort`](https://kubernetes.io/docs/concepts/services-networking/service/#nodeport) | `null`      |
 
+Please note that the only parameter that has different values for different components is `port`.
+Those are the service ports exposed by components:
+
+| Configuration Parameter for Components           | Default service port |
+|--------------------------------------------------|----------------------|
+| `deployment.microServices.registry.service.port` | `9042`               |
+| `deployment.microServices.twin.service.port`     | `9041`               |
+| `deployment.microServices.history.service.port`  | `9043`               |
+| `deployment.microServices.gateway.service.port`  | `9040`               |
+| `deployment.microServices.vault.service.port`    | `9044`               |
+
 #### Ingress Resource Configuration
 
 Our Ingress resource template uses
 [fanout](https://kubernetes.io/docs/concepts/services-networking/ingress/#simple-fanout)
 configuration to expose components with web APIs.
 
-Ingress resource parameters in `values.yaml`.
+[Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) resource parameters in `values.yaml`.
 
 | Parameter                           | Description                                                                                                            | Default |
 |-------------------------------------|------------------------------------------------------------------------------------------------------------------------|---------|
@@ -360,10 +378,10 @@ Ingress resource parameters in `values.yaml`.
 | `deployment.ingress.annotations`    | Annotations for the Ingress resource                                                                                   | `{}`    |
 | `deployment.ingress.tls`            | Ingress [TLS configuration](https://kubernetes.io/docs/concepts/services-networking/ingress/#tls)                      | `[]`    |
 | `deployment.ingress.paths.registry` | Path on which `registry` component should be exposed. Should be set to enable for `registry`. See below for reference. | `null`  |
-| `deployment.ingress.paths.twin`     | Path on which `registry` component should be exposed. Should be set to enable for `registry`. See below for reference. | `null`  |
-| `deployment.ingress.paths.history`  | Path on which `registry` component should be exposed. Should be set to enable for `registry`. See below for reference. | `null`  |
-| `deployment.ingress.paths.gateway`  | Path on which `registry` component should be exposed. Should be set to enable for `registry`. See below for reference. | `null`  |
-| `deployment.ingress.paths.vault`    | Path on which `registry` component should be exposed. Should be set to enable for `registry`. See below for reference. | `null`  |
+| `deployment.ingress.paths.twin`     | Path on which `twin` component should be exposed. Should be set to enable for `twin`. See below for reference.         | `null`  |
+| `deployment.ingress.paths.history`  | Path on which `history` component should be exposed. Should be set to enable for `history`. See below for reference.   | `null`  |
+| `deployment.ingress.paths.gateway`  | Path on which `gateway` component should be exposed. Should be set to enable for `gateway`. See below for reference.   | `null`  |
+| `deployment.ingress.paths.vault`    | Path on which `vault` component should be exposed. Should be set to enable for `vault`. See below for reference.       | `null`  |
 
 If you are using [NGINX Ingress Controller](https://www.nginx.com/products/nginx/kubernetes-ingress-controller/),
 here are reference values for `deployment.ingress`:

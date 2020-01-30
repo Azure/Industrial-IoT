@@ -54,7 +54,7 @@ spec:
 {{- end }}
       containers:
       - name: blob-notification-service-container
-        image: {{ .Values.image.registry }}/blob-notification-service:{{ .Values.image.tag }}
+        image: {{ .Values.image.registry }}/{{ .Values.deployment.microServices.blobNotification.imageRepository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         {{- if .Values.deployment.microServices.blobNotification.extraArgs }}
         args:

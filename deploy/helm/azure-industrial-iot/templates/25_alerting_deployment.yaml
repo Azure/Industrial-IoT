@@ -54,7 +54,7 @@ spec:
 {{- end }}
       containers:
       - name: alerting-service-container
-        image: {{ .Values.image.registry }}/opc-alerting-service:{{ .Values.image.tag }}
+        image: {{ .Values.image.registry }}/{{ .Values.deployment.microServices.alerting.imageRepository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         {{- if .Values.deployment.microServices.alerting.extraArgs }}
         args:

@@ -54,7 +54,7 @@ spec:
 {{- end }}
       containers:
       - name: gateway-service-container
-        image: {{ .Values.image.registry }}/opc-gateway-service:{{ .Values.image.tag }}
+        image: {{ .Values.image.registry }}/{{ .Values.deployment.microServices.gateway.imageRepository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         {{- if .Values.deployment.microServices.gateway.extraArgs }}
         args:

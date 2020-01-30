@@ -54,7 +54,7 @@ spec:
 {{- end }}
       containers:
       - name: history-service-container
-        image: {{ .Values.image.registry }}/opc-history-service:{{ .Values.image.tag }}
+        image: {{ .Values.image.registry }}/{{ .Values.deployment.microServices.history.imageRepository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         {{- if .Values.deployment.microServices.history.extraArgs }}
         args:

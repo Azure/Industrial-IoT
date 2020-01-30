@@ -54,7 +54,7 @@ spec:
 {{- end }}
       containers:
       - name: registry-service-container
-        image: {{ .Values.image.registry }}/opc-registry-service:{{ .Values.image.tag }}
+        image: {{ .Values.image.registry }}/{{ .Values.deployment.microServices.registry.imageRepository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         {{- if .Values.deployment.microServices.registry.extraArgs }}
         args:
