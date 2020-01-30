@@ -1721,6 +1721,7 @@ namespace OpcPublisher
                             // if we reached the send interval, but have nothing to send (only the opening square bracket is there), we continue
                             if (!gotItem && hubMessage.Position == 1)
                             {
+                                Logger.Verbose("Adding {seconds} seconds to current nextSendTime {nextSendTime}...", DefaultSendIntervalSeconds, nextSendTime);
                                 nextSendTime += TimeSpan.FromSeconds(DefaultSendIntervalSeconds);
                                 hubMessage.Position = 0;
                                 hubMessage.SetLength(0);
@@ -1749,7 +1750,12 @@ namespace OpcPublisher
                                 encodedhubMessage.ContentType = CONTENT_TYPE_OPCUAJSON;
                                 encodedhubMessage.ContentEncoding = CONTENT_ENCODING_UTF8;
 
-                                nextSendTime += TimeSpan.FromSeconds(DefaultSendIntervalSeconds);
+                                if (nextSendTime < DateTime.UtcNow)
+                                {
+                                    Logger.Verbose("Adding {seconds} seconds to current nextSendTime {nextSendTime}...", DefaultSendIntervalSeconds, nextSendTime);
+                                    nextSendTime += TimeSpan.FromSeconds(DefaultSendIntervalSeconds);
+                                }
+
                                 try
                                 {
                                     SentBytes += encodedhubMessage.GetBytes().Length;
