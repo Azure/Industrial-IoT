@@ -333,16 +333,16 @@ are the service ports exposed by components:
 Use names from Azure Industrial IoT components list instead of `registry` for parameters for a different
 micro-service.
 
-| Parameter                                                            | Description | Default     |
-|----------------------------------------------------------------------|-------------|-------------|
-| `deployment.microServices.registry.service.annotations`              |             | `{}`        |
-| `deployment.microServices.registry.service.type`                     |             | `ClusterIP` |
-| `deployment.microServices.registry.service.port`                     |             | `9042`      |
-| `deployment.microServices.registry.service.clusterIP`                |             | `null`      |
-| `deployment.microServices.registry.service.externalIPs`              |             | `[]`        |
-| `deployment.microServices.registry.service.loadBalancerIP`           |             | `null`      |
-| `deployment.microServices.registry.service.loadBalancerSourceRanges` |             | `[]`        |
-| `deployment.microServices.registry.service.nodePort`                 |             | `null`      |
+| Parameter                                                            | Description                                                                                                                                                | Default     |
+|----------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------|
+| `deployment.microServices.registry.service.annotations`              | Annotations for the Service resource                                                                                                                       | `{}`        |
+| `deployment.microServices.registry.service.type`                     | Type of Service                                                                                                                                            | `ClusterIP` |
+| `deployment.microServices.registry.service.port`                     | Port that service will be exposing                                                                                                                         | `9042`      |
+| `deployment.microServices.registry.service.clusterIP`                | [Cluster IP](https://kubernetes.io/docs/concepts/services-networking/service/#choosing-your-own-ip-address) address of the Service                         | `null`      |
+| `deployment.microServices.registry.service.externalIPs`              | [External IPs](https://kubernetes.io/docs/concepts/services-networking/service/#external-ips) for Service                                                  | `[]`        |
+| `deployment.microServices.registry.service.loadBalancerIP`           | Load balancer IP address for Services of type [`LoadBalancer`](https://kubernetes.io/docs/concepts/services-networking/service/#loadbalancer)              | `null`      |
+| `deployment.microServices.registry.service.loadBalancerSourceRanges` | Client IPs can access the Network Load Balancer                                                                                                            | `[]`        |
+| `deployment.microServices.registry.service.nodePort`                 | Port to be used as the service NodePort, used for Services of type [`NodePort`](https://kubernetes.io/docs/concepts/services-networking/service/#nodeport) | `null`      |
 
 ### Ingress Resource Configuration
 
