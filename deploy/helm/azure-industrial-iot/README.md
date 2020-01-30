@@ -223,12 +223,12 @@ values.
 
 ### Image
 
-| Parameter           | Description                              | Default                 |
-|---------------------|------------------------------------------|-------------------------|
-| `image.registry`    | URL of Docker Image Registry             | `mcr.microsoft.com/iot` |
-| `image.tag`         | Image tag                                | `2.5.2`                 |
-| `image.pullPolicy`  | Image pull policy                        | `IfNotPresent`          |
-| `image.pullSecrets` | docker-registry secret names as an array | `[]`                    |
+| Parameter           | Description                              | Default             |
+|---------------------|------------------------------------------|---------------------|
+| `image.registry`    | URL of Docker Image Registry             | `mcr.microsoft.com` |
+| `image.tag`         | Image tag                                | `2.5.2`             |
+| `image.pullPolicy`  | Image pull policy                        | `IfNotPresent`      |
+| `image.pullSecrets` | docker-registry secret names as an array | `[]`                |
 
 ### Azure Resources
 
