@@ -227,10 +227,10 @@ $ helm repo add azure-iiot https://azureiiot.blob.core.windows.net/helm
 Then, to install the chart with the release name `azure-iiot` you would run the following command **changing
 all values in `<>`** with the ones obtained by running commands in [Prerequisites](#prerequisites) section:
 
-> **NOTE:** The command bellow explicitly **disables** authentication for the components. For any production
-deployment of Azure Industrial IoT solution it is required that AAD App Registrations are created and details
-are provided to the chart. And we strongly recommend having those for non-production deployments as well,
-particularly if you have enabled Ingress.
+> **NOTE:** The command bellow explicitly **disables** authentication for the components
+(`azure.auth.required=false`). For any production deployment of Azure Industrial IoT solution it is required
+that AAD App Registrations are created and details are provided to the chart. And we strongly recommend
+having those for non-production deployments as well, particularly if you have enabled Ingress.
 
 ```bash
 $ helm install azure-iiot azure-iiot/azure-industrial-iot -n azure-iiot-ns \
@@ -446,13 +446,13 @@ deployment:
 
 ### Minimal Configuration
 
-Below is a reference of minimal `values.yaml` to provide to the chart. Note that it **disables**
-authentication. You have to **change all value in `<>`** with the ones obtained by running commands in
-[Prerequisites](#prerequisites) section:
+Below is a reference of minimal `values.yaml` to provide to the chart. You have to **change all value
+in `<>`** with the ones obtained by running commands in [Prerequisites](#prerequisites) section:
 
-> **NOTE:** For any production deployment of Azure Industrial IoT solution it is required that AAD
-App Registrations are created and details are provided to the chart. And we strongly recommend having those
-for non-production deployments as well, particularly if you have enabled Ingress.
+> **NOTE:** `values.yaml` sample bellow explicitly **disables** authentication for the components
+(`azure.auth.required=false`). For any production deployment of Azure Industrial IoT solution it is required
+that AAD App Registrations are created and details are provided to the chart. And we strongly recommend
+having those for non-production deployments as well, particularly if you have enabled Ingress.
 
 ```yaml
 azure:
