@@ -65,7 +65,7 @@ Note: the Postman requests will use an Authorization Code flow to authenticate t
 
 ## Download a sample set of API calls (Postman collection)
 
-1. Download the collection [here](media/OPCTwin.postman_collection1.0.json)
+1. Download the collection [here](media/OPCTwin.postman_collection.1.0.json)
 2. Import the collection by choosing 'Import' button at the top left of Postman.
 3. Create a new Environment named OPC Twin: within Postman at the top right click Manage Environments.
 4. Click Add.

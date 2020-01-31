@@ -501,7 +501,13 @@ Function New-Deployment() {
             }
             $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
             $templateParameters.Add("imagesNamespace", $namespace)
+            $templateParameters.Add("imagesTag", "latest")
             Write-Host "Using latest $($namespace) images from $($creds.dockerServer)."
+        }
+        else {
+            $templateParameters.Add("dockerServer", "mcr.microsoft.com")
+            $templateParameters.Add("imagesTag", "preview")
+            Write-Host "Using preview images from mcr.microsoft.com."
         }
 
         if ($script:type -eq "all") {
