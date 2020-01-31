@@ -72,67 +72,75 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
             if (applicationUri == null || applicationUri == string.Empty) {
                 // this is not a legacy publisher message
                 return new MonitoredItemSampleModel {
-                    Value = GetValue(value, out var typeId),
-                    TypeId = typeId?.ToString(),
+                    //Value = GetValue(value, out var typeId),
+                    Value = value,
+                    //TypeId = typeId?.ToString(),
+                    TypeId = sampleRoot.GetValueOrDefault<string>(
+                        nameof(MonitoredItemSampleModel.TypeId),
+                        StringComparison.InvariantCultureIgnoreCase),
                     Status = sampleRoot.GetValueOrDefault<string>(
                         nameof(MonitoredItemSampleModel.Status),
-                            StringComparison.InvariantCultureIgnoreCase),
+                        StringComparison.InvariantCultureIgnoreCase),
                     DataSetId = sampleRoot.GetValueOrDefault<string>(
                         nameof(MonitoredItemSampleModel.DataSetId),
-                            StringComparison.InvariantCultureIgnoreCase),
+                        StringComparison.InvariantCultureIgnoreCase),
                     Timestamp = sampleRoot.GetValueOrDefault<DateTime?>(
                         nameof(MonitoredItemSampleModel.Timestamp),
-                            StringComparison.InvariantCultureIgnoreCase),
+                        StringComparison.InvariantCultureIgnoreCase),
                     SubscriptionId = sampleRoot.GetValueOrDefault<string>(
                         nameof(MonitoredItemSampleModel.SubscriptionId),
-                            StringComparison.InvariantCultureIgnoreCase),
+                        StringComparison.InvariantCultureIgnoreCase),
                     EndpointId = sampleRoot.GetValueOrDefault<string>(
                         nameof(MonitoredItemSampleModel.EndpointId),
-                            StringComparison.InvariantCultureIgnoreCase),
+                        StringComparison.InvariantCultureIgnoreCase),
                     NodeId = sampleRoot.GetValueOrDefault<string>(
                         nameof(MonitoredItemSampleModel.NodeId),
-                            StringComparison.InvariantCultureIgnoreCase),
+                        StringComparison.InvariantCultureIgnoreCase),
                     SourcePicoseconds = dataValue.GetValueOrDefault<ushort?>(
                         nameof(MonitoredItemSampleModel.SourcePicoseconds),
-                            StringComparison.InvariantCultureIgnoreCase),
+                        StringComparison.InvariantCultureIgnoreCase),
                     ServerPicoseconds = dataValue.GetValueOrDefault<ushort?>(
                         nameof(MonitoredItemSampleModel.ServerPicoseconds),
-                            StringComparison.InvariantCultureIgnoreCase),
+                        StringComparison.InvariantCultureIgnoreCase),
                     SourceTimestamp = dataValue.GetValueOrDefault<DateTime?>(
                         nameof(MonitoredItemSampleModel.SourceTimestamp),
-                            StringComparison.InvariantCultureIgnoreCase),
+                        StringComparison.InvariantCultureIgnoreCase),
                     ServerTimestamp = dataValue.GetValueOrDefault<DateTime?>(
                         nameof(MonitoredItemSampleModel.ServerTimestamp),
-                            StringComparison.InvariantCultureIgnoreCase),
+                        StringComparison.InvariantCultureIgnoreCase),
                 };
             }
             else {
                 // legacy publisher message
                 return new MonitoredItemSampleModel {
-                    Value = GetValue(value, out var typeId),
-                    TypeId = typeId?.ToString(),
+                    //Value = GetValue(value, out var typeId),
+                    Value = value,
+                    //TypeId = typeId?.ToString(),
+                    TypeId = sampleRoot.GetValueOrDefault<string>(
+                        nameof(MonitoredItemSampleModel.TypeId),
+                        StringComparison.InvariantCultureIgnoreCase),
                     DataSetId = sampleRoot.GetValueOrDefault<string>(
-                    "DisplayName",
+                        "DisplayName",
                         StringComparison.InvariantCultureIgnoreCase),
                     Timestamp = sampleRoot.GetValueOrDefault<DateTime?>(
-                    nameof(MonitoredItemSampleModel.Timestamp),
+                        nameof(MonitoredItemSampleModel.Timestamp),
                         StringComparison.InvariantCultureIgnoreCase),
                     SubscriptionId = "LegacyPublisher",
                     EndpointId = applicationUri,
                     NodeId = sampleRoot.GetValueOrDefault<string>(
-                    nameof(MonitoredItemSampleModel.NodeId),
+                        nameof(MonitoredItemSampleModel.NodeId),
                         StringComparison.InvariantCultureIgnoreCase),
                     SourcePicoseconds = dataValue.GetValueOrDefault<ushort?>(
-                    nameof(MonitoredItemSampleModel.SourcePicoseconds),
+                        nameof(MonitoredItemSampleModel.SourcePicoseconds),
                         StringComparison.InvariantCultureIgnoreCase),
                     ServerPicoseconds = dataValue.GetValueOrDefault<ushort?>(
-                    nameof(MonitoredItemSampleModel.ServerPicoseconds),
+                        nameof(MonitoredItemSampleModel.ServerPicoseconds),
                         StringComparison.InvariantCultureIgnoreCase),
                     SourceTimestamp = dataValue.GetValueOrDefault<DateTime?>(
-                    nameof(MonitoredItemSampleModel.SourceTimestamp),
+                        nameof(MonitoredItemSampleModel.SourceTimestamp),
                         StringComparison.InvariantCultureIgnoreCase),
                     ServerTimestamp = dataValue.GetValueOrDefault<DateTime?>(
-                    nameof(MonitoredItemSampleModel.ServerTimestamp),
+                        nameof(MonitoredItemSampleModel.ServerTimestamp),
                         StringComparison.InvariantCultureIgnoreCase),
                 };
             }

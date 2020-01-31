@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
             foreach (var obj in data) {
                 sb.AppendLine();
                 foreach (var prop in info) {
-                    var str = prop.GetValue(obj, null)?.ToString();
+                    var str = prop.GetValue(obj)?.ToString();
                     if (str != null &&
                         (str.Contains(separator) ||
                         str.Contains("\"") || str.Contains("\r") ||
