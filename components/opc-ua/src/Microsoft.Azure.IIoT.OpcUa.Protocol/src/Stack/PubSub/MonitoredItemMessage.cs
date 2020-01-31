@@ -21,7 +21,7 @@ namespace Opc.Ua.PubSub {
         /// <summary>
         /// Node id
         /// </summary>
-        public NodeId NodeId { get; set; }
+        public ExpandedNodeId NodeId { get; set; }
 
         /// <summary>
         /// Subscription Id
@@ -64,14 +64,68 @@ namespace Opc.Ua.PubSub {
 
         /// <inheritdoc/>
         public void Decode(IDecoder decoder) {
-            throw new NotImplementedException();
+            MessageContentMask = decoder.ReadUInt32("ContentMask");
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.NodeId) != 0) {
+                NodeId = decoder.ReadExpandedNodeId(nameof(MonitoredItemMessageContentMask.NodeId));
+            }
+            Value = new DataValue();
+            
+            // todo check why Value is not encoded as DataValue type
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ServerTimestamp) != 0) {
+                Value.ServerTimestamp = decoder.ReadDateTime(nameof(MonitoredItemMessageContentMask.ServerTimestamp));
+            }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ServerPicoSeconds) != 0) {
+                Value.ServerPicoseconds = decoder.ReadUInt16(nameof(MonitoredItemMessageContentMask.ServerPicoSeconds));
+            }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.SourceTimestamp) != 0) {
+                Value.SourceTimestamp = decoder.ReadDateTime(nameof(MonitoredItemMessageContentMask.SourceTimestamp));
+            }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.SourcePicoSeconds) != 0) {
+                Value.SourcePicoseconds = decoder.ReadUInt16(nameof(MonitoredItemMessageContentMask.SourcePicoSeconds));
+            }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.StatusCode) != 0) {
+                Value.StatusCode = decoder.ReadStatusCode(nameof(MonitoredItemMessageContentMask.StatusCode));
+            }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.Status) != 0) {
+                var status = decoder.ReadString(nameof(MonitoredItemMessageContentMask.Status));
+            }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.EndpointUrl) != 0) {
+                EndpointUrl = decoder.ReadString(nameof(MonitoredItemMessageContentMask.EndpointUrl));
+            }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.SubscriptionId) != 0) {
+                SubscriptionId = decoder.ReadString(nameof(MonitoredItemMessageContentMask.SubscriptionId));
+            }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ApplicationUri) != 0) {
+                ApplicationUri = decoder.ReadString(nameof(MonitoredItemMessageContentMask.ApplicationUri));
+            }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.DisplayName) != 0) {
+                DisplayName = decoder.ReadString(nameof(MonitoredItemMessageContentMask.DisplayName));
+            }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) != 0) {
+                var timestamp = decoder.ReadDateTime(nameof(MonitoredItemMessageContentMask.Timestamp));
+            }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.PicoSeconds) != 0) {
+                var picoseconds = decoder.ReadUInt16(nameof(MonitoredItemMessageContentMask.PicoSeconds));
+            }
+
+            Value.WrappedValue = decoder.ReadVariant("Value");
+
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtraFields) != 0) {
+                var dictionary = (KeyValuePairCollection)decoder.ReadEncodeableArray("ExtensionFields", typeof(Ua.KeyValuePair));
+                ExtensionFields = new Dictionary<string, string>(dictionary.Count);
+                foreach (var item in dictionary) {
+                    ExtensionFields[item.Key.Name] = item.Value.ToString();
+                }
+            }
         }
 
         /// <inheritdoc/>
         public void Encode(IEncoder encoder) {
+            encoder.WriteUInt32("ContentMask", MessageContentMask);
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.NodeId) != 0) {
-                encoder.WriteNodeId(nameof(MonitoredItemMessageContentMask.NodeId), NodeId);
+                encoder.WriteExpandedNodeId(nameof(MonitoredItemMessageContentMask.NodeId), NodeId);
             }
+            // todo check why Value is not encoded as DataValue type
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ServerTimestamp) != 0) {
                 encoder.WriteDateTime(nameof(MonitoredItemMessageContentMask.ServerTimestamp),
                     Value?.ServerTimestamp ?? DateTime.MinValue);
@@ -124,9 +178,13 @@ namespace Opc.Ua.PubSub {
 
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtraFields) != 0) {
                 if (ExtensionFields != null) {
-                    foreach (var field in ExtensionFields) {
-                        encoder.WriteString(field.Key, field.Value);
+                    var dictionary = new KeyValuePairCollection();
+                    foreach (var item in ExtensionFields) {
+                        dictionary.Add(new Ua.KeyValuePair(){ 
+                            Key = item.Key, 
+                            Value = item.Value});
                     }
+                    encoder.WriteEncodeableArray("ExtensionFields", dictionary.ToArray(), typeof(Ua.KeyValuePair));
                 }
             }
         }
@@ -136,8 +194,22 @@ namespace Opc.Ua.PubSub {
             if (ReferenceEquals(this, encodeable)) {
                 return true;
             }
-
-            return false;
+            if (!(encodeable is MonitoredItemMessage wrapper)) {
+                return false;
+            }
+            if (!Utils.IsEqual(wrapper.MessageContentMask, MessageContentMask) ||
+                !Utils.IsEqual(wrapper.NodeId, NodeId) ||
+                !Utils.IsEqual(wrapper.SubscriptionId, SubscriptionId) ||
+                !Utils.IsEqual(wrapper.EndpointUrl, EndpointUrl) ||
+                !Utils.IsEqual(wrapper.ApplicationUri, ApplicationUri) ||
+                !Utils.IsEqual(wrapper.DisplayName, DisplayName) ||
+                !Utils.IsEqual(wrapper.Value, Value) ||
+                !Utils.IsEqual(wrapper.BinaryEncodingId, BinaryEncodingId) ||
+                !Utils.IsEqual(wrapper.TypeId, TypeId) ||
+                !Utils.IsEqual(wrapper.XmlEncodingId, XmlEncodingId)) {
+                return false;
+            }
+            return true;
         }
     }
 }

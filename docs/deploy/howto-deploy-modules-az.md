@@ -1,4 +1,4 @@
-# Deploy Industrial IoT Edge Modules using the Azure Portal
+# Deploy Industrial IoT Edge Modules using Azure CLI
 
 [Home](howto-install-iot-edge.md)
 
