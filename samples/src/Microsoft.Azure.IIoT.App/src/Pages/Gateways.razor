@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.Azure.IIoT.App.Components.Pager
+@using Microsoft.Azure.IIoT.App.Components.ErrorMessage
 @using Microsoft.Azure.IIoT.App.Data
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
@@ -36,6 +37,8 @@
 </table>
 <div class="loader-pos @_spinner"></div>
 
+<ErrorMessage PageError="@_pagedGatewayList.Error" Status="@null"></ErrorMessage>
+
 <Pager Result=@_gatewayList PageChanged=@((Page) => PagerPageChanged(Page)) />
 
 @code {
@@ -53,8 +56,9 @@
     /// Notify page change
     /// </summary>
     /// <param name="page"></param>
-    public void PagerPageChanged(int page) {
-        _pagedGatewayList = _gatewayList.GetPaged(page, PageLength);
+    public void PagerPageChanged(int page)
+    {
+        _pagedGatewayList = _gatewayList.GetPaged(page, PageLength, null);
         NavigationManager.NavigateTo("/gateways/" + page);
     }
 
@@ -73,7 +77,7 @@
         if (firstRender) {
             _gatewayList = await RegistryHelper.GetGatewayListAsync();
             Page = "1";
-            _pagedGatewayList = _gatewayList.GetPaged(Int32.Parse(Page), PageLength);
+            _pagedGatewayList = _gatewayList.GetPaged(Int32.Parse(Page), PageLength, _gatewayList.Error);
             _spinner = "";
             StateHasChanged();
             _gatewayEvent = await RegistryServiceEvents.SubscribeGatewayEventsAsync(null,

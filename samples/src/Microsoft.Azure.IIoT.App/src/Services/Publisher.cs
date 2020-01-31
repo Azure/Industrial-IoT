@@ -49,6 +49,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 Trace.TraceError("Cannot get published nodes for endpointId'{0}'", endpointId);
                 var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceError(errorMessage);
+                pageResult.Error = e.Message;
             }
             pageResult.PageSize = 10;
             pageResult.RowCount = pageResult.Results.Count;

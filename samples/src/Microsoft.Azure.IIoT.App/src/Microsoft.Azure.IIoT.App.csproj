@@ -3,14 +3,17 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="BuildBundlerMinifier" Version="3.2.435" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="3.1.0" />
     <PackageReference Include="Microsoft.Azure.SignalR.Management" Version="1.2.3" />
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Components\ErrorMessage\" />
     <Folder Include="Components\Pager\" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="bundleconfig.json" />
     <None Include="wwwroot\css\drawer.css" />
   </ItemGroup>
   <ItemGroup>
@@ -24,6 +27,7 @@
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Http.SignalR\src\Microsoft.Azure.IIoT.Http.SignalR.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Content Remove="bundleconfig.json" />
     <Content Remove="container.json" />
     <None Include="container.json" />
   </ItemGroup>

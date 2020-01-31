@@ -116,11 +116,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 Trace.TraceError("Can not browse node '{0}'", id);
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceError(errorMessage);
-                pageResult.Results.Add(new ListNode {
-                    NodeName = e.Message,
-                    DiscovererId = discovererId,
-                    ParentName = "Root"
-                });
+                pageResult.Error = e.Message;
             }
 
             pageResult.PageSize = 10;

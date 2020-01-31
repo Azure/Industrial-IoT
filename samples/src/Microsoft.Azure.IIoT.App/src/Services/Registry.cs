@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
     using System.Linq;
     using System.Diagnostics;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Mvc.RazorPages;
 
     public class Registry {
 
@@ -49,6 +50,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 Trace.TraceWarning("Can not get endpoint list");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceWarning(errorMessage);
+                pageResult.Error = e.Message;
             }
 
             pageResult.PageSize = 10;
@@ -96,9 +98,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 Trace.TraceWarning("Can not get discoverers as list");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceWarning(errorMessage);
-                pageResult.Results.Add(new DiscovererInfo {
-                    DiscovererModel = new DiscovererApiModel { Id = e.Message }
-                });
+                pageResult.Error = e.Message;
             }
 
             pageResult.PageSize = 10;
@@ -128,9 +128,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 Trace.TraceWarning("Can not get applications list");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceWarning(errorMessage);
-                pageResult.Results.Add(new ApplicationInfoApiModel {
-                    ApplicationId = e.Message
-                });
+                pageResult.Error = e.Message;
             }
 
             pageResult.PageSize = 10;
@@ -144,10 +142,13 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// </summary>
         /// <param name="discoverer"></param>
         /// <returns></returns>
-        public async Task SetDiscoveryAsync(DiscovererInfo discoverer) {
+        public async Task<string> SetDiscoveryAsync(DiscovererInfo discoverer) {
             var model = discoverer.DiscovererModel.DiscoveryConfig;
-
             DiscoveryMode discoveryMode;
+
+            if (model == null) {
+                model = new DiscoveryConfigApiModel();
+            }
 
             if (discoverer.ScanStatus == true) {
                 discoveryMode = DiscoveryMode.Fast;
@@ -162,7 +163,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
             catch (Exception exception) {
                 var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
                 Trace.TraceError(errorMessageTrace);
+                return errorMessageTrace;
             }
+            return null;
         }
 
         /// <summary>
@@ -171,7 +174,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="discoverer"></param>
         /// <param name="config"></param>
         /// <returns></returns>
-        public async Task UpdateDiscovererAsync(DiscovererInfo discoverer, DiscoveryConfigApiModel config) {
+        public async Task<string> UpdateDiscovererAsync(DiscovererInfo discoverer, DiscoveryConfigApiModel config) {
             var model = new DiscovererUpdateApiModel();
             model.DiscoveryConfig = discoverer.DiscovererModel.DiscoveryConfig;
 
@@ -209,7 +212,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
             catch (Exception exception) {
                 var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
                 Trace.TraceError(errorMessageTrace);
+                return errorMessageTrace;
             }
+            return null;
         }
 
         /// <summary>
@@ -233,9 +238,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 Trace.TraceWarning("Can not get gateways list");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceWarning(errorMessage);
-                pageResult.Results.Add(new GatewayApiModel {
-                    Id = e.Message
-                });
+                pageResult.Error = e.Message;
             }
 
             pageResult.PageSize = 10;
@@ -265,9 +268,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 Trace.TraceWarning("Can not get publisher list");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceWarning(errorMessage);
-                pageResult.Results.Add(new PublisherApiModel {
-                    Id = e.Message
-                });
+                pageResult.Error = e.Message;
             }
 
             pageResult.PageSize = 10;
