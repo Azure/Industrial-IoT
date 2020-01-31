@@ -167,6 +167,10 @@ app {
     width: 60%;
 }
 
+.error {
+    text-align:center;
+}
+
 @media (max-width: 767.98px) {
     .main .top-row {
         display: none;
