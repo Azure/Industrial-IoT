@@ -11,11 +11,12 @@ namespace Microsoft.Azure.IIoT.App.Data {
     /// Page extensions
     /// </summary>
     public static class PagedResultEx {
-        public static PagedResult<T> GetPaged<T>(this PagedResult<T> query, int page, int pageSize) where T : class {
+        public static PagedResult<T> GetPaged<T>(this PagedResult<T> query, int page, int pageSize, string error) where T : class {
             var result = new PagedResult<T> {
                 CurrentPage = page,
                 PageSize = pageSize,
-                RowCount = query.Results.Count
+                RowCount = query.Results.Count,
+                Error = error
             };
 
             var pageCount = (double)result.RowCount / pageSize;
