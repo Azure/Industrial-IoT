@@ -26,7 +26,7 @@ This will be present if you have an Azure account. The chart only needs Guid rep
 This can be obtained with the following command:
 
 ```bash
-az account show --query "tenantId"
+$ az account show --query "tenantId"
 ```
 
 #### Azure IoT Hub
@@ -44,28 +44,28 @@ The following details of the Azure IoT Hub would be required:
     This can be obtained with the following command:
 
     ```bash
-    az iot hub show --name MyIotHub --query "properties.eventHubEndpoints.events.endpoint"
+    $ az iot hub show --name MyIotHub --query "properties.eventHubEndpoints.events.endpoint"
     ```
 
   * Number of partitions.
     This can be obtained with the following command:
 
     ```bash
-    az iot hub show --name MyIotHub --query "properties.eventHubEndpoints.events.partitionCount"
+    $ az iot hub show --name MyIotHub --query "properties.eventHubEndpoints.events.partitionCount"
     ```
 
   * A consumer group name. Please create a new consumer group for components of Azure Industrial IoT.
     You can call it `onboarding`, for example. This can be created with the following command:
 
     ```bash
-    az iot hub consumer-group create --hub-name MyIotHub --name onboarding
+    $ az iot hub consumer-group create --hub-name MyIotHub --name onboarding
     ```
 
 * Connection string of `iothubowner` policy for the Azure IoT Hub.
   This can be obtained with the following command:
 
   ```bash
-  az iot hub show-connection-string --name MyIotHub --policy-name iothubowner
+  $ az iot hub show-connection-string --name MyIotHub --policy-name iothubowner
   ```
 
   `iothubowner` policy is required because the components will perform management activities on Azure IoT Hub
@@ -81,7 +81,7 @@ The following details of the Azure Cosmos DB account would be required:
 * Connection string. This can be obtained with the following command:
 
   ```bash
-  az cosmosdb keys list --resource-group MyResourceGroup --name MyCosmosDBDatabaseAccount --query "primaryMasterKey"
+  $ az cosmosdb keys list --resource-group MyResourceGroup --name MyCosmosDBDatabaseAccount --query "primaryMasterKey"
   ```
 
   Either `primaryMasterKey` or `secondaryMasterKey` is required because Azure Industrial IoT components
@@ -99,7 +99,7 @@ The following details of the Azure Storage account would be required:
   This can be obtained with the following command:
 
   ```bash
-  az storage account keys list --account-name MyStorageAccount --query "[0].value"
+  $ az storage account keys list --account-name MyStorageAccount --query "[0].value"
   ```
 
 #### Azure Event Hub Namespace
@@ -113,7 +113,7 @@ The following details of the Azure Event Hub namespace would be required:
   This can be obtained with the following command:
 
   ```bash
-  az eventhubs namespace authorization-rule keys list --resource-group MyResourceGroup --namespace-name mynamespace --name RootManageSharedAccessKey --query "primaryConnectionString"
+  $ az eventhubs namespace authorization-rule keys list --resource-group MyResourceGroup --namespace-name mynamespace --name RootManageSharedAccessKey --query "primaryConnectionString"
   ```
 
   Both `primaryConnectionString` and `secondaryConnectionString` would work. `RootManageSharedAccessKey` is
@@ -130,7 +130,7 @@ The following details of the Azure Event Hub namespace would be required:
   This can be obtained with the following command:
 
   ```bash
-  az servicebus namespace authorization-rule keys list --resource-group MyResourceGroup --namespace-name mynamespace --name RootManageSharedAccessKey --query "primaryConnectionString"
+  $ az servicebus namespace authorization-rule keys list --resource-group MyResourceGroup --namespace-name mynamespace --name RootManageSharedAccessKey --query "primaryConnectionString"
   ```
 
   Both `primaryConnectionString` and `secondaryConnectionString` would work. `RootManageSharedAccessKey` is
@@ -146,7 +146,7 @@ The following details of the Azure Key Vault would be required:
 * URI, also referred as DNS Name. This can be obtained with the following command:
 
   ```bash
-  az keyvault show --name MyKeyVault --query "properties.vaultUri"
+  $ az keyvault show --name MyKeyVault --query "properties.vaultUri"
   ```
 
 ### Recommended Azure Resources
@@ -175,7 +175,7 @@ The following details of AAD App Registrations will be required:
 * Application ID URI for **ServicesApp**. This can be obtained with the following command:
 
   ```bash
-  az ad app show --id 00000000-0000-0000-0000-000000000000 --query "identifierUris[0]"
+  $ az ad app show --id 00000000-0000-0000-0000-000000000000 --query "identifierUris[0]"
   ```
 
   Here you should use object ID of **ServicesApp** AAD App Registrations instead of
@@ -185,7 +185,7 @@ The following details of AAD App Registrations will be required:
   This can be obtained with the following command:
 
   ```bash
-  az ad app show --id 00000000-0000-0000-0000-000000000000 --query "appId"
+  $ az ad app show --id 00000000-0000-0000-0000-000000000000 --query "appId"
   ```
 
   Here you should use object ID of **ClientsApp** AAD App Registrations instead of
@@ -203,7 +203,7 @@ To run the command below you will require `application-insights` extension for A
 run the following command:
 
 ```bash
-az extension add --name application-insights
+$ az extension add --name application-insights
 ```
 
 The following details of the Azure Application Insights would be required:
@@ -213,8 +213,51 @@ The following details of the Azure Application Insights would be required:
   This can be obtained with the following command:
 
   ```bash
-  az monitor app-insights component show --resource-group MyResourceGroup --app MyAppInsights --query "instrumentationKey"
+  $ az monitor app-insights component show --resource-group MyResourceGroup --app MyAppInsights --query "instrumentationKey"
   ```
+
+## Installing the Chart
+
+To install the chart first ensure that you've added `azure-iiot` repository:
+
+```bash
+$ helm repo add azure-iiot https://azureiiot.blob.core.windows.net/helm
+```
+
+Then, to install the chart with the release name `azure-iiot` you would run the following command **changing
+all values in `<>`** with the ones obtained by running commands in [Prerequisites](#prerequisites) section:
+
+> **NOTE:** The command bellow explicitly **disables** authentication for the components. For any production
+deployment of Azure Industrial IoT solution it is required that AAD App Registrations are created and details
+are provided to the chart. And we strongly recommend having those for non-production deployments as well,
+particularly if you have enabled Ingress.
+
+```bash
+$ helm install azure-iiot azure-iiot/azure-industrial-iot -n azure-iiot-ns \
+  --set azure.tenantId=<TenantId> \
+  --set azure.iotHub.name=<IoTHubName> \
+  --set azure.iotHub.eventHub.endpoint=<IoTHubEventHubEndpoint> \
+  --set azure.iotHub.eventHub.partitionCount=<IoTHubEventHubPartitions> \
+  --set azure.iotHub.eventHub.consumerGroup=<IoTHubEventHubConsumerGroup> \
+  --set azure.iotHub.sharedAccessPolicies.iothubowner.connectionString=<IoTHubConnectionString> \
+  --set azure.cosmosDB.connectionString=<CosmosDBConnectionString> \
+  --set azure.storageAccount.name=<StorageAccountName> \
+  --set azure.storageAccount.accessKey=<StorageAccountAccessKey> \
+  --set azure.eventHubNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString=<EventHubNamespaceConnectionString> \
+  --set azure.serviceBusNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString=<ServiceBusNamespaceConnectionString> \
+  --set azure.keyVault.uri=<KeyVaultURI> \
+  --set azure.auth.required=false
+```
+
+Alternatively, a YAML file that specifies the values for the parameters can be provided while installing
+the chart. For example:
+
+```bash
+$ helm install azure-iiot azure-iiot/azure-industrial-iot -n azure-iiot-ns -f values.yaml
+```
+
+For reference sample of this `values.yam` file please check [Minimal Configuration](#minimal-configuration)
+section.
 
 ## Configuration
 
@@ -404,7 +447,8 @@ deployment:
 ### Minimal Configuration
 
 Below is a reference of minimal `values.yaml` to provide to the chart. Note that it **disables**
-authentication. You have to fill in all value in `<>`.
+authentication. You have to **change all value in `<>`** with the ones obtained by running commands in
+[Prerequisites](#prerequisites) section:
 
 > **NOTE:** For any production deployment of Azure Industrial IoT solution it is required that AAD
 App Registrations are created and details are provided to the chart. And we strongly recommend having those
