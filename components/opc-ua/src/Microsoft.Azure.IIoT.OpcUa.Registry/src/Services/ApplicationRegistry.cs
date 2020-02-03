@@ -400,6 +400,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         private readonly IEndpointBulkProcessor _bulk;
         private readonly IApplicationEndpointRegistry _endpoints;
         private readonly IApplicationEventBroker _broker;
-
     }
 }
