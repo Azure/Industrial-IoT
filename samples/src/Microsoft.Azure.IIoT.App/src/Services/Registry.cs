@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
     using System.Linq;
     using System.Diagnostics;
     using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Mvc.RazorPages;
 
     public class Registry {
 
@@ -46,6 +47,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 Trace.TraceWarning("Can not get endpoint list");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceWarning(errorMessage);
+                pageResult.Error = e.Message;
             }
 
             pageResult.PageSize = 10;
@@ -93,9 +95,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 Trace.TraceWarning("Can not get discoverers as list");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceWarning(errorMessage);
-                pageResult.Results.Add(new DiscovererInfo {
-                    DiscovererModel = new DiscovererApiModel { Id = e.Message }
-                });
+                pageResult.Error = e.Message;
             }
 
             pageResult.PageSize = 10;
@@ -125,9 +125,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 Trace.TraceWarning("Can not get applications list");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceWarning(errorMessage);
-                pageResult.Results.Add(new ApplicationInfoApiModel {
-                    ApplicationId = e.Message
-                });
+                pageResult.Error = e.Message;
             }
 
             pageResult.PageSize = 10;
@@ -140,53 +138,80 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// SetScanAsync
         /// </summary>
         /// <param name="discoverer"></param>
-        /// <param name="ipMask"></param>
-        /// <param name="portRange"></param>
-        /// <param name="forceScan"></param>
         /// <returns></returns>
-        public async Task SetScanAsync(DiscovererInfo discoverer, string ipMask, string portRange, bool forceScan) {
-            var model = new DiscoveryConfigApiModel();
-
+        public async Task<string> SetDiscoveryAsync(DiscovererInfo discoverer) {
+            var model = discoverer.DiscovererModel.DiscoveryConfig;
             DiscoveryMode discoveryMode;
 
-            if (forceScan == true) {
-                model.AddressRangesToScan = string.Empty;
-                model.PortRangesToScan = string.Empty;
-            }
-            else {
-                if (discoverer.DiscovererModel.DiscoveryConfig != null) {
-                    model = discoverer.DiscovererModel.DiscoveryConfig;
-                }
+            if (model == null) {
+                model = new DiscoveryConfigApiModel();
             }
 
-            if (discoverer.ScanStatus == true && forceScan == true) {
+            if (discoverer.ScanStatus == true) {
                 discoveryMode = DiscoveryMode.Fast;
-
-                if (ipMask != null) {
-                    model.AddressRangesToScan = ipMask;
-                }
-                if (portRange != null) {
-                    model.PortRangesToScan = portRange;
-                }
-                model.IdleTimeBetweenScansSec = _5MINUTES;
             }
             else {
                 discoveryMode = DiscoveryMode.Off;
             }
-
+            
             try {
-                if (discoveryMode == DiscoveryMode.Off) {
-                    await _registryService.SetDiscoveryModeAsync(discoverer.DiscovererModel.Id, discoveryMode, new DiscoveryConfigApiModel());
-                }
-                else {
-                    await _registryService.SetDiscoveryModeAsync(discoverer.DiscovererModel.Id, discoveryMode, model);
-                }
-
+                await _registryService.SetDiscoveryModeAsync(discoverer.DiscovererModel.Id, discoveryMode, model);
             }
             catch (Exception exception) {
                 var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
                 Trace.TraceError(errorMessageTrace);
+                return errorMessageTrace;
             }
+            return null;
+        }
+
+        /// <summary>
+        /// UpdateDiscovererAsync
+        /// </summary>
+        /// <param name="discoverer"></param>
+        /// <param name="config"></param>
+        /// <returns></returns>
+        public async Task<string> UpdateDiscovererAsync(DiscovererInfo discoverer, DiscoveryConfigApiModel config) {
+            var model = new DiscovererUpdateApiModel();
+            model.DiscoveryConfig = discoverer.DiscovererModel.DiscoveryConfig;
+
+            if (config.AddressRangesToScan != null) {
+                model.DiscoveryConfig.AddressRangesToScan = config.AddressRangesToScan;
+            }
+            if (config.PortRangesToScan != null) {
+                model.DiscoveryConfig.PortRangesToScan = config.PortRangesToScan;
+            }
+            if (config.ActivationFilter != null) {
+                model.DiscoveryConfig.ActivationFilter = config.ActivationFilter;
+            }
+            if (config.MaxNetworkProbes != null && config.MaxNetworkProbes != 0) {
+                model.DiscoveryConfig.MaxNetworkProbes = config.MaxNetworkProbes;
+            }
+            if (config.MaxPortProbes != null && config.MaxPortProbes != 0) {
+                model.DiscoveryConfig.MaxPortProbes = config.MaxPortProbes;
+            }
+            if (config.NetworkProbeTimeoutMs != null && config.NetworkProbeTimeoutMs != 0) {
+                model.DiscoveryConfig.NetworkProbeTimeoutMs = config.NetworkProbeTimeoutMs;
+            }
+            if (config.PortProbeTimeoutMs != null && config.PortProbeTimeoutMs != 0) {
+                model.DiscoveryConfig.PortProbeTimeoutMs = config.PortProbeTimeoutMs;
+            }
+            if (config.IdleTimeBetweenScansSec != null && config.IdleTimeBetweenScansSec != 0) {
+                model.DiscoveryConfig.IdleTimeBetweenScansSec = config.IdleTimeBetweenScansSec;
+            }
+            else {
+                model.DiscoveryConfig.IdleTimeBetweenScansSec = _5MINUTES;
+            }
+
+            try {
+                await _registryService.UpdateDiscovererAsync(discoverer.DiscovererModel.Id, model);
+            }
+            catch (Exception exception) {
+                var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
+                Trace.TraceError(errorMessageTrace);
+                return errorMessageTrace;
+            }
+            return null;
         }
 
         /// <summary>
@@ -210,9 +235,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 Trace.TraceWarning("Can not get gateways list");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceWarning(errorMessage);
-                pageResult.Results.Add(new GatewayApiModel {
-                    Id = e.Message
-                });
+                pageResult.Error = e.Message;
             }
 
             pageResult.PageSize = 10;
@@ -242,9 +265,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 Trace.TraceWarning("Can not get publisher list");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceWarning(errorMessage);
-                pageResult.Results.Add(new PublisherApiModel {
-                    Id = e.Message
-                });
+                pageResult.Error = e.Message;
             }
 
             pageResult.PageSize = 10;

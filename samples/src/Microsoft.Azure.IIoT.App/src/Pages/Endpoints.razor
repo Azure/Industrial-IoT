@@ -6,6 +6,7 @@
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.Azure.IIoT.App.Components.Pager
+@using Microsoft.Azure.IIoT.App.Components.ErrorMessage
 @using Microsoft.Azure.IIoT.App.Data
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
@@ -30,12 +31,14 @@
             <th>Security Level</th>
             <th>Activation Status</th>
             <th>
-                @if ((DiscovererId != null) && (DiscovererId != @RegistryHelper.PathAll)) {
+                @if ((DiscovererId != null) && (DiscovererId != @RegistryHelper.PathAll))
+                {
                     <a href="/discoverers/">
                         <span class="oi oi-arrow-left"></span>
                     </a>
                 }
-                else if ((ApplicationId != null) && (ApplicationId != @RegistryHelper.PathAll)) {
+                else if ((ApplicationId != null) && (ApplicationId != @RegistryHelper.PathAll))
+                {
                     <a href="/applications/">
                         <span class="oi oi-arrow-left"></span>
                     </a>
@@ -44,19 +47,22 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var endpoint in pagedendpointList.Results) {
+        @foreach (var endpoint in _pagedendpointList.Results)
+        {
             <tr>
                 @if (endpoint.ActivationState == EndpointActivationState.ActivatedAndConnected ||
-                     endpoint.ActivationState == EndpointActivationState.Activated) {
-                <td>
-                    @{ discover = DiscovererId == null ? RegistryHelper.PathAll : DiscovererId; } 
-                    @{ string application = ApplicationId == null ? RegistryHelper.PathAll : ApplicationId; }
-                    <a href='browser/@discover/@application/@endpoint.Registration.Id'>
-                        @endpoint.Registration.Endpoint.Url
-                    </a>
-                </td>
+                    endpoint.ActivationState == EndpointActivationState.Activated)
+                {
+                    <td>
+                        @{ discover = DiscovererId == null ? RegistryHelper.PathAll : DiscovererId; }
+                        @{ string application = ApplicationId == null ? RegistryHelper.PathAll : ApplicationId; }
+                        <a href='browser/@discover/@application/@endpoint.Registration.Id'>
+                            @endpoint.Registration.Endpoint.Url
+                        </a>
+                    </td>
                 }
-                else {
+                else
+                {
                     <td>@endpoint.Registration.Endpoint.Url</td>
                 }
                 <td>@endpoint.Registration.Endpoint.SecurityMode</td>
@@ -65,12 +71,14 @@
 
                 <td>
                     @if (endpoint.ActivationState == EndpointActivationState.ActivatedAndConnected ||
-                        endpoint.ActivationState == EndpointActivationState.Activated) {
+                       endpoint.ActivationState == EndpointActivationState.Activated)
+                    {
                         <input type="checkbox" checked
                                @onchange="async eventArgs => { await SetActivation(endpoint.Registration.Id, eventArgs.Value); }" />
                         @endpoint.ActivationState.ToString()
                     }
-                    else {
+                    else
+                    {
                         <input type="checkbox"
                                @onchange="async eventArgs => { await SetActivation(endpoint.Registration.Id, eventArgs.Value); }" />
                         @endpoint.ActivationState.ToString()
@@ -82,8 +90,11 @@
         }
     </tbody>
 </table>
+<div class="loader-pos @_spinner"></div>
 
-<Pager Result=@endpointList PageChanged=@((Page) => PagerPageChanged(Page)) />
+<ErrorMessage PageError="@_pagedendpointList.Error" Status="@Status"></ErrorMessage>
+
+<Pager Result=@_endpointList PageChanged=@((Page) => PagerPageChanged(Page)) />
 
 @code {
 
@@ -97,21 +108,45 @@
     public string ApplicationId { get; set; } = string.Empty;
 
     public const int PageLength = 10;
+    public string Status { get; set; }
+    private PagedResult<EndpointInfoApiModel> _endpointList =
+        new PagedResult<EndpointInfoApiModel>();
+    private PagedResult<EndpointInfoApiModel> _pagedendpointList =
+        new PagedResult<EndpointInfoApiModel>();
+    private string _spinner { get; set; }
 
     /// <summary>
     /// Notify page change
     /// </summary>
     /// <param name="page"></param>
-    public void PagerPageChanged(int page) {
-        pagedendpointList = endpointList.GetPaged(page, PageLength);
+    public void PagerPageChanged(int page)
+    {
+        _pagedendpointList = _endpointList.GetPaged(page, PageLength, null);
         NavigationManager.NavigateTo("/endpoints/" + page);
     }
 
-    /// <inheritdoc/>
-    protected override async Task OnInitializedAsync() {
-        endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId);
-        Page = "1";
-        pagedendpointList = endpointList.GetPaged(Int32.Parse(Page), PageLength);
+    /// <summary>
+    /// OnInitialized
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        _spinner = "loader-big";
+    }
+
+    /// <summary>
+    /// OnAfterRenderAsync
+    /// </summary>
+    /// <param name="firstRender"></param>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId);
+            Page = "1";
+            _pagedendpointList = _endpointList.GetPaged(Int32.Parse(Page), PageLength, _endpointList.Error);
+            _spinner = "";
+            StateHasChanged();
+        }
     }
 
     /// <summary>
@@ -120,40 +155,34 @@
     /// <param name="endpointId"></param>
     /// <param name="checkedValue"></param>
     /// <returns></returns>
-    private async Task SetActivation(string endpointId, object checkedValue) {
-        if ((bool)checkedValue) {
-
-            await RegistryService.ActivateEndpointAsync(endpointId);
+    private async Task SetActivation(string endpointId, object checkedValue)
+    {
+        if ((bool)checkedValue)
+        {
+            try
+            {
+                await RegistryService.ActivateEndpointAsync(endpointId);
+            }
+            catch (Exception e)
+            {
+                Status = e.Message;
+            }
         }
-        else {
-            await RegistryService.DeactivateEndpointAsync(endpointId);
+        else
+        {
+            try
+            {
+                await RegistryService.DeactivateEndpointAsync(endpointId);
+            }
+            catch (Exception e)
+            {
+                Status = e.Message;
+            }
         }
 
-        endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId);
-        pagedendpointList = endpointList.GetPaged(Int32.Parse(Page), PageLength);
+        _endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId);
+        _pagedendpointList = _endpointList.GetPaged(Int32.Parse(Page), PageLength, _endpointList.Error);
         await Task.CompletedTask;
         this.StateHasChanged();
     }
-
-    /// <summary>
-    /// Activate or deactivate
-    /// </summary>
-    /// <param name="endpointId"></param>
-    /// <param name="isActivated"></param>
-    /// <returns></returns>
-    private async Task SetActivation1(string endpointId, EndpointActivationState? state) {
-        if (state == EndpointActivationState.Activated ||
-            state == EndpointActivationState.ActivatedAndConnected) {
-            await RegistryService.DeactivateEndpointAsync(endpointId);
-        }
-        else {
-            await RegistryService.ActivateEndpointAsync(endpointId);
-        }
-
-    }
-
-    public PagedResult<EndpointInfoApiModel> endpointList =
-        new PagedResult<EndpointInfoApiModel>();
-    public PagedResult<EndpointInfoApiModel> pagedendpointList =
-        new PagedResult<EndpointInfoApiModel>();
 }

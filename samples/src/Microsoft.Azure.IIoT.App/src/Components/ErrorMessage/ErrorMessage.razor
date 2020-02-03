@@ -1,0 +1,23 @@
+﻿@page "/errorMessage"
+
+@using Microsoft.AspNetCore.Components;
+
+
+@if (PageError != null)
+{
+    <div class="error">Error: @PageError</div>
+}
+else if (Status != null)
+{
+    <div class="error">Error: @Status</div>
+}
+
+
+@code {
+
+    [Parameter]
+    public string PageError { get; set; }
+
+    [Parameter]
+    public string Status { get; set; }
+}

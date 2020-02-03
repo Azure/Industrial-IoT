@@ -151,7 +151,7 @@ app {
 }
 
 .events {
-    max-height: 150px;
+    max-height: 300px;
     overflow-y: auto;
     white-space: pre-wrap;
     margin-top: 10px;
@@ -159,6 +159,16 @@ app {
 
 .results {
     margin-top: 80px;
+}
+
+.loader-pos {
+    margin-top: 20px;
+    margin: auto;
+    width: 60%;
+}
+
+.error {
+    text-align:center;
 }
 
 @media (max-width: 767.98px) {

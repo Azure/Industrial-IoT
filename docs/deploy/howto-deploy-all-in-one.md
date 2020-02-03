@@ -11,17 +11,7 @@ The ARM deployment templates included in the repository deploy the platform and 
 - The Industrial IoT Platform
 - The Industrial IoT Sample Engineering tool.
 
-## Deploy using the Portal
-
-You can deploy directly from the *master* branch using the deploy button:
-
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2Findustrial-iot%2Fmaster%2Fazuredeploy.json" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"/></a>
-
-To get the AAD information needed by the template use the `deploy/scripts/aad-register.ps1` script to perform the AAD registration ahead of deploying and use content of the output object or file as input to the template.
-
-<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2FAzure%2FIndustrial-IoT%2Fmaster2Fazuredeploy.json" target="_blank"><img src="http://armviz.io/visualizebutton.png"/></a>
-
-## Deploy Industrial IoT Platform using deployment script
+## Running the script
 
 The platform and simulation can also be deployed using the deploy script.
 

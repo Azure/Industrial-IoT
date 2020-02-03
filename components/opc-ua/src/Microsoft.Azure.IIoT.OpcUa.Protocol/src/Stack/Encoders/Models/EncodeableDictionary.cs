@@ -28,6 +28,10 @@ namespace Opc.Ua.Encoders {
         public ExpandedNodeId XmlEncodingId =>
             nameof(EncodeableDictionary) + "_Encoding_DefaultXml";
 
+        /// <inheritdoc/>
+        public ExpandedNodeId JsonEncodingId =>
+            nameof(EncodeableDictionary) + "_Encoding_DefaultJson";
+
         /// <summary>
         /// Create
         /// </summary>
@@ -37,13 +41,14 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public virtual void Encode(IEncoder encoder) {
-            encoder.WriteEncodeableArray("EventFields", Fields);
+            //  todo: check if "EventFields" is appropriate
+            encoder.WriteEncodeableArray("EventFields", Fields.ToArray(), typeof(KeyValuePair));
         }
 
         /// <inheritdoc/>
         public virtual void Decode(IDecoder decoder) {
             Fields = (KeyValuePairCollection)decoder.ReadEncodeableArray(
-                "EventFields", typeof(KeyValuePairCollection));
+                "EventFields", typeof(KeyValuePair));
         }
 
         /// <inheritdoc/>

@@ -46,7 +46,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
             string id, List<string> parentId, string discovererId, BrowseDirection direction) {
             var pageResult = new PagedResult<ListNode>();
             var model = new BrowseRequestApiModel {
-                TargetNodesOnly = true
+                TargetNodesOnly = true,
+                ReadVariableValues = true
             };
 
             if (direction == BrowseDirection.Forward) {
@@ -89,7 +90,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                                 AccessLevel = nodeReference.Target.AccessLevel ?? 0,
                                 ParentName = browseData.Node.DisplayName,
                                 DataType = nodeReference.Target.DataType,
-                                Value = string.Empty,
+                                Value = nodeReference.Target.Value?.ToString(),
                                 Publishing = false,
                                 PublishedItem = null
                             });
@@ -109,18 +110,13 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     }
 
                 } while (!string.IsNullOrEmpty(continuationToken) || browseDataNext.References != null);
-
             }
             catch (Exception e) {
                 // skip this node
                 Trace.TraceError("Can not browse node '{0}'", id);
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 Trace.TraceError(errorMessage);
-                pageResult.Results.Add(new ListNode {
-                    NodeName = e.Message,
-                    DiscovererId = discovererId,
-                    ParentName = "Root"
-                });
+                pageResult.Error = e.Message;
             }
 
             pageResult.PageSize = 10;

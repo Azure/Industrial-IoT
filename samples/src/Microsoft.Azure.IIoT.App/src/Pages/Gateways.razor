@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.Azure.IIoT.App.Components.Pager
+@using Microsoft.Azure.IIoT.App.Components.ErrorMessage
 @using Microsoft.Azure.IIoT.App.Data
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
 
@@ -21,20 +22,23 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var gateway in pagedGatewayList.Results)
+        @foreach (var gateway in _pagedGatewayList.Results)
         {
             <tr>
                 <td>@gateway.Id</td>
                 @{ string siteId = gateway.SiteId == null ? "--" : gateway.SiteId;}
                 <td>@siteId</td>
                 @{string connectStatus = gateway.Connected == null ? "--" : gateway.Connected == true ? "Connected" : "Disconnected";}
-                <td>@connectStatus</td> 
+                <td>@connectStatus</td>
             </tr>
         }
     </tbody>
 </table>
+<div class="loader-pos @_spinner"></div>
 
-<Pager Result=@gatewayList PageChanged=@((Page) => PagerPageChanged(Page)) />
+<ErrorMessage PageError="@_pagedGatewayList.Error" Status="@null"></ErrorMessage>
+
+<Pager Result=@_gatewayList PageChanged=@((Page) => PagerPageChanged(Page)) />
 
 @code {
 
@@ -42,6 +46,9 @@
     public string Page { get; set; } = "1";
 
     public const int PageLength = 10;
+    private PagedResult<GatewayApiModel> _gatewayList = new PagedResult<GatewayApiModel>();
+    private PagedResult<GatewayApiModel> _pagedGatewayList = new PagedResult<GatewayApiModel>();
+    private string _spinner { get; set; }
 
     /// <summary>
     /// Notify page change
@@ -49,18 +56,31 @@
     /// <param name="page"></param>
     public void PagerPageChanged(int page)
     {
-        pagedGatewayList = gatewayList.GetPaged(page, PageLength);
+        _pagedGatewayList = _gatewayList.GetPaged(page, PageLength, null);
         NavigationManager.NavigateTo("/gateways/" + page);
     }
 
-    /// <inheritdoc/>
-    protected override async Task OnInitializedAsync()
+    /// <summary>
+    /// OnInitialized
+    /// </summary>
+    protected override void OnInitialized()
     {
-        gatewayList = await RegistryHelper.GetGatewayListAsync();
-        Page = "1";
-        pagedGatewayList = gatewayList.GetPaged(Int32.Parse(Page), PageLength);
+        _spinner = "loader-big";
     }
 
-    private PagedResult<GatewayApiModel> gatewayList = new PagedResult<GatewayApiModel>();
-    private PagedResult<GatewayApiModel> pagedGatewayList = new PagedResult<GatewayApiModel>();
+    /// <summary>
+    /// OnAfterRenderAsync
+    /// </summary>
+    /// <param name="firstRender"></param>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _gatewayList = await RegistryHelper.GetGatewayListAsync();
+            Page = "1";
+            _pagedGatewayList = _gatewayList.GetPaged(Int32.Parse(Page), PageLength, _gatewayList.Error);
+            _spinner = "";
+            StateHasChanged();
+        }
+    }
 }

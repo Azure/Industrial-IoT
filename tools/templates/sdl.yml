@@ -49,12 +49,6 @@ jobs:
     inputs:
       outputfile: thirdpartynotices.txt
     continueOnError: true
-  - task: TSLint@1
-    displayName: 'Run TSLint'
-    inputs:
-      Files: '**\*.ts;**\*.js'
-      ExcludeFiles: 'api\**'
-    continueOnError: true
   - task: BinSkim@3
     displayName: 'BinSkim '
     inputs:
@@ -111,7 +105,7 @@ jobs:
       uploadFortifySCA: false
       uploadFxCop: false
       uploadModernCop: false
-      uploadPoliCheck: true
+      uploadPoliCheck: false
       uploadPREfast: false
       uploadRoslyn: true
       uploadTSLint: false

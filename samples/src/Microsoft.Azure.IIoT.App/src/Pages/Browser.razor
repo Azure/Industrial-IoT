@@ -6,6 +6,7 @@
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.Azure.IIoT.App.Components.Pager
 @using Microsoft.Azure.IIoT.App.Components.Drawer
+@using Microsoft.Azure.IIoT.App.Components.ErrorMessage
 @using Microsoft.Azure.IIoT.App.Data
 @using Microsoft.AspNetCore.Components
 @using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models
@@ -87,7 +88,7 @@
                     <td>@node.NodeClass</td>
                 }
                 @if (node.NodeClass == NodeClass.Variable && (node.AccessLevel == NodeAccessLevel.CurrentRead || node.AccessLevel == NodeAccessLevel.CurrentWrite ||
-                    node.AccessLevel == (NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite)))
+                   node.AccessLevel == (NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite)))
                 {
                     <td>
                         <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
@@ -119,6 +120,9 @@
         }
     </tbody>
 </table>
+<div class="loader-pos @_spinner"></div>
+
+<ErrorMessage PageError="@PagedNodeList.Error" Status="@null"></ErrorMessage>
 
 <Drawer HeaderText="Select Action" ObjectData="@NodeData" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
     <_DrawerActionContent nodeData="@NodeData" endpointId="@endpointId" pagedNodeList="@PagedNodeList"></_DrawerActionContent>
@@ -147,6 +151,7 @@
     public ListNode NodeData { get; set; }
     public const int PageLength = 10;
     private IAsyncDisposable _publishEvent { get; set; }
+    private string _spinner { get; set; }
 
 
     /// <summary>
@@ -155,7 +160,7 @@
     /// <param name="page"></param>
     public async void PagerPageChanged(int page)
     {
-        PagedNodeList = NodeList.GetPaged(page, PageLength);
+        PagedNodeList = NodeList.GetPaged(page, PageLength, null);
         foreach (var node in PagedNodeList.Results)
         {
             // fetch the actual value
@@ -168,18 +173,24 @@
     }
 
     /// <summary>
-    /// OnInitializedAsync
+    /// OnInitialized
     /// </summary>
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        await BrowseTreeAsync(string.Empty, new List<string>(), BrowseDirection.Forward);
+        _spinner = "loader-big";
     }
 
+    /// <summary>
+    /// OnAfterRenderAsync
+    /// </summary>
+    /// <param name="firstRender"></param>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // call after the node list is rendered
-        if (!firstRender)
+        if (firstRender)
         {
+            await BrowseTreeAsync(string.Empty, new List<string>(), BrowseDirection.Forward);
+            _spinner = "";
+            StateHasChanged();
             _publishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(endpointId, null, PublishEvent);
         }
     }
@@ -213,6 +224,7 @@
     /// <param name="direction"></param>
     private async Task BrowseTreeAsync(String id, List<string> parentId, BrowseDirection direction)
     {
+        _spinner = "loader-big";
         NodeList = await BrowseManager.GetTreeAsync(endpointId, id, parentId, discovererId, direction);
         var publishedNodes = await Publisher.PublishedAsync(endpointId);
 
@@ -234,15 +246,8 @@
         }
 
         Page = "1";
-        PagedNodeList = NodeList.GetPaged(Int32.Parse(Page), PageLength);
-        foreach (var node in PagedNodeList.Results)
-        {
-            // fetch the actual value
-            if (node.NodeClass == NodeClass.Variable)
-            {
-                node.Value = await BrowseManager.ReadValueAsync(endpointId, node.Id);
-            }
-        }
+        PagedNodeList = NodeList.GetPaged(Int32.Parse(Page), PageLength, NodeList.Error);
+        _spinner = "";
     }
 
     /// <summary>
