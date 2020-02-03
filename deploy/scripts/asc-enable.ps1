@@ -69,6 +69,7 @@ function SetSolutionEnableASCForIotAndCreateAlert() {
         [string] $iotHubName
     )
 
+        $resourceGroup = Get-AzureRmResourceGroup -Name $resourceGroupName
         $contentType = "application/json"
         $token = Get-AzureRmBearerToken
         $headers = @{
