@@ -109,11 +109,11 @@ spec:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_AUTH_AUDIENCE
-        - name: PCS_WEBUI_AUTH_AAD_APPID
+        - name: PCS_AUTH_CLIENT_APPID
           valueFrom:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_WEBUI_AUTH_AAD_APPID
+              key: PCS_AUTH_CLIENT_APPID
         - name: PCS_AUTH_INSTANCE
           valueFrom:
             secretKeyRef:
