@@ -18,6 +18,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <returns></returns>
         public static MonitoredItemMessageApiModel ToApiModel(
             this MonitoredItemSampleModel model) {
+            if (model == null) {
+                return null;
+            }
             return new MonitoredItemMessageApiModel {
                 SubscriptionId = model.SubscriptionId,
                 EndpointId = model.EndpointId,
@@ -28,7 +31,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 SourcePicoseconds = model.SourcePicoseconds,
                 SourceTimestamp = model.SourceTimestamp,
                 Timestamp = model.Timestamp,
-                Value = model.Value
+                Value = new ValueApiModel() {
+                    Body = model.Value?.Type?.IsPrimitive == true ? 
+                        model.Value?.Body : model.Value?.Body?.ToString(),
+                    Type = model.Value?.Type?.FullName
+                },
+                TypeId = model?.Value?.Type?.FullName,
+                Status = model.Status 
             };
         }
     }

@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
     using Microsoft.Azure.IIoT.Cdm;
     using Microsoft.Azure.IIoT.Http;
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -46,22 +47,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
             foreach (var obj in data) {
                 sb.AppendLine();
                 foreach (var prop in info) {
-                    var str = prop.GetValue(obj)?.ToString();
-                    if (str != null &&
-                        (str.Contains(separator) ||
-                        str.Contains("\"") || str.Contains("\r") ||
-                        str.Contains("\n"))) {
-                        sb.Append('\"');
-                        foreach (var nextChar in str) {
-                            sb.Append(nextChar);
-                            if (nextChar == '"') {
-                                sb.Append('\"');
-                            }
+                    var value = prop.GetValue(obj);
+                    if (value != null) {
+                        var str = (string)null;
+                        if (value is Value valueToken) {
+                            str = valueToken?.Body?.ToString();
                         }
-                        sb.Append('\"');
-                    }
-                    else {
-                        sb.Append(str);
+                        else {
+                            str = value?.ToString();
+                        }
+                        if (str != null &&
+                            (str.Contains(separator) ||
+                            str.Contains("\"") || str.Contains("\r") ||
+                            str.Contains("\n"))) {
+                            sb.Append('\"');
+                            foreach (var nextChar in str) {
+                                sb.Append(nextChar);
+                                if (nextChar == '"') {
+                                    sb.Append('\"');
+                                }
+                            }
+                            sb.Append('\"');
+                        }
+                        else {
+                            sb.Append(str);
+                        }
                     }
                     sb.Append(separator);
                 }
@@ -103,9 +113,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
                     request = _httpClient.NewRequest(
                         $"{partitionUrl}?action=append&position={contentPosition}",
                         kResource);
-                    request.SetContent(content);
+                    request.SetContent(content, UTF8Encoding.UTF8);
                     response = await _httpClient.PatchAsync(request);
-                    contentPosition += content.Length;
+                    contentPosition += UTF8Encoding.UTF8.GetByteCount(content);
                     request = _httpClient.NewRequest
                         ($"{partitionUrl}?action=flush&position={contentPosition}",
                         kResource);

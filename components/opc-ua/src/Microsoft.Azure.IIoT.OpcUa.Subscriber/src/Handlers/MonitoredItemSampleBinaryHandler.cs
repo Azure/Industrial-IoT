@@ -56,10 +56,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
             }
             try {
                 var sample = new MonitoredItemSampleModel() {
+                    /*
                     Value = new JObject {
                             { "Body", message.Value.WrappedValue.Value.ToString() },
                             { "Type", message.Value.WrappedValue.Value.GetType().ToString() }
                         },
+                    */
+                    Value = new Value {
+                        Body = (message?.Value?.WrappedValue.Value != null) ?
+                                    message.Value.WrappedValue.Value : null,
+                        Type = (message?.Value?.WrappedValue.TypeInfo != null) ?
+                                TypeInfo.GetSystemType(
+                                    message.Value.WrappedValue.TypeInfo.BuiltInType,
+                                    message.Value.WrappedValue.TypeInfo.ValueRank) : null
+                    },
                     Status = StatusCode.LookupSymbolicId(message.Value.StatusCode.Code),
                     TypeId = message.TypeId.ToString(),
                     DataSetId = message.DisplayName,

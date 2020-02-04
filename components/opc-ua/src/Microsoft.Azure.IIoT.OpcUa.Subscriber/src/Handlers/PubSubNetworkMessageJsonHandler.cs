@@ -49,9 +49,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                         foreach (var datapoint in message.Payload) {
                             try {
                                 var sample = new MonitoredItemSampleModel() {
-                                    Value = new JObject {
-                                        { "Body", datapoint.Value.WrappedValue.Value.ToString() },
-                                        { "Type", datapoint.Value.WrappedValue.Value.GetType().ToString() }
+                                    Value = new Value {
+                                        Body = (datapoint.Value?.WrappedValue.Value != null) ?
+                                                datapoint.Value.WrappedValue.Value : null,
+                                        Type = (datapoint.Value?.WrappedValue.TypeInfo != null) ?
+                                                TypeInfo.GetSystemType(
+                                                    datapoint.Value.WrappedValue.TypeInfo.BuiltInType,
+                                                    datapoint.Value.WrappedValue.TypeInfo.ValueRank) : null
                                     },
                                     Status = StatusCode.LookupSymbolicId(datapoint.Value.StatusCode.Code),
                                     TypeId = message.TypeId.ToString(),

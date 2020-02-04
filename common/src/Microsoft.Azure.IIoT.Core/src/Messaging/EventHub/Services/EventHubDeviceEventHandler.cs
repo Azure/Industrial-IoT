@@ -46,6 +46,7 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
         /// <inheritdoc/>
         public async Task OnBatchCompleteAsync() {
             foreach (var handler in _used.ToList()) {
+                //  TODO: sometimes throws System.NullReferenceException 
                 await Try.Async(handler.OnBatchCompleteAsync);
             }
             _used.Clear();

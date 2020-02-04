@@ -5,8 +5,28 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using System;
+
+    /// <summary>
+    /// variant to handle the data 
+    /// </summary>
+    [JsonObject(Id = "ValueApiModel")]
+    public class ValueApiModel {
+        /// <summary>
+        /// Value
+        /// </summary>
+        [JsonProperty(PropertyName = "body",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public dynamic Body { get; set; }
+
+        /// <summary>
+        /// Type id
+        /// </summary>
+        [JsonProperty(PropertyName = "type",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string Type { get; set; }
+    }
+
 
     /// <summary>
     /// Publisher monitored item sample model
@@ -45,14 +65,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         [JsonProperty(PropertyName = "value",
             NullValueHandling = NullValueHandling.Ignore)]
-        public JToken Value { get; set; }
-
+        //public dynamic Value { get; set; }
+        public ValueApiModel Value {get; set; }
         /// <summary>
         /// Type id
         /// </summary>
         [JsonProperty(PropertyName = "typeId",
             NullValueHandling = NullValueHandling.Ignore)]
         public string TypeId { get; set; }
+
+        /// <summary>
+        /// Status of the value (Quality)
+        /// </summary>
+        [JsonProperty(PropertyName = "status",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string Status { get; set; }
 
         /// <summary>
         /// Sent time stamp

@@ -16,11 +16,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
     using System.IO;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Reflection;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.OpcUa.Registry;
-    using Newtonsoft.Json.Linq;
+
 
     /// <summary>
     /// Process messages and write them to Datalake.
@@ -200,6 +198,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 foreach (var list in _samplesCache.Values) {
                     list!.Clear();
                 }
+                _samplesCache.Clear();
                 _samplesCacheSize = 0;
             }
             sw.Stop();
@@ -215,19 +214,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             var typeCode = Type.GetTypeCode(type);
             if (typeCode == TypeCode.Object) {
                 typeCode = Type.GetTypeCode(Nullable.GetUnderlyingType(type));
-                if ((typeCode == TypeCode.Object || typeCode == TypeCode.Empty) 
-                    && type.Name == "JToken") {
-                    var token = value as JToken;
-                    // parse the jtoken into a value if possible
-                    if (token!.Type != JTokenType.Object || !(token is JObject variant)) {
-                        var convertedValue = token.ToObject<object>();
-                        typeCode = Type.GetTypeCode(convertedValue.GetType());
-                    }
-                    else if (variant.TryGetValue("Type",
-                            StringComparison.InvariantCultureIgnoreCase, out var typeId)) {
-                        var convertedValue = typeId.ToObject<object>();
-                        var convertedType = Type.GetType(convertedValue.ToString());
-                        typeCode = Type.GetTypeCode(convertedType);
+                if (typeCode == TypeCode.Object || typeCode == TypeCode.Empty){
+                    if (value is Value valueToken) {
+                        typeCode = Type.GetTypeCode(valueToken?.Type);
                     }
                 }
             }
@@ -260,7 +249,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 case TypeCode.Boolean:
                     return CdmDataFormat.Boolean;
                 default:
-                    return CdmDataFormat.Unknown;
+                    return CdmDataFormat.String;
             }
         }
 
@@ -377,7 +366,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             return true;
         }
 
-
         /// <summary>
         /// Cache Timer Elapesed handler 
         /// </summary>
@@ -410,7 +398,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 _samplesCache[key].Add(sample);
                 _samplesCacheSize++;
 
-                //_cacheList.Add(payload as MonitoredItemSampleModel);
                 if (!_cacheUploadTriggered && _samplesCacheSize >= kSamplesCacheMaxSize) {
                     Try.Op(() => _cacheUploadTimer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan));
                     _cacheUploadTriggered = true;
@@ -419,156 +406,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             finally {
                 _lock.Release();
             }
-        }
-
-        private bool AddPublisherSampleModelEntityToModel() {
-            // check if the enetity was aleready added
-            foreach (var entity in Manifest.Entities) {
-                if (entity.EntityName == kPublisherSampleEntityName) {
-                    return false;
-                }
-            }
-
-            // add a new entity for the Message
-            var publisherSampleEntity = _cdmCorpus.MakeObject<CdmEntityDefinition>(
-                CdmObjectType.EntityDef, kPublisherSampleEntityName, false);
-
-            //  add the attributes required
-            var subscriptionId = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
-                CdmObjectType.TypeAttributeDef, "SubscriptionId", false);
-            subscriptionId.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
-                CdmObjectType.PurposeRef, "hasA", true);
-            subscriptionId.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
-                CdmObjectType.DataTypeRef, "string", true);
-            subscriptionId.DataFormat = CdmDataFormat.String;
-            publisherSampleEntity.Attributes.Add(subscriptionId);
-
-            var endpointId = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
-                CdmObjectType.TypeAttributeDef, "EndpointId", false);
-            endpointId.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
-                CdmObjectType.PurposeRef, "hasA", true);
-            endpointId.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
-                CdmObjectType.DataTypeRef, "string", true);
-            endpointId.DataFormat = CdmDataFormat.String;
-            publisherSampleEntity.Attributes.Add(endpointId);
-
-            var dataSetId = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
-                CdmObjectType.TypeAttributeDef, "DataSetId", false);
-            dataSetId.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
-                CdmObjectType.PurposeRef, "hasA", true);
-            dataSetId.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
-                CdmObjectType.DataTypeRef, "string", true);
-            dataSetId.DataFormat = CdmDataFormat.String;
-            publisherSampleEntity.Attributes.Add(dataSetId);
-
-            var nodeId = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
-                CdmObjectType.TypeAttributeDef, "NodeId", false);
-            nodeId.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
-                CdmObjectType.PurposeRef, "hasA", true);
-            nodeId.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
-                CdmObjectType.DataTypeRef, "string", true);
-            nodeId.DataFormat = CdmDataFormat.String;
-            publisherSampleEntity.Attributes.Add(nodeId);
-
-            var value = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
-                CdmObjectType.TypeAttributeDef, "Value", false);
-            value.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
-                CdmObjectType.PurposeRef, "hasA", true);
-            value.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
-                CdmObjectType.DataTypeRef, "integer", true);
-            value.DataFormat = CdmDataFormat.String;
-            publisherSampleEntity.Attributes.Add(value);
-
-            var type = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
-                CdmObjectType.TypeAttributeDef, "TypeId", false);
-            type.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
-                CdmObjectType.PurposeRef, "hasA", true);
-            type.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
-                CdmObjectType.DataTypeRef, "integer", true);
-            type.DataFormat = CdmDataFormat.String;
-            publisherSampleEntity.Attributes.Add(type);
-
-            var status = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
-                CdmObjectType.TypeAttributeDef, "Status", false);
-            status.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
-                CdmObjectType.PurposeRef, "hasA", true);
-            status.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
-                CdmObjectType.DataTypeRef, "integer", true);
-            status.DataFormat = CdmDataFormat.String;
-            publisherSampleEntity.Attributes.Add(status);
-
-            var timestamp = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
-                CdmObjectType.TypeAttributeDef, "Timestamp", false);
-            timestamp.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
-                CdmObjectType.PurposeRef, "hasA", true);
-            timestamp.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
-                CdmObjectType.DataTypeRef, "dateTime", true);
-            timestamp.DataFormat = CdmDataFormat.DateTime;
-            publisherSampleEntity.Attributes.Add(timestamp);
-
-            var sourceTimestamp = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
-                CdmObjectType.TypeAttributeDef, "SourceTimestamp", false);
-            sourceTimestamp.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
-                CdmObjectType.PurposeRef, "hasA", true);
-            sourceTimestamp.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
-                CdmObjectType.DataTypeRef, "dateTime", true);
-            sourceTimestamp.DataFormat = CdmDataFormat.DateTime;
-            publisherSampleEntity.Attributes.Add(sourceTimestamp);
-
-            var sourcePicoseconds = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
-                CdmObjectType.TypeAttributeDef, "SourcePicoseconds", false);
-            sourcePicoseconds.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
-                CdmObjectType.PurposeRef, "hasA", true);
-            sourcePicoseconds.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
-                CdmObjectType.DataTypeRef, "integer", true);
-            sourcePicoseconds.DataFormat = CdmDataFormat.Int16;
-            publisherSampleEntity.Attributes.Add(sourcePicoseconds);
-
-            var serverTimestamp = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
-                CdmObjectType.TypeAttributeDef, "ServerTimestamp", false);
-            serverTimestamp.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
-                CdmObjectType.PurposeRef, "hasA", true);
-            serverTimestamp.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
-                CdmObjectType.DataTypeRef, "dateTime", true);
-            serverTimestamp.DataFormat = CdmDataFormat.DateTime;
-            publisherSampleEntity.Attributes.Add(serverTimestamp);
-
-            var serverPicoseconds = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
-                CdmObjectType.TypeAttributeDef, "ServerPicoseconds", false);
-            serverPicoseconds.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
-                CdmObjectType.PurposeRef, "hasA", true);
-            serverPicoseconds.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
-                CdmObjectType.DataTypeRef, "integer", true);
-            serverPicoseconds.DataFormat = CdmDataFormat.Int16;
-            publisherSampleEntity.Attributes.Add(serverPicoseconds);
-
-            publisherSampleEntity.DisplayName = kPublisherSampleEntityName;
-            publisherSampleEntity.Version = "0.0.1";
-            publisherSampleEntity.Description = "Publisher Sample Model";
-
-            // Create a new document where the new entity's definition will be stored
-            var publisherSampleEntityDoc = _cdmCorpus.MakeObject<CdmDocumentDefinition>(
-                CdmObjectType.DocumentDef, $"{kPublisherSampleEntityName}.cdm.json", false);
-            publisherSampleEntityDoc.Imports.Add($"{kPublisherSampleEntityName}.cdm.json");
-            publisherSampleEntityDoc.Imports.Add("cdm:/foundations.cdm.json");
-            publisherSampleEntityDoc.Definitions.Add(publisherSampleEntity);
-            _cdmCorpus.Storage.FetchRootFolder("adls").Documents.Add(
-                publisherSampleEntityDoc, publisherSampleEntityDoc.Name);
-            var publisherSampleEntityDef = Manifest.Entities.Add(publisherSampleEntity);
-/*
-            // Define a partition and add it to the local declaration
-            var publisherSampleEntityPartition = _cdmCorpus.MakeObject<CdmDataPartitionDefinition>(
-                CdmObjectType.DataPartitionDef, $"{kPublisherSampleEntityName}-data");
-            publisherSampleEntityDef.DataPartitions.Add(publisherSampleEntityPartition);
-            publisherSampleEntityPartition.Location =
-                $"adls:/{publisherSampleEntity.EntityName}/partition-data.csv";
-            publisherSampleEntityPartition.Explanation = "OpcUaPublisher sample messages storage";
-            var csvTrait = publisherSampleEntityPartition.ExhibitsTraits.Add(
-                "is.partition.format.CSV");
-            csvTrait.Arguments.Add("columnHeaders", "true");
-            csvTrait.Arguments.Add("delimiter", kCsvPartitionsDelimiter);
-*/
-            return true;
         }
 
         /// <summary>

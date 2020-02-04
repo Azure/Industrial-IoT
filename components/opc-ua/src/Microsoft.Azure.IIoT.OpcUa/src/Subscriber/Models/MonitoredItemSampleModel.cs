@@ -4,8 +4,21 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
-    using Newtonsoft.Json.Linq;
     using System;
+
+    /// <summary>
+    /// the value
+    /// </summary>
+    public class Value {
+        /// <summary>
+        /// The value's body
+        /// </summary>
+        public dynamic Body { get; set; }
+        /// <summary>
+        /// the type of value 
+        /// </summary>
+        public Type Type { get; set; }
+    }
 
     /// <summary>
     /// Monitored item sample message
@@ -20,7 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         /// <summary>
         /// Value
         /// </summary>
-        public JToken Value { get; set; }
+        public Value Value { get; set; }
 
         /// <summary>
         /// Value's Status code string representation 
