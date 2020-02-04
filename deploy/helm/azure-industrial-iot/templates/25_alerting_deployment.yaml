@@ -87,11 +87,6 @@ spec:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_SERVICEBUS_CONNSTRING
-        - name: PCS_APPINSIGHTS_NAME
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_APPINSIGHTS_NAME
         - name: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
           valueFrom:
             secretKeyRef:

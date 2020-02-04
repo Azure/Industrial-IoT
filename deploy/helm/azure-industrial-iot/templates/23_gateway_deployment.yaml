@@ -85,11 +85,11 @@ spec:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_SERVICEBUS_CONNSTRING
-        - name: PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+        - name: PCS_COSMOSDB_CONNSTRING
           valueFrom:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+              key: PCS_COSMOSDB_CONNSTRING
         - name: PCS_AUTH_HTTPSREDIRECTPORT
           valueFrom:
             secretKeyRef:
@@ -115,26 +115,21 @@ spec:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_WEBUI_AUTH_AAD_APPID
-        - name: PCS_WEBUI_AUTH_AAD_AUTHORITY
+        - name: PCS_AUTH_INSTANCE
           valueFrom:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_WEBUI_AUTH_AAD_AUTHORITY
-        - name: PCS_WEBUI_AUTH_AAD_TENANT
+              key: PCS_AUTH_INSTANCE
+        - name: PCS_AUTH_TENANT
           valueFrom:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_WEBUI_AUTH_AAD_TENANT
+              key: PCS_AUTH_TENANT
         - name: PCS_CORS_WHITELIST
           valueFrom:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_CORS_WHITELIST
-        - name: PCS_APPINSIGHTS_NAME
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_APPINSIGHTS_NAME
         - name: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
           valueFrom:
             secretKeyRef:

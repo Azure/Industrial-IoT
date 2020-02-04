@@ -5,7 +5,7 @@ image:
   # image.registry is URL of Docker registry from where images will be pulled.
   registry: mcr.microsoft.com
   # image.tag defines which version of Docker images to pull.
-  tag: 2.5.2
+  tag: 2.6.44
   # image.pullPolicy defines value of imagePullPolicy of deployments.
   pullPolicy: IfNotPresent
   # image.pullSecrets defined docker-registry secrets that should be used for private container registries.
@@ -56,13 +56,8 @@ azure:
 
   # This provides details of Azure Storage Account that is configured in IoT Hub as storage endpoint.
   storageAccount:
-    # azure.storageAccount.name is the name of storage account.
-    name: null
-    # azure.storageAccount.accessKey is access key for storage account. Note that is is the key and not the connection string.
-    accessKey: null
-    # azure.storageAccount.endpointSuffix is blob endpoint suffix of Azure environment.
-    # For Azure Public Cloud it should be 'core.windows.net'. It will be different if you are on a specific Azure government cloud.
-    endpointSuffix: core.windows.net
+    # azure.storageAccount.connectionString is the connection string for storage account.
+    connectionString: null
 
   # Details of Azure Event Hub Namespace that microservices will use.
   eventHubNamespace:
@@ -98,8 +93,6 @@ azure:
 
   # Provide details of your Application Insights instance to enable microservices to send telemetry and logs there.
   applicationInsights:
-    # azure.applicationInsights.name is the name of Application Insights instance.
-    name: null
     # azure.applicationInsights.instrumentationKey is the instrumentation key of Application Insights instance.
     instrumentationKey: null
 
@@ -122,9 +115,15 @@ azure:
     # azure.auth.corsWhitelist is cross-origin resource sharing whitelist for all web APIs.
     corsWhitelist: '*'
 
+    # azure.auth.authority is authentication authority that should authenticate users and provide Access Tokens.
+    authority: https://login.microsoftonline.com/
+
     # Those are details of AAD App Registration for services.
     # For more details about configuration of AAD App Registration please check README.
     servicesApp:
+      appId: null
+      secret: null
+
       # azure.auth.servicesApp.audience is identifier URI of AAD App Registration for services.
       audience: null
 
@@ -134,8 +133,8 @@ azure:
     clientsApp:
       # azure.auth.clientsApp.appId is AppId of AAD App Registration for clients.
       appId: null
-      # azure.auth.clientsApp.authority is authentication authority that should authenticate users and provide Access Tokens.
-      authority: https://login.microsoftonline.com/
+
+      secret: null
 
 # Role-based access control.
 # Ref: https://kubernetes.io/docs/admin/authorization/rbac/
@@ -440,7 +439,7 @@ deployment:
       podAnnotations: {}
       extraLabels: {}
       replicas: 1
-      imageRepository: iot/blob-notification-service
+      imageRepository: iot/industrial-iot-fileupload-forwarder
       extraArgs: []
 
       # resources:

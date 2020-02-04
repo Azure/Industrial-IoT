@@ -82,46 +82,21 @@ spec:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
               key: PCS_SERVICEBUS_CONNSTRING
-        - name: PCS_IOTHUBREACT_HUB_ENDPOINT
+        - name: PCS_IOTHUB_EVENTHUBENDPOINT
           valueFrom:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_IOTHUBREACT_HUB_ENDPOINT
-        - name: PCS_IOTHUBREACT_HUB_PARTITIONS
+              key: PCS_IOTHUB_EVENTHUBENDPOINT
+        - name: PCS_IOTHUB_EVENTHUBCONSUMERGROUP
           valueFrom:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_IOTHUBREACT_HUB_PARTITIONS
-        - name: PCS_IOTHUBREACT_HUB_NAME
+              key: PCS_IOTHUB_EVENTHUBCONSUMERGROUP
+        - name: PCS_STORAGE_CONNSTRING
           valueFrom:
             secretKeyRef:
               name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_IOTHUBREACT_HUB_NAME
-        - name: PCS_IOTHUBREACT_HUB_CONSUMERGROUP
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_IOTHUBREACT_HUB_CONSUMERGROUP
-        - name: PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
-        - name: PCS_IOTHUBREACT_AZUREBLOB_KEY
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_IOTHUBREACT_AZUREBLOB_KEY
-        - name: PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
-        - name: PCS_APPINSIGHTS_NAME
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_APPINSIGHTS_NAME
+              key: PCS_STORAGE_CONNSTRING
         - name: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
           valueFrom:
             secretKeyRef:
