@@ -85,6 +85,13 @@ Create the names of Industrial-IoT microservices.
 {{- printf "%s-%s" .Release.Name "blob-notification" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
+{{- define "azure-industrial-iot.publisher.fullname" -}}
+{{- printf "%s-%s" .Release.Name "publisher" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+Create the names of Ingress resource for Industrial-IoT microservices.
+*/}}
 {{- define "azure-industrial-iot.ingress.fullname" -}}
 {{- printf "%s-%s" .Release.Name "ingress" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
