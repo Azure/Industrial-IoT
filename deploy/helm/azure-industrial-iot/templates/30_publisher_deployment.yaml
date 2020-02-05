@@ -69,6 +69,7 @@ spec:
         ports:
         - containerPort: 9045
         env:
+{{- /* env  section will be populated by environment variables specified in env.txt file */}}
 {{- $envSecretName := include "azure-industrial-iot.env.fullname" . }}
 {{- range .Files.Lines "env.txt" }}
 {{- $keyName := trim . }}

@@ -67,41 +67,18 @@ spec:
 {{ toYaml .Values.deployment.microServices.onboarding.resources | indent 10 }}
 {{- end }}
         env:
-        - name: PCS_KEYVAULT_URL
+{{- /* env  section will be populated by environment variables specified in env.txt file */}}
+{{- $envSecretName := include "azure-industrial-iot.env.fullname" . }}
+{{- range .Files.Lines "env.txt" }}
+{{- $keyName := trim . }}
+{{- if $keyName }}
+        - name: {{ $keyName }}
           valueFrom:
             secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_KEYVAULT_URL
-        - name: PCS_IOTHUB_CONNSTRING
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_IOTHUB_CONNSTRING
-        - name: PCS_SERVICEBUS_CONNSTRING
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_SERVICEBUS_CONNSTRING
-        - name: PCS_IOTHUB_EVENTHUBENDPOINT
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_IOTHUB_EVENTHUBENDPOINT
-        - name: PCS_IOTHUB_EVENTHUBCONSUMERGROUP
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_IOTHUB_EVENTHUBCONSUMERGROUP
-        - name: PCS_STORAGE_CONNSTRING
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_STORAGE_CONNSTRING
-        - name: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
+              name: {{ $envSecretName }}
+              key: {{ $keyName }}
+{{- end }}
+{{- end }}
 {{- if .Values.deployment.microServices.onboarding.extraEnv }}
 {{ toYaml .Values.deployment.microServices.onboarding.extraEnv | indent 8 }}
 {{- end }}

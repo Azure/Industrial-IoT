@@ -69,66 +69,18 @@ spec:
         ports:
         - containerPort: 9041
         env:
-        - name: PCS_KEYVAULT_URL
+{{- /* env  section will be populated by environment variables specified in env.txt file */}}
+{{- $envSecretName := include "azure-industrial-iot.env.fullname" . }}
+{{- range .Files.Lines "env.txt" }}
+{{- $keyName := trim . }}
+{{- if $keyName }}
+        - name: {{ $keyName }}
           valueFrom:
             secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_KEYVAULT_URL
-        - name: PCS_IOTHUB_CONNSTRING
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_IOTHUB_CONNSTRING
-        - name: PCS_COSMOSDB_CONNSTRING
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_COSMOSDB_CONNSTRING
-        - name: PCS_AUTH_HTTPSREDIRECTPORT
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_AUTH_HTTPSREDIRECTPORT
-        - name: PCS_AUTH_REQUIRED
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_AUTH_REQUIRED
-        - name: PCS_AUTH_ISSUER
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_AUTH_ISSUER
-        - name: PCS_AUTH_AUDIENCE
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_AUTH_AUDIENCE
-        - name: PCS_AUTH_CLIENT_APPID
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_AUTH_CLIENT_APPID
-        - name: PCS_AUTH_INSTANCE
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_AUTH_INSTANCE
-        - name: PCS_AUTH_TENANT
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_AUTH_TENANT
-        - name: PCS_CORS_WHITELIST
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_CORS_WHITELIST
-        - name: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "azure-industrial-iot.env.fullname" . }}
-              key: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
+              name: {{ $envSecretName }}
+              key: {{ $keyName }}
+{{- end }}
+{{- end }}
 {{- if .Values.deployment.microServices.twin.extraEnv }}
 {{ toYaml .Values.deployment.microServices.twin.extraEnv | indent 8 }}
 {{- end }}
