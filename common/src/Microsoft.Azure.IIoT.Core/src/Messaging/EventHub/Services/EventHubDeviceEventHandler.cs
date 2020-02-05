@@ -26,6 +26,7 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
                 throw new ArgumentNullException(nameof(handlers));
             }
             _handlers = handlers.ToDictionary(h => h.MessageSchema, h => h);
+            _used = new HashSet<IDeviceTelemetryHandler>();
             _unknown = unknown;
         }
 
@@ -38,8 +39,11 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
             properties.TryGetValue(CommonProperties.ModuleId, out var moduleId);
 
             foreach (var handler in _handlers.Values) {
+                if (!_used.Contains(handler)){
+                    _used.Add(handler);
+                }
                 await handler.HandleAsync(deviceId, moduleId, eventData, properties, checkpoint);
-                _used.Add(handler);
+                    _used.Add(handler);
             }
         }
 
@@ -47,13 +51,14 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
         public async Task OnBatchCompleteAsync() {
             foreach (var handler in _used.ToList()) {
                 //  TODO: sometimes throws System.NullReferenceException 
-                await Try.Async(handler.OnBatchCompleteAsync);
+                if (handler != null) { 
+                    await Try.Async(handler.OnBatchCompleteAsync);
+                }
             }
             _used.Clear();
         }
 
-        private readonly HashSet<IDeviceTelemetryHandler> _used =
-            new HashSet<IDeviceTelemetryHandler>();
+        private readonly HashSet<IDeviceTelemetryHandler> _used;
         private readonly Dictionary<string, IDeviceTelemetryHandler> _handlers;
         private readonly IUnknownEventHandler _unknown;
     }

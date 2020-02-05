@@ -45,6 +45,8 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
             }).Build();
             Resource = !string.IsNullOrEmpty(config.SignalRHubName) ?
                 config.SignalRHubName : "default";
+            _renewHubTimer = new Timer(RenewHubTimer_ElapesedAsync);
+            _renewHubInterval = TimeSpan.FromMinutes(3);
         }
 
         /// <inheritdoc/>
@@ -74,11 +76,15 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
             try {
                 if (_hub != null) {
                     _logger.Debug("SignalR service host already running.");
-                    return;
                 }
-                _logger.Debug("Starting SignalR service host...");
-                _hub = await _serviceManager.CreateHubContextAsync(Resource);
-                 _logger.Information("SignalR service host started.");
+                else {
+                    _logger.Debug("Starting SignalR service host...");
+                    _hub = await _serviceManager.CreateHubContextAsync(Resource);
+                    _logger.Information("SignalR service host started.");
+                }
+                // (re)start the timer no matter what
+                Try.Op(() => _renewHubTimer.Change(
+                    _renewHubInterval, Timeout.InfiniteTimeSpan));
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to start SignalR service host.");
@@ -89,6 +95,8 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
         /// <inheritdoc/>
         public async Task StopAsync() {
             try {
+                _renewHubTimer.Change(
+                    Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
                 if (_hub != null) {
                     _logger.Debug("Stopping SignalR service host...");
                     await _hub.DisposeAsync();
@@ -106,6 +114,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
         /// <inheritdoc/>
         public void Dispose() {
             Try.Op(() => StopAsync().Wait());
+            _renewHubTimer.Dispose();
         }
 
         /// <inheritdoc/>
@@ -185,6 +194,23 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
             return _hub.UserGroups.RemoveFromGroupAsync(client, group, ct);
         }
 
+        /// <inheritdoc/>
+        private async void RenewHubTimer_ElapesedAsync(object sender) {
+            var hub = _hub;
+            try {
+                _hub = await _serviceManager.CreateHubContextAsync(Resource);
+            }
+            finally {
+                if (hub != _hub) {
+                    await hub.DisposeAsync();
+                }
+                Try.Op(() => _renewHubTimer.Change(
+                    _renewHubInterval, Timeout.InfiniteTimeSpan));
+            }
+        }
+
+        private readonly Timer _renewHubTimer;
+        private readonly TimeSpan _renewHubInterval;
         private IServiceHubContext _hub;
         private readonly ILogger _logger;
         private readonly IServiceManager _serviceManager;
