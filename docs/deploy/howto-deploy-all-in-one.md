@@ -40,13 +40,13 @@ The platform and simulation can also be deployed using the deploy script.
 4. Follow the prompts to assign a name to the resource group of the deployment and a name to the website. The script deploys the Microservices and their Azure platform dependencies into the resource group in your Azure subscription.  The script also registers an Application in your Azure Active Directory (AAD) tenant to support OAUTH based authentication.  
    Deployment will take several minutes.  An example of what you'd see once the solution is successfully deployed:
 
-   ![Deployment Result](../media/deployment1.png)
+   ![Deployment Result](../media/deployment-succeeded.png)
 
    The output includes the  URL of the public endpoint.  
 
    In case you run into issues please follow the steps [below](#troubleshooting-deployment-failures).
 
-5. Once the script completes successfully, select whether you want to save the `.env` file.  You need the `.env` environment file if you want to connect to the cloud endpoint using tools such as the [Console](howto-use-cli.md) or for debugging.
+5. Once the script completes successfully, select whether you want to save the `.env` file.  You need the `.env` environment file if you want to connect to the cloud endpoint using tools such as the [Console](../tutorials/tut-use-cli.md) or for debugging.
 
 ## Troubleshooting deployment failures
 
