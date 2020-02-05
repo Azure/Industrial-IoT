@@ -1,0 +1,495 @@
+# Default values for Azure Industrial-IoT solution.
+
+# Details of Docker images.
+image:
+  # image.registry is URL of Docker registry from where images will be pulled.
+  registry: mcr.microsoft.com
+  # image.tag defines which version of Docker images to pull.
+  tag: 2.5.2
+  # image.pullPolicy defines value of imagePullPolicy of deployments.
+  pullPolicy: IfNotPresent
+  # image.pullSecrets defined docker-registry secrets that should be used for private container registries.
+  # Use standard shceme of imagePullSecrets as shown bellow:
+  # pullSecrets
+  # - name: myRegistryKey
+  pullSecrets: []
+
+# String to partially override azure-industrial-iot.fullname template (will maintain the release name).
+# nameOverride:
+
+# String to fully override azure-industrial-iot.fullname template.
+# fullnameOverride:
+
+# Details of Azure resources that components of Azure Industrial IoT solution will connect to.
+azure:
+  # azure.tenantId is Guid TenantId of the tenant that contains Azure resources.
+  tenantId: null
+
+  # Details of Azure IoT Hub that microservices will communicate with.
+  iotHub:
+    # azure.iotHub.name is the name of IoT Hub that microservices will consume IoT data from.
+    name: null
+
+    # Details of built-in EventHub of IoT Hub.
+    eventHub:
+      # azure.iotHub.eventHub.endpoint is Event Hub-compatible endpoint of built-in EventHub of IoT Hub.
+      endpoint: null
+      # azure.iotHub.eventHub.partitionCount is number of partitions of built-in EventHub.
+      partitionCount: null
+      # azure.iotHub.eventHub.consumerGroup is name of consumer group of built-in EventHub for onboarding events. Its value is usually 'onboarding'.
+      consumerGroup: null
+
+    sharedAccessPolicies:
+      iothubowner:
+        # azure.iotHub.sharedAccessPolicies.iothubowner.connectionString is IoT Hub connection string for iothubowner policy.
+        # We require iothubowner policy because microservices will perform management activities on IoT Hub.
+        connectionString: null
+
+  # Details of Azure CosmosDB that microservices will use as database.
+  # The following CosmosDB containers will be created (<db_name>.<container_name>):
+  #   - iiot_opc.iiot_opc-indices
+  #   - iiot_opc.iiot_opc-requests
+  #   - OpcVault.AppsAndCertRequests
+  cosmosDB:
+    # azure.cosmosDB.connectionString is connection string for CosmosDB. It should provide read-write permissions.
+    connectionString: null
+
+  # This provides details of Azure Storage Account that is configured in IoT Hub as storage endpoint.
+  storageAccount:
+    # azure.storageAccount.name is the name of storage account.
+    name: null
+    # azure.storageAccount.accessKey is access key for storage account. Note that is is the key and not the connection string.
+    accessKey: null
+    # azure.storageAccount.endpointSuffix is blob endpoint suffix of Azure environment.
+    # For Azure Public Cloud it should be 'core.windows.net'. It will be different if you are on a specific Azure government cloud.
+    endpointSuffix: core.windows.net
+
+  # Details of Azure Event Hub Namespace that microservices will use.
+  eventHubNamespace:
+    sharedAccessPolicies:
+      rootManageSharedAccessKey:
+        # azure.eventHubNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString is the connection string of RootManageSharedAccessKey key of Event hub Namespace.
+        # RootManageSharedAccessKey key is required because microservices will create new Event Hubs within the namespace.
+        connectionString: null
+
+    # This value is not used at the moment, so it can be skipped.
+    eventHub:
+      # azure.eventHubNamespace.eventHub.name is the name of the Event Hub within the Namespace that should be used.
+      name: null
+
+  # Details of Azure Service Bus Namespace that microservices will use.
+  serviceBusNamespace:
+    sharedAccessPolicies:
+      rootManageSharedAccessKey:
+        # azure.serviceBusNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString is connection string of RootManageSharedAccessKey key of Service Bus Namespace.
+        # RootManageSharedAccessKey key is required because microservices will create new Service Bus.
+        connectionString: null
+
+  # Details of Azure Key Vault that microservices will use.
+  keyVault:
+    # azure.keyVault.uri is the URI of Key Vault, also referred as DNS Name.
+    uri: null
+
+  # This value is not used at the moment, so it can be skipped.
+  # Details of Azure Log Analytics Workspace that microservices will use.
+  logAnalyticsWorkspace:
+    # azure.logAnalyticsWorkspace.name is the name of Log Analytics workspace instance.
+    name: null
+
+  # Provide details of your Application Insights instance to enable microservices to send telemetry and logs there.
+  applicationInsights:
+    # azure.applicationInsights.name is the name of Application Insights instance.
+    name: null
+    # azure.applicationInsights.instrumentationKey is the instrumentation key of Application Insights instance.
+    instrumentationKey: null
+
+  # This value is not used at the moment, so it can be skipped.
+  appService:
+    # azure.appService.url is URL on which App Service instance is available externally.
+    url: null
+
+  # This value is not used at the moment, so it can be skipped.
+  signalR:
+    # azure.signalR.connectionString is the connection string for your SignalR instance.
+    connectionString: null
+
+  auth:
+    # azure.auth.required defines whether to require authentication for all exposed web APIs.
+    # NOTE: This should never be set to false in a production environment.
+    # If it is set to false, then servicesApp and clientsApp sections can be skipped.
+    required: true
+
+    # azure.auth.corsWhitelist is cross-origin resource sharing whitelist for all web APIs.
+    corsWhitelist: '*'
+
+    # Those are details of AAD App Registration for services.
+    # For more details about configuration of AAD App Registration please check README.
+    servicesApp:
+      # azure.auth.servicesApp.audience is identifier URI of AAD App Registration for services.
+      audience: null
+
+    # Those are details of AAD App Registration for clients. That is required so that one can open web UIs of the
+    # microservices (some of them provide swagger for API testing) or connect to them using CLI application.
+    # For more details about configuration of AAD App Registration please check README.
+    clientsApp:
+      # azure.auth.clientsApp.appId is AppId of AAD App Registration for clients.
+      appId: null
+      # azure.auth.clientsApp.authority is authentication authority that should authenticate users and provide Access Tokens.
+      authority: https://login.microsoftonline.com/
+
+# Role-based access control.
+# Ref: https://kubernetes.io/docs/admin/authorization/rbac/
+rbac:
+  # rbac.create specifies whether RBAC resources should be created
+  create: true
+
+# Service Account for pods of all microservices.
+# ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-service-account/
+serviceAccount:
+  # serviceAccount.create specifies whether a ServiceAccount should be created
+  create: true
+  # serviceAccount.name is the name of the ServiceAccount to use or create.
+  # If not set and create is true, a name is generated using the fullname template
+  name: null
+
+deployment:
+  microServices:
+    # deployment.microServices.registry contains values specific to yaml definitions of deployment and service kubernetes resources for opc-registry-service .
+    registry:
+      enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
+      replicas: 1
+      imageRepository: iot/opc-registry-service
+      extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+      resources: {}
+
+      # .Values.deployment.microServices.registry.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []
+
+      service:
+        annotations: {}
+        type: ClusterIP
+        port: 9042
+        # Exposed as a headless service:
+        # https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
+        clusterIP: null
+        # List of IP addresses at which the service is available
+        # Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+        externalIPs: []
+        loadBalancerIP: null
+        loadBalancerSourceRanges: []
+        nodePort: null
+
+    # deployment.microServices.twin contains values specific to yaml definitions of deployment and service kubernetes resources for opc-twin-service.
+    twin:
+      enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
+      replicas: 1
+      imageRepository: iot/opc-twin-service
+      extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+      resources: {}
+
+      # .Values.deployment.microServices.twin.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []
+
+      service:
+        annotations: {}
+        type: ClusterIP
+        port: 9041
+        # Exposed as a headless service:
+        # https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
+        clusterIP: null
+        # List of IP addresses at which the service is available
+        # Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+        externalIPs: []
+        loadBalancerIP: null
+        loadBalancerSourceRanges: []
+        nodePort: null
+
+    # deployment.microServices.history contains values specific to yaml definitions of deployment and service kubernetes resources for opc-history-service.
+    history:
+      enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
+      replicas: 1
+      imageRepository: iot/opc-history-service
+      extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+      resources: {}
+
+      # .Values.deployment.microServices.history.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []
+
+      service:
+        annotations: {}
+        type: ClusterIP
+        port: 9043
+        # Exposed as a headless service:
+        # https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
+        clusterIP: null
+        # List of IP addresses at which the service is available
+        # Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+        externalIPs: []
+        loadBalancerIP: null
+        loadBalancerSourceRanges: []
+        nodePort: null
+
+    # deployment.microServices.gateway contains values specific to yaml definitions of deployment and service kubernetes resources for opc-gateway-service.
+    gateway:
+      enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
+      replicas: 1
+      imageRepository: iot/opc-gateway-service
+      extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+      resources: {}
+
+      # .Values.deployment.microServices.gateway.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []
+
+      service:
+        annotations: {}
+        type: ClusterIP
+        port: 9040
+        opcPort: 51111
+        # Exposed as a headless service:
+        # https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
+        clusterIP: null
+        # List of IP addresses at which the service is available
+        # Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+        externalIPs: []
+        loadBalancerIP: null
+        loadBalancerSourceRanges: []
+        nodePort: null
+        opcNodePort: null
+
+    # deployment.microServices.vault contains values specific to yaml definitions of deployment and service kubernetes resources for opc-vault-service.
+    vault:
+      enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
+      replicas: 1
+      imageRepository: iot/opc-vault-service
+      extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+      resources: {}
+
+      # .Values.deployment.microServices.vault.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []
+
+      service:
+        annotations: {}
+        type: ClusterIP
+        port: 9044
+        # Exposed as a headless service:
+        # https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
+        clusterIP: null
+        # List of IP addresses at which the service is available
+        # Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+        externalIPs: []
+        loadBalancerIP: null
+        loadBalancerSourceRanges: []
+        nodePort: null
+
+    # deployment.microServices.alerting contains values specific to yaml definitions of deployment kubernetes resource for opc-alerting-service.
+    alerting:
+      enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
+      replicas: 1
+      imageRepository: iot/opc-alerting-service
+      extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+      resources: {}
+
+      # .Values.deployment.microServices.alerting.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []
+
+    # deployment.microServices.onboarding contains values specific to yaml definitions of deployment kubernetes resource for opc-onboarding-service.
+    onboarding:
+      enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
+      replicas: 1
+      imageRepository: iot/opc-onboarding-service
+      extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+      resources: {}
+
+      # .Values.deployment.microServices.onboarding.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []
+
+    # deployment.microServices.jobs contains values specific to yaml definitions of deployment kubernetes resource for opc-jobs-service.
+    jobs:
+      enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
+      replicas: 1
+      imageRepository: iot/opc-jobs-service
+      extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+      resources: {}
+
+      # .Values.deployment.microServices.jobs.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []
+
+    # deployment.microServices.modelProcessor contains values specific to yaml definitions of deployment kubernetes resource for opc-processor-service.
+    modelProcessor:
+      enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
+      replicas: 1
+      imageRepository: iot/opc-processor-service
+      extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+      resources: {}
+
+      # .Values.deployment.microServices.modelProcessor.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []
+
+    # deployment.microServices.blobNotification contains values specific to yaml definitions of deployment kubernetes resource for blob-notification-service.
+    blobNotification:
+      enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
+      replicas: 1
+      imageRepository: iot/blob-notification-service
+      extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
+      resources: {}
+
+      # .Values.deployment.microServices.blobNotification.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
+      extraEnv: []
+
+  ingress:
+    enabled: false
+    extraLabels: {}
+
+    # Our recommended values to use with NGINX Ingress Controller.
+    #
+    # annotations:
+    #   kubernetes.io/ingress.class: nginx
+    #   nginx.ingress.kubernetes.io/rewrite-target: /$1
+    annotations: {}
+
+    # host for the Ingress. We do not support multiple hosts at the moment.
+    hostName: null
+
+    # Our recommended values to use with NGINX Ingress Controller.
+    #
+    # paths:
+    #   registry: /registry/(.*)
+    #   twin: /twin/(.*)
+    #   history: /history/(.*)
+    #   gateway: /ua/(.*)
+    #   vault: /vault/(.*)
+    paths:
+      registry: null
+      twin: null
+      history: null
+      gateway: null
+      vault: null
+
+    # Ingress TLS configuration. Secrets must be manually created in the namespace.
+    # The value should be alligned with hostName property.
+    #
+    # tls:
+    # - secretName: industrial-iot-tls
+    #   hosts:
+    #   - myapp.domain.com
+    tls: []

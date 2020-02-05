@@ -58,7 +58,7 @@
                 </div>
                 <hr />
                 <div>
-                    <button @onclick="@(() => WriteAsync(nodeData.Id, _value))" type="button" class="btn btn-primary">Apply</button>
+                    <button @onclick="@(() => WriteAsync(nodeData.Id, _value))" type="button" class="btn btn-primary shadow-none">Apply</button>
                 </div>
             </form>
             <div class="@_responseClass">@_response</div>
@@ -82,7 +82,7 @@
                 </form>
                 <hr />
                 <div>
-                    <button @onclick="@(async() => await CallAsync(nodeData.Id, _valueArray))" type="button" class="btn btn-primary">Apply</button>
+                    <button @onclick="@(async() => await CallAsync(nodeData.Id, _valueArray))" type="button" class="btn btn-primary shadow-none">Apply</button>
                 </div>
                 <div class="@_responseClass">
                     @if (BrowseManager.MethodCallResponse != null)
@@ -109,7 +109,7 @@
     public ListNode nodeData { get; set; }
 
     [Parameter]
-    public string endpointId { get; set; } = "uat2a0ca049f2a8cfd99f2b0b972281b40baf6bb378";
+    public string endpointId { get; set; }
 
     [Parameter]
     public PagedResult<ListNode> pagedNodeList { get; set; }  = new PagedResult<ListNode>();
