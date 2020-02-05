@@ -23,6 +23,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core {
             "application/x-monitored-item-uabinary-v1";
 
         /// <summary>
+        /// Moniored Item Message Model using json encoding
+        /// </summary>
+        public const string MonitoredItemMessageModelJson =
+            "application/x-monitored-itemsample-model-json-v1";
+
+        /// <summary>
         /// Json network message
         /// </summary>
         public const string NetworkMessageJson =

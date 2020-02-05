@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
+    using Newtonsoft.Json.Linq;
     using System;
     using System.Linq;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Publisher sample model extensions
@@ -33,7 +33,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
                 SourceTimestamp = model.SourceTimestamp,
                 Timestamp = model.Timestamp,
                 TypeId = model.TypeId,
-                Value = model.Value
+                Value = model.Value,
+                Status = model.Status
             };
         }
 
@@ -65,37 +66,76 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
                     StringComparison.InvariantCultureIgnoreCase);
             }
 
-            return new MonitoredItemSampleModel {
-                Value = GetValue(value, out var typeId),
-                TypeId = typeId?.ToString(),
-                DataSetId = sampleRoot.GetValueOrDefault<string>(
-                    nameof(MonitoredItemSampleModel.DataSetId),
+            // check if value comes from the legacy publisher:
+            var applicationUri = sampleRoot.GetValueOrDefault<string>("ApplicationUri",
+                StringComparison.InvariantCultureIgnoreCase);
+            if (applicationUri == null || applicationUri == string.Empty) {
+                // this is not a legacy publisher message
+                return new MonitoredItemSampleModel {
+                    Value = GetValue(value, out var typeId),
+                    TypeId = typeId?.ToString(),
+                    Status = sampleRoot.GetValueOrDefault<string>(
+                        nameof(MonitoredItemSampleModel.Status),
+                            StringComparison.InvariantCultureIgnoreCase),
+                    DataSetId = sampleRoot.GetValueOrDefault<string>(
+                        nameof(MonitoredItemSampleModel.DataSetId),
+                            StringComparison.InvariantCultureIgnoreCase),
+                    Timestamp = sampleRoot.GetValueOrDefault<DateTime?>(
+                        nameof(MonitoredItemSampleModel.Timestamp),
+                            StringComparison.InvariantCultureIgnoreCase),
+                    SubscriptionId = sampleRoot.GetValueOrDefault<string>(
+                        nameof(MonitoredItemSampleModel.SubscriptionId),
+                            StringComparison.InvariantCultureIgnoreCase),
+                    EndpointId = sampleRoot.GetValueOrDefault<string>(
+                        nameof(MonitoredItemSampleModel.EndpointId),
+                            StringComparison.InvariantCultureIgnoreCase),
+                    NodeId = sampleRoot.GetValueOrDefault<string>(
+                        nameof(MonitoredItemSampleModel.NodeId),
+                            StringComparison.InvariantCultureIgnoreCase),
+                    SourcePicoseconds = dataValue.GetValueOrDefault<ushort?>(
+                        nameof(MonitoredItemSampleModel.SourcePicoseconds),
+                            StringComparison.InvariantCultureIgnoreCase),
+                    ServerPicoseconds = dataValue.GetValueOrDefault<ushort?>(
+                        nameof(MonitoredItemSampleModel.ServerPicoseconds),
+                            StringComparison.InvariantCultureIgnoreCase),
+                    SourceTimestamp = dataValue.GetValueOrDefault<DateTime?>(
+                        nameof(MonitoredItemSampleModel.SourceTimestamp),
+                            StringComparison.InvariantCultureIgnoreCase),
+                    ServerTimestamp = dataValue.GetValueOrDefault<DateTime?>(
+                        nameof(MonitoredItemSampleModel.ServerTimestamp),
+                            StringComparison.InvariantCultureIgnoreCase),
+                };
+            }
+            else {
+                // legacy publisher message
+                return new MonitoredItemSampleModel {
+                    Value = GetValue(value, out var typeId),
+                    TypeId = typeId?.ToString(),
+                    DataSetId = sampleRoot.GetValueOrDefault<string>(
+                    "DisplayName",
                         StringComparison.InvariantCultureIgnoreCase),
-                Timestamp = sampleRoot.GetValueOrDefault<DateTime?>(
+                    Timestamp = sampleRoot.GetValueOrDefault<DateTime?>(
                     nameof(MonitoredItemSampleModel.Timestamp),
                         StringComparison.InvariantCultureIgnoreCase),
-                SubscriptionId = sampleRoot.GetValueOrDefault<string>(
-                    nameof(MonitoredItemSampleModel.SubscriptionId),
-                        StringComparison.InvariantCultureIgnoreCase),
-                EndpointId = sampleRoot.GetValueOrDefault<string>(
-                    nameof(MonitoredItemSampleModel.EndpointId),
-                        StringComparison.InvariantCultureIgnoreCase),
-                NodeId = sampleRoot.GetValueOrDefault<string>(
+                    SubscriptionId = "LegacyPublisher",
+                    EndpointId = applicationUri,
+                    NodeId = sampleRoot.GetValueOrDefault<string>(
                     nameof(MonitoredItemSampleModel.NodeId),
                         StringComparison.InvariantCultureIgnoreCase),
-                SourcePicoseconds = dataValue.GetValueOrDefault<ushort?>(
+                    SourcePicoseconds = dataValue.GetValueOrDefault<ushort?>(
                     nameof(MonitoredItemSampleModel.SourcePicoseconds),
                         StringComparison.InvariantCultureIgnoreCase),
-                ServerPicoseconds = dataValue.GetValueOrDefault<ushort?>(
+                    ServerPicoseconds = dataValue.GetValueOrDefault<ushort?>(
                     nameof(MonitoredItemSampleModel.ServerPicoseconds),
                         StringComparison.InvariantCultureIgnoreCase),
-                SourceTimestamp = dataValue.GetValueOrDefault<DateTime?>(
+                    SourceTimestamp = dataValue.GetValueOrDefault<DateTime?>(
                     nameof(MonitoredItemSampleModel.SourceTimestamp),
                         StringComparison.InvariantCultureIgnoreCase),
-                ServerTimestamp = dataValue.GetValueOrDefault<DateTime?>(
+                    ServerTimestamp = dataValue.GetValueOrDefault<DateTime?>(
                     nameof(MonitoredItemSampleModel.ServerTimestamp),
                         StringComparison.InvariantCultureIgnoreCase),
-            };
+                };
+            }
         }
 
         /// <summary>
@@ -114,6 +154,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
                 variant.TryGetValue("Body",
                     StringComparison.InvariantCultureIgnoreCase, out token);
             }
+
             return token;
         }
 

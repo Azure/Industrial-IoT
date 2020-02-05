@@ -1692,6 +1692,9 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 var config = BuildDiscoveryConfig(options);
                 var mode = options.GetValueOrDefault("-d", "--discovery",
                     config == null ? DiscoveryMode.Fast : DiscoveryMode.Scan);
+                if (config == null) {
+                    config = new DiscoveryConfigApiModel();
+                }
                 if (mode == DiscoveryMode.Off) {
                     throw new ArgumentException("-d/--discovery Off is not supported");
                 }

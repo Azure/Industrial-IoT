@@ -234,8 +234,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Api.Ed
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Subscriber", "components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Subscriber\src\Microsoft.Azure.IIoT.OpcUa.Subscriber.csproj", "{CD2F90BC-0FA9-4737-9F15-47EF06489423}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Cdm", "common\src\Microsoft.Azure.IIoT.Cdm\src\Microsoft.Azure.IIoT.Cdm.csproj", "{1ABED1C3-C9B5-41F4-9F8B-DD66C7105299}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "deploy", "deploy", "{8D316DA2-FC23-4F5A-ABE0-725C6E9653EC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Deployment", "deploy\src\Microsoft.Azure.IIoT.Deployment\Microsoft.Azure.IIoT.Deployment.csproj", "{4676D2B5-492B-47FF-9AD8-CB546CA0CEEF}"
@@ -255,6 +253,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm", "services\src\Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm\src\Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.csproj", "{1BC793A2-7035-4B4B-AF31-983AD756EEFB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux", "services\src\Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux\src\Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux.csproj", "{A22C4232-6BC6-47B1-9C9F-255F8A1E6621}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Cdm", "components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Cdm\src\Microsoft.Azure.IIoT.OpcUa.Cdm.csproj", "{B32532AB-1D40-4C72-898A-96BA65DF3D9B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -638,10 +638,6 @@ Global
 		{CD2F90BC-0FA9-4737-9F15-47EF06489423}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CD2F90BC-0FA9-4737-9F15-47EF06489423}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CD2F90BC-0FA9-4737-9F15-47EF06489423}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1ABED1C3-C9B5-41F4-9F8B-DD66C7105299}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1ABED1C3-C9B5-41F4-9F8B-DD66C7105299}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1ABED1C3-C9B5-41F4-9F8B-DD66C7105299}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1ABED1C3-C9B5-41F4-9F8B-DD66C7105299}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4676D2B5-492B-47FF-9AD8-CB546CA0CEEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4676D2B5-492B-47FF-9AD8-CB546CA0CEEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4676D2B5-492B-47FF-9AD8-CB546CA0CEEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -674,6 +670,10 @@ Global
 		{A22C4232-6BC6-47B1-9C9F-255F8A1E6621}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A22C4232-6BC6-47B1-9C9F-255F8A1E6621}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A22C4232-6BC6-47B1-9C9F-255F8A1E6621}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B32532AB-1D40-4C72-898A-96BA65DF3D9B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B32532AB-1D40-4C72-898A-96BA65DF3D9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B32532AB-1D40-4C72-898A-96BA65DF3D9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B32532AB-1D40-4C72-898A-96BA65DF3D9B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -788,7 +788,6 @@ Global
 		{1A92E086-C472-4B97-B68F-B4403B380B99} = {AFBD4A17-2EB1-421C-BB0C-407C875F3F50}
 		{C5D00945-D24F-4421-80DD-FAC549E79B33} = {AFBD4A17-2EB1-421C-BB0C-407C875F3F50}
 		{CD2F90BC-0FA9-4737-9F15-47EF06489423} = {A6028EDB-3331-48D2-8C7D-8D681172A61A}
-		{1ABED1C3-C9B5-41F4-9F8B-DD66C7105299} = {FEE95825-2E34-45AF-BDED-52F9C7412BF5}
 		{8D316DA2-FC23-4F5A-ABE0-725C6E9653EC} = {7DF1C0AF-62E7-48FA-AD20-8B43AECF3792}
 		{4676D2B5-492B-47FF-9AD8-CB546CA0CEEF} = {24CC83C2-F144-4EB9-9C7E-48406B1E2932}
 		{24CC83C2-F144-4EB9-9C7E-48406B1E2932} = {8D316DA2-FC23-4F5A-ABE0-725C6E9653EC}
@@ -799,6 +798,7 @@ Global
 		{BD256FCA-20DB-4FE4-8664-DAE7E0883C69} = {ADB416A3-C375-4362-B2C0-3A35DA4CB5F8}
 		{1BC793A2-7035-4B4B-AF31-983AD756EEFB} = {ADB416A3-C375-4362-B2C0-3A35DA4CB5F8}
 		{A22C4232-6BC6-47B1-9C9F-255F8A1E6621} = {ADB416A3-C375-4362-B2C0-3A35DA4CB5F8}
+		{B32532AB-1D40-4C72-898A-96BA65DF3D9B} = {A6028EDB-3331-48D2-8C7D-8D681172A61A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F09EFCEA-59F6-4A16-9CB6-7E865A3F62D8}

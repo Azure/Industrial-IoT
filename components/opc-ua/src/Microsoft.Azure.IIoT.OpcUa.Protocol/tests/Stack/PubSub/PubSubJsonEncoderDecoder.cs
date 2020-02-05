@@ -56,6 +56,7 @@ namespace Opc.Ua.PubSub.Tests {
             string json;
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream()) {
+                
                 using (var encoder = new JsonEncoderEx(stream, context)) {
                     networkMessage.Encode(encoder);
                 }
