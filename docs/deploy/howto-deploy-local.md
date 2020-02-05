@@ -29,28 +29,9 @@ This article explains how to deploy only the Azure services needed to do local d
    ```
 
 2. Follow the prompts to assign a name to the resource group for your deployment  The script deploys only the [dependencies](services/dependencies.md) to this resource group in your Azure subscription, but not the Microservices .  The script also registers an Application in Azure Active Directory.  This is needed to support OAUTH based authentication.  
-   Deployment can take several minutes.  In case you run into issues please follow the steps [below](#Troubleshooting-deployment-failures).
+   Deployment can take several minutes.  In case you run into issues please follow the troubleshooting help [here](howto-deploy-all-in-one.md).
 
-3. Once the script completes, you can select to save the `.env` file.  The `.env` environment file is the configuration file of all Microservices and tools you want to run on your development machine.  
-
-## Troubleshooting deployment failures
-
-### Resource group name
-
-Ensure you use a short and simple resource group name.  The name is used also to name resources as such it must comply with resource naming requirements.  
-
-### Azure Active Directory Registration
-
-The deployment script tries to register 2 Azure Active Directory (AAD) applications representing the client and the platform (service).  Depending on your rights to the selected AAD tenant, this might fail.
-
-An administrator with the relevant rights to the tenant can create the AAD applications for you.  The `deploy/scripts` folder contains the `aad-register.ps1` script to perform the AAD registration separately from deploying.  The output of the script is an object containing the relevant information to be used as part of deployment and must be passed to the `deploy.ps1` script in the same folder using the `-aadConfig` argument.
-
-```pwsh
-pwsh
-cd deploy/scripts
-./aad-register.ps1 -Name <application-name> -Output aad.json
-./deploy.ps1 -aadConfig aad.json ...
-```
+3. Once the script completes, you must select to save the `.env` file.  The `.env` environment file is the configuration file of all Microservices and tools you want to run on your development machine.  
 
 ## Next steps
 
