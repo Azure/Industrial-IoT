@@ -98,6 +98,50 @@ app.kubernetes.io/component labels of Industrial-IoT microservices.
 
 Those are used in Service selectors so they have to be unique for each microservices.
 */}}
+{{- define "azure-industrial-iot.registry.component" -}}
+{{- "opc-registry-service" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "azure-industrial-iot.twin.component" -}}
+{{- "opc-twin-service" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "azure-industrial-iot.history.component" -}}
+{{- "opc-history-service" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "azure-industrial-iot.gateway.component" -}}
+{{- "opc-gateway-service" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "azure-industrial-iot.vault.component" -}}
+{{- "opc-vault-service" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "azure-industrial-iot.alerting.component" -}}
+{{- "opc-alerting-service" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "azure-industrial-iot.onboarding.component" -}}
+{{- "opc-onboarding-service" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "azure-industrial-iot.jobs.component" -}}
+{{- "opc-jobs-service" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "azure-industrial-iot.model-processor.component" -}}
+{{- "opc-processor-service" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "azure-industrial-iot.blob-notification.component" -}}
+{{- "industrial-iot-fileupload-forwarder" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "azure-industrial-iot.publisher.component" -}}
+{{- "opc-publisher-service" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
 {{- define "azure-industrial-iot.configuration.component" -}}
 {{- "industrial-iot-configuration-service" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
