@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client.Runtime {
             }
         }
 
-        /// <summary> Event hub telemetry consumer group </summary>
+        /// <summary> Event hub default consumer group </summary>
         public string ConsumerGroup => GetStringOrDefault(kEventHubConsumerGroupKey,
             GetStringOrDefault("PCS_IOTHUB_EVENTHUBCONSUMERGROUP",
                 GetStringOrDefault("PCS_IOTHUBREACT_HUB_CONSUMERGROUP", "$default")));

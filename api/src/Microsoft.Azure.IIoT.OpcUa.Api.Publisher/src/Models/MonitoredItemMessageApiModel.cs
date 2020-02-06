@@ -64,7 +64,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         [JsonProperty(PropertyName = "value",
             NullValueHandling = NullValueHandling.Ignore)]
-        //public dynamic Value { get; set; }
         public ValueApiModel Value {get; set; }
         /// <summary>
         /// Type id
