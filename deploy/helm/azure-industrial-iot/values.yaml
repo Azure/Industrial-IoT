@@ -551,6 +551,33 @@ deployment:
       resources: {}
       resources: {}
 
+    frontend:
+      enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
+      replicas: 1
+      imageRepository: iot/industrial-iot-frontend
+      extraArgs: []
+      resources: {}
+      resources: {}
+
+      service:
+        annotations: {}
+        type: ClusterIP
+        httpPort: 80
+        httpsPort: 443
+        # Exposed as a headless service:
+        # https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
+        clusterIP: null
+        # List of IP addresses at which the service is available
+        # Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+        externalIPs: []
+        loadBalancerIP: null
+        loadBalancerSourceRanges: []
+        httpNodePort: null
+        httpsNodePort: null
+
   ingress:
     enabled: false
     extraLabels: {}

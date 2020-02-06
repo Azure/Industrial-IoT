@@ -101,6 +101,10 @@ Create the names of Industrial-IoT microservices.
 {{- printf "%s-%s" .Release.Name "events-processor" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
+{{- define "azure-industrial-iot.frontend.fullname" -}}
+{{- printf "%s-%s" .Release.Name "frontend" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
 {{/*
 app.kubernetes.io/component labels of Industrial-IoT microservices.
 
@@ -160,6 +164,10 @@ Those are used in Service selectors so they have to be unique for each microserv
 
 {{- define "azure-industrial-iot.events-processor.component" -}}
 {{- "industrial-iot-events-processor" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "azure-industrial-iot.frontend.component" -}}
+{{- "industrial-iot-frontend" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
