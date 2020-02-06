@@ -97,6 +97,10 @@ Create the names of Industrial-IoT microservices.
 {{- printf "%s-%s" .Release.Name "edge-manager" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
+{{- define "azure-industrial-iot.events-processor.fullname" -}}
+{{- printf "%s-%s" .Release.Name "events-processor" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
 {{/*
 app.kubernetes.io/component labels of Industrial-IoT microservices.
 
@@ -152,6 +156,10 @@ Those are used in Service selectors so they have to be unique for each microserv
 
 {{- define "azure-industrial-iot.edge-manager.component" -}}
 {{- "industrial-iot-edge-manager-service" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "azure-industrial-iot.events-processor.component" -}}
+{{- "industrial-iot-events-processor" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*

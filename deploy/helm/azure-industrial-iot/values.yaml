@@ -38,6 +38,10 @@ azure:
       partitionCount: null
       # azure.iotHub.eventHub.consumerGroup is name of consumer group of built-in EventHub for onboarding events. Its value is usually 'onboarding'.
       consumerGroup: null
+      # ToDo: Use this after we have ability to specify different ConsumerGroups
+      # consumerGroups:
+      #   events: "events"
+      #   telemetry: "telemetry"
 
     sharedAccessPolicies:
       iothubowner:
@@ -71,6 +75,11 @@ azure:
     eventHub:
       # azure.eventHubNamespace.eventHub.name is the name of the Event Hub within the Namespace that should be used.
       name: null
+
+      # ToDo: Use this after we have ability to specify different ConsumerGroups
+      consumerGroups:
+        telemetryCdm: null
+        telemetryUx: null
 
   # Details of Azure Service Bus Namespace that microservices will use.
   serviceBusNamespace:
@@ -529,6 +538,18 @@ deployment:
         loadBalancerIP: null
         loadBalancerSourceRanges: []
         nodePort: null
+
+    # ToDo: Enable after we have ability to specify different ConsumerGroups
+    eventsProcessor:
+      enabled: false
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
+      replicas: 1
+      imageRepository: iot/industrial-iot-events-processor
+      extraArgs: []
+      resources: {}
+      resources: {}
 
   ingress:
     enabled: false
