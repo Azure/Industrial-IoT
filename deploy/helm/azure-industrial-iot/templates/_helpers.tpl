@@ -89,6 +89,19 @@ Create the names of Industrial-IoT microservices.
 {{- printf "%s-%s" .Release.Name "publisher" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
+{{- define "azure-industrial-iot.configuration.fullname" -}}
+{{- printf "%s-%s" .Release.Name "configuration" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{/*
+app.kubernetes.io/component labels of Industrial-IoT microservices.
+
+Those are used in Service selectors so they have to be unique for each microservices.
+*/}}
+{{- define "azure-industrial-iot.configuration.component" -}}
+{{- "industrial-iot-configuration-service" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
 {{/*
 Create the names of Ingress resource for Industrial-IoT microservices.
 */}}
