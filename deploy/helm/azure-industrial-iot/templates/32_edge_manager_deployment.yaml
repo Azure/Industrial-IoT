@@ -1,0 +1,87 @@
+{{- if .Values.deployment.microServices.edgeManager.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "azure-industrial-iot.edge-manager.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: {{ template "azure-industrial-iot.edge-manager.component" . }}
+    app.kubernetes.io/part-of: azure-industrial-iot
+{{- if .Values.deployment.microServices.edgeManager.extraLabels }}
+{{ toYaml .Values.deployment.microServices.edgeManager.extraLabels | indent 4 }}
+{{- end }}
+{{- if .Values.deployment.microServices.edgeManager.deploymentAnnotations }}
+  annotations:
+{{ toYaml .Values.deployment.microServices.edgeManager.deploymentAnnotations | indent 4 }}
+{{- end }}
+spec:
+  replicas: {{ .Values.deployment.microServices.edgeManager.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: {{ template "azure-industrial-iot.edge-manager.component" . }}
+      app.kubernetes.io/part-of: azure-industrial-iot
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+        app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/version: {{ .Chart.AppVersion }}
+        app.kubernetes.io/component: {{ template "azure-industrial-iot.edge-manager.component" . }}
+        app.kubernetes.io/part-of: azure-industrial-iot
+{{- if .Values.deployment.microServices.edgeManager.extraLabels }}
+{{ toYaml .Values.deployment.microServices.edgeManager.extraLabels | indent 8 }}
+{{- end }}
+      annotations:
+        # Required to detect deployment change when 10_industrial_iot_env_secret.yaml is changed.
+        checksum/config: {{ include (print $.Template.BasePath "/10_industrial_iot_env_secret.yaml") . | sha256sum }}
+{{- if .Values.deployment.microServices.edgeManager.podAnnotations }}
+{{ toYaml .Values.deployment.microServices.edgeManager.podAnnotations | indent 8 }}
+{{- end }}
+    spec:
+      serviceAccountName: {{ template "azure-industrial-iot.serviceAccountName" . }}
+{{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.image.pullSecrets | indent 6 }}
+{{- end }}
+      containers:
+      - name: {{ template "azure-industrial-iot.edge-manager.component" . }}-container
+        image: {{ .Values.image.registry }}/{{ .Values.deployment.microServices.edgeManager.imageRepository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- if .Values.deployment.microServices.edgeManager.extraArgs }}
+        args:
+          {{- range .Values.deployment.microServices.edgeManager.extraArgs }}
+          - {{ . }}
+          {{- end }}
+        {{- end }}
+{{- if .Values.deployment.microServices.edgeManager.resources }}
+        resources:
+{{ toYaml .Values.deployment.microServices.edgeManager.resources | indent 10 }}
+{{- end }}
+        ports:
+        - containerPort: 9050
+        env:
+{{- /* env  section will be populated by environment variables specified in env.txt file */}}
+{{- $envSecretName := include "azure-industrial-iot.env.fullname" . }}
+{{- range .Files.Lines "env.txt" }}
+{{- $keyName := trim . }}
+{{- if $keyName }}
+        - name: {{ $keyName }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ $envSecretName }}
+              key: {{ $keyName }}
+{{- end }}
+{{- end }}
+{{- if .Values.deployment.microServices.edgeManager.extraEnv }}
+{{ toYaml .Values.deployment.microServices.edgeManager.extraEnv | indent 8 }}
+{{- end }}
+{{- end }}
