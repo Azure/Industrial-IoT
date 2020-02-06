@@ -244,11 +244,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                     return CdmDataFormat.DateTime;
                 case TypeCode.Byte:
                 case TypeCode.SByte:
+                    //  TODO: CDM SDK bug - does not accept Byte for now ...  
                     //return CdmDataFormat.Byte;
                     return CdmDataFormat.Int16;
                 case TypeCode.Boolean:
                     return CdmDataFormat.Boolean;
                 default:
+                    // treat anything else as cdm string string 
                     return CdmDataFormat.String;
             }
         }
@@ -343,7 +345,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             var newSampleEntityDoc = _cdmCorpus.MakeObject<CdmDocumentDefinition>(
                 CdmObjectType.DocumentDef, $"{newSampleEntity.EntityName}.cdm.json", false);
             newSampleEntityDoc.Imports.Add($"{newSampleEntity.EntityName}.cdm.json");
-            newSampleEntityDoc.Imports.Add("cdm:/foundations.cdm.json");
+            // TODO: remove - apparently not necessary 
+            //  newSampleEntityDoc.Imports.Add("cdm:/foundations.cdm.json");
             newSampleEntityDoc.Definitions.Add(newSampleEntity);
             _cdmCorpus.Storage.FetchRootFolder("adls").Documents.Add(
                 newSampleEntityDoc, newSampleEntityDoc.Name);

@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
         /// <inheritdoc/>
         public string EventHubPath => _eh.EventHubPath;
         /// <inheritdoc/>
-        public string ConsumerGroup => _eh.ConsumerGroup;
+        public string ConsumerGroup => _eh.ConsumerGroupTelemetry;
         /// <inheritdoc/>
         public bool UseWebsockets => _eh.UseWebsockets;
         /// <inheritdoc/>

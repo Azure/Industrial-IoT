@@ -27,7 +27,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public string Type { get; set; }
     }
 
-
     /// <summary>
     /// Publisher monitored item sample model
     /// </summary>

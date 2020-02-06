@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux.Runtime {
         /// <inheritdoc/>
         public string EventHubPath => _eh.EventHubPath;
         /// <inheritdoc/>
-        public string ConsumerGroup => "telemetryux";
+        public string ConsumerGroup => _eh.ConsumerGroupTelemetryUx;
         /// <inheritdoc/>
         public bool UseWebsockets => _eh.UseWebsockets;
         /// <inheritdoc/>

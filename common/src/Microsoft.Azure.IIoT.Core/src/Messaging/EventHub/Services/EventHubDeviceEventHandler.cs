@@ -26,7 +26,6 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
                 throw new ArgumentNullException(nameof(handlers));
             }
             _handlers = handlers.ToDictionary(h => h.MessageSchema, h => h);
-            _used = new HashSet<IDeviceTelemetryHandler>();
             _unknown = unknown;
         }
 
@@ -37,20 +36,24 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
             // try to get event's properties 
             properties.TryGetValue(CommonProperties.DeviceId, out var deviceId);
             properties.TryGetValue(CommonProperties.ModuleId, out var moduleId);
-
+            var handled = false;
             foreach (var handler in _handlers.Values) {
                 if (!_used.Contains(handler)){
                     _used.Add(handler);
                 }
                 await handler.HandleAsync(deviceId, moduleId, eventData, properties, checkpoint);
-                    _used.Add(handler);
+                handled = true;
+            }
+
+            if (!handled && _unknown != null) {
+                // From a device, but does not have any event schema or message schema
+                await _unknown.HandleAsync(eventData, properties);
             }
         }
 
         /// <inheritdoc/>
         public async Task OnBatchCompleteAsync() {
             foreach (var handler in _used.ToList()) {
-                //  TODO: sometimes throws System.NullReferenceException 
                 if (handler != null) { 
                     await Try.Async(handler.OnBatchCompleteAsync);
                 }
@@ -58,7 +61,8 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
             _used.Clear();
         }
 
-        private readonly HashSet<IDeviceTelemetryHandler> _used;
+        private readonly HashSet<IDeviceTelemetryHandler> _used =
+            new HashSet<IDeviceTelemetryHandler>();
         private readonly Dictionary<string, IDeviceTelemetryHandler> _handlers;
         private readonly IUnknownEventHandler _unknown;
     }

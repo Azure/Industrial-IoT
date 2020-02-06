@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.Runtime {
         /// <inheritdoc/>
         public string EventHubPath => _eh.EventHubPath;
         /// <inheritdoc/>
-        public string ConsumerGroup => "telemetrycdm";
+        public string ConsumerGroup => _eh.ConsumerGroupTelemetryCdm;
         /// <inheritdoc/>
         public bool UseWebsockets => _eh.UseWebsockets;
         /// <inheritdoc/>

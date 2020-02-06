@@ -91,7 +91,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
         public async Task WriteInCsvPartition<T>(string partitionUrl,
             List<T> data, string separator) {
             try {
-                await _lock.WaitAsync();
                 // check if partition exists
                 long contentPosition = 0;
                 var content = string.Empty;
@@ -125,9 +124,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to write data in the csv partition");
                 throw ex;
-            }
-            finally {
-                _lock.Release();
             }
         }
 
@@ -172,12 +168,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
 
         /// <inheritdoc/>
         public void Dispose() {
-            _lock.Dispose();
         }
 
         private readonly IHttpClient _httpClient;
         private readonly ILogger _logger;
         private readonly string kResource = "https://storage.azure.com";
-        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
     }
 }
