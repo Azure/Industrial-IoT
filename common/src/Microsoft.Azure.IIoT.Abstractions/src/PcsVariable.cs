@@ -31,6 +31,9 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> storage connection string </summary>
         public const string PCS_STORAGE_CONNSTRING =
             "PCS_STORAGE_CONNSTRING";
+        /// <summary>Blob Storage Container that holds encrypted keys</summary>
+        public const string PCS_STORAGE_CONTAINER_DATAPROTECTION =
+            "PCS_STORAGE_CONTAINER_DATAPROTECTION";
         /// <summary> SignalR connection string </summary>
         public const string PCS_SIGNALR_CONNSTRING =
             "PCS_SIGNALR_CONNSTRING";
@@ -58,6 +61,9 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Keyvault url </summary>
         public const string PCS_KEYVAULT_URL =
             "PCS_KEYVAULT_URL";
+        /// <summary>Key (in KeyVault) to be used for encription of keys</summary>
+        public const string PCS_KEYVAULT_KEY_DATAPROTECTION =
+            "PCS_KEYVAULT_KEY_DATAPROTECTION";
         /// <summary> Auth tenant </summary>
         public const string PCS_AUTH_TENANT =
             "PCS_AUTH_TENANT";
