@@ -109,6 +109,10 @@ Create the names of Industrial-IoT microservices.
 {{- printf "%s-%s" .Release.Name "identity" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
+{{- define "azure-industrial-iot.edge-jobs.fullname" -}}
+{{- printf "%s-%s" .Release.Name "edge-jobs" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
 {{/*
 app.kubernetes.io/component labels of Industrial-IoT microservices.
 
@@ -176,6 +180,10 @@ Those are used in Service selectors so they have to be unique for each microserv
 
 {{- define "azure-industrial-iot.identity.component" -}}
 {{- "industrial-iot-identity-service" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "azure-industrial-iot.edge-jobs.component" -}}
+{{- "industrial-iot-jobs-orchestrator-service" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{/*
