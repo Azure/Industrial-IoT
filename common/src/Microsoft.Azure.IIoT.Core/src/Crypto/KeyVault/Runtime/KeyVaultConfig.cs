@@ -17,6 +17,9 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Runtime {
         private const string kOpcVault_KeyVaultResourceIdKey = "KeyVault:ResourceId";
         private const string kOpcVault_KeyVaultIsHsmKey = "KeyVault:IsHsm";
 
+        private const string kKeyVaultResourceIdDefault = "https://vault.azure.net";
+        private const bool kKeyVaultIsHsmDefault = true;
+
         /// <inheritdoc/>
         public string KeyVaultBaseUrl => GetStringOrDefault(kOpcVault_KeyVaultBaseUrlKey,
             GetStringOrDefault("KEYVAULT__BASEURL",
@@ -24,10 +27,10 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Runtime {
         /// <inheritdoc/>
         public string KeyVaultResourceId => GetStringOrDefault(kOpcVault_KeyVaultResourceIdKey,
             GetStringOrDefault("KEYVAULT__RESOURCEID",
-                "https://vault.azure.net")).Trim();
+                kKeyVaultResourceIdDefault)).Trim();
         /// <inheritdoc/>
         public bool KeyVaultIsHsm => GetBoolOrDefault(kOpcVault_KeyVaultIsHsmKey,
-            GetBoolOrDefault("PCS_KEYVAULT_ISHSM", true));
+            GetBoolOrDefault("PCS_KEYVAULT_ISHSM", kKeyVaultIsHsmDefault));
 
         /// <summary>
         /// Configuration constructor
