@@ -18,8 +18,6 @@ namespace Microsoft.Azure.IIoT.Messaging.EventHub.Runtime {
         private const string kEventHubConnStringKey = "EventHubConnectionString";
         private const string kEventHubNameKey = "EventHubName";
         private const string kEventHubConsumerGroupKey = "EventHubConsumerGroup";
-        private const string kEventHubConsumerGroupTelemetryCdmKey = "EventHubConsumerGroupTelemetryCdm";
-        private const string kEventHubConsumerGroupTelemetryUxKey = "EventHubConsumerGroupTelemetryUx";
         private const string kUseWebsocketsKey = "UseWebsockets";
 
         /// <summary> Event hub connection string </summary>
@@ -34,12 +32,6 @@ namespace Microsoft.Azure.IIoT.Messaging.EventHub.Runtime {
         /// <summary> Event hub consumer group </summary>
         public string ConsumerGroup => GetStringOrDefault(kEventHubConsumerGroupKey,
             GetStringOrDefault("PCS_EVENTHUB_CONSUMERGROUP", "$default"));
-        /// <summary> Event hub consumer group telemetry cdm</summary>
-        public string ConsumerGroupTelemetryCdm => GetStringOrDefault(kEventHubConsumerGroupTelemetryCdmKey,
-            GetStringOrDefault(PcsVariable.PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_CDM, "telemetrycdm"));
-        /// <summary> Event hub consumer group telemetry ux</summary>
-        public string ConsumerGroupTelemetryUx => GetStringOrDefault(kEventHubConsumerGroupTelemetryUxKey,
-            GetStringOrDefault(PcsVariable.PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_UX, "telemetryux"));
 
         /// <summary>
         /// Configuration constructor
