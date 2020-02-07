@@ -694,6 +694,17 @@ deployment:
       resources: {}
       extraEnv: []
 
+    registryEventsForwarder:
+      enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
+      replicas: 1
+      imageRepository: iot/opc-registry-events-forwarder
+      extraArgs: []
+      resources: {}
+      extraEnv: []
+
   ingress:
     enabled: false
     extraLabels: {}
