@@ -38,9 +38,7 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
             properties.TryGetValue(CommonProperties.ModuleId, out var moduleId);
             var handled = false;
             foreach (var handler in _handlers.Values) {
-                if (!_used.Contains(handler)){
-                    _used.Add(handler);
-                }
+                _used.Add(handler.MessageSchema);
                 await handler.HandleAsync(deviceId, moduleId, eventData, properties, checkpoint);
                 handled = true;
             }
@@ -53,16 +51,14 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
 
         /// <inheritdoc/>
         public async Task OnBatchCompleteAsync() {
-            foreach (var handler in _used.ToList()) {
-                if (handler != null) { 
-                    await Try.Async(handler.OnBatchCompleteAsync);
-                }
+            foreach (var handler in _used) {
+                await Try.Async(_handlers[handler].OnBatchCompleteAsync);
             }
             _used.Clear();
         }
 
-        private readonly HashSet<IDeviceTelemetryHandler> _used =
-            new HashSet<IDeviceTelemetryHandler>();
+        private readonly HashSet<string> _used =
+            new HashSet<string>();
         private readonly Dictionary<string, IDeviceTelemetryHandler> _handlers;
         private readonly IUnknownEventHandler _unknown;
     }
