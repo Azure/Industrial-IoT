@@ -1,0 +1,145 @@
+{{- if .Values.deployment.microServices.registry.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "azure-industrial-iot.registry.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: opc-registry
+    app.kubernetes.io/part-of: azure-industrial-iot
+{{- if .Values.deployment.microServices.registry.extraLabels }}
+{{ toYaml .Values.deployment.microServices.registry.extraLabels | indent 4 }}
+{{- end }}
+{{- if .Values.deployment.microServices.registry.deploymentAnnotations }}
+  annotations:
+{{ toYaml .Values.deployment.microServices.registry.deploymentAnnotations | indent 4 }}
+{{- end }}
+spec:
+  replicas: {{ .Values.deployment.microServices.registry.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: opc-registry
+      app.kubernetes.io/part-of: azure-industrial-iot
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+        app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/version: {{ .Chart.AppVersion }}
+        app.kubernetes.io/component: opc-registry
+        app.kubernetes.io/part-of: azure-industrial-iot
+{{- if .Values.deployment.microServices.registry.extraLabels }}
+{{ toYaml .Values.deployment.microServices.registry.extraLabels | indent 8 }}
+{{- end }}
+      annotations:
+        # Required to detect deployment change when 10_industrial_iot_env_secret.yaml is changed.
+        checksum/config: {{ include (print $.Template.BasePath "/10_industrial_iot_env_secret.yaml") . | sha256sum }}
+{{- if .Values.deployment.microServices.registry.podAnnotations }}
+{{ toYaml .Values.deployment.microServices.registry.podAnnotations | indent 8 }}
+{{- end }}
+    spec:
+      serviceAccountName: {{ template "azure-industrial-iot.serviceAccountName" . }}
+{{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.image.pullSecrets | indent 6 }}
+{{- end }}
+      containers:
+      - name: registry-service-container
+        image: {{ .Values.image.registry }}/{{ .Values.deployment.microServices.registry.imageRepository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- if .Values.deployment.microServices.registry.extraArgs }}
+        args:
+          {{- range .Values.deployment.microServices.registry.extraArgs }}
+          - {{ . }}
+          {{- end }}
+        {{- end }}
+{{- if .Values.deployment.microServices.registry.resources }}
+        resources:
+{{ toYaml .Values.deployment.microServices.registry.resources | indent 10 }}
+{{- end }}
+        ports:
+        - containerPort: 9042
+        env:
+        - name: PCS_KEYVAULT_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_KEYVAULT_URL
+        - name: PCS_IOTHUB_CONNSTRING
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_IOTHUB_CONNSTRING
+        - name: PCS_SERVICEBUS_CONNSTRING
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_SERVICEBUS_CONNSTRING
+        - name: PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_TELEMETRY_DOCUMENTDB_CONNSTRING
+        - name: PCS_AUTH_HTTPSREDIRECTPORT
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_AUTH_HTTPSREDIRECTPORT
+        - name: PCS_AUTH_REQUIRED
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_AUTH_REQUIRED
+        - name: PCS_AUTH_ISSUER
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_AUTH_ISSUER
+        - name: PCS_AUTH_AUDIENCE
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_AUTH_AUDIENCE
+        - name: PCS_WEBUI_AUTH_AAD_APPID
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_WEBUI_AUTH_AAD_APPID
+        - name: PCS_WEBUI_AUTH_AAD_AUTHORITY
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_WEBUI_AUTH_AAD_AUTHORITY
+        - name: PCS_WEBUI_AUTH_AAD_TENANT
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_WEBUI_AUTH_AAD_TENANT
+        - name: PCS_CORS_WHITELIST
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_CORS_WHITELIST
+        - name: PCS_APPINSIGHTS_NAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_APPINSIGHTS_NAME
+        - name: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
+{{- if .Values.deployment.microServices.registry.extraEnv }}
+{{ toYaml .Values.deployment.microServices.registry.extraEnv | indent 8 }}
+{{- end }}
+{{- end }}
