@@ -9,5 +9,5 @@ rem // remove trailing slash
 set current-path=%current-path:~0,-1%
 pushd %current-path%\deploy\scripts
 shift
-powershell ./deploy.ps1 %*
+powershell -ExecutionPolicy Unrestricted ./deploy.ps1 %*
 popd
