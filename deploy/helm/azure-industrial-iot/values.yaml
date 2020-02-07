@@ -63,6 +63,11 @@ azure:
     # azure.storageAccount.connectionString is the connection string for storage account.
     connectionString: null
 
+    container:
+      # ToDo: Document creation of the container.
+      # azure.storageAccount.container.dataProtection is Storage Account Container that holds encrypted keys.
+      dataProtection: null
+
   # Details of Azure Event Hub Namespace that microservices will use.
   eventHubNamespace:
     sharedAccessPolicies:
@@ -93,6 +98,11 @@ azure:
   keyVault:
     # azure.keyVault.uri is the URI of Key Vault, also referred as DNS Name.
     uri: null
+
+    key:
+      # ToDo: Document creation of the key.
+      # azure.keyVault.key.dataProtection is the key in Key Vault that should be used for encryption of keys in data protection Storage Account Container.
+      dataProtection: null
 
   # This value is not used at the moment, so it can be skipped.
   # Details of Azure Log Analytics Workspace that microservices will use.
