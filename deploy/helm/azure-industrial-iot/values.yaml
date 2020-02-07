@@ -561,8 +561,16 @@ deployment:
       resources: {}
       resources: {}
 
+    # For the frontend to work we require data protection feature. That, in turn, requires you to have
+    # some additional auth details. So it might make sense to allow frontend only if auth is enabled.
+    # frontned relies on the following env vars:
+    #   - PCS_KEYVAULT_KEY_DATAPROTECTION
+    #   - PCS_STORAGE_CONTAINER_DATAPROTECTION
+    #   - PCS_KEYVAULT_APPID
+    #   - PCS_KEYVAULT_SECRET
+    # ToDo: Enable when it is clear how frontend can be deployed given auth.
     frontend:
-      enabled: true
+      enabled: false
       deploymentAnnotations: {}
       podAnnotations: {}
       extraLabels: {}
