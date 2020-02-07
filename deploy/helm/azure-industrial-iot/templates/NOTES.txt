@@ -1,0 +1,36 @@
+Please be patient while the chart is being deployed
+
+Use port forwarding to access Web APIs of Azure Industrial IoT services
+
+Opc-Registry-Service:
+  Documentation: https://github.com/Azure/Industrial-IoT/blob/master/docs/services/registry.md
+  API documentation: https://github.com/Azure/Industrial-IoT/blob/master/docs/api/registry/readme.md
+
+  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ template "azure-industrial-iot.registry.fullname" . }} 9042:{{ .Values.deployment.microServices.registry.service.port }}
+
+Opc-Twin-Service:
+  Documentation: https://github.com/Azure/Industrial-IoT/blob/master/docs/services/twin.md
+  API documentation: https://github.com/Azure/Industrial-IoT/blob/master/docs/api/twin/readme.md
+
+  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ template "azure-industrial-iot.twin.fullname" . }} 9041:{{ .Values.deployment.microServices.twin.service.port }}
+
+Opc-History-Service:
+  Documentation: https://github.com/Azure/Industrial-IoT/blob/master/docs/services/history.md
+  API documentation: https://github.com/Azure/Industrial-IoT/blob/master/docs/api/history/readme.md
+
+  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ template "azure-industrial-iot.history.fullname" . }} 9043:{{ .Values.deployment.microServices.history.service.port }}
+
+Opc-Gateway-Service:
+  Documentation: https://github.com/Azure/Industrial-IoT/blob/master/docs/services/gateway.md
+  API documentation:
+
+  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ template "azure-industrial-iot.gateway.fullname" . }} 9040:{{ .Values.deployment.microServices.gateway.service.port }}
+
+Opc-Vault-Service:
+  Documentation: https://github.com/Azure/Industrial-IoT/blob/master/docs/services/vault.md
+  API documentation: https://github.com/Azure/Industrial-IoT/blob/master/docs/api/vault/readme.md
+
+  kubectl port-forward --namespace {{ .Release.Namespace }} svc/{{ template "azure-industrial-iot.vault.fullname" . }} 9044:{{ .Values.deployment.microServices.vault.service.port }}
+
+For more information on Azure Industrial IoT, visit:
+https://github.com/Azure/Industrial-IoT
