@@ -483,7 +483,7 @@ deployment:
       imageRepository: iot/opc-publisher-service
       extraArgs: []
       resources: {}
-      resources: {}
+      extraEnv: []
 
       service:
         annotations: {}
@@ -508,7 +508,7 @@ deployment:
       imageRepository: iot/industrial-iot-configuration-service
       extraArgs: []
       resources: {}
-      resources: {}
+      extraEnv: []
 
       service:
         annotations: {}
@@ -533,7 +533,7 @@ deployment:
       imageRepository: iot/industrial-iot-edge-manager-service
       extraArgs: []
       resources: {}
-      resources: {}
+      extraEnv: []
 
       service:
         annotations: {}
@@ -559,7 +559,7 @@ deployment:
       imageRepository: iot/industrial-iot-events-processor
       extraArgs: []
       resources: {}
-      resources: {}
+      extraEnv: []
 
     # For the frontend to work we require data protection feature. That, in turn, requires you to have
     # some additional auth details. So it might make sense to allow frontend only if auth is enabled.
@@ -578,7 +578,7 @@ deployment:
       imageRepository: iot/industrial-iot-frontend
       extraArgs: []
       resources: {}
-      resources: {}
+      extraEnv: []
 
       service:
         annotations: {}
@@ -605,7 +605,7 @@ deployment:
       imageRepository: iot/industrial-iot-identity-service
       extraArgs: []
       resources: {}
-      resources: {}
+      extraEnv: []
 
     edgeJobs:
       enabled: true
@@ -616,7 +616,7 @@ deployment:
       imageRepository: iot/industrial-iot-jobs-orchestrator-service
       extraArgs: []
       resources: {}
-      resources: {}
+      extraEnv: []
 
       service:
         annotations: {}
@@ -641,7 +641,7 @@ deployment:
       imageRepository: iot/industrial-iot-jobs-service
       extraArgs: []
       resources: {}
-      resources: {}
+      extraEnv: []
 
       service:
         annotations: {}
@@ -668,7 +668,7 @@ deployment:
       imageRepository: iot/industrial-iot-telemetry-cdm-processor
       extraArgs: []
       resources: {}
-      resources: {}
+      extraEnv: []
 
     # ToDo: Enable after we have ability to specify different ConsumerGroups
     telemetryProcessor:
@@ -680,7 +680,7 @@ deployment:
       imageRepository: iot/industrial-iot-telemetry-processor
       extraArgs: []
       resources: {}
-      resources: {}
+      extraEnv: []
 
     # ToDo: Enable after we have ability to specify different ConsumerGroups
     telemetryUxProcessor:
@@ -692,7 +692,7 @@ deployment:
       imageRepository: iot/industrial-iot-telemetry-ux-processor
       extraArgs: []
       resources: {}
-      resources: {}
+      extraEnv: []
 
   ingress:
     enabled: false
