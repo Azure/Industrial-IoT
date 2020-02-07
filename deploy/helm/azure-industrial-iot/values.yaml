@@ -682,6 +682,18 @@ deployment:
       resources: {}
       resources: {}
 
+    # ToDo: Enable after we have ability to specify different ConsumerGroups
+    telemetryUxProcessor:
+      enabled: false
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
+      replicas: 1
+      imageRepository: iot/industrial-iot-telemetry-ux-processor
+      extraArgs: []
+      resources: {}
+      resources: {}
+
   ingress:
     enabled: false
     extraLabels: {}
