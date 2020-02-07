@@ -1,0 +1,140 @@
+{{- if .Values.deployment.microServices.blobNotification.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "azure-industrial-iot.blob-notification.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: blob-notification
+    app.kubernetes.io/part-of: azure-industrial-iot
+{{- if .Values.deployment.microServices.blobNotification.extraLabels }}
+{{ toYaml .Values.deployment.microServices.blobNotification.extraLabels | indent 4 }}
+{{- end }}
+{{- if .Values.deployment.microServices.blobNotification.deploymentAnnotations }}
+  annotations:
+{{ toYaml .Values.deployment.microServices.blobNotification.deploymentAnnotations | indent 4 }}
+{{- end }}
+spec:
+  replicas: {{ .Values.deployment.microServices.blobNotification.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: blob-notification
+      app.kubernetes.io/part-of: azure-industrial-iot
+  template:
+    metadata:
+      labels:
+        helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+        app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/version: {{ .Chart.AppVersion }}
+        app.kubernetes.io/component: blob-notification
+        app.kubernetes.io/part-of: azure-industrial-iot
+{{- if .Values.deployment.microServices.blobNotification.extraLabels }}
+{{ toYaml .Values.deployment.microServices.blobNotification.extraLabels | indent 8 }}
+{{- end }}
+      annotations:
+        # Required to detect deployment change when 10_industrial_iot_env_secret.yaml is changed.
+        checksum/config: {{ include (print $.Template.BasePath "/10_industrial_iot_env_secret.yaml") . | sha256sum }}
+{{- if .Values.deployment.microServices.blobNotification.podAnnotations }}
+{{ toYaml .Values.deployment.microServices.blobNotification.podAnnotations | indent 8 }}
+{{- end }}
+    spec:
+      serviceAccountName: {{ template "azure-industrial-iot.serviceAccountName" . }}
+{{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+{{ toYaml .Values.image.pullSecrets | indent 6 }}
+{{- end }}
+      containers:
+      - name: blob-notification-service-container
+        image: {{ .Values.image.registry }}/{{ .Values.deployment.microServices.blobNotification.imageRepository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        {{- if .Values.deployment.microServices.blobNotification.extraArgs }}
+        args:
+          {{- range .Values.deployment.microServices.blobNotification.extraArgs }}
+          - {{ . }}
+          {{- end }}
+        {{- end }}
+{{- if .Values.deployment.microServices.blobNotification.resources }}
+        resources:
+{{ toYaml .Values.deployment.microServices.blobNotification.resources | indent 10 }}
+{{- end }}
+        env:
+        - name: PCS_KEYVAULT_URL
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_KEYVAULT_URL
+        - name: PCS_IOTHUB_CONNSTRING
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_IOTHUB_CONNSTRING
+        - name: PCS_SERVICEBUS_CONNSTRING
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_SERVICEBUS_CONNSTRING
+        - name: PCS_EVENTHUB_CONNSTRING
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_EVENTHUB_CONNSTRING
+        {{- /*
+        - name: PCS_IOTHUBREACT_HUB_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_IOTHUBREACT_HUB_ENDPOINT
+        - name: PCS_IOTHUBREACT_HUB_PARTITIONS
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_IOTHUBREACT_HUB_PARTITIONS
+        - name: PCS_IOTHUBREACT_HUB_NAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_IOTHUBREACT_HUB_NAME
+        - name: PCS_IOTHUBREACT_HUB_CONSUMERGROUP
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_IOTHUBREACT_HUB_CONSUMERGROUP
+        */}}
+        - name: PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT
+        - name: PCS_IOTHUBREACT_AZUREBLOB_KEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_IOTHUBREACT_AZUREBLOB_KEY
+        - name: PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX
+        - name: PCS_APPINSIGHTS_NAME
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_APPINSIGHTS_NAME
+        - name: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
+          valueFrom:
+            secretKeyRef:
+              name: {{ template "azure-industrial-iot.env.fullname" . }}
+              key: PCS_APPINSIGHTS_INSTRUMENTATIONKEY
+{{- if .Values.deployment.microServices.blobNotification.extraEnv }}
+{{ toYaml .Values.deployment.microServices.blobNotification.extraEnv | indent 8 }}
+{{- end }}
+{{- end }}
