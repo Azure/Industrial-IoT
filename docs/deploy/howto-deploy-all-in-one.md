@@ -50,6 +50,35 @@ The platform and simulation can also be deployed using the deploy script.
 
 ## Troubleshooting deployment failures
 
+### Execution Policy
+
+If you receive a message that the execution policy not being set you can set the execution policy when starting the powershell session:
+
+```bash
+pwsh -ExecutionPolicy Unrestricted
+```
+
+To set the execution policy on your machine:
+
+1. Search for Windows PowerShell in Start
+2. Right click on result Windows PowerShell and choose Run as Administrator
+3. In PowerShell (Administrator) run:
+
+```pwsh
+Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
+```
+
+### Security Warning
+
+1. If you see a message in PowerShell
+`Security warning
+Run only scripts that you trust. While scripts from the internet can be useful, this script can potentially harm your
+computer. If you trust this script, use the Unblock-File cmdlet to allow the script to run without this warning
+message. Do you want to run C:\MyConnectedFactoryClone\build.ps1?
+[D] Do not run  [R] Run once  [S] Suspend  [?] Help (default is "D"):
+Do you want to run this script?`
+2. Choose R
+
 ### Resource group name
 
 Ensure you use a short and simple resource group name.  The name is used also to name resources as such it must comply with resource naming requirements.  
