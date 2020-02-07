@@ -49,13 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
                 foreach (var prop in info) {
                     var value = prop.GetValue(obj);
                     if (value != null) {
-                        var str = (string)null;
-                        if (value is Value valueToken) {
-                            str = valueToken?.Body?.ToString();
-                        }
-                        else {
-                            str = value?.ToString();
-                        }
+                        var str = value?.ToString();
                         if (str != null &&
                             (str.Contains(separator) ||
                             str.Contains("\"") || str.Contains("\r") ||
@@ -112,9 +106,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
                     request = _httpClient.NewRequest(
                         $"{partitionUrl}?action=append&position={contentPosition}",
                         kResource);
-                    request.SetContent(content, UTF8Encoding.UTF8);
+                    request.SetContent(content, Encoding.UTF8);
                     response = await _httpClient.PatchAsync(request);
-                    contentPosition += UTF8Encoding.UTF8.GetByteCount(content);
+                    contentPosition += Encoding.UTF8.GetByteCount(content);
                     request = _httpClient.NewRequest
                         ($"{partitionUrl}?action=flush&position={contentPosition}",
                         kResource);

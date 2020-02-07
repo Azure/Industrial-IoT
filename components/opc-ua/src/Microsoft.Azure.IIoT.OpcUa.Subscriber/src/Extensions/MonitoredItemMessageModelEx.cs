@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
 
-
     /// <summary>
     /// Publisher sample model extensions
     /// </summary>
@@ -31,13 +30,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
                 SourceTimestamp = model.SourceTimestamp,
                 Timestamp = model.Timestamp,
                 TypeId = model.TypeId,
-                Value = new Value(){
-                    Body = model.Value?.Body,
-                    Type = model.Value?.Type
-                },
+                Value = model.Value,
                 Status = model.Status
             };
         }
-
     }
 }

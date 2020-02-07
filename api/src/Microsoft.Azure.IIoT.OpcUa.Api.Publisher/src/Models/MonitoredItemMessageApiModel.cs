@@ -8,28 +8,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     using System;
 
     /// <summary>
-    /// variant to handle the data 
-    /// </summary>
-    [JsonObject(Id = "ValueApiModel")]
-    public class ValueApiModel {
-        /// <summary>
-        /// Value
-        /// </summary>
-        [JsonProperty(PropertyName = "body",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public dynamic Body { get; set; }
-
-        /// <summary>
-        /// Type id
-        /// </summary>
-        [JsonProperty(PropertyName = "type",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public string Type { get; set; }
-    }
-
-    /// <summary>
     /// Publisher monitored item sample model
     /// </summary>
+    [JsonObject(Id = "MonitoredItemMessageApiModel")]
     public class MonitoredItemMessageApiModel {
 
         /// <summary>
@@ -64,7 +45,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         [JsonProperty(PropertyName = "value",
             NullValueHandling = NullValueHandling.Ignore)]
-        public ValueApiModel Value {get; set; }
+        public dynamic Value {get; set; }
+        
         /// <summary>
         /// Type id
         /// </summary>

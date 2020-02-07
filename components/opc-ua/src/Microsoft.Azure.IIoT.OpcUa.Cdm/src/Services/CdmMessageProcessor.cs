@@ -210,15 +210,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             return key.Replace('#', '_').Replace('.', '_');
         }
 
-        private static CdmDataFormat DataTypeToCdmDataFormat(Type type, object value) {
+        private static CdmDataFormat DataTypeToCdmDataFormat(Type type) {
             var typeCode = Type.GetTypeCode(type);
             if (typeCode == TypeCode.Object) {
                 typeCode = Type.GetTypeCode(Nullable.GetUnderlyingType(type));
-                if (typeCode == TypeCode.Object || typeCode == TypeCode.Empty){
-                    if (value is Value valueToken) {
-                        typeCode = Type.GetTypeCode(valueToken?.Type);
-                    }
-                }
             }
             switch (typeCode) {
                 case TypeCode.Int16:
@@ -330,7 +325,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                     CdmObjectType.TypeAttributeDef, property.Name, false);
                 attribute.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
                     CdmObjectType.PurposeRef, "hasA", true);
-                attribute.DataFormat = DataTypeToCdmDataFormat(property.PropertyType, property.GetValue(sample));
+                //  if we handle a value, lookup it's type property
+                if (property.Name == "Value" &&
+                    typeof(MonitoredItemSampleModel).
+                        GetProperty("TypeId")?.GetValue(sample) is Type typeId){ 
+                    attribute.DataFormat = DataTypeToCdmDataFormat(typeId);
+                }
+                else {
+                    attribute.DataFormat = DataTypeToCdmDataFormat(property.PropertyType);
+                }
                 attribute.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
                     CdmObjectType.DataTypeRef, 
                     DataTypeToCdmDataString(attribute.DataFormat), true);

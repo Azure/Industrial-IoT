@@ -45,6 +45,8 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
             }).Build();
             Resource = !string.IsNullOrEmpty(config.SignalRHubName) ?
                 config.SignalRHubName : "default";
+            //   TODO : force hub renew mechanism introduced to workaround a 
+            //      signalR SDK bug. To be removed after the fix is done in the SDK
             _renewHubTimer = new Timer(RenewHubTimer_ElapesedAsync);
             _renewHubInterval = TimeSpan.FromMinutes(3);
         }
@@ -194,7 +196,6 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
             return _hub.UserGroups.RemoveFromGroupAsync(client, group, ct);
         }
 
-        /// <inheritdoc/>
         private async void RenewHubTimer_ElapesedAsync(object sender) {
             var hub = _hub;
             try {

@@ -30,7 +30,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Processors {
 
         /// <inheritdoc/>
         public Task HandleSampleAsync(MonitoredItemSampleModel sample) {
-            sample = sample.Clone();
             // Set timestamp as source timestamp
             // TODO: Make configurable
             sample.Timestamp = sample.SourceTimestamp;

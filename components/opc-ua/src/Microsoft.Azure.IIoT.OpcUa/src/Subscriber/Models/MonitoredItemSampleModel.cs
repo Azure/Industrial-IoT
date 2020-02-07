@@ -6,19 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
     using System;
 
-    /// <summary>
-    /// the value
-    /// </summary>
-    public class Value {
-        /// <summary>
-        /// The value's body
-        /// </summary>
-        public dynamic Body { get; set; }
-        /// <summary>
-        /// the type of value 
-        /// </summary>
-        public Type Type { get; set; }
-    }
 
     /// <summary>
     /// Monitored item sample message
@@ -33,7 +20,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         /// <summary>
         /// Value
         /// </summary>
-        public Value Value { get; set; }
+        public dynamic Value { get; set; }
 
         /// <summary>
         /// Value's Status code string representation 
@@ -43,7 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         /// <summary>
         /// Type id
         /// </summary>
-        public string TypeId { get; set; }
+        public Type TypeId { get; set; }
 
         /// <summary>
         /// Source time stamp
