@@ -657,6 +657,19 @@ deployment:
         loadBalancerSourceRanges: []
         nodePort: null
 
+    # ToDo: Enable after we have ability to specify different ConsumerGroups
+    # Note: iot/industrial-iot-telemetry-cdm-processor image is not published to MCR
+    telemetryCdmProcessor:
+      enabled: false
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
+      replicas: 1
+      imageRepository: iot/industrial-iot-telemetry-cdm-processor
+      extraArgs: []
+      resources: {}
+      resources: {}
+
   ingress:
     enabled: false
     extraLabels: {}
