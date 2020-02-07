@@ -596,6 +596,17 @@ deployment:
         httpNodePort: null
         httpsNodePort: null
 
+    identity:
+      enabled: true
+      deploymentAnnotations: {}
+      podAnnotations: {}
+      extraLabels: {}
+      replicas: 1
+      imageRepository: iot/industrial-iot-identity-service
+      extraArgs: []
+      resources: {}
+      resources: {}
+
   ingress:
     enabled: false
     extraLabels: {}
