@@ -56,11 +56,12 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                 configuration = builder.Services.BuildServiceProvider()
                     .GetRequiredService<IConfiguration>();
             }
+
             var config = new DataProtectionConfig(configuration);
             if (string.IsNullOrEmpty(config.KeyVaultBaseUrl)) {
                 return builder;
             }
-            var keyName = "dataprotection";
+            var keyName = config.KeyVaultKeyDataProtection;
             var client = TryKeyVaultClientAsync(config.KeyVaultBaseUrl,
                 config, keyName).Result;
             if (client == null) {
@@ -82,8 +83,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                     .GetRequiredService<IConfiguration>();
             }
 
-            var containerName = "dataprotection";
             var storage = new DataProtectionConfig(configuration);
+            var containerName = storage.BlobStorageContainerDataProtection;
             if (string.IsNullOrEmpty(storage.BlobStorageConnString)) {
                 return builder;
             }
@@ -114,9 +115,13 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
             if (!string.IsNullOrEmpty(client.AppId) &&
                 !string.IsNullOrEmpty(client.AppSecret) &&
                 !string.IsNullOrEmpty(client.TenantId)) {
+                var connectionString =
+                    $"RunAs=App; " +
+                    $"AppId={client.AppId}; " +
+                    $"AppKey={client.AppSecret}; " +
+                    $"TenantId={client.TenantId}";
                 keyVault = await TryInititalizeKeyAsync("Application",
-                    vaultUri, keyName, $"RunAs=App; AppId={client.AppId}; " +
-                        $"AppKey={client.AppSecret}; TenantId={client.TenantId}");
+                    vaultUri, keyName, connectionString);
                 if (keyVault != null) {
                     return keyVault;
                 }
@@ -177,6 +182,10 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         internal sealed class DataProtectionConfig : ConfigBase, IClientConfig,
             IKeyVaultConfig, IStorageConfig {
 
+            private const string kTenantIdDefault = "common";
+            private const string kKeyVaultKeyDataProtectionDefault = "dataprotection";
+            private const string kBlobStorageContainerDataProtectionDefault = "dataprotection";
+
             /// <summary>Application id</summary>
             public string AppId => GetStringOrDefault(PcsVariable.PCS_KEYVAULT_APPID,
                 Environment.GetEnvironmentVariable(PcsVariable.PCS_KEYVAULT_APPID))?.Trim();
@@ -186,7 +195,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
             /// <summary>Optional tenant</summary>
             public string TenantId => GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT,
                 Environment.GetEnvironmentVariable(PcsVariable.PCS_AUTH_TENANT) ??
-                    "common").Trim();
+                    kTenantIdDefault).Trim();
 
             /// <summary>Aad instance url</summary>
             public string InstanceUrl => null;
@@ -201,6 +210,18 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
             public string KeyVaultResourceId => _kv.KeyVaultResourceId;
             /// <inheritdoc/>
             public bool KeyVaultIsHsm => _kv.KeyVaultIsHsm;
+
+            /// <summary>Key (in KeyVault) to be used for encription of keys</summary>
+            public string KeyVaultKeyDataProtection =>
+                GetStringOrDefault(PcsVariable.PCS_KEYVAULT_KEY_DATAPROTECTION,
+                    Environment.GetEnvironmentVariable(PcsVariable.PCS_KEYVAULT_KEY_DATAPROTECTION) ??
+                    kKeyVaultKeyDataProtectionDefault).Trim();
+
+            /// <summary>Blob Storage Container that holds encrypted keys</summary>
+            public string BlobStorageContainerDataProtection =>
+                GetStringOrDefault(PcsVariable.PCS_STORAGE_CONTAINER_DATAPROTECTION,
+                    Environment.GetEnvironmentVariable(PcsVariable.PCS_STORAGE_CONTAINER_DATAPROTECTION) ??
+                    kBlobStorageContainerDataProtectionDefault).Trim();
 
             /// <summary>
             /// Configuration constructor
