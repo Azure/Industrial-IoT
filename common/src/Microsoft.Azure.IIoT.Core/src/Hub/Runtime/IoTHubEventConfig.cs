@@ -17,10 +17,12 @@ namespace Microsoft.Azure.IIoT.Hub.Client.Runtime {
         /// <summary>
         /// Event processor configuration
         /// </summary>
+        private const string kIoTHubConnectionStringKey = "IoTHubConnectionString";
         private const string kEventHubConnStringKey = "EventHubConnectionString";
         private const string kEventHubConsumerGroupKey = "EventHubConsumerGroup";
         private const string kEventHubPathKey = "EventHubPath";
         private const string kUseWebsocketsKey = "UseWebsockets";
+
         /// <summary> Event hub connection string </summary>
         public string EventHubConnString {
             get {
@@ -56,7 +58,6 @@ namespace Microsoft.Azure.IIoT.Hub.Client.Runtime {
         public bool UseWebsockets => GetBoolOrDefault(kUseWebsocketsKey,
             GetBoolOrDefault(_serviceId + "_WS", GetBoolOrDefault("_WS", false)));
 
-        private const string kIoTHubConnectionStringKey = "IoTHubConnectionString";
         /// <summary>IoT hub connection string</summary>
         public string IoTHubConnString => GetStringOrDefault(kIoTHubConnectionStringKey,
             GetStringOrDefault(_serviceId + "_HUB_CS",
