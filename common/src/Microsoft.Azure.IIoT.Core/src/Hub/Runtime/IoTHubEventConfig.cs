@@ -20,6 +20,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client.Runtime {
         private const string kIoTHubConnectionStringKey = "IoTHubConnectionString";
         private const string kEventHubConnStringKey = "EventHubConnectionString";
         private const string kEventHubConsumerGroupKey = "EventHubConsumerGroup";
+
         private const string kEventHubPathKey = "EventHubPath";
         private const string kUseWebsocketsKey = "UseWebsockets";
 
@@ -47,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client.Runtime {
             }
         }
 
-        /// <summary> Event hub consumer group </summary>
+        /// <summary> Event hub default consumer group </summary>
         public string ConsumerGroup => GetStringOrDefault(kEventHubConsumerGroupKey,
             GetStringOrDefault("PCS_IOTHUB_EVENTHUBCONSUMERGROUP",
                 GetStringOrDefault("PCS_IOTHUBREACT_HUB_CONSUMERGROUP", "$default")));
