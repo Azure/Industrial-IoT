@@ -11,11 +11,12 @@
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models
 
-
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
 @inject RegistryServiceEvents RegistryServiceEvents
 @inject SignalRClient SignalRClientHelper
+
+@implements IDisposable
 
 <h1>Asset Discovery</h1>
 
