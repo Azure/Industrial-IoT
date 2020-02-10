@@ -36,12 +36,15 @@ azure:
       endpoint: null
       # azure.iotHub.eventHub.partitionCount is number of partitions of built-in EventHub.
       partitionCount: null
-      # azure.iotHub.eventHub.consumerGroup is name of consumer group of built-in EventHub for onboarding events. Its value is usually 'onboarding'.
-      consumerGroup: null
-      # ToDo: Use this after we have ability to specify different ConsumerGroups
-      # consumerGroups:
-      #   events: "events"
-      #   telemetry: "telemetry"
+
+      # ToDo: Document creation and use of the consumer groups.
+      # Details of two consumer groups that are required by microservices.
+      # NOTE: consumer groups should have different values.
+      consumerGroup:
+        # azure.iotHub.eventHub.consumerGroup.events is name of consumer group of built-in EventHub for event-processing microservices. Its recommended value is 'events'.
+        events: null
+        # azure.iotHub.eventHub.consumerGroup.events is name of consumer group of built-in EventHub for telemetry-processing microservices. Its recommended value is 'telemetry'.
+        telemetry: null
 
     sharedAccessPolicies:
       iothubowner:
@@ -76,14 +79,18 @@ azure:
         # RootManageSharedAccessKey key is required because microservices will create new Event Hubs within the namespace.
         connectionString: null
 
-    # This value is not used at the moment, so it can be skipped.
+    # Details of the Event Hub.
     eventHub:
       # azure.eventHubNamespace.eventHub.name is the name of the Event Hub within the Namespace that should be used.
       name: null
 
-      # ToDo: Use this after we have ability to specify different ConsumerGroups
-      consumerGroups:
+      # ToDo: Document creation and use of the consumer groups.
+      # Details of two consumer groups that are required by microservices.
+      # NOTE: consumer groups should have different values.
+      consumerGroup:
+        # azure.eventHubNamespace.eventHub.consumerGroup.telemetryCdm is name of consumer group for CDM event-processing microservices. Its recommended value is 'telemetry_cdm'.
         telemetryCdm: null
+        # azure.eventHubNamespace.eventHub.consumerGroup.telemetryUx is name of consumer group for UX event-processing microservices. Its recommended value is 'telemetry_ux'.
         telemetryUx: null
 
   # Details of Azure Service Bus Namespace that microservices will use.
@@ -549,9 +556,8 @@ deployment:
         loadBalancerSourceRanges: []
         nodePort: null
 
-    # ToDo: Enable after we have ability to specify different ConsumerGroups
     eventsProcessor:
-      enabled: false
+      enabled: true
       deploymentAnnotations: {}
       podAnnotations: {}
       extraLabels: {}
@@ -657,8 +663,7 @@ deployment:
         loadBalancerSourceRanges: []
         nodePort: null
 
-    # ToDo: Enable after we have ability to specify different ConsumerGroups
-    # Note: iot/industrial-iot-telemetry-cdm-processor image is not published to MCR
+    # ToDo: Enable after we have CDM configuration.
     telemetryCdmProcessor:
       enabled: false
       deploymentAnnotations: {}
@@ -670,9 +675,8 @@ deployment:
       resources: {}
       extraEnv: []
 
-    # ToDo: Enable after we have ability to specify different ConsumerGroups
     telemetryProcessor:
-      enabled: false
+      enabled: true
       deploymentAnnotations: {}
       podAnnotations: {}
       extraLabels: {}
@@ -682,9 +686,8 @@ deployment:
       resources: {}
       extraEnv: []
 
-    # ToDo: Enable after we have ability to specify different ConsumerGroups
     telemetryUxProcessor:
-      enabled: false
+      enabled: true
       deploymentAnnotations: {}
       podAnnotations: {}
       extraLabels: {}
