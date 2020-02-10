@@ -95,12 +95,6 @@ if (![string]::IsNullOrEmpty($Registry) -and ($Registry -ne "industrialiot")) {
     }
 }
 
-# Get build root - this is the top most folder with .dockerignore
-$buildRoot = & $getroot -startDir $Path -fileName ".dockerignore"
-# Get meta data
-$metadata = Get-Content -Raw -Path (join-path $Path "container.json") `
-| ConvertFrom-Json
-
 # get and set build information from gitversion, git or version content
 $latestTag = "latest"
 $sourceTag = $env:Version_Prefix
@@ -180,6 +174,14 @@ if ($LastExitCode -ne 0) {
 $user = $credentials.username
 $password = $credentials.passwords[0].value
 Write-Debug "Using User name $($user) and passsword ****"
+
+# Get build root - this is the top most folder with .dockerignore
+$buildRoot = & $getroot -startDir $Path -fileName ".dockerignore"
+# Get meta data
+$metadata = Get-Content -Raw -Path (join-path $Path "container.json") `
+| ConvertFrom-Json
+
+
 # Set image name and namespace in acr based on branch and source tag
 $imageName = $metadata.name
 
@@ -276,21 +278,19 @@ $definitions | ForEach-Object {
     )
     $argumentList += $buildContext
 
-    # $jobs += Start-Job -Name $image -ArgumentList $argumentList -ScriptBlock 
-    # {
-        #  $argumentList = $args
-
-        Write-Host "Building ... az $($argumentList | Out-String)..."
+    $jobs += Start-Job -Name $image -ArgumentList $argumentList -ScriptBlock {
+        $argumentList = $args
+        Write-Host "Building ... az $($argumentList | Out-String) for $($image)..."
         & az $argumentList 2>&1 | ForEach-Object { "$_" }
         if ($LastExitCode -ne 0) {
-            Write-Warning "az $($argumentList | Out-String) failed with $($LastExitCode) - 2nd attempt..."
+            Write-Warning "az $($argumentList | Out-String) failed for $($image) with $($LastExitCode) - 2nd attempt..."
             & az $argumentList 2>&1 | ForEach-Object { "$_" }
             if ($LastExitCode -ne 0) {
-                throw "Error: 'az $($argumentList | Out-String)' 2nd attempt failed with $($LastExitCode)."
+                throw "Error: 'az $($argumentList | Out-String)' 2nd attempt failed for $($image) with $($LastExitCode)."
             }
         }
-        Write-Host "... az $($argumentList | Out-String) completed"
-    # }
+        Write-Host "... az $($argumentList | Out-String) completed for $($image)."
+    }
     
     # Append to manifest
     if (![string]::IsNullOrEmpty($os)) {
@@ -351,7 +351,6 @@ try {
     Write-Host "Building and pushing manifest file:"
     Write-Host
     $manifest | Out-Host
-
     $manifest | Out-File -Encoding ascii -FilePath $manifestFile.FullName
     $argumentList = @( 
         "--username", $user,
@@ -359,16 +358,14 @@ try {
         "push",
         "from-spec", $manifestFile.FullName
     )
-
-    (& $manifestToolPath $argumentList) | Out-Host
-    if ($LastExitCode -ne 0) {
-        Write-Warning "Manifest push failed - 2nd attempt."
+    while ($true) {
         (& $manifestToolPath $argumentList) | Out-Host
-        if ($LastExitCode -ne 0) {
-            throw "$($manifestToolPath) end attempt failed with $($LastExitCode)."
+        if ($LastExitCode -eq 0) {
+            break   
         }
+        Write-Warning "Manifest push failed - try again."
+        Start-Sleep -s 2
     }
-
     Write-Host "Manifest pushed successfully."
 }
 catch {
