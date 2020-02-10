@@ -11,14 +11,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
     using Newtonsoft.Json.Linq;
+    using Serilog;
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.IO;
     using System.Linq;
     using System.Text;
     using System.Threading.Tasks;
-    using Serilog;
-    using System.Diagnostics;
 
     /// <summary>
     /// Published nodes
@@ -79,10 +79,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                         SecurityMode = item.UseSecurity == false ?
                             SecurityMode.None : SecurityMode.Best
                     },
-                    User = _cryptoProvider != null &&
-                        item.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ? null :
-                            ToUserNamePasswordCredentialAsync(item).Result
-                    },
+                    User = item.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ? null :
+                        // if encrypted user is set and cryptoProvider is available, we use the encrypted credentials.
+                        (_cryptoProvider != null && !string.IsNullOrWhiteSpace(item.EncryptedAuthUsername)) ? ToUserNamePasswordCredentialAsync(item.EncryptedAuthUsername, item.EncryptedAuthPassword).Result :
+                        // if clear text credentials are set, we use them for authentication.
+                        !(string.IsNullOrWhiteSpace(item.OpcAuthenticationUsername)) ? new CredentialModel { Type = CredentialType.UserName, Value = JToken.FromObject(new { user = item.OpcAuthenticationUsername, password = item.OpcAuthenticationPassword }) } : null
+                },
                     // Select and batch nodes into published data set sources
                     item => GetNodeModels(item),
                     // Comparer for connection information
@@ -304,12 +306,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             /// <summary> encrypted password </summary>
             public string EncryptedAuthPassword { get; set; }
 
-            /// <summary> unencrypted username </summary>
+            /// <summary> plain username </summary>
             [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-            public string Username { get; set; }
+            public string OpcAuthenticationUsername { get; set; }
 
-            /// <summary> unencrypted password </summary>
-            public string Password { get; set; }
+            /// <summary> plain password </summary>
+            public string OpcAuthenticationPassword { get; set; }
 
             /// <summary> Nodes defined in the collection. </summary>
             [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]

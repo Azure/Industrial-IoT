@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
     using Microsoft.Azure.IIoT.Cdm;
     using Microsoft.Azure.IIoT.Http;
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -46,22 +47,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
             foreach (var obj in data) {
                 sb.AppendLine();
                 foreach (var prop in info) {
-                    var str = prop.GetValue(obj, null)?.ToString();
-                    if (str != null &&
-                        (str.Contains(separator) ||
-                        str.Contains("\"") || str.Contains("\r") ||
-                        str.Contains("\n"))) {
-                        sb.Append('\"');
-                        foreach (var nextChar in str) {
-                            sb.Append(nextChar);
-                            if (nextChar == '"') {
-                                sb.Append('\"');
+                    var value = prop.GetValue(obj);
+                    if (value != null) {
+                        var str = value?.ToString();
+                        if (str != null &&
+                            (str.Contains(separator) ||
+                            str.Contains("\"") || str.Contains("\r") ||
+                            str.Contains("\n"))) {
+                            sb.Append('\"');
+                            foreach (var nextChar in str) {
+                                sb.Append(nextChar);
+                                if (nextChar == '"') {
+                                    sb.Append('\"');
+                                }
                             }
+                            sb.Append('\"');
                         }
-                        sb.Append('\"');
-                    }
-                    else {
-                        sb.Append(str);
+                        else {
+                            sb.Append(str);
+                        }
                     }
                     sb.Append(separator);
                 }
@@ -81,7 +85,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
         public async Task WriteInCsvPartition<T>(string partitionUrl,
             List<T> data, string separator) {
             try {
-                await _lock.WaitAsync();
                 // check if partition exists
                 long contentPosition = 0;
                 var content = string.Empty;
@@ -103,9 +106,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
                     request = _httpClient.NewRequest(
                         $"{partitionUrl}?action=append&position={contentPosition}",
                         kResource);
-                    request.SetContent(content);
+                    request.SetContent(content, Encoding.UTF8);
                     response = await _httpClient.PatchAsync(request);
-                    contentPosition += content.Length;
+                    contentPosition += Encoding.UTF8.GetByteCount(content);
                     request = _httpClient.NewRequest
                         ($"{partitionUrl}?action=flush&position={contentPosition}",
                         kResource);
@@ -115,9 +118,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to write data in the csv partition");
                 throw ex;
-            }
-            finally {
-                _lock.Release();
             }
         }
 
@@ -162,12 +162,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
 
         /// <inheritdoc/>
         public void Dispose() {
-            _lock.Dispose();
         }
 
         private readonly IHttpClient _httpClient;
         private readonly ILogger _logger;
         private readonly string kResource = "https://storage.azure.com";
-        private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
     }
 }
