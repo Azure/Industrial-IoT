@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Api.Configuration.Runtime {
         /// <summary>Configuration configuration endpoint</summary>
         public string ConfigurationServiceUrl => GetStringOrDefault(
             kConfigurationServiceUrlKey, GetStringOrDefault(
-                "PCS_CONFIGURATION_SERVICE_URL", GetDefaultUrl("9050", "configuration")));
+                PcsVariable.PCS_CONFIGURATION_SERVICE_URL, GetDefaultUrl("9050", "configuration")));
         /// <summary>Configuration service audience</summary>
         public string ConfigurationServiceResourceId => GetStringOrDefault(
             kConfigurationServiceIdKey, GetStringOrDefault("CONFIGURATION_APP_ID",
