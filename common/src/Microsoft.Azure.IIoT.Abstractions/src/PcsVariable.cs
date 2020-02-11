@@ -118,5 +118,32 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Service url </summary>
         public const string PCS_SERVICE_URL =
             "PCS_SERVICE_URL";
+        /// <summary>OPC twin service endpoint url</summary>
+        public const string PCS_TWIN_SERVICE_URL =
+            "PCS_TWIN_SERVICE_URL";
+        /// <summary>OPC registry service endpoint url</summary>
+        public const string PCS_TWIN_REGISTRY_URL =
+            "PCS_TWIN_REGISTRY_URL";
+        /// <summary>OPC vault service endpoint url</summary>
+        public const string PCS_VAULT_SERVICE_URL =
+            "PCS_VAULT_SERVICE_URL";
+        /// <summary>OPC publisher service endpoint url</summary>
+        public const string PCS_PUBLISHER_SERVICE_URL =
+            "PCS_PUBLISHER_SERVICE_URL";
+        /// <summary>OPC history service endpoint url</summary>
+        public const string PCS_HISTORY_SERVICE_URL =
+            "PCS_HISTORY_SERVICE_URL";
+        /// <summary>Jobs service endpoint url</summary>
+        public const string PCS_JOBS_SERVICE_URL =
+            "PCS_JOBS_SERVICE_URL";
+        /// <summary>OPC onboarding service endpoint url</summary>
+        public const string PCS_ONBOARDING_SERVICE_URL =
+            "PCS_ONBOARDING_SERVICE_URL";
+        /// <summary>Jobs orchestrator service endpoint url</summary>
+        public const string PCS_JOB_ORCHESTRATOR_SERVICE_URL =
+            "PCS_JOB_ORCHESTRATOR_SERVICE_URL";
+        /// <summary>Configuration service endpoint url</summary>
+        public const string PCS_CONFIGURATION_SERVICE_URL =
+            "PCS_CONFIGURATION_SERVICE_URL";
     }
 }
