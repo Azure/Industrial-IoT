@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs.Runtime {
 
         /// <inheritdoc/>
         public string JobOrchestratorUrl => GetStringOrDefault(kJobOrchestratorUrlKey,
-            GetStringOrDefault("PCS_JOB_ORCHESTRATOR_SERVICE_URL",
+            GetStringOrDefault(PcsVariable.PCS_JOB_ORCHESTRATOR_SERVICE_URL,
                 GetDefaultUrl("9051", "edge/jobs")));
 
         /// <summary>

@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Runtime {
         /// <summary>OPC history service endpoint url</summary>
         public string OpcUaHistoryServiceUrl => GetStringOrDefault(
             kOpcUaHistoryServiceUrlKey, GetStringOrDefault(
-                "PCS_HISTORY_SERVICE_URL", GetDefaultUrl("9043", "history")));
+                PcsVariable.PCS_HISTORY_SERVICE_URL, GetDefaultUrl("9043", "history")));
         /// <summary>OPC vault audience</summary>
         public string OpcUaHistoryServiceResourceId => GetStringOrDefault(
             kOpcUaHistoryServiceIdKey, GetStringOrDefault("OPC_HISTORY_APP_ID",
