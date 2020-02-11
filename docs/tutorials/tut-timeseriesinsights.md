@@ -16,13 +16,45 @@ This how-to guide shows you how to visualize and analyze the OPC UA Telemetry us
 
 ## Time Series Insights explorer
 
-1. The Time Series Insights explorer is a web app you can use to visualize your telemetry.  To retrieve the url of the application open the `.env` file saved as a result of the deployment.  Open a browser to the Url in the `PCS_TSI_URL` variable.  
+The Time Series Insights explorer is a web app you can use to visualize your telemetry. To retrieve the url of the application open the `.env` file saved as a result of the deployment.  Open a browser to the Url in the `PCS_TSI_URL` variable.  
 
-(TODO)
+In the TSI Explorer, please note the Unassigned Time Series Instances. A TSI Instance corresponds to the time/value serie for a speciffic datapoint originated from a published node in an opc server. The TSI Instance, respectively the OPC UA Data point, is uniquely identified by the EndpointId, SubscriptionId and NodeId. The TSI instances models are automatically detected and display in the explorer based on the telemetry data ingested from the IIoT platform telemetry processor's event hub.
+
+![Time Series Insights Explorer](..\media\tut-tsi-step0.png)
+
+The telemetry data can be visualized in the chart by right-clicking the TSI instance and selecting the Value. The time frame to be used in chart can be adjusted from the upper right corner. Value of multiple instances can bevisualized on the same time basis selection.
+
+For more information, see [Quickstart: Explore the Azure Time Series Insights Preview](https://docs.microsoft.com/en-us/azure/time-series-insights/time-series-insights-update-quickstart)
 
 ## Define and apply a new Model
 
-(TODO)
+Since the telemetry instances are now just in raw format, they need to be contextualized with the appropriate 
+
+For detailed information on TSI models see [Time Series Model in Azure Time Series Insights Preview](https://docs.microsoft.com/en-us/azure/time-series-insights/time-series-insights-update-tsm)
+
+1. Step 1 - In the model tab of the Explorer, define a new hierarchy for the telemetry data ingested. A hierarchy is the logical tree structure meant to enable the user to insert the metainformation required for a more intuitive navigation through the tsi instances. a user can create/delete/modify hierarchy templates that can be later on instantiated for the varionus TSI instances.
+
+   ![Step 1](..\media\tut-tsi-step1.png)
+
+2. Step 2 - define a new type for the values. In our example we only handle numeric datatypes
+
+   ![Step 2](..\media\tut-tsi-step2.png)
+
+3. Step 3 - select the new TSI instance that requires to be cathegorized in the previously defined hierarchy
+
+   ![Step 3](..\media\tut-tsi-step3.png)
+
+4. Step 4 - fill in the instances properties - name, description, data value, as well as the hierarchy fields in order to match the logical structure 
+
+   ![Step 4](..\media\tut-tsi-step4.png)
+
+5. Step 5 - repeat step 5 for all uncathegorized TSI instances
+
+   ![Step 5](..\media\tut-tsi-step5.png)
+
+6.  Step 6 - bnack in the TSI Explorer's main page, walk through the cathegorized instances hierarchy and select the values for the datapoints to be analyzed
+
+   ![Step6](..\media\tut-tsi-step6.png)
 
 ## Connect Time Series Insights to Power BI
 
