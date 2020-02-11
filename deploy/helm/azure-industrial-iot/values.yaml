@@ -412,6 +412,20 @@ deployment:
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
+      service:
+        annotations: {}
+        type: ClusterIP
+        port: 9060
+        # Exposed as a headless service:
+        # https://kubernetes.io/docs/concepts/services-networking/service/#headless-services
+        clusterIP: null
+        # List of IP addresses at which the service is available
+        # Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+        externalIPs: []
+        loadBalancerIP: null
+        loadBalancerSourceRanges: []
+        nodePort: null
+
     # deployment.microServices.jobs contains values specific to yaml definitions of deployment kubernetes resource for opc-jobs-service.
     jobs:
       enabled: true

@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/version: {{ .Chart.AppVersion }}
-    app.kubernetes.io/component: opc-onboarding
+    app.kubernetes.io/component: {{ template "azure-industrial-iot.onboarding.component" . }}
     app.kubernetes.io/part-of: azure-industrial-iot
 {{- if .Values.deployment.microServices.onboarding.extraLabels }}
 {{ toYaml .Values.deployment.microServices.onboarding.extraLabels | indent 4 }}
@@ -25,7 +25,7 @@ spec:
     matchLabels:
       app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
       app.kubernetes.io/instance: {{ .Release.Name }}
-      app.kubernetes.io/component: opc-onboarding
+      app.kubernetes.io/component: {{ template "azure-industrial-iot.onboarding.component" . }}
       app.kubernetes.io/part-of: azure-industrial-iot
   template:
     metadata:
@@ -35,7 +35,7 @@ spec:
         app.kubernetes.io/managed-by: {{ .Release.Service }}
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/version: {{ .Chart.AppVersion }}
-        app.kubernetes.io/component: opc-onboarding
+        app.kubernetes.io/component: {{ template "azure-industrial-iot.onboarding.component" . }}
         app.kubernetes.io/part-of: azure-industrial-iot
 {{- if .Values.deployment.microServices.onboarding.extraLabels }}
 {{ toYaml .Values.deployment.microServices.onboarding.extraLabels | indent 8 }}
@@ -53,7 +53,7 @@ spec:
 {{ toYaml .Values.image.pullSecrets | indent 6 }}
 {{- end }}
       containers:
-      - name: onboarding-service-container
+      - name: {{ template "azure-industrial-iot.onboarding.component" . }}-container
         image: {{ .Values.image.registry }}/{{ .Values.deployment.microServices.onboarding.imageRepository }}:{{ .Values.image.tag }}
         imagePullPolicy: {{ .Values.image.pullPolicy }}
         {{- if .Values.deployment.microServices.onboarding.extraArgs }}
@@ -66,6 +66,8 @@ spec:
         resources:
 {{ toYaml .Values.deployment.microServices.onboarding.resources | indent 10 }}
 {{- end }}
+        ports:
+        - containerPort: 9060
         env:
 {{- /* env  section will be populated by environment variables specified in env.txt file */}}
 {{- $envSecretName := include "azure-industrial-iot.env.fullname" . }}
