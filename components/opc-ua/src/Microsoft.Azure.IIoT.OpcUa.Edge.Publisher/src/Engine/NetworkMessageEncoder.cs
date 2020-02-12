@@ -4,10 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Core;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
     using Opc.Ua.Encoders;
     using Opc.Ua.PubSub;
@@ -50,8 +51,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     }) {
                         networkMessage.Encode(encoder);
                     }
+                    var json = writer.ToString();
                     var encoded = new NetworkMessageModel {
-                        Body = Encoding.UTF8.GetBytes(writer.ToString()),
+                        Body = Encoding.UTF8.GetBytes(json),
                         ContentEncoding = "utf-8",
                         Timestamp = DateTime.UtcNow,
                         ContentType = ContentMimeType.Json,
@@ -95,16 +97,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             // TODO: Group by writer
 
             foreach (var message in messages) {
-                var networkMessage = new NetworkMessage {
-                    // Per group
-                    MessageContentMask = (message.WriterGroup?.MessageSettings?.NetworkMessageContentMask)
-                        .ToStackType(message.WriterGroup?.MessageType),
-                    PublisherId = message.PublisherId,
-                    DataSetClassId = message.Writer?.DataSet?.DataSetMetaData?.DataSetClassId.ToString(),
-                    MessageId = message.SequenceNumber.ToString(),
-                    Messages = message.Notifications.Select(n => new DataSetMessage {
-                        // Per Writer
-                        SequenceNumber = n.SequenceNumber ?? 0,
+                var networkMessage = new NetworkMessage() { 
+                    MessageContentMask = (uint)message.WriterGroup?.MessageSettings?.NetworkMessageContentMask.ToJsonStackType(),
+                    PublisherId = message.PublisherId
+                 };
+
+                var notificationQueues = message.Notifications.GroupBy(m => m.NodeId).Select(c => new Queue<MonitoredItemNotificationModel>(c.ToArray())).ToArray();
+
+                while(notificationQueues.Where(q => q.Any()).Any()) {
+                    var payload = notificationQueues.Select(q => q.Any() ? q.Dequeue() : null).Where(s => s != null).ToDictionary(s => s.NodeId.ToString(), s => s.Value);
+
+                    var dataSetMessage = new DataSetMessage() {
                         DataSetWriterId = message.Writer.DataSetWriterId,
                         MetaDataVersion = new ConfigurationVersionDataType {
                             MajorVersion = message.Writer?.DataSet?.DataSetMetaData?
@@ -114,13 +117,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         },
                         MessageContentMask = (message.Writer?.MessageSettings?.DataSetMessageContentMask)
                             .ToStackType(message.WriterGroup?.MessageType),
-                        Status = n.Value.StatusCode,
-                        // Data set
-                        Payload = new DataSet {
-                            FieldContentMask = (uint)(message.Writer?.DataSetFieldContentMask).ToStackType()
-                        }
-                    }).ToList()
-                };
+                        Payload = new DataSet(payload) { FieldContentMask = (uint)message.Writer?.DataSetFieldContentMask.ToStackType() }
+                    };
+
+                    networkMessage.Messages.Add(dataSetMessage);
+                }
 
                 yield return networkMessage;
             }

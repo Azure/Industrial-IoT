@@ -20,6 +20,7 @@ using System.ComponentModel;
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
 
     /// <summary>
     /// Class that represents a dictionary with all command line arguments from the legacy version of the OPC Publisher
@@ -85,6 +86,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "sf|skipfirstevent=", "the publisher is using this as default value for the skip first " +
                         "event setting of nodes without a skip first event setting.",
                         (bool b) => this[LegacyCliConfigKeys.SkipFirstDefault] = b.ToString() },
+                    { "mm|messagingmode=", "The messaging mode for messages " +
+                        $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(MessagingMode)))}).",
+                        (MessagingMode m) => this[LegacyCliConfigKeys.MessagingMode] = m.ToString() },
 
                     // Client settings
                     { "ot|operationtimeout=", "the operation timeout of the publisher OPC UA client in ms.",
@@ -237,6 +241,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 LogFileFlushTimeSpan = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.LogFileFlushTimeSpanSec),
                 LogFilename = GetValueOrDefault<string>(LegacyCliConfigKeys.LogFileName),
                 Transport = GetValueOrDefault<string>(LegacyCliConfigKeys.HubTransport),
+                MessagingMode = GetValueOrDefault(LegacyCliConfigKeys.MessagingMode, MessagingMode.Samples),
                 EdgeHubConnectionString = GetValueOrDefault<string>(LegacyCliConfigKeys.EdgeHubConnectionString),
                 OperationTimeout = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.OpcOperationTimeout),
                 MaxStringLength = GetValueOrDefault<long?>(LegacyCliConfigKeys.OpcMaxStringLength),

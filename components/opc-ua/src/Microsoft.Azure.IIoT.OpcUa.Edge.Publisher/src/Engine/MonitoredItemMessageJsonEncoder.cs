@@ -51,8 +51,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     }) {
                         value.Encode(encoder);
                     }
+
+                    var json = writer.ToString();
+
                     var encoded = new NetworkMessageModel {
-                        Body = Encoding.UTF8.GetBytes(writer.ToString()),
+                        Body = Encoding.UTF8.GetBytes(json),
                         ContentEncoding = "utf-8",
                         Timestamp = DateTime.UtcNow,
                         ContentType = ContentMimeType.Json,
