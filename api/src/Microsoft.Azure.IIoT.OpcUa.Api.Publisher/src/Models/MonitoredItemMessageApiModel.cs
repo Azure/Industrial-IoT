@@ -5,12 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using System;
 
     /// <summary>
     /// Publisher monitored item sample model
     /// </summary>
+    [JsonObject(Id = "MonitoredItemMessageApiModel")]
     public class MonitoredItemMessageApiModel {
 
         /// <summary>
@@ -45,14 +45,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         [JsonProperty(PropertyName = "value",
             NullValueHandling = NullValueHandling.Ignore)]
-        public JToken Value { get; set; }
-
+        public dynamic Value {get; set; }
+        
         /// <summary>
         /// Type id
         /// </summary>
         [JsonProperty(PropertyName = "typeId",
             NullValueHandling = NullValueHandling.Ignore)]
         public string TypeId { get; set; }
+
+        /// <summary>
+        /// Status of the value (Quality)
+        /// </summary>
+        [JsonProperty(PropertyName = "status",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string Status { get; set; }
 
         /// <summary>
         /// Sent time stamp

@@ -20,12 +20,17 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux.Runtime {
     public class Config : DiagnosticsConfig, IEventProcessorConfig, 
         IEventHubConsumerConfig, ISignalRServiceConfig {
 
+        private const string kEventHubConsumerGroupTelemetryUxKey = 
+            "EventHubConsumerGroupTelemetryUx";
+
         /// <inheritdoc/>
         public string EventHubConnString => _eh.EventHubConnString;
         /// <inheritdoc/>
         public string EventHubPath => _eh.EventHubPath;
-        /// <inheritdoc/>
-        public string ConsumerGroup => "telemetryux";
+        /// <summary> Event hub consumer group telemetry ux</summary>
+        public string ConsumerGroup => GetStringOrDefault(kEventHubConsumerGroupTelemetryUxKey,
+            GetStringOrDefault(PcsVariable.PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_UX,
+                "telemetryux"));
         /// <inheritdoc/>
         public bool UseWebsockets => _eh.UseWebsockets;
         /// <inheritdoc/>
