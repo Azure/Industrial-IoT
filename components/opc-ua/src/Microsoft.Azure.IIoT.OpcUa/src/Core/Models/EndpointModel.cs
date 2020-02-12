@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
+    using System;
     using System.Collections.Generic;
 
     /// <summary>
@@ -36,5 +37,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// Certificate that was used to register the endpoint with
         /// </summary>
         public byte[] Certificate { get; set; }
+
+        /// <summary>
+        /// The operation timeout to create sessions.
+        /// </summary>
+        public TimeSpan? OperationTimeout { get; set; }
     }
 }
