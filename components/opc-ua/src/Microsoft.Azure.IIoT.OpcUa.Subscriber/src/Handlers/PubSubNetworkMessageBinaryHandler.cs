@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     using Microsoft.Azure.IIoT.OpcUa.Subscriber;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Microsoft.Azure.IIoT.Hub;
-    using Newtonsoft.Json.Linq;
     using Opc.Ua;
     using Opc.Ua.PubSub;
     using Serilog;
@@ -48,12 +47,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                         foreach (var datapoint in message.Payload) {
                             try {
                                 var sample = new MonitoredItemSampleModel() {
-                                    Value = new JObject {
-                                        { "Body", datapoint.Value.WrappedValue.Value.ToString() },
-                                        { "Type", datapoint.Value.WrappedValue.Value.GetType().ToString() }
-                                    },
+                                    Value = (datapoint.Value?.WrappedValue.Value != null) ?
+                                        datapoint.Value.WrappedValue.Value : null,
                                     Status = StatusCode.LookupSymbolicId(datapoint.Value.StatusCode.Code),
-                                    TypeId = message.TypeId.ToString(),
+                                    TypeId = (datapoint.Value?.WrappedValue.TypeInfo != null) ?
+                                        TypeInfo.GetSystemType(
+                                            datapoint.Value.WrappedValue.TypeInfo.BuiltInType,
+                                            datapoint.Value.WrappedValue.TypeInfo.ValueRank) : null,
                                     DataSetId = message.DataSetWriterId,
                                     Timestamp = DateTime.UtcNow,
                                     SubscriptionId = "network message",

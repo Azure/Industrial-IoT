@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Runtime {
         /// <summary>OPC vault service endpoint url</summary>
         public string OpcUaVaultServiceUrl => GetStringOrDefault(
             kOpcUaVaultServiceUrlKey, GetStringOrDefault(
-                "PCS_VAULT_SERVICE_URL", GetDefaultUrl("9044", "vault")));
+                PcsVariable.PCS_VAULT_SERVICE_URL, GetDefaultUrl("9044", "vault")));
         /// <summary>OPC vault audience</summary>
         public string OpcUaVaultServiceResourceId => GetStringOrDefault(
             kOpcUaVaultServiceIdKey, GetStringOrDefault("OPC_VAULT_APP_ID",

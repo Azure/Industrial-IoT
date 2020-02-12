@@ -1,0 +1,130 @@
+﻿
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.Azure.IIoT.App.Services
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
+
+
+<div class="drawer-content list-group">
+    <div class="list-group-item text-left">
+        @{string applicationName = ApplicationData.ApplicationName == null ? "--" : ApplicationData.ApplicationName;}
+        <div class="label">
+            Name:
+            <div class="body">@applicationName</div>
+        </div>
+        @{string ApplicationId = ApplicationData.ApplicationId == null ? "--" : ApplicationData.ApplicationId;}
+        <div class="label">
+            Id:
+            <div class="body">@ApplicationId</div>
+        </div>
+        @{string applicationUri = ApplicationData.ApplicationUri == null ? "--" : ApplicationData.ApplicationUri;}
+        <div class="label">
+            Uri:
+            <div class="body">@applicationUri</div>
+        </div>
+        @{string applicationType = ApplicationData.ApplicationType.ToString() == null ? "--" : ApplicationData.ApplicationType.ToString();}
+        <div class="label">
+            Type:
+            <div class="body">@applicationType</div>
+        </div>
+        <div class="label">
+            Capabilities:
+            @{
+                if (ApplicationData.Capabilities != null)
+                {
+                    foreach (var capability in ApplicationData.Capabilities)
+                    {
+                        <div class="body">@capability</div>
+                    }
+                }
+                else
+                {
+                    <div class="body">--</div>
+                }
+            }
+        </div>
+        @{string discovererId = ApplicationData.DiscovererId == null ? "--" : ApplicationData.DiscovererId;}
+        <div class="label">
+            Discoverer Id:
+            <div class="body">@discovererId</div>
+        </div>
+        @{string productUri = ApplicationData.ProductUri == null ? "--" : ApplicationData.ProductUri;}
+        <div class="label">
+            Product Uri:
+            <div class="body">@productUri</div>
+        </div>
+        @{string siteId = ApplicationData.SiteId == null ? "--" : ApplicationData.SiteId;}
+        <div class="label">
+            Site Id:
+            <div class="body">@siteId</div>
+        </div>
+        @{string gatewayServerUri = ApplicationData.GatewayServerUri == null ? "--" : ApplicationData.GatewayServerUri;}
+        <div class="label">
+            Gateway Server Uri:
+            <div class="body">@gatewayServerUri</div>
+        </div>
+        <div class="label">
+            Host Addresses:
+            @{
+                if (ApplicationData.HostAddresses != null)
+                {
+                    @foreach (var address in ApplicationData.HostAddresses)
+                    {
+                        <div class="body">@address</div>
+                    }
+                }
+                else
+                {
+                    <div class="body">--</div>
+                }
+            }
+        </div>
+        <div class="label">
+            Discovery Urls:
+            @{
+                if (ApplicationData.DiscoveryUrls != null)
+                {
+                    @foreach (var url in ApplicationData.DiscoveryUrls)
+                    {
+                        <div class="body">@url</div>
+                    }
+                }
+                else
+                {
+                    <div class="body">--</div>
+                }
+            }
+        </div>
+        <div class="label">
+            Localized Names:
+            @{
+                if (ApplicationData.LocalizedNames != null)
+                {
+                    @foreach (var name in ApplicationData.LocalizedNames)
+                    {
+                        <div class="body">@name</div>
+                    }
+                }
+                else
+                {
+                    <div class="body">--</div>
+                }
+            }
+        </div>
+        @{string timeCreated = ApplicationData.Created.Time.ToString() == null ? "--" : ApplicationData.Created.Time.ToString();}
+        <div class="label">
+            Created:
+            <div class="body">@timeCreated</div>
+        </div>
+        @{string timeUpdated = ApplicationData.Updated.Time.ToString() == null ? "--" : ApplicationData.Updated.Time.ToString();}
+        <div class="label">
+            Updated:
+            <div class="body">@timeUpdated</div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    [Parameter]
+    public ApplicationInfoApiModel ApplicationData { get; set; }
+}

@@ -49,6 +49,10 @@ namespace Opc.Ua.Encoders {
             _wrapped.Context;
 
         /// <inheritdoc />
+        public bool UseReversibleEncoding => 
+            _wrapped.UseReversibleEncoding;
+
+        /// <inheritdoc />
         public void SetMappingTables(NamespaceTable namespaceUris, StringTable serverUris) {
             _wrapped.SetMappingTables(namespaceUris, serverUris);
         }
