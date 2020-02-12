@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Runtime {
         /// CDM's ADLSg2 configuration
         /// </summary>
         private const string kCdmAdDLS2HostName = "Cdm:ADLSg2HostName";
-        private const string kCdmADLSg2BlobName = "Cdm:ADLSg2BlobName";
+        private const string kCdmADLSg2ContainerName = "Cdm:ADLSg2ContainerName";
         private const string kCdmRootFolder = "Cdm:RootFolder";
 
         /// <inheritdoc/>
@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Runtime {
             GetAccountNameFromConnectionString(PcsVariable.PCS_ADLSG2_CONNSTRING))) +
                 ".dfs.core.windows.net");
         /// <inheritdoc/>
-        public string ADLSg2ContainerName => GetStringOrDefault(kCdmADLSg2BlobName,
+        public string ADLSg2ContainerName => GetStringOrDefault(kCdmADLSg2ContainerName,
             GetStringOrDefault(PcsVariable.PCS_ADLSG2_CONTAINER_CDM,
             GetStringOrDefault("PCS_CDM_ADLSG2_BLOBNAME", "powerbi")));
         /// <inheritdoc/>
