@@ -386,8 +386,7 @@ providers, in the order of increasing priority:
 
 This means that all of the configuration parameters of the app can be passed from all of those three sources.
 
-You can read more about configuration in .Net Core
-[here](https://docs.microsoft.com/aspnet/core/fundamentals/configuration/?view=aspnetcore-3.1).
+You can read more about configuration in .Net Core [here](https://docs.microsoft.com/aspnet/core/fundamentals/configuration/?view=aspnetcore-3.1).
 
 ### JSON File Configuration Provider
 
@@ -466,12 +465,11 @@ Command line argument key-value pairs can be specified with:
     run.
   
     Properties correspond to that of application registration and Service Principal manifests. Definition
-    of application properties can be found
-    [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/reference-app-manifest).
-  
-    Application objects should contain the following properties:
-
-    ``` json
+    of application properties can be found [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/reference-app-manifest).
+    
+  Application objects should contain the following properties:
+    
+``` json
     {
       "Id": "<guid>",
       "DisplayName": "<application name string>",
@@ -481,24 +479,24 @@ Command line argument key-value pairs can be specified with:
       "AppId": "<guid>"
     }
     ```
-  
-    Service Principal objects should contain the following properties:
-
-    ```json
+    
+  Service Principal objects should contain the following properties:
+    
+```json
     {
       "Id": "<guid>",
       "DisplayName": "<service principal name string>",
     }
     ```
-  
-    ApplicationRegistration object should have the keys as below. Note that:
+    
+  ApplicationRegistration object should have the keys as below. Note that:
     * Values of `ServiceApplication`, `ClientApplication` and `AksApplication` keys should be Application
       objects as described above.
     * Values of `ServiceApplicationSP`, `ClientApplicationSP` and `AksApplicationSP` keys should be Service
       Principal objects as described above.
     * `AksApplicationRbacSecret` is client secret (password) of AksApplication.
-
-    ``` json
+    
+``` json
     "ApplicationRegistration": {
       "ServiceApplication": "<Application object>",
       "ServiceApplicationSP": "<Service Principal object>",
@@ -535,13 +533,13 @@ It should look something like the link bellow, where `kktest00100` is the name o
 
 The following microservice endpoints are exposed:
 
-| URL Suffix  | Service Name                                |
-|-------------|---------------------------------------------|
-| `registry/` | [OPC Registry](services/registry.md)        |
-| `twin/`     | [OPC Twin](services/twin.md)                |
-| `history/`  | [OPC Historian Access](services/history.md) |
-| `ua/`       |                                             |
-| `vault/`    | [OPC Vault](services/vault.md)              |
+| URL Suffix  | Service Name                                   |
+| ----------- | ---------------------------------------------- |
+| `registry/` | [OPC Registry](../services/registry.md)        |
+| `twin/`     | [OPC Twin](../services/twin.md)                |
+| `history/`  | [OPC Historian Access](../services/history.md) |
+| `ua/`       | [OPC Gateway](../services/gateway.md)          |
+| `vault/`    | [OPC Vault](../services/vault.md)              |
 
 ## Missing And Planned Features
 

@@ -20,7 +20,7 @@ The Time Series Insights explorer is a web app you can use to visualize your tel
 
 In the TSI Explorer, please note the Unassigned Time Series Instances. A TSI Instance corresponds to the time/value series for a specific data-point originated from a published node in an opc server. The TSI Instance, respectively the OPC UA Data point, is uniquely identified by the EndpointId, SubscriptionId and NodeId. The TSI instances models are automatically detected and display in the explorer based on the telemetry data ingested from the IIoT platform telemetry processor's event hub.
 
-![Time Series Insights Explorer](../media/tut-tsi-step0.png)
+   ![Time Series Insights Explorer](../media/tut-tsi-step0.png)
 
 The telemetry data can be visualized in the chart by right-clicking the TSI instance and selecting the Value. The time frame to be used in chart can be adjusted from the upper right corner. Value of multiple instances can be visualized on the same time basis selection.
 
@@ -52,7 +52,7 @@ For detailed information on TSI models see [Time Series Model in Azure Time Seri
 
    ![Step 5](../media/tut-tsi-step5.png)
 
-6.  Step 6 - back in the TSI Explorer's main page, walk through the categorized instances hierarchy and select the values for the data-points to be analyzed
+6. Step 6 - back in the TSI Explorer's main page, walk through the categorized instances hierarchy and select the values for the data-points to be analyzed
 
    ![Step6](../media/tut-tsi-step6.png)
 
