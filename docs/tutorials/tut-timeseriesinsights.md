@@ -44,7 +44,7 @@ For detailed information on TSI models see [Time Series Model in Azure Time Seri
 
    ![Step 3](../media/tut-tsi-step3.png)
 
-4. Step 4 - Fill in the instances properties - name, description, data value, as well as the hierarchy fields in order to match the logical structure 
+4. Step 4 - fill in the instances properties - name, description, data value, as well as the hierarchy fields in order to match the logical structure 
 
    ![Step 4](../media/tut-tsi-step4.png)
 
