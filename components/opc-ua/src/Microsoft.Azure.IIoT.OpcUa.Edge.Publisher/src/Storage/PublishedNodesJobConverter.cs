@@ -76,7 +76,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                     Endpoint = new EndpointModel {
                         Url = item.EndpointUrl.OriginalString,
                         SecurityMode = item.UseSecurity == false ?
-                            SecurityMode.None : SecurityMode.Best
+                            SecurityMode.None : SecurityMode.Best,
+                        OperationTimeout = legacyCliModel.OperationTimeout
                     },
                     User = item.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ? null :
                         // if encrypted user is set and cryptoProvider is available, we use the encrypted credentials.
