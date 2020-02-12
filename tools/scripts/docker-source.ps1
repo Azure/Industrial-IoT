@@ -5,7 +5,7 @@
  .PARAMETER Path
     The folder containing the container.json file.
 
- .PARAMETER Configuration
+ .PARAMETER Debug
     Whether to build Release or Debug - default to Release.  
     Debug also includes debugger into images (where applicable).
 #>
@@ -35,7 +35,7 @@ $definitions = @()
 
 # Create build job definitions from dotnet project in current folder
 $projFile = Get-ChildItem $Path -Filter *.csproj | Select-Object -First 1
-if ($projFile -ne $null) {
+if ($projFile) {
 
     $output = (Join-Path $Path (Join-Path "bin" (Join-Path "publish" $configuration)))
     $runtimes = @("linux-arm", "linux-x64", "win-x64", "win-arm", "")
@@ -61,7 +61,7 @@ if ($projFile -ne $null) {
         $argumentList += $projFile.FullName
 
         Write-Host "Publish $($projFile.FullName) with $($runtimeId) runtime..."
-        & dotnet $argumentList 2>&1 | %{ Write-Host "$_" }
+        & dotnet $argumentList 2>&1 | ForEach-Object { Write-Host "$_" }
         if ($LastExitCode -ne 0) {
             throw "Error: 'dotnet $($argumentList)' failed with $($LastExitCode)."
         }

@@ -7,14 +7,6 @@
     subscription.  This means it should be run in a azcliv2 task in the
     azure pipeline or "az login" must have been performed already.
 
-    If a csproj file exists in the same folder as the csproj file
-    it it publishes it and builds container images with the output 
-    as content of the images.  
-    
-    If there is no project file it finds all the dockerfiles and builds each 
-    one. It traverses back up to the closest .dockerignore file. This folder 
-    becomes the context of the build.
-
  .PARAMETER Path
     The folder to build the docker files from
 
@@ -45,11 +37,63 @@ if (!(Test-Path -Path $Path -PathType Container)) {
 }
 $Path = Resolve-Path -LiteralPath $Path
 
-# Get build root - this is the top most folder with .dockerignore
-$buildRoot = & $getroot -startDir $Path -fileName ".dockerignore"
-# Get meta data
-$metadata = Get-Content -Raw -Path (join-path $Path "container.json") `
-| ConvertFrom-Json
+# Try to build all code and create dockerfile definitions to build using docker.
+$definitions = & (Join-Path $PSScriptRoot "docker-source.ps1") `
+    -Path $Path -Debug:$Debug
+if ($definitions.Count -eq 0) {
+    Write-Host "Nothing to build."
+    return
+}
+
+# Try get branch name
+$branchName = $env:BUILD_SOURCEBRANCH
+if (![string]::IsNullOrEmpty($branchName)) {
+    if ($branchName.StartsWith("refs/heads/")) {
+        $branchName = $branchName.Replace("refs/heads/", "")
+    }
+    else {
+        Write-Warning "'$($branchName)' is not a branch."
+        $branchName = $null
+    }
+}
+if ([string]::IsNullOrEmpty($branchName)) {
+    try {
+        $argumentList = @("rev-parse", "--abbrev-ref", "HEAD")
+        $branchName = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
+        if ($LastExitCode -ne 0) {
+            throw "git $($argumentList) failed with $($LastExitCode)."
+        }
+    }
+    catch {
+        Write-Warning $_.Exception
+        $branchName = $null
+    }
+}
+
+if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
+    Write-Warning "Not building from a branch - skip image build."
+    return
+}
+
+# Set namespace name based on branch name
+$releaseBuild = $false
+$namespace = $branchName
+if ($namespace.StartsWith("feature/")) {
+    $namespace = $namespace.Replace("feature/", "")
+}
+elseif ($namespace.StartsWith("release/") -or ($namespace -eq "master")) {
+    $namespace = "public"
+    $releaseBuild = $true
+}
+$namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
+$namespace = "$($namespace)/"
+
+if (![string]::IsNullOrEmpty($Registry) -and ($Registry -ne "industrialiot")) {
+    # if we build from release or from master and registry is provided we leave namespace empty
+    if ($releaseBuild) {
+        $namespace = ""
+    }
+}
 
 # get and set build information from gitversion, git or version content
 $latestTag = "latest"
@@ -84,58 +128,6 @@ else {
     }
     if ([string]::IsNullOrEmpty($sourceTag)) {
         throw "Failed getting version from get-version.ps1"
-    }
-}
-
-# Try get branch name
-$branchName = $env:BUILD_SOURCEBRANCH
-if (![string]::IsNullOrEmpty($branchName)) {
-    if ($branchName.StartsWith("refs/heads/")) {
-        $branchName = $branchName.Replace("refs/heads/", "")
-    }
-    else {
-        Write-Warning "Error - '$($branchName)' not recognized as branch."
-        $branchName = $null
-    }
-}
-if ([string]::IsNullOrEmpty($branchName)) {
-    try {
-        $argumentList = @("rev-parse", "--abbrev-ref", "HEAD")
-        $branchName = (& "git" $argumentList 2>&1 | ForEach-Object { "$_" });
-        if ($LastExitCode -ne 0) {
-            throw "git $($argumentList) failed with $($LastExitCode)."
-        }
-    }
-    catch {
-        Write-Warning $_.Exception
-        $branchName = $null
-    }
-}
-
-# Set namespace name based on branch name
-$releaseBuild = $false
-if ([string]::IsNullOrEmpty($branchName) -or ($branchName -eq "HEAD")) {
-    Write-Warning "Error - Branch '$($branchName)' invalid - using default."
-    $namespace = "deletemesoon/"
-    $branchName = "HEAD"
-}
-else {
-    $namespace = $branchName
-    if ($namespace.StartsWith("feature/")) {
-        $namespace = $namespace.Replace("feature/", "")
-    }
-    elseif ($namespace.StartsWith("release/") -or ($namespace -eq "master")) {
-        $namespace = "public"
-        $releaseBuild = $true
-    }
-    $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
-    $namespace = "$($namespace)/"
-
-    if (![string]::IsNullOrEmpty($Registry) -and ($Registry -ne "industrialiot")) {
-        # if we build from release or from master and registry is provided we leave namespace empty
-        if ($releaseBuild) {
-            $namespace = ""
-        }
     }
 }
 
@@ -182,6 +174,14 @@ if ($LastExitCode -ne 0) {
 $user = $credentials.username
 $password = $credentials.passwords[0].value
 Write-Debug "Using User name $($user) and passsword ****"
+
+# Get build root - this is the top most folder with .dockerignore
+$buildRoot = & $getroot -startDir $Path -fileName ".dockerignore"
+# Get meta data
+$metadata = Get-Content -Raw -Path (join-path $Path "container.json") `
+| ConvertFrom-Json
+
+
 # Set image name and namespace in acr based on branch and source tag
 $imageName = $metadata.name
 
@@ -202,14 +202,6 @@ image: $($fullImageName)
 tags: [$($tagPrefix)$($latestTag)$($tagPostfix)]
 manifests:
 "@
-
-# Source definitions
-$definitions = & (Join-Path $PSScriptRoot "docker-source.ps1") `
-    -Path $Path -Debug:$Debug
-if ($definitions.Count -eq 0) {
-    Write-Host "Nothing to build."
-    return
-}
 
 Write-Host "Building $($definitions.Count) images in $($Path) in $($buildRoot)"
 Write-Host " and pushing to $($Registry)/$($namespace)$($imageName)..."
@@ -286,21 +278,19 @@ $definitions | ForEach-Object {
     )
     $argumentList += $buildContext
 
-    # $jobs += Start-Job -Name $image -ArgumentList $argumentList -ScriptBlock 
-    # {
-        #  $argumentList = $args
-
-        Write-Host "Building ... az $($argumentList | Out-String)..."
+    $jobs += Start-Job -Name $image -ArgumentList $argumentList -ScriptBlock {
+        $argumentList = $args
+        Write-Host "Building ... az $($argumentList | Out-String) for $($image)..."
         & az $argumentList 2>&1 | ForEach-Object { "$_" }
         if ($LastExitCode -ne 0) {
-            Write-Warning "az $($argumentList | Out-String) failed with $($LastExitCode) - 2nd attempt..."
+            Write-Warning "az $($argumentList | Out-String) failed for $($image) with $($LastExitCode) - 2nd attempt..."
             & az $argumentList 2>&1 | ForEach-Object { "$_" }
             if ($LastExitCode -ne 0) {
-                throw "Error: 'az $($argumentList | Out-String)' 2nd attempt failed with $($LastExitCode)."
+                throw "Error: 'az $($argumentList | Out-String)' 2nd attempt failed for $($image) with $($LastExitCode)."
             }
         }
-        Write-Host "... az $($argumentList | Out-String) completed"
-    # }
+        Write-Host "... az $($argumentList | Out-String) completed for $($image)."
+    }
     
     # Append to manifest
     if (![string]::IsNullOrEmpty($os)) {
@@ -361,7 +351,6 @@ try {
     Write-Host "Building and pushing manifest file:"
     Write-Host
     $manifest | Out-Host
-
     $manifest | Out-File -Encoding ascii -FilePath $manifestFile.FullName
     $argumentList = @( 
         "--username", $user,
@@ -369,16 +358,14 @@ try {
         "push",
         "from-spec", $manifestFile.FullName
     )
-
-    (& $manifestToolPath $argumentList) | Out-Host
-    if ($LastExitCode -ne 0) {
-        Write-Warning "Manifest push failed - 2nd attempt."
+    while ($true) {
         (& $manifestToolPath $argumentList) | Out-Host
-        if ($LastExitCode -ne 0) {
-            throw "$($manifestToolPath) end attempt failed with $($LastExitCode)."
+        if ($LastExitCode -eq 0) {
+            break   
         }
+        Write-Warning "Manifest push failed - try again."
+        Start-Sleep -s 2
     }
-
     Write-Host "Manifest pushed successfully."
 }
 catch {

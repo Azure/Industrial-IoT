@@ -499,7 +499,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                         kServerNamespaceUri, new LocalizedText(info)));
                 }
 
-                if (userName.EqualsIgnoreCase("admin") && password == "admin") {
+                if (userName.EqualsIgnoreCase("test") && password == "test") {
                     // Testing purposes only
                     return true;
                 }
