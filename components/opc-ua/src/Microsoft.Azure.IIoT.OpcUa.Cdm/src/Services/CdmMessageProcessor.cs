@@ -64,7 +64,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 }
             });
 
-            _adapter = new ADLSAdapter($"{config.ADLSg2HostName}/{config.ADLSg2BlobName}",
+            _adapter = new ADLSAdapter($"{config.ADLSg2HostName}/{config.ADLSg2ContainerName}",
                 $"/{config.RootFolder}", config.TenantId, config.AppId, config.AppSecret);
             _cdmCorpus.Storage.Mount("adls", _adapter);
             var gitAdapter = new GithubAdapter();
@@ -106,7 +106,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
 
                 // validate if the root already exist
                 await _storage.CreateBlobRoot(_config.ADLSg2HostName,
-                    _config.ADLSg2BlobName, _config.RootFolder);
+                    _config.ADLSg2ContainerName, _config.RootFolder);
 
                 // create a new Manifest definition
                 Manifest = _cdmCorpus.MakeObject<CdmManifestDefinition>(

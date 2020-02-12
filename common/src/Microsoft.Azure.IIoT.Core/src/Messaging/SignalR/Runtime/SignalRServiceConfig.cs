@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Runtime {
             GetStringOrDefault(PcsVariable.PCS_SIGNALR_CONNSTRING));
         /// <inheritdoc/>
         public string SignalRHubName=> GetStringOrDefault(kSignalRHubName,
-            GetStringOrDefault("PCS_SIGNALR_HUBNAME"));
+            GetStringOrDefault(PcsVariable.PCS_SIGNALR_HUBNAME));
 
         /// <summary>
         /// Configuration constructor
