@@ -274,6 +274,24 @@ namespace Microsoft.Azure.IIoT.App.Services {
             return pageResult;
         }
 
+        /// <summary>
+        /// Unregister application
+        /// </summary>
+        /// <param name="applicationId"></param>
+        /// <returns></returns>
+        public async Task<string> UnregisterApplicationAsync(string applicationId) {
+            
+            try {
+                await _registryService.UnregisterApplicationAsync(applicationId);
+            }
+            catch (Exception exception) {
+                var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
+                Trace.TraceError(errorMessageTrace);
+                return errorMessageTrace;
+            }
+            return null;
+        }
+
         private readonly IRegistryServiceApi _registryService;
         private const int _5MINUTES = 300;
         public string PathAll = "All";

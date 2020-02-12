@@ -313,13 +313,12 @@
         {
             if (node.Id == samples.NodeId)
             {
-                node.Value = samples.Value?.ToString();
+                node.Value = $"{samples.Value?.ToString()} ({samples.Status})";
                 this.StateHasChanged();
             }
         }
         return Task.CompletedTask;
     }
-
 
     public async void Dispose()
     {

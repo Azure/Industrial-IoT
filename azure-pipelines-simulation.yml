@@ -4,10 +4,9 @@ schedules:
   branches:
     include:
     - master
-
 stages:
 - stage: deploy
-  displayName: 'Create and Push Images and redeploy'
+  displayName: 'Create, push Images and redeploy'
   jobs:
   - template: tools/templates/acrbuild.yml
   - template: tools/templates/simulation_linux.yml
