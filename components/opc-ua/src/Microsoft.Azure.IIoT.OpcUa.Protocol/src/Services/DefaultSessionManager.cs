@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     var sessionName = id.ToString();
                     var applicationConfiguration = _clientConfig.ToApplicationConfiguration(true);
                     var endpointConfiguration = _clientConfig.ToEndpointConfiguration();
-                    var endpointDescription = SelectEndpoint(id.Connection.Endpoint.Url, id.Connection.Endpoint.SecurityMode, id.Connection.Endpoint.SecurityPolicy, 15000);
+                    var endpointDescription = SelectEndpoint(id.Connection.Endpoint.Url, id.Connection.Endpoint.SecurityMode, id.Connection.Endpoint.SecurityPolicy, (int)(connection.Endpoint.OperationTimeout.HasValue ? connection.Endpoint.OperationTimeout.Value.TotalMilliseconds : defaultOperationTimeout));
 
                     if (endpointDescription == null) {
                         throw new EndpointNotAvailableException(id.Connection.Endpoint.Url, id.Connection.Endpoint.SecurityMode, id.Connection.Endpoint.SecurityPolicy);
@@ -295,5 +295,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             new Dictionary<ConnectionIdentifier, SessionWrapper>();
         private readonly SemaphoreSlim _lock;
         private const string noneSecurityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#None";
+        private const int defaultOperationTimeout = 15000;
     }
 }
