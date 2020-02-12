@@ -1,0 +1,184 @@
+﻿@page "/supervisors"
+@page "/supervisors/{page}"
+
+@using Microsoft.AspNetCore.Components;
+@using Microsoft.Azure.IIoT.App.Services
+@using Microsoft.Azure.IIoT.App.Components.Pager
+@using Microsoft.Azure.IIoT.App.Components.Drawer
+@using Microsoft.Azure.IIoT.App.Components.ErrorMessage
+@using Microsoft.Azure.IIoT.App.Data
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry
+
+@inject NavigationManager NavigationManager
+@inject Registry RegistryHelper
+@inject RegistryServiceEvents RegistryServiceEvents
+
+@implements IDisposable
+
+<h1>Twin Modules</h1>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Site Id</th>
+            <th>Connection Status</th>
+            <th>Sync Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var supervisor in _pagedsupervisorList.Results)
+        {
+            <tr>
+                <td>
+                    <a href='endpoints/@RegistryHelper.PathAll/@RegistryHelper.PathAll/@supervisor.Id'>
+                        @supervisor.Id
+                    </a>
+                </td>
+                @{string siteId = supervisor.SiteId == null ? "--" : supervisor.SiteId;}
+                <td>
+                    @siteId
+                </td>
+                @{string connectStatus = supervisor.Connected == null ? "--" : supervisor.Connected == true ? "Connected" : "Disconnected";}
+                <td>
+                    @connectStatus
+                </td>
+                @{string syncStatus = supervisor.OutOfSync == null ? "--" : supervisor.OutOfSync == true ? "Out of Sync" : "Synced";}
+                <td>
+                    @syncStatus
+                </td>
+                <td>
+                    <a class="ellipsis-space" href="javascript: void(0)" @onclick="@(() => OpenDrawer(supervisor.Id))">...</a>
+                </td>
+                <td>
+                    <button @onclick="@(() => ResetSupervisorUIAsync(supervisor.Id))" class="btn btn-primary">Reset</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div class="loader-pos @_spinner"></div>
+
+<Drawer HeaderText="Twin Module Status" ObjectData="@SupervisorId" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
+    <_DrawerSupervisorContent SupervisorId="@SupervisorId"></_DrawerSupervisorContent>
+</Drawer>
+
+<ErrorMessage PageError="@_pagedsupervisorList.Error" Status="@null"></ErrorMessage>
+
+<Pager Result=@_supervisorList PageChanged=@((Page) => PagerPageChanged(Page)) />
+
+@code {
+
+    [Parameter]
+    public string Page { get; set; } = "1";
+
+    public const int PageLength = 10;
+    public string Status { get; set; }
+    public bool IsOpened { get; set; } = false;
+    public string SupervisorId { get; set; }
+    private PagedResult<SupervisorApiModel> _supervisorList =
+        new PagedResult<SupervisorApiModel>();
+    private PagedResult<SupervisorApiModel> _pagedsupervisorList =
+        new PagedResult<SupervisorApiModel>();
+    private string _spinner { get; set; }
+    private IAsyncDisposable _supervisorEvent { get; set; }
+
+    /// <summary>
+    /// Notify page change
+    /// </summary>
+    /// <param name="page"></param>
+    public void PagerPageChanged(int page)
+    {
+        _pagedsupervisorList = _supervisorList.GetPaged(page, PageLength, null);
+        NavigationManager.NavigateTo("/supervisors/" + page);
+    }
+
+    /// <summary>
+    /// OnInitialized
+    /// </summary>
+    protected override void OnInitialized()
+    {
+        _spinner = "loader-big";
+    }
+
+    /// <summary>
+    /// OnAfterRenderAsync
+    /// </summary>
+    /// <param name="firstRender"></param>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await UpdateSupervisorAsync();
+            StateHasChanged();
+
+            _supervisorEvent = await RegistryServiceEvents.SubscribeSupervisorEventsAsync(
+                null, async data =>
+                {
+                    await InvokeAsync(() => SupervisorEvent(data));
+                });
+        }
+    }
+
+    // <summary>
+    /// Open then Drawer
+    /// </summary>
+    /// <param name="OpenDrawer"></param>
+    private void OpenDrawer(string supervisorId)
+    {
+        IsOpened = true;
+        SupervisorId = supervisorId;
+    }
+
+    /// <summary>
+    /// Close the Drawer
+    /// </summary>
+    private void CloseDrawer()
+    {
+        IsOpened = false;
+        this.StateHasChanged();
+    }
+
+    /// <summary>
+    /// Reset Supervisor
+    /// </summary>
+    /// <param name="supervisorId"></param>
+    private async Task ResetSupervisorUIAsync(string supervisorId)
+    {
+        Status = await RegistryHelper.ResetSupervisorAsync(supervisorId);
+    }
+
+    /// <summary>
+    /// action on Supervisor Event
+    /// </summary>
+    /// <param name="ev"></param>
+    private async void SupervisorEvent(SupervisorEventApiModel ev)
+    {
+        await UpdateSupervisorAsync();
+        StateHasChanged();
+    }
+
+    /// <summary>
+    /// Update Supervisor list
+    /// </summary>
+    private async Task UpdateSupervisorAsync()
+    {
+        _supervisorList = await RegistryHelper.GetSupervisorListAsync();
+        Page = "1";
+        _pagedsupervisorList = _supervisorList.GetPaged(Int32.Parse(Page), PageLength, _supervisorList.Error);
+        _spinner = "";
+    }
+
+    /// <summary>
+    /// Dispose
+    /// </summary>
+    public async void Dispose()
+    {
+        if (_supervisorEvent != null)
+        {
+            await _supervisorEvent.DisposeAsync();
+        }
+    }
+}
