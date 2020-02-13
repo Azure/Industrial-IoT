@@ -18,8 +18,8 @@ If you have not done so yet, [deploy](readme.md) the Industrial IoT platform or 
 When the platform starts up it will set up layered deployments for each required module.  These layered deployment configurations will be automatically applied to any gateway with the following Device Twin tags:
 
 ```JSON
-"tags" = {
-    "__type__": "iiotedge"
+"tags": {
+    "__type__": "iiotedge",
     "os": "Windows"
     // or "os": "Linux"
 }
@@ -37,13 +37,13 @@ If you need to point to a different docker container registry or image version t
 
 ## Windows Networking Configuration
 
-When running the industrial IoT Edge modules in host (transparent) network, the container must be on the transparent host network and might require IP addresses assignment. 
+When running the industrial IoT Edge modules in host (transparent) network, the container must be on the transparent host network and might require IP addresses assignment.
 
 - Ensure Hyper-V must be active  
 - Create a new virtual switch named host having attached to an external network interface (e.g. "Ethernet 2").
 
     ```bash
-New-VMSwitch -name host -NetAdapterName "<Adapter Name>" -AllowManagementOS $true
+    New-VMSwitch -name host -NetAdapterName "<Adapter Name>" -AllowManagementOS $true
     ```
 
 - To make sure the container is assigned an IP address it can either obtain a:
@@ -53,9 +53,9 @@ New-VMSwitch -name host -NetAdapterName "<Adapter Name>" -AllowManagementOS $tru
     2. Static IP address assigned on the container create options statement
         In order to allow static IP address assignment on a Windows container, the docker network requires to be created having the the subnet specified identical to the host's interface
 
-       ```bash
-docker -H npipe:////.//pipe//iotedge_moby_engine network create -d transparent -o com.docker.network.windowsshim.interface="Ethernet 2" -o com.docker.network.windowsshim.networkname=host --subnet=192.168.30.0/24 --gateway=192.168.30.1 host
-       ```
+        ```bash
+        docker -H npipe:////.//pipe//iotedge_moby_engine network create -d transparent -o com.docker.network.windowsshim.interface="Ethernet 2" -o com.docker.network.windowsshim.networkname=host --subnet=192.168.30.0/24 --gateway=192.168.30.1 host
+        ```
 
 ## Troubleshooting
 
