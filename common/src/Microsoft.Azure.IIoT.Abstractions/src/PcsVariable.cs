@@ -34,6 +34,15 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> datalake account </summary>
         public const string PCS_ADLSG2_ACCOUNT =
             "PCS_ADLSG2_ACCOUNT";
+        /// <summary> ADLS Gen2 account connection string </summary>
+        public const string PCS_ADLSG2_CONNSTRING =
+            "PCS_ADLSG2_CONNSTRING";
+        /// <summary> ADLS Gen2 blob container for CDM storage </summary>
+        public const string PCS_ADLSG2_CONTAINER_CDM =
+            "PCS_ADLSG2_CONTAINER_CDM";
+        /// <summary> CDM root folder within CDM blob container </summary>
+        public const string PCS_ADLSG2_CONTAINER_CDM_ROOTFOLDER =
+            "PCS_ADLSG2_CONTAINER_CDM_ROOTFOLDER";
         /// <summary> storage connection string </summary>
         public const string PCS_STORAGE_CONNSTRING =
             "PCS_STORAGE_CONNSTRING";
@@ -43,6 +52,9 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> SignalR connection string </summary>
         public const string PCS_SIGNALR_CONNSTRING =
             "PCS_SIGNALR_CONNSTRING";
+        /// <summary> SignalR Hub name </summary>
+        public const string PCS_SIGNALR_HUBNAME =
+            "PCS_SIGNALR_HUBNAME";
         /// <summary> Secondary event hub connection string </summary>
         public const string PCS_EVENTHUB_CONNSTRING =
             "PCS_EVENTHUB_CONNSTRING";
@@ -118,5 +130,32 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Service url </summary>
         public const string PCS_SERVICE_URL =
             "PCS_SERVICE_URL";
+        /// <summary>OPC twin service endpoint url</summary>
+        public const string PCS_TWIN_SERVICE_URL =
+            "PCS_TWIN_SERVICE_URL";
+        /// <summary>OPC registry service endpoint url</summary>
+        public const string PCS_TWIN_REGISTRY_URL =
+            "PCS_TWIN_REGISTRY_URL";
+        /// <summary>OPC vault service endpoint url</summary>
+        public const string PCS_VAULT_SERVICE_URL =
+            "PCS_VAULT_SERVICE_URL";
+        /// <summary>OPC publisher service endpoint url</summary>
+        public const string PCS_PUBLISHER_SERVICE_URL =
+            "PCS_PUBLISHER_SERVICE_URL";
+        /// <summary>OPC history service endpoint url</summary>
+        public const string PCS_HISTORY_SERVICE_URL =
+            "PCS_HISTORY_SERVICE_URL";
+        /// <summary>Jobs service endpoint url</summary>
+        public const string PCS_JOBS_SERVICE_URL =
+            "PCS_JOBS_SERVICE_URL";
+        /// <summary>OPC onboarding service endpoint url</summary>
+        public const string PCS_ONBOARDING_SERVICE_URL =
+            "PCS_ONBOARDING_SERVICE_URL";
+        /// <summary>Jobs orchestrator service endpoint url</summary>
+        public const string PCS_JOB_ORCHESTRATOR_SERVICE_URL =
+            "PCS_JOB_ORCHESTRATOR_SERVICE_URL";
+        /// <summary>Configuration service endpoint url</summary>
+        public const string PCS_CONFIGURATION_SERVICE_URL =
+            "PCS_CONFIGURATION_SERVICE_URL";
     }
 }

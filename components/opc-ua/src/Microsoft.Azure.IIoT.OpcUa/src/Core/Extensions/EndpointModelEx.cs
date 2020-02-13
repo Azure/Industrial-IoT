@@ -31,6 +31,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
             if (!that.GetAllUrls().SequenceEqualsSafe(model.GetAllUrls())) {
                 return false;
             }
+            if (that.OperationTimeout != model.OperationTimeout) {
+                return false;
+            }
             return true;
         }
 
@@ -76,6 +79,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<SecurityMode?>.Default.GetHashCode(
                     endpoint.SecurityMode ?? SecurityMode.Best);
+            hashCode = (hashCode * -1521134295) +
+                endpoint.OperationTimeout.GetHashCode();
+
             return hashCode;
         }
 
@@ -136,7 +142,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
                 AlternativeUrls = model.AlternativeUrls.ToHashSetSafe(),
                 SecurityMode = model.SecurityMode,
                 SecurityPolicy = model.SecurityPolicy,
-                Url = model.Url
+                Url = model.Url,
+                OperationTimeout = model.OperationTimeout
             };
         }
     }

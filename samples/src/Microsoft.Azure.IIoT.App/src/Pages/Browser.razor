@@ -1,6 +1,6 @@
 @page "/browser/{applicationId}/{endpointId}"
-@page "/browser/{discovererId}/{applicationId}/{endpointId}"
-@page "/browser/{discovererId}/{applicationId}/{endpointId}/{page}"
+@page "/browser/{discovererId}/{applicationId}/{supervisorId}/{endpointId}"
+@page "/browser/{discovererId}/{applicationId}/{supervisorId}/{endpointId}/{page}"
 
 
 @using Microsoft.Azure.IIoT.App.Services
@@ -26,9 +26,10 @@
 <h1>Endpoint Control</h1>
 
 <div>
-    @{ string discover = discovererId == RegistryHelper.PathAll ? string.Empty : discovererId; }
-    @{ string application = applicationId == RegistryHelper.PathAll ? string.Empty : applicationId; }
-    @discover/@application/@endpointId@BrowseManager.Path
+    @{ string discover = DiscovererId == RegistryHelper.PathAll ? string.Empty : DiscovererId; }
+    @{ string application = ApplicationId == RegistryHelper.PathAll ? string.Empty : ApplicationId; }
+    @{ string supervisor = SupervisorId == RegistryHelper.PathAll ? string.Empty : SupervisorId; }
+    @discover/@application/@SupervisorId/@EndpointId@BrowseManager.Path
 </div>
 
 <table class="table">
@@ -52,7 +53,7 @@
                     {
                         if (PagedNodeList.Results[0].DiscovererId != null)
                         {
-                            <a href='endpoints/@PagedNodeList.Results[0].DiscovererId/@applicationId'>
+                            <a href='endpoints/@PagedNodeList.Results[0].DiscovererId/@ApplicationId/@SupervisorId'>
                                 <span class="oi oi-arrow-left"></span>
                             </a>
                         }
@@ -105,7 +106,7 @@
                 @if (node.NodeClass == NodeClass.Variable)
                 {
                     <td>
-                        <input type="checkbox" checked=@node.Publishing @onchange="@((EventArgs) => SetPublishing(endpointId, node, EventArgs))" />
+                        <input type="checkbox" checked=@node.Publishing @onchange="@((EventArgs) => SetPublishing(EndpointId, node, EventArgs))" />
                         <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
                             @{string output = (node.Publishing == true && node.PublishedItem != null) ? $"On, sampling {node.PublishedItem?.SamplingInterval.Value.TotalMilliseconds} ms" : "Off";}
                             @output
@@ -125,7 +126,7 @@
 <ErrorMessage PageError="@PagedNodeList.Error" Status="@null"></ErrorMessage>
 
 <Drawer HeaderText="Select Action" ObjectData="@NodeData" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
-    <_DrawerActionContent nodeData="@NodeData" endpointId="@endpointId" pagedNodeList="@PagedNodeList"></_DrawerActionContent>
+    <_DrawerActionContent nodeData="@NodeData" endpointId="@EndpointId" pagedNodeList="@PagedNodeList"></_DrawerActionContent>
 </Drawer>
 
 <Pager Result=@NodeList PageChanged=@(async(Page) => PagerPageChanged(Page)) />
@@ -134,13 +135,16 @@
 @code {
 
     [Parameter]
-    public string discovererId { get; set; } = string.Empty;
+    public string DiscovererId { get; set; } = string.Empty;
 
     [Parameter]
-    public string endpointId { get; set; } = string.Empty;
+    public string EndpointId { get; set; } = string.Empty;
 
     [Parameter]
-    public string applicationId { get; set; } = string.Empty;
+    public string ApplicationId { get; set; } = string.Empty;
+
+    [Parameter]
+    public string SupervisorId { get; set; } = string.Empty;
 
     [Parameter]
     public string Page { get; set; } = "1";
@@ -166,10 +170,10 @@
             // fetch the actual value
             if (node.NodeClass == NodeClass.Variable)
             {
-                node.Value = await BrowseManager.ReadValueAsync(endpointId, node.Id);
+                node.Value = await BrowseManager.ReadValueAsync(EndpointId, node.Id);
             }
         }
-        NavigationManager.NavigateTo("/browser/" + discovererId + "/" + applicationId + "/" + endpointId + "/" + page);
+        NavigationManager.NavigateTo("/browser/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId + "/" + page);
     }
 
     /// <summary>
@@ -191,7 +195,7 @@
             await BrowseTreeAsync(string.Empty, new List<string>(), BrowseDirection.Forward);
             _spinner = "";
             StateHasChanged();
-            _publishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(endpointId, null, PublishEvent);
+            _publishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId, null, PublishEvent);
         }
     }
 
@@ -213,7 +217,7 @@
     private async Task GetTreeBackAsync(string id, List<string> parentId)
     {
         await BrowseTreeAsync(id, parentId, BrowseDirection.Backward);
-        NavigationManager.NavigateTo("/browser/" + discovererId + "/" + applicationId + "/" + endpointId);
+        NavigationManager.NavigateTo("/browser/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId);
     }
 
     /// <summary>
@@ -225,8 +229,8 @@
     private async Task BrowseTreeAsync(String id, List<string> parentId, BrowseDirection direction)
     {
         _spinner = "loader-big";
-        NodeList = await BrowseManager.GetTreeAsync(endpointId, id, parentId, discovererId, direction);
-        var publishedNodes = await Publisher.PublishedAsync(endpointId);
+        NodeList = await BrowseManager.GetTreeAsync(EndpointId, id, parentId, DiscovererId, direction);
+        var publishedNodes = await Publisher.PublishedAsync(EndpointId);
 
         foreach (var node in NodeList.Results)
         {
