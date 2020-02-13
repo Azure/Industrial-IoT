@@ -19,7 +19,7 @@
      * Select to enable twin collection by leaving the twin collection toggle On
    * Click Save
 
-   ![enable](../media/asc1.png)
+   ![enable](../media/asc1.PNG)
   
    ![workspace](../media/asc2.png)
 
