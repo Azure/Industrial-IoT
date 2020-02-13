@@ -9,7 +9,7 @@ The ARM deployment templates included in the repository deploy the platform and 
 - A PLC server simulation
 - All required Azure infrastructure
 - The Industrial IoT Platform
-- The Industrial IoT Sample Engineering tool.
+- The Industrial IoT Engineering tool.
 
 ## Running the script
 
@@ -17,7 +17,7 @@ The platform and simulation can also be deployed using the deploy script.
 
 1. Make sure you have PowerShell and [Az PowerShell](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps) extensions installed.  If not, first install PowerShell, then open PowerShell as Administrator and run
 
-   ```powershell
+   ```pwsh
    Install-Module -Name Az -AllowClobber
    Install-Module -Name AzureAD -AllowClobber
    ```
@@ -29,10 +29,18 @@ The platform and simulation can also be deployed using the deploy script.
    cd Industrial-IoT
    ```
 
-3. Open a command prompt or terminal in the repository root and run:
+3. Open a command prompt or terminal in the repository root and depending on your operating system run:
 
-   ```bash
+   (On Windows) 
+   
+   ```cmd
    deploy
+   ```
+
+   (On Linux)
+   
+   ```bash
+   bash -c deploy.sh
    ```
 
    The supported parameters can be found [below](#deployment-script-options).
@@ -70,14 +78,14 @@ Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
 
 ### Security Warning
 
-1. If you see a message in PowerShell
+If you see a message in PowerShell
+
 `Security warning
-Run only scripts that you trust. While scripts from the internet can be useful, this script can potentially harm your
-computer. If you trust this script, use the Unblock-File cmdlet to allow the script to run without this warning
-message. Do you want to run C:\MyConnectedFactoryClone\build.ps1?
+Run only scripts that you trust. While scripts from the internet can be useful, this script can potentially harm your computer. If you trust this script, use the Unblock-File cmdlet to allow the script to run without this warning message. Do you want to run <...> deploy.ps1?
 [D] Do not run  [R] Run once  [S] Suspend  [?] Help (default is "D"):
 Do you want to run this script?`
-2. Choose R
+
+Choose R to run once.
 
 ### Resource group name
 
