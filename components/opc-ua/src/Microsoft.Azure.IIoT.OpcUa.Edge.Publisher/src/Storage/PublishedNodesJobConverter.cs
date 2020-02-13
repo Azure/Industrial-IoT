@@ -74,18 +74,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             return items
                 // Group by connection
                 .GroupBy(item => new ConnectionModel {
-                    Endpoint = new EndpointModel {
-                        Url = item.EndpointUrl.OriginalString,
-                        SecurityMode = item.UseSecurity == false ?
-                            SecurityMode.None : SecurityMode.Best,
-                        OperationTimeout = legacyCliModel.OperationTimeout
+                        OperationTimeout = legacyCliModel.OperationTimeout,
+                        Endpoint = new EndpointModel {
+                            Url = item.EndpointUrl.OriginalString,
+                            SecurityMode = item.UseSecurity == false ?
+                                SecurityMode.None : SecurityMode.Best
+                        },
+                        User = item.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
+                            null :ToUserNamePasswordCredentialAsync(item).Result
                     },
-                    User = item.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ? null :
-                        // if encrypted user is set and cryptoProvider is available, we use the encrypted credentials.
-                        (_cryptoProvider != null && !string.IsNullOrWhiteSpace(item.EncryptedAuthUsername)) ? ToUserNamePasswordCredentialAsync(item.EncryptedAuthUsername, item.EncryptedAuthPassword).Result :
-                        // if clear text credentials are set, we use them for authentication.
-                        !(string.IsNullOrWhiteSpace(item.OpcAuthenticationUsername)) ? new CredentialModel { Type = CredentialType.UserName, Value = JToken.FromObject(new { user = item.OpcAuthenticationUsername, password = item.OpcAuthenticationPassword }) } : null
-                },
                     // Select and batch nodes into published data set sources
                     item => GetNodeModels(item),
                     // Comparer for connection information
@@ -167,7 +164,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <param name="opcNodes"></param>
         /// <param name="legacyCliModel">The legacy command line arguments</param>
         /// <returns></returns>
-        private static TimeSpan? GetPublishingIntervalFromNodes(IEnumerable<OpcNodeModel> opcNodes, 
+        private static TimeSpan? GetPublishingIntervalFromNodes(IEnumerable<OpcNodeModel> opcNodes,
             LegacyCliModel legacyCliModel) {
             var interval = opcNodes
                 .FirstOrDefault(x => x.OpcPublishingInterval != null)?.OpcPublishingIntervalTimespan;
@@ -181,8 +178,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <returns></returns>
         private async Task<CredentialModel> ToUserNamePasswordCredentialAsync(
             PublishedNodesEntryModel entry) {
-            var user = entry.Username;
-            var password = entry.Password;
+            var user = entry.OpcAuthenticationUsername;
+            var password = entry.OpcAuthenticationPassword;
             if (string.IsNullOrEmpty(user)) {
                 if (_cryptoProvider == null || string.IsNullOrEmpty(entry.EncryptedAuthUsername)) {
                     return null;
@@ -226,9 +223,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             /// </summary>
             [JsonIgnore]
             public TimeSpan? OpcSamplingIntervalTimespan {
-                get => OpcSamplingInterval.HasValue ? 
+                get => OpcSamplingInterval.HasValue ?
                     TimeSpan.FromMilliseconds(OpcSamplingInterval.Value) : (TimeSpan?)null;
-                set => OpcSamplingInterval = value != null ? 
+                set => OpcSamplingInterval = value != null ?
                     (int)value.Value.TotalMilliseconds : (int?)null;
             }
 
@@ -241,9 +238,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             /// </summary>
             [JsonIgnore]
             public TimeSpan? OpcPublishingIntervalTimespan {
-                get => OpcPublishingInterval.HasValue ? 
+                get => OpcPublishingInterval.HasValue ?
                     TimeSpan.FromMilliseconds(OpcPublishingInterval.Value) : (TimeSpan?)null;
-                set => OpcPublishingInterval = value != null ? 
+                set => OpcPublishingInterval = value != null ?
                     (int)value.Value.TotalMilliseconds : (int?)null;
             }
 
@@ -262,7 +259,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
             public TimeSpan? HeartbeatIntervalTimespan {
                 get => HeartbeatInterval.HasValue ?
                     TimeSpan.FromSeconds(HeartbeatInterval.Value) : (TimeSpan?)null;
-                set => HeartbeatInterval = value != null ? 
+                set => HeartbeatInterval = value != null ?
                     (int)value.Value.TotalSeconds : (int?)null;
             }
 

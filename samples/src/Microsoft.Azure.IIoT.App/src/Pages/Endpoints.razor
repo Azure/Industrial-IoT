@@ -50,10 +50,10 @@
         </tr>
     </thead>
     <tbody>
-        @foreach (var endpoint in _pagedendpointList.Results) 
+        @foreach (var endpoint in _pagedendpointList.Results)
         {
             <tr>
-                @if (endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Ready) 
+                @if (endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Ready)
                 {
                     <td>
                         @{ discover = DiscovererId == null ? RegistryHelper.PathAll : DiscovererId; }
@@ -64,7 +64,7 @@
                         </a>
                     </td>
                 }
-                else 
+                else
                 {
                     <td>@endpoint.EndpointModel.Registration.Endpoint.Url</td>
                 }
@@ -74,13 +74,13 @@
                 <td>@(endpoint.EndpointModel.EndpointState?.ToString() ?? "Disconnected")</td>
                 <td>
                     @if (endpoint.EndpointModel.ActivationState == EndpointActivationState.ActivatedAndConnected ||
-                    endpoint.EndpointModel.ActivationState == EndpointActivationState.Activated) 
+                    endpoint.EndpointModel.ActivationState == EndpointActivationState.Activated)
                     {
                         <input type="checkbox" checked
                                @onchange="async eventArgs => { await SetActivation(endpoint.EndpointModel.Registration.Id, eventArgs.Value); }" />
                         @endpoint.EndpointModel.ActivationState.ToString()
                     }
-                    else 
+                    else
                     {
                         <input type="checkbox"
                                @onchange="async eventArgs => { await SetActivation(endpoint.EndpointModel.Registration.Id, eventArgs.Value); }" />
@@ -142,6 +142,8 @@
     /// OnAfterRenderAsync
     /// </summary>
     /// <param name="firstRender"></param>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
         if (firstRender)
         {
             _endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId, SupervisorId);
