@@ -4,7 +4,7 @@
 
 ## Prerequisites
 
-This tutorial makes use of the Industrial IoT [Engineering Tool](../services/engineeringtool.md).  In order to use the Engineering Tool, you must deploy the Azure Industrial IoT Platform using the [deployment script](..deploy/howto-deploy-all-in-one.md). Once the deployment succeeded, you can see in the output where the deployed application can be found online.
+This tutorial makes use of the Industrial IoT [Engineering Tool](../services/engineeringtool.md).  In order to use the Engineering Tool, you must deploy the Azure Industrial IoT Platform using the [deployment script](../deploy/howto-deploy-all-in-one.md). Once the deployment succeeded, you can see in the output where the deployed application can be found online.
 
 ![Deployed application](../media/deployed-application.png)
 
