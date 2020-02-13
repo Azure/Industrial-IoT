@@ -67,9 +67,26 @@ azure:
     connectionString: null
 
     container:
-      # ToDo: Document creation of the container.
+      # ToDo: Document creation of the container. And the fact that `dataprotection` container will be created if not set.
       # azure.storageAccount.container.dataProtection is Storage Account Container that holds encrypted keys.
       dataProtection: null
+
+  # This provides details of Azure Data Lake Storage Gen2 Account. Services SP should be configured to have access to this.
+  # Those values will be required if telemetryCdmProcessor microservice is enabled. And telemetryCdmProcessor can be enabled only if auth details are provided.
+  adlsg2:
+    # azure.adlsg2.hostName is ADLS file system endpoint hostname.
+    # <storage_account_name>.dfs.core.windows.net
+    hostName: null
+    # azure.adlsg2.connectionString is the connection string for ADLS Gen2 account.
+    # This can be omitted if hostName is specified.
+    connectionString: null
+
+    container:
+      cdm:
+        # azure.adlsg2.container.cdm.name is the name of ADLS Gen2 blob container for CDM storage.
+        name: null
+        # azure.adlsg2.container.cdm.rootFolder is CDM root folder within CDM blob container.
+        rootFolder: "IIoTDataFlow"
 
   # Details of Azure Event Hub Namespace that microservices will use.
   eventHubNamespace:
@@ -127,7 +144,7 @@ azure:
     # azure.appService.url is URL on which App Service instance is available externally.
     url: null
 
-  # This value is not used at the moment, so it can be skipped.
+  # Details of SignalR service.
   signalR:
     # azure.signalR.connectionString is the connection string for your SignalR instance.
     connectionString: null
