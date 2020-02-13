@@ -4,7 +4,7 @@
 
 ## Prerequisites
 
-This tutorial makes use of the Industrial IoT [Engineering Tool](../services/engineeringtool.md).  In order to use the Engineering Tool, you must deploy the Azure Industrial IoT Platform using the [deployment script](../howto-deploy-all-in-one.md). Once the deployment succeeded, you can see in the output where the deployed application can be found online.
+This tutorial makes use of the Industrial IoT [Engineering Tool](../services/engineeringtool.md).  In order to use the Engineering Tool, you must deploy the Azure Industrial IoT Platform using the [deployment script](../deploy/howto-deploy-all-in-one.md). Once the deployment succeeded, you can see in the output where the deployed application can be found online.
 
 ![Deployed application](../media/deployed-application.png)
 
@@ -30,7 +30,7 @@ To discover OPC UA server assets in the connected networks (factories, etc.) you
 
    ![Scan on](../media/eng-tool-discovery-on.png)
 
-   When the scan complets you can click on the discovery module (in this case "wingat-bnifrqs_module_discoverer) and see the Endpoints belonging to the discovererd servers.
+   When the scan complets you can click on the discovery module (in this case "wingat-bnifrqs_module_discoverer) and see the Endpoints belonging to the discovered servers.
 
    ![Specific Endpoints](../media/eng-tool-discovery-endpoints.png)
 
