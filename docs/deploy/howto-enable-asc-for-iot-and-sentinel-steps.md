@@ -42,7 +42,7 @@
      | extend AccountCustomEntity = EventDetails
      ```
 
-   ![alertrule](../media/asc5.png)
+   ![alertrule](../media/asc5.PNG)
 
    * And you're done! Next time an alert is raised matching the alert rule, a case is created which you can check on Cases. You could also go to Logs section to check logs in certain time period
 
