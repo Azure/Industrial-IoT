@@ -9,7 +9,7 @@ The ARM deployment templates included in the repository deploy the platform and 
 - A PLC server simulation
 - All required Azure infrastructure
 - The Industrial IoT Platform
-- The Industrial IoT Sample Engineering tool.
+- The Industrial IoT Engineering tool.
 
 ## Running the script
 
@@ -17,7 +17,7 @@ The platform and simulation can also be deployed using the deploy script.
 
 1. Make sure you have PowerShell and [Az PowerShell](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps) extensions installed.  If not, first install PowerShell, then open PowerShell as Administrator and run
 
-   ```powershell
+   ```pwsh
    Install-Module -Name Az -AllowClobber
    Install-Module -Name AzureAD -AllowClobber
    ```
@@ -29,10 +29,18 @@ The platform and simulation can also be deployed using the deploy script.
    cd Industrial-IoT
    ```
 
-3. Open a command prompt or terminal in the repository root and run:
+3. Open a command prompt or terminal in the repository root and depending on your operating system run:
 
-   ```bash
+   (On Windows) 
+   
+   ```cmd
    deploy
+   ```
+
+   (On Linux)
+   
+   ```bash
+   bash -c deploy.sh
    ```
 
    The supported parameters can be found [below](#deployment-script-options).
