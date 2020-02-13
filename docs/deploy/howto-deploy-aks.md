@@ -466,10 +466,10 @@ Command line argument key-value pairs can be specified with:
   
     Properties correspond to that of application registration and Service Principal manifests. Definition
     of application properties can be found [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/reference-app-manifest).
-    
-  Application objects should contain the following properties:
-    
-``` json
+
+    Application objects should contain the following properties:
+
+    ``` json
     {
       "Id": "<guid>",
       "DisplayName": "<application name string>",
@@ -479,24 +479,24 @@ Command line argument key-value pairs can be specified with:
       "AppId": "<guid>"
     }
     ```
-    
-  Service Principal objects should contain the following properties:
-    
-```json
+
+    Service Principal objects should contain the following properties:
+
+    ```json
     {
       "Id": "<guid>",
       "DisplayName": "<service principal name string>",
     }
     ```
-    
-  ApplicationRegistration object should have the keys as below. Note that:
+
+    ApplicationRegistration object should have the keys as below. Note that:
     * Values of `ServiceApplication`, `ClientApplication` and `AksApplication` keys should be Application
       objects as described above.
     * Values of `ServiceApplicationSP`, `ClientApplicationSP` and `AksApplicationSP` keys should be Service
       Principal objects as described above.
     * `AksApplicationRbacSecret` is client secret (password) of AksApplication.
-    
-``` json
+
+    ``` json
     "ApplicationRegistration": {
       "ServiceApplication": "<Application object>",
       "ServiceApplicationSP": "<Service Principal object>",
