@@ -13,15 +13,21 @@ To support network scanning and equipment discovery, the discovery module should
 ## Deploy the Industrial IoT Workloads to the Gateway
 
 If you have not done so yet, [deploy](readme.md) the Industrial IoT platform or at a minimum the required [dependencies](../services/dependencies.md).  
-> If you **only** want to deploy the cloud dependencies, start the [Edge Management](services/edgemanager.md) Microservice or the [all-in-one](services/all-in-one.md) service locally to ensure IoT Hub is configured to auto deploy the Industrial IoT Edge modules.
+> If you **only** want to deploy the cloud dependencies, start the [Edge Management](../services/edgemanager.md) Microservice or the [all-in-one](../services/all-in-one.md) service locally to ensure IoT Hub is configured to auto deploy the Industrial IoT Edge modules.
 
 When the platform starts up it will set up layered deployments for each required module.  These layered deployment configurations will be automatically applied to any gateway with the following Device Twin tags:
 
 ```JSON
 "tags" = {
-    "__type__": "iiotedge"
-    "os": "Windows"
-    // or "os": "Linux"
+    "__type__": "iiotedge",
+    "os": "Windows"    
+}
+```
+or 
+```JSON
+"tags" = {
+    "__type__": "iiotedge",
+    "os": "Linux"
 }
 ```
 
