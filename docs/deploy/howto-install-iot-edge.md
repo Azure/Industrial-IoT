@@ -18,14 +18,14 @@ If you have not done so yet, [deploy](readme.md) the Industrial IoT platform or 
 When the platform starts up it will set up layered deployments for each required module.  These layered deployment configurations will be automatically applied to any gateway with the following Device Twin tags:
 
 ```JSON
-"tags" = {
+"tags": {
     "__type__": "iiotedge",
     "os": "Windows"    
 }
 ```
 or 
 ```JSON
-"tags" = {
+"tags": {
     "__type__": "iiotedge",
     "os": "Linux"
 }
