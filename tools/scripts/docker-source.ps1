@@ -100,31 +100,38 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
             debugger = $installLinuxDebugger
             entryPoint = "[`"./$($assemblyName)`"]"
         }
-        "windows/amd64:10.0.17134.885" = @{
+        "windows/amd64:10.0.17134.1246" = @{
             runtimeId = "win-x64"
-            image = "mcr.microsoft.com/windows/nanoserver:1803"
+            image = "mcr.microsoft.com/windows/nanoserver:10.0.17134.1246-amd64"
             platformTag = "nanoserver-amd64-1803"
             debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
         }
-        "windows/amd64:10.0.17763.615" = @{
+        "windows/amd64:10.0.17763.973" = @{
             runtimeId = "win-x64"
-            image = "mcr.microsoft.com/windows/nanoserver:1809"
+            image = "mcr.microsoft.com/windows/nanoserver:10.0.17763.973-amd64"
             platformTag = "nanoserver-amd64-1809"
             debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
         }
-        "windows/arm" = @{
+        "windows/arm:10.0.17763.973" = @{
             runtimeId = "win-arm"
-            image = "mcr.microsoft.com/windows/nanoserver:1809-arm32v7"
+            image = "mcr.microsoft.com/windows/nanoserver:10.0.17763.973-arm32v7"
             platformTag = "nanoserver-arm32v7-1809"
             debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
         }
-        "windows/amd64:10.0.18362.239" = @{
+        "windows/amd64:10.0.18362.592" = @{
             runtimeId = "win-x64"
-            image = "mcr.microsoft.com/windows/nanoserver:1903"
+            image = "mcr.microsoft.com/windows/nanoserver:10.0.18362.592-amd64"
             platformTag = "nanoserver-amd64-1903"
+            debugger = $null
+            entryPoint = "[`"$($assemblyName).exe`"]"
+        }
+        "windows/amd64:10.0.18363.592" = @{
+            runtimeId = "win-x64"
+            image = "mcr.microsoft.com/windows/nanoserver:10.0.18363.592-amd64"
+            platformTag = "nanoserver-amd64-1909"
             debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
         }
