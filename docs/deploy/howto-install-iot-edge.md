@@ -20,14 +20,16 @@ When the platform starts up it will set up layered deployments for each required
 ```JSON
 "tags": {
     "__type__": "iiotedge",
-    "os": "Windows"    
+    "os": "Linux"    
 }
 ```
-or 
+
+If your container runtime is Windows Containers set the `os` property to `Windows`:
+
 ```JSON
 "tags": {
     "__type__": "iiotedge",
-    "os": "Linux"
+    "os": "Windows"
 }
 ```
 

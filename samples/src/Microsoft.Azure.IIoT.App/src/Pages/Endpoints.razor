@@ -1,7 +1,7 @@
 ﻿@page "/endpoints"
 @page "/endpoints/{page}"
-@page "/endpoints/{discovererId}/{applicationId}"
-@page "/endpoints/{discovererId}/{applicationId}/{page}"
+@page "/endpoints/{discovererId}/{applicationId}/{supervisorId}"
+@page "/endpoints/{discovererId}/{applicationId}/{supervisorId}/{page}"
 
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Services
@@ -56,7 +56,8 @@
                     <td>
                         @{ discover = DiscovererId == null ? RegistryHelper.PathAll : DiscovererId; }
                         @{ string application = ApplicationId == null ? RegistryHelper.PathAll : ApplicationId; }
-                        <a href='browser/@discover/@application/@endpoint.Registration.Id'>
+                        @{ string supervisor = SupervisorId == null ? RegistryHelper.PathAll : SupervisorId; }
+                        <a href='browser/@discover/@application/@supervisor/@endpoint.Registration.Id'>
                             @endpoint.Registration.Endpoint.Url
                         </a>
                     </td>
@@ -107,6 +108,9 @@
     [Parameter]
     public string ApplicationId { get; set; } = string.Empty;
 
+    [Parameter]
+    public string SupervisorId { get; set; } = string.Empty;
+
     public const int PageLength = 10;
     public string Status { get; set; }
     private PagedResult<EndpointInfoApiModel> _endpointList =
@@ -141,7 +145,7 @@
     {
         if (firstRender)
         {
-            _endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId);
+            _endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId, SupervisorId);
             Page = "1";
             _pagedendpointList = _endpointList.GetPaged(Int32.Parse(Page), PageLength, _endpointList.Error);
             _spinner = "";
@@ -180,7 +184,7 @@
             }
         }
 
-        _endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId);
+        _endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId, SupervisorId);
         _pagedendpointList = _endpointList.GetPaged(Int32.Parse(Page), PageLength, _endpointList.Error);
         await Task.CompletedTask;
         this.StateHasChanged();

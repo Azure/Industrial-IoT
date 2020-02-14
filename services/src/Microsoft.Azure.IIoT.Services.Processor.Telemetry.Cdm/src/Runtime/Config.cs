@@ -20,12 +20,17 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.Runtime {
     public class Config : DiagnosticsConfig, IEventProcessorConfig,
         IEventHubConsumerConfig, ICdmClientConfig {
 
+        private const string kEventHubConsumerGroupTelemetryCdmKey =
+            "EventHubConsumerGroupTelemetryCdm";
+
         /// <inheritdoc/>
         public string EventHubConnString => _eh.EventHubConnString;
         /// <inheritdoc/>
         public string EventHubPath => _eh.EventHubPath;
-        /// <inheritdoc/>
-        public string ConsumerGroup => "telemetrycdm";
+        /// <summary> Event hub consumer group telemetry cdm</summary>
+        public string ConsumerGroup => GetStringOrDefault(kEventHubConsumerGroupTelemetryCdmKey,
+            GetStringOrDefault(PcsVariable.PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_CDM,
+                "telemetrycdm"));
         /// <inheritdoc/>
         public bool UseWebsockets => _eh.UseWebsockets;
         /// <inheritdoc/>
@@ -40,7 +45,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.Runtime {
         /// <inheritdoc/>
         public string ADLSg2HostName => _cdm.ADLSg2HostName;
         /// <inheritdoc/>
-        public string ADLSg2BlobName => _cdm.ADLSg2BlobName;
+        public string ADLSg2ContainerName => _cdm.ADLSg2ContainerName;
         /// <inheritdoc/>
         public string RootFolder => _cdm.RootFolder;
         /// <inheritdoc/>

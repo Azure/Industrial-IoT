@@ -15,33 +15,38 @@ The ARM deployment templates included in the repository deploy the platform and 
 
 The platform and simulation can also be deployed using the deploy script.
 
-1. Make sure you have PowerShell and [Az PowerShell](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps) extensions installed.  If not, first install PowerShell, then open PowerShell as Administrator and run
-
-   ```pwsh
-   Install-Module -Name Az -AllowClobber
-   Install-Module -Name AzureAD -AllowClobber
-   ```
-
-2. If you have not done so yet, clone this GitHub repository.  Open a command prompt or terminal and run:
+1. If you have not done so yet, clone this GitHub repository.  Open a command prompt or terminal and run:
 
    ```bash
    git clone https://github.com/Azure/Industrial-IoT
    cd Industrial-IoT
    ```
 
+2. Install all required dependencies:
+
+   - On **Windows** install [Az PowerShell](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps). Open Powershell as Administrator and run:
+
+     ```pwsh
+     Install-Module -Name Az -AllowClobber
+     Install-Module -Name AzureAD -AllowClobber
+     ```
+
+   - On **Ubuntu** Linux continue to step 3 and choose (y) to install required dependencies.  You must have Adminstrator rights.  
+     > For how to install required depdendencies on other Linux distributions see [here](#Deploy-from-Linux-other-than-Ubuntu).
+
 3. Open a command prompt or terminal in the repository root and depending on your operating system run:
 
-   (On Windows) 
-   
-   ```cmd
-   deploy
-   ```
+   - On Windows:
 
-   (On Linux)
-   
-   ```bash
-   bash -c deploy.sh
-   ```
+     ```cmd
+     deploy
+     ```
+
+   - On Linux:
+
+     ```bash
+     ./deploy.sh
+     ```
 
    The supported parameters can be found [below](#deployment-script-options).
 
@@ -107,6 +112,30 @@ cd deploy/scripts
 ./aad-register.ps1 -Name <application-name> -Output aad.json
 ./deploy.ps1 -aadConfig aad.json ...
 ```
+
+### Deploy from Linux other than Ubuntu
+
+To install all necessary requirements on other Linux distributions follow these steps:
+
+1. First [install PowerShell](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-core-on-linux?view=powershell-7).  Follow the instructions for your Linux distribution.
+
+2. Open powershell using `sudo pwsh`.
+
+3. Install the required Azure Az Powershell module:
+
+   ```pwsh
+   Set-psrepository -Name PSGallery -InstallationPolicy Trusted
+   Install-Module -Repository PSGallery -Name Az -AllowClobber
+   ```
+
+4. To also have the installation script create AAD Application registrations (aad-register.ps1) install the preview Azure AD module:
+
+   ```pwsh
+   Register-PackageSource -ForceBootstrap -Force -Trusted -ProviderName 'PowerShellGet' -Name 'Posh Test Gallery' -Location https://www.poshtestgallery.com/api/v2/
+   Install-Module -Repository 'Posh Test Gallery' -Name AzureAD.Standard.Preview -RequiredVersion 0.0.0.10 -AllowClobber
+   ```
+
+5. `exit`
 
 ## Deployment script options
 

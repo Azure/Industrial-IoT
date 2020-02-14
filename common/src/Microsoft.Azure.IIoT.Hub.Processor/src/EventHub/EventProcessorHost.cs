@@ -67,6 +67,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
                 if (string.IsNullOrEmpty(consumerGroup)) {
                     consumerGroup = "$default";
                 }
+                _logger.Information($"Using Consumer Group: \"{consumerGroup}\"");
                 if (_lease != null && _checkpoint != null) {
                     _host = new EventHubs.Processor.EventProcessorHost(
                         $"host-{Guid.NewGuid()}", _hub.EventHubPath, consumerGroup,

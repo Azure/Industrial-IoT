@@ -5,7 +5,7 @@
  .PARAMETER Path
     The folder containing the container.json file.
 
- .PARAMETER Configuration
+ .PARAMETER Debug
     Whether to build Release or Debug - default to Release.  
     Debug also includes debugger into images (where applicable).
 #>
@@ -35,7 +35,7 @@ $definitions = @()
 
 # Create build job definitions from dotnet project in current folder
 $projFile = Get-ChildItem $Path -Filter *.csproj | Select-Object -First 1
-if ($projFile -ne $null) {
+if ($projFile) {
 
     $output = (Join-Path $Path (Join-Path "bin" (Join-Path "publish" $configuration)))
     $runtimes = @("linux-arm", "linux-x64", "win-x64", "win-arm", "")
@@ -61,7 +61,7 @@ if ($projFile -ne $null) {
         $argumentList += $projFile.FullName
 
         Write-Host "Publish $($projFile.FullName) with $($runtimeId) runtime..."
-        & dotnet $argumentList 2>&1 | %{ Write-Host "$_" }
+        & dotnet $argumentList 2>&1 | ForEach-Object { Write-Host "$_" }
         if ($LastExitCode -ne 0) {
             throw "Error: 'dotnet $($argumentList)' failed with $($LastExitCode)."
         }
@@ -100,31 +100,38 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
             debugger = $installLinuxDebugger
             entryPoint = "[`"./$($assemblyName)`"]"
         }
-        "windows/amd64:10.0.17134.885" = @{
+        "windows/amd64:10.0.17134.1246" = @{
             runtimeId = "win-x64"
-            image = "mcr.microsoft.com/windows/nanoserver:1803"
+            image = "mcr.microsoft.com/windows/nanoserver:10.0.17134.1246-amd64"
             platformTag = "nanoserver-amd64-1803"
             debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
         }
-        "windows/amd64:10.0.17763.615" = @{
+        "windows/amd64:10.0.17763.973" = @{
             runtimeId = "win-x64"
-            image = "mcr.microsoft.com/windows/nanoserver:1809"
+            image = "mcr.microsoft.com/windows/nanoserver:10.0.17763.973-amd64"
             platformTag = "nanoserver-amd64-1809"
             debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
         }
-        "windows/arm" = @{
+        "windows/arm:10.0.17763.973" = @{
             runtimeId = "win-arm"
-            image = "mcr.microsoft.com/windows/nanoserver:1809-arm32v7"
+            image = "mcr.microsoft.com/windows/nanoserver:10.0.17763.973-arm32v7"
             platformTag = "nanoserver-arm32v7-1809"
             debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
         }
-        "windows/amd64:10.0.18362.239" = @{
+        "windows/amd64:10.0.18362.592" = @{
             runtimeId = "win-x64"
-            image = "mcr.microsoft.com/windows/nanoserver:1903"
+            image = "mcr.microsoft.com/windows/nanoserver:10.0.18362.592-amd64"
             platformTag = "nanoserver-amd64-1903"
+            debugger = $null
+            entryPoint = "[`"$($assemblyName).exe`"]"
+        }
+        "windows/amd64:10.0.18363.592" = @{
+            runtimeId = "win-x64"
+            image = "mcr.microsoft.com/windows/nanoserver:10.0.18363.592-amd64"
+            platformTag = "nanoserver-amd64-1909"
             debugger = $null
             entryPoint = "[`"$($assemblyName).exe`"]"
         }
