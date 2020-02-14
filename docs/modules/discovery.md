@@ -12,13 +12,13 @@ The discovery interface allows for **recurring** as well as **one-time** scans.
 
 ### Configuration
 
-The Discovery process can involve active network and port scanning.  Scanning can be finely configured, e.g. specifying
+The Discovery process can involve active network and port scanning.  Scanning can be finely configured, e.g. specifying:
 
 * address ranges (needed when hosted in a docker context where the host interfaces are not visible)
 * port ranges (to narrow or widen scanning to a list of known ports)
 * number of workers and time between scans (Advanced)
 
-If no active scanning is desired the configuration can also specify
+If no active scanning is desired the configuration can also specify:
 
 * a list of discovery URIs (which if provided disable the use of any address and port ranges in the configuration)
 
@@ -47,5 +47,5 @@ The discovery progress as well as current request queue size is reported via the
 
 * [Learn how to deploy Discovery Module](../deploy/howto-install-iot-edge.md)
 * [Learn about the Registry Microservice](../services/registry.md)
-* [Learn about Registry Onboarding service](../services/onboarding.md)
+* [Learn about Onboarding Microservice](../services/onboarding.md)
 
