@@ -6,7 +6,7 @@ The Discovery services module runs inside IoT Edge.
 
 ## Server Discovery
 
-The discovery module, represented by the discoverer identity, provides discovery services on the edge which include OPC UA server discovery.  If discovery is configured and enabled, the module will send the results of a scan probe via the IoT Edge and IoT Hub telemetry path to the Onboarding service.  The service processes the results and updates all related Identities in the [Registry](../services/registry.md)
+The discovery module, represented by the discoverer identity, provides discovery services on the edge which include OPC UA server discovery.  If discovery is configured and enabled, the module will send the results of a scan probe via the IoT Edge and IoT Hub telemetry path to the Onboarding service.  The service processes the results and updates all related Identities in the [Registry](../services/registry.md).
 
 The discovery interface allows for **recurring** as well as **one-time** scans.  
 
