@@ -9,7 +9,7 @@ The ARM deployment templates included in the repository deploy the platform and 
 - A PLC server simulation
 - All required Azure infrastructure
 - The Industrial IoT Platform
-- The Industrial IoT Engineering tool.
+- The Industrial IoT Engineering tool
 
 ## Running the script
 
