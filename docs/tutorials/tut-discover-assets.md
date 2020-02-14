@@ -26,7 +26,7 @@ To discover OPC UA server assets in the connected networks (factories, etc.) you
 
    ![Discovery](../media/eng-tool-discovery.png)
 
-2. You can turn on and off network scanning, by clicking the checkbox next to the Scan Status (*On/Off*).  Choose the discoverer whose identifier starts with "linux" and turn scanning on.
+2. You can turn on and off network scanning, by clicking the checkbox next to the Scan Status (*On/Off*).  Choose the discoverer whose identifier starts with "win" and turn scanning on.
 
    ![Scan on](../media/eng-tool-discovery-on.png)
 
