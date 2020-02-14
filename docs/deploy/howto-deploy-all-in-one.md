@@ -184,7 +184,7 @@ To support these scenarios, the `deploy.ps1` takes the following parameters:
 
 ## Next steps
 
-Now that you have successfully deployed the Microservices to an existing project, here are the suggested next steps:
+Now that you have successfully deployed the Azure Industrial IoT Platform and Simulation, here are the suggested next steps:
 
 - [Deploy Industrial IoT modules to IoT Edge](howto-install-iot-edge.md)
 - [Learn more about OPC Twin](services/readme.md)
