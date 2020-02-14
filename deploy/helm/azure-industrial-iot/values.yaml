@@ -761,12 +761,24 @@ deployment:
     #   history: /history/(.*)
     #   gateway: /ua/(.*)
     #   vault: /vault/(.*)
+    #   onboarding: /onboarding/(.*)
+    #   publisher: /publisher/(.*)
+    #   publisherJobs: /jobs/(.*)
+    #   configuration: /configuration/(.*)
+    #   edgeJobs: /edge/jobs/(.*)
+    #   edgeManager: /edge/manage/(.*)
     paths:
       registry: null
       twin: null
       history: null
       gateway: null
       vault: null
+      onboarding: null
+      publisher: null
+      publisherJobs: null
+      configuration: null
+      edgeJobs: null
+      edgeManager: null
 
     # Ingress TLS configuration. Secrets must be manually created in the namespace.
     # The value should be alligned with hostName property.
