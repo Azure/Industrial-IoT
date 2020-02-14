@@ -4,7 +4,7 @@
 
 ## Prerequisites
 
-Follow the instructions to [discover and browse assets using the engineering tool](tut-discover-assets.md).
+Follow the instructions on how to [discover and browse assets using the engineering tool](tut-discover-assets.md).
 
 ## List publishers
 
