@@ -42,4 +42,4 @@ To use the Azure Industrial IoT Gateway Installer to setup IoT Edge and the Indu
 ## Next steps
 Get started with discovering your assets by deploying the 
 > [!div class="nextstepaction"]
-> [Azure Industrial IoT Platform using the deployment script](tut-deploy-iiot-platform-script.md)
+> [Azure Industrial IoT Platform using the deployment script](../deploy/howto-deploy-all-in-one.md)
