@@ -21,8 +21,8 @@
   * [User Interface](#user-interface)
 * [Resources](#resources)
 
-`Microsoft.Azure.IIoT.Deployment` is a command line application for deploying Industrial IoT platform.
-It takes care of deploying Azure infrastructure resources and microservices of Industrial IoT platform.
+`Microsoft.Azure.IIoT.Deployment` is a command line application for deploying Industrial IoT solution.
+It takes care of deploying Azure infrastructure resources and microservices of Industrial IoT solution.
 
 The main difference compared to the [script based deployment](howto-deploy-all-in-one.md) option is that
 from an infrastructure perspective `Microsoft.Azure.IIoT.Deployment` deploys microservices to an Azure
@@ -354,7 +354,7 @@ To grant admin consent you have to be **admin** in the Azure account. Here are t
 ### Resource Cleanup
 
 `Microsoft.Azure.IIoT.Deployment` will prompt for resource cleanup if it encounters an error during
-deployment of Industrial IoT platform. Cleanup works by deleting registered Applications and the
+deployment of Industrial IoT solution. Cleanup works by deleting registered Applications and the
 Resource Group that has been selected for deployment. This means, that one should be cautious with
 cleanup if an existing Resource Group has been selected for the deployment, since the cleanup will
 trigger deletion of **all** resources within the Resource Group, even the ones that have been present
@@ -514,7 +514,7 @@ Command line argument key-value pairs can be specified with:
 
 ### AKS
 
-All of microservices of Industrial IoT solution are deployed to an AKS Kubernetes cluster.
+All cloud microservices of Industrial IoT solution are deployed to an AKS Kubernetes cluster.
 
 #### Resource Definitions
 
@@ -522,7 +522,7 @@ The deployment creates `industrial-iot` namespace where all microservices are ru
 details for all Azure resources created by `Microsoft.Azure.IIoT.Deployment`, we created
 `industrial-iot-env` secret, which is then consumed by deployments.
 
-To see YAML files of all Kubernetes resources that are created by the application check
+To see YAML files of all Kubernetes resources that are created by the application, please check
 [deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/](../../deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/)
 directory.
 
@@ -543,8 +543,8 @@ Alternatively, you can run the following commands:
 
     More details about the command and its optional parameters can be found [here](https://docs.microsoft.com/cli/azure/aks?view=azure-cli-latest#az-aks-install-cli).
 
-2. Get access credentials for a managed Kubernetes cluster. You would need name of the resource group
-    where AKS resource is and the name of AKS resource itself:
+2. Get access credentials for a managed Kubernetes cluster. You would need the name of the resource group
+    containing AKS resource and the name of the AKS resource:
 
     ```bash
     az aks get-credentials --resource-group myResourceGroup --name myAKSCluster
@@ -560,8 +560,8 @@ Alternatively, you can run the following commands:
     kubectl create clusterrolebinding kubernetes-dashboard --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard
     ```
 
-4. Show the dashboard for a Kubernetes cluster in a web browser. You would need name of the resource group
-    where AKS resource is and the name of AKS resource itself:
+4. Open the dashboard for a Kubernetes cluster in a web browser. You would need the name of the resource
+    group containing AKS resource and the name of the AKS resource:
 
     ```bash
     az aks browse --resource-group myResourceGroup --name myAKSCluster
