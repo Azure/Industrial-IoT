@@ -133,7 +133,7 @@ Function Select-Context() {
                     Write-Host "Invalid option '$($option)' provided."
                 }
                 Write-Host "Choose from the list using an index between 1 and $($subscriptions.Count)."
-        }
+            }
             $subscriptionId = $subscriptions[$option - 1].Id
         }
         $subscriptionDetails = Get-AzSubscription -SubscriptionId $subscriptionId
@@ -153,6 +153,8 @@ Function Select-Context() {
     if (!(Test-Path $contextFile) -and $script:interactive) {
         $reply = Read-Host -Prompt "Save credentials in .user file [y/n]"
         if ($reply -match "[yY]") {
+            Write-Host ".user file will be used as persisted context."
+            Write-Host "Enure you do not share it and do delete it when no longer needed."
             $writeProfile = $true
         }
     }
