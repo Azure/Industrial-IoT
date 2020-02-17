@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration {
     using Autofac.Extensions.DependencyInjection;
     using System;
     using Newtonsoft.Json;
+    using Prometheus;
 
     /// <summary>
     /// Webservice startup
@@ -124,6 +125,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration {
             }
 
             app.UseSwagger();
+            app.UseMetricServer();
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();
                 endpoints.MapHealthChecks("/healthz");
