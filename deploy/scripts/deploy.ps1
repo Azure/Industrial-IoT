@@ -120,14 +120,20 @@ Function Select-Context() {
             if (!$script:interactive) {
                 throw "Provide a subscription to use using -subscriptionId or -subscriptionName"
             }
-            Write-Host "Please choose subscription:"
+            Write-Host "Please choose a subscription:"
             1..$subscriptions.Count | ForEach-Object { Write-Host "[$($_)] $($subscriptions[$_-1].Name)" }
             while ($true) {
-                [int]$option = Read-Host ">"
-                if ($option -ge 1 -and $option -le $subscriptions.Count) {
-                    break
+                $option = Read-Host ">"
+                try {
+                    if ([int]$option -ge 1 -and [int]$option -le $subscriptions.Count) {
+                        break
+                    }
                 }
-            }
+                catch {
+                    Write-Host "Invalid option '$($option)' provided."
+                }
+                Write-Host "Choose from the list using an index between 1 and $($subscriptions.Count)."
+        }
             $subscriptionId = $subscriptions[$option - 1].Id
         }
         $subscriptionDetails = Get-AzSubscription -SubscriptionId $subscriptionId
@@ -291,10 +297,16 @@ Function Select-ResourceGroupLocation() {
     Write-Host "Please choose a location for your deployment:"
     1..$locations.Count | ForEach-Object { Write-Host "[$($_)] $($locations[$_-1].DisplayName)" }
     while ($true) {
-        [int]$option = Read-Host ">"
-        if ($option -ge 1 -and $option -le $locations.Count) {
-            break
+        $option = Read-Host -Prompt ">"
+        try {
+            if ($option -ge 1 -and $option -le $locations.Count) {
+                break
+            }
         }
+        catch {
+            Write-Host "Invalid option '$($option)' provided."
+        }
+        Write-Host "Choose from the list using an index between 1 and $($locations.Count)."
     }
     $script:resourceGroupLocation = $locations[$option - 1].Location
 }
@@ -310,7 +322,8 @@ Function Select-ResourceGroup() {
             throw "Invalid resource group name specified which is mandatory for non-interactive script use."
         }
         Write-Host
-        $script:resourceGroupName = Read-Host "Please provide a name for the resource group"
+        Write-Host "Please provide a name for the resource group (Use alphanumeric characters and '-' or '_')"
+        $script:resourceGroupName = Read-Host -Prompt ">"
     }
 
     $resourceGroup = Get-AzResourceGroup -Name $script:resourceGroupName `
@@ -512,7 +525,7 @@ Function New-Deployment() {
     $templateParameters.Add("repoUrl", $script:repo)
 
     if ($script:type -eq "local") {
-        if ([string]::IsNullOrEmpty($script:applicationName)`
+        if ([string]::IsNullOrEmpty($script:applicationName) `
                 -or ($script:applicationName -notmatch "^[a-z0-9-]*$")) {
             $script:applicationName = $script:resourceGroupName
         }
@@ -523,8 +536,12 @@ Function New-Deployment() {
             if (!$script:interactive) {
                 throw "Invalid application name specified which is mandatory for non-interactive script use."
             }
-            Write-Host "Please specify a name for your application (use alphanumeric characters)"
-            $script:applicationName = Read-Host "Hit enter to use $($script:resourceGroupName)"
+            Write-Host
+            Write-Host "Please specify a name for your application (use alphanumeric characters and '-')."
+            if ($script:resourceGroupName -match "^[a-z0-9-]*$") {
+                Write-Host "Hit enter to use $($script:resourceGroupName)."
+            }
+            $script:applicationName = Read-Host -Prompt ">"
             if ([string]::IsNullOrEmpty($script:applicationName)) {
                 $script:applicationName = $script:resourceGroupName
             }
@@ -725,6 +742,11 @@ Function New-Deployment() {
             # Create environment file
             #
             Write-EnvironmentVariables -deployment $deployment 
+        
+            if (![string]::IsNullOrEmpty($website)) {
+                # Try open application
+                Start-Process -Path $website -ErrorAction SilentlyContinue | Out-Null
+            }
             return
         }
         catch {
@@ -793,7 +815,8 @@ Function Test-All-Deployment-Options() {
             if (!$existing) {
                 try {
                     Write-Host("Deploying to $($script:resourceGroupName)...")
-                    New-AzResourceGroup -Name $script:resourceGroupName -Location $script:resourceGroupLocation | Out-Null
+                    New-AzResourceGroup -Name $script:resourceGroupName `
+                        -Location $script:resourceGroupLocation | Out-Null
                     $script:applicationName = $script:resourceGroupName.Replace("_", "")
                     New-Deployment -context $context | Out-Null
 
