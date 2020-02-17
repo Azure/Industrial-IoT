@@ -21,8 +21,8 @@
   * [User Interface](#user-interface)
 * [Resources](#resources)
 
-`Microsoft.Azure.IIoT.Deployment` is a command line application for deploying Industrial IoT platform.
-It takes care of deploying Azure infrastructure resources and microservices of Industrial IoT platform.
+`Microsoft.Azure.IIoT.Deployment` is a command line application for deploying Industrial IoT solution.
+It takes care of deploying Azure infrastructure resources and microservices of Industrial IoT solution.
 
 The main difference compared to the [script based deployment](howto-deploy-all-in-one.md) option is that
 from an infrastructure perspective `Microsoft.Azure.IIoT.Deployment` deploys microservices to an Azure
@@ -354,7 +354,7 @@ To grant admin consent you have to be **admin** in the Azure account. Here are t
 ### Resource Cleanup
 
 `Microsoft.Azure.IIoT.Deployment` will prompt for resource cleanup if it encounters an error during
-deployment of Industrial IoT platform. Cleanup works by deleting registered Applications and the
+deployment of Industrial IoT solution. Cleanup works by deleting registered Applications and the
 Resource Group that has been selected for deployment. This means, that one should be cautious with
 cleanup if an existing Resource Group has been selected for the deployment, since the cleanup will
 trigger deletion of **all** resources within the Resource Group, even the ones that have been present
@@ -467,7 +467,7 @@ Command line argument key-value pairs can be specified with:
   
     Properties correspond to that of application registration and Service Principal manifests. Definition
     of application properties can be found
-    [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/reference-app-manifest).
+    [here](https://docs.microsoft.com/azure/active-directory/develop/reference-app-manifest).
   
     Application objects should contain the following properties:
 
@@ -481,7 +481,7 @@ Command line argument key-value pairs can be specified with:
       "AppId": "<guid>"
     }
     ```
-  
+
     Service Principal objects should contain the following properties:
 
     ```json
@@ -490,7 +490,7 @@ Command line argument key-value pairs can be specified with:
       "DisplayName": "<service principal name string>",
     }
     ```
-  
+
     ApplicationRegistration object should have the keys as below. Note that:
     * Values of `ServiceApplication`, `ClientApplication` and `AksApplication` keys should be Application
       objects as described above.
@@ -514,34 +514,80 @@ Command line argument key-value pairs can be specified with:
 
 ### AKS
 
-All of microservices of Industrial IoT solution are deployed to an AKS Kubernetes cluster. The deployment
-creates `industrial-iot` namespace where all microservices are running. To provide connection details for
-all Azure resources created by `Microsoft.Azure.IIoT.Deployment`, we created `industrial-iot-env` secret,
-which is then consumed by deployments.
+All cloud microservices of Industrial IoT solution are deployed to an AKS Kubernetes cluster.
 
-To see YAML files of all Kubernetes resources that are created by the application check
-[deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/](../deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/)
+#### Resource Definitions
+
+The deployment creates `industrial-iot` namespace where all microservices are running. To provide connection
+details for all Azure resources created by `Microsoft.Azure.IIoT.Deployment`, we created
+`industrial-iot-env` secret, which is then consumed by deployments.
+
+To see YAML files of all Kubernetes resources that are created by the application, please check
+[deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/](../../deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/)
 directory.
 
-To see state of microservices you can check Kubernetes Dashboard. Follow this tutorial on how to access it:
+#### Kubernetes Dashboard
 
-* [Access the Kubernetes web dashboard in Azure Kubernetes Service (AKS)](https://docs.microsoft.com/azure/aks/kubernetes-dashboard)
+To see state of microservices you can check Kubernetes dashboard.
+
+You can follow this tutorial to do that: [Access the Kubernetes web dashboard in Azure Kubernetes Service (AKS)](https://docs.microsoft.com/azure/aks/kubernetes-dashboard).
+
+Alternatively, you can run the following commands:
+
+1. Make sure you have `kubectl` installed. If it is not already installed, run the following command to
+    download and install `kubectl`:
+
+    ```bash
+    az aks install-cli
+    ```
+
+    More details about the command and its optional parameters can be found [here](https://docs.microsoft.com/cli/azure/aks?view=azure-cli-latest#az-aks-install-cli).
+
+2. Get access credentials for a managed Kubernetes cluster. You would need the name of the resource group
+    containing AKS resource and the name of the AKS resource:
+
+    ```bash
+    az aks get-credentials --resource-group myResourceGroup --name myAKSCluster
+    ```
+
+    More details about the command and its optional parameters can be found [here](https://docs.microsoft.com/cli/azure/aks?view=azure-cli-latest#az-aks-get-credentials).
+
+3. Create `ClusterRoleBinding` that will bind `ServiceAccount` of Kubernetes dashboard to `cluster-admin`
+    role. By default, the Kubernetes dashboard is deployed with minimal read access and displays RBAC access
+    errors.
+
+    ```bash
+    kubectl create clusterrolebinding kubernetes-dashboard --clusterrole=cluster-admin --serviceaccount=kube-system:kubernetes-dashboard
+    ```
+
+4. Open the dashboard for a Kubernetes cluster in a web browser. You would need the name of the resource
+    group containing AKS resource and the name of the AKS resource:
+
+    ```bash
+    az aks browse --resource-group myResourceGroup --name myAKSCluster
+    ```
+
+    More details about the command and its optional parameters can be found [here](https://docs.microsoft.com/cli/azure/aks?view=azure-cli-latest#az-aks-browse).
+
+    This will open a Kubernetes dashboard in a web browser.
+
+#### APIs of Microservices
 
 You should also be able to access APIs of microservices through URL of App Service. The URL is available
-in overview of App Service. For example, you can access OPC Registry Service by appending `/registry/` to the URL.
-It should look something like the link bellow, where `kktest00100` is the name of App Service.
+in overview of App Service. For example, you can access OPC Registry Service by appending `/registry/` to
+the URL. It should look something like the link bellow, where `kktest00100` is the name of App Service.
 
 * `https://kktest00100.azurewebsites.net/registry/`
 
 The following microservice endpoints are exposed:
 
-| URL Suffix  | Service Name                                |
-|-------------|---------------------------------------------|
-| `registry/` | [OPC Registry](services/registry.md)        |
-| `twin/`     | [OPC Twin](services/twin.md)                |
-| `history/`  | [OPC Historian Access](services/history.md) |
-| `ua/`       |                                             |
-| `vault/`    | [OPC Vault](services/vault.md)              |
+| URL Suffix  | Service Name                                   |
+|-------------|------------------------------------------------|
+| `registry/` | [OPC Registry](../services/registry.md)        |
+| `twin/`     | [OPC Twin](../services/twin.md)                |
+| `history/`  | [OPC Historian Access](../services/history.md) |
+| `ua/`       | [OPC Gateway](../services/gateway.md)          |
+| `vault/`    | [OPC Vault](../services/vault.md)              |
 
 ## Missing And Planned Features
 
