@@ -1052,6 +1052,10 @@
                             {
                                 "key": "PCS_KEYVAULT_URL",
                                 "value": "[reference(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))).vaultUri]"
+                            },
+                            {
+                                "key": "PCS_TSI_URL",
+                                "value": "[reference(variables('tsiEnvironmentResourceId')).dataAccessFQDN]"
                             }
                         ]
                     }

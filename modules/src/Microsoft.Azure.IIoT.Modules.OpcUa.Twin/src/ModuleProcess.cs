@@ -87,7 +87,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                     var logger = hostScope.Resolve<ILogger>();
                     try {
                         // Start module
-                        await module.StartAsync(IdentityType.Supervisor, SiteId, "OpcTwin", this);
+                        var product = "OpcTwin_" +
+                            GetType().Assembly.GetReleaseVersion().ToString();
+                        await module.StartAsync(IdentityType.Supervisor, SiteId,
+                            product, this);
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);
                         if (_exit.Task.IsCompleted) {

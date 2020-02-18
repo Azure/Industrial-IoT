@@ -230,18 +230,36 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             // different site reported).
             //
             var existing = await _database.ListAllAsync(siteId, discovererId);
-            var found = events.Select(ev => ev.Application);
+
+            var found = events.Select(ev => {
+                //
+                // Ensure we set the site id and discoverer id in the found applications
+                // to a consistent value.  This works around where the reported events
+                // do not contain what we were asked to process with.
+                //
+                ev.Application.SiteId = siteId;
+                ev.Application.DiscovererId = discovererId;
+                return ev.Application;
+            });
 
             // Create endpoints lookup table per found application id
             var endpoints = events.GroupBy(k => k.Application.ApplicationId).ToDictionary(
                 group => group.Key,
                 group => group
-                    .Select(ev =>
-                        new EndpointInfoModel {
+                    .Select(ev => {
+                        //
+                        // Ensure the site id and discoverer id in the found endpoints
+                        // also set to a consistent value, same as applications earlier.
+                        //
+                        ev.Registration.SiteId = siteId;
+                        ev.Registration.DiscovererId = discovererId;
+                        return new EndpointInfoModel {
                             ApplicationId = group.Key,
                             Registration = ev.Registration
-                        })
+                        };
+                    })
                     .ToList());
+
             //
             // Merge found with existing applications. For disabled applications this will
             // take ownership regardless of discoverer, unfound applications are only disabled
@@ -334,7 +352,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 }
             }
 
-            // Update applications and ...
+            // Update applications and endpoints ...
             foreach (var update in unchange) {
                 try {
                     var wasDisabled = false;
@@ -343,8 +361,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     // Disable if not already disabled
                     var app = await _database.UpdateAsync(update.ApplicationId,
                         (application, disabled) => {
+                            //
+                            // Check whether another discoverer owns this application (discoverer
+                            // id are not the same) and it is not disabled before updating it it.
+                            //
                             if (update.DiscovererId != discovererId && !(disabled ?? false)) {
-                                // TODO: Decide whether we merge endpoints...
+                                // TODO: Decide whether we merge newly found endpoints...
                                 unchanged++;
                                 return (null, null);
                             }
@@ -366,7 +388,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     }
 
                     if (wasUpdated) {
+                        // If this is our discoverer's application we update all endpoints also.
                         endpoints.TryGetValue(app.ApplicationId, out var epFound);
+
                         // TODO: Handle case where we take ownership of all endpoints
                         await _bulk.ProcessDiscoveryEventsAsync(epFound, result, discovererId,
                             supervisorId, app.ApplicationId, false);
