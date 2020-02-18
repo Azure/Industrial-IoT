@@ -83,8 +83,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     var workerSupervisor = hostScope.Resolve<IWorkerSupervisor>();
                     var logger = hostScope.Resolve<ILogger>();
                     try {
+                        var product = "Publisher_" +
+                            GetType().Assembly.GetReleaseVersion().ToString();
                         // Start module
-                        await module.StartAsync(IdentityType.Publisher, SiteId, "Publisher", this);
+                        await module.StartAsync(IdentityType.Publisher, SiteId,
+                            product, this);
                         await workerSupervisor.StartAsync();
                         OnRunning?.Invoke(this, true);
                         await Task.WhenAny(_reset.Task, _exit.Task);

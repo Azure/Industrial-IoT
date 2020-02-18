@@ -2,7 +2,7 @@
 
 [Home](../readme.md)
 
-The platform is made up of several cloud components that divide into Microservices providing REST API and Agent services that can provide processing and daemon like functionality.  Check out the [architecture](../architecture.md) for how these components relate.
+The platform is made up of several cloud components that divide into Microservices providing REST API and Agent services that can provide processing and daemon like functionality.  Check out the [architecture](../architecture-details.md) for how these components relate.
 
 ## Microservices
 
