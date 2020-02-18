@@ -239,19 +239,7 @@ $definitions | ForEach-Object {
         $architecture = ("architecture: {0}" -f $osArchArr[1])
         $variant = ""
         if ($osArchArr.Count -gt 2) {
-            # Backcompat for when release version was used as windows variant
-            $windowsVariantToOsVersionsTable = @{
-                "1803" = "10.0.17134.885"
-                "1809" = "10.0.17763.615"
-                "1903" = "10.0.18362.239"
-            }
-            if ($windowsVariantToOsVersionsTable.ContainsKey($osArchArr[2])) {
-                $osVersion = $windowsVariantToOsVersionsTable.Item($osArchArr[2])
-                $osVersion = ("osversion: {0}" -f $osVersion)
-            }
-            else {
-                $variant = ("variant: {0}" -f $osArchArr[2])
-            }
+            $variant = ("variant: {0}" -f $osArchArr[2])
         }
     }
 

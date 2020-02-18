@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
     using System.Linq;
     using System.Diagnostics;
     using System.Threading.Tasks;
-    using Microsoft.AspNetCore.Mvc.RazorPages;
 
     public class Registry {
 
@@ -29,7 +28,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="discovererId"></param>
         /// <returns>EndpointInfoApiModel</returns>
         public async Task<PagedResult<EndpointInfoApiModel>> GetEndpointListAsync(
-            string discovererId, string applicationId) {
+            string discovererId, string applicationId, string supervisorId) {
 
             var pageResult = new PagedResult<EndpointInfoApiModel>();
 
@@ -37,6 +36,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var model = new EndpointRegistrationQueryApiModel();
                 model.DiscovererId = discovererId == PathAll ? null : discovererId;
                 model.ApplicationId = applicationId == PathAll ? null : applicationId;
+                model.SupervisorId = supervisorId == PathAll ? null : supervisorId;
 
                 var endpoints = await _registryService.QueryAllEndpointsAsync(model);
                 foreach (var endpoint in endpoints) {
@@ -290,6 +290,73 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 return errorMessageTrace;
             }
             return null;
+        }
+
+        /// <summary>
+        /// GetSupervisorListAsync
+        /// </summary>
+        /// <returns>SupervisorApiModel</returns>
+        public async Task<PagedResult<SupervisorApiModel>> GetSupervisorListAsync() {
+
+            var pageResult = new PagedResult<SupervisorApiModel>();
+
+            try {
+                var model = new SupervisorQueryApiModel();
+
+                var supervisors = await _registryService.QueryAllSupervisorsAsync(model);
+                foreach (var supervisor in supervisors) {
+                    pageResult.Results.Add(supervisor);
+                }
+            }
+            catch (Exception e) {
+                Trace.TraceWarning("Can not get supervisor list");
+                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
+                Trace.TraceWarning(errorMessage);
+                pageResult.Error = e.Message;
+            }
+
+            pageResult.PageSize = 10;
+            pageResult.RowCount = pageResult.Results.Count;
+            pageResult.PageCount = (int)Math.Ceiling((decimal)pageResult.RowCount / 10);
+            return pageResult;
+        }
+
+        /// <summary>
+        /// GetSupervisorStatusAsync
+        /// </summary>
+        /// <param name="supervisorId"></param>
+        /// <returns>SupervisorStatusApiModel</returns>
+        public async Task<SupervisorStatusApiModel> GetSupervisorStatusAsync(string supervisorId) {
+            var supervisorStatus = new SupervisorStatusApiModel();
+
+            try {
+                supervisorStatus = await _registryService.GetSupervisorStatusAsync(supervisorId);              
+            }
+            catch (Exception exception) {
+                var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
+                Trace.TraceError(errorMessageTrace);
+            }
+   
+            return supervisorStatus;
+        }
+
+        /// <summary>
+        /// ResetSupervisorAsync
+        /// </summary>
+        /// <param name="supervisorId"></param>
+        /// <returns>bool</returns>
+        public async Task<string> ResetSupervisorAsync(string supervisorId) {
+            var supervisorStatus = new SupervisorStatusApiModel();
+
+            try {
+                await _registryService.ResetSupervisorAsync(supervisorId);
+                return string.Empty;
+            }
+            catch (Exception exception) {
+                var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
+                Trace.TraceError(errorMessageTrace);
+                return exception.Message;
+            }
         }
 
         private readonly IRegistryServiceApi _registryService;

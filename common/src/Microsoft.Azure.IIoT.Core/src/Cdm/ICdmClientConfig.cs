@@ -12,18 +12,18 @@ namespace Microsoft.Azure.IIoT.Cdm {
     public interface ICdmClientConfig : IClientConfig {
 
         /// <summary>
-        /// ADLSg2 connection Host name
+        /// ADLSg2 connection host name
         /// #identifier#.dfs.core.windows.net
         /// </summary>
         string ADLSg2HostName { get; }
 
         /// <summary>
-        /// the blob name used by thge CDM storage - E.g. pwerbi
+        /// Blob container name used by the CDM storage
         /// </summary>
-        string ADLSg2BlobName { get; }
+        string ADLSg2ContainerName { get; }
 
         /// <summary>
-        /// the cdm storage's root folder
+        /// CDM root folder within CDM blob container
         /// </summary>
         string RootFolder { get; }
     }
