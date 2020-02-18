@@ -44,6 +44,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2.Models {
                 Certificate = Certificate,
                 SecurityMode = SecurityMode,
                 SecurityPolicy = SecurityPolicy,
+                OperationTimeout = OperationTimeout
             };
         }
 
@@ -83,5 +84,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2.Models {
         [JsonProperty(PropertyName = "certificate",
             NullValueHandling = NullValueHandling.Ignore)]
         public byte[] Certificate { get; set; }
+
+        /// <summary>
+        /// The timeout to create sessions.
+        /// </summary>
+        [JsonProperty(PropertyName = "operationtimeout",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public TimeSpan? OperationTimeout { get; set; }
     }
 }

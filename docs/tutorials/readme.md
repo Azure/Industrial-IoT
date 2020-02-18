@@ -4,7 +4,7 @@
 
 ## Getting started
 
-To start [deploy the Industrial IoT Platform](../deploy/howto-deploy-all-in-one.md), then follow these step-by-step guides and learn how to
+To start [deploy the Industrial IoT Platform](../deploy/howto-deploy-all-in-one.md), then follow these step-by-step guides and learn how to:
 
 1. [Deploy IoT Edge to discover and connect your own assets](../deploy/howto-install-iot-edge.md)
 2. [Discover and register assets using the engineering tool](tut-discover-assets.md)
@@ -21,5 +21,5 @@ To start [deploy the Industrial IoT Platform](../deploy/howto-deploy-all-in-one.
 ## Learn more
 
 - Read up on the Azure Industrial IoT platform [architecture](../architecture.md) and [flow](../architecture-flow.md).
-- Read about the [Industrial IoT cloud Microservices](../services/readme.md)
+- Read about the [Azure Industrial IoT cloud Microservices](../services/readme.md)
 - [Explore the REST API](../api/readme.md)

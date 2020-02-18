@@ -171,6 +171,29 @@ app {
     text-align:center;
 }
 
+.label {
+    font-weight: bold;
+}
+
+.body {
+    font-weight: normal;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+    padding-bottom: 5px;
+}
+.body:hover{
+    overflow: visible; 
+    white-space: normal; 
+    width: auto;
+}
+
+ellipsis-space {
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
 @media (max-width: 767.98px) {
     .main .top-row {
         display: none;
