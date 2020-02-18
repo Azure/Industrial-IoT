@@ -12,17 +12,17 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
     public class HeartbeatApiModel {
 
         /// <summary>
-        /// Worker heartbeat
+        /// Supervisor heartbeat
         /// </summary>
-        [JsonProperty(PropertyName = "worker",
+        [JsonProperty(PropertyName = "supervisorheartbeat",
             NullValueHandling = NullValueHandling.Ignore)]
-        public WorkerHeartbeatApiModel Worker { get; set; }
+        public SupervisorHeartbeatApiModel SupervisorHeartbeat { get; set; }
 
         /// <summary>
-        /// Job heartbeat
+        /// Job heartbeats
         /// </summary>
-        [JsonProperty(PropertyName = "job",
+        [JsonProperty(PropertyName = "jobheartbeats",
             NullValueHandling = NullValueHandling.Ignore)]
-        public JobHeartbeatApiModel Job { get; set; }
+        public JobHeartbeatApiModel[] JobHeartbeats { get; set; }
     }
 }

@@ -175,7 +175,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
             // TODO: Use job database service api
             builder.RegisterType<JobDatabase>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<WorkerDatabase>()
+            builder.RegisterType<WorkerSupervisorDatabase>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<DefaultJobOrchestrator>()
                 .AsImplementedInterfaces().SingleInstance();

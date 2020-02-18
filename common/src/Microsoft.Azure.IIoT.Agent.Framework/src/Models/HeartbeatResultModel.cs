@@ -4,26 +4,23 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
-    using System;
+    using System.Collections.Generic;
 
     /// <summary>
-    /// Heartbeat response
+    /// Contains the result of the heartbeat request
     /// </summary>
-    public class HeartbeatResultModel {
+    public class HeartbeatResultModel : List<HeartbeatResultEntryModel> {
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
+        public HeartbeatResultModel() {
+
+        }
 
         /// <summary>
-        /// Instructions
+        /// Default constructor with collection initializer.
         /// </summary>
-        public HeartbeatInstruction HeartbeatInstruction { get; set; }
-
-        /// <summary>
-        /// Last active
-        /// </summary>
-        public DateTime? LastActiveHeartbeat { get; set; }
-
-        /// <summary>
-        /// Job continuation in case of updates
-        /// </summary>
-        public JobProcessingInstructionModel UpdatedJob { get; set; }
+        /// <param name="entries"></param>
+        public HeartbeatResultModel(IEnumerable<HeartbeatResultEntryModel> entries) : base(entries) { }
     }
 }

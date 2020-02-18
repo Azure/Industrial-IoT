@@ -3,36 +3,32 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
-    using Newtonsoft.Json.Linq;
+namespace Microsoft.Azure.IIoT.Agent.Framework.Models
+{
+    using System;
 
     /// <summary>
-    /// Job heartbeat
+    /// Heartbeat response
     /// </summary>
-    public class JobHeartbeatModel {
+    public class HeartbeatResultEntryModel {
         /// <summary>
-        /// Job id
+        /// The id of the job
         /// </summary>
         public string JobId { get; set; }
 
         /// <summary>
-        /// Hash
+        /// Instructions
         /// </summary>
-        public string JobHash { get; set; }
+        public HeartbeatInstruction HeartbeatInstruction { get; set; }
 
         /// <summary>
-        /// Status
+        /// Last active
         /// </summary>
-        public JobStatus Status { get; set; }
+        public DateTime? LastActiveHeartbeat { get; set; }
 
         /// <summary>
-        /// Process mode
+        /// Job continuation in case of updates
         /// </summary>
-        public ProcessMode ProcessMode { get; set; }
-
-        /// <summary>
-        /// Job state
-        /// </summary>
-        public JToken State { get; set; }
+        public JobProcessingInstructionModel UpdatedJob { get; set; }
     }
 }

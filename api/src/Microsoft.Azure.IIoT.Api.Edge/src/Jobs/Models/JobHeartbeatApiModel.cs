@@ -9,10 +9,9 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
-    /// Job heartbeat
+    /// Worker heartbeat
     /// </summary>
     public class JobHeartbeatApiModel {
-
         /// <summary>
         /// Job id
         /// </summary>

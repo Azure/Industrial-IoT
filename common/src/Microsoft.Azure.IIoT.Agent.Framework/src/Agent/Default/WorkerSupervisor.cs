@@ -4,127 +4,203 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
+    using Autofac;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Utils;
-    using Autofac;
     using Serilog;
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
-    using System.Timers;
-    using Timer = System.Timers.Timer;
 
     /// <summary>
     /// Default worker supervisor = agent.
     /// </summary>
     public class WorkerSupervisor : IWorkerSupervisor, IDisposable {
 
+        /// <inheritdoc/>
+        public string AgentId => _agentConfigProvider.Config.AgentId ?? "Agent";
+
         /// <summary>
         /// Create supervisor
         /// </summary>
         /// <param name="lifetimeScope"></param>
         /// <param name="agentConfigProvider"></param>
+        /// <param name="jobOrchestrator"></param>
+        /// <param name="jobHeartbeatCollection"></param>
         /// <param name="logger"></param>
         public WorkerSupervisor(ILifetimeScope lifetimeScope,
-            IAgentConfigProvider agentConfigProvider, ILogger logger) {
+            IAgentConfigProvider agentConfigProvider, IJobOrchestrator jobOrchestrator, IJobHeartbeatCollection jobHeartbeatCollection, ILogger logger) {
+            _jobOrchestrator = jobOrchestrator;
             _lifetimeScope = lifetimeScope;
             _agentConfigProvider = agentConfigProvider;
+            _jobHeartbeatCollection = jobHeartbeatCollection;
             _logger = logger;
-            _ensureWorkerRunningTimer = new Timer(TimeSpan.FromSeconds(10).TotalMilliseconds);
-            _ensureWorkerRunningTimer.Elapsed += EnsureWorkerRunningTimer_ElapsedAsync;
+
+            _heartbeatInterval = _agentConfigProvider.GetHeartbeatInterval();
+            _jobCheckerInterval = _agentConfigProvider.GetJobCheckInterval();
+
+            _agentConfigProvider.OnConfigUpdated += (s, e) => {
+                _heartbeatInterval = _agentConfigProvider.GetHeartbeatInterval();
+                _jobCheckerInterval = _agentConfigProvider.GetJobCheckInterval();
+            };
+
+            _heartbeatTimer = new Timer(_ => HeartbeatTimer_ElapsedAsync().Wait());
+        }
+
+        /// <summary>
+        /// Heartbeat timer
+        /// </summary>
+        private async Task HeartbeatTimer_ElapsedAsync() {
+            await SendHeartbeatAsync();
+            Try.Op(() => _heartbeatTimer.Change(_heartbeatInterval, Timeout.InfiniteTimeSpan));
+        }
+
+        private Task<HeartbeatModel> GetCurrentHeartbeat() {
+            var supervisorHeartbeat = new SupervisorHeartbeatModel() {
+                SupervisorId = this.AgentId,
+                Status = SupervisorStatus.Running
+            };
+
+            var workerHeartbeats = _jobHeartbeatCollection.Heartbeats.Values.ToArray();
+
+            return Task.FromResult(new HeartbeatModel() {
+                SupervisorHeartbeat = supervisorHeartbeat,
+                JobHeartbeats = workerHeartbeats
+            });
+        }
+
+        private async Task SendHeartbeatAsync() {
+            try {
+                _logger.Debug("Sending heartbeat...");
+
+                // Note - will take lock for status
+                var heartbeat = await GetCurrentHeartbeat();
+
+                var result = await _jobOrchestrator.SendHeartbeatAsync(heartbeat);
+
+                foreach (var entry in result) {
+                    if (_runningWorkers.TryGetValue(entry.JobId, out var worker)) {
+                        await worker.ProcessHeartbeatResult(entry);
+                    }
+                    else {
+                        await _jobHeartbeatCollection.Remove(entry.JobId);
+                    }
+                }
+            }
+            catch (OperationCanceledException) {
+                return; // Done
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Could not send worker heartbeat.");
+            }
         }
 
         /// <inheritdoc/>
-        public async Task StartAsync() {
-            await EnsureWorkersAsync();
-            _ensureWorkerRunningTimer.Start();
-        }
+        public async Task RunAsync(CancellationToken ct) {
+            _logger.Debug("WorkerSupervisor starting...");
+            _heartbeatTimer.Change(0, int.MaxValue);
 
-        /// <inheritdoc/>
-        public async Task StopAsync() {
-            var stopTasks = new List<Task>();
-            _ensureWorkerRunningTimer.Stop();
+            while (!ct.IsCancellationRequested) {
+                try {
+                    ct.ThrowIfCancellationRequested();
 
-            foreach (var instance in _instances) {
-                stopTasks.Add(instance.Key.StopAsync());
+                    _logger.Debug("Try querying available job...");
+
+                    var availableWorkerCount = (_agentConfigProvider.Config.MaxWorkers ?? 1) - _runningWorkers.Count;
+
+                    if (availableWorkerCount < 1) {
+                        await Task.Delay(_jobCheckerInterval, ct);
+                        continue;
+                    }
+
+                    var jobProcessInstructions = await Try.Async(() =>
+                        _jobOrchestrator.GetAvailableJobsAsync(AgentId, new JobRequestModel {
+                            Capabilities = _agentConfigProvider.Config.Capabilities,
+                            MaxJobCount = availableWorkerCount
+                        }, ct));
+
+                    ct.ThrowIfCancellationRequested();
+
+                    if (!jobProcessInstructions.Any()) {
+                        _logger.Information("No job received, wait {delay} ...",
+                            _jobCheckerInterval);
+                        await Task.Delay(_jobCheckerInterval, ct);
+                        continue;
+                    }
+
+                    await StartJobProcessing(jobProcessInstructions, ct);
+                }
+                catch (OperationCanceledException) {
+                    _logger.Information("WorkerSupervisor cancelled...");
+                }
+                catch (Exception ex) {
+                    _logger.Error(ex, "Exception during worker supervisor execution.  Continue...");
+                }
             }
 
-            await Task.WhenAll(stopTasks);
-        }
+            _logger.Information("Waiting for all worker to stop...");
 
-        /// <inheritdoc/>
-        public Task<IWorker> CreateWorker() {
-            var maxWorkers = _agentConfigProvider.Config?.MaxWorkers ?? kDefaultWorkers;
-            if (_instances.Count >= maxWorkers) {
-                throw new MaxWorkersReachedException(maxWorkers);
+            while (_runningWorkers.Any()) {
+                await Task.Delay(1000);
             }
 
-            var childScope = _lifetimeScope.BeginLifetimeScope();
-            var worker = childScope.Resolve<IWorker>(new NamedParameter("workerInstance", _instances.Count));
-            _instances[worker] = childScope;
-            return Task.FromResult(worker);
+            _logger.Information("WorkerSupervisor stopped.");
         }
 
-        /// <inheritdoc/>
-        public async Task StopWorker(string workerId) {
-            if (!_instances.Keys.Any(w => w.WorkerId == workerId)) {
-                throw new WorkerNotFoundException(workerId);
+        private Task StartJobProcessing(IEnumerable<JobProcessingInstructionModel> jobProcessingInstructionModels, CancellationToken ct) {
+            foreach (var jobProcessingInstructionModel in jobProcessingInstructionModels) {
+                var workerScope = _lifetimeScope.BeginLifetimeScope((c) => {
+                    c.RegisterInstance(jobProcessingInstructionModel);
+                });
+                var worker = workerScope.Resolve<IWorker>();
+
+                _runningWorkers[worker.Job.Id] = worker;
+
+                worker.ProcessAsync(ct).ContinueWith(c => {
+                    _runningWorkers.TryRemove(worker.Job.Id, out var removed);
+                    _jobHeartbeatCollection.Remove(worker.Job.Id).Wait();
+                    workerScope.Dispose();
+                });
             }
 
-            var worker = _instances.Where(w => w.Key.WorkerId == workerId).Single();
-
-            await worker.Key.StopAsync();
-            worker.Value.Dispose();
-            _instances.Remove(worker.Key);
+            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
         public void Dispose() {
             Try.Async(StopAsync).Wait();
-            _ensureWorkerRunningTimer?.Dispose();
         }
 
-        /// <summary>
-        /// Monitoring timer elapsed
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private async void EnsureWorkerRunningTimer_ElapsedAsync(object sender, ElapsedEventArgs e) {
-            try {
-                _ensureWorkerRunningTimer.Enabled = false;
-                await EnsureWorkersAsync();
-            }
-            finally {
-                _ensureWorkerRunningTimer.Enabled = true;
-            }
+        /// <inheritdoc/>
+        public Task StartAsync() {
+            Task.Run(() => RunAsync(_cts.Token));
+            return Task.CompletedTask;
         }
 
-        /// <summary>
-        /// Monitor workers
-        /// </summary>
-        /// <returns></returns>
-        private async Task EnsureWorkersAsync() {
-            var workerStartTasks = new List<Task>();
-
-            var maxWorkers = _agentConfigProvider.Config?.MaxWorkers ?? kDefaultWorkers;
-            while (_instances.Count < maxWorkers) {
-                _logger.Information("Creating new worker...");
-                var worker = await CreateWorker();
-            }
-
-            foreach (var stoppedWorker in _instances.Keys.Where(s => s.Status == WorkerStatus.Stopped)) {
-                _logger.Information("Starting worker '{workerId}'...", stoppedWorker.WorkerId);
-                workerStartTasks.Add(stoppedWorker.StartAsync());
-            }
-            await Task.WhenAll(workerStartTasks);
+        /// <inheritdoc/>
+        public Task StopAsync() {
+            _cts.Cancel();
+            return Task.CompletedTask;
         }
 
         private const int kDefaultWorkers = 5; // TODO - single listener, dynamic workers.
-        private readonly IAgentConfigProvider _agentConfigProvider;
-        private readonly Timer _ensureWorkerRunningTimer;
-        private readonly Dictionary<IWorker, ILifetimeScope> _instances = new Dictionary<IWorker, ILifetimeScope>();
         private readonly ILifetimeScope _lifetimeScope;
         private readonly ILogger _logger;
+
+        private readonly ConcurrentDictionary<string, IWorker> _runningWorkers = new ConcurrentDictionary<string, IWorker>();
+
+        private readonly IAgentConfigProvider _agentConfigProvider;
+        private readonly IJobHeartbeatCollection _jobHeartbeatCollection;
+        private readonly IJobOrchestrator _jobOrchestrator;
+
+        private TimeSpan _jobCheckerInterval;
+        private TimeSpan _heartbeatInterval;
+
+        private readonly Timer _heartbeatTimer;
+
+        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
     }
 }

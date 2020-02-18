@@ -9,9 +9,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Worker registry
+    /// Worker supervisorRegistry
     /// </summary>
-    public interface IWorkerRegistry {
+    public interface IWorkerSupervisorRegistry {
 
         /// <summary>
         /// List workers
@@ -20,26 +20,26 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// <param name="maxPageSize"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<WorkerInfoListModel> ListWorkersAsync(
+        Task<WorkerSupervisorInfoListModel> ListWorkerSupervisorsAsync(
             string continuationToken = null, int? maxPageSize = null,
             CancellationToken ct = default);
 
         /// <summary>
         /// Get worker by id
         /// </summary>
-        /// <param name="workerId"></param>
+        /// <param name="workerSupervisorId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<WorkerInfoModel> GetWorkerAsync(string workerId,
+        Task<WorkerSupervisorInfoModel> GetWorkerSupervisorAsync(string workerSupervisorId,
             CancellationToken ct = default);
 
         /// <summary>
         /// Delete worker
         /// </summary>
-        /// <param name="workerId"></param>
+        /// <param name="workerSupervisorId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task DeleteWorkerAsync(string workerId,
+        Task DeleteWorkerSupervisorAsync(string workerSupervisorId,
             CancellationToken ct = default);
     }
 }

@@ -16,34 +16,33 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
     /// <summary>
     /// Database based worker registry
     /// </summary>
-    public class WorkerDatabase : IWorkerRegistry, IWorkerRepository {
+    public class WorkerSupervisorDatabase : IWorkerSupervisorRegistry, IAgentRepository {
 
         /// <summary>
         /// Create worker registry
         /// </summary>
         /// <param name="databaseServer"></param>
         /// <param name="databaseRegistryConfig"></param>
-        public WorkerDatabase(IDatabaseServer databaseServer, IWorkerDatabaseConfig databaseRegistryConfig) {
+        public WorkerSupervisorDatabase(IDatabaseServer databaseServer, IWorkerDatabaseConfig databaseRegistryConfig) {
             var database = databaseServer.OpenAsync(databaseRegistryConfig.DatabaseName).Result;
             var container = database.OpenContainerAsync(databaseRegistryConfig.ContainerName).Result;
             _documents = container.AsDocuments();
         }
 
         /// <inheritdoc/>
-        public async Task AddOrUpdate(WorkerHeartbeatModel workerHeartbeat,
+        public async Task AddOrUpdate(SupervisorHeartbeatModel supervisorHeartbeat,
             CancellationToken ct) {
-            if (workerHeartbeat == null) {
-                throw new ArgumentNullException(nameof(workerHeartbeat));
+            if (supervisorHeartbeat == null) {
+                throw new ArgumentNullException(nameof(supervisorHeartbeat));
             }
             while (true) {
-                var workerDocument = new WorkerDocument {
-                    AgentId = workerHeartbeat.AgentId,
-                    Id = workerHeartbeat.WorkerId,
-                    WorkerStatus = workerHeartbeat.Status,
+                var workerDocument = new WorkerSupervisorDocument {
+                    Id = supervisorHeartbeat.SupervisorId,
+                    WorkerStatus = supervisorHeartbeat.Status,
                     LastSeen = DateTime.UtcNow
                 };
-                var existing = await _documents.FindAsync<WorkerDocument>(
-                    workerHeartbeat.WorkerId);
+                var existing = await _documents.FindAsync<WorkerSupervisorDocument>(
+                    supervisorHeartbeat.SupervisorId);
                 if (existing != null) {
                     try {
                         workerDocument.ETag = existing.Etag;
@@ -66,30 +65,30 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             }
         }
         /// <inheritdoc/>
-        public async Task<WorkerInfoListModel> ListWorkersAsync(string continuationToken,
+        public async Task<WorkerSupervisorInfoListModel> ListWorkerSupervisorsAsync(string continuationToken,
             int? maxResults, CancellationToken ct) {
 
             var client = _documents.OpenSqlClient();
             var results = continuationToken != null ?
-                client.Continue<WorkerDocument>(continuationToken, maxResults) :
-                client.Query<WorkerDocument>(CreateQuery(out var queryParameters),
+                client.Continue<WorkerSupervisorDocument>(continuationToken, maxResults) :
+                client.Query<WorkerSupervisorDocument>(CreateQuery(out var queryParameters),
                     queryParameters, maxResults);
             if (!results.HasMore()) {
-                return new WorkerInfoListModel();
+                return new WorkerSupervisorInfoListModel();
             }
             var documents = await results.ReadAsync(ct);
-            return new WorkerInfoListModel {
+            return new WorkerSupervisorInfoListModel {
                 ContinuationToken = results.ContinuationToken,
                 Workers = documents.Select(r => r.Value.ToFrameworkModel()).ToList()
             };
         }
 
         /// <inheritdoc/>
-        public async Task<WorkerInfoModel> GetWorkerAsync(string workerId, CancellationToken ct) {
-            if (string.IsNullOrEmpty(workerId)) {
-                throw new ArgumentNullException(nameof(workerId));
+        public async Task<WorkerSupervisorInfoModel> GetWorkerSupervisorAsync(string workerSupervisorId, CancellationToken ct) {
+            if (string.IsNullOrEmpty(workerSupervisorId)) {
+                throw new ArgumentNullException(nameof(workerSupervisorId));
             }
-            var document = await _documents.FindAsync<WorkerDocument>(workerId, ct);
+            var document = await _documents.FindAsync<WorkerSupervisorDocument>(workerSupervisorId, ct);
             if (document == null) {
                 throw new ResourceNotFoundException("Worker not found");
             }
@@ -97,11 +96,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
         }
 
         /// <inheritdoc/>
-        public async Task DeleteWorkerAsync(string workerId, CancellationToken ct) {
-            if (string.IsNullOrEmpty(workerId)) {
-                throw new ArgumentNullException(nameof(workerId));
+        public async Task DeleteWorkerSupervisorAsync(string workerSupervisorId, CancellationToken ct) {
+            if (string.IsNullOrEmpty(workerSupervisorId)) {
+                throw new ArgumentNullException(nameof(workerSupervisorId));
             }
-            await _documents.DeleteAsync(workerId, ct);
+            await _documents.DeleteAsync(workerSupervisorId, ct);
         }
 
         /// <summary>
@@ -113,7 +112,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
             queryParameters = new Dictionary<string, object>();
             var queryString = $"SELECT * FROM r WHERE ";
             queryString +=
-                $"r.{nameof(WorkerDocument.ClassType)} = '{WorkerDocument.ClassTypeName}'";
+                $"r.{nameof(WorkerSupervisorDocument.ClassType)} = '{WorkerSupervisorDocument.ClassTypeName}'";
             return queryString;
         }
 

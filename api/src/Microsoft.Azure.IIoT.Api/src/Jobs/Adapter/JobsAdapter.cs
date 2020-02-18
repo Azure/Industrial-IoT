@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Api.Jobs {
     /// <summary>
     /// Implements agent and job registry services on top of api
     /// </summary>
-    public sealed class JobsAdapter : IJobService, IWorkerRegistry {
+    public sealed class JobsAdapter : IJobService, IWorkerSupervisorRegistry {
 
         /// <summary>
         /// Create adapter
@@ -61,21 +61,21 @@ namespace Microsoft.Azure.IIoT.Api.Jobs {
         }
 
         /// <inheritdoc/>
-        public async Task<WorkerInfoListModel> ListWorkersAsync(
+        public async Task<WorkerSupervisorInfoListModel> ListWorkerSupervisorsAsync(
             string continuationToken, int? maxResults, CancellationToken ct) {
-            var result = await _client.ListWorkersAsync(continuationToken, maxResults, ct);
-            return result.Map<WorkerInfoListModel>();
+            var result = await _client.ListWorkerSupervisorsAsync(continuationToken, maxResults, ct);
+            return result.Map<WorkerSupervisorInfoListModel>();
         }
 
         /// <inheritdoc/>
-        public async Task<WorkerInfoModel> GetWorkerAsync(string workerId, CancellationToken ct) {
-            var result = await _client.GetWorkerAsync(workerId, ct);
-            return result.Map<WorkerInfoModel>();
+        public async Task<WorkerSupervisorInfoModel> GetWorkerSupervisorAsync(string workerSupervisorId, CancellationToken ct) {
+            var result = await _client.GetWorkerSupervisorAsync(workerSupervisorId, ct);
+            return result.Map<WorkerSupervisorInfoModel>();
         }
 
         /// <inheritdoc/>
-        public async Task DeleteWorkerAsync(string workerId, CancellationToken ct) {
-            await _client.DeleteWorkerAsync(workerId, ct);
+        public async Task DeleteWorkerSupervisorAsync(string workerSupervisorId, CancellationToken ct) {
+            await _client.DeleteWorkerSupervisorAsync(workerSupervisorId, ct);
         }
 
         private readonly IJobsServiceApi _client;

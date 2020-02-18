@@ -4,32 +4,26 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
+    using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Newtonsoft.Json;
 
     /// <summary>
     /// Heartbeat information
     /// </summary>
-    public class WorkerHeartbeatApiModel {
+    public class SupervisorHeartbeatApiModel {
 
         /// <summary>
-        /// Worker id
+        /// SupervisorId
         /// </summary>
-        [JsonProperty(PropertyName = "workerId",
+        [JsonProperty(PropertyName = "supervisorId",
             NullValueHandling = NullValueHandling.Ignore)]
-        public string WorkerId { get; set; }
-
-        /// <summary>
-        /// Agent id
-        /// </summary>
-        [JsonProperty(PropertyName = "agentId",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public string AgentId { get; set; }
+        public string SupervisorId { get; set; }
 
         /// <summary>
         /// Status
         /// </summary>
         [JsonProperty(PropertyName = "status",
             NullValueHandling = NullValueHandling.Ignore)]
-        public WorkerStatus Status { get; set; }
+        public SupervisorStatus Status { get; set; }
     }
 }

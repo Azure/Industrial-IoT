@@ -139,14 +139,13 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Models {
         /// Create model
         /// </summary>
         /// <param name="model"></param>
-        public static WorkerInfoApiModel ToApiModel(
-            this WorkerInfoModel model) {
+        public static WorkerSupervisorInfoApiModel ToApiModel(
+            this WorkerSupervisorInfoModel model) {
             if (model == null) {
                 return null;
             }
-            return new WorkerInfoApiModel {
-                WorkerId = model.WorkerId,
-                AgentId = model.AgentId,
+            return new WorkerSupervisorInfoApiModel {
+                WorkerSupervisorId = model.WorkerSupervisorId,
                 Status = (Api.Jobs.Models.WorkerStatus)model.Status,
                 LastSeen = model.LastSeen
             };
@@ -156,12 +155,12 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Models {
         /// Create model
         /// </summary>
         /// <param name="model"></param>
-        public static WorkerInfoListApiModel ToApiModel(
-            this WorkerInfoListModel model) {
+        public static WorkerSupervisorInfoListApiModel ToApiModel(
+            this WorkerSupervisorInfoListModel model) {
             if (model == null) {
                 return null;
             }
-            return new WorkerInfoListApiModel {
+            return new WorkerSupervisorInfoListApiModel {
                 Workers = model.Workers?
                     .Select(d => d.ToApiModel())
                     .ToList(),

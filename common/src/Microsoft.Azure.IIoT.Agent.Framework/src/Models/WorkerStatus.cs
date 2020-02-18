@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
     /// Worker state
     /// </summary>
     [JsonConverter(typeof(StringEnumConverter))]
-    public enum WorkerStatus {
+    public enum SupervisorStatus {
 
         /// <summary>
         /// Stopped
@@ -24,13 +24,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
         Stopping,
 
         /// <summary>
-        /// Waiting
+        /// Running
         /// </summary>
-        WaitingForJob,
-
-        /// <summary>
-        /// Processing
-        /// </summary>
-        ProcessingJob
+        Running
     }
 }

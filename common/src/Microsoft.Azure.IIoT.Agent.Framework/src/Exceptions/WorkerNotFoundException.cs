@@ -9,11 +9,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
     /// <summary>
     /// Worker not found
     /// </summary>
-    public class WorkerNotFoundException : ResourceNotFoundException {
+    public class WorkerSupervisorNotFoundException : ResourceNotFoundException {
 
         /// <inheritdoc/>
-        public WorkerNotFoundException(string workerId) :
-            base($"Worker with id '{workerId}' could not be found.") {
+        public WorkerSupervisorNotFoundException(string workerSupervisorId) :
+            base($"Workersupervisor with id '{workerSupervisorId}' could not be found.") {
         }
     }
 }

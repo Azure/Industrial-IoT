@@ -41,8 +41,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Models {
                 return null;
             }
             return new HeartbeatModel {
-                Worker = model.Worker?.ToServiceModel(),
-                Job = model.Job?.ToServiceModel()
+                JobHeartbeats = model.JobHeartbeats.Select(h => h.ToServiceModel()).ToArray(),
+                SupervisorHeartbeat = model.SupervisorHeartbeat.ToServiceModel()
             };
         }
 
@@ -51,16 +51,29 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static HeartbeatResponseApiModel ToApiModel(
-            this HeartbeatResultModel model) {
+        public static HeartbeatResponseEntryApiModel ToApiModel(
+            this HeartbeatResultEntryModel model) {
             if (model == null) {
                 return null;
             }
-            return new HeartbeatResponseApiModel {
+            return new HeartbeatResponseEntryApiModel {
                 HeartbeatInstruction = (Api.Jobs.Models.HeartbeatInstruction)model.HeartbeatInstruction,
                 LastActiveHeartbeat = model.LastActiveHeartbeat,
                 UpdatedJob = model.UpdatedJob.ToApiModel()
             };
+        }
+
+        /// <summary>
+        /// Convert to API model
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
+        public static HeartbeatResponseApiModel ToApiModel(this HeartbeatResultModel model) {
+            if (model == null) {
+                return null;
+            }
+
+            return new HeartbeatResponseApiModel(model.Select(s => s.ToApiModel()));
         }
 
         /// <summary>
@@ -187,15 +200,14 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Models {
         /// Convert to service model
         /// </summary>
         /// <returns></returns>
-        public static WorkerHeartbeatModel ToServiceModel(
-            this WorkerHeartbeatApiModel model) {
+        public static SupervisorHeartbeatModel ToServiceModel(
+            this SupervisorHeartbeatApiModel model) {
             if (model == null) {
                 return null;
             }
-            return new WorkerHeartbeatModel {
-                WorkerId = model.WorkerId,
-                AgentId = model.AgentId,
-                Status = (Agent.Framework.Models.WorkerStatus)model.Status
+            return new SupervisorHeartbeatModel {
+                SupervisorId = model.SupervisorId,
+                Status = (Agent.Framework.Models.SupervisorStatus)model.Status
             };
         }
     }

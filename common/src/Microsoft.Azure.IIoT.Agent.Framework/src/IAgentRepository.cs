@@ -11,15 +11,14 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
     /// <summary>
     /// Worker repository
     /// </summary>
-    public interface IWorkerRepository {
+    public interface IAgentRepository {
 
         /// <summary>
         /// Add or update heartbeat
         /// </summary>
-        /// <param name="workerHeartbeat"></param>
+        /// <param name="supervisorHeartbeat"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task AddOrUpdate(WorkerHeartbeatModel workerHeartbeat,
-            CancellationToken ct = default);
+        Task AddOrUpdate(SupervisorHeartbeatModel supervisorHeartbeat, CancellationToken ct = default);
     }
 }

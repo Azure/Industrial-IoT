@@ -9,22 +9,17 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
     /// <summary>
     /// Worker info
     /// </summary>
-    public class WorkerInfoModel {
+    public class WorkerSupervisorInfoModel {
 
         /// <summary>
-        /// Identifier of the agent
+        /// Identifier of the worker supervisor
         /// </summary>
-        public string AgentId { get; set; }
-
-        /// <summary>
-        /// Identifier of the worker instance
-        /// </summary>
-        public string WorkerId { get; set; }
+        public string WorkerSupervisorId { get; set; }
 
         /// <summary>
         /// Worker status
         /// </summary>
-        public WorkerStatus Status { get; set; }
+        public SupervisorStatus Status { get; set; }
 
         /// <summary>
         /// Last seen

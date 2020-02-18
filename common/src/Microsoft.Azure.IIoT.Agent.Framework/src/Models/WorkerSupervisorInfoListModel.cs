@@ -4,25 +4,21 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
+    using System.Collections.Generic;
 
     /// <summary>
-    /// Heartbeat information
+    /// Worker list model
     /// </summary>
-    public class WorkerHeartbeatModel {
+    public class WorkerSupervisorInfoListModel {
 
         /// <summary>
-        /// Worker identifier
+        /// Continuation token
         /// </summary>
-        public string WorkerId { get; set; }
+        public string ContinuationToken { get; set; }
 
         /// <summary>
-        /// Agent identifier
+        /// Workers
         /// </summary>
-        public string AgentId { get; set; }
-
-        /// <summary>
-        /// Status
-        /// </summary>
-        public WorkerStatus Status { get; set; }
+        public List<WorkerSupervisorInfoModel> Workers { get; set; }
     }
 }

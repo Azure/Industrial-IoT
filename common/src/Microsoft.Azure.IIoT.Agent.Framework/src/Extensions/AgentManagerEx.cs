@@ -19,12 +19,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
         /// <param name="manager"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task<IEnumerable<WorkerInfoModel>> ListAllAgentsAsync(
-            this IWorkerRegistry manager, CancellationToken ct = default) {
+        public static async Task<IEnumerable<WorkerSupervisorInfoModel>> ListAllAgentsAsync(
+            this IWorkerSupervisorRegistry manager, CancellationToken ct = default) {
             string continuationToken = null;
-            var agents = new List<WorkerInfoModel>();
+            var agents = new List<WorkerSupervisorInfoModel>();
             do {
-                var result = await manager.ListWorkersAsync(continuationToken, null, ct);
+                var result = await manager.ListWorkerSupervisorsAsync(continuationToken, null, ct);
                 if (result.Workers != null) {
                     agents.AddRange(result.Workers);
                 }

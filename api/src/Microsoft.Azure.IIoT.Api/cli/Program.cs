@@ -282,8 +282,8 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                                 case "list":
                                     await ListJobsAsync(options);
                                     break;
-                                case "workers":
-                                    await ListWorkersAsync(options);
+                                case "workersupervisors":
+                                    await ListWorkerSupervisorsAsync(options);
                                     break;
                                 case "select":
                                     await SelectJobAsync(options);
@@ -1383,16 +1383,16 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         }
 
         /// <summary>
-        /// List workers
+        /// List worker supervisors
         /// </summary>
-        private async Task ListWorkersAsync(CliOptions options) {
+        private async Task ListWorkerSupervisorsAsync(CliOptions options) {
             if (options.IsSet("-A", "--all")) {
                 var result = await _jobs.ListAllAgentsAsync();
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
-                var result = await _jobs.ListWorkersAsync(
+                var result = await _jobs.ListWorkerSupervisorsAsync(
                     options.GetValueOrDefault<string>("-C", "--continuation", null),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
@@ -2795,7 +2795,7 @@ Commands and Options
         private void PrintApplicationsHelp() {
             Console.WriteLine(
                 @"
-Manage applications registry.
+Manage applications supervisorRegistry.
 
 Commands and Options
 
@@ -2917,7 +2917,7 @@ Commands and Options
         private void PrintEndpointsHelp() {
             Console.WriteLine(
                 @"
-Manage endpoints in registry.
+Manage endpoints in supervisorRegistry.
 
 Commands and Options
 

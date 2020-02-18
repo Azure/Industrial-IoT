@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
     /// <summary>
     /// Class that represents a dictionary with all command line arguments from the legacy version of the OPC Publisher
     /// </summary>
-    public class LegacyCliOptions : Dictionary<string, string>, IAgentConfigProvider, IEngineConfiguration, ILegacyCliModelProvider {
+    public class LegacyCliOptions : Dictionary<string, string>, IAgentConfigProvider, IEngineConfiguration, ILegacyCliModelProvider, IJobOrchestratorConfig {
         /// <summary>
         /// Empty constructor.
         /// </summary>
@@ -208,6 +208,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// The model of the CLI arguments.
         /// </summary>
         public LegacyCliModel LegacyCliModel { get; }
+
+
+        /// <inheritdoc />
+        public TimeSpan JobStaleTime { get; } = TimeSpan.FromHours(24);
 
         /// <summary>
         /// Gets the additiona loggerConfiguration that represents the command line arguments.

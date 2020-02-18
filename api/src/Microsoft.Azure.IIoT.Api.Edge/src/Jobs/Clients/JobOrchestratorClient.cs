@@ -4,17 +4,18 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
-    using Microsoft.Azure.IIoT.Api.Jobs.Models;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using Microsoft.Azure.IIoT.Api.Jobs.Models;
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Models;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Http;
     using System;
+    using System.Collections.Generic;
     using System.Net.Http.Headers;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Exceptions;
 
     /// <summary>
     /// Job orchestrator client that connects to the cloud endpoint.
@@ -35,17 +36,17 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<JobProcessingInstructionModel> GetAvailableJobAsync(string workerId,
+        public async Task<IEnumerable<JobProcessingInstructionModel>> GetAvailableJobsAsync(string workerSupervisorId,
             JobRequestModel jobRequest, CancellationToken ct) {
-            if (string.IsNullOrEmpty(workerId)) {
-                throw new ArgumentNullException(nameof(workerId));
+            if (string.IsNullOrEmpty(workerSupervisorId)) {
+                throw new ArgumentNullException(nameof(workerSupervisorId));
             }
             while (true) {
                 var uri = _config?.Config?.JobOrchestratorUrl?.TrimEnd('/');
                 if (uri == null) {
                     throw new InvalidConfigurationException("Job orchestrator not configured");
                 }
-                var request = _httpClient.NewRequest($"{uri}/v2/workers/{workerId}");
+                var request = _httpClient.NewRequest($"{uri}/v2/workers/{workerSupervisorId}");
                 request.Headers.Authorization = new AuthenticationHeaderValue("Basic",
                     _tokenProvider.IdentityToken.ToAuthorizationValue());
                 request.SetContent(jobRequest.Map<JobRequestApiModel>());
@@ -53,8 +54,8 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
                     .ConfigureAwait(false);
                 try {
                     response.Validate();
-                    return response.GetContent<JobProcessingInstructionApiModel>()
-                        .Map<JobProcessingInstructionModel>();
+                    return response.GetContent<JobProcessingInstructionApiModel[]>()
+                        .Map<JobProcessingInstructionModel[]>();
                 }
                 catch (UnauthorizedAccessException) {
                     await _tokenProvider.ForceUpdate();

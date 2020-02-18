@@ -82,26 +82,26 @@ namespace Microsoft.Azure.IIoT.Api.Jobs {
         /// <param name="pageSize"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<WorkerInfoListApiModel> ListWorkersAsync(
+        Task<WorkerSupervisorInfoListApiModel> ListWorkerSupervisorsAsync(
             string continuationToken = null, int? pageSize = null,
             CancellationToken ct = default);
 
         /// <summary>
         /// Delete worker
         /// </summary>
-        /// <param name="workerId"></param>
+        /// <param name="workerSupervisorId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task DeleteWorkerAsync(
-            string workerId, CancellationToken ct = default);
+        Task DeleteWorkerSupervisorAsync(
+            string workerSupervisorId, CancellationToken ct = default);
 
         /// <summary>
         /// Get worker by id
         /// </summary>
-        /// <param name="workerId"></param>
+        /// <param name="workerSupervisorId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<WorkerInfoApiModel> GetWorkerAsync(
-            string workerId, CancellationToken ct = default);
+        Task<WorkerSupervisorInfoApiModel> GetWorkerSupervisorAsync(
+            string workerSupervisorId, CancellationToken ct = default);
     }
 }

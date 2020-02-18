@@ -122,7 +122,7 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
         }
 
         /// <inheritdoc/>
-        public async Task<WorkerInfoListApiModel> ListWorkersAsync(string continuation,
+        public async Task<WorkerSupervisorInfoListApiModel> ListWorkerSupervisorsAsync(string continuation,
             int? pageSize, CancellationToken ct) {
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/workers",
                 _resourceId);
@@ -134,27 +134,27 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
             }
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
-            return response.GetContent<WorkerInfoListApiModel>();
+            return response.GetContent<WorkerSupervisorInfoListApiModel>();
         }
 
         /// <inheritdoc/>
-        public async Task<WorkerInfoApiModel> GetWorkerAsync(string workerId, CancellationToken ct) {
-            if (string.IsNullOrEmpty(workerId)) {
-                throw new ArgumentNullException(nameof(workerId));
+        public async Task<WorkerSupervisorInfoApiModel> GetWorkerSupervisorAsync(string workerSupervisorId, CancellationToken ct) {
+            if (string.IsNullOrEmpty(workerSupervisorId)) {
+                throw new ArgumentNullException(nameof(workerSupervisorId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/workers/{workerId}",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v2/workersupervisors/{workerSupervisorId}",
                 _resourceId);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
-            return response.GetContent<WorkerInfoApiModel>();
+            return response.GetContent<WorkerSupervisorInfoApiModel>();
         }
 
         /// <inheritdoc/>
-        public async Task DeleteWorkerAsync(string workerId, CancellationToken ct) {
-            if (string.IsNullOrEmpty(workerId)) {
-                throw new ArgumentNullException(nameof(workerId));
+        public async Task DeleteWorkerSupervisorAsync(string workerSupervisorId, CancellationToken ct) {
+            if (string.IsNullOrEmpty(workerSupervisorId)) {
+                throw new ArgumentNullException(nameof(workerSupervisorId));
             }
-            var request = _httpClient.NewRequest($"{_serviceUri}/v2/workers/{workerId}",
+            var request = _httpClient.NewRequest($"{_serviceUri}/v2/workersupervisors/{workerSupervisorId}",
                 _resourceId);
             var response = await _httpClient.DeleteAsync(request, ct).ConfigureAwait(false);
             response.Validate();

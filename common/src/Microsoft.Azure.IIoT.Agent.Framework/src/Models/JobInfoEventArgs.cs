@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
+    using Microsoft.Azure.IIoT.Agent.Framework.Agent;
     using System;
 
     /// <summary>
@@ -15,13 +16,20 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
         /// Create event
         /// </summary>
         /// <param name="job"></param>
-        public JobInfoEventArgs(JobInfoModel job) {
+        /// <param name="worker"></param>
+        public JobInfoEventArgs(JobInfoModel job, IWorker worker) {
             Job = job;
+            Worker = worker;
         }
 
         /// <summary>
         /// Job
         /// </summary>
         public JobInfoModel Job { get; }
+
+        /// <summary>
+        /// The worker that sent to event.
+        /// </summary>
+        public IWorker Worker { get; }
     }
 }

@@ -15,5 +15,10 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
         /// Capabilities to match
         /// </summary>
         public Dictionary<string, string> Capabilities { get; set; }
+
+        /// <summary>
+        /// The maximum number of jobs to return.
+        /// </summary>
+        public int MaxJobCount { get; set; }
     }
 }

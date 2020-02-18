@@ -11,17 +11,5 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
     /// </summary>
     public interface IWorkerSupervisor : IHostProcess {
 
-        /// <summary>
-        /// Create worker
-        /// </summary>
-        /// <returns></returns>
-        Task<IWorker> CreateWorker();
-
-        /// <summary>
-        /// Stop worker
-        /// </summary>
-        /// <param name="workerId"></param>
-        /// <returns></returns>
-        Task StopWorker(string workerId);
     }
 }

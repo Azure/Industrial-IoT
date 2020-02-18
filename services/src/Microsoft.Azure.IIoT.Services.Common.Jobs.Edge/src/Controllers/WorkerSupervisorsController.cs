@@ -11,42 +11,43 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Controllers {
     using Microsoft.AspNetCore.Mvc;
     using System.Threading.Tasks;
     using System;
+    using System.Linq;
 
     /// <summary>
     /// Workers jobs controller
     /// </summary>
-    [ApiVersion("2")][Route("v{version:apiVersion}/workers")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/workersupervisors")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [ApiController]
-    public class WorkersController : ControllerBase {
+    public class WorkerSupervisorsController : ControllerBase {
 
         /// <summary>
         /// Create controller
         /// </summary>
         /// <param name="orchestrator"></param>
-        public WorkersController(IJobOrchestrator orchestrator) {
+        public WorkerSupervisorsController(IJobOrchestrator orchestrator) {
             _orchestrator = orchestrator;
         }
 
         /// <summary>
         /// Get processing instructions for worker
         /// </summary>
-        /// <param name="workerId"></param>
+        /// <param name="workerSupervisorId"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        [HttpPost("{workerId}")]
-        public async Task<JobProcessingInstructionApiModel> GetAvailableJobAsync(
-            string workerId, [FromBody] JobRequestApiModel request) {
-            if (string.IsNullOrEmpty(workerId)) {
-                throw new ArgumentNullException(nameof(workerId));
+        [HttpPost("{workerSupervisorId}")]
+        public async Task<JobProcessingInstructionApiModel[]> GetAvailableJobAsync(
+            string workerSupervisorId, [FromBody] JobRequestApiModel request) {
+            if (string.IsNullOrEmpty(workerSupervisorId)) {
+                throw new ArgumentNullException(nameof(workerSupervisorId));
             }
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var job = await _orchestrator.GetAvailableJobAsync(
-                workerId, request.ToServiceModel());
-            return job.ToApiModel();
+            var jobs = await _orchestrator.GetAvailableJobsAsync(
+                workerSupervisorId, request.ToServiceModel());
+            return jobs.Select(j => j.ToApiModel()).ToArray();
         }
 
         private readonly IJobOrchestrator _orchestrator;

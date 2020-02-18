@@ -10,21 +10,14 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
     /// <summary>
     /// Worker info
     /// </summary>
-    public class WorkerInfoApiModel {
+    public class WorkerSupervisorInfoApiModel {
 
         /// <summary>
         /// Identifier of the worker instance
         /// </summary>
-        [JsonProperty(PropertyName = "workerId",
+        [JsonProperty(PropertyName = "workerSupervisorId",
             NullValueHandling = NullValueHandling.Ignore)]
-        public string WorkerId { get; set; }
-
-        /// <summary>
-        /// Identifier of the agent
-        /// </summary>
-        [JsonProperty(PropertyName = "agentId",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public string AgentId { get; set; }
+        public string WorkerSupervisorId { get; set; }
 
         /// <summary>
         /// Worker status

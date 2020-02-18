@@ -16,12 +16,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static WorkerDocument ToDocumentModel(this WorkerInfoModel model) {
+        public static WorkerSupervisorDocument ToDocumentModel(this WorkerSupervisorInfoModel model) {
             if (model == null) {
                 return null;
             }
-            return new WorkerDocument {
-                Id = model.AgentId,
+            return new WorkerSupervisorDocument {
+                Id = model.WorkerSupervisorId,
                 WorkerStatus = model.Status,
                 LastSeen = model.LastSeen
             };
@@ -32,12 +32,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static WorkerInfoModel ToFrameworkModel(this WorkerDocument model) {
+        public static WorkerSupervisorInfoModel ToFrameworkModel(this WorkerSupervisorDocument model) {
             if (model == null) {
                 return null;
             }
-            return new WorkerInfoModel {
-                AgentId = model.Id,
+            return new WorkerSupervisorInfoModel {
+                WorkerSupervisorId = model.Id,
                 Status = model.WorkerStatus,
                 LastSeen = model.LastSeen
             };

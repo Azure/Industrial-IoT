@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Runtime {
         }
 
         /// <inheritdoc/>
-        public Action<ContainerBuilder> GetJobContainerScope(string agentId, string jobId) {
+        public Action<ContainerBuilder> GetJobContainerScope(string jobId) {
             return builder => {
                 // Register job configuration
                 builder.RegisterInstance(_jobConfig.ToWriterGroupJobConfiguration(jobId))

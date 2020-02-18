@@ -172,7 +172,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
 
             builder.RegisterType<JobDatabase>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<WorkerDatabase>()
+            builder.RegisterType<WorkerSupervisorDatabase>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<CosmosDbServiceClient>()
                 .AsImplementedInterfaces().SingleInstance();

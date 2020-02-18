@@ -16,7 +16,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// Create a factory to create individual scopes engines.
         /// </summary>
         /// <returns></returns>
-        Action<ContainerBuilder> GetJobContainerScope(
-            string agentId, string jobId);
+        Action<ContainerBuilder> GetJobContainerScope(string jobId);
     }
 }

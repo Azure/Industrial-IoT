@@ -13,11 +13,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
         /// <summary>
         /// Worker heartbeat
         /// </summary>
-        public WorkerHeartbeatModel Worker { get; set; }
+        public SupervisorHeartbeatModel SupervisorHeartbeat { get; set; }
 
         /// <summary>
-        /// Job heartbeat
+        /// Job heartbeats
         /// </summary>
-        public JobHeartbeatModel Job { get; set; }
+        public JobHeartbeatModel[] JobHeartbeats { get; set; }
     }
 }

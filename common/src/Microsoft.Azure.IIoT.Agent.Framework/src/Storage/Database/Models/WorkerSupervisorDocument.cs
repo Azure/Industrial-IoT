@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
     /// <summary>
     /// Worker document
     /// </summary>
-    public class WorkerDocument {
+    public class WorkerSupervisorDocument {
 
         /// <summary>
         /// id
@@ -30,17 +30,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
         /// </summary>
         public string ClassType { get; set; } = ClassTypeName;
         /// <summary/>
-        public static readonly string ClassTypeName = "Worker";
+        public static readonly string ClassTypeName = "WorkerSupervisor";
 
         /// <summary>
-        /// Agent id
+        /// Worker Supervisor status
         /// </summary>
-        public string AgentId { get; internal set; }
-
-        /// <summary>
-        /// Worker status
-        /// </summary>
-        public WorkerStatus WorkerStatus { get; set; }
+        public SupervisorStatus WorkerStatus { get; set; }
 
         /// <summary>
         /// Last seen

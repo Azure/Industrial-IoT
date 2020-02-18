@@ -64,12 +64,12 @@ namespace Microsoft.Azure.IIoT.Api.Jobs {
         /// <param name="service"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task<IEnumerable<WorkerInfoApiModel>> ListAllAgentsAsync(this IJobsServiceApi service,
+        public static async Task<IEnumerable<WorkerSupervisorInfoApiModel>> ListAllAgentsAsync(this IJobsServiceApi service,
             CancellationToken ct = default) {
             string continuationToken = null;
-            var agents = new List<WorkerInfoApiModel>();
+            var agents = new List<WorkerSupervisorInfoApiModel>();
             do {
-                var result = await service.ListWorkersAsync(continuationToken, null, ct);
+                var result = await service.ListWorkerSupervisorsAsync(continuationToken, null, ct);
                 if (result.Workers != null) {
                     agents.AddRange(result.Workers);
                 }

@@ -5,6 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Agent.Framework {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Handle job cancelled
@@ -30,17 +32,17 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
     /// <summary>
     /// Worker
     /// </summary>
-    public interface IWorker : IHostProcess {
+    public interface IWorker {
 
         /// <summary>
-        /// Worker id
+        /// The job that is assigned to this worker.
         /// </summary>
-        string WorkerId { get; }
+        JobInfoModel Job { get; }
 
         /// <summary>
         /// Worker status
         /// </summary>
-        WorkerStatus Status { get; }
+        JobStatus Status { get; }
 
         /// <summary>
         /// Finish event
@@ -56,5 +58,19 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// Started event
         /// </summary>
         event JobStartedEventHandler OnJobStarted;
+
+        /// <summary>
+        /// Processes to job.
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task ProcessAsync(CancellationToken ct);
+
+        /// <summary>
+        /// Gets an updated processing instruction to handle
+        /// </summary>
+        /// <param name="heartbeatResultEntryModel"></param>
+        /// <returns></returns>
+        Task ProcessHeartbeatResult(HeartbeatResultEntryModel heartbeatResultEntryModel);
     }
 }

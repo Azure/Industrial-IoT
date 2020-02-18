@@ -18,18 +18,18 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Controllers {
     /// <summary>
     /// Agent controller
     /// </summary>
-    [ApiVersion("2")][Route("v{version:apiVersion}/workers")]
+    [ApiVersion("2")][Route("v{version:apiVersion}/workersupervisors")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
     [ApiController]
-    public class WorkersController : ControllerBase {
+    public class WorkerSupervisorsController : ControllerBase {
 
         /// <summary>
         /// Create controller
         /// </summary>
-        /// <param name="registry"></param>
-        public WorkersController(IWorkerRegistry registry) {
-            _registry = registry;
+        /// <param name="supervisorRegistry"></param>
+        public WorkerSupervisorsController(IWorkerSupervisorRegistry supervisorRegistry) {
+            _supervisorRegistry = supervisorRegistry;
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Controllers {
         /// <returns>Workers</returns>
         [HttpGet]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
-        public async Task<WorkerInfoListApiModel> ListWorkersAsync(
+        public async Task<WorkerSupervisorInfoListApiModel> ListWorkerSupervisorsAsync(
             [FromQuery] string continuationToken,
             [FromQuery] int? pageSize) {
 
@@ -57,7 +57,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Controllers {
                 pageSize = int.Parse(Request.Headers[HttpHeader.MaxItemCount]
                     .FirstOrDefault());
             }
-            var result = await _registry.ListWorkersAsync(
+            var result = await _supervisorRegistry.ListWorkerSupervisorsAsync(
                 continuationToken, pageSize);
             return result.ToApiModel();
         }
@@ -71,11 +71,11 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Controllers {
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet("{id}")]
-        public async Task<WorkerInfoApiModel> GetWorkerAsync(string id) {
+        public async Task<WorkerSupervisorInfoApiModel> GetWorkerSupervisorAsync(string id) {
             if (string.IsNullOrEmpty(id)) {
                 throw new ArgumentNullException(nameof(id));
             }
-            var result = await _registry.GetWorkerAsync(id);
+            var result = await _supervisorRegistry.GetWorkerSupervisorAsync(id);
             return result.ToApiModel();
         }
 
@@ -83,18 +83,18 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Controllers {
         /// Delete worker by id
         /// </summary>
         /// <remarks>
-        /// Deletes an worker in the registry.
+        /// Deletes an worker in the supervisorRegistry.
         /// </remarks>
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpDelete("{id}")]
-        public async Task DeleteWorkerAsync(string id) {
+        public async Task DeleteWorkerSupervisorAsync(string id) {
             if (string.IsNullOrEmpty(id)) {
                 throw new ArgumentNullException(nameof(id));
             }
-            await _registry.DeleteWorkerAsync(id);
+            await _supervisorRegistry.DeleteWorkerSupervisorAsync(id);
         }
 
-        private readonly IWorkerRegistry _registry;
+        private readonly IWorkerSupervisorRegistry _supervisorRegistry;
     }
 }

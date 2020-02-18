@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Agent.Framework {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -16,11 +17,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// <summary>
         /// Get available job
         /// </summary>
-        /// <param name="workerId"></param>
+        /// <param name="workerSupervisorId"></param>
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<JobProcessingInstructionModel> GetAvailableJobAsync(string workerId,
+        Task<IEnumerable<JobProcessingInstructionModel>> GetAvailableJobsAsync(string workerSupervisorId,
             JobRequestModel request, CancellationToken ct = default);
 
         /// <summary>

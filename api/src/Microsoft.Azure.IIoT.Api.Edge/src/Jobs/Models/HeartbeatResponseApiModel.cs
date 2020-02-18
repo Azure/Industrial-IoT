@@ -4,32 +4,25 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
-    using Newtonsoft.Json;
-    using System;
+    using System.Collections.Generic;
 
     /// <summary>
-    /// Heatbeat response
+    /// HeartbeatResponse Api Model
     /// </summary>
-    public class HeartbeatResponseApiModel {
+    public class HeartbeatResponseApiModel : List<HeartbeatResponseEntryApiModel> {
+        /// <summary>
+        /// Default constructor.
+        /// </summary>
+        public HeartbeatResponseApiModel() {
+
+        }
 
         /// <summary>
-        /// Instructions
+        /// Default constructor with initializer.
         /// </summary>
-        [JsonProperty(PropertyName = "heartbeatInstruction")]
-        public HeartbeatInstruction HeartbeatInstruction { get; set; }
+        /// <param name="collection"></param>
+        public HeartbeatResponseApiModel(IEnumerable<HeartbeatResponseEntryApiModel> collection) : base(collection) {
 
-        /// <summary>
-        /// Last active
-        /// </summary>
-        [JsonProperty(PropertyName = "lastActiveHeartbeat",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public DateTime? LastActiveHeartbeat { get; set; }
-
-        /// <summary>
-        /// Job continuation in case of updates
-        /// </summary>
-        [JsonProperty(PropertyName = "updatedJob",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public JobProcessingInstructionApiModel UpdatedJob { get; set; }
+        }
     }
 }

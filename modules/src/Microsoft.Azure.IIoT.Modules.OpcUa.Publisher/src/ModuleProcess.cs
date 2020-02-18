@@ -4,27 +4,29 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Controller;
+    using Autofac;
+    using IIoT.Agent.Framework.Agent;
+    using Microsoft.Azure.IIoT.Agent.Framework;
+    using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
+    using Microsoft.Azure.IIoT.Api.Jobs.Clients;
+    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Hosting;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Controller;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-    using Microsoft.Azure.IIoT.Agent.Framework;
-    using Microsoft.Azure.IIoT.Api.Jobs.Clients;
-    using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Extensions.Configuration;
+    using Serilog;
     using System;
     using System.Diagnostics;
     using System.Runtime.Loader;
     using System.Threading;
     using System.Threading.Tasks;
-    using Autofac;
-    using Microsoft.Extensions.Configuration;
-    using Serilog;
 
     /// <summary>
     /// Publisher module
@@ -132,6 +134,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             builder.RegisterModule<AgentFramework>();
             builder.RegisterModule<ModuleFramework>();
 
+            builder.RegisterType<InMemoryJobHeartbeatCollection>()
+                .AsImplementedInterfaces().SingleInstance();
+
             if (legacyCliOptions.RunInLegacyMode) {
                 builder.AddDiagnostics(config,
                     legacyCliOptions.ToLoggerConfiguration());
@@ -143,13 +148,20 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 // we want to reuse the Client from the ModuleHost in sub-scopes.
                 builder.RegisterType<ModuleHost>()
                     .AsImplementedInterfaces().SingleInstance();
+                
                 // Local orchestrator
-                builder.RegisterType<LegacyJobOrchestrator>()
+                builder.RegisterType<DefaultJobOrchestrator>()
+                    .AsImplementedInterfaces().SingleInstance();
+
+                builder.RegisterType<LegacyJobRepository>()
                     .AsImplementedInterfaces().SingleInstance();
 
                 // Create jobs from published nodes file
                 builder.RegisterType<PublishedNodesJobConverter>()
                     .SingleInstance();
+
+                builder.RegisterType<DefaultDemandMatcher>()
+                    .AsImplementedInterfaces().SingleInstance();
             }
             else {
                 builder.AddDiagnostics(config);

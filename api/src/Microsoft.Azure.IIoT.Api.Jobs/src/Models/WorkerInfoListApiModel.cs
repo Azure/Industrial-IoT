@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
     /// <summary>
     /// Worker info list model
     /// </summary>
-    public class WorkerInfoListApiModel {
+    public class WorkerSupervisorInfoListApiModel {
 
         /// <summary>
         /// Continuation token
@@ -25,6 +25,6 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
         /// Workers
         /// </summary>
         [JsonProperty(PropertyName = "workers")]
-        public List<WorkerInfoApiModel> Workers { get; set; }
+        public List<WorkerSupervisorInfoApiModel> Workers { get; set; }
     }
 }
