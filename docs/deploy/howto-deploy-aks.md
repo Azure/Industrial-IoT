@@ -386,8 +386,7 @@ providers, in the order of increasing priority:
 
 This means that all of the configuration parameters of the app can be passed from all of those three sources.
 
-You can read more about configuration in .Net Core
-[here](https://docs.microsoft.com/aspnet/core/fundamentals/configuration/?view=aspnetcore-3.1).
+You can read more about configuration in .Net Core [here](https://docs.microsoft.com/aspnet/core/fundamentals/configuration/?view=aspnetcore-3.1).
 
 ### JSON File Configuration Provider
 
@@ -466,8 +465,7 @@ Command line argument key-value pairs can be specified with:
     run.
   
     Properties correspond to that of application registration and Service Principal manifests. Definition
-    of application properties can be found
-    [here](https://docs.microsoft.com/azure/active-directory/develop/reference-app-manifest).
+    of application properties can be found [here](https://docs.microsoft.com/azure/active-directory/develop/reference-app-manifest).
   
     Application objects should contain the following properties:
 

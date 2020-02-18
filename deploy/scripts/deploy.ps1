@@ -389,6 +389,7 @@ Function Get-EnvironmentVariables() {
     if (![string]::IsNullOrEmpty($script:resourceGroupName)) {
         Write-Output "PCS_RESOURCE_GROUP=$($script:resourceGroupName)"
     }
+
     $var = $deployment.Outputs["keyVaultUri"].Value
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_KEYVAULT_URL=$($var)"
@@ -405,6 +406,12 @@ Function Get-EnvironmentVariables() {
             Write-Output "PCS_AUTH_TENANT=$($var)"
         }
     }
+    
+    $var = $deployment.Outputs["tsiUrl"].Value
+    if (![string]::IsNullOrEmpty($var)) {
+        Write-Output "PCS_TSI_URL=$($var)"
+    }
+
     $var = $deployment.Outputs["serviceUrl"].Value
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_SERVICE_URL=$($var)"
