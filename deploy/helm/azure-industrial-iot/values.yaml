@@ -72,8 +72,14 @@ azure:
       dataProtection: null
 
   # This provides details of Azure Data Lake Storage Gen2 Account.
-  # NOTE: Service Principal of servicesApp should be configured to have read/write access to this storage account.
   # NOTE: Those values will be required if telemetryCdmProcessor microservice is enabled.
+  # NOTE: Currently, you will need to setup access rights for the Service Principal of servicesApp.
+  #       This is required so that telemetryCdmProcessor can write data to the container.
+  #       You need to do the following:
+  #         1. servicesApp should be given the following API permission:
+  #               user_impersonation on Azure Storage (delegated)
+  #         2. On storage account, Service Principal of servicesApp should be assigned to the following role:
+  #               Storage Blob Data Contributor
   adlsg2:
     # azure.adlsg2.connectionString is the connection string for ADLS Gen2 account.
     connectionString: null
