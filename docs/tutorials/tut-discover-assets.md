@@ -32,7 +32,7 @@ To discover OPC UA server assets in the connected networks (factories, etc.) you
 
    When the scan complets you can click on the discovery module (in this case "wingat-bnifrqs_module_discoverer) and see the Endpoints belonging to the discovered servers.
 
-   ![Specific Endpoints](../media/eng-tool-discovery-endpoints.PNG)
+   ![Specific Endpoints](../media/eng-tool-discovery-endpoints.png)
 
 3. The *Assets* menu shows a list of **all discovered and registered** OPC Servers with their Name, their Id, and the site to which the OPC Server belongs to.
 

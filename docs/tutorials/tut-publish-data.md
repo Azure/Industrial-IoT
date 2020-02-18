@@ -12,7 +12,7 @@ To publish data the platform makes use the deployed [OPC Publisher](../modules/p
 
 All Publishers deployed to your gateways are listed in under *Publisher*.
 
-![Publisher](../media/eng-tool-publisher.PNG)
+![Publisher](../media/eng-tool-publisher.png)
 
 ## Subscribe to a variables in the Simulation
 
