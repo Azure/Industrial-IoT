@@ -128,18 +128,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
             var consolidated =
                 ToGatewayRegistration(twin, twin.GetConsolidatedProperties());
-            var desired = (twin.Properties?.Desired == null) ? null :
-                ToGatewayRegistration(twin, twin.Properties.Desired);
-
             connected = consolidated.Connected;
-            if (desired != null) {
-                desired.Connected = connected;
-                if (desired.SiteId == null && consolidated.SiteId != null) {
-                    // Not set by user, but by config, so fake user desiring it.
-                    desired.SiteId = consolidated.SiteId;
-                }
-            }
-            return desired;
+            return consolidated;
         }
 
         /// <summary>
@@ -167,6 +157,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="registration"></param>
         /// <returns></returns>
         public static GatewayModel ToServiceModel(this GatewayRegistration registration) {
+            if (registration == null) {
+                return null;
+            }
             return new GatewayModel {
                 Id = registration.DeviceId,
                 SiteId = registration.SiteId,

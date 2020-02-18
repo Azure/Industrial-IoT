@@ -301,6 +301,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="registration"></param>
         /// <returns></returns>
         public static EndpointInfoModel ToServiceModel(this EndpointRegistration registration) {
+            if (registration == null) {
+                return null;
+            }
             return new EndpointInfoModel {
                 ApplicationId = registration.ApplicationId,
                 Registration = new EndpointRegistrationModel {
@@ -436,6 +439,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="other"></param>
         internal static bool IsInSyncWith(this EndpointRegistration registration,
             EndpointRegistration other) {
+            if (registration == null) {
+                return other == null;
+            }
             return
                 other != null &&
                 registration.EndpointUrl == other.EndpointUrl &&
@@ -454,11 +460,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
             /// <inheritdoc />
             public bool Equals(EndpointRegistration x, EndpointRegistration y) {
-                return
-                    x.EndpointUrlLC == y.EndpointUrlLC &&
-                    x.ApplicationId == y.ApplicationId &&
-                    x.SecurityPolicy == y.SecurityPolicy &&
-                    x.SecurityMode == y.SecurityMode;
+                if (x.EndpointUrlLC != y.EndpointUrlLC) {
+                    return false;
+                }
+                if (x.ApplicationId != y.ApplicationId) {
+                    return false;
+                }
+                if (x.SecurityPolicy != y.SecurityPolicy) {
+                    return false;
+                }
+                if (x.SecurityMode != y.SecurityMode) {
+                    return false;
+                }
+                return true;
             }
 
             /// <inheritdoc />

@@ -16,7 +16,7 @@ You can update, read as well as **query** all of these identities' models in the
 
 The following diagram shows the registry service in relationship to the other components.
 
-![architecture](../media/architecture.PNG)
+![architecture](../media/architecture.png)
 
 ## Create and Delete Items in the registry
 

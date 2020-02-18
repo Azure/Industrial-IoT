@@ -6,7 +6,7 @@
 
 ### Discover, register and manage your Industrial Assets with Azure
 
-Azure Industrial IoT allows plant operators to discover OPC UA enabled servers in a factory network and register them in Azure IoT Hub.  
+Azure Industrial IoT allows plant operators to discover [OPC UA](docs/opcua.md) enabled servers in a factory network and register them in Azure IoT Hub.  
 
 ### Analyze, react to events, and control factory equipment from anywhere
 
