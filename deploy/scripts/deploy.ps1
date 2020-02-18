@@ -111,17 +111,25 @@ Function Select-Context() {
     }
 
     if (!$subscriptionDetails) {
-        $subscriptions = Get-AzSubscription
+        $subscriptions = Get-AzSubscription | Where-Object { $_.State -eq "Enabled" }
         
-        if ($subscriptions.Count -eq 1) {
+        if ($subscriptions.Count -eq 0) {
+            throw "No active subscriptions found - exiting."
+        }
+        elseif ($subscriptions.Count -eq 1) {
             $subscriptionId = $subscriptions[0].Id
         }
         else {
             if (!$script:interactive) {
                 throw "Provide a subscription to use using -subscriptionId or -subscriptionName"
             }
-            Write-Host "Please choose a subscription:"
-            1..$subscriptions.Count | ForEach-Object { Write-Host "[$($_)] $($subscriptions[$_-1].Name)" }
+            Write-Host "Please choose a subscription from the list (using its Index):"
+            $script:index = 0
+            $subscriptions | Format-Table -AutoSize -Property `
+                 @{Name="Index"; Expression = {($script:index++)}},`
+                 @{Name="Subscription"; Expression = {$_.Name}},`
+                 @{Name="Id"; Expression = {$_.SubscriptionId}}`
+            | Out-Host
             while ($true) {
                 $option = Read-Host ">"
                 try {
@@ -130,7 +138,7 @@ Function Select-Context() {
                     }
                 }
                 catch {
-                    Write-Host "Invalid option '$($option)' provided."
+                    Write-Host "Invalid index '$($option)' provided."
                 }
                 Write-Host "Choose from the list using an index between 1 and $($subscriptions.Count)."
             }
@@ -296,8 +304,12 @@ Function Select-ResourceGroupLocation() {
             throw "Location '$script:resourceGroupLocation' is not a valid location."
         }
     }
-    Write-Host "Please choose a location for your deployment:"
-    1..$locations.Count | ForEach-Object { Write-Host "[$($_)] $($locations[$_-1].DisplayName)" }
+    Write-Host "Please choose a location for your deployment from the list (using its Index):"
+    $script:index = 0
+    $locations | Format-Table -AutoSize -property `
+            @{Name="Index"; Expression = {($script:index++)}},`
+            @{Name="Location"; Expression = {$_.DisplayName}} `
+    | Out-Host
     while ($true) {
         $option = Read-Host -Prompt ">"
         try {
@@ -306,7 +318,7 @@ Function Select-ResourceGroupLocation() {
             }
         }
         catch {
-            Write-Host "Invalid option '$($option)' provided."
+            Write-Host "Invalid index '$($option)' provided."
         }
         Write-Host "Choose from the list using an index between 1 and $($locations.Count)."
     }
@@ -584,13 +596,6 @@ Function New-Deployment() {
             $adminPassword = New-Password
             $templateParameters.Add("edgePassword", $adminPassword)
             $templateParameters.Add("edgeUserName", $adminUser)
-
-            Write-Host 
-            Write-Host "To troubleshoot simulation use the following User and Password to log on:"
-            Write-Host 
-            Write-Host $adminUser
-            Write-Host $adminPassword
-            Write-Host 
         }
         if ($script:type -eq "app") {
             $templateParameters.Add("siteName", $script:applicationName)
@@ -652,6 +657,15 @@ Function New-Deployment() {
         try {
             Write-Host "Starting deployment..."
 
+            if (![string]::IsNullOrEmpty($adminUser) -and ![string]::IsNullOrEmpty($adminPassword)) {
+                Write-Host 
+                Write-Host "To troubleshoot simulation use the following User and Password to log into the VM's:"
+                Write-Host 
+                Write-Host $adminUser
+                Write-Host $adminPassword
+                Write-Host 
+            }
+    
             # Start the deployment
             $templateFilePath = Join-Path (Join-Path (Split-Path $ScriptDir) "templates") "azuredeploy.json"
             $deployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName `
@@ -864,7 +878,8 @@ $script:requiredProviders = @(
     "microsoft.containerregistry"
 )
 
-Write-Host "Signing in ..." 
+Write-Host "Signing in ..."
+Write-Host
 Import-Module Az
 $script:context = Select-Context -context $script:context `
     -environment (Get-AzEnvironment -Name $script:environmentName)
