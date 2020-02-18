@@ -316,8 +316,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
         private readonly IIoTHubTelemetryServices _client;
         private readonly ILogger _logger;
         private readonly IMetricsLogger _metrics;
-        private static readonly Counter _endpointSecurityPolicyNone = Metrics.CreateCounter("iiot_endpointSecurityPolicyNone", "unsecured endpoint found");
-        private static readonly Counter _endpointWithoutCertificate = Metrics.CreateCounter("iiot_endpointWithoutCertificate", "secure endpoint without certificate found");
+        private static readonly Counter _endpointSecurityPolicyNone = Metrics.CreateCounter("iiot_endpointSecurityAlerter_endpointSecurityPolicyNone", "unsecured endpoint found");
+        private static readonly Counter _endpointWithoutCertificate = Metrics.CreateCounter("iiot_endpointSecurityAlerter_endpointWithoutCertificate", "secure endpoint without certificate found");
 
     }
 }

@@ -1,5 +1,8 @@
-kind: ConfigMap
 apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: container-azm-ms-agentconfig
+  namespace: kube-system
 data:
   schema-version:
     v1
@@ -79,6 +82,3 @@ data:
         #fieldpass = ["metric_to_pass1", "metric_to_pass12"]
 
         #fielddrop = ["metric_to_drop"]
-metadata:
-  name: container-azm-ms-agentconfig
-  namespace: kube-system

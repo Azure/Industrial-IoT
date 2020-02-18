@@ -405,10 +405,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         private readonly IApplicationEndpointRegistry _endpoints;
         private readonly IApplicationEventBroker _broker;
         private static readonly Gauge _appsAdded = Metrics
-            .CreateGauge("iiot_applicationsAdded", "Number of applications added ");
+            .CreateGauge("iiot_registry_applicationAdded", "Number of applications added ");
         private static readonly Gauge _appsUpdated = Metrics
-            .CreateGauge("iiot_applicationsUpdated", "Number of applications updated ");
+            .CreateGauge("iiot_registry_applicationsUpdated", "Number of applications updated ");
         private static readonly Gauge _appsUnchanged = Metrics
-            .CreateGauge("iiot_applicationsUnchanged", "Number of applications unchanged ");
+            .CreateGauge("iiot_registry_applicationUnchanged", "Number of applications unchanged ");
     }
 }
