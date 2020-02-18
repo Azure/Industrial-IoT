@@ -1,4 +1,7 @@
 {{- if .Values.deployment.microServices.telemetryCdmProcessor.enabled }}
+{{- if ( ne .Values.azure.auth.required true ) }}
+{{- fail "telemetryCdmProcessor requires authentication to be enabled" }}
+{{- end }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
