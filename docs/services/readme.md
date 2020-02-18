@@ -29,23 +29,26 @@ All REST calls use JSON as mime type.  OPC UA types are encoded as per Part 6 [w
 
 The following Agents are part of the platform:
 
-* [Edge Telemetry processor](telemetry.md) (GA)
+* [Edge Telemetry Processor](telemetry.md) (GA)
 * [Edge Event Processor](events.md) (GA)
 * [SignalR Telemetry Forwarder](ux.md) (GA)
-* [Datalake and CDM Telemetry Exporter](cdm.md) (Preview)
 * [Registry Discovery Multiplexer](discovery.md) (GA)
+* [Datalake and CDM Telemetry Exporter](cdm.md) (Preview)
+* [Http Tunnel Processor](tunnel.md)(Preview)
 * [Identity Service](identity.md) (Preview)
 * [Registry Security Alerting Service](security.md) (Preview)
 * [Registry Eventing Service](registryevents.md) (Preview)
 * [File upload Handler](fileupload.md) (Experimental)
 * [OPC Model Importer](graph.md) (Experimental)
 
-## All-in-one platform service
+## Other components
 
 An alternative to hosting individual containers in a cluster is the "[all in one service container](all-in-one.md)", which is a single web service that hosts all micro services and agents in its process.  
+
+A sample web application is provided in the form of the Azure Industrial IoT [Engineering Tool](engineeringtool.md), which is deployed using the [deployment script](../deploy/howto-deploy-all-in-one.md).
 
 ## Next steps
 
 * [Deploy Microservices to Azure](../deploy/readme.md)
-* [Register a server and browse its address space](../howto-use-cli.md)
+* [Register a server and browse its address space](../tutorials/tut-use-cli.md)
 * [Explore the REST API](../api/readme.md)
