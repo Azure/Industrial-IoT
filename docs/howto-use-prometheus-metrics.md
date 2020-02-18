@@ -124,7 +124,7 @@ Other Prometheus specific parameters which could be used:
 ```
 When monitor_kubernetes_pods = true, replicaset will scrape Kubernetes pods for the following prometheus annotations:
   - prometheus.io/scrape: Enable scraping for this pod
-  - prometheus.io/scheme: If the metrics endpoint is secured then you will need to set       this to `https` & most likely set the tls config.
- - prometheus.io/path: If the metrics path is not /metrics, define it with this 		    annotation.
- - prometheus.io/port: If port is not 9102 use this annotation
+  - prometheus.io/scheme: If the metrics endpoint is secured then you will need to set this to `https` & most likely set the tls config.
+  - prometheus.io/path: If the metrics path is not /metrics, define it with this annotation.
+  - prometheus.io/port: If port is not 9102 use this annotation
 ```
