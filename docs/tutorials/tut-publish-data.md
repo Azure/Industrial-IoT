@@ -42,5 +42,5 @@ Once the configuration ofr the published data is done, the endpoints may be disc
 
 The telemetry data from the OPC UA Servers on the field is now flowing into the IIoT platform and is stored in the TSI storage respective in the Azure DataLake Gen 2 in CDM format.
 
-- [Visualize and analyze your data in Time Series Insights](tut-timeseries-insights.md)
+- [Visualize and analyze your data in Time Series Insights](tut-timeseriesinsights.md)
 - [Visualize and analyze your data in CDM format in Power Bi](tut-power-bi-cdm.md)

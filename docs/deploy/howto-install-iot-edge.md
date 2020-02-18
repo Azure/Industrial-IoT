@@ -17,7 +17,7 @@ If you have not done so yet, [deploy](readme.md) the Industrial IoT platform or 
 
 When the platform starts up it will set up layered deployments for each required module.  These layered deployment configurations will be automatically applied to any gateway with the following Device Twin tags:
 
-```JSON
+```json
 "tags": {
     "__type__": "iiotedge",
     "os": "Linux"    
@@ -26,7 +26,7 @@ When the platform starts up it will set up layered deployments for each required
 
 If your container runtime is Windows Containers set the `os` property to `Windows`:
 
-```JSON
+```json
 "tags": {
     "__type__": "iiotedge",
     "os": "Windows"
