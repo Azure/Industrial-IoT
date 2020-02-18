@@ -10,6 +10,8 @@ All OPC UA components use the [OPC Foundation](https://opcfoundation.org/)'s OPC
 
 ## Azure Services
 
+![Industrial IoT Services](../media/cloud.png)
+
 ### Azure Kubernetes Service / Linux VM
 
 The deployment tool deploys the Industrial IoT Microservices into a Linux [VM](https://azure.microsoft.com/en-us/services/virtual-machines/) or [Azure Kubernetes Cluster](https://azure.microsoft.com/en-us/services/kubernetes-service/) and creates the following required PaaS services:
@@ -45,6 +47,8 @@ All Microservices are registered as Application in [Azure Active Directory](http
 ## Azure IoT Edge
 
 Edge modules are deployed through IoT Hub to [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/). to provide protocol translation and a local management plane.  Modules are simple Docker containers consumed from a docker registry, such as Microsoft Container Registry (MCR).  Edge components only need to open an outbound SSL connection to enable bidirectional services.
+
+![Industrial IoT Edge](../media/edge.png)
 
 ## Next steps
 
