@@ -67,9 +67,11 @@ azure:
     connectionString: null
 
     container:
-      # ToDo: Document creation of the container. And the fact that `dataprotection` container will be created if not set.
-      # azure.storageAccount.container.dataProtection is Storage Account Container that holds encrypted keys.
-      dataProtection: null
+      dataProtection:
+        # ToDo: Document creation of the container. And the fact that 'dataprotection' container will be created if not set.
+        # azure.storageAccount.container.dataProtection.name is the name of Storage Account Container that holds encrypted keys.
+        # NOTE: If azure.storageAccount.container.dataProtection.name is not specifid, then a container named 'dataprotection' will be created.
+        name: null
 
   # This provides details of Azure Data Lake Storage Gen2 Account.
   # NOTE: Those values will be required if telemetryCdmProcessor microservice is enabled.
@@ -129,6 +131,7 @@ azure:
     key:
       # ToDo: Document creation of the key.
       # azure.keyVault.key.dataProtection is the key in Key Vault that should be used for encryption of keys in data protection Storage Account Container.
+      # NOTE: If azure.keyVault.key.dataProtection is not specified, then a key named 'dataprotection' will be created.
       dataProtection: null
 
   # This value is not used at the moment, so it can be skipped.
@@ -699,7 +702,6 @@ deployment:
         nodePort: null
 
     # NOTE: telemetryCdmProcessor can be enabled only if authentication is enabled and auth details are provided.
-    # ToDo: Enable after we have CDM configuration.
     telemetryCdmProcessor:
       enabled: false
       deploymentAnnotations: {}
