@@ -123,7 +123,7 @@ Function Select-Context() {
             if (!$script:interactive) {
                 throw "Provide a subscription to use using -subscriptionId or -subscriptionName"
             }
-            Write-Host "Please choose a subscription from the list (using its Index):"
+            Write-Host "Please choose a subscription from list list (using its Index):"
             $script:index = 0
             $subscriptions | Format-Table -AutoSize -Property `
                  @{Name="Index"; Expression = {($script:index++)}},`
@@ -304,7 +304,7 @@ Function Select-ResourceGroupLocation() {
             throw "Location '$script:resourceGroupLocation' is not a valid location."
         }
     }
-    Write-Host "Please choose a location for your deployment from the list (using its Index):"
+    Write-Host "Please choose a location for your deployment from this list (using its Index):"
     $script:index = 0
     $locations | Format-Table -AutoSize -property `
             @{Name="Index"; Expression = {($script:index++)}},`
