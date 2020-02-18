@@ -71,14 +71,11 @@ azure:
       # azure.storageAccount.container.dataProtection is Storage Account Container that holds encrypted keys.
       dataProtection: null
 
-  # This provides details of Azure Data Lake Storage Gen2 Account. Services SP should be configured to have access to this.
-  # Those values will be required if telemetryCdmProcessor microservice is enabled. And telemetryCdmProcessor can be enabled only if auth details are provided.
+  # This provides details of Azure Data Lake Storage Gen2 Account.
+  # NOTE: Service Principal of servicesApp should be configured to have read/write access to this storage account.
+  # NOTE: Those values will be required if telemetryCdmProcessor microservice is enabled.
   adlsg2:
-    # azure.adlsg2.hostName is ADLS file system endpoint hostname.
-    # <storage_account_name>.dfs.core.windows.net
-    hostName: null
     # azure.adlsg2.connectionString is the connection string for ADLS Gen2 account.
-    # This can be omitted if hostName is specified.
     connectionString: null
 
     container:
@@ -606,6 +603,7 @@ deployment:
     #   - PCS_KEYVAULT_APPID
     #   - PCS_KEYVAULT_SECRET
     # ToDo: Enable when it is clear how frontend can be deployed given auth.
+    # NOTE: frontend can be enabled only if authentication is enabled and auth details are provided.
     frontend:
       enabled: false
       deploymentAnnotations: {}
@@ -694,6 +692,7 @@ deployment:
         loadBalancerSourceRanges: []
         nodePort: null
 
+    # NOTE: telemetryCdmProcessor can be enabled only if authentication is enabled and auth details are provided.
     # ToDo: Enable after we have CDM configuration.
     telemetryCdmProcessor:
       enabled: false
