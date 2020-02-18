@@ -14,9 +14,9 @@ This article will walk you through the steps to discover and register OPC UA ser
 
 You should have already successfully deployed all Microservices and at least one IoT Edge Gateway with the Industrial IoT Modules.  If you have not, please follow the instructions in:
 
-1. [Deploy the Industrial IoT Microservices to Azure](deploy/readme.md) and securely store the resulting `.env` file.
+1. [Deploy the Industrial IoT Microservices to Azure](../deploy/readme.md) and securely store the resulting `.env` file.
 
-2. [Install Industrial IoT Edge Gateway](deploy/howto-install-iot-edge.md)
+2. [Install Industrial IoT Edge Gateway](../deploy/howto-install-iot-edge.md)
 
   To run the demo OPC UA server and the OPC Device Management Console Client you will also need Docker installed on your development PC.  If you have not, please follow the instructions for [Linux](https://docs.docker.com/install/linux/docker-ce/ubuntu/), [Mac](https://docs.docker.com/docker-for-mac/install/), or on [Windows](https://docs.docker.com/docker-for-windows/install/).
 
@@ -59,29 +59,29 @@ To make the demo deterministic we also start a demo OPC UA server.
 
    ```bash
    > help
-   
+
    aziiotcli - Allows to script Industrial IoT Services api.
    usage:      aziiotcli command [options]
-   
+
    Commands and Options
-   
+
         console     Run in interactive mode. Enter commands after the >
         exit        Exit interactive mode and thus the cli.
         status      Print service status
-   
+
         apps        Manage applications
         endpoints   Manage endpoints
         supervisors Manage supervisors
-   
+
         nodes       Call twin module services on endpoint
-   
+
         groups      Manage trust groups (Experimental)
         trust       Manage trust between above entities (Experimental)
         requests    Manage certificate requests (Experimental)
-   
+
         help, -h, -? --help
                     Prints out this help.
-   
+
    >
    ```
 
@@ -191,7 +191,7 @@ To make the demo deterministic we also start a demo OPC UA server.
 
    This will take some time depending on the number of server endpoints activated.   Note that this is typically done manually and only after validating and trusting the server certificate.
 
-   See the [architectural flow diagrams](architecture-flow.md) for more information.
+   See the [architectural flow diagrams](../architecture-flow.md) for more information.
 
 5. To get a list of connected and ready endpoints run
 
@@ -280,7 +280,7 @@ apps unregister
 
    This will take some time depending on the number of server endpoints activated.   Note that this is typically done manually and only after validating and trusting the server certificate.
 
-   See the [architectural flow diagrams](architecture-flow.md) for more information.
+   See the [architectural flow diagrams](../architecture-flow.md) for more information.
 
 1. To get a list of connected and ready endpoints run
 
@@ -307,4 +307,4 @@ To remove all applications and related endpoints run:
 Now that you are done, try to run your own OPC UA server in the same network as your IoT Edge gateway and follow the instructions above with the relevant variations (e.g. discovery URL).
 
 * Learn how to write an application that reads and writes variable values on an OPC UA server (COMING SOON)
-* [Explore Microservices REST APIs](api/readme.md)
+* [Explore Microservices REST APIs](../api/readme.md)

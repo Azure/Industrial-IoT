@@ -222,6 +222,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="registration"></param>
         /// <returns></returns>
         public static SupervisorModel ToServiceModel(this SupervisorRegistration registration) {
+            if (registration == null) {
+                return null;
+            }
             return new SupervisorModel {
                 Id = SupervisorModelEx.CreateSupervisorId(registration.DeviceId, registration.ModuleId),
                 SiteId = registration.SiteId,
@@ -239,6 +242,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="other"></param>
         internal static bool IsInSyncWith(this SupervisorRegistration registration,
             SupervisorRegistration other) {
+            if (registration == null) {
+                return other == null;
+            }
             return
                 other != null &&
                 registration.SiteId == other.SiteId &&
