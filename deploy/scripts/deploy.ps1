@@ -747,7 +747,7 @@ Function New-Deployment() {
         
             if (![string]::IsNullOrEmpty($website)) {
                 # Try open application
-                Start-Process -Path $website -ErrorAction SilentlyContinue | Out-Null
+                Start-Process $website -ErrorAction SilentlyContinue | Out-Null
             }
             return
         }
