@@ -272,6 +272,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="registration"></param>
         /// <returns></returns>
         public static PublisherModel ToServiceModel(this PublisherRegistration registration) {
+            if (registration == null) {
+                return null;
+            }
             return new PublisherModel {
                 Id = PublisherModelEx.CreatePublisherId(registration.DeviceId, registration.ModuleId),
                 SiteId = registration.SiteId,
@@ -328,6 +331,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="other"></param>
         internal static bool IsInSyncWith(this PublisherRegistration registration,
             PublisherRegistration other) {
+            if (registration == null) {
+                return other == null;
+            }
             return
                 other != null &&
                 registration.SiteId == other.SiteId &&
