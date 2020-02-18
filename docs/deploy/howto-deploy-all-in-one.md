@@ -38,8 +38,8 @@ The platform and simulation can also be deployed using the deploy script.
 
    - On Windows:
 
-     ```cmd
-     deploy
+     ```pwsh
+     .\deploy
      ```
 
    - On Linux:
