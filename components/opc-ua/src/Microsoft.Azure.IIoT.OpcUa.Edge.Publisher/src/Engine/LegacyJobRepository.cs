@@ -178,19 +178,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             foreach (var job in jobs) {
                                 var serializedJob =
                                     _jobSerializer.SerializeJobConfiguration(job, out var jobConfigurationType);
-                                var jobHash = job.GetHashSafe().ToString();
 
                                 var jobInfoModel = new JobInfoModel {
                                     Demands = new List<DemandModel>(),
-                                    Id = jobHash,
                                     JobConfiguration = serializedJob,
                                     JobConfigurationType = jobConfigurationType,
                                     LifetimeData = new JobLifetimeDataModel() {Updated = now},
-                                    Name = $"LegacyJob_{jobHash}",
                                     RedundancyConfig = new RedundancyConfigModel {
                                         DesiredActiveAgents = 1, DesiredPassiveAgents = 0
                                     }
                                 };
+
+                                var jobHash = jobInfoModel.GetHashSafe();
+                                jobInfoModel.Id = jobHash;
+                                jobInfoModel.Name = $"LegacyJob_{jobHash.GetHashCode()}"; //Just a name, GetHashCode makes the id a little bit "shorter"
 
                                 _jobs[jobHash] = jobInfoModel;
                             }

@@ -65,6 +65,21 @@ namespace System {
         }
 
         /// <summary>
+        /// Hashes the string with SHA256
+        /// </summary>
+        /// <param name="bytestr">string to hash</param>
+        /// <returns></returns>
+        public static string ToSha256Hash(this byte[] bytestr) {
+            if (bytestr == null) {
+                return null;
+            }
+            using (var sha256 = new SHA256Managed()) {
+                var hash = sha256.ComputeHash(bytestr);
+                return hash.ToBase16String(false);
+            }
+        }
+
+        /// <summary>
         /// Convert a byte array to string and limit to certain size.
         /// </summary>
         /// <param name="bytes"></param>

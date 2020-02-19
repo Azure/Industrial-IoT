@@ -140,6 +140,15 @@ namespace System {
         }
 
         /// <summary>
+        /// Hashes the string with SHA256
+        /// </summary>
+        /// <param name="str">string to hash</param>
+        /// <returns></returns>
+        public static string ToSha256Hash(this string str) {
+            return Encoding.UTF8.GetBytes(str).ToSha256Hash();
+        }
+
+        /// <summary>
         /// Trims quotes
         /// </summary>
         /// <param name="value"></param>
