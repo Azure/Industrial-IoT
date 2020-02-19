@@ -14,7 +14,7 @@ Operations personnel can subscribe to and react to events on the factory floor f
 
 ### Simple developer experience
 
-The [REST API](docs/api/readme.md) can be used with any programming language through its exposed Open API specification (Swagger). This means when integrating OPC UA into cloud management solutions, developers are free to choose technology that matches their skills, interests, and architecture choices.  For example, a full stack web developer who develops an application for an alarm and event dashboard can write logic to respond to events in JavaScript or TypeScript without ramping up on a OPC UA SDK, C, C++, Java or C#.
+The [REST API](api/readme.md) can be used with any programming language through its exposed Open API specification (Swagger). This means when integrating OPC UA into cloud management solutions, developers are free to choose technology that matches their skills, interests, and architecture choices.  For example, a full stack web developer who develops an application for an alarm and event dashboard can write logic to respond to events in JavaScript or TypeScript without ramping up on a OPC UA SDK, C, C++, Java or C#.
 
 ### Manage certificates and trust groups
 
@@ -24,7 +24,10 @@ Azure Industrial IoT manages OPC UA Application Certificates and Trust Lists of 
 
 Deploying Azure Industrial IoT includes deploying the Azure Industrial IoT Microservices to Azure and the required edge modules to Azure IoT Edge.
 
-To get started [deploy the platform components and Edge Gateway](deploy/readme.md) and [run through the Tutorials](tutorials/readme.md).
+To get started
+
+* [Deploy the platform components and Edge Gateway](deploy/readme.md) 
+* [Run through the Tutorials](tutorials/readme.md).
 
 ## Learn more
 
