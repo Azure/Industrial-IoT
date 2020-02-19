@@ -178,6 +178,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         }
 
         /// <summary>
+        /// OnConfigUpdated-Event - never called as command line arguments don't change while runtime.
+        /// </summary>
+#pragma warning disable 67
+        public event ConfigUpdatedEventHandler OnConfigUpdated;
+#pragma warning restore 67
+
+        /// <summary>
         /// 
         /// </summary>
         public bool RunInLegacyMode => System.IO.File.Exists(GetValueOrDefault(LegacyCliConfigKeys.PublisherNodeConfigurationFilename, LegacyCliConfigKeys.DefaultPublishedNodesFilename));
@@ -186,13 +193,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         /// The AgentConfigModel instance that is based on specified legacy command line arguments.
         /// </summary>
         public AgentConfigModel Config { get; }
-
-        /// <summary>
-        /// OnConfigUpdated-Event - never called as command line arguments don't change while runtime.
-        /// </summary>
-#pragma warning disable 67
-        public event ConfigUpdatedEventHandler OnConfigUpdated;
-#pragma warning restore 67
 
         /// <summary>
         /// The batch size, hardcoded to 1.
