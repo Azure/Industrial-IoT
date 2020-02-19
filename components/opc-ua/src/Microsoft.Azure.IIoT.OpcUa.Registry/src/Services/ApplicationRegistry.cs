@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Prometheus;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -415,6 +416,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 _metrics.TrackValue("applicationsAdded", added);
                 _metrics.TrackValue("applicationsUpdated", updated);
                 _metrics.TrackValue("applicationsUnchanged", unchanged);
+                _appsAdded.Set(added);
+                _appsUpdated.Set(updated);
+                _appsUnchanged.Set(unchanged);
             }
         }
 
@@ -424,5 +428,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         private readonly IEndpointBulkProcessor _bulk;
         private readonly IApplicationEndpointRegistry _endpoints;
         private readonly IApplicationEventBroker _broker;
+        private static readonly Gauge _appsAdded = Metrics
+            .CreateGauge("iiot_registry_applicationAdded", "Number of applications added ");
+        private static readonly Gauge _appsUpdated = Metrics
+            .CreateGauge("iiot_registry_applicationsUpdated", "Number of applications updated ");
+        private static readonly Gauge _appsUnchanged = Metrics
+            .CreateGauge("iiot_registry_applicationUnchanged", "Number of applications unchanged ");
     }
 }
