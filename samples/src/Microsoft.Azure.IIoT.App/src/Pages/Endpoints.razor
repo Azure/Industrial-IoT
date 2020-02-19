@@ -10,10 +10,12 @@
 @using Microsoft.Azure.IIoT.App.Data
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
+@using Microsoft.Azure.IIoT.App.Common
 
 @inject NavigationManager NavigationManager
 @inject IRegistryServiceApi RegistryService
 @inject Registry RegistryHelper
+@inject UICommon CommonHelper
 
 <h1>Endpoints</h1>
 
@@ -51,7 +53,7 @@
         {
             <tr>
                 @if (endpoint.ActivationState == EndpointActivationState.ActivatedAndConnected ||
-                    endpoint.ActivationState == EndpointActivationState.Activated)
+                  endpoint.ActivationState == EndpointActivationState.Activated)
                 {
                     <td>
                         @{ discover = DiscovererId == null ? RegistryHelper.PathAll : DiscovererId; }
@@ -72,7 +74,7 @@
 
                 <td>
                     @if (endpoint.ActivationState == EndpointActivationState.ActivatedAndConnected ||
-                       endpoint.ActivationState == EndpointActivationState.Activated)
+                     endpoint.ActivationState == EndpointActivationState.Activated)
                     {
                         <input type="checkbox" checked
                                @onchange="async eventArgs => { await SetActivation(endpoint.Registration.Id, eventArgs.Value); }" />
@@ -91,7 +93,7 @@
         }
     </tbody>
 </table>
-<div class="loader-pos @_spinner"></div>
+<div class="loader-pos @CommonHelper.Spinner"></div>
 
 <ErrorMessage PageError="@_pagedendpointList.Error" Status="@Status"></ErrorMessage>
 
@@ -111,13 +113,12 @@
     [Parameter]
     public string SupervisorId { get; set; } = string.Empty;
 
-    public const int PageLength = 10;
     public string Status { get; set; }
     private PagedResult<EndpointInfoApiModel> _endpointList =
         new PagedResult<EndpointInfoApiModel>();
     private PagedResult<EndpointInfoApiModel> _pagedendpointList =
         new PagedResult<EndpointInfoApiModel>();
-    private string _spinner { get; set; }
+
 
     /// <summary>
     /// Notify page change
@@ -125,7 +126,7 @@
     /// <param name="page"></param>
     public void PagerPageChanged(int page)
     {
-        _pagedendpointList = _endpointList.GetPaged(page, PageLength, null);
+        _pagedendpointList = _endpointList.GetPaged(page, CommonHelper.PageLength, null);
         NavigationManager.NavigateTo("/endpoints/" + page);
     }
 
@@ -134,7 +135,7 @@
     /// </summary>
     protected override void OnInitialized()
     {
-        _spinner = "loader-big";
+        CommonHelper.Spinner = "loader-big";
     }
 
     /// <summary>
@@ -147,8 +148,8 @@
         {
             _endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId, SupervisorId);
             Page = "1";
-            _pagedendpointList = _endpointList.GetPaged(Int32.Parse(Page), PageLength, _endpointList.Error);
-            _spinner = "";
+            _pagedendpointList = _endpointList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _endpointList.Error);
+            CommonHelper.Spinner = "";
             StateHasChanged();
         }
     }
@@ -185,7 +186,7 @@
         }
 
         _endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId, SupervisorId);
-        _pagedendpointList = _endpointList.GetPaged(Int32.Parse(Page), PageLength, _endpointList.Error);
+        _pagedendpointList = _endpointList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _endpointList.Error);
         await Task.CompletedTask;
         this.StateHasChanged();
     }

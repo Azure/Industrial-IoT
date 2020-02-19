@@ -1,4 +1,5 @@
-﻿@page "/discoverers"
+﻿@page "/"
+@page "/discoverers"
 @page "/discoverers/{page}"
 
 @using Microsoft.Azure.IIoT.App.Services
@@ -10,11 +11,14 @@
 @using Microsoft.Azure.IIoT.Http.SignalR
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models
+@using Microsoft.Azure.IIoT.App.Common
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
 @inject RegistryServiceEvents RegistryServiceEvents
 @inject SignalRClient SignalRClientHelper
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UICommon CommonHelper
 
 @implements IDisposable
 
@@ -122,7 +126,7 @@
         }
     </tbody>
 </table>
-<div class="loader-pos @_spinner"></div>
+<div class="loader-pos @CommonHelper.Spinner"></div>
 <div class="results @_scanResult">
     Scan Results:
     <div class="events">
@@ -205,13 +209,11 @@
     public DiscovererInfo DiscovererData { get; set; }
     public PagedResult<DiscovererInfo> discovererList = new PagedResult<DiscovererInfo>();
     public PagedResult<DiscovererInfo> pagedDiscovererList = new PagedResult<DiscovererInfo>();
-    public const int PageLength = 10;
     public string Status { get; set; }
     private string _eventResult { get; set; }
     private string _scanResult { get; set; } = "hidden";
     private IAsyncDisposable _discovererEvent { get; set; }
     private IAsyncDisposable _discovery { get; set; }
-    private string _spinner { get; set; }
 
 
     /// <summary>
@@ -221,16 +223,21 @@
     /// <returns></returns>
     public void PagerPageChanged(int page)
     {
-        pagedDiscovererList = discovererList.GetPaged(page, PageLength, null);
+        pagedDiscovererList = discovererList.GetPaged(page, CommonHelper.PageLength, null);
         NavigationManager.NavigateTo("/discoverers/" + page);
     }
 
     /// <summary>
     /// OnInitialized
     /// </summary>
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        _spinner = "loader-big";
+        CommonHelper.Spinner = "loader-big";
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        if (authState.User == null)
+        {
+            NavigationManager.NavigateTo("AzureAD/Account/SignIn", true);
+        }
     }
 
     /// <summary>
@@ -243,8 +250,8 @@
         {
             discovererList = await RegistryHelper.GetDiscovererListAsync();
             Page = "1";
-            pagedDiscovererList = discovererList.GetPaged(Int32.Parse(Page), PageLength, discovererList.Error);
-            _spinner = "";
+            pagedDiscovererList = discovererList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, discovererList.Error);
+            CommonHelper.Spinner = "";
             StateHasChanged();
 
             _discovererEvent = await RegistryServiceEvents.SubscribeDiscovererEventsAsync(null, DiscovererEvent);
@@ -293,7 +300,7 @@
     private async Task UpdateDiscovererConfigAsync(DiscovererInfo discoverer, DiscoveryConfigApiModel config)
     {
         Status = await RegistryHelper.UpdateDiscovererAsync(discoverer, config);
-        this.StateHasChanged();
+        CloseDrawer();
     }
 
     /// <summary>
