@@ -365,7 +365,7 @@
                                     ]
                                 },
                                 "protectedSettings": {
-                                    "commandToExecute": "[concat('sudo bash simulation.sh ', ' --admin ', parameters('edgeUsername'), ' --imagesNamespace ', concat('\"', parameters('imagesNamespace'), '\"'), ' --imagesTag ', concat('\"', 'latest', '\"'), ' --dockerServer ', concat('\"', parameters('dockerServer'), '\"'), ' --dockerUser ', concat('\"', parameters('dockerUser'), '\"'), ' --dockerPassword ', concat('\"', parameters('dockerPassword'), '\"'))]"
+                                    "commandToExecute": "[concat('sudo bash simulation.sh ', ' --admin ', parameters('edgeUsername'), ' --imagesNamespace ', concat('\"', parameters('imagesNamespace'), '\"'), ' --imagesTag ', concat('\"', parameters('imagesTag'), '\"'), ' --dockerServer ', concat('\"', parameters('dockerServer'), '\"'), ' --dockerUser ', concat('\"', parameters('dockerUser'), '\"'), ' --dockerPassword ', concat('\"', parameters('dockerPassword'), '\"'))]"
                                 }
                             },
                             "dependsOn": [
