@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
-    using Models;
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Agent.Framework.Models;
 
     /// <summary>
     /// Collection for heartbeats from different workers

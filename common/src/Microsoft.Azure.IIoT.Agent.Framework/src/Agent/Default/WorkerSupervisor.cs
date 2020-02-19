@@ -4,25 +4,21 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
-    using Autofac;
-    using Microsoft.Azure.IIoT.Agent.Framework.Models;
-    using Microsoft.Azure.IIoT.Utils;
-    using Serilog;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Autofac;
+    using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using Microsoft.Azure.IIoT.Utils;
+    using Serilog;
 
     /// <summary>
     /// Default worker supervisor = agent.
     /// </summary>
     public class WorkerSupervisor : IWorkerSupervisor, IDisposable {
-
-        /// <inheritdoc/>
-        public string AgentId => _agentConfigProvider.Config.AgentId ?? "Agent";
-
         /// <summary>
         /// Create supervisor
         /// </summary>
@@ -50,6 +46,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             _heartbeatTimer = new Timer(_ => HeartbeatTimer_ElapsedAsync().Wait());
         }
 
+        /// <inheritdoc />
+        public string AgentId => _agentConfigProvider.Config.AgentId ?? "Agent";
+
         /// <summary>
         /// Heartbeat timer
         /// </summary>
@@ -59,17 +58,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         }
 
         private Task<HeartbeatModel> GetCurrentHeartbeat() {
-            var supervisorHeartbeat = new SupervisorHeartbeatModel() {
-                SupervisorId = this.AgentId,
-                Status = SupervisorStatus.Running
-            };
+            var supervisorHeartbeat = new SupervisorHeartbeatModel {SupervisorId = AgentId, Status = SupervisorStatus.Running};
 
             var workerHeartbeats = _jobHeartbeatCollection.Heartbeats.Values.ToArray();
 
-            return Task.FromResult(new HeartbeatModel() {
-                SupervisorHeartbeat = supervisorHeartbeat,
-                JobHeartbeats = workerHeartbeats
-            });
+            return Task.FromResult(new HeartbeatModel {SupervisorHeartbeat = supervisorHeartbeat, JobHeartbeats = workerHeartbeats});
         }
 
         private async Task SendHeartbeatAsync() {
@@ -91,14 +84,13 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 }
             }
             catch (OperationCanceledException) {
-                return; // Done
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Could not send worker heartbeat.");
             }
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc />
         public async Task RunAsync(CancellationToken ct) {
             _logger.Debug("WorkerSupervisor starting...");
             _heartbeatTimer.Change(0, int.MaxValue);
@@ -117,10 +109,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     }
 
                     var jobProcessInstructions = await Try.Async(() =>
-                        _jobOrchestrator.GetAvailableJobsAsync(AgentId, new JobRequestModel {
-                            Capabilities = _agentConfigProvider.Config.Capabilities,
-                            MaxJobCount = availableWorkerCount
-                        }, ct));
+                        _jobOrchestrator.GetAvailableJobsAsync(AgentId, new JobRequestModel {Capabilities = _agentConfigProvider.Config.Capabilities, MaxJobCount = availableWorkerCount}, ct));
 
                     ct.ThrowIfCancellationRequested();
 
@@ -152,7 +141,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
 
         private Task StartJobProcessing(IEnumerable<JobProcessingInstructionModel> jobProcessingInstructionModels, CancellationToken ct) {
             foreach (var jobProcessingInstructionModel in jobProcessingInstructionModels) {
-                var workerScope = _lifetimeScope.BeginLifetimeScope((c) => {
+                var workerScope = _lifetimeScope.BeginLifetimeScope(c => {
                     c.RegisterInstance(jobProcessingInstructionModel);
                 });
                 var worker = workerScope.Resolve<IWorker>();
@@ -169,38 +158,34 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             return Task.CompletedTask;
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc />
         public void Dispose() {
             Try.Async(StopAsync).Wait();
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc />
         public Task StartAsync() {
             Task.Run(() => RunAsync(_cts.Token));
             return Task.CompletedTask;
         }
 
-        /// <inheritdoc/>
+        /// <inheritdoc />
         public Task StopAsync() {
             _cts.Cancel();
             return Task.CompletedTask;
         }
 
         private const int kDefaultWorkers = 5; // TODO - single listener, dynamic workers.
-        private readonly ILifetimeScope _lifetimeScope;
-        private readonly ILogger _logger;
-
-        private readonly ConcurrentDictionary<string, IWorker> _runningWorkers = new ConcurrentDictionary<string, IWorker>();
 
         private readonly IAgentConfigProvider _agentConfigProvider;
+        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
+        private readonly Timer _heartbeatTimer;
         private readonly IJobHeartbeatCollection _jobHeartbeatCollection;
         private readonly IJobOrchestrator _jobOrchestrator;
-
-        private TimeSpan _jobCheckerInterval;
+        private readonly ILifetimeScope _lifetimeScope;
+        private readonly ILogger _logger;
+        private readonly ConcurrentDictionary<string, IWorker> _runningWorkers = new ConcurrentDictionary<string, IWorker>();
         private TimeSpan _heartbeatInterval;
-
-        private readonly Timer _heartbeatTimer;
-
-        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
+        private TimeSpan _jobCheckerInterval;
     }
 }

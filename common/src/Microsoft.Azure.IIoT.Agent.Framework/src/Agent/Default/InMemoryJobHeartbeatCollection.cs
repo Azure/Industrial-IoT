@@ -4,18 +4,15 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
-    using Microsoft.Azure.IIoT.Agent.Framework.Models;
-    using System.Threading.Tasks;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using System.Runtime.InteropServices;
+    using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Agent.Framework.Models;
 
     /// <summary>
     /// An implementation of IJobHeartbeatCollection that uses an in-memory ConcurrentDictionary.
     /// </summary>
     public class InMemoryJobHeartbeatCollection : IJobHeartbeatCollection {
-        private readonly ConcurrentDictionary<string, JobHeartbeatModel> _heartbeats = new ConcurrentDictionary<string, JobHeartbeatModel>();
-
         /// <inheritdoc />
         public IReadOnlyDictionary<string, JobHeartbeatModel> Heartbeats => _heartbeats;
 
@@ -30,5 +27,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             _heartbeats.TryRemove(jobId, out var value);
             return Task.CompletedTask;
         }
+
+        private readonly ConcurrentDictionary<string, JobHeartbeatModel> _heartbeats = new ConcurrentDictionary<string, JobHeartbeatModel>();
     }
 }

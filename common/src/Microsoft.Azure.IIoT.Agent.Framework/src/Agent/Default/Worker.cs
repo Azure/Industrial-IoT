@@ -4,25 +4,18 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
     using Autofac;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Utils;
     using Serilog;
-    using System;
-    using System.Threading;
-    using System.Threading.Tasks;
 
     /// <summary>
     /// Individual agent worker
     /// </summary>
     public class Worker : IWorker, IDisposable {
-        /// <inheritdoc/>
-        public event JobFinishedEventHandler OnJobCompleted;
-        /// <inheritdoc/>
-        public event JobCanceledEventHandler OnJobCanceled;
-        /// <inheritdoc/>
-        public event JobStartedEventHandler OnJobStarted;
-
         /// <summary>
         /// Create worker
         /// </summary>
@@ -53,22 +46,37 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             _currentProcessingEngine = _jobScope.Resolve<IProcessingEngine>();
         }
 
-        private async Task HeartbeatTimer_ElapsedAsync() {
-            await SendHeartBeatAsync();
-            Try.Op(() => _heartbeatTimer.Change(_heartbeatInterval, Timeout.InfiniteTimeSpan));
+        /// <inheritdoc />
+        public event JobFinishedEventHandler OnJobCompleted;
+
+        /// <inheritdoc />
+        public event JobCanceledEventHandler OnJobCanceled;
+
+        /// <inheritdoc />
+        public event JobStartedEventHandler OnJobStarted;
+
+        /// <inheritdoc />
+        public JobProcessingInstructionModel JobContinuation { get; private set; }
+
+        /// <inheritdoc />
+        public JobStatus Status => Job.LifetimeData.Status;
+
+        /// <inheritdoc />
+        public JobInfoModel Job => _currentJobProcessInstruction.Job;
+
+        /// <inheritdoc />
+        public void Dispose() {
+            _cts.Cancel();
+
+            while (Status == JobStatus.Active) {
+                Task.Delay(200).Wait();
+            }
+
+            _cts?.Dispose();
+            _lock.Dispose();
         }
 
-        private async Task SendHeartBeatAsync() {
-            try {
-                var heartbeat = await GetWorkerHeartbeatAsync();
-                await _jobHeartbeatCollection.AddOrUpdate(this.Job.Id, heartbeat);
-            }
-            catch (Exception ex) {
-                _logger.Error(ex, "Could not store worker heartbeat.");
-            }
-        }
-
-        /// <inheritdoc/>
+        /// <inheritdoc />
         public Task ProcessHeartbeatResult(HeartbeatResultEntryModel result) {
             switch (result.HeartbeatInstruction) {
                 case HeartbeatInstruction.Keep:
@@ -76,24 +84,12 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 case HeartbeatInstruction.SwitchToActive:
                     break;
                 case HeartbeatInstruction.CancelProcessing:
-                    this.JobContinuation = result.UpdatedJob;
+                    JobContinuation = result.UpdatedJob;
                     _cts.Cancel();
                     break;
             }
 
             return Task.CompletedTask;
-        }
-
-        /// <inheritdoc/>
-        public void Dispose() {
-            _cts.Cancel();
-
-            while(Status == JobStatus.Active) {
-                Task.Delay(200).Wait();
-            }
-
-            _cts?.Dispose();
-            _lock.Dispose();
         }
 
         /// <summary>
@@ -153,21 +149,30 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             }
         }
 
-        /// <inheritdoc/>
-        public JobProcessingInstructionModel JobContinuation { get; private set; }
+        private async Task HeartbeatTimer_ElapsedAsync() {
+            await SendHeartBeatAsync();
+            Try.Op(() => _heartbeatTimer.Change(_heartbeatInterval, Timeout.InfiniteTimeSpan));
+        }
 
-        /// <inheritdoc/>
-        public JobInfoModel Job => _currentJobProcessInstruction.Job;
+        private async Task SendHeartBeatAsync() {
+            try {
+                var heartbeat = await GetJobHeartbeatAsync();
+                await _jobHeartbeatCollection.AddOrUpdate(Job.Id, heartbeat);
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Could not store worker heartbeat.");
+            }
+        }
 
         /// <summary>
-        /// Get worker heartbeat
+        /// Get job heartbeat
         /// </summary>
         /// <returns></returns>
-        private async Task<JobHeartbeatModel> GetWorkerHeartbeatAsync() {
+        private async Task<JobHeartbeatModel> GetJobHeartbeatAsync() {
             try {
                 await _lock.WaitAsync();
 
-                var workerHeartbeat = new JobHeartbeatModel {
+                var jobHeartbeat = new JobHeartbeatModel {
                     JobId = Job.Id,
                     JobHash = Job.GetHashSafe(),
                     Status = Job.LifetimeData.Status,
@@ -175,7 +180,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     State = await _currentProcessingEngine.GetCurrentJobState()
                 };
 
-                return workerHeartbeat;
+                return jobHeartbeat;
             }
             finally {
                 _lock.Release();
@@ -191,6 +196,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 // Continuation - do not update job state but continue
                 return;
             }
+
             try {
                 if (_cts.IsCancellationRequested) {
                     _logger.Debug("Update cancellation status for {job}.", Job.Id);
@@ -204,6 +210,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     if (Job.LifetimeData.Status != JobStatus.Error) {
                         Job.LifetimeData.Status = JobStatus.Completed;
                     }
+
                     await SendHeartBeatAsync();
                     OnJobCompleted?.Invoke(this, new JobInfoEventArgs(Job, this));
                 }
@@ -214,17 +221,14 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             }
         }
 
-        private Timer _heartbeatTimer;
-        private JobProcessingInstructionModel _currentJobProcessInstruction;
         private readonly IProcessingEngine _currentProcessingEngine;
-        private readonly ILifetimeScope _jobScope;
-        private readonly ILogger _logger;
-        private readonly IJobHeartbeatCollection _jobHeartbeatCollection;
-        private readonly SemaphoreSlim _lock;
         private readonly TimeSpan _heartbeatInterval;
+        private readonly IJobHeartbeatCollection _jobHeartbeatCollection;
+        private readonly ILifetimeScope _jobScope;
+        private readonly SemaphoreSlim _lock;
+        private readonly ILogger _logger;
         private CancellationTokenSource _cts;
-
-        /// <inheritdoc/>
-        public JobStatus Status => Job.LifetimeData.Status;
+        private JobProcessingInstructionModel _currentJobProcessInstruction;
+        private Timer _heartbeatTimer;
     }
 }
