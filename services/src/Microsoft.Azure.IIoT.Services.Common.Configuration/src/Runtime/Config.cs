@@ -62,6 +62,10 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration.Runtime {
         public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
         /// <inheritdoc/>
         public bool UseV2 => _openApi.UseV2;
+        /// <inheritdoc/>
+        public string OpenApiBasePath => GetStringOrDefault(
+            PcsVariable.PCS_CONFIGURATION_OPENAPI_BASE_PATH,
+            _openApi.OpenApiBasePath);
 
         /// <inheritdoc/>
         public string ServiceBusConnString => _sb.ServiceBusConnString;
@@ -74,7 +78,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration.Runtime {
         /// <summary>
         /// Whether to use role based access
         /// </summary>
-        public bool UseRoles => GetBoolOrDefault("PCS_AUTH_ROLES");
+        public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
 
         /// <summary>
         /// Configuration constructor

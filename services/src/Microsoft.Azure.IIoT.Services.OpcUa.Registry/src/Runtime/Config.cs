@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         /// <summary>
         /// Whether to use role based access
         /// </summary>
-        public bool UseRoles => GetBoolOrDefault("PCS_AUTH_ROLES");
+        public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
@@ -78,6 +78,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
         /// <inheritdoc/>
         public bool UseV2 => _openApi.UseV2;
+        /// <inheritdoc/>
+        public string OpenApiBasePath => GetStringOrDefault(
+            PcsVariable.PCS_TWIN_REGISTRY_OPENAPI_BASE_PATH,
+            _openApi.OpenApiBasePath);
 
         /// <inheritdoc/>
         public string ServiceBusConnString => _sb.ServiceBusConnString;
