@@ -36,6 +36,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
     using Newtonsoft.Json;
     using System;
     using ILogger = Serilog.ILogger;
+    using Prometheus;
 
     /// <summary>
     /// Webservice startup
@@ -134,6 +135,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
 
             app.UseRouting();
             app.EnableCors();
+            app.UseMetricServer();
 
             if (Config.AuthRequired) {
                 app.UseAuthentication();

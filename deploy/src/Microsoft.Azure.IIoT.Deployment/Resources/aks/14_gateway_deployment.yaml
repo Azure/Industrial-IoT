@@ -21,6 +21,9 @@ spec:
         app.kubernetes.io/part-of: industrial-iot
         app.kubernetes.io/version: 2.5.2
         app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+      annotations:
+        prometheus.io/scrape: 'true'
+        prometheus.io/port: 9040
     spec:
       serviceAccountName: industrial-iot-serviceaccount
       containers:

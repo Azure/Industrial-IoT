@@ -8,10 +8,12 @@
 @using Microsoft.Azure.IIoT.App.Data
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
+@using Microsoft.Azure.IIoT.App.Common
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
 @inject RegistryServiceEvents RegistryServiceEvents
+@inject UICommon CommonHelper
 
 <h1>Gateways</h1>
 
@@ -27,15 +29,15 @@
         @foreach (var gateway in _pagedGatewayList.Results) {
             <tr>
                 <td>@gateway.Id</td>
-                @{ string siteId = gateway.SiteId == null ? gateway.Id : gateway.SiteId;}
+                @{ string siteId = gateway.SiteId == null ? CommonHelper.None : gateway.SiteId;}
                 <td>@siteId</td>
-                @{string connectStatus = gateway.Connected == true ? "Connected" : "Disconnected";}
+                @{string connectStatus = gateway.Connected == null ? CommonHelper.None : gateway.Connected == true ? "Connected" : "Disconnected";}
                 <td>@connectStatus</td>
             </tr>
         }
     </tbody>
 </table>
-<div class="loader-pos @_spinner"></div>
+<div class="loader-pos @CommonHelper.Spinner"></div>
 
 <ErrorMessage PageError="@_pagedGatewayList.Error" Status="@null"></ErrorMessage>
 
@@ -46,27 +48,26 @@
     [Parameter]
     public string Page { get; set; } = "1";
 
-    public const int PageLength = 10;
     private PagedResult<GatewayApiModel> _gatewayList = new PagedResult<GatewayApiModel>();
     private PagedResult<GatewayApiModel> _pagedGatewayList = new PagedResult<GatewayApiModel>();
     private IAsyncDisposable _gatewayEvent { get; set; }
-    private string _spinner { get; set; }
-
+   
     /// <summary>
     /// Notify page change
     /// </summary>
     /// <param name="page"></param>
     public void PagerPageChanged(int page)
     {
-        _pagedGatewayList = _gatewayList.GetPaged(page, PageLength, null);
+        _pagedGatewayList = _gatewayList.GetPaged(page, CommonHelper.PageLength, null);
         NavigationManager.NavigateTo("/gateways/" + page);
     }
 
     /// <summary>
     /// OnInitialized
     /// </summary>
-    protected override void OnInitialized() {
-        _spinner = "loader-big";
+    protected override void OnInitialized()
+    {
+        CommonHelper.Spinner = "loader-big";
     }
 
     /// <summary>
@@ -77,8 +78,8 @@
         if (firstRender) {
             _gatewayList = await RegistryHelper.GetGatewayListAsync();
             Page = "1";
-            _pagedGatewayList = _gatewayList.GetPaged(Int32.Parse(Page), PageLength, _gatewayList.Error);
-            _spinner = "";
+            _pagedGatewayList = _gatewayList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _gatewayList.Error);
+            CommonHelper.Spinner = "";
             StateHasChanged();
             _gatewayEvent = await RegistryServiceEvents.SubscribeGatewayEventsAsync(null,
                 ev => InvokeAsync(() => GatewayEvent(ev)));

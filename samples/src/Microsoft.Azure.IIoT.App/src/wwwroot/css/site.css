@@ -189,6 +189,12 @@ app {
     width: auto;
 }
 
+.body-action-content {
+    font-weight: normal;
+    word-wrap: break-word;
+    padding-bottom: 5px;
+}
+
 ellipsis-space {
     padding-left: 5px;
     padding-right: 5px;

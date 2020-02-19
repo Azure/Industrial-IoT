@@ -121,7 +121,7 @@
     private string[] _valueArray { get; set; }
     private ActionType _typeOfAction { get; set; } = ActionType.Nothing;
     private MethodMetadataResponseApiModel _parameters;
-    private string _responseClass = "list-group-item text-left margin hidden";
+    private string _responseClass = "list-group-item text-left margin body-action-content hidden";
 
     private async Task SelectActionAsync(string nodeId, ChangeEventArgs action)
     {
@@ -146,7 +146,7 @@
     private async Task ReadAsync(string nodeId)
     {
         _response = await BrowseManager.ReadValueAsync(endpointId, nodeId);
-        _responseClass = "list-group-item text-left margin visible";
+        _responseClass = "list-group-item text-left margin body-action-content visible";
     }
 
     private async Task WriteAsync(string nodeId, string value)
@@ -156,7 +156,7 @@
         var newValue = await BrowseManager.ReadValueAsync(endpointId, nodeId);
         var index = pagedNodeList.Results.IndexOf(pagedNodeList.Results.SingleOrDefault(x => x.Id == nodeId));
         pagedNodeList.Results[index].Value = newValue;
-        _responseClass = "list-group-item margin visible";
+        _responseClass = "list-group-item margin body-action-content visible";
     }
 
     private async Task ParameterAsync()
@@ -169,6 +169,6 @@
     private async Task CallAsync(string nodeId, string[] values)
     {
         _response = await BrowseManager.MethodCallAsync(_parameters, values, endpointId, nodeData.Id);
-         _responseClass = "list-group-item margin visible";
+         _responseClass = "list-group-item margin body-action-content visible";
     }
 }
