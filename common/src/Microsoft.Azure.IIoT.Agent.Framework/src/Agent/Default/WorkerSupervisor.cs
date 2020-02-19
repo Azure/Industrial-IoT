@@ -101,7 +101,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
 
                     _logger.Debug("Try querying available job...");
 
-                    var availableWorkerCount = (_agentConfigProvider.Config.MaxWorkers ?? 1) - _runningWorkers.Count;
+                    var availableWorkerCount = (_agentConfigProvider.Config.MaxWorkers ?? kDefaultMaxWorkers) - _runningWorkers.Count;
 
                     if (availableWorkerCount < 1) {
                         await Task.Delay(_jobCheckerInterval, ct);
@@ -175,7 +175,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             return Task.CompletedTask;
         }
 
-        private const int kDefaultWorkers = 5; // TODO - single listener, dynamic workers.
+        private const int kDefaultMaxWorkers = 5;
 
         private readonly IAgentConfigProvider _agentConfigProvider;
         private readonly CancellationTokenSource _cts = new CancellationTokenSource();
