@@ -80,7 +80,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                     var logger = hostScope.Resolve<ILogger>();
                     try {
                         // Start module
-                        var product = "Discovery_" +
+                        var product = "OpcDiscovery_" +
                             GetType().Assembly.GetReleaseVersion().ToString();
                         await module.StartAsync(IdentityType.Discoverer, SiteId,
                             product, this);

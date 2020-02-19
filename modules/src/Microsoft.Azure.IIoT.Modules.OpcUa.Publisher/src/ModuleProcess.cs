@@ -83,7 +83,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     var workerSupervisor = hostScope.Resolve<IWorkerSupervisor>();
                     var logger = hostScope.Resolve<ILogger>();
                     try {
-                        var product = "Publisher_" +
+                        var product = "OpcPublisher_" +
                             GetType().Assembly.GetReleaseVersion().ToString();
                         // Start module
                         await module.StartAsync(IdentityType.Publisher, SiteId,
