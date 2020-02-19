@@ -1,1 +1,6 @@
-theme: jekyll-theme-minimal
+remote_theme: MicrosoftLearning/Jekyll-Theme
+markdown: kramdown
+kramdown:
+  toc_levels: 3
+  syntax_highlighter_opts:
+    disable : true
