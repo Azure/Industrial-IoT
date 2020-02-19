@@ -91,7 +91,7 @@ azure:
         # azure.adlsg2.container.cdm.name is the name of ADLS Gen2 blob container for CDM storage.
         name: null
         # azure.adlsg2.container.cdm.rootFolder is CDM root folder within CDM blob container.
-        rootFolder: "IIoTDataFlow"
+        rootFolder: IIoTDataFlow
 
   # Details of Azure Event Hub Namespace that microservices will use.
   eventHubNamespace:
@@ -611,7 +611,6 @@ deployment:
     #   - PCS_STORAGE_CONTAINER_DATAPROTECTION
     #   - PCS_KEYVAULT_APPID
     #   - PCS_KEYVAULT_SECRET
-    # ToDo: Enable when it is clear how frontend can be deployed given auth.
     # NOTE: frontend can be enabled only if authentication is enabled and auth details are provided.
     frontend:
       enabled: false
