@@ -7,10 +7,10 @@
 The role of the Registry Microservice is to manage identities in IoT Hub.  These items include:
 
 * **Applications**. In OPC parlance, an “Application” can be a server or a client or both.  It is also a grouping mechanism for Endpoints, i.e. Applications have Endpoints.  An Application contains all server provided information, such as Discovery URLs, Application and Product URIs.
-* **Endpoints**.  Each endpoint represents the twin of an OPC UA Server application’s endpoint.  A server can have multiple endpoints with different configurations, including security properties.
-* **Supervisors**.  The supervisor identity is a OPC Twin module’s identity.  A supervisor manages "activated" endpoint identities.  It also performs discovery and has a couple of other Microservices up its sleeve.  
-* **Publishers**.  The publisher identity is the OPC Publisher module's identity.  A publisher is the host of multiple publish job workers.
-* **Gateways.**  The gateway is the host of supervisor (OPC Twin) and publisher (OPC Publisher) modules.
+* **Endpoints**. Each endpoint represents the twin of an OPC UA Server application’s endpoint.  A server can have multiple endpoints with different configurations, including security properties.
+* **Supervisors**. The supervisor identity is a OPC Twin module’s identity. A supervisor manages "activated" endpoint identities and performs discovery, by communicating with various other microservices.
+* **Publishers**. The publisher identity is the OPC Publisher module's identity.  A publisher is the host of multiple publish job workers.
+* **Gateways.** The gateway is the host of supervisor (OPC Twin) and publisher (OPC Publisher) modules.
 
 You can update, read as well as **query** all of these identities' models in the OPC Registry.  
 
