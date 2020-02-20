@@ -22,7 +22,7 @@ This document describes how you could view your logs and metrics in Application 
 
    ![run](media/appinsights3.png)
    
-4. Application Insights queries are based on Kusto Query Language(KQL). Search for the specific log traces by writing your log queries.
+4. Application Insights queries are based on Kusto Query Language(KQL). Search for the specific log traces by writing your log queries. Learn more about writing queries [here](<https://docs.microsoft.com/en-us/azure/azure-monitor/log-query/log-query-overview>).
 
    ![query](media/appinsights4.png)
    
@@ -49,3 +49,8 @@ This document describes how you could view your logs and metrics in Application 
 
    ![chart](media/appinsights9.png)
 
+
+### Learn More
+
+- If you want to create alerts based on metric values or log search entries, please refer [here](https://docs.microsoft.com/en-us/azure/azure-monitor/platform/alerts-overview?toc=%2Fazure%2Fazure-monitor%2Ftoc.json).
+- Official documentation of Application Insights is [here](https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview).
