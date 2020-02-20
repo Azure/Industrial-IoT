@@ -109,6 +109,13 @@
             "metadata": {
                 "description": "A user created managed identity to use for keyvault access.  If not provided, above secret will be used to gain access to keyvault."
             }
+        },
+        "vmSize": {
+            "type": "string",
+            "defaultValue": "Standard_B2s",
+            "metadata": {
+                "description": "The size of the gateway VM to provision."
+            }
         }
     },
     "variables": {
@@ -243,7 +250,7 @@
             "identity": "[if(not(empty(parameters('managedIdentityResourceId'))), variables('identity'), '')]",
             "properties": {
                 "hardwareProfile": {
-                    "vmSize": "Standard_B2s"
+                    "vmSize": "[parameters('vmSize')]"
                 },
                 "osProfile": "[if(equals(parameters('edgeOs'), 'linux'), variables('linuxOsProfile'), variables('windowsOsProfile'))]",
                 "storageProfile": {
@@ -322,7 +329,7 @@
                             "location": "[resourceGroup().location]",
                             "properties": {
                                 "hardwareProfile": {
-                                    "vmSize": "Standard_A1"
+                                    "vmSize": "[parameters('vmSize')]"
                                 },
                                 "osProfile": {
                                     "computerName": "[concat(variables('simulationName'), copyIndex())]",
