@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Http;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Net.Http.Headers;
@@ -28,9 +29,11 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
         /// <param name="config"></param>
         /// <param name="httpClient"></param>
         /// <param name="tokenProvider"></param>
+        /// <param name="logger"></param>
         public JobOrchestratorClient(IHttpClient httpClient,
-            IAgentConfigProvider config, IIdentityTokenProvider tokenProvider) {
+            IAgentConfigProvider config, IIdentityTokenProvider tokenProvider, ILogger logger) {
             _tokenProvider = tokenProvider ?? throw new ArgumentNullException(nameof(tokenProvider));
+            _logger = logger;
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         }
@@ -44,9 +47,10 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
             while (true) {
                 var uri = _config?.Config?.JobOrchestratorUrl?.TrimEnd('/');
                 if (uri == null) {
-                    throw new InvalidConfigurationException("Job orchestrator not configured");
+                    _logger.Error(kJobOrchestratorUrlNotConfiguredMessage);
+                    throw new InvalidConfigurationException(kJobOrchestratorUrlNotConfiguredMessage);
                 }
-                var request = _httpClient.NewRequest($"{uri}/v2/workers/{workerSupervisorId}");
+                var request = _httpClient.NewRequest($"{uri}/v2/workersupervisors/{workerSupervisorId}");
                 request.Headers.Authorization = new AuthenticationHeaderValue("Basic",
                     _tokenProvider.IdentityToken.ToAuthorizationValue());
                 request.SetContent(jobRequest.Map<JobRequestApiModel>());
@@ -72,7 +76,8 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
             while (true) {
                 var uri = _config?.Config?.JobOrchestratorUrl?.TrimEnd('/');
                 if (uri == null) {
-                    throw new InvalidConfigurationException("Job orchestrator not configured");
+                    _logger.Error(kJobOrchestratorUrlNotConfiguredMessage);
+                    throw new InvalidConfigurationException(kJobOrchestratorUrlNotConfiguredMessage);
                 }
                 var request = _httpClient.NewRequest($"{uri}/v2/heartbeat");
                 request.Headers.Authorization = new AuthenticationHeaderValue("Basic",
@@ -91,7 +96,10 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
             }
         }
 
+        private const string kJobOrchestratorUrlNotConfiguredMessage = "JobOrchestratorUrl not configured. Cannot retrieve jobs or send heartbeats.";
+
         private readonly IIdentityTokenProvider _tokenProvider;
+        private readonly ILogger _logger;
         private readonly IAgentConfigProvider _config;
         private readonly IHttpClient _httpClient;
     }
