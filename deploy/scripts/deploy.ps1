@@ -686,8 +686,8 @@ Function New-Deployment() {
             # Pick top
             if ($vmSizes.Count -ne 0) {
                 $vmSize = $vmSizes[0].Name
-                Write-Host "Using $($vmSize) as VM size for simulation hosts..."
-                $templateParameters.Add("vmSize", $vmSize)
+                Write-Host "Using $($vmSize) as VM size for all edge simulation hosts..."
+                $templateParameters.Add("edgeVmSize", $vmSize)
             }
 
             $adminUser = "sandboxuser"
