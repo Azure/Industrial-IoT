@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                     case DemandOperators.Equals:
                         if (!capabilities.Any(c =>
                             c.Key.Equals(demand.Key, StringComparison.OrdinalIgnoreCase) &&
-                            c.Value.Equals(demand.Value))) {
+                            (c.Value != null) && c.Value.Equals(demand.Value))) {
                             success = false;
                         }
                         break;
