@@ -32,8 +32,6 @@ namespace Microsoft.OpenApi.Models {
             var addresses = app.ServerFeatures.Get<IServerAddressesFeature>()?.Addresses
                 .Select(a => new Uri(a.Replace("://*", "://localhost")))
                 .ToList() ?? new List<Uri>();
-            var path = addresses.FirstOrDefault()?.PathAndQuery.Trim('/') ??
-                string.Empty;
 
             // Enable swagger and swagger ui
             app.UseSwagger(options => {
@@ -48,14 +46,16 @@ namespace Microsoft.OpenApi.Models {
                             Description = $"{scheme} endpoint.",
                             Url = $"{scheme}://{request.Host.Value}"
                         });
-                        if (!string.IsNullOrEmpty(path)) {
-                            doc.Servers.Add(new OpenApiServer {
-                                Description = $"{scheme} at {path}.",
-                                Url = new UriBuilder($"{scheme}://{request.Host.Value}") {
-                                    Path = path
-                                }.Uri.ToString()
-                            });
+                    }
+
+                    // If request.PathBase exists, then we will prepend it to doc.Paths.
+                    if (request.PathBase.HasValue) {
+                        var basePath = request.PathBase.Value;
+                        var prefixedPaths = new OpenApiPaths();
+                        foreach (var path in doc.Paths) {
+                            prefixedPaths.Add(basePath + path.Key, path.Value);
                         }
+                        doc.Paths = prefixedPaths;
                     }
                 });
                 options.SerializeAsV2 = true;
@@ -69,7 +69,6 @@ namespace Microsoft.OpenApi.Models {
             var infos = api.GetOpenApiInfos(null, null);
 
             // Where to host the ui
-            var basePath = string.IsNullOrEmpty(path) ? "" : "/" + path;
             app.UseSwaggerUI(options => {
                 foreach (var info in infos) {
                     if (config.WithAuth) {
@@ -86,7 +85,7 @@ namespace Microsoft.OpenApi.Models {
                                 });
                         }
                     }
-                    options.SwaggerEndpoint($"{basePath}/swagger/{info.Version}/openapi.json",
+                    options.SwaggerEndpoint($"{info.Version}/openapi.json",
                         info.Version);
                 }
             });
