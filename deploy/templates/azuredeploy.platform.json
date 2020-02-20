@@ -43,9 +43,9 @@
                 "description": "Number of simulations to deploy into each gateway network."
             }
         },
-        "vmSize": {
+        "edgeVmSize": {
             "type": "string",
-            "defaultValue": "Standard_B2s",
+            "defaultValue": "",
             "metadata": {
                 "description": "The size of VMs to provision for simulation."
             }
@@ -550,8 +550,8 @@
                     "branchName": {
                         "value": "[parameters('branchName')]"
                     },
-                    "vmSize": {
-                        "value": "[parameters('vmSize')]"  
+                    "edgeVmSize": {
+                        "value": "[parameters('edgeVmSize')]"  
                     },
                     "dpsIdScope": {
                         "reference": {
@@ -631,8 +631,8 @@
                     "branchName": {
                         "value": "[parameters('branchName')]"
                     },
-                    "vmSize": {
-                        "value": "[parameters('vmSize')]"  
+                    "edgeVmSize": {
+                        "value": "[parameters('edgeVmSize')]"  
                     },
                     "dpsIdScope": {
                         "reference": {
