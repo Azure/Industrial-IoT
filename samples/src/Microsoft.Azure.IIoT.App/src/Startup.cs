@@ -78,6 +78,11 @@ namespace Microsoft.Azure.IIoT.App {
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
             IHostApplicationLifetime appLifetime) {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
+
+            if (!string.IsNullOrEmpty(Config.ServicePathBase)) {
+                app.UsePathBase(Config.ServicePathBase);
+            }
+
             app.UseForwardedHeaders();
 
             var isDevelopment = env.IsDevelopment();
