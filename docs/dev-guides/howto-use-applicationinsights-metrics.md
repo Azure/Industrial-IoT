@@ -25,7 +25,7 @@ Each invocation of `TrackEvent` would set a value of 1.
 ```
 using Microsoft.Azure.IIoT.Diagnostics;
 
-public class EndpointSecurityAlerter : IEndpointRegistryListener, 							IApplicationRegistryListener
+public class EndpointSecurityAlerter : IEndpointRegistryListener,	           IApplicationRegistryListener
 {
     private readonly IMetricsLogger _metrics;
     .
@@ -57,7 +57,7 @@ Gauges can have any numeric value and change arbitrarily.
 ```
 using Microsoft.Azure.IIoT.Diagnostics;
 
-public class EndpointSecurityAlerter : IEndpointRegistryListener, 							IApplicationRegistryListener
+public class EndpointSecurityAlerter : IEndpointRegistryListener,    		  IApplicationRegistryListener
 {
     private readonly IMetricsLogger _metrics;
     .
@@ -120,4 +120,4 @@ public class EndpointSecurityAlerter : IEndpointRegistryListener, 							IApplic
 
 ***Please Note***:
 
-Not only does `ApplicationInsights` provides a way to send custom metrics, it also sends logs. To learn more about how to view logs and metrics in `ApplicationInsights`, please have a look [here](howto-view-telemetry-in-applicationinsights.md).
+Not only does `ApplicationInsights` provides a way to send custom metrics, it also sends logs. To learn more about how to view logs and metrics in `ApplicationInsights`, please have a look [here](../tutorials/tut-applicationinsights.md).
