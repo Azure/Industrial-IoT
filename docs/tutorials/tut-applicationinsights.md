@@ -26,7 +26,7 @@ This document describes how you could view your logs and metrics in Application 
 
    ![query](../media/appinsights4.png)
    
-5. It is possible to  filter on the results of the query on any column.
+5. It is possible to filter on the results of the query on any column.
 
    ![filter](../media/appinsights5.png)
    

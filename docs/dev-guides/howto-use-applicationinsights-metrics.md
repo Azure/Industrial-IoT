@@ -2,7 +2,7 @@
 
 [Home](readme.md)
 
-All the cloud microservices of Industrial IoT platform have been instrumented with Application Insights already.  The instrumentation monitors your app and sends telemetry data to Application Insights. 
+All the cloud microservices of Industrial IoT platform have been instrumented with Application Insights already. The instrumentation monitors your app and sends telemetry data to Application Insights. 
 
 To send custom metrics from your microservice, first get an instance of `IMetricsLogger` by using constructor injection. A class `ApplicationInsightsMetrics` implements this interface and provides the necessary methods to create custom metrics. A singleton instance of `ApplicationInsightsMetrics` is already registered in the `DependencyInjection` container, which shares `TelemetryConfiguration` with rest of the telemetry. 
 
