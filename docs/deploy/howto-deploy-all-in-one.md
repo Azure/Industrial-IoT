@@ -187,5 +187,5 @@ To support these scenarios, the `deploy.ps1` takes the following parameters:
 Now that you have successfully deployed the Azure Industrial IoT Platform and Simulation, here are the suggested next steps:
 
 - [Deploy Industrial IoT modules to IoT Edge](howto-install-iot-edge.md)
-- [Learn more about OPC Twin](services/readme.md)
-- [OPC Twin Dependencies](services/dependencies.md)
+- [Learn more about the Platform services](../services/readme.md)
+- [Learn more about the deployed Azure Service dependencies](../services/dependencies.md)

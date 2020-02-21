@@ -37,5 +37,5 @@ This article explains how to deploy only the Azure services needed to do local d
 
 Now that you have successfully deployed Azure Industrial IoT Microservices to an existing project, here are the suggested next steps:
 
-* [Run the Industrial IoT modules locally](../howto-install-iot-edge.md)
-* [Learn about the OPC Twin dependencies](../services/dependencies.md)
+* [Run the Industrial IoT components locally](howto-run-microservices-locally.md)
+* [Learn more about the deployed Azure Service dependencies](../services/dependencies.md)
