@@ -76,10 +76,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                         _logger.Information("Loading Complex Type System....");
 
-                        var complexTypeSystem = new ComplexTypeSystem(session);
-                        await complexTypeSystem.Load();
-
-                        _logger.Information("Complex Type system loaded.");
+                        try {
+                            var complexTypeSystem = new ComplexTypeSystem(session);
+                            await complexTypeSystem.Load();
+                            _logger.Information("Complex Type system loaded.");
+                        }
+                        catch (Exception ex) {
+                            _logger.Error(ex, "Failed to load Complex Type System");
+                        }
 
                         if (_clientConfig.KeepAliveInterval > 0) {
                             session.KeepAliveInterval = _clientConfig.KeepAliveInterval;

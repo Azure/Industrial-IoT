@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using Prometheus;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -133,6 +134,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
                 await SendEndpointAlertAsync(endpoint, "Unsecured endpoint found.",
                     $"SecurityMode: {mode}, SecurityProfile: {policy}");
                 _metrics.TrackEvent("endpointSecurityPolicyNone");
+                _endpointSecurityPolicyNone.Inc();
             }
 
             // Test endpoint certificate
@@ -141,6 +143,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
                 await SendEndpointAlertAsync(endpoint,
                     "Secure endpoint without certificate found.", "No Certificate");
                 _metrics.TrackEvent("endpointWithoutCertificate");
+                _endpointWithoutCertificate.Inc();
             }
             else {
                 using (var cert = new X509Certificate2(certEncoded)) {
@@ -313,5 +316,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Security.Services {
         private readonly IIoTHubTelemetryServices _client;
         private readonly ILogger _logger;
         private readonly IMetricsLogger _metrics;
+        private static readonly Counter _endpointSecurityPolicyNone = Metrics.CreateCounter("iiot_endpointSecurityAlerter_endpointSecurityPolicyNone", "unsecured endpoint found");
+        private static readonly Counter _endpointWithoutCertificate = Metrics.CreateCounter("iiot_endpointSecurityAlerter_endpointWithoutCertificate", "secure endpoint without certificate found");
+
     }
 }

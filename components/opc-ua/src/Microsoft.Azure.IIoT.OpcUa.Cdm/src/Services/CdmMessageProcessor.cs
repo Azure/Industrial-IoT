@@ -161,7 +161,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                     if (!GetEntityData(samplesList[0], out var partitionLocation, out var partitionDelimitor)) {
                         if(!CreateEntityData(samplesList[0], out partitionLocation, out partitionDelimitor)) {
                             _logger.Error("Failed to create CDM Entity for {endpointId}/{nodeId}).",
-                                samplesList[0].EndpointId, samplesList[0].NodeId);
+                                samplesList[0]?.EndpointId, samplesList[0]?.NodeId);
                             continue;
                         }
                         performSave = true;
@@ -186,13 +186,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 _logger.Information("Successfully sent processed CDM data {count} records (took {elapsed}).",
                     _samplesCacheSize, sw.Elapsed);
             }
-            catch (Exception e) {
-                var errorMessage = e.Message;
-                if (e.InnerException != null) {
-                    errorMessage += " - " + e.InnerException.Message;
-                }
-                _logger.Warning("Failed to send processed CDM data after {elapsed} : {message}",
-                     sw.Elapsed, errorMessage);
+            catch (Exception ex) {
+                _logger.Warning(ex, "Failed to send processed CDM data after {elapsed}",
+                     sw.Elapsed);
             }
             finally {
                 foreach (var list in _samplesCache.Values) {
@@ -207,7 +203,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         private string GetNormalizedEntityName(string endpointId, string nodeId) {
             var key = string.Join("", endpointId.Split(Path.GetInvalidFileNameChars())) + '_' +
                 string.Join("", nodeId.Split(Path.GetInvalidFileNameChars()));
-            return key.Replace('#', '_').Replace('.', '_');
+            return key.Replace('#', '_').Replace('.', '_').Replace('/','_').Replace(':', '_');
         }
 
         private static CdmDataFormat DataTypeToCdmDataFormat(Type type) {
