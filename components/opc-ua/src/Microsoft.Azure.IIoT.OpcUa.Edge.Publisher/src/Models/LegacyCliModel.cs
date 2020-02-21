@@ -84,7 +84,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <summary>
         /// The messaging mode for outgoing messages.
         /// </summary>
-        public MessagingMode MessagingMode { get; set; }
+        public MessagingMode MessagingMode { get; set; } = MessagingMode.Samples;
 
         /// <summary>
         /// The maximum string length.
