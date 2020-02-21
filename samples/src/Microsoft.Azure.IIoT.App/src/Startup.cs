@@ -147,7 +147,7 @@ namespace Microsoft.Azure.IIoT.App {
                 // This lambda determines whether user consent for non-essential cookies
                 // is needed for a given request.
                 options.CheckConsentNeeded = context => true;
-                options.MinimumSameSitePolicy = SameSiteMode.Strict;
+                options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
             services.AddAntiforgery(options => {
@@ -219,7 +219,8 @@ namespace Microsoft.Azure.IIoT.App {
                 .AsImplementedInterfaces().SingleInstance();
             // Use behalf of token provider to get tokens from user
             builder.RegisterType<BehalfOfTokenProvider>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().SingleInstance()
+                .WithParameter("acquireTokenIfSilentFails", true);
             builder.RegisterType<DistributedTokenCache>()
                 .AsImplementedInterfaces().SingleInstance();
 
