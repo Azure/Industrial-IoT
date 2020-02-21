@@ -58,10 +58,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Runtime {
         public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
         /// <inheritdoc/>
         public bool UseV2 => _openApi.UseV2;
-        /// <inheritdoc/>
-        public string OpenApiBasePath => GetStringOrDefault(
-            PcsVariable.PCS_JOBS_OPENAPI_BASE_PATH,
-            _openApi.OpenApiBasePath);
 
         /// <inheritdoc/>
         public string DbConnectionString => _cosmos.DbConnectionString;
@@ -74,6 +70,10 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Runtime {
 
         /// <inheritdoc/>
         public int HttpsRedirectPort => _host.HttpsRedirectPort;
+        /// <inheritdoc/>
+        public string ServicePathBase => GetStringOrDefault(
+            PcsVariable.PCS_JOBS_SERVICE_PATH_BASE,
+            _host.ServicePathBase);
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;

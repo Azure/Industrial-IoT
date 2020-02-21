@@ -46,6 +46,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Runtime {
 
         /// <inheritdoc/>
         public int HttpsRedirectPort => _host.HttpsRedirectPort;
+        /// <inheritdoc/>
+        public string ServicePathBase => GetStringOrDefault(
+            PcsVariable.PCS_ONBOARDING_SERVICE_PATH_BASE,
+            _host.ServicePathBase);
 
         /// <inheritdoc/>
         public string AppId => _auth.AppId;
@@ -76,10 +80,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Runtime {
         public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
         /// <inheritdoc/>
         public bool UseV2 => _openApi.UseV2;
-        /// <inheritdoc/>
-        public string OpenApiBasePath => GetStringOrDefault(
-            PcsVariable.PCS_ONBOARDING_OPENAPI_BASE_PATH,
-            _openApi.OpenApiBasePath);
 
         /// <inheritdoc/>
         public string ServiceBusConnString => _sb.ServiceBusConnString;

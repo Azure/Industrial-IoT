@@ -41,6 +41,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway.Runtime {
 
         /// <inheritdoc/>
         public int HttpsRedirectPort => _host.HttpsRedirectPort;
+        /// <inheritdoc/>
+        public string ServicePathBase => GetStringOrDefault(
+            PcsVariable.PCS_GATEWAY_SERVICE_PATH_BASE,
+            _host.ServicePathBase);
 
         /// <inheritdoc/>
         public string AppId => _auth.AppId;

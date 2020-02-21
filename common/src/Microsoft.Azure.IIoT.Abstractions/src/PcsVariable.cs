@@ -178,38 +178,41 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> AAD Client / Application secret for openapi </summary>
         public const string PCS_OPENAPI_APP_SECRET =
             "PCS_OPENAPI_APP_SECRET";
-        /// <summary> Base path for openapi calls </summary>
-        public const string PCS_OPENAPI_BASE_PATH =
-            "PCS_OPENAPI_BASE_PATH";
-        /// <summary> Base path for openapi calls of OPC twin service </summary>
-        public const string PCS_TWIN_OPENAPI_BASE_PATH =
-            "PCS_TWIN_OPENAPI_BASE_PATH";
-        /// <summary> Base path for openapi calls of OPC registry service </summary>
-        public const string PCS_TWIN_REGISTRY_OPENAPI_BASE_PATH =
-            "PCS_TWIN_REGISTRY_OPENAPI_BASE_PATH";
-        /// <summary> Base path for openapi calls of OPC vault service </summary>
-        public const string PCS_VAULT_OPENAPI_BASE_PATH =
-            "PCS_VAULT_OPENAPI_BASE_PATH";
-        /// <summary> Base path for openapi calls of OPC publisher service </summary>
-        public const string PCS_PUBLISHER_OPENAPI_BASE_PATH =
-            "PCS_PUBLISHER_OPENAPI_BASE_PATH";
-        /// <summary> Base path for openapi calls of OPC history service </summary>
-        public const string PCS_HISTORY_OPENAPI_BASE_PATH =
-            "PCS_HISTORY_OPENAPI_BASE_PATH";
-        /// <summary> Base path for openapi calls of jobs service </summary>
-        public const string PCS_JOBS_OPENAPI_BASE_PATH =
-            "PCS_JOBS_OPENAPI_BASE_PATH";
-        /// <summary> Base path for openapi calls of OPC onboarding service </summary>
-        public const string PCS_ONBOARDING_OPENAPI_BASE_PATH =
-            "PCS_ONBOARDING_OPENAPI_BASE_PATH";
-        /// <summary> Base path for openapi calls of job orchestrator service </summary>
-        public const string PCS_JOB_ORCHESTRATOR_OPENAPI_BASE_PATH =
-            "PCS_JOB_ORCHESTRATOR_OPENAPI_BASE_PATH";
-        /// <summary> Base path for openapi calls of edge manager service </summary>
-        public const string PCS_EDGE_MANAGER_OPENAPI_BASE_PATH =
-            "PCS_EDGE_MANAGER_OPENAPI_BASE_PATH";
-        /// <summary> Base path for openapi calls of configuration service </summary>
-        public const string PCS_CONFIGURATION_OPENAPI_BASE_PATH =
-            "PCS_CONFIGURATION_OPENAPI_BASE_PATH";
+        /// <summary> Service URL path base </summary>
+        public const string PCS_SERVICE_PATH_BASE =
+            "PCS_SERVICE_PATH_BASE";
+        /// <summary> Service URL path base for OPC twin service </summary>
+        public const string PCS_TWIN_SERVICE_PATH_BASE =
+            "PCS_TWIN_SERVICE_PATH_BASE";
+        /// <summary> Service URL path base for OPC registry service </summary>
+        public const string PCS_TWIN_REGISTRY_SERVICE_PATH_BASE =
+            "PCS_TWIN_REGISTRY_SERVICE_PATH_BASE";
+        /// <summary> Service URL path base for OPC vault service </summary>
+        public const string PCS_VAULT_SERVICE_PATH_BASE =
+            "PCS_VAULT_SERVICE_PATH_BASE";
+        /// <summary> Service URL path base for OPC publisher service </summary>
+        public const string PCS_PUBLISHER_SERVICE_PATH_BASE =
+            "PCS_PUBLISHER_SERVICE_PATH_BASE";
+        /// <summary> Service URL path base for OPC history service </summary>
+        public const string PCS_HISTORY_SERVICE_PATH_BASE =
+            "PCS_HISTORY_SERVICE_PATH_BASE";
+        /// <summary> Service URL path base for gateway service </summary>
+        public const string PCS_GATEWAY_SERVICE_PATH_BASE =
+            "PCS_GATEWAY_SERVICE_PATH_BASE";
+        /// <summary> Service URL path base for jobs service </summary>
+        public const string PCS_JOBS_SERVICE_PATH_BASE =
+            "PCS_JOBS_SERVICE_PATH_BASE";
+        /// <summary> Service URL path base for OPC onboarding service </summary>
+        public const string PCS_ONBOARDING_SERVICE_PATH_BASE =
+            "PCS_ONBOARDING_SERVICE_PATH_BASE";
+        /// <summary> Service URL path base for job orchestrator service </summary>
+        public const string PCS_JOB_ORCHESTRATOR_SERVICE_PATH_BASE =
+            "PCS_JOB_ORCHESTRATOR_SERVICE_PATH_BASE";
+        /// <summary> Service URL path base for edge manager service </summary>
+        public const string PCS_EDGE_MANAGER_SERVICE_PATH_BASE =
+            "PCS_EDGE_MANAGER_SERVICE_PATH_BASE";
+        /// <summary> Service URL path base for configuration service </summary>
+        public const string PCS_CONFIGURATION_SERVICE_PATH_BASE =
+            "PCS_CONFIGURATION_SERVICE_PATH_BASE";
     }
 }

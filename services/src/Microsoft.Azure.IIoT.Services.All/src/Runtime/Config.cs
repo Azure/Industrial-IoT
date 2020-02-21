@@ -17,6 +17,9 @@ namespace Microsoft.Azure.IIoT.Services.All.Runtime {
         /// <inheritdoc/>
         public int HttpsRedirectPort => _host.HttpsRedirectPort;
 
+        /// <inheritdoc/>
+        public string ServicePathBase => _host.ServicePathBase;
+
         /// <summary>
         /// Configuration constructor
         /// </summary>

@@ -123,6 +123,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
             var log = applicationContainer.Resolve<ILogger>();
 
+            if (!string.IsNullOrEmpty(Config.ServicePathBase)) {
+                app.UsePathBase(Config.ServicePathBase);
+            }
+
             app.UseRouting();
             app.EnableCors();
 

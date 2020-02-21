@@ -37,6 +37,10 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager.Runtime {
 
         /// <inheritdoc/>
         public int HttpsRedirectPort => _host.HttpsRedirectPort;
+        /// <inheritdoc/>
+        public string ServicePathBase => GetStringOrDefault(
+            PcsVariable.PCS_EDGE_MANAGER_SERVICE_PATH_BASE,
+            _host.ServicePathBase);
 
         /// <inheritdoc/>
         public string AppId => _auth.AppId;
@@ -67,10 +71,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager.Runtime {
         public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
         /// <inheritdoc/>
         public bool UseV2 => _openApi.UseV2;
-        /// <inheritdoc/>
-        public string OpenApiBasePath => GetStringOrDefault(
-            PcsVariable.PCS_EDGE_MANAGER_OPENAPI_BASE_PATH,
-            _openApi.OpenApiBasePath);
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;

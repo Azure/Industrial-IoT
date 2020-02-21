@@ -35,6 +35,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Runtime {
 
         /// <inheritdoc/>
         public int HttpsRedirectPort => _host.HttpsRedirectPort;
+        /// <inheritdoc/>
+        public string ServicePathBase => GetStringOrDefault(
+            PcsVariable.PCS_HISTORY_SERVICE_PATH_BASE,
+            _host.ServicePathBase);
 
         /// <inheritdoc/>
         public string AppId => _auth.AppId;
@@ -65,10 +69,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Runtime {
         public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
         /// <inheritdoc/>
         public bool UseV2 => _openApi.UseV2;
-        /// <inheritdoc/>
-        public string OpenApiBasePath => GetStringOrDefault(
-            PcsVariable.PCS_HISTORY_OPENAPI_BASE_PATH,
-            _openApi.OpenApiBasePath);
 
         /// <summary>
         /// Whether to use role based access

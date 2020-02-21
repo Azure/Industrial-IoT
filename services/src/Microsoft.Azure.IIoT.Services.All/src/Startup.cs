@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
@@ -78,6 +78,10 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// <param name="appLifetime"></param>
         public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime) {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
+
+            if (!string.IsNullOrEmpty(Config.ServicePathBase)) {
+                app.UsePathBase(Config.ServicePathBase);
+            }
 
             if (Config.HttpsRedirectPort > 0) {
                 app.UseHsts();

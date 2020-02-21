@@ -112,6 +112,10 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration {
         public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime) {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
 
+            if (!string.IsNullOrEmpty(Config.ServicePathBase)) {
+                app.UsePathBase(Config.ServicePathBase);
+            }
+
             app.UseRouting();
             app.EnableCors();
 
