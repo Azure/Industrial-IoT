@@ -25,8 +25,7 @@ Each invocation of `TrackEvent` would set a value of 1.
 ```
 using Microsoft.Azure.IIoT.Diagnostics;
 
-public class EndpointSecurityAlerter : IEndpointRegistryListener,	           IApplicationRegistryListener
-{
+public class EndpointSecurityAlerter : IEndpointRegistryListener, IApplicationRegistryListener {
     private readonly IMetricsLogger _metrics;
     .
     .
@@ -39,8 +38,7 @@ public class EndpointSecurityAlerter : IEndpointRegistryListener,	           IAp
          _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
     }
 
-    public Task OnApplicationUpdatedAsync()
-    {
+    public Task OnApplicationUpdatedAsync() {
     	.
     	.
         // Call the required TrackXXX method.
@@ -57,8 +55,7 @@ Gauges can have any numeric value and change arbitrarily.
 ```
 using Microsoft.Azure.IIoT.Diagnostics;
 
-public class EndpointSecurityAlerter : IEndpointRegistryListener,    		  IApplicationRegistryListener
-{
+public class EndpointSecurityAlerter : IEndpointRegistryListener, IApplicationRegistryListener {
     private readonly IMetricsLogger _metrics;
     .
     .
@@ -71,8 +68,7 @@ public class EndpointSecurityAlerter : IEndpointRegistryListener,    		  IApplic
          _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
     }
 
-    public Task OnApplicationsAddedAsync()
-    {
+    public Task OnApplicationsAddedAsync() {
     	.
     	.
         // Call the required TrackXXX method.
@@ -89,8 +85,7 @@ Timers can be used to report the duration of an operation(in milliseconds). Wrap
 ```
 using Microsoft.Azure.IIoT.Diagnostics;
 
-public class EndpointSecurityAlerter : IEndpointRegistryListener, 							IApplicationRegistryListener
-{
+public class EndpointSecurityAlerter : IEndpointRegistryListener, IApplicationRegistryListener {
     private readonly IMetricsLogger _metrics;
     .
     .
@@ -103,8 +98,7 @@ public class EndpointSecurityAlerter : IEndpointRegistryListener, 							IApplic
          _metrics = metrics ?? throw new ArgumentNullException(nameof(metrics));
     }
 
-    public Task OnEndpointAddedAsync()
-    {
+    public Task OnEndpointAddedAsync() {
     	using (_metrics.TrackDuration(nameof(OnEndpointAddedAsync))) { 
     		// name is prefixed with "processingTime-"
     		// Do your operation here
