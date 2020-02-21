@@ -50,10 +50,10 @@ namespace Microsoft.OpenApi.Models {
 
                     // If request.PathBase exists, then we will prepend it to doc.Paths.
                     if (request.PathBase.HasValue) {
-                        var basePath = request.PathBase.Value;
+                        var pathBase = request.PathBase.Value;
                         var prefixedPaths = new OpenApiPaths();
                         foreach (var path in doc.Paths) {
-                            prefixedPaths.Add(basePath + path.Key, path.Value);
+                            prefixedPaths.Add(pathBase + path.Key, path.Value);
                         }
                         doc.Paths = prefixedPaths;
                     }
