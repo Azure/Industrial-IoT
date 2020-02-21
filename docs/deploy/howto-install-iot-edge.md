@@ -8,20 +8,28 @@ The machines and factory equipment is connected to Azure through modules running
 
 To connect your own equipment obtain a preconfigured IoT Edge gateway.  If you do not have a gateway with IoT Edge pre-installed, you can install the IoT Edge runtime following the Azure IoT Edge [documentation](https://docs.microsoft.com/en-us/azure/iot-edge/).  For example you can install the runtime on [Linux](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux) or [Windows](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-windows).
 
-To support network scanning and equipment discovery, the discovery module should best run in docker host network mode. To enable host network mode on Windows follow the instructions [below](#Windows-Networking-Configuration)
+To support network scanning and equipment discovery, the discovery module should best run in docker host network mode. To enable host network mode on Windows follow the instructions [below](#Windows-Networking-Configuration).
 
 ## Deploy the Industrial IoT Workloads to the Gateway
 
 If you have not done so yet, [deploy](readme.md) the Industrial IoT platform or at a minimum the required [dependencies](../services/dependencies.md).  
-> If you **only** want to deploy the cloud dependencies, start the [Edge Management](services/edgemanager.md) Microservice or the [all-in-one](services/all-in-one.md) service locally to ensure IoT Hub is configured to auto deploy the Industrial IoT Edge modules.
+> If you **only** want to deploy the cloud dependencies, start the [Edge Management](../services/edgemanager.md) Microservice or the [all-in-one](../services/all-in-one.md) service locally to ensure IoT Hub is configured to auto deploy the Industrial IoT Edge modules.
 
 When the platform starts up it will set up layered deployments for each required module.  These layered deployment configurations will be automatically applied to any gateway with the following Device Twin tags:
 
-```JSON
+```json
+"tags": {
+    "__type__": "iiotedge",
+    "os": "Linux"    
+}
+```
+
+If your container runtime is Windows Containers set the `os` property to `Windows`:
+
+```json
 "tags": {
     "__type__": "iiotedge",
     "os": "Windows"
-    // or "os": "Linux"
 }
 ```
 
@@ -89,5 +97,5 @@ docker -H npipe:////.//pipe//iotedge_moby_engine network ls
 ## Next steps
 
 - [Deploy Industrial IoT modules to your Gateway using the Azure Portal and Marketplace](howto-deploy-modules-portal.md)
-- [Deploy Industrial IoT modules using AZ](howto-deploy-modules-az.md)
+- [Deploy Industrial IoT modules using Az](howto-deploy-modules-az.md)
 - [Learn about Azure IoT Edge for Visual Studio Code](https://github.com/microsoft/vscode-azure-iot-edge)

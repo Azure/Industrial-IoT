@@ -2,25 +2,27 @@
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
+@using Microsoft.Azure.IIoT.App.Common
 
 @inject Registry RegistryHelper
+@inject UICommon CommonHelper
 
 
 <div class="drawer-content list-group">
     <div class="list-group-item text-left">
         @if (SupervisorStatus != null)
         {
-            string DeviceId = SupervisorStatus.DeviceId == null ? "--" : SupervisorStatus.DeviceId;
+            string DeviceId = SupervisorStatus.DeviceId == null ? CommonHelper.None : SupervisorStatus.DeviceId;
             <div class="label">
                 DeviceId:
                 <div class="body">@DeviceId</div>
             </div>
-            string ModuleId = SupervisorStatus.ModuleId == null ? "--" : SupervisorStatus.ModuleId;
+            string ModuleId = SupervisorStatus.ModuleId == null ? CommonHelper.None : SupervisorStatus.ModuleId;
             <div class="label">
                 ModuleId:
                 <div class="body">@ModuleId</div>
             </div>
-            string SiteId = SupervisorStatus.SiteId == null ? "--" : SupervisorStatus.SiteId;
+            string SiteId = SupervisorStatus.SiteId == null ? CommonHelper.None : SupervisorStatus.SiteId;
             <div class="label">
                 SiteId:
                 <div class="body">@SiteId</div>
@@ -32,12 +34,12 @@
                     {
                         foreach (var endpoint in SupervisorStatus.Endpoints)
                         {
-                            string Id = endpoint.Id == null ? "--" : endpoint.Id;
+                            string Id = endpoint.Id == null ? CommonHelper.None : endpoint.Id;
                             <div class="label">
                                 Uri:
                                 <div class="body">@Id</div>
                             </div>
-                            string ActivationState = endpoint.ActivationState == null ? "--" : endpoint.ActivationState.ToString();
+                            string ActivationState = endpoint.ActivationState == null ? CommonHelper.None : endpoint.ActivationState.ToString();
                             <div class="label">
                                 Connection Status:
                                 <div class="body">@ActivationState</div>
@@ -46,12 +48,12 @@
                     }
                     else
                     {
-                        <div class="body">--</div>
+                        <div class="body">@CommonHelper.None</div>
                     }
                 }
             </div>
         }
-        <div class="loader-pos @_spinner"></div>
+        <div class="loader-pos @CommonHelper.Spinner"></div>
     </div>
 </div>
 
@@ -60,18 +62,17 @@
     [Parameter]
     public string SupervisorId { get; set; }
 
-
     public SupervisorStatusApiModel SupervisorStatus { get; set; }
-    private string _spinner { get; set; }
+ 
 
     /// <summary>
     /// OnInitialized
     /// </summary>
     protected override void OnInitialized()
     {
-        _spinner = "loader-big";
+        CommonHelper.Spinner = "loader-big";
     }
-    
+
     /// <summary>
     /// OnAfterRenderAsync
     /// </summary>
@@ -81,7 +82,7 @@
         if (firstRender)
         {
             SupervisorStatus = await RegistryHelper.GetSupervisorStatusAsync(SupervisorId);
-            _spinner = "";
+            CommonHelper.Spinner = "";
             StateHasChanged();
         }
     }

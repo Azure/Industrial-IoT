@@ -10,25 +10,24 @@ Azure [Industrial IoT](industrial-iot-components.md) allows plant operators to d
 
 ### Analyze, react to events, and control equipment from anywhere
 
-Operations personnel can subscribe to and react to events on the factory floor from anywhere in the world.  The Microservices' REST APIs mirror the OPC UA services edge-side and are secured using OAUTH authentication and authorization backed by Azure Active Directory (AAD).  This enables your cloud applications to browse server address spaces or read/write variables and execute methods using HTTPS and simple OPC UA JSON payloads.  
+Operations personnel can subscribe to and react to events on the factory floor from anywhere in the world.  The Microservices' REST APIs mirror the [OPC UA](opcua.md) services edge-side and are secured using OAUTH authentication and authorization backed by Azure Active Directory (AAD).  This enables your cloud applications to browse server address spaces or read/write variables and execute methods using HTTPS and simple OPC UA JSON payloads.  
 
 ### Simple developer experience
 
-The [REST API](docs/api/readme.md) can be used with any programming language through its exposed Open API specification (Swagger). This means when integrating OPC UA into cloud management solutions, developers are free to choose technology that matches their skills, interests, and architecture choices.  For example, a full stack web developer who develops an application for an alarm and event dashboard can write logic to respond to events in JavaScript or TypeScript without ramping up on a OPC UA SDK, C, C++, Java or C#.
+The [REST API](api/readme.md) can be used with any programming language through its exposed Open API specification (Swagger). This means when integrating OPC UA into cloud management solutions, developers are free to choose technology that matches their skills, interests, and architecture choices.  For example, a full stack web developer who develops an application for an alarm and event dashboard can write logic to respond to events in JavaScript or TypeScript without ramping up on a OPC UA SDK, C, C++, Java or C#.
 
 ### Manage certificates and trust groups
 
 Azure Industrial IoT manages OPC UA Application Certificates and Trust Lists of factory floor machinery and control systems to keep OPC UA client to server communication secure. It restricts which client is allowed to talk to which server.  Storage of private keys and signing of certificates is backed by Azure Key Vault, which supports hardware based security (HSM).
 
-## Getting started
+## Get started
 
-Deploying Azure Industrial IoT includes deploying the Azure Industrial IoT Microservices to Azure and the required edge modules to Azure IoT Edge. The following articles help you get started:
+Deploying Azure Industrial IoT includes deploying the Azure Industrial IoT Microservices to Azure and the required edge modules to Azure IoT Edge.
 
-- [Deploy the platform components and Edge Gateway](deploy/readme.md)
-- Discover and register Industrial Assets
-  - [Discover a server and browse its address space using the CLI](howto-use-cli.md).
-  - [Discover a server and browse its address space using Postman](howto-use-postman.md).
-- Subscribe to data and visualize the data (COMING SOON)
+To get started
+
+* [Deploy the platform components and Edge Gateway](deploy/readme.md) 
+* [Run through the Tutorials](tutorials/readme.md).
 
 ## Learn more
 
