@@ -122,6 +122,13 @@
                 "description": "Number of simulations to deploy into each gateway network."
             }
         },
+        "edgeVmSize": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The size of VMs to provision for simulation."
+            }
+        },
         "edgeUserName": {
             "type": "secureString",
             "defaultValue": "",
@@ -312,6 +319,9 @@
                     },
                     "numberOfWindowsGateways": {
                         "value": "[parameters('numberOfWindowsGateways')]"
+                    },
+                    "edgeVmSize": {
+                        "value": "[parameters('edgeVmSize')]"
                     },
                     "edgeUserName": {
                         "value": "[parameters('edgeUserName')]"

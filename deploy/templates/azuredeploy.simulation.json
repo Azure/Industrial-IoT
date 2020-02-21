@@ -45,6 +45,59 @@
                 "description": "Password for the IoT Edge virtual machine."
             }
         },
+        "edgeVmSize": {
+            "type": "string",
+            "defaultValue": "",
+            "allowedValues": [
+                "",
+                "Standard_B2s",
+                "Standard_B2ms",
+                "Standard_A2",
+                "Standard_A3",
+                "Standard_A4",
+                "Standard_A5",
+                "Standard_A6",
+                "Standard_A7",
+                "Standard_A8",
+                "Standard_A9",
+                "Standard_A10",
+                "Standard_A11",
+                "Standard_A2_v2",
+                "Standard_A4_v2",
+                "Standard_A8_v2",
+                "Standard_A2m_v2",
+                "Standard_A4m_v2",
+                "Standard_A8m_v2",
+                "Standard_D2",
+                "Standard_D3",
+                "Standard_D4",
+                "Standard_D11",
+                "Standard_D12",
+                "Standard_D13",
+                "Standard_D14",
+                "Standard_D2_v2",
+                "Standard_D3_v2",
+                "Standard_D4_v2",
+                "Standard_D5_v2",
+                "Standard_D11_v2",
+                "Standard_D12_v2",
+                "Standard_D13_v2",
+                "Standard_D14_v2",
+                "Standard_D15_v2",
+                "Standard_G1",
+                "Standard_G2",
+                "Standard_G3",
+                "Standard_G4",
+                "Standard_G5",
+                "Standard_F2",
+                "Standard_F4",
+                "Standard_F8",
+                "Standard_F16"
+            ],
+            "metadata": {
+                "description": "The size of the gateway VM to provision."
+            }
+        },
         "numberOfSimulations": {
             "type": "int",
             "defaultValue": 1,
@@ -52,6 +105,59 @@
             "minValue": 0,
             "metadata": {
                 "description": "Number of simulated factories to deploy."
+            }
+        },
+        "simulationVmSize": {
+            "type": "string",
+            "defaultValue": "",
+            "allowedValues": [
+                "",
+                "Standard_B2s",
+                "Standard_B2ms",
+                "Standard_A2",
+                "Standard_A3",
+                "Standard_A4",
+                "Standard_A5",
+                "Standard_A6",
+                "Standard_A7",
+                "Standard_A8",
+                "Standard_A9",
+                "Standard_A10",
+                "Standard_A11",
+                "Standard_A2_v2",
+                "Standard_A4_v2",
+                "Standard_A8_v2",
+                "Standard_A2m_v2",
+                "Standard_A4m_v2",
+                "Standard_A8m_v2",
+                "Standard_D2",
+                "Standard_D3",
+                "Standard_D4",
+                "Standard_D11",
+                "Standard_D12",
+                "Standard_D13",
+                "Standard_D14",
+                "Standard_D2_v2",
+                "Standard_D3_v2",
+                "Standard_D4_v2",
+                "Standard_D5_v2",
+                "Standard_D11_v2",
+                "Standard_D12_v2",
+                "Standard_D13_v2",
+                "Standard_D14_v2",
+                "Standard_D15_v2",
+                "Standard_G1",
+                "Standard_G2",
+                "Standard_G3",
+                "Standard_G4",
+                "Standard_G5",
+                "Standard_F2",
+                "Standard_F4",
+                "Standard_F8",
+                "Standard_F16"
+            ],
+            "metadata": {
+                "description": "The size of the simulation VM to provision."
             }
         },
         "dockerServer": {
@@ -184,7 +290,9 @@
             "protectedSettings": {
                 "commandToExecute": "[concat('sudo bash edge-setup.sh --idScope \"', parameters('dpsIdScope'), '\" --dpsConnString \"', parameters('dpsConnString'), '\"')]"
             }
-        }
+        },
+        "edgeVmSku": "[if(not(empty(parameters('edgeVmSize'))), parameters('edgeVmSize'), 'Standard_B2s')]",
+        "simulationVmSku": "[if(not(empty(parameters('simulationVmSize'))), parameters('simulationVmSize'), variables('edgeVmSku'))]"
     },
     "resources": [
         {
@@ -243,7 +351,7 @@
             "identity": "[if(not(empty(parameters('managedIdentityResourceId'))), variables('identity'), '')]",
             "properties": {
                 "hardwareProfile": {
-                    "vmSize": "Standard_B2s"
+                    "vmSize": "[variables('edgeVmSku')]"
                 },
                 "osProfile": "[if(equals(parameters('edgeOs'), 'linux'), variables('linuxOsProfile'), variables('windowsOsProfile'))]",
                 "storageProfile": {
@@ -322,7 +430,7 @@
                             "location": "[resourceGroup().location]",
                             "properties": {
                                 "hardwareProfile": {
-                                    "vmSize": "Standard_A1"
+                                    "vmSize": "[variables('simulationVmSku')]"
                                 },
                                 "osProfile": {
                                     "computerName": "[concat(variables('simulationName'), copyIndex())]",
