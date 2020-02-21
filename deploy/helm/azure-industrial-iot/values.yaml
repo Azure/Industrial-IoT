@@ -10,7 +10,7 @@ image:
   pullPolicy: IfNotPresent
   # image.pullSecrets defined docker-registry secrets that should be used for private container registries.
   # Use standard shceme of imagePullSecrets as shown bellow:
-  # pullSecrets
+  # pullSecrets:
   # - name: myRegistryKey
   pullSecrets: []
 
