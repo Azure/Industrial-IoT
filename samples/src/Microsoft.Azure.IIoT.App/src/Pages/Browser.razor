@@ -13,6 +13,7 @@
 @using System.Collections.Generic
 @using Microsoft.Azure.IIoT.OpcUa.Api.Publisher
 @using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models
+@using Microsoft.Azure.IIoT.App.Common
 
 
 @inject NavigationManager NavigationManager
@@ -20,6 +21,7 @@
 @inject Services.Publisher Publisher
 @inject PublisherServiceEvents PublisherServiceEvents
 @inject Registry RegistryHelper
+@inject UICommon CommonHelper
 
 @implements IDisposable
 
@@ -89,7 +91,7 @@
                     <td>@node.NodeClass</td>
                 }
                 @if (node.NodeClass == NodeClass.Variable && (node.AccessLevel == NodeAccessLevel.CurrentRead || node.AccessLevel == NodeAccessLevel.CurrentWrite ||
-                   node.AccessLevel == (NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite)))
+                 node.AccessLevel == (NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite)))
                 {
                     <td>
                         <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
@@ -121,7 +123,7 @@
         }
     </tbody>
 </table>
-<div class="loader-pos @_spinner"></div>
+<div class="loader-pos @CommonHelper.Spinner"></div>
 
 <ErrorMessage PageError="@PagedNodeList.Error" Status="@null"></ErrorMessage>
 
@@ -153,9 +155,7 @@
     public PagedResult<ListNode> PagedNodeList = new PagedResult<ListNode>();
     public bool IsOpened { get; set; } = false;
     public ListNode NodeData { get; set; }
-    public const int PageLength = 10;
     private IAsyncDisposable _publishEvent { get; set; }
-    private string _spinner { get; set; }
 
 
     /// <summary>
@@ -164,7 +164,7 @@
     /// <param name="page"></param>
     public async void PagerPageChanged(int page)
     {
-        PagedNodeList = NodeList.GetPaged(page, PageLength, null);
+        PagedNodeList = NodeList.GetPaged(page, CommonHelper.PageLength, null);
         foreach (var node in PagedNodeList.Results)
         {
             // fetch the actual value
@@ -181,7 +181,7 @@
     /// </summary>
     protected override void OnInitialized()
     {
-        _spinner = "loader-big";
+        CommonHelper.Spinner = "loader-big";
     }
 
     /// <summary>
@@ -193,7 +193,7 @@
         if (firstRender)
         {
             await BrowseTreeAsync(string.Empty, new List<string>(), BrowseDirection.Forward);
-            _spinner = "";
+            CommonHelper.Spinner = "";
             StateHasChanged();
             _publishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId, null, PublishEvent);
         }
@@ -228,7 +228,7 @@
     /// <param name="direction"></param>
     private async Task BrowseTreeAsync(String id, List<string> parentId, BrowseDirection direction)
     {
-        _spinner = "loader-big";
+        CommonHelper.Spinner = "loader-big";
         NodeList = await BrowseManager.GetTreeAsync(EndpointId, id, parentId, DiscovererId, direction);
         var publishedNodes = await Publisher.PublishedAsync(EndpointId);
 
@@ -250,8 +250,8 @@
         }
 
         Page = "1";
-        PagedNodeList = NodeList.GetPaged(Int32.Parse(Page), PageLength, NodeList.Error);
-        _spinner = "";
+        PagedNodeList = NodeList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, NodeList.Error);
+        CommonHelper.Spinner = "";
     }
 
     /// <summary>

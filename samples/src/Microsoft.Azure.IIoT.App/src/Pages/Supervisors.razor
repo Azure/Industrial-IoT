@@ -9,10 +9,12 @@
 @using Microsoft.Azure.IIoT.App.Data
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry
+@using Microsoft.Azure.IIoT.App.Common
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
 @inject RegistryServiceEvents RegistryServiceEvents
+@inject UICommon CommonHelper
 
 @implements IDisposable
 
@@ -37,20 +39,20 @@
                         @supervisor.Id
                     </a>
                 </td>
-                @{string siteId = supervisor.SiteId == null ? "--" : supervisor.SiteId;}
+                @{string siteId = supervisor.SiteId == null ? CommonHelper.None : supervisor.SiteId;}
                 <td>
                     @siteId
                 </td>
-                @{string connectStatus = supervisor.Connected == null ? "--" : supervisor.Connected == true ? "Connected" : "Disconnected";}
+                @{string connectStatus = supervisor.Connected == null ? CommonHelper.None : supervisor.Connected == true ? "Connected" : "Disconnected";}
                 <td>
                     @connectStatus
                 </td>
-                @{string syncStatus = supervisor.OutOfSync == null ? "--" : supervisor.OutOfSync == true ? "Out of Sync" : "Synced";}
+                @{string syncStatus = supervisor.OutOfSync == null ? CommonHelper.None : supervisor.OutOfSync == true ? "Out of Sync" : "Synced";}
                 <td>
                     @syncStatus
                 </td>
                 <td>
-                    <a class="ellipsis-space" href="javascript: void(0)" @onclick="@(() => OpenDrawer(supervisor.Id))">...</a>
+                    <a class="ellipsis-space" href="javascript: void(0)" @onclick="@(() => OpenDrawer(supervisor.Id))">More Data</a>
                 </td>
                 <td>
                     <button @onclick="@(() => ResetSupervisorUIAsync(supervisor.Id))" class="btn btn-primary">Reset</button>
@@ -59,7 +61,7 @@
         }
     </tbody>
 </table>
-<div class="loader-pos @_spinner"></div>
+<div class="loader-pos @CommonHelper.Spinner"></div>
 
 <Drawer HeaderText="Twin Module Status" ObjectData="@SupervisorId" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
     <_DrawerSupervisorContent SupervisorId="@SupervisorId"></_DrawerSupervisorContent>
@@ -74,7 +76,6 @@
     [Parameter]
     public string Page { get; set; } = "1";
 
-    public const int PageLength = 10;
     public string Status { get; set; }
     public bool IsOpened { get; set; } = false;
     public string SupervisorId { get; set; }
@@ -82,7 +83,6 @@
         new PagedResult<SupervisorApiModel>();
     private PagedResult<SupervisorApiModel> _pagedsupervisorList =
         new PagedResult<SupervisorApiModel>();
-    private string _spinner { get; set; }
     private IAsyncDisposable _supervisorEvent { get; set; }
 
     /// <summary>
@@ -91,7 +91,7 @@
     /// <param name="page"></param>
     public void PagerPageChanged(int page)
     {
-        _pagedsupervisorList = _supervisorList.GetPaged(page, PageLength, null);
+        _pagedsupervisorList = _supervisorList.GetPaged(page, CommonHelper.PageLength, null);
         NavigationManager.NavigateTo("/supervisors/" + page);
     }
 
@@ -100,7 +100,7 @@
     /// </summary>
     protected override void OnInitialized()
     {
-        _spinner = "loader-big";
+        CommonHelper.Spinner = "loader-big";
     }
 
     /// <summary>
@@ -167,8 +167,8 @@
     {
         _supervisorList = await RegistryHelper.GetSupervisorListAsync();
         Page = "1";
-        _pagedsupervisorList = _supervisorList.GetPaged(Int32.Parse(Page), PageLength, _supervisorList.Error);
-        _spinner = "";
+        _pagedsupervisorList = _supervisorList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _supervisorList.Error);
+        CommonHelper.Spinner = "";
     }
 
     /// <summary>

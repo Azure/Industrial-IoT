@@ -25,6 +25,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
     using Newtonsoft.Json;
     using System;
     using ILogger = Serilog.ILogger;
+    using Prometheus;
 
     /// <summary>
     /// Webservice Startup
@@ -133,7 +134,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
 
             app.UseCorrelation();
             app.UseSwagger();
-
+            app.UseMetricServer();
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();
                 endpoints.MapHealthChecks("/healthz");

@@ -5,6 +5,7 @@
     <Description>Azure Industrial IoT SignalR messaging</Description>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="MessagePack" Version="1.9.11" />
     <PackageReference Include="Microsoft.Azure.SignalR.Management" Version="1.2.3" />
   </ItemGroup>
   <ItemGroup>

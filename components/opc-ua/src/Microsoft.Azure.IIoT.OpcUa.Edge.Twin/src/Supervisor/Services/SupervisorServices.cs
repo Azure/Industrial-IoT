@@ -267,8 +267,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
                 while (!_cts.Token.IsCancellationRequested) {
                     // Wait until the module unloads or is cancelled
                     try {
+                        var product = "OpcTwin_" +
+                            GetType().Assembly.GetReleaseVersion().ToString();
                         await host.StartAsync("twin", _outer._events.SiteId,
-                            "OpcTwin", this);
+                            product, this);
                         Status = EndpointActivationState.ActivatedAndConnected;
                         _started.TrySetResult(true);
                         // Reset retry counter on success

@@ -2,7 +2,7 @@
 
 [Home](readme.md)
 
-The Twin Microservice REST API uses OPC UA JSON reversible encoding as per standard defined in OPC UA specification 1.04, Part 6, with the following exceptions or enhancements:
+The Twin Microservice REST API uses OPC UA JSON reversible encoding as per standard defined in [OPC UA](../opcua.md) specification 1.04, Part 6, with the following exceptions or enhancements:
 
 1. `null` values are not encoded.  A missing value implies `null`.  
 
