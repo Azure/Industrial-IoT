@@ -83,13 +83,25 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             var cache = _store.GetCache($"OID:{user.GetObjectId()}");
             var ctx = CreateAuthenticationContext(_config.InstanceUrl,
                 _config.TenantId, cache);
-            try {
-                var result = await ctx.AcquireTokenAsync(resource,
-                    new ClientCredential(_config.AppId, _config.AppSecret),
-                    new UserAssertion(token, kGrantType, name));
+
+            try {   
+                var result = await ctx.AcquireTokenSilentAsync(resource, _config.AppId);
                 return result.ToTokenResult();
             }
             catch (AdalException ex) {
+                if (ex.ErrorCode == AdalError.FailedToAcquireTokenSilently) {
+                    try {           
+                        var result = await ctx.AcquireTokenAsync(resource,
+                        new ClientCredential(_config.AppId, _config.AppSecret),
+                        new UserAssertion(token, kGrantType, name));
+                        return result.ToTokenResult();
+                    }
+                    catch (AdalException ex1) {
+                        _handler.Handle(_ctx.HttpContext, new AuthenticationException(
+                        $"Failed to authenticate on behalf of {name}", ex1));
+                        return null;
+                    }
+                }
                 _handler.Handle(_ctx.HttpContext, new AuthenticationException(
                     $"Failed to authenticate on behalf of {name}", ex));
                 return null;

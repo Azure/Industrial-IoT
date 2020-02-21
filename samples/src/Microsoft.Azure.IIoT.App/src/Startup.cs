@@ -97,6 +97,7 @@ namespace Microsoft.Azure.IIoT.App {
                 new RewriteOptions().Add(context => {
                     if (context.HttpContext.Request.Path == "/AzureAD/Account/SignedOut") {
                         context.HttpContext.Response.Redirect("/discoverers");
+                        context.HttpContext.SignOutAsync("Cookies");
                     }
                 })
             );
@@ -150,7 +151,7 @@ namespace Microsoft.Azure.IIoT.App {
             });
 
             services.AddAntiforgery(options => {
-                options.Cookie.SameSite = SameSiteMode.None;
+                options.Cookie.SameSite = SameSiteMode.Strict;
             });
 
             services.AddHttpContextAccessor();
