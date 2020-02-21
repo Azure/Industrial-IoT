@@ -23,13 +23,13 @@ To deploy all required modules to the Gateway using the Azure Portal...
 6. In the **IoT Edge Custom Module** dialog use `discovery` as name for the module, then specify the container *image URI* as
 
    ```bash
-mcr.microsoft.com/iotedge/discovery:latest
+   mcr.microsoft.com/iotedge/discovery:latest
    ```
 
    As *create options* use the following JSON:
 
    ```json
-{"NetworkingConfig":{"EndpointsConfig":{"host":{}}},"HostConfig":{"NetworkMode":"host","CapAdd":["NET_ADMIN"]}}
+   {"NetworkingConfig":{"EndpointsConfig":{"host":{}}},"HostConfig":{"NetworkMode":"host","CapAdd":["NET_ADMIN"]}}
    ```
 
    Fill out the optional fields if necessary. For more information about container create options, restart policy, and desired status see [EdgeAgent desired properties](https://docs.microsoft.com/azure/iot-edge/module-edgeagent-edgehub#edgeagent-desired-properties). For more information about the module twin see [Define or update desired properties](https://docs.microsoft.com/azure/iot-edge/module-composition#define-or-update-desired-properties).
@@ -39,7 +39,7 @@ mcr.microsoft.com/iotedge/discovery:latest
 8. In the **IoT Edge Custom Module** dialog use `opctwin` as name for the module, then specify the container *image URI* as
 
    ```bash
-mcr.microsoft.com/iotedge/opc-twin:latest
+   mcr.microsoft.com/iotedge/opc-twin:latest
    ```
 
    Leave the *create options* empty.
@@ -49,7 +49,7 @@ mcr.microsoft.com/iotedge/opc-twin:latest
 10. In the IoT Edge Custom Module dialog, use `opcpublisher` as name for the module and the container *image URI* as
 
     ```bash
-mcr.microsoft.com/iotedge/opc-publisher:latest
+    mcr.microsoft.com/iotedge/opc-publisher:latest
     ```
 
     Leave the *create options* empty.
