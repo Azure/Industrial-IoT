@@ -1,5 +1,7 @@
 # How to use Prometheus metrics
 
+[Home](readme.md)
+
 All the cloud microservices of Industrial IoT platform have been instrumented with Prometheus already. 
 
 Four types of metrics are available in Prometheus: Counter, Gauge, Summary and Histogram. Please check the documentation on [metric types](http://prometheus.io/docs/concepts/metric_types/) and [instrumentation best practices](http://prometheus.io/docs/practices/instrumentation/#counter-vs.-gauge-vs.-summary) to learn what each is good for.
