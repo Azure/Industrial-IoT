@@ -24,6 +24,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
     using Newtonsoft.Json;
     using System;
     using ILogger = Serilog.ILogger;
+    using Prometheus;
 
     /// <summary>
     /// Webservice startup
@@ -136,6 +137,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
 
             app.UseCorrelation();
             app.UseSwagger();
+            app.UseMetricServer();
 
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();

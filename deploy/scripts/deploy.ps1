@@ -297,6 +297,7 @@ Function Select-ResourceGroupLocation() {
         foreach ($location in $locations) {
             if ($location.Location -eq $script:resourceGroupLocation -or `
                     $location.DisplayName -eq $script:resourceGroupLocation) {
+                $script:resourceGroupLocation = $location.Location
                 return
             }
         }
@@ -325,6 +326,65 @@ Function Select-ResourceGroupLocation() {
     $script:resourceGroupLocation = $locations[$option - 1].Location
 }
 
+
+#*******************************************************************************************************
+# Update resource group tags
+#*******************************************************************************************************
+Function Set-ResourceGroupTags() {
+    Param(
+        [string] $state,
+        [string] $version
+    )
+    $resourceGroup = Get-AzResourceGroup -ResourceGroupName $script:resourceGroupName
+    if (!$resourceGroup) {
+        return
+    }
+    $tags = $resourceGroup.Tags
+    if (!$tags) {
+        $tags = @{}
+    }
+    $update = $false
+    if (![string]::IsNullOrEmpty($state)) {
+        if ($tags.ContainsKey("IoTSuiteState")) {
+            if ($tags.IoTSuiteState -ne $state) {
+                $tags.IoTSuiteState = $state
+                $update = $true
+            }
+        }
+        else {
+            $tags += @{ "IoTSuiteState" = $state }
+            $update = $true
+        }
+    }
+    if (![string]::IsNullOrEmpty($version)) {
+        if ($tags.ContainsKey("IoTSuiteVersion")) {
+            if ($tags.IoTSuiteVersion -ne $version) {
+                $tags.IoTSuiteVersion = $version
+                $update = $true
+            }
+        }
+        else {
+            $tags += @{ "IoTSuiteVersion" = $version }
+            $update = $true
+        }
+    }
+    $type = "AzureIndustrialIoT"
+    if ($tags.ContainsKey("IoTSuiteType")) {
+        if ($tags.IoTSuiteType -ne $type) {
+            $tags.IoTSuiteType = $type
+            $update = $true
+        }
+    }
+    else {
+        $tags += @{ "IoTSuiteType" = $type }
+        $update = $true
+    }
+    if (!$update) {
+        return
+    }
+    $resourceGroup = Set-AzResourceGroup -Name $script:resourceGroupName -Tag $tags
+}
+
 #*******************************************************************************************************
 # Get or create new resource group for deployment
 #*******************************************************************************************************
@@ -348,9 +408,12 @@ Function Select-ResourceGroup() {
         $resourceGroup = New-AzResourceGroup -Name $script:resourceGroupName `
             -Location $script:resourceGroupLocation
         Write-Host "Created new resource group  $($script:resourceGroupName) in $($resourceGroup.Location)."
+        Set-ResourceGroupTags -state "Created"
         return $True
     }
     else {
+        Set-ResourceGroupTags -state "Updating"
+        $script:resourceGroupLocation = $resourceGroup.Location
         Write-Host "Using existing resource group $($script:resourceGroupName)..."
         return $False
     }
@@ -541,6 +604,8 @@ Function New-Deployment() {
             }
         }
     }
+
+    Set-ResourceGroupTags -state "Deploying" -version $script:branchName
     Write-Host "Deployment will use '$($script:branchName)' branch in '$($script:repo)'."
     $templateParameters.Add("branchName", $script:branchName)
     $templateParameters.Add("repoUrl", $script:repo)
@@ -598,6 +663,32 @@ Function New-Deployment() {
             $templateParameters.Add("numberOfLinuxGateways", 1)
             $templateParameters.Add("numberOfWindowsGateways", 1)
             $templateParameters.Add("numberOfSimulations", 1)
+
+            # Get all vm skus available in the location and in the account
+            $availableVms = Get-AzComputeResourceSku | Where-Object {
+                ($_.ResourceType.Contains("virtualMachines")) -and `
+                ($_.Locations -icontains $script:resourceGroupLocation) -and `
+                ($_.Restrictions.Count -eq 0)
+            }
+            # Sort based on sizes and filter minimum requirements
+            $availableVmNames = $availableVms `
+                | Select-Object -ExpandProperty Name -Unique 
+            $vmSizes = Get-AzVMSize $script:resourceGroupLocation `
+                | Where-Object { $availableVmNames -icontains $_.Name } `
+                | Where-Object {
+                    ($_.NumberOfCores -ge 2) -and `
+                    ($_.MemoryInMB -ge 8192) -and `
+                    ($_.OSDiskSizeInMB -ge 1047552) -and `
+                    ($_.ResourceDiskSizeInMB -gt 8192) 
+                } `
+                | Sort-Object -Property `
+                    NumberOfCores,MemoryInMB,ResourceDiskSizeInMB,Name
+            # Pick top
+            if ($vmSizes.Count -ne 0) {
+                $vmSize = $vmSizes[0].Name
+                Write-Host "Using $($vmSize) as VM size for all edge simulation hosts..."
+                $templateParameters.Add("edgeVmSize", $vmSize)
+            }
 
             $adminUser = "sandboxuser"
             $adminPassword = New-Password
@@ -679,9 +770,11 @@ Function New-Deployment() {
                 -TemplateFile $templateFilePath -TemplateParameterObject $templateParameters
 
             if ($deployment.ProvisioningState -ne "Succeeded") {
+                Set-ResourceGroupTags -state "Failed"
                 throw "Deployment $($deployment.ProvisioningState)."
             }
 
+            Set-ResourceGroupTags -state "Complete"
             Write-Host "Deployment succeeded."
 
             #

@@ -37,6 +37,7 @@ namespace Microsoft.Azure.IIoT.App {
     using System;
     using System.Threading.Tasks;
     using System.Security.Claims;
+    using Microsoft.Azure.IIoT.App.Common;
 
     /// <summary>
     /// Webapp startup
@@ -95,7 +96,7 @@ namespace Microsoft.Azure.IIoT.App {
             app.UseRewriter(
                 new RewriteOptions().Add(context => {
                     if (context.HttpContext.Request.Path == "/AzureAD/Account/SignedOut") {
-                        context.HttpContext.Response.Redirect("/");
+                        context.HttpContext.Response.Redirect("/discoverers");
                     }
                 })
             );
@@ -242,6 +243,9 @@ namespace Microsoft.Azure.IIoT.App {
             builder.RegisterType<Browser>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
             builder.RegisterType<Publisher>()
+                .AsImplementedInterfaces().AsSelf().SingleInstance();
+
+            builder.RegisterType<UICommon>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
         }
 
