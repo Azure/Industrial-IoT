@@ -43,6 +43,13 @@
                 "description": "Number of simulations to deploy into each gateway network."
             }
         },
+        "edgeVmSize": {
+            "type": "string",
+            "defaultValue": "",
+            "metadata": {
+                "description": "The size of VMs to provision for simulation."
+            }
+        },
         "edgeUserName": {
             "type": "string",
             "defaultValue": "sandboxuser",
@@ -543,6 +550,9 @@
                     "branchName": {
                         "value": "[parameters('branchName')]"
                     },
+                    "edgeVmSize": {
+                        "value": "[parameters('edgeVmSize')]"  
+                    },
                     "dpsIdScope": {
                         "reference": {
                             "keyVault": {
@@ -620,6 +630,9 @@
                     },
                     "branchName": {
                         "value": "[parameters('branchName')]"
+                    },
+                    "edgeVmSize": {
+                        "value": "[parameters('edgeVmSize')]"  
                     },
                     "dpsIdScope": {
                         "reference": {
