@@ -289,15 +289,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
                 }
             };
             // Add site as demand if available
-            //  TODO - restore SiteId demands when publishers are properly registered per site 
-/*
             if (!string.IsNullOrEmpty(endpoint.Registration.SiteId)) {
                 demands.Add(new DemandModel {
                     Key = nameof(endpoint.Registration.SiteId),
                     Value = endpoint.Registration.SiteId
                 });
             }
-            else */ if (!string.IsNullOrEmpty(endpoint.Registration.SupervisorId)) {
+            else if (!string.IsNullOrEmpty(endpoint.Registration.SupervisorId)) {
                 var deviceId = SupervisorModelEx.ParseDeviceId(
                     endpoint.Registration.SupervisorId, out _);
                 // Otherwise confine to the supervisor's gateway
