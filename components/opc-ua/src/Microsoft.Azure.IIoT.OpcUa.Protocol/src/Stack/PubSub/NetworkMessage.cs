@@ -40,7 +40,7 @@ namespace Opc.Ua.PubSub {
         /// <summary>
         /// Dataset Messages
         /// </summary>
-        public List<DataSetMessage> Messages { get; set; }
+        public List<DataSetMessage> Messages { get; set; } = new List<DataSetMessage>();
 
         /// <inheritdoc/>
         public ExpandedNodeId TypeId => ExpandedNodeId.Null;

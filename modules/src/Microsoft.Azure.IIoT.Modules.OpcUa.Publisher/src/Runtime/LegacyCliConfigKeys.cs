@@ -43,6 +43,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string SkipFirstDefault = "DefaultSkipFirst";
 
         /// <summary>
+        /// Key for the messaging mode
+        /// </summary>
+        public const string MessagingMode = "MessagingMode";
+
+        /// <summary>
         /// Key for the default sampling interval in milliseconds.
         /// </summary>
         public const string OpcSamplingInterval = "DefaultSamplingInterval";

@@ -33,13 +33,15 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <param name="config"></param>
         /// <param name="logger"></param>
         /// <param name="handler"></param>
+        /// <param name="acquireTokenIfSilentFails"></param>
         public BehalfOfTokenProvider(IHttpContextAccessor ctx, ITokenCacheProvider store,
-            IClientConfig config, ILogger logger, IAuthenticationErrorHandler handler = null) {
+            IClientConfig config, ILogger logger, IAuthenticationErrorHandler handler = null, bool acquireTokenIfSilentFails = false) {
             _store = store ?? throw new ArgumentNullException(nameof(store));
             _ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _handler = handler ?? new ThrowHandler();
+            _acquireTokenIfSilentFails = acquireTokenIfSilentFails;
 
             if (string.IsNullOrEmpty(_config.AppId) ||
                 string.IsNullOrEmpty(_config.AppSecret)) {
@@ -83,13 +85,20 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             var cache = _store.GetCache($"OID:{user.GetObjectId()}");
             var ctx = CreateAuthenticationContext(_config.InstanceUrl,
                 _config.TenantId, cache);
-            try {
-                var result = await ctx.AcquireTokenAsync(resource,
-                    new ClientCredential(_config.AppId, _config.AppSecret),
-                    new UserAssertion(token, kGrantType, name));
+
+            try {   
+                var result = await ctx.AcquireTokenSilentAsync(resource, _config.AppId);
                 return result.ToTokenResult();
             }
             catch (AdalException ex) {
+                if (ex.ErrorCode == AdalError.FailedToAcquireTokenSilently) {
+                    if (_acquireTokenIfSilentFails == true) {
+                        var result = await ctx.AcquireTokenAsync(resource,
+                        new ClientCredential(_config.AppId, _config.AppSecret),
+                        new UserAssertion(token, kGrantType, name));
+                        return result.ToTokenResult();
+                    }
+                }
                 _handler.Handle(_ctx.HttpContext, new AuthenticationException(
                     $"Failed to authenticate on behalf of {name}", ex));
                 return null;
@@ -150,6 +159,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         private readonly ILogger _logger;
         private readonly IClientConfig _config;
         private readonly IAuthenticationErrorHandler _handler;
+        private readonly bool _acquireTokenIfSilentFails;
     }
 
 }

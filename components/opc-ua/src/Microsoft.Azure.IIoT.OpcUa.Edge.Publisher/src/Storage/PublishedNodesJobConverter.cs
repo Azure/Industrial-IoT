@@ -120,7 +120,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                     }))
                 .SelectMany(dataSetSourceBatches => dataSetSourceBatches
                     .Select(dataSetSource => new WriterGroupJobModel {
-                        MessagingMode = MessagingMode.Samples,
+                        MessagingMode = legacyCliModel.MessagingMode,
                         Engine = _config == null ? null : new EngineConfigurationModel {
                             BatchSize = _config.BatchSize,
                             DiagnosticsInterval = _config.DiagnosticsInterval
@@ -132,8 +132,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                                     DataSetWriterId = Guid.NewGuid().ToString(),
                                     DataSet = new PublishedDataSetModel {
                                         DataSetSource = dataSetSource.Clone()
+                                    },
+                                    DataSetFieldContentMask = DataSetFieldContentMask.SourceTimestamp | 
+                                        DataSetFieldContentMask.ServerTimestamp | 
+                                        DataSetFieldContentMask.StatusCode |
+                                        DataSetFieldContentMask.NodeId  | 
+                                        DataSetFieldContentMask.ApplicationUri,
+                                    MessageSettings = new DataSetWriterMessageSettingsModel() {
+                                        DataSetMessageContentMask = DataSetContentMask.Timestamp | 
+                                        DataSetContentMask.MetaDataVersion | 
+                                        DataSetContentMask.Status | 
+                                        DataSetContentMask.DataSetWriterId | 
+                                        DataSetContentMask.MajorVersion | 
+                                        DataSetContentMask.MinorVersion | 
+                                        DataSetContentMask.SequenceNumber
                                     }
                                 }
+                            },
+                            MessageSettings = new WriterGroupMessageSettingsModel() {
+                                NetworkMessageContentMask = NetworkMessageContentMask.PublisherId | 
+                                NetworkMessageContentMask.WriterGroupId | 
+                                NetworkMessageContentMask.SequenceNumber | 
+                                NetworkMessageContentMask.PayloadHeader | 
+                                NetworkMessageContentMask.NetworkMessageHeader |
+                                NetworkMessageContentMask.Timestamp | 
+                                NetworkMessageContentMask.DataSetMessageHeader
                             }
                         }
                     }));
