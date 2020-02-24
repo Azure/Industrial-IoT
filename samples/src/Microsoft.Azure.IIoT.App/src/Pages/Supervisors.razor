@@ -20,7 +20,7 @@
 
 <h1>Twin Modules</h1>
 
-<table class="table">
+<table class="table @_tableView">
     <thead>
         <tr>
             <th>Id</th>
@@ -84,6 +84,7 @@
     private PagedResult<SupervisorApiModel> _pagedsupervisorList =
         new PagedResult<SupervisorApiModel>();
     private IAsyncDisposable _supervisorEvent { get; set; }
+    private string _tableView { get; set; } = "visible";
 
     /// <summary>
     /// Notify page change
@@ -112,6 +113,11 @@
         if (firstRender)
         {
             await UpdateSupervisorAsync();
+            CommonHelper.Spinner = string.Empty;
+            if (_pagedsupervisorList.Error != null)
+            {
+                _tableView = "hidden";
+            }
             StateHasChanged();
 
             _supervisorEvent = await RegistryServiceEvents.SubscribeSupervisorEventsAsync(
