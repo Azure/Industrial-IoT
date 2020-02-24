@@ -242,8 +242,8 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                     }
                     catch (DeviceAlreadyExistsException) when (forceUpdate) {
                         //
-                        // Technically update should now work but for some reason
-                        // it does not.
+                        // Technically update below should now work but for
+                        // some reason it does not.
                         // Remove and re-add in case we are forcing updates.
                         //
                         await _registry.RemoveConfigurationAsync(configuration.Id, ct);
