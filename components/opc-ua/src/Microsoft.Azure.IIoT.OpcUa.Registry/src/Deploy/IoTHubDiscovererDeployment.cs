@@ -104,6 +104,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                 // Windows
                 createOptions = @"
                 {
+// TEST
            //         ""HostConfig"": {
            //             ""CapAdd"": [ ""NET_ADMIN"" ]
            //         }
