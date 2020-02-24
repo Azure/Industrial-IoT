@@ -130,7 +130,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
             Assert.Single(range1);
             Assert.Equal(range2, range1.Single());
             Assert.Equal("abc", range1.First().Nic);
-            Assert.Equal("0.0.0.0/24[abc]", range1.First().ToString());
+            Assert.Equal("0.0.0.0/24 [abc]", range1.First().ToString());
         }
 
         [Fact]
@@ -187,7 +187,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
 
         [Fact]
         public void TestParsing5() {
-            AddressRange.TryParse("0.0.0.0/24[abc];0.0.0.0-0.0.0.255[abc];;;", out var range1);
+            AddressRange.TryParse("0.0.0.0/24 [abc];0.0.0.0-0.0.0.255[abc];;;", out var range1);
             var range2 = new AddressRange(0, 255);
 
             Assert.Single(range1);
@@ -197,7 +197,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
 
         [Fact]
         public void TestParsing6() {
-            var str = "1.1.1.1/24[abc];2.2.2.2/24[cde];3.3.3.3/24[efg]";
+            var str = "1.1.1.1/24[abc];2.2.2.2/24[cde];3.3.3.3/24 [efg]";
             AddressRange.TryParse(str, out var ranges);
 
             var range1 = new AddressRange(16843008, 16843263);
@@ -217,7 +217,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
                     Assert.Equal(range3, c);
                     Assert.Equal("efg", c.Nic);
                 });
-            Assert.Equal("1.1.1.0/24[abc];2.2.2.0/24[cde];3.3.3.0/24[efg]",
+            Assert.Equal("1.1.1.0/24 [abc];2.2.2.0/24 [cde];3.3.3.0/24 [efg]",
                 AddressRange.Format(ranges));
         }
 
@@ -244,7 +244,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
                     Assert.Equal("abc", c.Nic);
                 });
 
-            Assert.Equal("192.168.1.0/24[abc];192.168.2.0/29[abc];192.168.2.8/31[abc]",
+            Assert.Equal("192.168.1.0/24 [abc];192.168.2.0/29 [abc];192.168.2.8/31 [abc]",
                 AddressRange.Format(ranges));
         }
 

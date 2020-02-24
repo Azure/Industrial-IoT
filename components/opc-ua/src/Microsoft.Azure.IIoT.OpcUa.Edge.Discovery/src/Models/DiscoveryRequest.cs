@@ -128,14 +128,30 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
             }
 
             if (AddressRanges == null) {
-                if (request.Discovery == DiscoveryMode.Fast) {
-                    var interfaces = NetworkInformationEx.GetAllNetInterfaces(NetworkClass.Wired);
-                    AddressRanges = interfaces.Select(t => new AddressRange(t, false, 24));
-                    AddressRanges = AddressRanges.Concat(interfaces
-                        .Where(t => t.Gateway != null &&
-                                    !t.Gateway.Equals(System.Net.IPAddress.Any) &&
-                                    !t.Gateway.Equals(System.Net.IPAddress.None))
-                        .Select(i => new AddressRange(i.Gateway, 32)));
+                switch (request.Discovery) {
+                    case DiscoveryMode.Local:
+                        AddressRanges = NetworkInformationEx.GetAllNetInterfaces(NetworkClass)
+                            .Select(t => new AddressRange(t, true)).Distinct();
+                        break;
+                    case DiscoveryMode.Fast:
+                        var interfaces = NetworkInformationEx.GetAllNetInterfaces(NetworkClass.Wired);
+                            AddressRanges = interfaces.Select(t => new AddressRange(t, false, 24));
+                            AddressRanges = AddressRanges.Concat(interfaces
+                                .Where(t => t.Gateway != null &&
+                                            !t.Gateway.Equals(System.Net.IPAddress.Any) &&
+                                            !t.Gateway.Equals(System.Net.IPAddress.None))
+                                .Select(i => new AddressRange(i.Gateway, 32)));
+                        break;
+                    case DiscoveryMode.Off:
+                        AddressRanges = Enumerable.Empty<AddressRange>();
+                        break;
+                    case DiscoveryMode.Scan:
+                        AddressRanges = NetworkInformationEx.GetAllNetInterfaces(NetworkClass)
+                            .Select(t => new AddressRange(t, false)).Distinct();
+                        break;
+                    default:
+                        AddressRanges = Enumerable.Empty<AddressRange>();
+                        break;
                 }
             }
 
@@ -158,6 +174,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
                         break;
                     case DiscoveryMode.Scan:
                         PortRanges = PortRange.Unassigned;
+                        break;
+                    case DiscoveryMode.Off:
+                        PortRanges = Enumerable.Empty<PortRange>();
                         break;
                     default:
                         PortRanges = PortRange.OpcUa;

@@ -202,9 +202,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                     }
                     finally {
                         // If the request is scan request, schedule next one
-                        if (!ct.IsCancellationRequested && request.IsScan) {
+                        if (!ct.IsCancellationRequested && (request?.IsScan ?? false)) {
                             // Re-schedule another scan when idle time expired
-                            _timer.Change(request.Request.Configuration.IdleTimeBetweenScans.Value,
+                            _timer.Change(
+                                request.Request.Configuration.IdleTimeBetweenScans ??
+                                    TimeSpan.FromHours(1),
                                 Timeout.InfiniteTimeSpan);
                         }
                     }

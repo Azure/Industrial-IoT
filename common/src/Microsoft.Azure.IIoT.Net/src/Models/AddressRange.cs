@@ -298,7 +298,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
                 sb.Append("/");
                 sb.Append(maxSize);
                 if (Nic != "custom") {
-                    sb.Append("[");
+                    sb.Append(" [");
                     sb.Append(Nic);
                     sb.Append("]");
                 }

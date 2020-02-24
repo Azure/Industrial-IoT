@@ -1,6 +1,8 @@
 ﻿
 <nav class="top-row pl-3 navbar navbar-dark ">
-    <a class="navbar-brand" href="">Azure IIoT Engineering Tool</a>
+    <a class="navbar-brand" href="">
+        Azure IIoT Platform @this.GetType().Assembly.GetReleaseVersion().ToString(3)
+    </a>
     <button class="navbar-toggler" @onclick="ToggleNavMenu">
         <span class="navbar-toggler-icon"></span>
     </button>
