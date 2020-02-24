@@ -102,4 +102,10 @@ spec:
           serviceName: {{ template "azure-industrial-iot.edge-manager.fullname" . }}
           servicePort: {{ .Values.deployment.microServices.edgeManager.service.port }}
 {{- end }}
+{{- if and .Values.deployment.microServices.frontend.enabled .Values.deployment.ingress.paths.frontend }}
+      - path: {{ .Values.deployment.ingress.paths.frontend }}
+        backend:
+          serviceName: {{ template "azure-industrial-iot.frontend.fullname" . }}
+          servicePort: {{ .Values.deployment.microServices.frontend.service.httpPort }}
+{{- end }}
 {{- end }}
