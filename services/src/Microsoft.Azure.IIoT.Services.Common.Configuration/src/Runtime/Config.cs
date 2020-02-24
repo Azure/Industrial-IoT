@@ -8,6 +8,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.Azure.IIoT.Messaging.SignalR.Runtime;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus;
@@ -23,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration.Runtime {
     /// Common web service configuration aggregation
     /// </summary>
     public class Config : DiagnosticsConfig, IAuthConfig, IServiceBusConfig, ICorsConfig,
-        IClientConfig, IOpenApiConfig, ISignalRServiceConfig {
+        IClientConfig, IOpenApiConfig, ISignalRServiceConfig, IForwardedHeadersConfig {
 
         /// <inheritdoc/>
         public string CorsWhitelist => _cors.CorsWhitelist;
@@ -80,6 +82,13 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration.Runtime {
         /// </summary>
         public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
 
+        /// <inheritdoc/>
+        public bool AspNetCoreForwardedHeadersEnabled =>
+            _fh.AspNetCoreForwardedHeadersEnabled;
+        /// <inheritdoc/>
+        public int AspNetCoreForwardedHeadersForwardLimit =>
+            _fh.AspNetCoreForwardedHeadersForwardLimit;
+
         /// <summary>
         /// Configuration constructor
         /// </summary>
@@ -93,6 +102,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration.Runtime {
             _cors = new CorsConfig(configuration);
             _sb = new ServiceBusConfig(configuration);
             _sr = new SignalRServiceConfig(configuration);
+            _fh = new ForwardedHeadersConfig(configuration);
         }
 
         private readonly OpenApiConfig _openApi;
@@ -101,5 +111,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Configuration.Runtime {
         private readonly CorsConfig _cors;
         private readonly ServiceBusConfig _sb;
         private readonly SignalRServiceConfig _sr;
+        private readonly ForwardedHeadersConfig _fh;
     }
 }

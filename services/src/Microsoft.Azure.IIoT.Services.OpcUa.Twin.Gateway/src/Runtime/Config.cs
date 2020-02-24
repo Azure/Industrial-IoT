@@ -11,6 +11,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway.Runtime {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Auth.Server;
@@ -27,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway.Runtime {
     /// </summary>
     public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig,
         ICorsConfig, IClientConfig, ITcpListenerConfig, IWebListenerConfig,
-        ISessionServicesConfig, IRegistryConfig {
+        ISessionServicesConfig, IRegistryConfig, IForwardedHeadersConfig {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
@@ -93,6 +95,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway.Runtime {
         /// <inheritdoc/>
         public string OpcUaRegistryServiceResourceId => _api.OpcUaRegistryServiceResourceId;
 
+        /// <inheritdoc/>
+        public bool AspNetCoreForwardedHeadersEnabled =>
+            _fh.AspNetCoreForwardedHeadersEnabled;
+        /// <inheritdoc/>
+        public int AspNetCoreForwardedHeadersForwardLimit =>
+            _fh.AspNetCoreForwardedHeadersForwardLimit;
+
         /// <summary>
         /// Configuration constructor
         /// </summary>
@@ -106,6 +115,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway.Runtime {
             _cors = new CorsConfig(configuration);
             _sessions = new SessionServicesConfig(configuration);
             _api = new RegistryConfig(configuration);
+            _fh = new ForwardedHeadersConfig(configuration);
         }
 
         private readonly AuthConfig _auth;
@@ -114,5 +124,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway.Runtime {
         private readonly IoTHubConfig _hub;
         private readonly SessionServicesConfig _sessions;
         private readonly RegistryConfig _api;
+        private readonly ForwardedHeadersConfig _fh;
     }
 }

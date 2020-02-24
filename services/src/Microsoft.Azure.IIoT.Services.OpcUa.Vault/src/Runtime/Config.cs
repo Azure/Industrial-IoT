@@ -8,6 +8,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth.Server;
@@ -33,7 +35,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
     /// </summary>
     public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig, ICorsConfig,
         IClientConfig, IOpenApiConfig, IVaultConfig, ICosmosDbConfig,
-        IItemContainerConfig, IKeyVaultConfig, IServiceBusConfig, IRegistryConfig {
+        IItemContainerConfig, IKeyVaultConfig, IServiceBusConfig, IRegistryConfig,
+        IForwardedHeadersConfig {
 
         /// <summary>
         /// Whether to use role based access
@@ -114,6 +117,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
         /// <inheritdoc/>
         public string OpcUaRegistryServiceResourceId => _registry.OpcUaRegistryServiceResourceId;
 
+        /// <inheritdoc/>
+        public bool AspNetCoreForwardedHeadersEnabled =>
+            _fh.AspNetCoreForwardedHeadersEnabled;
+        /// <inheritdoc/>
+        public int AspNetCoreForwardedHeadersForwardLimit =>
+            _fh.AspNetCoreForwardedHeadersForwardLimit;
+
         /// <summary>
         /// Configuration constructor
         /// </summary>
@@ -130,6 +140,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
             _sb = new ServiceBusConfig(configuration);
             _hub = new IoTHubConfig(configuration);
             _registry = new RegistryConfig(configuration);
+            _fh = new ForwardedHeadersConfig(configuration);
         }
 
         private readonly IVaultConfig _vault;
@@ -142,6 +153,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
         private readonly ServiceBusConfig _sb;
         private readonly IoTHubConfig _hub;
         private readonly RegistryConfig _registry;
+        private readonly ForwardedHeadersConfig _fh;
     }
 }
 

@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Extensions;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -65,6 +66,12 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// <param name="services"></param>
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services) {
+
+            if (Config.AspNetCoreForwardedHeadersEnabled) {
+                // Configure processing of forwarded headers
+                services.ConfigureForwardedHeaders(Config);
+            }
+
             services.AddHttpContextAccessor();
             services.AddHealthChecks();
             services.AddDistributedMemoryCache();
@@ -81,6 +88,11 @@ namespace Microsoft.Azure.IIoT.Services.All {
 
             if (!string.IsNullOrEmpty(Config.ServicePathBase)) {
                 app.UsePathBase(Config.ServicePathBase);
+            }
+
+            if (Config.AspNetCoreForwardedHeadersEnabled) {
+                // Enable processing of forwarded headers
+                app.UseForwardedHeaders();
             }
 
             if (Config.HttpsRedirectPort > 0) {

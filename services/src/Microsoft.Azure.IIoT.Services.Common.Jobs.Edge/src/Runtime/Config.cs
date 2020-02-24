@@ -8,6 +8,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs.Runtime;
@@ -29,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
     public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig,
         ICorsConfig, IClientConfig, IOpenApiConfig, IJobOrchestratorConfig,
         ICosmosDbConfig, IJobDatabaseConfig, IWorkerDatabaseConfig,
-        IJobOrchestratorEndpoint {
+        IJobOrchestratorEndpoint, IForwardedHeadersConfig {
 
         /// <inheritdoc/>
         public string DbConnectionString => _cosmos.DbConnectionString;
@@ -97,6 +99,13 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
         /// </summary>
         public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
 
+        /// <inheritdoc/>
+        public bool AspNetCoreForwardedHeadersEnabled =>
+            _fh.AspNetCoreForwardedHeadersEnabled;
+        /// <inheritdoc/>
+        public int AspNetCoreForwardedHeadersForwardLimit =>
+            _fh.AspNetCoreForwardedHeadersForwardLimit;
+
         /// <summary>
         /// Configuration constructor
         /// </summary>
@@ -112,6 +121,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
             _cosmos = new CosmosDbConfig(configuration);
             _jobs = new JobOrchestratorConfig(configuration);
             _edge = new JobOrchestratorApiConfig(configuration);
+            _fh = new ForwardedHeadersConfig(configuration);
         }
 
         private readonly OpenApiConfig _openApi;
@@ -122,5 +132,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
         private readonly JobOrchestratorConfig _jobs;
         private readonly JobOrchestratorApiConfig _edge;
         private readonly IoTHubConfig _hub;
+        private readonly ForwardedHeadersConfig _fh;
     }
 }

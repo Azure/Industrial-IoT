@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Correlation;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Extensions;
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
     using Microsoft.Azure.IIoT.Http.Default;
@@ -81,6 +82,11 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
 
             services.AddLogging(o => o.AddConsole().AddDebug());
 
+            if (Config.AspNetCoreForwardedHeadersEnabled) {
+                // Configure processing of forwarded headers
+                services.ConfigureForwardedHeaders(Config);
+            }
+
             // Setup (not enabling yet) CORS
             services.AddCors();
             services.AddHealthChecks();
@@ -122,6 +128,11 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
 
             if (!string.IsNullOrEmpty(Config.ServicePathBase)) {
                 app.UsePathBase(Config.ServicePathBase);
+            }
+
+            if (Config.AspNetCoreForwardedHeadersEnabled) {
+                // Enable processing of forwarded headers
+                app.UseForwardedHeaders();
             }
 
             app.UseRouting();

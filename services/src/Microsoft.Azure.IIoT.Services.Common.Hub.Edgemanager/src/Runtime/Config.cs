@@ -8,6 +8,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Auth.Server;
@@ -23,7 +25,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager.Runtime {
     /// Common web service configuration aggregation
     /// </summary>
     public class Config : DiagnosticsConfig, IAuthConfig, ICorsConfig,
-        IClientConfig, IOpenApiConfig, IIoTHubConfig, IContainerRegistryConfig {
+        IClientConfig, IOpenApiConfig, IIoTHubConfig, IContainerRegistryConfig,
+        IForwardedHeadersConfig {
 
         /// <summary>
         /// Whether to use role based access
@@ -88,6 +91,13 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager.Runtime {
         /// <inheritdoc/>
         public string ImagesTag => _cr.ImagesTag;
 
+        /// <inheritdoc/>
+        public bool AspNetCoreForwardedHeadersEnabled =>
+            _fh.AspNetCoreForwardedHeadersEnabled;
+        /// <inheritdoc/>
+        public int AspNetCoreForwardedHeadersForwardLimit =>
+            _fh.AspNetCoreForwardedHeadersForwardLimit;
+
         /// <summary>
         /// Configuration constructor
         /// </summary>
@@ -101,6 +111,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager.Runtime {
             _cors = new CorsConfig(configuration);
             _hub = new IoTHubConfig(configuration);
             _cr = new ContainerRegistryConfig(configuration);
+            _fh = new ForwardedHeadersConfig(configuration);
         }
 
         private readonly OpenApiConfig _openApi;
@@ -109,5 +120,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager.Runtime {
         private readonly CorsConfig _cors;
         private readonly IIoTHubConfig _hub;
         private readonly ContainerRegistryConfig _cr;
+        private readonly ForwardedHeadersConfig _fh;
     }
 }
