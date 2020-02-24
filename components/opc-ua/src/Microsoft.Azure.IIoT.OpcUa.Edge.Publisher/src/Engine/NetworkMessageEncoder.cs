@@ -96,20 +96,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
             // TODO: Honor single message
             // TODO: Group by writer
-
             foreach (var message in messages) {
-                var networkMessage = new NetworkMessage() { 
+                var networkMessage = new NetworkMessage() {
                     MessageContentMask = (uint)message.WriterGroup?.MessageSettings?.NetworkMessageContentMask.ToJsonStackType(),
                     PublisherId = message.PublisherId,
                     MessageId = message.SequenceNumber.ToString()
-
                 };
-
-                var notificationQueues = message.Notifications.GroupBy(m => m.NodeId).Select(c => new Queue<MonitoredItemNotificationModel>(c.ToArray())).ToArray();
-
+                var notificationQueues = message.Notifications.GroupBy(m => m.NodeId)
+                    .Select(c => new Queue<MonitoredItemNotificationModel>(c.ToArray())).ToArray();
                 while(notificationQueues.Where(q => q.Any()).Any()) {
-                    var payload = notificationQueues.Select(q => q.Any() ? q.Dequeue() : null).Where(s => s != null).ToDictionary(s => s.NodeId.ToExpandedNodeId(message.ServiceMessageContext.NamespaceUris).AsString(message.ServiceMessageContext), s => s.Value);
-
+                    var payload = notificationQueues
+                        .Select(q => q.Any() ? q.Dequeue() : null)
+                            .Where(s => s != null)
+                                .ToDictionary(
+                                    s => s.NodeId.ToExpandedNodeId(message.ServiceMessageContext.NamespaceUris)
+                                        .AsString(message.ServiceMessageContext),
+                                    s => s.Value);
                     var dataSetMessage = new DataSetMessage() {
                         DataSetWriterId = message.Writer.DataSetWriterId,
                         MetaDataVersion = new ConfigurationVersionDataType {
@@ -120,11 +122,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         },
                         MessageContentMask = (message.Writer?.MessageSettings?.DataSetMessageContentMask)
                             .ToStackType(message.WriterGroup?.MessageType),
-                        Payload = new DataSet(payload) { FieldContentMask = (uint)message.Writer?.DataSetFieldContentMask.ToStackType() }
+                        Timestamp = message.TimeStamp ?? DateTime.Now,
+                        SequenceNumber = message.SequenceNumber,
+                        Status = payload.Values.Any(s => StatusCode.IsNotGood(s.StatusCode)) ?
+                            StatusCodes.Bad : StatusCodes.Good,
+                        Payload = new DataSet(payload) { 
+                            FieldContentMask = (uint)message.Writer?.DataSetFieldContentMask.ToStackType()
+                        }
                     };
                     networkMessage.Messages.Add(dataSetMessage);
                 }
-
                 yield return networkMessage;
             }
         }

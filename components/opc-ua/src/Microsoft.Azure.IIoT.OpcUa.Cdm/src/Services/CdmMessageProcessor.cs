@@ -117,7 +117,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 Manifest.Imports.Add(kFoundationJsonPath);
                 Manifest.Schema = "cdm:/schema.cdm.json";
                 Manifest.JsonSchemaSemanticVersion = "1.0.0";
-
             }
             Try.Op(() => _cacheUploadTimer.Change(_cacheUploadInterval, Timeout.InfiniteTimeSpan));
         }
