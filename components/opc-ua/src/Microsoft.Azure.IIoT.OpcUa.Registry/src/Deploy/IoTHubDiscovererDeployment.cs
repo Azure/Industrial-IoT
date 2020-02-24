@@ -104,9 +104,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
                 // Windows
                 createOptions = @"
                 {
-                    ""HostConfig"": {
-                        ""CapAdd"": [ ""NET_ADMIN"" ]
-                    }
+           //         ""HostConfig"": {
+           //             ""CapAdd"": [ ""NET_ADMIN"" ]
+           //         }
                 }";
             }
             createOptions = JObject.Parse(createOptions).ToString(Formatting.None).Replace("\"", "\\\"");

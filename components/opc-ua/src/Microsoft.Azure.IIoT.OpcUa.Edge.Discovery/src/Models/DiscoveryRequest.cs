@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
         /// <summary>
         /// Request is a scan request
         /// </summary>
-        public bool IsScan { get;}
+        public bool IsScan { get; }
 
         /// <summary>
         /// Original discovery request model
@@ -111,8 +111,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
             NetworkClass = networkClass;
             IsScan = isScan;
 
-            if (!string.IsNullOrEmpty(request.Configuration?.AddressRangesToScan)) {
-                if (AddressRange.TryParse(request.Configuration?.AddressRangesToScan,
+            if (request == null) {
+                request = new DiscoveryRequestModel {
+                    Discovery = DiscoveryMode.Off
+                };
+            }
+            if (request.Configuration == null) {
+                request.Configuration = new DiscoveryConfigModel();
+            }
+
+            if (!string.IsNullOrEmpty(request.Configuration.AddressRangesToScan)) {
+                if (AddressRange.TryParse(request.Configuration.AddressRangesToScan,
                     out var addresses)) {
                     AddressRanges = addresses;
                 }
@@ -130,8 +139,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
                 }
             }
 
-            if (!string.IsNullOrEmpty(request.Configuration?.PortRangesToScan)) {
-                if (PortRange.TryParse(request.Configuration?.PortRangesToScan,
+            request.Configuration.AddressRangesToScan = AddressRange.Format(AddressRanges);
+
+            if (!string.IsNullOrEmpty(request.Configuration.PortRangesToScan)) {
+                if (PortRange.TryParse(request.Configuration.PortRangesToScan,
                     out var ports)) {
                     PortRanges = ports;
                 }
@@ -153,6 +164,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
                         break;
                 }
             }
+
+            request.Configuration.PortRangesToScan = PortRange.Format(PortRanges);
+            request.Configuration.IdleTimeBetweenScans ??= kDefaultIdleTime;
+            request.Configuration.PortProbeTimeout ??= kDefaultPortProbeTimeout;
+            request.Configuration.NetworkProbeTimeout ??= kDefaultNetworkProbeTimeout;
 
             TotalAddresses = AddressRanges?.Sum(r => r.Count) ?? 0;
             TotalPorts = PortRanges?.Sum(r => r.Count) ?? 0;
@@ -185,6 +201,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
         internal DiscoveryRequest Clone() {
             return new DiscoveryRequest(this);
         }
+
+        /// <summary> Default idle time is 6 hours </summary>
+        private static readonly TimeSpan kDefaultIdleTime = TimeSpan.FromHours(6);
+        /// <summary> Default port probe timeout is 5 seconds </summary>
+        private static readonly TimeSpan kDefaultPortProbeTimeout = TimeSpan.FromSeconds(5);
+        /// <summary> Default icmp timeout is 3 seconds </summary>
+        private static readonly TimeSpan kDefaultNetworkProbeTimeout = TimeSpan.FromSeconds(3);
 
         private readonly CancellationTokenSource _cts;
     }
