@@ -178,6 +178,9 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> AAD Client / Application secret for openapi </summary>
         public const string PCS_OPENAPI_APP_SECRET =
             "PCS_OPENAPI_APP_SECRET";
+        /// <summary> Server host for openapi </summary>
+        public const string PCS_OPENAPI_SERVER_HOST =
+            "PCS_OPENAPI_SERVER_HOST";
         /// <summary> Service URL path base </summary>
         public const string PCS_SERVICE_PATH_BASE =
             "PCS_SERVICE_PATH_BASE";

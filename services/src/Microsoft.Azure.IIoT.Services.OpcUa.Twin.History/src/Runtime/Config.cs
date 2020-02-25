@@ -71,6 +71,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Runtime {
         public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
         /// <inheritdoc/>
         public bool UseV2 => _openApi.UseV2;
+        /// <inheritdoc/>
+        public string OpenApiServerHost => _openApi.OpenApiServerHost;
 
         /// <summary>
         /// Whether to use role based access

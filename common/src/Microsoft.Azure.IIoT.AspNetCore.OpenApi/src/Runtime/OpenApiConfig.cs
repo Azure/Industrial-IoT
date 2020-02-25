@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime {
         private const string kOpenApi_UseV2Key = "OpenApi:UseV2";
         private const string kOpenApi_AppIdKey = "OpenApi:AppId";
         private const string kOpenApi_AppSecretKey = "OpenApi:AppSecret";
+        private const string kOpenApi_ServerHost = "OpenApi:ServerHost";
         private const string kAuth_RequiredKey = "Auth:Required";
 
         /// <summary>Enabled</summary>
@@ -44,6 +45,10 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime {
             GetStringOrDefault(PcsVariable.PCS_OPENAPI_APP_SECRET,
             GetStringOrDefault(PcsVariable.PCS_AUTH_CLIENT_SECRET,
             GetStringOrDefault("PCS_APPLICATION_SECRET"))))?.Trim();
+
+        /// <inheritdoc/>
+        public string OpenApiServerHost => GetStringOrDefault(kOpenApi_ServerHost,
+            GetStringOrDefault(PcsVariable.PCS_OPENAPI_SERVER_HOST))?.Trim();
 
         /// <summary>
         /// Configuration constructor

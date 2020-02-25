@@ -60,6 +60,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Runtime {
         public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
         /// <inheritdoc/>
         public bool UseV2 => _openApi.UseV2;
+        /// <inheritdoc/>
+        public string OpenApiServerHost => _openApi.OpenApiServerHost;
 
         /// <inheritdoc/>
         public string DbConnectionString => _cosmos.DbConnectionString;

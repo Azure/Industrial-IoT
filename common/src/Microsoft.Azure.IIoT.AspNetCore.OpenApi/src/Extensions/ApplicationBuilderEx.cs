@@ -42,9 +42,16 @@ namespace Microsoft.OpenApi.Models {
                         .Append("https")
                         .Append(request.Scheme)
                         .Distinct()) {
+                        var url = $"{scheme}://{request.Host.Value}";
+
+                        // If config.OpenApiServerHost is set, we will use that instead of request.Host.Value
+                        if (!string.IsNullOrEmpty(config.OpenApiServerHost)) {
+                            url = $"{scheme}://{config.OpenApiServerHost}";
+                        }
+
                         doc.Servers.Add(new OpenApiServer {
                             Description = $"{scheme} endpoint.",
-                            Url = $"{scheme}://{request.Host.Value}"
+                            Url = url
                         });
                     }
 

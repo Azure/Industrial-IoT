@@ -84,6 +84,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
         /// <inheritdoc/>
         public bool UseV2 => _openApi.UseV2;
+        /// <inheritdoc/>
+        public string OpenApiServerHost => _openApi.OpenApiServerHost;
 
         /// <inheritdoc/>
         public string ServiceBusConnString => _sb.ServiceBusConnString;

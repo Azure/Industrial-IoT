@@ -74,6 +74,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager.Runtime {
         public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
         /// <inheritdoc/>
         public bool UseV2 => _openApi.UseV2;
+        /// <inheritdoc/>
+        public string OpenApiServerHost => _openApi.OpenApiServerHost;
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
