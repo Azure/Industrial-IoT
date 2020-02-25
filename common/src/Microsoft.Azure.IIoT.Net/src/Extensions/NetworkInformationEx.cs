@@ -26,7 +26,6 @@ namespace Microsoft.Azure.IIoT.Net {
             return NetworkInterface.GetAllNetworkInterfaces()
                 .Where(n =>
                     n.NetworkInterfaceType.IsInClass(netclass) &&
-                   // !n.Name.Contains("(DockerNAT)") &&
                     n.OperationalStatus == OperationalStatus.Up &&
                     n.GetIPProperties() != null)
                 .SelectMany(n => n.GetIPProperties().UnicastAddresses

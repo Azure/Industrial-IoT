@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// <param name="nic"></param>
         public AddressRange(uint low, uint high,
             string nic = null) {
-            Nic = string.IsNullOrEmpty(nic) ? "custom" : nic;
+            Nic = string.IsNullOrEmpty(nic) ? kNullNicName : nic;
             Low = _cur = low > high ? high : low;
             High = high < low ? low : high;
         }
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
             var mask = 0xffffffff << (32 - suffix);
             High = curAddr | ~mask;
             Low = _cur = curAddr & mask;
-            Nic = string.IsNullOrEmpty(nic) ? "custom" : nic;
+            Nic = string.IsNullOrEmpty(nic) ? kNullNicName : nic;
 
             System.Diagnostics.Debug.Assert(Low <= High);
             System.Diagnostics.Debug.Assert(High != 0);
@@ -118,7 +118,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
                     0xffffffff << (32 - suffix.Value);
 
             var curAddr = new IPv4Address(address);
-            Nic = string.IsNullOrEmpty(nic) ? "custom" : nic;
+            Nic = string.IsNullOrEmpty(nic) ? kNullNicName : nic;
             High = curAddr | ~mask;
             Low = _cur = curAddr & mask;
 
@@ -296,7 +296,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
                 sb.Append(ip);
                 sb.Append("/");
                 sb.Append(subnetSize);
-                if (Nic != "custom") {
+                if (Nic != kNullNicName) {
                     sb.Append(" [");
                     sb.Append(Nic);
                     sb.Append("]");
@@ -305,6 +305,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
             }
         }
 
+        private const string kNullNicName = "custom";
         private uint _cur;
     }
 }
