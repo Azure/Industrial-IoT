@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
+    using System.Text;
 
     /// <summary>
     /// A port range
@@ -80,6 +81,38 @@ namespace Microsoft.Azure.IIoT.Net.Models {
             return hashCode;
         }
 
+        /// <summary>
+        /// Tests contains value
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public bool Contains(int value) {
+            return value >= _lower && value <= _upper;
+        }
+
+        /// <summary>
+        /// Whether it overlaps with another port range
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public bool Overlaps(PortRange other) {
+            if (other == null) {
+                return false;
+            }
+            return
+                Contains(other._lower) ||
+                Contains(other._upper) ||
+                other.Contains(_lower) ||
+                other.Contains(_upper);
+        }
+
+        /// <inheritdoc/>
+        public override string ToString() {
+            var sb = new StringBuilder();
+            AppendTo(sb);
+            return sb.ToString();
+        }
+
         private readonly int _lower;
         private readonly int _upper;
 
@@ -101,12 +134,30 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         }
 
         /// <summary>
+        /// Format a series of address ranges
+        /// </summary>
+        /// <param name="ranges"></param>
+        /// <returns></returns>
+        public static string Format(IEnumerable<PortRange> ranges) {
+            var sb = new StringBuilder();
+            var first = true;
+            foreach (var range in ranges) {
+                if (!first) {
+                    sb.Append(';');
+                }
+                first = false;
+                range.AppendTo(sb);
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
         /// Parse range
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
         public static IEnumerable<PortRange> Parse(string value) {
-            return value.Split(new char[] { ';', ',' },
+            var parsed = value.Split(new char[] { ';', ',' },
                 StringSplitOptions.RemoveEmptyEntries).Select(s => {
                     var x = s.Split('-');
                     if (x.Length > 2) {
@@ -119,7 +170,8 @@ namespace Microsoft.Azure.IIoT.Net.Models {
                             int.Parse(lows),
                         highs == "*" ? IPEndPoint.MaxPort :
                             int.Parse(highs));
-                }).ToList();
+                });
+            return Merge(parsed);
         }
 
         /// <summary>
@@ -988,6 +1040,64 @@ namespace Microsoft.Azure.IIoT.Net.Models {
                 yield return new PortRange(48654, 48999);
                 yield return new PortRange(49002, IPEndPoint.MaxPort);
             }
+        }
+
+        /// <summary>
+        /// Append to builder
+        /// </summary>
+        /// <param name="sb"></param>
+        private void AppendTo(StringBuilder sb) {
+            if (IPEndPoint.MinPort == _lower) {
+                if (_upper == IPEndPoint.MaxPort) {
+                    sb.Append('*');
+                    return;
+                }
+                sb.Append('0');
+            }
+            else {
+                sb.Append(_lower);
+            }
+            if (_lower == _upper) {
+                return;
+            }
+            sb.Append('-');
+            if (IPEndPoint.MaxPort == _upper) {
+                sb.Append('*');
+            }
+            else {
+                sb.Append(_upper);
+            }
+        }
+
+        /// <summary>
+        /// Merge overlapping ranges
+        /// </summary>
+        /// <param name="ranges"></param>
+        /// <returns></returns>
+        private static IEnumerable<PortRange> Merge(IEnumerable<PortRange> ranges) {
+            var results = new Stack<PortRange>();
+            if (ranges != null) {
+                ranges.OrderBy(k => k._lower);
+                foreach (var range in ranges.OrderBy(k => k._lower)) {
+                    if (results.Count == 0) {
+                        results.Push(range);
+                    }
+                    else {
+                        var top = results.Peek();
+                        if (top.Overlaps(range)) {
+                            var union = new PortRange(
+                                top._lower < range._lower ? top._lower : range._lower,
+                                top._upper > range._upper ? top._upper : range._upper);
+                            results.Pop();
+                            results.Push(union);
+                        }
+                        else {
+                            results.Push(range);
+                        }
+                    }
+                }
+            }
+            return results.Reverse();
         }
     }
 }
