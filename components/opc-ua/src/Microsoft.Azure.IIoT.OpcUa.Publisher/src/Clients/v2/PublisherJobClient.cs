@@ -150,7 +150,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
         /// <param name="endpointId"></param>
         /// <returns></returns>
         private static string GetDefaultId(string endpointId) {
-            return $"{endpointId}_default";
+            return endpointId;
         }
 
         /// <summary>
@@ -171,6 +171,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
                 MessagingMode = MessagingMode.Samples,
                 WriterGroup = new WriterGroupModel {
                     WriterGroupId = job.Id,
+                    MessageSettings = new WriterGroupMessageSettingsModel() {
+                        NetworkMessageContentMask = NetworkMessageContentMask.PublisherId |
+                                NetworkMessageContentMask.WriterGroupId |
+                                NetworkMessageContentMask.SequenceNumber |
+                                NetworkMessageContentMask.PayloadHeader |
+                                NetworkMessageContentMask.NetworkMessageHeader |
+                                NetworkMessageContentMask.Timestamp |
+                                NetworkMessageContentMask.DataSetMessageHeader
+                    },
                     // ...
                     DataSetWriters = new List<DataSetWriterModel>()
                 },
