@@ -275,19 +275,18 @@ namespace Microsoft.Azure.IIoT.Net.Models {
             long end = High;
             var first = true;
             while (end >= start) {
-                byte maxSize = 32;
-                while (maxSize > 0) {
-                    var mask = (long)(Math.Pow(2, 32) - Math.Pow(2, 32 - (maxSize - 1)));
-                    var maskBase = start & mask;
-                    if (maskBase != start) {
+                byte subnetSize = 32;
+                while (subnetSize > 0) {
+                    var mask = (1L << 32) - (1L << (32 - (subnetSize - 1)));
+                    if ((start & mask) != start) {
                         break;
                     }
-                    maxSize--;
+                    subnetSize--;
                 }
-                var x = Math.Log(end - start + 1) / Math.Log(2);
-                var maxDiff = (byte)(32 - Math.Floor(x));
-                if (maxSize < maxDiff) {
-                    maxSize = maxDiff;
+                var x = Math.Floor(Math.Log(end - start + 1) / Math.Log(2));
+                var maxDiff = (byte)(32 - x);
+                if (subnetSize < maxDiff) {
+                    subnetSize = maxDiff;
                 }
                 var ip = ((IPv4Address)start).ToString();
                 if (!first) {
@@ -296,13 +295,13 @@ namespace Microsoft.Azure.IIoT.Net.Models {
                 first = false;
                 sb.Append(ip);
                 sb.Append("/");
-                sb.Append(maxSize);
+                sb.Append(subnetSize);
                 if (Nic != "custom") {
                     sb.Append(" [");
                     sb.Append(Nic);
                     sb.Append("]");
                 }
-                start += (long)Math.Pow(2, 32 - maxSize);
+                start += 1L << (32 - subnetSize);
             }
         }
 
