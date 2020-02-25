@@ -85,9 +85,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                         }
                     }
                     else {
-                        pageResult.Results.Add(new DiscovererInfo {
-                            DiscovererModel = new DiscovererApiModel { Id = "No Discoveres Found" }
-                        });
+                        pageResult.Error = "No Discoveres Found";
                     }
                 }
             }
@@ -201,6 +199,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             else {
                 model.DiscoveryConfig.IdleTimeBetweenScansSec = _5MINUTES;
+            }
+            if (config.DiscoveryUrls != null) {
+                model.DiscoveryConfig.DiscoveryUrls = config.DiscoveryUrls;
             }
 
             try {

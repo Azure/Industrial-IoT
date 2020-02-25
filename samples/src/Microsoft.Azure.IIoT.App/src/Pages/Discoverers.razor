@@ -24,7 +24,7 @@
 
 <h1>Asset Discovery</h1>
 
-<table class="table">
+<table class="table @_tableView">
     <thead>
         <tr>
             <th>Discovery Module Id</th>
@@ -76,14 +76,15 @@
                     }
                 </td>
                 <td>
-                    @{ string ScanMask = "--"; }
-                    @{ string PortRange = "--";}
-                    @{ string MaxNetworkProbes = "--";}
-                    @{ string MaxPortProbes = "--";}
-                    @{ string NetworkProbeTimeoutMs = "--";}
-                    @{ string PortProbeTimeoutMs = "--";}
-                    @{ string IdleTimeBetweenScansSec = "--";}
-                    @{ string ActivationFilter = "--";}
+                    @{ string ScanMask = "Default"; }
+                    @{ string PortRange = "Default";}
+                    @{ string MaxNetworkProbes = "Default";}
+                    @{ string MaxPortProbes = "Default";}
+                    @{ string NetworkProbeTimeoutMs = "Default";}
+                    @{ string PortProbeTimeoutMs = "Default";}
+                    @{ string IdleTimeBetweenScansSec = "Default";}
+                    @{ string ActivationFilter = "None";}
+                    @{ List<string> DiscoveryUrls = new List<string>();}
                     @if (discoverer.DiscovererModel.DiscoveryConfig != null)
                     {
                         ScanMask = discoverer.DiscovererModel.DiscoveryConfig?.AddressRangesToScan == null ? "Default" : discoverer.DiscovererModel.DiscoveryConfig?.AddressRangesToScan == "" ? "Default" :
@@ -95,7 +96,8 @@
                         NetworkProbeTimeoutMs = discoverer.DiscovererModel.DiscoveryConfig?.NetworkProbeTimeoutMs == null ? "Default" : discoverer.DiscovererModel.DiscoveryConfig.NetworkProbeTimeoutMs.ToString();
                         PortProbeTimeoutMs = discoverer.DiscovererModel.DiscoveryConfig?.PortProbeTimeoutMs == null ? "Default" : discoverer.DiscovererModel.DiscoveryConfig.PortProbeTimeoutMs.ToString();
                         IdleTimeBetweenScansSec = discoverer.DiscovererModel.DiscoveryConfig?.IdleTimeBetweenScansSec == null ? "Default" : discoverer.DiscovererModel.DiscoveryConfig.IdleTimeBetweenScansSec.ToString();
-                        ActivationFilter = discoverer.DiscovererModel.DiscoveryConfig?.ActivationFilter?.SecurityMode == null ? "--" : discoverer.DiscovererModel.DiscoveryConfig.ActivationFilter.SecurityMode.ToString();
+                        ActivationFilter = discoverer.DiscovererModel.DiscoveryConfig?.ActivationFilter?.SecurityMode == null ? "None" : discoverer.DiscovererModel.DiscoveryConfig.ActivationFilter.SecurityMode.ToString();
+                        DiscoveryUrls = discoverer.DiscovererModel.DiscoveryConfig?.DiscoveryUrls == null ? new List<string>() : discoverer.DiscovererModel.DiscoveryConfig?.DiscoveryUrls;
                     }
                     Scan Mask: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
                         @ScanMask<br />
@@ -119,8 +121,24 @@
                         @IdleTimeBetweenScansSec<br />
                     </a>
                     Activation Filter: <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
-                        @ActivationFilter
+                        @ActivationFilter<br />
                     </a>
+                    Discovery Urls:
+                    @if (DiscoveryUrls == null || DiscoveryUrls.Count == 0)
+                    {
+                        <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
+                            (None)
+                        </a>
+                    }
+                    else
+                    {
+                        @foreach (var url in DiscoveryUrls)
+                        {
+                            <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(discoverer))">
+                                @url<br />
+                            </a>
+                        }
+                    }
                 </td>
             </tr>
         }
@@ -186,6 +204,32 @@
                         <option value="@OpcUa.Api.Registry.Models.SecurityMode.Best">Best</option>
                     </select>
                 </div>
+                
+                <label>Discovery Urls</label>
+                <div class="flex">
+                    <input @bind="@_discoveryUrl" aria-label="DiscoveryUrls" id="DiscoveryUrls" type="text" class="form-control" placeholder="Discovery Url" />
+                    <button @onclick="@(() => UpdateDiscovererUrlList(_discoveryUrl, DiscovererData.DiscovererModel.DiscoveryConfig))" type="button" class="btn btn-primary shadow-none margin-right">Add</button>
+                    <button @onclick="@(() => DeleteDiscovererUrlList(DiscovererData.DiscovererModel.DiscoveryConfig))" type="button" class="btn btn-primary shadow-none">Clear</button>
+                </div>
+                <div class="form-group margin-top">
+                    @if (DiscovererData.DiscovererModel.DiscoveryConfig.DiscoveryUrls == null)
+                    {
+                        DiscovererData.DiscovererModel.DiscoveryConfig.DiscoveryUrls = new List<string>();
+                    }
+                    <select class="form-control">
+                        @if (DiscovererData.DiscovererModel.DiscoveryConfig.DiscoveryUrls.Count == 0)
+                        {
+                            <option>(None)</option>
+                        }
+                        else
+                        {
+                            foreach (var discoveryUrl in DiscovererData.DiscovererModel.DiscoveryConfig.DiscoveryUrls)
+                            {
+                                <option value="@discoveryUrl">@discoveryUrl</option>
+                            }
+                        }
+                    </select>
+                </div>
                 <hr />
                 <div>
                     <button @onclick="@(async() => await UpdateDiscovererConfigAsync(DiscovererData, DiscovererData.DiscovererModel.DiscoveryConfig))" type="button" class="btn btn-primary shadow-none">Apply</button>
@@ -212,6 +256,9 @@
     public string Status { get; set; }
     private string _eventResult { get; set; }
     private string _scanResult { get; set; } = "hidden";
+    private string _tableView { get; set; } = "visible";
+    private string _discoveryUrl { get; set; }
+
     private IAsyncDisposable _discovererEvent { get; set; }
     private IAsyncDisposable _discovery { get; set; }
 
@@ -251,7 +298,12 @@
             discovererList = await RegistryHelper.GetDiscovererListAsync();
             Page = "1";
             pagedDiscovererList = discovererList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, discovererList.Error);
-            CommonHelper.Spinner = "";
+            CommonHelper.Spinner = string.Empty;
+
+            if (pagedDiscovererList.Error != null)
+            {
+                _tableView = "hidden";
+            }
             StateHasChanged();
 
             _discovererEvent = await RegistryServiceEvents.SubscribeDiscovererEventsAsync(null, DiscovererEvent);
@@ -403,6 +455,38 @@
                 break;
         }
         StateHasChanged();
+    }
+
+    /// <summary>
+    /// Add new item to discovery Url list
+    /// </summary>
+    /// <param name="discoveryUrl"></param>
+    private void UpdateDiscovererUrlList (string discoveryUrl, DiscoveryConfigApiModel config)
+    {
+        if (config.DiscoveryUrls == null)
+        {
+            config.DiscoveryUrls = new List<string>();
+        }
+
+        if ((discoveryUrl != null) && (discoveryUrl != string.Empty))
+        {
+            config.DiscoveryUrls.Add(discoveryUrl);
+        }
+
+        this.StateHasChanged();
+    }
+
+
+    private void DeleteDiscovererUrlList(DiscoveryConfigApiModel config)
+    {
+        if (config.DiscoveryUrls == null)
+        {
+            return;
+        }
+        else
+        {
+            config.DiscoveryUrls.Clear();
+        }
     }
 
     /// <summary>

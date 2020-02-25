@@ -15,7 +15,7 @@
 
 <h1>Gateways</h1>
 
-<table class="table">
+<table class="table @_tableView">
     <thead>
         <tr>
             <th>Id</th>
@@ -49,7 +49,8 @@
 
     private PagedResult<GatewayApiModel> _gatewayList = new PagedResult<GatewayApiModel>();
     private PagedResult<GatewayApiModel> _pagedGatewayList = new PagedResult<GatewayApiModel>();
-   
+    private string _tableView { get; set; } = "visible";
+
     /// <summary>
     /// Notify page change
     /// </summary>
@@ -79,7 +80,11 @@
             _gatewayList = await RegistryHelper.GetGatewayListAsync();
             Page = "1";
             _pagedGatewayList = _gatewayList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _gatewayList.Error);
-            CommonHelper.Spinner = "";
+            CommonHelper.Spinner = string.Empty;
+            if (_pagedGatewayList.Error != null)
+            {
+                _tableView = "hidden";
+            }
             StateHasChanged();
         }
     }
