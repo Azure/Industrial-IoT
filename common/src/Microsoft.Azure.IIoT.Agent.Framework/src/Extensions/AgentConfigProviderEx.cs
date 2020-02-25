@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             var interval = agentConfigProvider?.Config?.HeartbeatInterval;
             var heartbeat = string.IsNullOrEmpty(agentConfigProvider?.Config?.JobOrchestratorUrl) ||
                 interval == null ||
-                interval.Value <= TimeSpan.Zero ? TimeSpan.FromSeconds(3) : interval.Value;
+                interval.Value <= TimeSpan.Zero ? TimeSpan.FromSeconds(30) : interval.Value;
             if (heartbeat > TimeSpan.FromMinutes(1)) {
                 heartbeat = TimeSpan.FromMinutes(1);
             }
@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
         /// <returns></returns>
         public static TimeSpan GetJobCheckInterval(this IAgentConfigProvider agentConfigProvider) {
             if (string.IsNullOrEmpty(agentConfigProvider?.Config?.JobOrchestratorUrl)) {
-                return TimeSpan.FromSeconds(5);
+                return TimeSpan.FromSeconds(30);
             }
             var interval = agentConfigProvider?.Config?.JobCheckInterval;
             var jobcheck = interval == null || interval.Value <= TimeSpan.Zero ?
