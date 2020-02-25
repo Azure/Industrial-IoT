@@ -202,6 +202,19 @@ ellipsis-space {
     padding-right: 5px;
 }
 
+.flex {
+    display: flex;
+    flex-direction: row;
+}
+
+.margin-top {
+    margin-top: 10px;
+}
+
+.margin-right {
+    margin-right: 10px;
+}
+
 @media (max-width: 767.98px) {
     .main .top-row {
         display: none;
