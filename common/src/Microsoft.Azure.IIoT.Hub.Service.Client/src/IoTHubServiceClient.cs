@@ -232,24 +232,28 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         public async Task<ConfigurationModel> CreateOrUpdateConfigurationAsync(
             ConfigurationModel configuration, bool forceUpdate, CancellationToken ct) {
 
-            if (string.IsNullOrEmpty(configuration.Etag)) {
-                // First try create configuration
-                try {
-                    var result = await _registry.AddConfigurationAsync(
-                        configuration.ToConfiguration(), ct);
-                    return result.ToModel();
-                }
-                catch (DeviceAlreadyExistsException) { // TODO
-                    // Expected for update
-                }
-                catch (Exception e) {
-                    _logger.Verbose(e,
-                        "Create configuration failed in CreateOrUpdate");
-                    // Try patch
-                }
-            }
             try {
-                // Try update configuration
+                if (string.IsNullOrEmpty(configuration.Etag)) {
+                    // First try create configuration
+                    try {
+                        var added = await _registry.AddConfigurationAsync(
+                            configuration.ToConfiguration(), ct);
+                        return added.ToModel();
+                    }
+                    catch (DeviceAlreadyExistsException) when (forceUpdate) {
+                        //
+                        // Technically update below should now work but for
+                        // some reason it does not.
+                        // Remove and re-add in case we are forcing updates.
+                        //
+                        await _registry.RemoveConfigurationAsync(configuration.Id, ct);
+                        var added = await _registry.AddConfigurationAsync(
+                            configuration.ToConfiguration(), ct);
+                        return added.ToModel();
+                    }
+                }
+
+                // Try update existing configuration
                 var result = await _registry.UpdateConfigurationAsync(
                     configuration.ToConfiguration(), forceUpdate, ct);
                 return result.ToModel();

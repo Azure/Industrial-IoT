@@ -150,7 +150,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
         /// <param name="endpointId"></param>
         /// <returns></returns>
         private static string GetDefaultId(string endpointId) {
-            return $"{endpointId}_default";
+            return endpointId;
         }
 
         /// <summary>
@@ -171,6 +171,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
                 MessagingMode = MessagingMode.Samples,
                 WriterGroup = new WriterGroupModel {
                     WriterGroupId = job.Id,
+                    MessageSettings = new WriterGroupMessageSettingsModel() {
+                        NetworkMessageContentMask = NetworkMessageContentMask.PublisherId |
+                                NetworkMessageContentMask.WriterGroupId |
+                                NetworkMessageContentMask.SequenceNumber |
+                                NetworkMessageContentMask.PayloadHeader |
+                                NetworkMessageContentMask.NetworkMessageHeader |
+                                NetworkMessageContentMask.Timestamp |
+                                NetworkMessageContentMask.DataSetMessageHeader
+                    },
                     // ...
                     DataSetWriters = new List<DataSetWriterModel>()
                 },
@@ -289,15 +298,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
                 }
             };
             // Add site as demand if available
-            //  TODO - restore SiteId demands when publishers are properly registered per site 
-/*
             if (!string.IsNullOrEmpty(endpoint.Registration.SiteId)) {
                 demands.Add(new DemandModel {
                     Key = nameof(endpoint.Registration.SiteId),
                     Value = endpoint.Registration.SiteId
                 });
             }
-            else */ if (!string.IsNullOrEmpty(endpoint.Registration.SupervisorId)) {
+            else if (!string.IsNullOrEmpty(endpoint.Registration.SupervisorId)) {
                 var deviceId = SupervisorModelEx.ParseDeviceId(
                     endpoint.Registration.SupervisorId, out _);
                 // Otherwise confine to the supervisor's gateway

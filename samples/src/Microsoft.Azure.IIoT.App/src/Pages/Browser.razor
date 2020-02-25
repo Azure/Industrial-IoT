@@ -31,10 +31,10 @@
     @{ string discover = DiscovererId == RegistryHelper.PathAll ? string.Empty : DiscovererId; }
     @{ string application = ApplicationId == RegistryHelper.PathAll ? string.Empty : ApplicationId; }
     @{ string supervisor = SupervisorId == RegistryHelper.PathAll ? string.Empty : SupervisorId; }
-    @discover/@application/@SupervisorId/@EndpointId@BrowseManager.Path
+    @discover/@application/@SupervisorId/@BrowseManager.Path
 </div>
 
-<table class="table">
+<table class="table @_tableView">
     <thead>
         <tr>
             <th>Name</th>
@@ -90,8 +90,8 @@
                 {
                     <td>@node.NodeClass</td>
                 }
-                @if (node.NodeClass == NodeClass.Variable && (node.AccessLevel == NodeAccessLevel.CurrentRead || node.AccessLevel == NodeAccessLevel.CurrentWrite ||
-                 node.AccessLevel == (NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite)))
+                @if (node.NodeClass == NodeClass.Variable && (((node.AccessLevel & NodeAccessLevel.CurrentRead) == NodeAccessLevel.CurrentRead) || 
+                        ((node.AccessLevel & NodeAccessLevel.CurrentWrite) == NodeAccessLevel.CurrentWrite)))
                 {
                     <td>
                         <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
@@ -156,6 +156,7 @@
     public bool IsOpened { get; set; } = false;
     public ListNode NodeData { get; set; }
     private IAsyncDisposable _publishEvent { get; set; }
+    private string _tableView { get; set; } = "visible";
 
 
     /// <summary>
@@ -193,7 +194,11 @@
         if (firstRender)
         {
             await BrowseTreeAsync(string.Empty, new List<string>(), BrowseDirection.Forward);
-            CommonHelper.Spinner = "";
+            CommonHelper.Spinner = string.Empty;
+            if (PagedNodeList.Error != null)
+            {
+                _tableView = "hidden";
+            }
             StateHasChanged();
             _publishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId, null, PublishEvent);
         }

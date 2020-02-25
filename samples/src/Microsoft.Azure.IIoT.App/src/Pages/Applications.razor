@@ -20,7 +20,7 @@
 
 <h1>Assets</h1>
 
-<table class="table">
+<table class="table @_tableView">
     <thead>
         <tr>
             <th>Name</th>
@@ -75,6 +75,7 @@
     private PagedResult<ApplicationInfoApiModel> _pagedapplicationList =
         new PagedResult<ApplicationInfoApiModel>();
     private IAsyncDisposable _applicationEvent { get; set; }
+    private string _tableView { get; set; } = "visible";
 
     /// <summary>
     /// Notify page change
@@ -103,6 +104,11 @@
         if (firstRender)
         {
             await UpdateApplicationAsync();
+            CommonHelper.Spinner = string.Empty;
+            if (_pagedapplicationList.Error != null)
+            {
+                _tableView = "hidden";
+            }
             StateHasChanged();
 
             _applicationEvent = await RegistryServiceEvents.SubscribeApplicationEventsAsync(

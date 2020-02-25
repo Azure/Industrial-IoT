@@ -14,6 +14,7 @@ To start [deploy the Industrial IoT Platform](../deploy/howto-deploy-all-in-one.
 
 ## Next steps
 
+- [View logs and metrics in  Application Insights](tut-applicationinsights.md).
 - [Discover a server and browse its address space using the CLI](tut-use-cli.md).
 - [Discover a server and browse its address space using Postman](tut-use-postman.md).
 - [Develop and debug the Industrial IoT Microservices during development](../deploy/howto-run-microservices-locally.md).

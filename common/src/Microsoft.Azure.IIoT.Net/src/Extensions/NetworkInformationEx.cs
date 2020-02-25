@@ -26,15 +26,15 @@ namespace Microsoft.Azure.IIoT.Net {
             return NetworkInterface.GetAllNetworkInterfaces()
                 .Where(n =>
                     n.NetworkInterfaceType.IsInClass(netclass) &&
-                    !n.Name.Contains("(DockerNAT)") &&
                     n.OperationalStatus == OperationalStatus.Up &&
                     n.GetIPProperties() != null)
                 .SelectMany(n => n.GetIPProperties().UnicastAddresses
-                    .Select(x => new NetInterface(n.Name, 
-                        n.GetPhysicalAddress(), 
-                        x.Address, 
-                        x.IPv4Mask, 
-                        n.GetIPProperties().GatewayAddresses.Count > 0 ? n.GetIPProperties().GatewayAddresses[0].Address : null, 
+                    .Select(x => new NetInterface(n.Name,
+                        n.GetPhysicalAddress(),
+                        x.Address,
+                        x.IPv4Mask,
+                        n.GetIPProperties().GatewayAddresses.Count > 0 ?
+                            n.GetIPProperties().GatewayAddresses[0].Address : null,
                         n.GetIPProperties().DnsSuffix,
                         n.GetIPProperties().DnsAddresses)))
                 .Where(t =>

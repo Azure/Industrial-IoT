@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
+    using System.Text;
 
     /// <summary>
     /// Represents a range of ipv4 addresses
@@ -41,8 +42,8 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// <param name="high"></param>
         /// <param name="nic"></param>
         public AddressRange(uint low, uint high,
-            string nic = "custom range") {
-            Nic = nic;
+            string nic = null) {
+            Nic = string.IsNullOrEmpty(nic) ? kNullNicName : nic;
             Low = _cur = low > high ? high : low;
             High = high < low ? low : high;
         }
@@ -54,7 +55,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// <param name="suffix"></param>
         /// <param name="nic"></param>
         public AddressRange(IPAddress address, int suffix,
-            string nic = "custom range") {
+            string nic = null) {
             if (address == null) {
                 throw new ArgumentNullException(nameof(address));
             }
@@ -67,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
             var mask = 0xffffffff << (32 - suffix);
             High = curAddr | ~mask;
             Low = _cur = curAddr & mask;
-            Nic = nic;
+            Nic = string.IsNullOrEmpty(nic) ? kNullNicName : nic;
 
             System.Diagnostics.Debug.Assert(Low <= High);
             System.Diagnostics.Debug.Assert(High != 0);
@@ -103,7 +104,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         /// <param name="suffix"></param>
         /// <param name="nic"></param>
         public AddressRange(IPAddress address, IPAddress subnet,
-            int? suffix = null, string nic = "custom range") {
+            int? suffix = null, string nic = null) {
 
             if (address == null) {
                 throw new ArgumentNullException(nameof(address));
@@ -117,7 +118,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
                     0xffffffff << (32 - suffix.Value);
 
             var curAddr = new IPv4Address(address);
-            Nic = nic;
+            Nic = string.IsNullOrEmpty(nic) ? kNullNicName : nic;
             High = curAddr | ~mask;
             Low = _cur = curAddr & mask;
 
@@ -150,7 +151,9 @@ namespace Microsoft.Azure.IIoT.Net.Models {
 
         /// <inheritdoc/>
         public override string ToString() {
-            return $"{(IPv4Address)Low}-{(IPv4Address)High} [{Nic}]";
+            var sb = new StringBuilder();
+            AppendTo(sb);
+            return sb.ToString();
         }
 
         /// <summary>
@@ -180,6 +183,24 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         }
 
         /// <summary>
+        /// Format a series of address ranges
+        /// </summary>
+        /// <param name="ranges"></param>
+        /// <returns></returns>
+        public static string Format(IEnumerable<AddressRange> ranges) {
+            var sb = new StringBuilder();
+            var first = true;
+            foreach (var range in ranges) {
+                if (!first) {
+                    sb.Append(';');
+                }
+                first = false;
+                range.AppendTo(sb);
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
         /// Parse
         /// </summary>
         /// <param name="value"></param>
@@ -192,9 +213,25 @@ namespace Microsoft.Azure.IIoT.Net.Models {
                 StringSplitOptions.RemoveEmptyEntries);
             return split
                 .SelectMany(s => {
-                    var x = s.Split('/');
+                    var nic = string.Empty;
+                    var x = s.Split('[', StringSplitOptions.RemoveEmptyEntries);
+                    if (x.Length > 1) {
+                        var postFix = x[1].Split(']');
+                        if (postFix.Length > 1) {
+                            nic = postFix[0];
+                        }
+                        s = x[0].Trim();
+                    }
+                    x = s.Split('/', StringSplitOptions.RemoveEmptyEntries);
                     if (x.Length != 2) {
-                        throw new FormatException("Bad suffix format");
+                        x = s.Split('-', StringSplitOptions.RemoveEmptyEntries);
+                        if (x.Length != 2) {
+                            throw new FormatException("Bad suffix format");
+                        }
+                        // Combine into cidr ranges and parse so we get distinct ranges
+                        return Parse(new AddressRange(
+                            new IPv4Address(IPAddress.Parse(x[0])),
+                            new IPv4Address(IPAddress.Parse(x[1])), nic).ToString());
                     }
                     var suffix = int.Parse(x[1]);
                     if (suffix == 0 || suffix > 32) {
@@ -205,7 +242,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
                             NetworkClass.Wired)
                         .Select(t => new AddressRange(t, false, suffix));
                     }
-                    return new AddressRange(IPAddress.Parse(x[0]), suffix)
+                    return new AddressRange(IPAddress.Parse(x[0]), suffix, nic)
                         .YieldReturn();
                 }).Distinct().ToList();
         }
@@ -228,6 +265,47 @@ namespace Microsoft.Azure.IIoT.Net.Models {
             _cur = 0;
         }
 
+        /// <summary>
+        /// Convert address range to cidr formatted ip strings
+        /// </summary>
+        /// <param name="sb"></param>
+        /// <returns></returns>
+        private void AppendTo(StringBuilder sb) {
+            long start = Low;
+            long end = High;
+            var first = true;
+            while (end >= start) {
+                byte subnetSize = 32;
+                while (subnetSize > 0) {
+                    var mask = (1L << 32) - (1L << (32 - (subnetSize - 1)));
+                    if ((start & mask) != start) {
+                        break;
+                    }
+                    subnetSize--;
+                }
+                var x = Math.Floor(Math.Log(end - start + 1) / Math.Log(2));
+                var maxDiff = (byte)(32 - x);
+                if (subnetSize < maxDiff) {
+                    subnetSize = maxDiff;
+                }
+                var ip = ((IPv4Address)start).ToString();
+                if (!first) {
+                    sb.Append(';');
+                }
+                first = false;
+                sb.Append(ip);
+                sb.Append("/");
+                sb.Append(subnetSize);
+                if (Nic != kNullNicName) {
+                    sb.Append(" [");
+                    sb.Append(Nic);
+                    sb.Append("]");
+                }
+                start += 1L << (32 - subnetSize);
+            }
+        }
+
+        private const string kNullNicName = "custom";
         private uint _cur;
     }
 }

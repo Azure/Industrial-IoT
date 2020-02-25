@@ -3,6 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
+using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
 using System;
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
@@ -71,42 +72,47 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public string Transport { get; set; }
 
         /// <summary>
-        /// 
+        /// The EdgeHub connection string.
         /// </summary>
         public string EdgeHubConnectionString { get; set; }
 
         /// <summary>
-        /// 
+        /// The operation timeout.
         /// </summary>
         public TimeSpan? OperationTimeout { get; set; }
 
         /// <summary>
-        /// 
+        /// The messaging mode for outgoing messages.
+        /// </summary>
+        public MessagingMode MessagingMode { get; set; } = MessagingMode.Samples;
+
+        /// <summary>
+        /// The maximum string length.
         /// </summary>
         public long? MaxStringLength { get; set; }
 
         /// <summary>
-        /// 
+        /// The session creation timeout.
         /// </summary>
         public TimeSpan? SessionCreationTimeout { get; set; }
 
         /// <summary>
-        /// 
+        /// The KeepAlive interval.
         /// </summary>
         public TimeSpan? KeepAliveInterval { get; set; }
 
         /// <summary>
-        /// 
+        /// The maximum keep alive count till disconnect.
         /// </summary>
         public uint? MaxKeepAliveCount { get; set; }
 
         /// <summary>
-        /// 
+        /// Flag to trust own certificate.
         /// </summary>
         public bool TrustSelf { get; set; }
 
         /// <summary>
-        /// 
+        /// Flag if all certificates should be trusted.
         /// </summary>
         public bool AutoAcceptUntrustedCertificates { get; set; }
 
