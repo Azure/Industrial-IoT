@@ -19,7 +19,7 @@
 
 <h1>Publishers</h1>
 
-<table class="table">
+<table class="table @_tableView">
     <thead>
         <tr>
             <th>Id</th>
@@ -78,6 +78,7 @@
     private PagedResult<PublisherApiModel> _publisherList = new PagedResult<PublisherApiModel>();
     private PagedResult<PublisherApiModel> _pagedPublisherList = new PagedResult<PublisherApiModel>();
     private IAsyncDisposable _publisherEvent { get; set; }
+    private string _tableView { get; set; } = "visible";
   
     /// <summary>
     /// Notify page change
@@ -108,7 +109,11 @@
             _publisherList = await RegistryHelper.GetPublisherListAsync();
             Page = "1";
             _pagedPublisherList = _publisherList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _publisherList.Error);
-            CommonHelper.Spinner = "";
+            CommonHelper.Spinner = string.Empty;
+            if (_pagedPublisherList.Error != null)
+            {
+                _tableView = "hidden";
+            }
             StateHasChanged();
 
             _publisherEvent = await RegistryServiceEvents.SubscribePublisherEventsAsync(null, PublisherEvent);
