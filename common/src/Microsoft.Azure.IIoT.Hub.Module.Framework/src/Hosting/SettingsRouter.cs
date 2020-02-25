@@ -88,7 +88,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                             if (!invoker.Get(setting.Key, out var value)) {
                                 value = setting.Value; // No getter, echo back desired value.
                             }
-                            _cache[setting.Key] = JToken.FromObject(value);
+                            _cache[setting.Key] = value == null ? JValue.CreateNull() : JToken.FromObject(value);
                             reported[setting.Key] = value;
                             continue;
                         }

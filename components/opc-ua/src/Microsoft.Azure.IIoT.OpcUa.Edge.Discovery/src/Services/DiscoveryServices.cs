@@ -202,11 +202,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                     }
                     finally {
                         // If the request is scan request, schedule next one
-                        if (!ct.IsCancellationRequested && request.IsScan) {
+                        if (!ct.IsCancellationRequested && (request?.IsScan ?? false)) {
                             // Re-schedule another scan when idle time expired
                             _timer.Change(
-                                _request.Request.Configuration?.IdleTimeBetweenScans ??
-                                kDefaultIdleTime, Timeout.InfiniteTimeSpan);
+                                request.Request.Configuration.IdleTimeBetweenScans ??
+                                    TimeSpan.FromHours(1),
+                                Timeout.InfiniteTimeSpan);
                         }
                     }
                 }
@@ -561,8 +562,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
 #endif
 
 
-        /// <summary> Default idle time is 6 hours </summary>
-        private static readonly TimeSpan kDefaultIdleTime = TimeSpan.FromHours(6);
         /// <summary> Progress reporting every 3 seconds </summary>
         private static readonly TimeSpan kProgressInterval = TimeSpan.FromSeconds(3);
 
