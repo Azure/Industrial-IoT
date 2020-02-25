@@ -37,6 +37,7 @@ namespace Microsoft.Azure.IIoT.App {
     using System;
     using System.Threading.Tasks;
     using System.Security.Claims;
+    using Microsoft.Azure.IIoT.App.Common;
 
     /// <summary>
     /// Webapp startup
@@ -95,7 +96,8 @@ namespace Microsoft.Azure.IIoT.App {
             app.UseRewriter(
                 new RewriteOptions().Add(context => {
                     if (context.HttpContext.Request.Path == "/AzureAD/Account/SignedOut") {
-                        context.HttpContext.Response.Redirect("/");
+                        context.HttpContext.Response.Redirect("/discoverers");
+                        context.HttpContext.SignOutAsync("Cookies");
                     }
                 })
             );
@@ -145,11 +147,11 @@ namespace Microsoft.Azure.IIoT.App {
                 // This lambda determines whether user consent for non-essential cookies
                 // is needed for a given request.
                 options.CheckConsentNeeded = context => true;
-                options.MinimumSameSitePolicy = SameSiteMode.Strict;
+                options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
             services.AddAntiforgery(options => {
-                options.Cookie.SameSite = SameSiteMode.None;
+                options.Cookie.SameSite = SameSiteMode.Strict;
             });
 
             services.AddHttpContextAccessor();
@@ -217,7 +219,8 @@ namespace Microsoft.Azure.IIoT.App {
                 .AsImplementedInterfaces().SingleInstance();
             // Use behalf of token provider to get tokens from user
             builder.RegisterType<BehalfOfTokenProvider>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().SingleInstance()
+                .WithParameter("acquireTokenIfSilentFails", true);
             builder.RegisterType<DistributedTokenCache>()
                 .AsImplementedInterfaces().SingleInstance();
 
@@ -242,6 +245,9 @@ namespace Microsoft.Azure.IIoT.App {
             builder.RegisterType<Browser>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
             builder.RegisterType<Publisher>()
+                .AsImplementedInterfaces().AsSelf().SingleInstance();
+
+            builder.RegisterType<UICommon>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
         }
 

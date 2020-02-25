@@ -25,7 +25,7 @@ cd Industrial-IoT
 4. Right click on the solution in the solution viewer and select `Properties`. 
 5. Set the start up project to be  `Microsoft.Azure.IIoT.Services.All`.  
 6. Start debugging by pressing the "Start" button or hitting F5.
-7. [Ensure the Microservices are running](#Ensure-the-Microservices-are-running)
+7. [Ensure the Microservices are running](#ensure-the-microservices-are-running)
 
 > Installing [this extension]( https://marketplace.visualstudio.com/items?itemName=vs-publisher-141975.SwitchStartupProject) you can start an entire environment containing Edge modules, command line interface, engineering sample application and services from within Visual Studio 2019.  Just select the the "Local development" startup configuration in the top left corner drop down in the IDE.   Use the "no services" configuration if you want to start only the edge environment and applications.
 
@@ -34,8 +34,9 @@ cd Industrial-IoT
 After starting open a browser window to:
 
 - http://localhost:9080/registry/swagger for OPC Registry Microservice
-- http://localhost:9080/twin/swagger for OPC Twin Microservice
-- http://localhost:9080/vault/swagger for OPC Historic Access Microservice
+- http://localhost:9080/twin/swagger for OPC UA Server Twin Microservice
+- http://localhost:9080/history/swagger for OPC UA Historic Access Microservice
+- http://localhost:9080/publisher/swagger for the OPC Publisher service
 
 which will show you the each Microservice's swagger UI. If the services exit immediately after start, check that the `.env` file exists in the root of the repository.  
 

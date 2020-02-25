@@ -114,6 +114,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 Manifest.Name = "IIoTOpcUaPubSub";
                 Manifest.ManifestName = "IIoT OPC UA Pub/Sub Manifest";
                 adlsRoot.Documents.Add(Manifest, "IIoTOpcUaPubSub.manifest.cdm.json");
+                Manifest.Imports.Add(kFoundationJsonPath);
+                Manifest.Schema = "cdm:/schema.cdm.json";
+                Manifest.JsonSchemaSemanticVersion = "1.0.0";
             }
             Try.Op(() => _cacheUploadTimer.Change(_cacheUploadInterval, Timeout.InfiniteTimeSpan));
         }
@@ -161,7 +164,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                     if (!GetEntityData(samplesList[0], out var partitionLocation, out var partitionDelimitor)) {
                         if(!CreateEntityData(samplesList[0], out partitionLocation, out partitionDelimitor)) {
                             _logger.Error("Failed to create CDM Entity for {endpointId}/{nodeId}).",
-                                samplesList[0].EndpointId, samplesList[0].NodeId);
+                                samplesList[0]?.EndpointId, samplesList[0]?.NodeId);
                             continue;
                         }
                         performSave = true;
@@ -186,13 +189,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 _logger.Information("Successfully sent processed CDM data {count} records (took {elapsed}).",
                     _samplesCacheSize, sw.Elapsed);
             }
-            catch (Exception e) {
-                var errorMessage = e.Message;
-                if (e.InnerException != null) {
-                    errorMessage += " - " + e.InnerException.Message;
-                }
-                _logger.Warning("Failed to send processed CDM data after {elapsed} : {message}",
-                     sw.Elapsed, errorMessage);
+            catch (Exception ex) {
+                _logger.Warning(ex, "Failed to send processed CDM data after {elapsed}",
+                     sw.Elapsed);
             }
             finally {
                 foreach (var list in _samplesCache.Values) {
@@ -207,7 +206,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         private string GetNormalizedEntityName(string endpointId, string nodeId) {
             var key = string.Join("", endpointId.Split(Path.GetInvalidFileNameChars())) + '_' +
                 string.Join("", nodeId.Split(Path.GetInvalidFileNameChars()));
-            return key.Replace('#', '_').Replace('.', '_');
+            return key.Replace('#', '_').Replace('.', '_').Replace('/','_').Replace(':', '_');
         }
 
         private static CdmDataFormat DataTypeToCdmDataFormat(Type type) {
@@ -349,7 +348,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 CdmObjectType.DocumentDef, $"{newSampleEntity.EntityName}.cdm.json", false);
             newSampleEntityDoc.Imports.Add($"{newSampleEntity.EntityName}.cdm.json");
             // TODO: remove - apparently not necessary 
-            //  newSampleEntityDoc.Imports.Add("cdm:/foundations.cdm.json");
+            //newSampleEntityDoc.Imports.Add(kFoundationJsonPath);
             newSampleEntityDoc.Definitions.Add(newSampleEntity);
             _cdmCorpus.Storage.FetchRootFolder("adls").Documents.Add(
                 newSampleEntityDoc, newSampleEntityDoc.Name);
@@ -435,6 +434,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
 
         private static readonly int kSamplesCacheMaxSize = 5000;
         private static readonly string kPublisherSampleEntityName = "PublisherSampleModel";
+        private static readonly string kFoundationJsonPath = "cdm:/foundations.cdm.json";
         private static readonly string kCsvPartitionsDelimiter = ",";
         private static readonly AttributeResolutionDirectiveSet kDirectives =
             new AttributeResolutionDirectiveSet(new HashSet<string>() {

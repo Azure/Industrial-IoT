@@ -390,7 +390,14 @@ $ErrorActionPreference = "Stop"
 $script:ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
 
 Import-Module Az
-Import-Module AzureAD
+try {
+    # Try first release version
+    Import-Module AzureAD
+}
+catch {
+    # Fallback to preview
+    Import-Module AzureAD.Standard.Preview
+}
 
 $aadConfig = New-ADApplications  `
     -applicationName $script:Name  `
