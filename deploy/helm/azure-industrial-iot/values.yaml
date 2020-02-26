@@ -806,17 +806,18 @@ deployment:
     # Our recommended values to use with NGINX Ingress Controller.
     #
     # paths:
-    #   registry: /registry/(.*)
-    #   twin: /twin/(.*)
-    #   history: /history/(.*)
-    #   gateway: /ua/(.*)
-    #   vault: /vault/(.*)
-    #   onboarding: /onboarding/(.*)
-    #   publisher: /publisher/(.*)
-    #   publisherJobs: /jobs/(.*)
-    #   configuration: /configuration/(.*)
-    #   edgeJobs: /edge/jobs/(.*)
-    #   edgeManager: /edge/manage/(.*)
+    #   registry: /registry
+    #   twin: /twin
+    #   history: /history
+    #   gateway: /ua
+    #   vault: /vault
+    #   onboarding: /onboarding
+    #   publisher: /publisher
+    #   publisherJobs: /jobs
+    #   configuration: /configuration
+    #   edgeJobs: /edge/jobs
+    #   edgeManager: /edge/manage
+    #   frontend: /frontend
     paths:
       registry: null
       twin: null
@@ -829,6 +830,7 @@ deployment:
       configuration: null
       edgeJobs: null
       edgeManager: null
+      frontend: null
 
     # Ingress TLS configuration. Secrets must be manually created in the namespace.
     # The value should be alligned with hostName property.
