@@ -34,5 +34,10 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
         /// AAD Client / Application secret (optional)
         /// </summary>
         string OpenApiAppSecret { get; }
+
+        /// <summary>
+        /// Server host for openapi (optional)
+        /// </summary>
+        string OpenApiServerHost { get; }
     }
 }
