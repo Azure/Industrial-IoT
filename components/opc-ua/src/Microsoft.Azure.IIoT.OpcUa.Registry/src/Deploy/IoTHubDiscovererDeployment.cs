@@ -113,14 +113,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
             var version = _config.ImagesTag ?? "latest";
             var image = $"{server}/{ns}iotedge/discovery:{version}";
 
-            _logger.Information("Updating discoverer module deployment with image {image}", image);
+            _logger.Information("Updating discovery module deployment with image {image}", image);
 
             // Return deployment modules object
             var content = @"
             {
                 ""$edgeAgent"": {
                     " + registryCredentials + @"
-                    ""properties.desired.modules.discoverer"": {
+                    ""properties.desired.modules.discovery"": {
                         ""settings"": {
                             ""image"": """ + image + @""",
                             ""createOptions"": """ + createOptions + @"""
