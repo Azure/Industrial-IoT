@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime {
         private const string kCorsWhitelistKey = "Cors:Whitelist";
         /// <summary>Cors whitelist</summary>
         public string CorsWhitelist => GetStringOrDefault(kCorsWhitelistKey,
-            GetStringOrDefault("PCS_CORS_WHITELIST ", "*"));
+            GetStringOrDefault(PcsVariable.PCS_CORS_WHITELIST, "*"));
         /// <summary>Whether enabled</summary>
         public bool CorsEnabled =>
             !string.IsNullOrEmpty(CorsWhitelist.Trim());

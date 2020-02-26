@@ -17,5 +17,10 @@ namespace Microsoft.Azure.IIoT.Auth.Server {
         /// authorization.
         /// </summary>
         int HttpsRedirectPort { get; }
+
+        /// <summary>
+        /// Determines URL path base that service should be running on.
+        /// </summary>
+        string ServicePathBase { get; }
     }
 }
