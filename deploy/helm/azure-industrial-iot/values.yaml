@@ -5,7 +5,7 @@ image:
   # image.registry is URL of Docker registry from where images will be pulled.
   registry: mcr.microsoft.com
   # image.tag defines which version of Docker images to pull.
-  tag: 2.6.62
+  tag: 2.6.93
   # image.pullPolicy defines value of imagePullPolicy of deployments.
   pullPolicy: IfNotPresent
   # image.pullSecrets defined docker-registry secrets that should be used for private container registries.
@@ -199,6 +199,48 @@ serviceAccount:
   # serviceAccount.name is the name of the ServiceAccount to use or create.
   # If not set and create is true, a name is generated using the fullname template
   name: null
+
+# apps defines global application configuration for components of Azure Industrial IoT solution
+apps:
+  # apps.urlPathBase will determine URL path base that each component with external API should run on.
+  # So for example, if the value for registry is '/registry', then a sample API path would be '/registry/v2/applications'.
+  # NOTE: apps.urlPathBase values here should be alligned with value of deployment.ingress.paths. They are separated because one might want to have a regex in Ingress path.
+  urlPathBase:
+    registry: /registry
+    twin: /twin
+    history: /history
+    gateway: /ua
+    vault: /vault
+    onboarding: /onboarding
+    publisher: /publisher
+    configuration: /configuration
+    edgeManager: /edge/manage
+    frontend: /frontend
+    edgeJobs: /edge/jobs
+    publisherJobs: /jobs
+
+  # apps.aspNetCore determines global ASP .Net Core configuration.
+  aspNetCore:
+    # apps.aspNetCore.forwardedHeaders determines global ASP .Net Core configuration for processing of HTTP forwarded headers (X-Forwarded-*).
+    # Those are useful when services are running behind a reverse proxy.
+    forwardedHeaders:
+      # apps.aspNetCore.forwardedHeaders.enabled determines whethere processing of HTTP forwarded headers (X-Forwarded-*) should be enabled or not.
+      enabled: true
+      # apps.aspNetCore.forwardedHeaders.forwardLimit determines limit on number of entries in HTTP forwarded headers (X-Forwarded-*).
+      forwardLimit: 1
+
+  # apps.openApi determines global OpenAPI (Swagger) configuration.
+  openApi:
+    # apps.openApi.serverHost determines (if set) OpenAPI (Swagger) server host that should be used for serving OpenAPI definitions and performing API calls from Swagger UI.
+    # If it is not set, we will use Host of incoming request as server host for OpenAPI definitions and Swagger calls performed from Swagger UI.
+    #
+    # This value is useful, if services are behind a reverse proxy that does not properly apply HTTP forwarded headers (X-Forwarded-*).
+    # In this case, our microservices will not be able to determine original host that request came to to determine server host for OpenAPI definitions.
+    # So with this parameters you can enforce value of server host that should be used in OpenAPI definitions and for performing API calls from Swagger UI.
+    #
+    # NOTE: Please provide the host without URL scheme.
+    # NOTE: The value should most probably be similar to the value of azure.appService.url parameter.
+    serverHost: null
 
 deployment:
   microServices:
@@ -759,6 +801,8 @@ deployment:
     # host for the Ingress. We do not support multiple hosts at the moment.
     hostName: null
 
+    # NOTE: deployment.ingress.paths values here should be alligned with value of apps.urlPathBase. They are separated because one might want to have a regex in Ingress paths.
+    #
     # Our recommended values to use with NGINX Ingress Controller.
     #
     # paths:
