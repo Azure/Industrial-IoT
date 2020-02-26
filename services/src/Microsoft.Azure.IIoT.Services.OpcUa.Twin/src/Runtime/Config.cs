@@ -8,6 +8,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Auth.Server;
@@ -21,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime {
     /// Common web service configuration aggregation
     /// </summary>
     public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig,
-        ICorsConfig, IClientConfig, IOpenApiConfig {
+        ICorsConfig, IClientConfig, IOpenApiConfig, IForwardedHeadersConfig {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
@@ -35,6 +37,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime {
 
         /// <inheritdoc/>
         public int HttpsRedirectPort => _host.HttpsRedirectPort;
+        /// <inheritdoc/>
+        public string ServicePathBase => GetStringOrDefault(
+            PcsVariable.PCS_TWIN_SERVICE_PATH_BASE,
+            _host.ServicePathBase);
 
         /// <inheritdoc/>
         public string AppId => _auth.AppId;
@@ -65,11 +71,20 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime {
         public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
         /// <inheritdoc/>
         public bool UseV2 => _openApi.UseV2;
+        /// <inheritdoc/>
+        public string OpenApiServerHost => _openApi.OpenApiServerHost;
 
         /// <summary>
         /// Whether to use role based access
         /// </summary>
-        public bool UseRoles => GetBoolOrDefault("PCS_AUTH_ROLES");
+        public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
+
+        /// <inheritdoc/>
+        public bool AspNetCoreForwardedHeadersEnabled =>
+            _fh.AspNetCoreForwardedHeadersEnabled;
+        /// <inheritdoc/>
+        public int AspNetCoreForwardedHeadersForwardLimit =>
+            _fh.AspNetCoreForwardedHeadersForwardLimit;
 
         /// <summary>
         /// Configuration constructor
@@ -83,6 +98,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime {
             _host = new HostConfig(configuration);
             _hub = new IoTHubConfig(configuration);
             _cors = new CorsConfig(configuration);
+            _fh = new ForwardedHeadersConfig(configuration);
         }
 
         private readonly OpenApiConfig _openApi;
@@ -90,5 +106,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime {
         private readonly HostConfig _host;
         private readonly CorsConfig _cors;
         private readonly IoTHubConfig _hub;
+        private readonly ForwardedHeadersConfig _fh;
     }
 }

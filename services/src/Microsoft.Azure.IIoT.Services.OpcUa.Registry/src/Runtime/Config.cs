@@ -8,6 +8,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Cors.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus;
@@ -29,12 +31,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
     /// </summary>
     public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig, ICorsConfig,
         IClientConfig, IOpenApiConfig, IServiceBusConfig, ISignalRServiceConfig,
-        ICosmosDbConfig, IItemContainerConfig {
+        ICosmosDbConfig, IItemContainerConfig, IForwardedHeadersConfig {
 
         /// <summary>
         /// Whether to use role based access
         /// </summary>
-        public bool UseRoles => GetBoolOrDefault("PCS_AUTH_ROLES");
+        public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
@@ -48,6 +50,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
 
         /// <inheritdoc/>
         public int HttpsRedirectPort => _host.HttpsRedirectPort;
+        /// <inheritdoc/>
+        public string ServicePathBase => GetStringOrDefault(
+            PcsVariable.PCS_TWIN_REGISTRY_SERVICE_PATH_BASE,
+            _host.ServicePathBase);
 
         /// <inheritdoc/>
         public string AppId => _auth.AppId;
@@ -78,6 +84,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         public string OpenApiAppSecret => _openApi.OpenApiAppSecret;
         /// <inheritdoc/>
         public bool UseV2 => _openApi.UseV2;
+        /// <inheritdoc/>
+        public string OpenApiServerHost => _openApi.OpenApiServerHost;
 
         /// <inheritdoc/>
         public string ServiceBusConnString => _sb.ServiceBusConnString;
@@ -96,6 +104,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         /// <inheritdoc/>
         public string SignalRConnString => _sr.SignalRConnString;
 
+        /// <inheritdoc/>
+        public bool AspNetCoreForwardedHeadersEnabled =>
+            _fh.AspNetCoreForwardedHeadersEnabled;
+        /// <inheritdoc/>
+        public int AspNetCoreForwardedHeadersForwardLimit =>
+            _fh.AspNetCoreForwardedHeadersForwardLimit;
+
         /// <summary>
         /// Configuration constructor
         /// </summary>
@@ -111,6 +126,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
             _sb = new ServiceBusConfig(configuration);
             _cosmos = new CosmosDbConfig(configuration);
             _sr = new SignalRServiceConfig(configuration);
+            _fh = new ForwardedHeadersConfig(configuration);
         }
 
         private readonly OpenApiConfig _openApi;
@@ -121,5 +137,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         private readonly CosmosDbConfig _cosmos;
         private readonly SignalRServiceConfig _sr;
         private readonly IoTHubConfig _hub;
+        private readonly ForwardedHeadersConfig _fh;
     }
 }
