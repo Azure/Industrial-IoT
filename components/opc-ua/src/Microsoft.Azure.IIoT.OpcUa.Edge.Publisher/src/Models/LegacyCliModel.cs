@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using System;
 
     /// <summary>
