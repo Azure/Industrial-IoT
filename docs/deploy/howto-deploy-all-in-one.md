@@ -24,14 +24,15 @@ The platform and simulation can also be deployed using the deploy script.
 
 2. Install all required dependencies:
 
-   - On **Windows** install [Az PowerShell](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps). Open Powershell as Administrator and run:
+   - On **Windows**, install Azure PowerShell. Azure PowerShell works with PowerShell 5.1 or higher. Run following two commands in PowerShell as Administrator. For more info on AzureRM and Az modules, refer [here](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps).
 
      ```pwsh
      Install-Module -Name Az -AllowClobber
      Install-Module -Name AzureAD -AllowClobber
      ```
 
-   - On **Ubuntu** Linux continue to step 3 and choose (y) to install required dependencies.  You must have Adminstrator rights.  
+   - On **Ubuntu**, Linux continue to step 3 and choose (y) to install required dependencies.  You must have Administrator rights.
+
      > For how to install required depdendencies on other Linux distributions see [here](#Deploy-from-Linux-other-than-Ubuntu).
 
 3. Open a command prompt or terminal in the repository root and depending on your operating system run:
@@ -48,7 +49,7 @@ The platform and simulation can also be deployed using the deploy script.
      ./deploy.sh
      ```
 
-   The supported parameters can be found [below](#deployment-script-options).
+   The supported parameters could be found [below](#deployment-script-options).
 
 4. Follow the prompts to assign a name to the resource group of the deployment and a name to the website. The script deploys the Microservices and their Azure platform dependencies into the resource group in your Azure subscription.  The script also registers an Application in your Azure Active Directory (AAD) tenant to support OAUTH based authentication.  
    Deployment will take several minutes.  An example of what you'd see once the solution is successfully deployed:
@@ -67,7 +68,7 @@ The platform and simulation can also be deployed using the deploy script.
 
 If you receive a message that the execution policy not being set you can set the execution policy when starting the powershell session:
 
-```bash
+```pwsh
 pwsh -ExecutionPolicy Unrestricted
 ```
 

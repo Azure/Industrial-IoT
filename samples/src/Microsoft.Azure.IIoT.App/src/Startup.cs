@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.App.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Extensions;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
@@ -78,7 +79,15 @@ namespace Microsoft.Azure.IIoT.App {
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env,
             IHostApplicationLifetime appLifetime) {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
-            app.UseForwardedHeaders();
+
+            if (!string.IsNullOrEmpty(Config.ServicePathBase)) {
+                app.UsePathBase(Config.ServicePathBase);
+            }
+
+            if (Config.AspNetCoreForwardedHeadersEnabled) {
+                // Enable processing of forwarded headers
+                app.UseForwardedHeaders();
+            }
 
             var isDevelopment = env.IsDevelopment();
             isDevelopment = true; // TODO Remove when all issues fixed
@@ -97,6 +106,7 @@ namespace Microsoft.Azure.IIoT.App {
                 new RewriteOptions().Add(context => {
                     if (context.HttpContext.Request.Path == "/AzureAD/Account/SignedOut") {
                         context.HttpContext.Response.Redirect("/discoverers");
+                        context.HttpContext.SignOutAsync("Cookies");
                     }
                 })
             );
@@ -124,19 +134,9 @@ namespace Microsoft.Azure.IIoT.App {
         /// <returns></returns>
         public void ConfigureServices(IServiceCollection services) {
 
-            if (string.Equals(
-                Environment.GetEnvironmentVariable("ASPNETCORE_FORWARDEDHEADERS_ENABLED"),
-                    "true", StringComparison.OrdinalIgnoreCase)) {
-
-                services.Configure<ForwardedHeadersOptions>(options => {
-                    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor |
-                        ForwardedHeaders.XForwardedProto;
-                    // Only loopback proxies are allowed by default.
-                    // Clear that restriction because forwarders are enabled by explicit
-                    // configuration.
-                    options.KnownNetworks.Clear();
-                    options.KnownProxies.Clear();
-                });
+            if (Config.AspNetCoreForwardedHeadersEnabled) {
+                // Configure processing of forwarded headers
+                services.ConfigureForwardedHeaders(Config);
             }
 
             // Protect anything using keyvault and storage persisted keys
@@ -146,11 +146,11 @@ namespace Microsoft.Azure.IIoT.App {
                 // This lambda determines whether user consent for non-essential cookies
                 // is needed for a given request.
                 options.CheckConsentNeeded = context => true;
-                options.MinimumSameSitePolicy = SameSiteMode.Strict;
+                options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
             services.AddAntiforgery(options => {
-                options.Cookie.SameSite = SameSiteMode.None;
+                options.Cookie.SameSite = SameSiteMode.Strict;
             });
 
             services.AddHttpContextAccessor();
@@ -220,7 +220,8 @@ namespace Microsoft.Azure.IIoT.App {
                 .AsImplementedInterfaces().SingleInstance();
             // Use behalf of token provider to get tokens from user
             builder.RegisterType<BehalfOfTokenProvider>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().SingleInstance()
+                .WithParameter("acquireTokenIfSilentFails", true);
             builder.RegisterType<DistributedTokenCache>()
                 .AsImplementedInterfaces().SingleInstance();
 

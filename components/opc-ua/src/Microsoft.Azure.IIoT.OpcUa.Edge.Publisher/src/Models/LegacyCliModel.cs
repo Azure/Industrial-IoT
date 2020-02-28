@@ -76,42 +76,47 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public string Transport { get; set; }
 
         /// <summary>
-        /// Edge hub connection string
+        /// The EdgeHub connection string.
         /// </summary>
         public string EdgeHubConnectionString { get; set; }
 
         /// <summary>
-        /// Operation timeout
+        /// The operation timeout.
         /// </summary>
         public TimeSpan? OperationTimeout { get; set; }
 
         /// <summary>
-        /// Max string length
+        /// The messaging mode for outgoing messages.
+        /// </summary>
+        public MessagingMode MessagingMode { get; set; } = MessagingMode.Samples;
+
+        /// <summary>
+        /// The maximum string length.
         /// </summary>
         public long? MaxStringLength { get; set; }
 
         /// <summary>
-        /// Session creation timeout
+        /// The session creation timeout.
         /// </summary>
         public TimeSpan? SessionCreationTimeout { get; set; }
 
         /// <summary>
-        /// Keep alive interval
+        /// The KeepAlive interval.
         /// </summary>
         public TimeSpan? KeepAliveInterval { get; set; }
 
         /// <summary>
-        /// Max keep alive
+        /// The maximum keep alive count till disconnect.
         /// </summary>
         public uint? MaxKeepAliveCount { get; set; }
 
         /// <summary>
-        /// Self trust
+        /// Flag to trust own certificate.
         /// </summary>
         public bool TrustSelf { get; set; }
 
         /// <summary>
-        /// Accept untrusted certificates
+        /// Flag if all certificates should be trusted.
         /// </summary>
         public bool AutoAcceptUntrustedCertificates { get; set; }
 

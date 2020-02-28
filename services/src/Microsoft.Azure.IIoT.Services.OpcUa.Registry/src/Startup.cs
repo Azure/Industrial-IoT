@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Correlation;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Extensions;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
@@ -94,6 +95,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
 
             services.AddLogging(o => o.AddConsole().AddDebug());
 
+            if (Config.AspNetCoreForwardedHeadersEnabled) {
+                // Configure processing of forwarded headers
+                services.ConfigureForwardedHeaders(Config);
+            }
+
             // Setup (not enabling yet) CORS
             services.AddCors();
             services.AddHealthChecks();
@@ -132,6 +138,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
         public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime) {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
             var log = applicationContainer.Resolve<ILogger>();
+
+            if (!string.IsNullOrEmpty(Config.ServicePathBase)) {
+                app.UsePathBase(Config.ServicePathBase);
+            }
+
+            if (Config.AspNetCoreForwardedHeadersEnabled) {
+                // Enable processing of forwarded headers
+                app.UseForwardedHeaders();
+            }
 
             app.UseRouting();
             app.EnableCors();

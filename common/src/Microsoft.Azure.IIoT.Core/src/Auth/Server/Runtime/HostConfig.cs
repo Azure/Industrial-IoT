@@ -17,10 +17,15 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
         /// Host configuration
         /// </summary>
         private const string kAuth_HttpsRedirectPortKey = "Auth:HttpsRedirectPort";
+        private const string kHost_ServicePathBase = "Host:ServicePathBase";
 
         /// <summary>Https enforced</summary>
         public int HttpsRedirectPort => GetIntOrDefault(kAuth_HttpsRedirectPortKey,
             GetIntOrDefault("PCS_AUTH_HTTPSREDIRECTPORT", 0));
+
+        /// <inheritdoc/>
+        public string ServicePathBase => GetStringOrDefault(kHost_ServicePathBase,
+            GetStringOrDefault(PcsVariable.PCS_SERVICE_PATH_BASE));
 
         /// <summary>
         /// Configuration constructor

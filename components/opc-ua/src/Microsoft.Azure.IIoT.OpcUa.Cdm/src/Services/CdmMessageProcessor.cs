@@ -114,6 +114,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 Manifest.Name = "IIoTOpcUaPubSub";
                 Manifest.ManifestName = "IIoT OPC UA Pub/Sub Manifest";
                 adlsRoot.Documents.Add(Manifest, "IIoTOpcUaPubSub.manifest.cdm.json");
+                Manifest.Imports.Add(kFoundationJsonPath);
+                Manifest.Schema = "cdm:/schema.cdm.json";
+                Manifest.JsonSchemaSemanticVersion = "1.0.0";
             }
             Try.Op(() => _cacheUploadTimer.Change(_cacheUploadInterval, Timeout.InfiniteTimeSpan));
         }
@@ -345,7 +348,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 CdmObjectType.DocumentDef, $"{newSampleEntity.EntityName}.cdm.json", false);
             newSampleEntityDoc.Imports.Add($"{newSampleEntity.EntityName}.cdm.json");
             // TODO: remove - apparently not necessary 
-            //  newSampleEntityDoc.Imports.Add("cdm:/foundations.cdm.json");
+            //newSampleEntityDoc.Imports.Add(kFoundationJsonPath);
             newSampleEntityDoc.Definitions.Add(newSampleEntity);
             _cdmCorpus.Storage.FetchRootFolder("adls").Documents.Add(
                 newSampleEntityDoc, newSampleEntityDoc.Name);
@@ -431,6 +434,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
 
         private static readonly int kSamplesCacheMaxSize = 5000;
         private static readonly string kPublisherSampleEntityName = "PublisherSampleModel";
+        private static readonly string kFoundationJsonPath = "cdm:/foundations.cdm.json";
         private static readonly string kCsvPartitionsDelimiter = ",";
         private static readonly AttributeResolutionDirectiveSet kDirectives =
             new AttributeResolutionDirectiveSet(new HashSet<string>() {
