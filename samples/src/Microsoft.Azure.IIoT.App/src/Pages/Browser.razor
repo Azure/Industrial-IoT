@@ -94,10 +94,14 @@
                         ((node.AccessLevel & NodeAccessLevel.CurrentWrite) == NodeAccessLevel.CurrentWrite)))
                 {
                     <td>
-                        <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
-                            @{string output = $"{node.Value} ({node.DataType})";}
-                            @output
-                        </a>
+                        <div class="td-fixed">
+                            <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
+                                @{string outputValue = $"{node.Value}";}
+                                @{string outputType = $"({node.DataType})";}
+                                <span>@outputValue</span>
+                                <span>@outputType</span>
+                            </a>
+                        </div>
                     </td>
                 }
                 else
