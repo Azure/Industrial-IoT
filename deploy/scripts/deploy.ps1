@@ -314,7 +314,7 @@ Function Select-ResourceGroupLocation() {
     while ($true) {
         $option = Read-Host -Prompt ">"
         try {
-            if ($option -ge 1 -and $option -le $locations.Count) {
+            if ([int]$option -ge 1 -and [int]$option -le $locations.Count) {
                 break
             }
         }
