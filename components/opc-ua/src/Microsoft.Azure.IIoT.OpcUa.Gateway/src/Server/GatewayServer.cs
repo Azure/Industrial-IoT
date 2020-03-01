@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Transport;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
@@ -1625,13 +1626,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                 },
                 TransportConfigurations = new TransportConfigurationCollection(),
                 TransportQuotas = new TransportQuotas {
-                    OperationTimeout = 120000,
-                    MaxStringLength = ushort.MaxValue,
-                    MaxByteStringLength = ushort.MaxValue * 16,
-                    MaxArrayLength = ushort.MaxValue,
-                    MaxBufferSize = ushort.MaxValue,
-                    ChannelLifetime = 300000,
-                    SecurityTokenLifetime = 3600000
+                    OperationTimeout = TransportQuotaConfig.DefaultOperationTimeout,
+                    MaxStringLength = TransportQuotaConfig.DefaultMaxStringLength,
+                    MaxByteStringLength = TransportQuotaConfig.DefaultMaxByteStringLength,
+                    MaxArrayLength = TransportQuotaConfig.DefaultMaxArrayLength,
+                    MaxBufferSize = TransportQuotaConfig.DefaultMaxBufferSize,
+                    ChannelLifetime = TransportQuotaConfig.DefaultChannelLifetime,
+                    SecurityTokenLifetime = TransportQuotaConfig.DefaultSecurityTokenLifetime
                 },
                 ServerConfiguration = new ServerConfiguration {
                     ServerProfileArray = new StringCollection {
@@ -1648,8 +1649,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     SecurityPolicies = new ServerSecurityPolicyCollection {
                         new ServerSecurityPolicy {
                             SecurityMode = MessageSecurityMode.SignAndEncrypt,
-                            SecurityPolicyUri =
-                "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256"
+                            SecurityPolicyUri = SecurityPolicies.Basic256Sha256,
                         },
                         new ServerSecurityPolicy {
                             SecurityMode = MessageSecurityMode.None,
@@ -1659,11 +1659,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     UserTokenPolicies = new UserTokenPolicyCollection {
                         new UserTokenPolicy {
                             TokenType = UserTokenType.Anonymous,
-                            SecurityPolicyUri =
-                "http://opcfoundation.org/UA/SecurityPolicy#None"
+                            SecurityPolicyUri = SecurityPolicies.None
                         },
                         new UserTokenPolicy {
-                            TokenType = UserTokenType.UserName
+                            TokenType = UserTokenType.UserName,
+                            SecurityPolicyUri = SecurityPolicies.Basic256Sha256
                         },
                         new UserTokenPolicy {
                             TokenType = UserTokenType.IssuedToken

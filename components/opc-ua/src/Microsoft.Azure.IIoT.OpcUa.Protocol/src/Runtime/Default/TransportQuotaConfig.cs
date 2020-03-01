@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
+    using Opc.Ua;
 
     /// <summary>
     /// Transport quota configuration
@@ -24,32 +25,46 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         public const string MaxByteStringLengthKey = "MaxByteStringLength";
         public const string MaxStringLengthKey = "MaxStringLength";
         public const string OperationTimeoutKey = "OperationTimeout";
+
+        /// <summary>
+        /// Default values for transport quotas.
+        /// </summary>
+        public const int DefaultSecurityTokenLifetime = 60 * 60 * 1000;
+        public const int DefaultChannelLifetime = 300 * 1000;
+        public const int DefaultMaxBufferSize = (64 * 1024) - 1;
+        public const int DefaultMaxMessageSize = 4 * 1024 * 1024;
+        public const int DefaultMaxArrayLength = (64 * 1024) - 1;
+        public const int DefaultMaxByteStringLength = 1024 * 1024;
+        public const int DefaultMaxStringLength = (128 * 1024) - 256;
+        public const int DefaultOperationTimeout = 120 * 1000;
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+
+
 
         /// <inheritdoc/>
         public int OperationTimeout =>
-            GetIntOrDefault(OperationTimeoutKey, 120000);
+            GetIntOrDefault(OperationTimeoutKey, DefaultOperationTimeout);
         /// <inheritdoc/>
         public int MaxStringLength =>
-            GetIntOrDefault(MaxStringLengthKey, (128 * 1024) - 256);
+            GetIntOrDefault(MaxStringLengthKey, DefaultMaxStringLength);
         /// <inheritdoc/>
         public int MaxByteStringLength =>
-            GetIntOrDefault(MaxByteStringLengthKey, ushort.MaxValue);
+            GetIntOrDefault(MaxByteStringLengthKey, DefaultMaxByteStringLength);
         /// <inheritdoc/>
         public int MaxArrayLength =>
-            GetIntOrDefault(MaxArrayLengthKey, ushort.MaxValue);
+            GetIntOrDefault(MaxArrayLengthKey, DefaultMaxArrayLength);
         /// <inheritdoc/>
         public int MaxMessageSize =>
-            GetIntOrDefault(MaxMessageSizeKey, 4 * 1024 * 1024);
+            GetIntOrDefault(MaxMessageSizeKey, DefaultMaxMessageSize);
         /// <inheritdoc/>
         public int MaxBufferSize =>
-            GetIntOrDefault(MaxBufferSizeKey, ushort.MaxValue);
+            GetIntOrDefault(MaxBufferSizeKey, DefaultMaxBufferSize);
         /// <inheritdoc/>
         public int ChannelLifetime =>
-            GetIntOrDefault(ChannelLifetimeKey, 600000);
+            GetIntOrDefault(ChannelLifetimeKey, DefaultChannelLifetime);
         /// <inheritdoc/>
         public int SecurityTokenLifetime =>
-            GetIntOrDefault(SecurityTokenLifetimeKey, 3600000);
+            GetIntOrDefault(SecurityTokenLifetimeKey, DefaultSecurityTokenLifetime);
 
         /// <summary>
         /// Create
@@ -59,5 +74,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
             base(configuration) {
         }
 
+        /// <summary>
+        /// Return service defaults for the TransportQuotas.
+        /// </summary>
+        public static TransportQuotas DefaultTransportQuotas() {
+            return new TransportQuotas {
+                MaxMessageSize = TransportQuotaConfig.DefaultMaxMessageSize,
+                OperationTimeout = TransportQuotaConfig.DefaultOperationTimeout,
+                MaxStringLength = TransportQuotaConfig.DefaultMaxStringLength,
+                MaxByteStringLength = TransportQuotaConfig.DefaultMaxByteStringLength,
+                MaxArrayLength = TransportQuotaConfig.DefaultMaxArrayLength,
+                MaxBufferSize = TransportQuotaConfig.DefaultMaxBufferSize,
+                ChannelLifetime = TransportQuotaConfig.DefaultChannelLifetime,
+                SecurityTokenLifetime = TransportQuotaConfig.DefaultSecurityTokenLifetime
+            };
+        }
     }
 }
