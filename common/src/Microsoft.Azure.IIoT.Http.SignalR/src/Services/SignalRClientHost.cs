@@ -171,12 +171,12 @@ namespace Microsoft.Azure.IIoT.Http.SignalR.Services {
         /// <param name="ex"></param>
         /// <returns></returns>
         private async Task OnClosedAsync(HubConnection connection, Exception ex) {
-            _logger.Error(ex, "Disconnected!");
+            _logger.Error(ex, "SignalR client host Disconnected!");
             await DisposeAsync(connection);
             if (_started) {
                 // Reconnect
                 _connection = await OpenAsync();
-                _logger.Information("Reconnecting...");
+                _logger.Information("SignalR client host reconnecting...");
             }
         }
 
