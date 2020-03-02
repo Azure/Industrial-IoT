@@ -6,7 +6,7 @@
     <NoWarn>NU5125;RS1022;AD0001</NoWarn>
     <Authors>Microsoft</Authors>
     <Company>Microsoft</Company>
-    <Copyright>© Microsoft Corporation.</Copyright>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <PackageIcon>icon.png</PackageIcon>
     <PackageReleaseNotes>$(RepositoryUrl)/releases</PackageReleaseNotes>
     <PackageProjectUrl>$(RepositoryUrl)</PackageProjectUrl>
