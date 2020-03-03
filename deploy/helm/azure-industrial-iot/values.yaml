@@ -568,7 +568,18 @@ deployment:
       replicas: 1
       imageRepository: iot/opc-publisher-service
       extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
       resources: {}
+
+      # .Values.deployment.microServices.publisher.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
       service:
@@ -593,7 +604,18 @@ deployment:
       replicas: 1
       imageRepository: iot/industrial-iot-configuration-service
       extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
       resources: {}
+
+      # .Values.deployment.microServices.configuration.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
       service:
@@ -618,7 +640,18 @@ deployment:
       replicas: 1
       imageRepository: iot/industrial-iot-edge-manager-service
       extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
       resources: {}
+
+      # .Values.deployment.microServices.edgeManager.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
       service:
@@ -643,7 +676,18 @@ deployment:
       replicas: 1
       imageRepository: iot/industrial-iot-events-processor
       extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
       resources: {}
+
+      # .Values.deployment.microServices.eventsProcessor.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
     # For the frontend to work we require data protection feature. That, in turn, requires you to have
@@ -662,7 +706,18 @@ deployment:
       replicas: 1
       imageRepository: iot/industrial-iot-frontend
       extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
       resources: {}
+
+      # .Values.deployment.microServices.frontend.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
       service:
@@ -689,7 +744,18 @@ deployment:
       replicas: 1
       imageRepository: iot/industrial-iot-identity-service
       extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
       resources: {}
+
+      # .Values.deployment.microServices.identity.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
     edgeJobs:
@@ -700,7 +766,18 @@ deployment:
       replicas: 1
       imageRepository: iot/industrial-iot-jobs-orchestrator-service
       extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
       resources: {}
+
+      # .Values.deployment.microServices.edgeJobs.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
       service:
@@ -725,7 +802,18 @@ deployment:
       replicas: 1
       imageRepository: iot/industrial-iot-jobs-service
       extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
       resources: {}
+
+      # .Values.deployment.microServices.publisherJobs.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
       service:
@@ -751,7 +839,18 @@ deployment:
       replicas: 1
       imageRepository: iot/industrial-iot-telemetry-cdm-processor
       extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
       resources: {}
+
+      # .Values.deployment.microServices.telemetryCdmProcessor.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
     telemetryProcessor:
@@ -762,7 +861,18 @@ deployment:
       replicas: 1
       imageRepository: iot/industrial-iot-telemetry-processor
       extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
       resources: {}
+
+      # .Values.deployment.microServices.telemetryProcessor.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
     telemetryUxProcessor:
@@ -773,7 +883,18 @@ deployment:
       replicas: 1
       imageRepository: iot/industrial-iot-telemetry-ux-processor
       extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
       resources: {}
+
+      # .Values.deployment.microServices.telemetryUxProcessor.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
     registryEventsForwarder:
@@ -784,7 +905,18 @@ deployment:
       replicas: 1
       imageRepository: iot/opc-registry-events-forwarder
       extraArgs: []
+
+      # resources:
+      #   requests:
+      #     memory: "64Mi"
+      #     cpu: "50m"
+      #   limits:
+      #     memory: "256Mi"
+      #     cpu: "150m"
       resources: {}
+
+      # .Values.deployment.microServices.registryEventsForwarder.extraEnv defines additional environment variables for the container.
+      # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
   ingress:
