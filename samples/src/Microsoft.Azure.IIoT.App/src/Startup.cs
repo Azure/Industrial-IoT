@@ -59,6 +59,7 @@ namespace Microsoft.Azure.IIoT.App {
         /// <summary>
         /// Created through builder
         /// </summary>
+        /// <param name="env"></param>
         /// <param name="configuration"></param>
         public Startup(IWebHostEnvironment env, IConfiguration configuration) :
             this(env, new Config(new ConfigurationBuilder()
@@ -84,7 +85,6 @@ namespace Microsoft.Azure.IIoT.App {
         /// Configure application
         /// </summary>
         /// <param name="app"></param>
-        /// <param name="env"></param>
         /// <param name="appLifetime"></param>
         public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime) {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
