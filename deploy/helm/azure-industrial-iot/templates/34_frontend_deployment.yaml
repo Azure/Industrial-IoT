@@ -1,7 +1,9 @@
 {{- if .Values.deployment.microServices.frontend.enabled }}
+{{- /* Check prerequisites */}}
 {{- if ( ne .Values.azure.auth.required true ) }}
-{{- fail "frontend requires authentication to be enabled" }}
+{{- fail "frontend requires authentication to be enabled!" }}
 {{- end }}
+{{- /* Content of Deployment */}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
