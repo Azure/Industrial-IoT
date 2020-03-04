@@ -134,12 +134,6 @@ azure:
       # NOTE: If azure.keyVault.key.dataProtection is not specified, then a key named 'dataprotection' will be created.
       dataProtection: null
 
-  # This value is not used at the moment, so it can be skipped.
-  # Details of Azure Log Analytics Workspace that microservices will use.
-  logAnalyticsWorkspace:
-    # azure.logAnalyticsWorkspace.name is the name of Log Analytics workspace instance.
-    name: null
-
   # Provide details of your Application Insights instance to enable microservices to send telemetry and logs there.
   applicationInsights:
     # azure.applicationInsights.instrumentationKey is the instrumentation key of Application Insights instance.
