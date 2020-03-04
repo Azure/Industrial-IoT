@@ -139,11 +139,6 @@ azure:
     # azure.applicationInsights.instrumentationKey is the instrumentation key of Application Insights instance.
     instrumentationKey: null
 
-  # This value is not used at the moment, so it can be skipped.
-  appService:
-    # azure.appService.url is URL on which App Service instance is available externally.
-    url: null
-
   # Details of SignalR service.
   signalR:
     # azure.signalR.connectionString is the connection string for your SignalR instance.
@@ -178,6 +173,11 @@ azure:
       appId: null
 
       secret: null
+
+# externalServiceUrl is URL on which components of Azure Industrial IoT solution will be available externally.
+# This property is required so that Publisher Edge Module can communicate with jobs orchestrator service (edgeJobs) for reporting its status and requesting publisher jobs.
+# NOTE: If this parameter is not set, then Publisher Edge Module will be presented with a Kubernetes internal URL, which will be accessible only from within Kubernetes cluster. 
+externalServiceUrl: null
 
 # Role-based access control.
 # Ref: https://kubernetes.io/docs/admin/authorization/rbac/
@@ -233,7 +233,7 @@ apps:
     # So with this parameters you can enforce value of server host that should be used in OpenAPI definitions and for performing API calls from Swagger UI.
     #
     # NOTE: Please provide the host without URL scheme.
-    # NOTE: The value should most probably be similar to the value of azure.appService.url parameter.
+    # NOTE: The value should most probably be similar to the value of externalServiceUrl parameter.
     serverHost: null
 
 deployment:
