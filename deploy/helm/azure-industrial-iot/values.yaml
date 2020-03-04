@@ -194,9 +194,9 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: null
 
-# apps defines global application configuration for components of Azure Industrial IoT solution
+# apps defines global application configuration for microservices of Azure Industrial IoT solution
 apps:
-  # apps.urlPathBase will determine URL path base that each component with external API should run on.
+  # apps.urlPathBase will determine URL path base that specified microservice with external APIs should run on.
   # So for example, if the value for registry is '/registry', then a sample API path would be '/registry/v2/applications'.
   # NOTE: apps.urlPathBase values here should be alligned with value of deployment.ingress.paths. They are separated because one might want to have a regex in Ingress path.
   urlPathBase:
@@ -921,45 +921,34 @@ deployment:
     #
     # annotations:
     #   kubernetes.io/ingress.class: nginx
-    #   nginx.ingress.kubernetes.io/rewrite-target: /$1
     annotations: {}
 
     # host for the Ingress. We do not support multiple hosts at the moment.
     hostName: null
 
+    # deployment.ingress.paths define value of spec.rules[0].http.paths[*].path of Kubernetes Ingress resource for each microservice with API or UI.
+    # If path value for a specific microservice is not set or the microservice is disabled, then Ingress definition will not contain paths entry for that microservice.
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#the-ingress-resource
+    #
+    # NOTE: Bellow are our recommended values to use with NGINX Ingress Controller.
     # NOTE: deployment.ingress.paths values here should be alligned with value of apps.urlPathBase. They are separated because one might want to have a regex in Ingress paths.
-    #
-    # Our recommended values to use with NGINX Ingress Controller.
-    #
-    # paths:
-    #   registry: /registry
-    #   twin: /twin
-    #   history: /history
-    #   gateway: /ua
-    #   vault: /vault
-    #   onboarding: /onboarding
-    #   publisher: /publisher
-    #   publisherJobs: /jobs
-    #   configuration: /configuration
-    #   edgeJobs: /edge/jobs
-    #   edgeManager: /edge/manage
-    #   frontend: /frontend
     paths:
-      registry: null
-      twin: null
-      history: null
-      gateway: null
-      vault: null
-      onboarding: null
-      publisher: null
-      publisherJobs: null
-      configuration: null
-      edgeJobs: null
-      edgeManager: null
-      frontend: null
+      registry: /registry
+      twin: /twin
+      history: /history
+      gateway: /ua
+      vault: /vault
+      onboarding: /onboarding
+      publisher: /publisher
+      publisherJobs: /jobs
+      configuration: /configuration
+      edgeJobs: /edge/jobs
+      edgeManager: /edge/manage
+      frontend: /frontend
 
     # Ingress TLS configuration. Secrets must be manually created in the namespace.
     # The value should be alligned with hostName property.
+    # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
     #
     # tls:
     # - secretName: industrial-iot-tls
