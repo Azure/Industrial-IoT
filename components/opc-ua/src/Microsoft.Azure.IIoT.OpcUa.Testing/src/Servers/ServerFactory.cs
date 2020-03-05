@@ -16,7 +16,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
     using System.Xml;
     using System.IdentityModel.Selectors;
     using System.Security.Cryptography.X509Certificates;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
 
     /// <summary>
     /// Sample server factory
@@ -143,7 +142,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                         AutoAcceptUntrustedCertificates = false
                     },
                     TransportConfigurations = new TransportConfigurationCollection(),
-                    TransportQuotas = TransportQuotaConfig.DefaultTransportQuotas(),
+                    TransportQuotas = TransportQuotaConfigEx.DefaultTransportQuotas(),
                     ServerConfiguration = new ServerConfiguration {
 
                         // Sample server specific

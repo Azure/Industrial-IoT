@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Transport;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
@@ -1625,15 +1624,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     AutoAcceptUntrustedCertificates = false
                 },
                 TransportConfigurations = new TransportConfigurationCollection(),
-                TransportQuotas = new TransportQuotas {
-                    OperationTimeout = TransportQuotaConfig.DefaultOperationTimeout,
-                    MaxStringLength = TransportQuotaConfig.DefaultMaxStringLength,
-                    MaxByteStringLength = TransportQuotaConfig.DefaultMaxByteStringLength,
-                    MaxArrayLength = TransportQuotaConfig.DefaultMaxArrayLength,
-                    MaxBufferSize = TransportQuotaConfig.DefaultMaxBufferSize,
-                    ChannelLifetime = TransportQuotaConfig.DefaultChannelLifetime,
-                    SecurityTokenLifetime = TransportQuotaConfig.DefaultSecurityTokenLifetime
-                },
+                TransportQuotas = TransportQuotaConfigEx.DefaultTransportQuotas(),
                 ServerConfiguration = new ServerConfiguration {
                     ServerProfileArray = new StringCollection {
                         "Local Discovery Server Profile"
