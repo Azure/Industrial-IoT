@@ -9,8 +9,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
     using System;
     using System.Linq;
-    using System.Diagnostics;
     using System.Threading.Tasks;
+    using Serilog;
 
     public class Registry {
 
@@ -18,8 +18,10 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// Create registry
         /// </summary>
         /// <param name="registryService"></param>
-        public Registry(IRegistryServiceApi registryService) {
-            _registryService = registryService;
+        /// <param name="logger"></param>
+        public Registry(IRegistryServiceApi registryService, ILogger logger) {
+            _registryService = registryService ?? throw new ArgumentNullException(nameof(registryService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -44,9 +46,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 }
             }
             catch (Exception e) {
-                Trace.TraceWarning("Can not get endpoint list");
+                _logger.Warning("Can not get endpoint list");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                Trace.TraceWarning(errorMessage);
+                _logger.Warning(errorMessage);
                 pageResult.Error = e.Message;
             }
 
@@ -90,9 +92,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 }
             }
             catch (Exception e) {
-                Trace.TraceWarning("Can not get discoverers as list");
+                _logger.Warning("Can not get discoverers as list");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                Trace.TraceWarning(errorMessage);
+                _logger.Warning(errorMessage);
                 pageResult.Error = e.Message;
             }
 
@@ -120,9 +122,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 }
             }
             catch (Exception e) {
-                Trace.TraceWarning("Can not get applications list");
+                _logger.Warning("Can not get applications list");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                Trace.TraceWarning(errorMessage);
+                _logger.Warning(errorMessage);
                 pageResult.Error = e.Message;
             }
 
@@ -157,7 +159,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception exception) {
                 var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
-                Trace.TraceError(errorMessageTrace);
+                _logger.Error(errorMessageTrace);
                 return errorMessageTrace;
             }
             return null;
@@ -209,7 +211,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception exception) {
                 var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
-                Trace.TraceError(errorMessageTrace);
+                _logger.Error(errorMessageTrace);
                 return errorMessageTrace;
             }
             return null;
@@ -233,9 +235,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 }
             }
             catch (Exception e) {
-                Trace.TraceWarning("Can not get gateways list");
+                _logger.Warning("Can not get gateways list");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                Trace.TraceWarning(errorMessage);
+                _logger.Warning(errorMessage);
                 pageResult.Error = e.Message;
             }
 
@@ -263,9 +265,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 }
             }
             catch (Exception e) {
-                Trace.TraceWarning("Can not get publisher list");
+                _logger.Warning("Can not get publisher list");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                Trace.TraceWarning(errorMessage);
+                _logger.Warning(errorMessage);
                 pageResult.Error = e.Message;
             }
 
@@ -287,7 +289,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception exception) {
                 var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
-                Trace.TraceError(errorMessageTrace);
+                _logger.Error(errorMessageTrace);
                 return errorMessageTrace;
             }
             return null;
@@ -310,9 +312,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 }
             }
             catch (Exception e) {
-                Trace.TraceWarning("Can not get supervisor list");
+                _logger.Warning("Can not get supervisor list");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                Trace.TraceWarning(errorMessage);
+                _logger.Warning(errorMessage);
                 pageResult.Error = e.Message;
             }
 
@@ -335,7 +337,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception exception) {
                 var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
-                Trace.TraceError(errorMessageTrace);
+                _logger.Error(errorMessageTrace);
             }
    
             return supervisorStatus;
@@ -355,12 +357,13 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception exception) {
                 var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
-                Trace.TraceError(errorMessageTrace);
+                _logger.Error(errorMessageTrace);
                 return exception.Message;
             }
         }
 
         private readonly IRegistryServiceApi _registryService;
+        private readonly ILogger _logger;
         private const int _5MINUTES = 300;
         public string PathAll = "All";
     }
