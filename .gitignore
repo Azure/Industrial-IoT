@@ -31,3 +31,5 @@
 *.crt
 *.key
 *.user
+
+!.nuget/**/*.nupkg
