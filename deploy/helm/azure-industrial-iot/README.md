@@ -3,6 +3,34 @@
 [Azure Industrial IoT](https://github.com/Azure/Industrial-IoT) allows users to discover OPC UA
 enabled servers in a factory network, register them in Azure IoT Hub and start collecting data from them.
 
+## Table Of Contents
+
+* [Introduction](#introduction)
+* [Prerequisites](#prerequisites)
+  * [Required Azure Resources](#required-azure-resources)
+    * [Azure AAD Tenant](#azure-aad-tenant)
+    * [Azure IoT Hub](#azure-iot-hub)
+    * [Azure Cosmos DB Account](#azure-cosmos-db-account)
+    * [Azure Storage Account](#azure-storage-account)
+    * [Azure Event Hub Namespace](#azure-event-hub-namespace)
+    * [Azure Service Bus Namespace](#azure-service-bus-namespace)
+    * [Azure Key Vault](#azure-key-vault)
+  * [Recommended Azure Resources](#recommended-azure-resources)
+    * [Azure AAD App Registration](#azure-aad-app-registration)
+  * [Optional Azure Resources](#optional-azure-resources)
+    * [Azure Application Insights](#azure-application-insights)
+* [Installing the Chart](#installing-the-chart)
+* [Configuration](#configuration)
+  * [Image](#image)
+  * [Azure Resources](#azure-resources)
+  * [RBAC](#rbac)
+  * [Service Account](#service-account)
+  * [Deployed Components](#deployed-components)
+    * [Deployment Resource Configuration](#deployment-resource-configuration)
+    * [Service Resource Configuration](#service-resource-configuration)
+    * [Ingress Resource Configuration](#ingress-resource-configuration)
+  * [Minimal Configuration](#minimal-configuration)
+
 ## Introduction
 
 This chart bootstraps [Azure Industrial IoT](https://github.com/Azure/Industrial-IoT) deployment on a
