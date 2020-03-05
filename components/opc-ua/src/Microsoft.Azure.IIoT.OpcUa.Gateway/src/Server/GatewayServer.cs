@@ -252,7 +252,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -293,7 +293,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -320,7 +320,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -343,7 +343,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -378,7 +378,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -412,7 +412,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -453,7 +453,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     }
                 }
 
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -487,7 +487,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -522,7 +522,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -557,7 +557,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -592,7 +592,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -626,7 +626,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
