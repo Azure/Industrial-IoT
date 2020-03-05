@@ -8,8 +8,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using System;
-    using System.Diagnostics;
     using System.Threading.Tasks;
+    using Serilog;
 
     /// <summary>
     /// Browser code behind
@@ -19,9 +19,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <summary>
         /// Create browser
         /// </summary>
-        /// <param name=""></param>
-        public Publisher(IPublisherServiceApi publisherService) {
-            _publisherService = publisherService;
+        /// <param name="publisherService"></param>
+        /// <param name="logger"></param>
+        public Publisher(IPublisherServiceApi publisherService, ILogger logger) {
+            _publisherService = publisherService ?? throw new ArgumentNullException(nameof(publisherService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -46,9 +48,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception e) {
                 // skip this node
-                Trace.TraceError("Cannot get published nodes for endpointId'{0}'", endpointId);
+                _logger.Error($"Cannot get published nodes for endpointId'{endpointId}'");
                 var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                Trace.TraceError(errorMessage);
+                _logger.Error(errorMessage);
                 pageResult.Error = e.Message;
             }
             pageResult.PageSize = 10;
@@ -82,7 +84,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch(Exception e) {
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                Trace.TraceError(errorMessage);
+                _logger.Error(errorMessage);
             }
             return false;
         }
@@ -103,11 +105,12 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception e) {
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                Trace.TraceError(errorMessage);
+                _logger.Error(errorMessage);
             }
             return false;
         }
 
         private readonly IPublisherServiceApi _publisherService;
+        private readonly ILogger _logger;
     }
 }

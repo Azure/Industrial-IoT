@@ -7,15 +7,26 @@ namespace Microsoft.Azure.IIoT.Services.All.Runtime {
     using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
-    public class Config : DiagnosticsConfig, IHostConfig {
+    public class Config : DiagnosticsConfig, IHostConfig, IForwardedHeadersConfig {
 
         /// <inheritdoc/>
         public int HttpsRedirectPort => _host.HttpsRedirectPort;
+        /// <inheritdoc/>
+        public string ServicePathBase => _host.ServicePathBase;
+
+        /// <inheritdoc/>
+        public bool AspNetCoreForwardedHeadersEnabled =>
+            _fh.AspNetCoreForwardedHeadersEnabled;
+        /// <inheritdoc/>
+        public int AspNetCoreForwardedHeadersForwardLimit =>
+            _fh.AspNetCoreForwardedHeadersForwardLimit;
 
         /// <summary>
         /// Configuration constructor
@@ -25,8 +36,10 @@ namespace Microsoft.Azure.IIoT.Services.All.Runtime {
             base(configuration) {
 
             _host = new HostConfig(configuration);
+            _fh = new ForwardedHeadersConfig(configuration);
         }
 
         private readonly HostConfig _host;
+        private readonly ForwardedHeadersConfig _fh;
     }
 }

@@ -30,7 +30,7 @@ To discover OPC UA server assets in the connected networks (factories, etc.) you
 
    ![Scan on](../media/eng-tool-discovery-on.png)
 
-   When the scan complets you can click on the discovery module (in this case "wingat-bnifrqs_module_discoverer) and see the Endpoints belonging to the discovered servers.
+   When the scan completes you can click on the discoverer module (in this case "wingat-bnifrqs_module_discoverer) and see the Endpoints belonging to the discovered servers.
 
    ![Specific Endpoints](../media/eng-tool-discovery-endpoints.png)
 

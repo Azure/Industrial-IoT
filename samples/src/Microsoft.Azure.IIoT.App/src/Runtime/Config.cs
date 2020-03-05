@@ -4,15 +4,18 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Runtime {
+    using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Api.Runtime;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Configuration aggregation
     /// </summary>
-    public class Config : ApiConfig, IClientConfig {
+    public class Config : ApiConfig, IClientConfig, IHostConfig, IForwardedHeadersConfig {
 
         /// <inheritdoc/>
         public string AppId => _auth.AppId;
@@ -25,15 +28,34 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
         /// <inheritdoc/>
         public string Domain => _auth.Domain;
 
+        /// <inheritdoc/>
+        public int HttpsRedirectPort => _host.HttpsRedirectPort;
+        /// <inheritdoc/>
+        public string ServicePathBase => GetStringOrDefault(
+            PcsVariable.PCS_FRONTEND_APP_SERVICE_PATH_BASE,
+            _host.ServicePathBase);
+
+        /// <inheritdoc/>
+        public bool AspNetCoreForwardedHeadersEnabled =>
+            _fh.AspNetCoreForwardedHeadersEnabled;
+        /// <inheritdoc/>
+        public int AspNetCoreForwardedHeadersForwardLimit =>
+            _fh.AspNetCoreForwardedHeadersForwardLimit;
+
         /// <summary>
         /// Configuration constructor
         /// </summary>
         /// <param name="configuration"></param>
         public Config(IConfiguration configuration) :
             base(configuration) {
+
             _auth = new ApiClientConfig(configuration);
+            _host = new HostConfig(configuration);
+            _fh = new ForwardedHeadersConfig(configuration);
         }
 
         private readonly ApiClientConfig _auth;
+        private readonly HostConfig _host;
+        private readonly ForwardedHeadersConfig _fh;
     }
 }

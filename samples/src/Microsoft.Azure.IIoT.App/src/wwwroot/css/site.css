@@ -215,6 +215,13 @@ ellipsis-space {
     margin-right: 10px;
 }
 
+.td-fixed {
+    width: 700px;
+    overflow: auto;
+    word-wrap: break-word;
+    height: 48px;
+}
+
 @media (max-width: 767.98px) {
     .main .top-row {
         display: none;
@@ -250,5 +257,17 @@ ellipsis-space {
     .sidebar .collapse {
         /* Never collapse the sidebar for wide screens */
         display: block;
+    }
+}
+
+@media screen and (max-width: 1600px) {
+    .td-fixed {
+        width: 500px;
+    }
+}
+
+@media screen and (max-width: 1280px) {
+    .td-fixed {
+        width: 300px;
     }
 }
