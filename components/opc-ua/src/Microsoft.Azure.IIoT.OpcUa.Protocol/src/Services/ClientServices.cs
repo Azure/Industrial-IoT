@@ -440,7 +440,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     MinimumCertificateKeySize = 1024
                 },
                 TransportConfigurations = new TransportConfigurationCollection(),
-                TransportQuotas = TransportQuotaConfig.DefaultTransportQuotas(),
+                TransportQuotas = TransportQuotaConfigEx.DefaultTransportQuotas(),
                 ClientConfiguration = new ClientConfiguration {
                     DefaultSessionTimeout = (int)sessionTimeout.TotalMilliseconds
                 }
