@@ -115,12 +115,17 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux {
             builder.RegisterType<EventHubDeviceEventHandler>()
                 .AsImplementedInterfaces().SingleInstance();
 
+            // Handle the SignalR service 
             builder.RegisterType<SignalRServiceHost>()
                 .AsImplementedInterfaces().SingleInstance();
+
 
             // Handle opc-ua pub/sub subscriber messages
             builder.RegisterType<MonitoredItemSampleModelHandler>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<NetworkMessageModelHandler>()
+                .AsImplementedInterfaces().SingleInstance();
+
             // ... forward samples to clients
             builder.RegisterType<MonitoredItemMessagePublisher>()
                 .AsImplementedInterfaces().SingleInstance();

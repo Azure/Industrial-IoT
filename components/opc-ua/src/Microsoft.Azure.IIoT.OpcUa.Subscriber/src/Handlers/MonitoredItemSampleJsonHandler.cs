@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         /// </summary>
         /// <param name="handlers"></param>
         /// <param name="logger"></param>
-        public MonitoredItemSampleJsonHandler(IEnumerable<IMonitoredItemSampleProcessor> handlers, ILogger logger) {
+        public MonitoredItemSampleJsonHandler(IEnumerable<ISubscriberMessageProcessor> handlers, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _handlers = handlers?.ToList() ?? throw new ArgumentNullException(nameof(handlers));
         }
@@ -89,6 +89,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         }
 
         private readonly ILogger _logger;
-        private readonly List<IMonitoredItemSampleProcessor> _handlers;
+        private readonly List<ISubscriberMessageProcessor> _handlers;
     }
 }

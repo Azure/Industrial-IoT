@@ -7,7 +7,8 @@
     <NoWarn>NU1608;NU5125;NU1701</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.CommonDataModel.ObjectModel.Adapter.Adls" Version="0.9.0-preview21" />
+    <PackageReference Include="Microsoft.CommonDataModel.ObjectModel" Version="1.0.1" />
+    <PackageReference Include="Microsoft.CommonDataModel.ObjectModel.Adapter.Adls" Version="1.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.0" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>

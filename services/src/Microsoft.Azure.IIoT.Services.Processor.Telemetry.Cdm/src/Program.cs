@@ -132,7 +132,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm {
             // Handle opc-ua pub/sub subscriber messages
             builder.RegisterType<MonitoredItemSampleModelHandler>()
                 .AsImplementedInterfaces().SingleInstance();
-            // ... forward samples to clients
+            builder.RegisterType<NetworkMessageModelHandler>()
+                .AsImplementedInterfaces().SingleInstance();
 
             // Handle the CDM handler
             builder.RegisterType<AdlsCsvStorage>()

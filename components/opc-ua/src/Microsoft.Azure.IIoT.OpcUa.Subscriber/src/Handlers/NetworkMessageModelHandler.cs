@@ -18,17 +18,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     /// <summary>
     /// Publisher message handling
     /// </summary>
-    public sealed class MonitoredItemSampleModelHandler : IDeviceTelemetryHandler {
+    public sealed class NetworkMessageModelHandler : IDeviceTelemetryHandler {
 
         /// <inheritdoc/>
-        public string MessageSchema => Core.MessageSchemaTypes.MonitoredItemMessageModelJson;
+        public string MessageSchema => Core.MessageSchemaTypes.NetworkMessageModelJson;
 
         /// <summary>
         /// Create handler
         /// </summary>
         /// <param name="handlers"></param>
         /// <param name="logger"></param>
-        public MonitoredItemSampleModelHandler(IEnumerable<ISubscriberMessageProcessor> handlers, ILogger logger) {
+        public NetworkMessageModelHandler(IEnumerable<ISubscriberMessageProcessor> handlers, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _handlers = handlers?.ToList() ?? throw new ArgumentNullException(nameof(handlers));
         }
@@ -36,10 +36,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         /// <inheritdoc/>
         public async Task HandleAsync(string deviceId, string moduleId,
             byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
+
             var json = Encoding.UTF8.GetString(payload);
             try {
-                var sample = JsonConvertEx.DeserializeObject<MonitoredItemSampleModel>(json);
-                await Task.WhenAll(_handlers.Select(h => h.HandleSampleAsync(sample)));
+                var message = JsonConvertEx.DeserializeObject<DataSetMessageModel>(json);
+                await Task.WhenAll(_handlers.Select(h => h.HandleMessageAsync(message)));
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Handling sample from {deviceId}/{moduleId}",

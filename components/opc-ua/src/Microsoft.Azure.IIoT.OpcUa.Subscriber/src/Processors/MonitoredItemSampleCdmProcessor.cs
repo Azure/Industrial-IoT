@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Processors {
     /// <summary>
     /// Cdm processor for monitored item messages
     /// </summary>
-    public sealed class MonitoredItemSampleCdmProcessor : IMonitoredItemSampleProcessor,
+    public sealed class MonitoredItemSampleCdmProcessor : ISubscriberMessageProcessor,
         IDisposable {
 
         /// <summary>
@@ -31,6 +31,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Processors {
         /// <inheritdoc/>
         public Task HandleSampleAsync(MonitoredItemSampleModel sample) {
             return _client.ProcessAsync(sample);
+        }
+        /// <inheritdoc/>
+        public Task HandleMessageAsync(DataSetMessageModel message) {
+            return _client.ProcessAsync(message);
         }
 
         /// <inheritdoc/>

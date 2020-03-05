@@ -26,8 +26,8 @@ namespace Microsoft.Azure.IIoT.Cdm {
         /// <param name="properties"></param>
         /// <param name="partitionKey"></param>
         /// <returns></returns>
-        Task ProcessAsync<T>(T payload,
-            IDictionary<string, string> properties = null, string partitionKey = null);
+        Task ProcessAsync<T>(T payload, IDictionary<string, string> properties = null,
+            string partitionKey = null);
 
         /// <summary>
         /// Close the CDM Client
