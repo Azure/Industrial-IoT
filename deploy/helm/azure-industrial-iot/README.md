@@ -55,6 +55,7 @@ This can be obtained with the following command:
 
 ```bash
 $ az account show --query "tenantId"
+"XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
 ```
 
 #### Azure IoT Hub
@@ -73,6 +74,7 @@ The following details of the Azure IoT Hub would be required:
 
     ```bash
     $ az iot hub show --name MyIotHub --query "properties.eventHubEndpoints.events.endpoint"
+    "sb://iothub-ns-XXXXXX-XXX-XXXXXXX-XXXXXXXXXX.servicebus.windows.net/"
     ```
 
   * Number of partitions.
@@ -80,20 +82,44 @@ The following details of the Azure IoT Hub would be required:
 
     ```bash
     $ az iot hub show --name MyIotHub --query "properties.eventHubEndpoints.events.partitionCount"
+    4
     ```
 
-  * A consumer group name. Please create a new consumer group for components of Azure Industrial IoT.
-    You can call it `onboarding`, for example. This can be created with the following command:
+  * Two consumer groups. Please create two new consumer groups for components of Azure Industrial IoT.
+    You can call them `events` and `telemetry`, for example. These can be created with the following commands:
 
     ```bash
-    $ az iot hub consumer-group create --hub-name MyIotHub --name onboarding
+    $ az iot hub consumer-group create --hub-name MyIotHub --name events
+    {
+      "etag": null,
+      "id": "/subscriptions/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/resourceGroups/MyResourceGroup/providers/Microsoft.Devices/IotHubs/MyIotHub/eventHubEndpoints/events/ConsumerGroups/events",
+      "name": "events",
+      "properties": {
+        "created": "Thu, 05 Mar 2020 10:32:53 GMT"
+      },
+      "resourceGroup": "MyResourceGroup",
+      "type": "Microsoft.Devices/IotHubs/EventHubEndpoints/ConsumerGroups"
+    }
+
+    $ az iot hub consumer-group create --hub-name MyIotHub --name telemetry
+    {
+      "etag": null,
+      "id": "/subscriptions/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/resourceGroups/MyResourceGroup/providers/Microsoft.Devices/IotHubs/MyIotHub/eventHubEndpoints/events/ConsumerGroups/telemetry",
+      "name": "telemetry",
+      "properties": {
+        "created": "Thu, 05 Mar 2020 10:33:53 GMT"
+      },
+      "resourceGroup": "MyResourceGroup",
+      "type": "Microsoft.Devices/IotHubs/EventHubEndpoints/ConsumerGroups"
+    }
     ```
 
 * Connection string of `iothubowner` policy for the Azure IoT Hub.
   This can be obtained with the following command:
 
   ```bash
-  $ az iot hub show-connection-string --name MyIotHub --policy-name iothubowner
+  $ az iot hub show-connection-string --name MyIotHub --policy-name iothubowner --query "connectionString"
+  "HostName=MyIotHub.azure-devices.net;SharedAccessKeyName=iothubowner;SharedAccessKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
   ```
 
   `iothubowner` policy is required because the components will perform management activities on Azure IoT Hub
@@ -109,11 +135,13 @@ The following details of the Azure Cosmos DB account would be required:
 * Connection string. This can be obtained with the following command:
 
   ```bash
-  $ az cosmosdb keys list --resource-group MyResourceGroup --name MyCosmosDBDatabaseAccount --query "primaryMasterKey"
+  $ az cosmosdb keys list --resource-group MyResourceGroup --name MyCosmosDBDatabaseAccount --type connection-strings --query "connectionStrings[0].connectionString"
+  "AccountEndpoint=https://MyCosmosDBDatabaseAccount.documents.azure.com:443/;AccountKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX;"
   ```
 
-  Either `primaryMasterKey` or `secondaryMasterKey` is required because Azure Industrial IoT components
-  will create containers and databases in the Azure Cosmos DB account.
+  If you remove `--query "primaryMasterKey"` part, you would see four connection strings in output. We require
+  either Primary or Secondary SQL Connection String, **not** Read-Only ones. This is required because Azure
+  Industrial IoT components will create containers and databases in the Azure Cosmos DB account.
 
 #### Azure Storage Account
 
@@ -122,18 +150,38 @@ You would need to have an existing Azure Storage account. Here are the steps to
 
 The following details of the Azure Storage account would be required:
 
-* Name of the Azure Storage account
-* Access Key for Azure Storage account.
+* Connection string for Azure Storage account.
   This can be obtained with the following command:
 
   ```bash
-  $ az storage account keys list --account-name MyStorageAccount --query "[0].value"
+  $ az storage account show-connection-string --name MyStorageAccount --query "connectionString"
+  "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=MyStorageAccount;AccountKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
   ```
+
+##### Data Protection Container (Optional)
+
+> Data protection functionality is present only if `frontend` component is enabled.
+
+[Data protection](https://docs.microsoft.com/aspnet/core/security/data-protection/introduction?view=aspnetcore-3.1)
+is an ASP.Net Core feature that is used by `frontend` component. It takes care of encryption of cookies that
+are used by the `frontend`.
+
+We use Azure Storage as
+[storage provider](https://docs.microsoft.com/aspnet/core/security/data-protection/implementation/key-storage-providers?view=aspnetcore-3.1&tabs=visual-studio#azure-storage)
+for storing data protection keys, and as such we require an Azure Storage Container. You can specify the
+name of Azure Storage Container to be used for storing keys or the value will default to `dataprotection`.
+This Azure Storage Container will be created automatically (if it doesn't already exist) when `frontend`
+component is enabled.
+
+Configuration parameter for data protection Azure Storage Container is
+`azure.storageAccount.container.dataProtection.name`.
 
 #### Azure Event Hub Namespace
 
 You would need to have an existing Azure Event Hub namespace. Here are the steps to
 [create an Event Hubs namespace](https://docs.microsoft.com/azure/event-hubs/event-hubs-create#create-an-event-hubs-namespace).
+Please note that we require Event Hub Namespace with **Standard** pricing tier because we need it to have
+two consumer groups.
 
 The following details of the Azure Event Hub namespace would be required:
 
@@ -142,6 +190,7 @@ The following details of the Azure Event Hub namespace would be required:
 
   ```bash
   $ az eventhubs namespace authorization-rule keys list --resource-group MyResourceGroup --namespace-name mynamespace --name RootManageSharedAccessKey --query "primaryConnectionString"
+  "Endpoint=sb://mynamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
   ```
 
   Both `primaryConnectionString` and `secondaryConnectionString` would work. `RootManageSharedAccessKey` is
@@ -175,7 +224,25 @@ The following details of the Azure Key Vault would be required:
 
   ```bash
   $ az keyvault show --name MyKeyVault --query "properties.vaultUri"
+  "https://MyKeyVault.vault.azure.net/"
   ```
+
+##### Data Protection Key (Optional)
+
+> Data protection functionality is present only if `frontend` component is enabled.
+
+[Data protection](https://docs.microsoft.com/aspnet/core/security/data-protection/introduction?view=aspnetcore-3.1)
+is an ASP.Net Core feature that is used by `frontend` component. It takes care of encryption of cookies that
+are used by the `frontend`.
+
+We use a key in Azure Key Vault to protect keys that are stored in
+[data protection Azure Storage Container](#data-protection-container-(optional)). So you can either create
+your own key in Azure Key Vault and provide that or one will be created for you automatically. More
+precisely, if the key with the provided name already exists in the Key Vault, then it will be used.
+Otherwise a key with the provided name will be created. If a key name is not specified then it defaults
+to `dataprotection`.
+
+Configuration parameter for data protection key in Azure Key Vault is `azure.keyVault.key.dataProtection`.
 
 ### Recommended Azure Resources
 
