@@ -63,15 +63,16 @@ azure:
 
   # This provides details of Azure Storage Account that is configured in IoT Hub as storage endpoint.
   storageAccount:
-    # azure.storageAccount.connectionString is the connection string for storage account.
+    # azure.storageAccount.connectionString is the connection string for Azure Storage Account.
     connectionString: null
 
     container:
+      # Details of Azure Storage Account Container that should be used for data protection feature.
       dataProtection:
         # ToDo: Document creation of the container. And the fact that 'dataprotection' container will be created if not set.
         # azure.storageAccount.container.dataProtection.name is the name of Storage Account Container that holds encrypted keys.
         # NOTE: If azure.storageAccount.container.dataProtection.name is not specifid, then a container named 'dataprotection' will be created.
-        name: null
+        name: dataprotection
 
   # This provides details of Azure Data Lake Storage Gen2 Account.
   # NOTE: Those values will be required if telemetryCdmProcessor microservice is enabled.
@@ -83,10 +84,11 @@ azure:
   #         2. On storage account, Service Principal of servicesApp should be assigned to the following role:
   #               Storage Blob Data Contributor
   adlsg2:
-    # azure.adlsg2.connectionString is the connection string for ADLS Gen2 account.
+    # azure.adlsg2.connectionString is the connection string for ADLS Gen2 Account.
     connectionString: null
 
     container:
+      # Details of Azure Storage Account Container for CDM storage.
       cdm:
         # azure.adlsg2.container.cdm.name is the name of ADLS Gen2 blob container for CDM storage.
         name: null
@@ -132,7 +134,7 @@ azure:
       # ToDo: Document creation of the key.
       # azure.keyVault.key.dataProtection is the key in Key Vault that should be used for encryption of keys in data protection Storage Account Container.
       # NOTE: If azure.keyVault.key.dataProtection is not specified, then a key named 'dataprotection' will be created.
-      dataProtection: null
+      dataProtection: dataprotection
 
   # Provide details of your Application Insights instance to enable microservices to send telemetry and logs there.
   applicationInsights:
@@ -159,19 +161,20 @@ azure:
     # Those are details of AAD App Registration for services.
     # For more details about configuration of AAD App Registration please check README.
     servicesApp:
+      # azure.auth.servicesApp.appId is AppId of AAD App Registration for ServicesApp.
       appId: null
+      # azure.auth.servicesApp.secret is client secret (password) of AAD App Registration for ServicesApp.
       secret: null
-
-      # azure.auth.servicesApp.audience is identifier URI of AAD App Registration for services.
+      # azure.auth.servicesApp.audience is identifier URI of AAD App Registration for ServicesApp.
       audience: null
 
     # Those are details of AAD App Registration for clients. That is required so that one can open web UIs of the
     # microservices (some of them provide swagger for API testing) or connect to them using CLI application.
     # For more details about configuration of AAD App Registration please check README.
     clientsApp:
-      # azure.auth.clientsApp.appId is AppId of AAD App Registration for clients.
+      # azure.auth.clientsApp.appId is AppId of AAD App Registration for ClientsApp.
       appId: null
-
+      # azure.auth.clientsApp.secret is client secret (password) of AAD App Registration for ClientsApp.
       secret: null
 
 # externalServiceUrl is URL on which components of Azure Industrial IoT solution will be available externally.
