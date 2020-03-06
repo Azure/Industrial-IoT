@@ -15,6 +15,7 @@ enabled servers in a factory network, register them in Azure IoT Hub and start c
     * [Azure Event Hub Namespace](#azure-event-hub-namespace)
     * [Azure Service Bus Namespace](#azure-service-bus-namespace)
     * [Azure Key Vault](#azure-key-vault)
+    * [Azure SignalR](#azure-signalr)
   * [Recommended Azure Resources](#recommended-azure-resources)
     * [Azure AAD App Registration](#azure-aad-app-registration)
   * [Optional Azure Resources](#optional-azure-resources)
@@ -208,6 +209,7 @@ The following details of the Azure Event Hub namespace would be required:
 
   ```bash
   $ az servicebus namespace authorization-rule keys list --resource-group MyResourceGroup --namespace-name mynamespace --name RootManageSharedAccessKey --query "primaryConnectionString"
+  "Endpoint=sb://mynamespace.servicebus.windows.net/;SharedAccessKeyName=RootManageSharedAccessKey;SharedAccessKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
   ```
 
   Both `primaryConnectionString` and `secondaryConnectionString` would work. `RootManageSharedAccessKey` is
@@ -243,6 +245,27 @@ Otherwise a key with the provided name will be created. If a key name is not spe
 to `dataprotection`.
 
 Configuration parameter for data protection key in Azure Key Vault is `azure.keyVault.key.dataProtection`.
+
+#### Azure SignalR
+
+You would need to have an existing Azure SignalR instance. Here are the steps to
+[create an Azure SignalR Service instance](https://docs.microsoft.com/azure/azure-signalr/signalr-quickstart-azure-functions-csharp#create-an-azure-signalr-service-instance).
+Please note that we recommend `Serverless` service mode.
+
+You can also create an Azure SignalR service using Azure CLI:
+
+```bash
+$ az signalr create --name MySignalR --resource-group MyResourceGroup --sku Standard_S1 --unit-count 1 --service-mode Serverless
+```
+
+The following details of Azure SignalR service would be required:
+
+* Connection string. This can be obtained with the following command:
+
+  ```bash
+  $ az signalr key list --name MySignalR --resource-group MyResourceGroup --query "primaryConnectionString"
+  "Endpoint=https://mysignalr.service.signalr.net;AccessKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX;Version=1.0;"
+  ```
 
 ### Recommended Azure Resources
 
