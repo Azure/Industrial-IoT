@@ -91,28 +91,8 @@ The following details of the Azure IoT Hub would be required:
 
     ```bash
     $ az iot hub consumer-group create --hub-name MyIotHub --name events
-    {
-      "etag": null,
-      "id": "/subscriptions/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/resourceGroups/MyResourceGroup/providers/Microsoft.Devices/IotHubs/MyIotHub/eventHubEndpoints/events/ConsumerGroups/events",
-      "name": "events",
-      "properties": {
-        "created": "Thu, 05 Mar 2020 10:32:53 GMT"
-      },
-      "resourceGroup": "MyResourceGroup",
-      "type": "Microsoft.Devices/IotHubs/EventHubEndpoints/ConsumerGroups"
-    }
 
     $ az iot hub consumer-group create --hub-name MyIotHub --name telemetry
-    {
-      "etag": null,
-      "id": "/subscriptions/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/resourceGroups/MyResourceGroup/providers/Microsoft.Devices/IotHubs/MyIotHub/eventHubEndpoints/events/ConsumerGroups/telemetry",
-      "name": "telemetry",
-      "properties": {
-        "created": "Thu, 05 Mar 2020 10:33:53 GMT"
-      },
-      "resourceGroup": "MyResourceGroup",
-      "type": "Microsoft.Devices/IotHubs/EventHubEndpoints/ConsumerGroups"
-    }
     ```
 
 * Connection string of `iothubowner` policy for the Azure IoT Hub.
@@ -207,23 +187,6 @@ command and its parameters can be found
 
 ```bash
 $ az eventhubs eventhub create --resource-group MyResourceGroup --namespace-name mynamespace --name myeventhub --message-retention 2 --partition-count 2
-{
-  "captureDescription": null,
-  "createdAt": "2020-03-05T16:16:01.177000+00:00",
-  "id": "/subscriptions/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/resourceGroups/MyResourceGroup/providers/Microsoft.EventHub/namespaces/mynamespace/eventhubs/myeventhub",
-  "location": "North Europe",
-  "messageRetentionInDays": 2,
-  "name": "myeventhub",
-  "partitionCount": 2,
-  "partitionIds": [
-    "0",
-    "1"
-  ],
-  "resourceGroup": "MyResourceGroup",
-  "status": "Active",
-  "type": "Microsoft.EventHub/Namespaces/EventHubs",
-  "updatedAt": "2020-03-05T16:16:01.473000+00:00"
-}
 ```
 
 ##### Azure Event Hub Consumer Groups
@@ -235,28 +198,8 @@ parameters can be found
 
 ```bash
 $ az eventhubs eventhub consumer-group create --resource-group MyResourceGroup --namespace-name mynamespace --eventhub-name myeventhub --name telemetry_cdm
-{
-  "createdAt": "2020-03-05T16:25:56.450826+00:00",
-  "id": "/subscriptions/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/resourceGroups/MyResourceGroup/providers/Microsoft.EventHub/namespaces/mynamespace/eventhubs/myeventhub/consumergroups/telemetry_cdm",
-  "location": "North Europe",
-  "name": "telemetry_cdm",
-  "resourceGroup": "MyResourceGroup",
-  "type": "Microsoft.EventHub/Namespaces/EventHubs/ConsumerGroups",
-  "updatedAt": "2020-03-05T16:25:56.450826+00:00",
-  "userMetadata": null
-}
 
 $ az eventhubs eventhub consumer-group create --resource-group MyResourceGroup --namespace-name mynamespace --eventhub-name myeventhub --name telemetry_ux
-{
-  "createdAt": "2020-03-05T16:27:43.331618+00:00",
-  "id": "/subscriptions/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/resourceGroups/MyResourceGroup/providers/Microsoft.EventHub/namespaces/mynamespace/eventhubs/myeventhub/consumergroups/telemetry_ux",
-  "location": "North Europe",
-  "name": "telemetry_ux",
-  "resourceGroup": "MyResourceGroup",
-  "type": "Microsoft.EventHub/Namespaces/EventHubs/ConsumerGroups",
-  "updatedAt": "2020-03-05T16:27:43.331618+00:00",
-  "userMetadata": null
-}
 ```
 
 #### Azure Service Bus Namespace
