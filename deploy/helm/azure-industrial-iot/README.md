@@ -67,23 +67,15 @@ S1 Standard tier with 1 IoT Hub unit capacity IoT Hub would suffice.
 
 The following details of the Azure IoT Hub would be required:
 
-* Name of the Azure IoT Hub
 * Details of built-it Event Hub-compatible endpoint. Details on how to get this information from Azure portal
   can be found [here](https://docs.microsoft.com/azure/iot-hub/iot-hub-devguide-messages-read-builtin#read-from-the-built-in-endpoint).
+
   * Endpoint in `sb://<iot_hub_unique_identifier>.servicebus.windows.net/` format.
     This can be obtained with the following command:
 
     ```bash
     $ az iot hub show --name MyIotHub --query "properties.eventHubEndpoints.events.endpoint"
     "sb://iothub-ns-XXXXXX-XXX-XXXXXXX-XXXXXXXXXX.servicebus.windows.net/"
-    ```
-
-  * Number of partitions.
-    This can be obtained with the following command:
-
-    ```bash
-    $ az iot hub show --name MyIotHub --query "properties.eventHubEndpoints.events.partitionCount"
-    4
     ```
 
   * Two consumer groups. Please create two new consumer groups for components of Azure Industrial IoT.
@@ -276,6 +268,11 @@ The following details of Azure SignalR service would be required:
 
 #### Azure AAD App Registration
 
+Required for:
+
+* `frontend`
+* `telemetryCdmProcessor`
+
 Details of AAD App Registration are required if you want to enable authentication for components of
 Azure Industrial IoT solution. If authentication is enabled, web APIs of components will require an Access Token for
 each API call. If using Swagger, you would have to click on `Authorize` button to authenticate, before you
@@ -388,12 +385,12 @@ $ az extension add --name application-insights
 
 The following details of the Azure Application Insights would be required:
 
-* Name of your Azure Application Insights instance.
 * Instrumentation key for your Azure Application Insights instance.
   This can be obtained with the following command:
 
   ```bash
   $ az monitor app-insights component show --resource-group MyResourceGroup --app MyAppInsights --query "instrumentationKey"
+  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
   ```
 
 ## Installing the Chart

@@ -27,15 +27,10 @@ azure:
 
   # Details of Azure IoT Hub that microservices will communicate with.
   iotHub:
-    # azure.iotHub.name is the name of IoT Hub that microservices will consume IoT data from.
-    name: null
-
     # Details of built-in EventHub of IoT Hub.
     eventHub:
       # azure.iotHub.eventHub.endpoint is Event Hub-compatible endpoint of built-in EventHub of IoT Hub.
       endpoint: null
-      # azure.iotHub.eventHub.partitionCount is number of partitions of built-in EventHub.
-      partitionCount: null
 
       # ToDo: Document creation and use of the consumer groups.
       # Details of two consumer groups that are required by microservices.
