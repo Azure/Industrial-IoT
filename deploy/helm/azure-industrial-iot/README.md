@@ -257,7 +257,7 @@ You would need to have an existing Azure SignalR instance. Here are the steps to
 [create an Azure SignalR Service instance](https://docs.microsoft.com/azure/azure-signalr/signalr-quickstart-azure-functions-csharp#create-an-azure-signalr-service-instance).
 Please note that we recommend `Serverless` service mode.
 
-You can also create an Azure SignalR service using Azure CLI:
+You can also create an Azure SignalR service using [Azure CLI](https://docs.microsoft.com/cli/azure/signalr?view=azure-cli-latest#az-signalr-create):
 
 ```bash
 $ az signalr create --name MySignalR --resource-group MyResourceGroup --sku Standard_S1 --unit-count 1 --service-mode Serverless
@@ -277,7 +277,7 @@ The following details of Azure SignalR service would be required:
 #### Azure AAD App Registration
 
 Details of AAD App Registration are required if you want to enable authentication for components of
-Azure Industrial IoT solution. In that case, web APIs of components will require an Access Token for
+Azure Industrial IoT solution. If authentication is enabled, web APIs of components will require an Access Token for
 each API call. If using Swagger, you would have to click on `Authorize` button to authenticate, before you
 can try out API calls. The authentication will happen against your Azure Active Directory (AAD). For this
 we require two apps to be registered in your AAD:
@@ -293,22 +293,79 @@ App Registrations are created and details are provided to the chart. And we stro
 for non-production deployments as well, particularly if you have enabled Ingress. If you choose to not have
 them, then you would have to disable authentication by setting `azure.auth.required=false`.
 
-The following details of AAD App Registrations will be required:
+The following details of **ServicesApp** AAD App Registrations will be required:
+
+* Application (client) ID for **ServicesApp**. This is also referred to as AppId.
+  This can be obtained with the following command:
+
+  ```bash
+  $ az ad app show --id 00000000-0000-0000-0000-000000000000 --query "appId"
+  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+  ```
+
+  Here you should use object ID of **ServicesApp** AAD App Registrations instead of
+  `00000000-0000-0000-0000-000000000000`.
+
+* Client secret for **ServicesApp**. Client secret is also referred to as password. Here you can either
+  provide client secret that you got when creating AAD App Registration. Or you can create a new client
+  secret and use that.
+  
+  Here are the steps to create new client secret
+  [using portal](https://docs.microsoft.com/azure/active-directory/develop/howto-create-service-principal-portal#create-a-new-application-secret),
+  or you can create a new client secret (password) using the following command:
+
+  ```bash
+  $ az ad app credential reset --id 00000000-0000-0000-0000-000000000000 --append
+  {
+    "appId": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+    "name": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+    "password": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+    "tenant": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+  }
+  ```
+
+  Here you should use object ID of **ServicesApp** AAD App Registrations instead of
+  `00000000-0000-0000-0000-000000000000`.
 
 * Application ID URI for **ServicesApp**. This can be obtained with the following command:
 
   ```bash
   $ az ad app show --id 00000000-0000-0000-0000-000000000000 --query "identifierUris[0]"
+  "https://XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/aiiotApp-service"
   ```
 
   Here you should use object ID of **ServicesApp** AAD App Registrations instead of
   `00000000-0000-0000-0000-000000000000`.
+
+The following details of **ClientsApp** AAD App Registrations will be required:
 
 * Application (client) ID for **ClientsApp**. This is also referred to as AppId.
   This can be obtained with the following command:
 
   ```bash
   $ az ad app show --id 00000000-0000-0000-0000-000000000000 --query "appId"
+  "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+  ```
+
+  Here you should use object ID of **ClientsApp** AAD App Registrations instead of
+  `00000000-0000-0000-0000-000000000000`.
+
+* Client secret for **ClientsApp**. Client secret is also referred to as password. Here you can either
+  provide client secret that you got when creating AAD App Registration. Or you can create a new client
+  secret and use that.
+  
+  Here are the steps to create new client secret
+  [using portal](https://docs.microsoft.com/azure/active-directory/develop/howto-create-service-principal-portal#create-a-new-application-secret),
+  or you can create a new client secret (password) using the following command:
+
+  ```bash
+  $ az ad app credential reset --id 00000000-0000-0000-0000-000000000000 --append
+  {
+    "appId": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+    "name": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+    "password": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX",
+    "tenant": "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+  }
   ```
 
   Here you should use object ID of **ClientsApp** AAD App Registrations instead of
