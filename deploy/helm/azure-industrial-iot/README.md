@@ -32,6 +32,11 @@ enabled servers in a factory network, register them in Azure IoT Hub and start c
     * [Service Resource Configuration](#service-resource-configuration)
     * [Ingress Resource Configuration](#ingress-resource-configuration)
   * [Minimal Configuration](#minimal-configuration)
+* [Special Notes](#special-notes)
+  * [Data Protection](#data-protection)
+  * [External Service URL](#external-service-url)
+  * [Common Data Model](#common-data-model)
+  * [Swagger](#swagger)
 
 ## Introduction
 
@@ -427,7 +432,7 @@ The following details of the Azure Storage account would be required:
 
 * Details of Azure Storage Account Container that should be used for Common Data Model storage:
 
-  * Container Name. You can either manually create a blob container and pass its name to the chart, or just
+  * Container Name. You can either manually create a blob container and pass its name to the chart, or
     specify desired name of the container. Then it will be automatically created by the
     `telemetryCdmProcessor`. If container name is not set, then it defaults to `powerbi` and will be created
     automatically.
@@ -715,3 +720,21 @@ azure:
   auth:
     required: false
 ```
+
+## Special Notes
+
+### Data Protection
+
+ToDo
+
+### External Service URL
+
+ToDo
+
+### Common Data Model
+
+ToDo
+
+### Swagger
+
+ToDo
