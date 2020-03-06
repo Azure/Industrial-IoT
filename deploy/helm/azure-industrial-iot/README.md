@@ -197,6 +197,68 @@ The following details of the Azure Event Hub namespace would be required:
   Both `primaryConnectionString` and `secondaryConnectionString` would work. `RootManageSharedAccessKey` is
   required because components will perform management activities, such as creating an Event Hub.
 
+##### Azure Event Hub
+
+Please create an Azure Event Hub in your Azure Event Hub Namespace. This can be created with the command
+bellow. Please note that you need to specify your Resource Group, Event Hub Namespace, desired name of Event
+Hub, desired message retention period (in days) and desired number of partitions. More details about the
+command and its parameters can be found
+[here](https://docs.microsoft.com/cli/azure/eventhubs/eventhub?view=azure-cli-latest#az-eventhubs-eventhub-create).
+
+```bash
+$ az eventhubs eventhub create --resource-group MyResourceGroup --namespace-name mynamespace --name myeventhub --message-retention 2 --partition-count 2
+{
+  "captureDescription": null,
+  "createdAt": "2020-03-05T16:16:01.177000+00:00",
+  "id": "/subscriptions/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/resourceGroups/MyResourceGroup/providers/Microsoft.EventHub/namespaces/mynamespace/eventhubs/myeventhub",
+  "location": "North Europe",
+  "messageRetentionInDays": 2,
+  "name": "myeventhub",
+  "partitionCount": 2,
+  "partitionIds": [
+    "0",
+    "1"
+  ],
+  "resourceGroup": "MyResourceGroup",
+  "status": "Active",
+  "type": "Microsoft.EventHub/Namespaces/EventHubs",
+  "updatedAt": "2020-03-05T16:16:01.473000+00:00"
+}
+```
+
+##### Azure Event Hub Consumer Groups
+
+Please create two consumer groups for the Event Hub. For example, you can call them `telemetry_cdm` and
+`telemetry_ux`. These can be created with the commands bellow. More details about the command and its
+parameters can be found
+[here](https://docs.microsoft.com/cli/azure/eventhubs/eventhub/consumer-group?view=azure-cli-latest#az-eventhubs-eventhub-consumer-group-create).
+
+```bash
+$ az eventhubs eventhub consumer-group create --resource-group MyResourceGroup --namespace-name mynamespace --eventhub-name myeventhub --name telemetry_cdm
+{
+  "createdAt": "2020-03-05T16:25:56.450826+00:00",
+  "id": "/subscriptions/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/resourceGroups/MyResourceGroup/providers/Microsoft.EventHub/namespaces/mynamespace/eventhubs/myeventhub/consumergroups/telemetry_cdm",
+  "location": "North Europe",
+  "name": "telemetry_cdm",
+  "resourceGroup": "MyResourceGroup",
+  "type": "Microsoft.EventHub/Namespaces/EventHubs/ConsumerGroups",
+  "updatedAt": "2020-03-05T16:25:56.450826+00:00",
+  "userMetadata": null
+}
+
+$ az eventhubs eventhub consumer-group create --resource-group MyResourceGroup --namespace-name mynamespace --eventhub-name myeventhub --name telemetry_ux
+{
+  "createdAt": "2020-03-05T16:27:43.331618+00:00",
+  "id": "/subscriptions/XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX/resourceGroups/MyResourceGroup/providers/Microsoft.EventHub/namespaces/mynamespace/eventhubs/myeventhub/consumergroups/telemetry_ux",
+  "location": "North Europe",
+  "name": "telemetry_ux",
+  "resourceGroup": "MyResourceGroup",
+  "type": "Microsoft.EventHub/Namespaces/EventHubs/ConsumerGroups",
+  "updatedAt": "2020-03-05T16:27:43.331618+00:00",
+  "userMetadata": null
+}
+```
+
 #### Azure Service Bus Namespace
 
 You would need to have an existing Azure Service Bus namespace. Here are the steps to
