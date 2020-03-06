@@ -36,11 +36,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
         }
         /// <inheritdoc/>
         public async Task HandleMessageAsync(DataSetMessageModel message) {
-            var arguments = new object[] { message };
-            if (!string.IsNullOrEmpty(message.PublisherId)) {
-                // Send to endpoint listeners
-                await _callback.MulticastAsync(message.PublisherId,
-                    EventTargets.PublisherSampleTarget, arguments);
+            foreach (var datapoint in message.Payload) {
+                var arguments = new object[] {
+                     new MonitoredItemMessageApiModel() {
+                        Value = datapoint.Value.TypeId?.IsPrimitive == true ?
+                            datapoint.Value.Value : datapoint.Value.Value?.ToString(),
+                        TypeId = datapoint.Value.TypeId?.FullName,
+                        Status = datapoint.Value.Status,
+                        DataSetId = datapoint.Key,
+                        Timestamp = DateTime.UtcNow,
+                        SubscriptionId = message.DataSetWriterId,
+                        EndpointId = message.PublisherId,
+                        NodeId = datapoint.Key,
+                        SourcePicoseconds = 0,
+                        ServerPicoseconds = 0,
+                        SourceTimestamp = datapoint.Value.Timestamp,
+                        ServerTimestamp = datapoint.Value.Timestamp
+                    }
+                };
+                if (!string.IsNullOrEmpty(message.PublisherId)) {
+                    // Send to endpoint listeners
+                    await _callback.MulticastAsync(message.PublisherId,
+                        EventTargets.PublisherSampleTarget, arguments);
+                }
             }
         }
 

@@ -42,8 +42,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                 await Task.WhenAll(_handlers.Select(h => h.HandleSampleAsync(sample)));
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Handling sample from {deviceId}/{moduleId}",
-                    " with payload {json} failed with exception - skip", deviceId, moduleId, json);
+                _logger.Error(ex,
+                    "Exception handling message from {deviceId}-{moduleId} with payload {json}",
+                    deviceId, moduleId, json);
             }
         }
 

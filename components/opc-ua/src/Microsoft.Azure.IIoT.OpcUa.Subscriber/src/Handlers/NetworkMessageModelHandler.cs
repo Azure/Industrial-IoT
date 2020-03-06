@@ -36,15 +36,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         /// <inheritdoc/>
         public async Task HandleAsync(string deviceId, string moduleId,
             byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
-
             var json = Encoding.UTF8.GetString(payload);
             try {
                 var message = JsonConvertEx.DeserializeObject<DataSetMessageModel>(json);
                 await Task.WhenAll(_handlers.Select(h => h.HandleMessageAsync(message)));
             }
             catch (Exception ex) {
-                _logger.Error(ex, "Handling sample from {deviceId}/{moduleId}",
-                    " with payload {json} failed with exception - skip", deviceId, moduleId, json);
+                _logger.Error(ex,
+                    "Exception handling sample from {deviceId}-{moduleId} with payload {json}",
+                    deviceId, moduleId, json);
             }
         }
 
