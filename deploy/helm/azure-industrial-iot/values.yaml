@@ -36,9 +36,9 @@ azure:
       # Details of two consumer groups that are required by microservices.
       # NOTE: consumer groups should have different values.
       consumerGroup:
-        # azure.iotHub.eventHub.consumerGroup.events is name of consumer group of built-in EventHub for event-processing microservices. Its recommended value is 'events'.
+        # azure.iotHub.eventHub.consumerGroup.events is name of consumer group of built-in EventHub for eventsProcessor microservices. Its recommended value is 'events'.
         events: null
-        # azure.iotHub.eventHub.consumerGroup.events is name of consumer group of built-in EventHub for telemetry-processing microservices. Its recommended value is 'telemetry'.
+        # azure.iotHub.eventHub.consumerGroup.events is name of consumer group of built-in EventHub for telemetryProcessor microservices. Its recommended value is 'telemetry'.
         telemetry: null
 
     sharedAccessPolicies:
@@ -107,9 +107,9 @@ azure:
       # Details of two consumer groups that are required by microservices.
       # NOTE: consumer groups should have different values.
       consumerGroup:
-        # azure.eventHubNamespace.eventHub.consumerGroup.telemetryCdm is name of consumer group for CDM event-processing microservices. Its recommended value is 'telemetry_cdm'.
+        # azure.eventHubNamespace.eventHub.consumerGroup.telemetryCdm is name of consumer group for telemetryCdmProcessor microservices. Its recommended value is 'telemetry_cdm'.
         telemetryCdm: null
-        # azure.eventHubNamespace.eventHub.consumerGroup.telemetryUx is name of consumer group for UX event-processing microservices. Its recommended value is 'telemetry_ux'.
+        # azure.eventHubNamespace.eventHub.consumerGroup.telemetryUx is name of consumer group for telemetryUxProcessor microservices. Its recommended value is 'telemetry_ux'.
         telemetryUx: null
 
   # Details of Azure Service Bus Namespace that microservices will use.
@@ -196,7 +196,7 @@ serviceAccount:
 apps:
   # apps.urlPathBase will determine URL path base that specified microservice with external APIs should run on.
   # So for example, if the value for registry is '/registry', then a sample API path would be '/registry/v2/applications'.
-  # NOTE: apps.urlPathBase values here should be alligned with value of deployment.ingress.paths. They are separated because one might want to have a regex in Ingress path.
+  # NOTE: apps.urlPathBase values here should be aligned with value of deployment.ingress.paths. They are separated because one might want to have a regex in Ingress path.
   urlPathBase:
     registry: /registry
     twin: /twin
@@ -216,7 +216,7 @@ apps:
     # apps.aspNetCore.forwardedHeaders determines global ASP .Net Core configuration for processing of HTTP forwarded headers (X-Forwarded-*).
     # Those are useful when services are running behind a reverse proxy.
     forwardedHeaders:
-      # apps.aspNetCore.forwardedHeaders.enabled determines whethere processing of HTTP forwarded headers (X-Forwarded-*) should be enabled or not.
+      # apps.aspNetCore.forwardedHeaders.enabled determines whether processing of HTTP forwarded headers (X-Forwarded-*) should be enabled or not.
       enabled: true
       # apps.aspNetCore.forwardedHeaders.forwardLimit determines limit on number of entries in HTTP forwarded headers (X-Forwarded-*).
       forwardLimit: 1

@@ -411,7 +411,7 @@ secondary telemetry event hub and publishes these events to the configured Azure
 It also ensures that the necessary [Common Data Model Schema](https://docs.microsoft.com/common-data-model/model-json)
 files are created so that consumers such as Power Apps and Power BI can access the data and metadata.
 
-> Reference: [Common Data Model](https://docs.microsoft.com/common-data-model/)
+**Documentation**: [Common Data Model](https://docs.microsoft.com/common-data-model/)
 
 You would need to have an existing Azure Storage account. Here are the steps to
 [create an Azure Storage account](https://docs.microsoft.com/azure/storage/common/storage-account-create).
@@ -496,34 +496,56 @@ values.
 | Parameter           | Description                              | Default             |
 |---------------------|------------------------------------------|---------------------|
 | `image.registry`    | URL of Docker Image Registry             | `mcr.microsoft.com` |
-| `image.tag`         | Image tag                                | `2.5.2`             |
+| `image.tag`         | Image tag                                | `2.6.99`            |
 | `image.pullPolicy`  | Image pull policy                        | `IfNotPresent`      |
 | `image.pullSecrets` | docker-registry secret names as an array | `[]`                |
 
 ### Azure Resources
 
-| Parameter                                                                                   | Description                                                                   | Default                              |
-|---------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|--------------------------------------|
-| `azure.tenantId`                                                                            | Azure tenant id (GUID)                                                        | `null`                               |
-| `azure.iotHub.name`                                                                         | Name of IoT Hub                                                               | `null`                               |
-| `azure.iotHub.eventHub.endpoint`                                                            | Event Hub-compatible endpoint of built-in EventHub of IoT Hub                 | `null`                               |
-| `azure.iotHub.eventHub.partitionCount`                                                      | Number of partitions of built-in EventHub of IoT Hub                          | `null`                               |
-| `azure.iotHub.eventHub.consumerGroup`                                                       | Consumer group for built-in EventHub of IoT Hub                               | `null`                               |
-| `azure.iotHub.sharedAccessPolicies.iothubowner.connectionString`                            | Connection string of `iothubowner` policy of IoT Hub                          | `null`                               |
-| `azure.cosmosDB.connectionString`                                                           | Cosmos DB connection string with read-write permissions                       | `null`                               |
-| `azure.storageAccount.name`                                                                 | Name of Storage Account                                                       | `null`                               |
-| `azure.storageAccount.accessKey`                                                            | Access key for storage account, **not** connection string                     | `null`                               |
-| `azure.storageAccount.endpointSuffix`                                                       | Blob endpoint suffix of Azure Environment                                     | `core.windows.net`                   |
-| `azure.eventHubNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString`   | Connection string of `RootManageSharedAccessKey` key of Event Hub namespace   | `null`                               |
-| `azure.serviceBusNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString` | Connection string of `RootManageSharedAccessKey` key of Service Bus namespace | `null`                               |
-| `azure.keyVault.uri`                                                                        | Key Vault URI, also referred as DNS Name                                      | `null`                               |
-| `azure.applicationInsights.name`                                                            | Name of Application Insights instance                                         | `null`                               |
-| `azure.applicationInsights.instrumentationKey`                                              | Instrumentation key of Application Insights instance                          | `null`                               |
-| `azure.auth.required`                                                                       | If true, authentication will be required for all exposed web APIs             | `true`                               |
-| `azure.auth.corsWhitelist`                                                                  | Cross-origin resource sharing whitelist for all web APIs                      | `*`                                  |
-| `azure.auth.servicesApp.audience`                                                           | Application ID URI for **ServicesApp**                                        | `null`                               |
-| `azure.auth.clientsApp.appId`                                                               | Application (client) ID for **ClientsApp**, also referred to as `AppId`       | `null`                               |
-| `azure.auth.clientsApp.authority`                                                           | Authority that should authenticate users and provide Access Tokens            | `https://login.microsoftonline.com/` |
+| Parameter                                                                                   | Description                                                                                      | Default                              |
+|---------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------|--------------------------------------|
+| `azure.tenantId`                                                                            | Azure tenant id (GUID)                                                                           | `null`                               |
+| `azure.iotHub.eventHub.endpoint`                                                            | Event Hub-compatible endpoint of built-in EventHub of IoT Hub                                    | `null`                               |
+| `azure.iotHub.eventHub.consumerGroup.events`                                                | Consumer group of built-in EventHub of IoT Hub for `eventsProcessor`                             | `null`                               |
+| `azure.iotHub.eventHub.consumerGroup.telemetry`                                             | Consumer group of built-in EventHub of IoT Hub for `telemetryProcessor`                          | `null`                               |
+| `azure.iotHub.sharedAccessPolicies.iothubowner.connectionString`                            | Connection string of `iothubowner` policy of IoT Hub                                             | `null`                               |
+| `azure.cosmosDB.connectionString`                                                           | Cosmos DB connection string with read-write permissions                                          | `null`                               |
+| `azure.storageAccount.connectionString`                                                     | Storage account connection string                                                                | `null`                               |
+| `azure.storageAccount.container.dataProtection.name`                                        | Name of storage account container for [data protection](#data-protection-container-(optional))   | `dataprotection`                     |
+| `azure.adlsg2.connectionString`                                                             | ADLS Gen2 account connection string                                                              | `null`                               |
+| `azure.adlsg2.container.cdm.name`                                                           | Name of ADLS Gen2 blob container for CDM storage                                                 | `powerbi`                            |
+| `azure.adlsg2.container.cdm.rootFolder`                                                     | CDM root folder within CDM blob container                                                        | `IIoTDataFlow`                       |
+| `azure.eventHubNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString`   | Connection string of `RootManageSharedAccessKey` key of Event Hub namespace                      | `null`                               |
+| `azure.eventHubNamespace.eventHub.name`                                                     | Name of secondary Event Hub within Event Hub Namespace                                           | `null`                               |
+| `azure.eventHubNamespace.eventHub.consumerGroup.telemetryCdm`                               | Name of the consumer group for `telemetryCdmProcessor`                                           | `null`                               |
+| `azure.eventHubNamespace.eventHub.consumerGroup.telemetryUx`                                | Name of the consumer group for `telemetryUxProcessor`                                            | `null`                               |
+| `azure.serviceBusNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString` | Connection string of `RootManageSharedAccessKey` key of Service Bus namespace                    | `null`                               |
+| `azure.keyVault.uri`                                                                        | Key Vault URI, also referred as DNS Name                                                         | `null`                               |
+| `azure.keyVault.key.dataProtection`                                                         | Key in Key Vault that should be used for [data protection](#data-protection-key-(optional))      | `dataprotection`                     |
+| `azure.applicationInsights.instrumentationKey`                                              | Instrumentation key of Application Insights instance                                             | `null`                               |
+| `azure.signalR.connectionString`                                                            | SignalR connection string                                                                        | `null`                               |
+| `azure.auth.required`                                                                       | If true, authentication will be required for all exposed web APIs                                | `true`                               |
+| `azure.auth.corsWhitelist`                                                                  | Cross-origin resource sharing whitelist for all web APIs                                         | `*`                                  |
+| `azure.auth.authority`                                                                      | Authority that should authenticate users and provide Access Tokens                               | `https://login.microsoftonline.com/` |
+| `azure.auth.servicesApp.appId`                                                              | Application (client) ID of AAD App Registration for **ServicesApp**, also referred to as `AppId` | `null`                               |
+| `azure.auth.servicesApp.secret`                                                             | Client secret (password) of AAD App Registration for **ServicesApp**                             | `null`                               |
+| `azure.auth.servicesApp.audience`                                                           | Application ID URI of AAD App Registration for **ServicesApp**                                   | `null`                               |
+| `azure.auth.clientsApp.appId`                                                               | Application (client) ID of AAD App Registration for **ClientsApp**, also referred to as `AppId`  | `null`                               |
+| `azure.auth.clientsApp.secret`                                                              | Client secret (password) of AAD App Registration for **ClientsApp**                              | `null`                               |
+
+### External Service URL
+
+External Service URL is URL on which components of Azure Industrial IoT solution will be available externally.
+This property is required so that Publisher Edge Module can communicate with jobs orchestrator service
+(`edgeJobs`) for reporting its status and requesting publisher jobs. If parameter is not set, then Publisher
+Edge Module will be presented with a Kubernetes internal URL, which will be accessible only from within
+Kubernetes cluster. Format of Kubernetes internal URL is `http://<service_name>.<namespace>:<service_port>`.
+
+**Documentation**: [Publisher Edge Module](https://github.com/Azure/Industrial-IoT/blob/master/docs/modules/publisher.md)
+
+| Parameter            | Description                                                                | Default |
+|----------------------|----------------------------------------------------------------------------|---------|
+| `externalServiceUrl` | URL on which components of Azure Industrial IoT solution will be available | `null`  |
 
 ### RBAC
 
@@ -537,6 +559,38 @@ values.
 |-------------------------|-----------------------------------------------------|---------|
 | `serviceAccount.create` | If true, create and use ServiceAccount resources    | `true`  |
 | `serviceAccount.name`   | Name of the server service account to use or create | `null`  |
+
+### ASP.NET Core Configuration
+
+Those are ASP.NET Core specific configuration parameters. They define the following aspects of application
+runtime for microservices:
+
+* URL path base: this determines URL path base that specified microservice with an external APIs should
+  run on. So for example, if the value for `registry` component is `/registry`, then a sample API path
+  would be `/registry/v2/applications`.
+
+  > **NOTE:**: values of `apps.urlPathBase` should be aligned with value of `deployment.ingress.paths`.
+  They are separated because one might want to have a regex in Ingress path.
+
+* [Processing of forwarded headers](https://docs.microsoft.com/aspnet/core/host-and-deploy/proxy-load-balancer).
+  This feature enables components with APIs to determine origin incoming HTTP requests.
+
+| Parameter                                  | Description                                                                      | Default          |
+|--------------------------------------------|----------------------------------------------------------------------------------|------------------|
+| `apps.urlPathBase.registry`                | URL path base for `registry` component                                           | `/registry`      |
+| `apps.urlPathBase.twin`                    | URL path base for `twin` component                                               | `/twin`          |
+| `apps.urlPathBase.history`                 | URL path base for `history` component                                            | `/history`       |
+| `apps.urlPathBase.gateway`                 | URL path base for `gateway` component                                            | `/ua`            |
+| `apps.urlPathBase.vault`                   | URL path base for `vault` component                                              | `/vault`         |
+| `apps.urlPathBase.onboarding`              | URL path base for `onboarding` component                                         | `/onboarding`    |
+| `apps.urlPathBase.publisher`               | URL path base for `publisher` component                                          | `/publisher`     |
+| `apps.urlPathBase.configuration`           | URL path base for `configuration` component                                      | `/configuration` |
+| `apps.urlPathBase.edgeManager`             | URL path base for `edgeManager` component                                        | `/edge/manage`   |
+| `apps.urlPathBase.frontend`                | URL path base for `frontend` component                                           | `/frontend`      |
+| `apps.urlPathBase.edgeJobs`                | URL path base for `edgeJobs` component                                           | `/edge/jobs`     |
+| `apps.urlPathBase.publisherJobs`           | URL path base for `publisherJobs` component                                      | `/jobs`          |
+| `apps.aspNetCore.forwardedHeaders.enabled` | Determines whether processing of HTTP forwarded headers should be enabled or not | `true`           |
+| `apps.aspNetCore.forwardedHeaders.enabled` | Determines limit on number of entries in HTTP forwarded headers                  | `1`              |
 
 ### Deployed Components
 
