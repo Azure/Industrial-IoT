@@ -86,7 +86,7 @@ azure:
       # Details of Azure Storage Account Container for CDM storage.
       cdm:
         # azure.adlsg2.container.cdm.name is the name of ADLS Gen2 blob container for CDM storage.
-        name: null
+        name: powerbi
         # azure.adlsg2.container.cdm.rootFolder is CDM root folder within CDM blob container.
         rootFolder: IIoTDataFlow
 

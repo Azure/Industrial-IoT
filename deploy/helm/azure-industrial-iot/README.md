@@ -20,6 +20,7 @@ enabled servers in a factory network, register them in Azure IoT Hub and start c
     * [Azure AAD App Registration](#azure-aad-app-registration)
   * [Optional Azure Resources](#optional-azure-resources)
     * [Azure Application Insights](#azure-application-insights)
+    * [Azure Data Lake Storage Gen2](#azure-data-lake-storage-gen2)
 * [Installing the Chart](#installing-the-chart)
 * [Configuration](#configuration)
   * [Image](#image)
@@ -101,7 +102,8 @@ The following details of the Azure IoT Hub would be required:
 #### Azure Cosmos DB Account
 
 You would need to have an existing Azure Cosmos DB account. You can follow these steps to
-[create an Azure Cosmos DB account from the Azure portal](https://docs.microsoft.com/azure/cosmos-db/create-cosmosdb-resources-portal#create-an-azure-cosmos-db-account). For the `API` please select `Core (SQL)`.
+[create an Azure Cosmos DB account from the Azure portal](https://docs.microsoft.com/azure/cosmos-db/create-cosmosdb-resources-portal#create-an-azure-cosmos-db-account).
+For the `API` please select `Core (SQL)`.
 
 The following details of the Azure Cosmos DB account would be required:
 
@@ -392,6 +394,49 @@ The following details of the Azure Application Insights would be required:
   $ az monitor app-insights component show --resource-group MyResourceGroup --app MyAppInsights --query "instrumentationKey"
   "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
   ```
+
+#### Azure Data Lake Storage Gen2
+
+Required for:
+
+* `telemetryCdmProcessor`
+
+Azure Data Lake Storage Gen2 is used by `telemetryCdmProcessor` component, which receives events from the
+secondary telemetry event hub and publishes these events to the configured Azure Data Lake Storage resource.
+It also ensures that the necessary [Common Data Model Schema](https://docs.microsoft.com/common-data-model/model-json)
+files are created so that consumers such as Power Apps and Power BI can access the data and metadata.
+
+> Reference: [Common Data Model](https://docs.microsoft.com/common-data-model/)
+
+You would need to have an existing Azure Storage account. Here are the steps to
+[create an Azure Storage account](https://docs.microsoft.com/azure/storage/common/storage-account-create).
+Please note that for this feature we require:
+
+* `Account kind` to be set to `StorageV2 (general-purpose v2)`, step 7
+* `Hierarchical namespace` to be `Enabled`, step 8
+
+The following details of the Azure Storage account would be required:
+
+* Connection string for Azure Storage account.
+  This can be obtained with the following command:
+
+  ```bash
+  $ az storage account show-connection-string --name MyStorageAccount --query "connectionString"
+  "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=MyStorageAccount;AccountKey=XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+  ```
+
+* Details of Azure Storage Account Container that should be used for Common Data Model storage:
+
+  * Container Name. You can either manually create a blob container and pass its name to the chart, or just
+    specify desired name of the container. Then it will be automatically created by the
+    `telemetryCdmProcessor`. If container name is not set, then it defaults to `powerbi` and will be created
+    automatically.
+
+    Configuration parameter for this is `azure.adlsg2.container.cdm.name`.
+  
+  * Root folder within the container. Defaults to `IIoTDataFlow`.
+
+    Configuration parameter for this is `azure.adlsg2.container.cdm.rootFolder`.
 
 ## Installing the Chart
 
