@@ -7,7 +7,10 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Hosting;
     using Autofac.Extensions.Hosting;
+    using System;
     using System.IO;
+    using Serilog;
+    using Serilog.Events;
 
     public class Program {
 
@@ -16,7 +19,24 @@ namespace Microsoft.Azure.IIoT.App {
         /// </summary>
         /// <param name="args"></param>
         public static void Main(string[] args) {
-            CreateHostBuilder(args).Build().Run();
+            Log.Logger = new LoggerConfiguration()
+                .MinimumLevel.Debug()
+                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .CreateLogger();
+
+            try {
+                Log.Information("Starting web host");
+                CreateHostBuilder(args).Build().Run();
+            }
+            catch (Exception ex) {
+                Log.Fatal(ex, "Host terminated unexpectedly");
+                throw;
+            }
+            finally {
+                Log.CloseAndFlush();
+            }
         }
 
         /// <summary>
@@ -31,7 +51,8 @@ namespace Microsoft.Azure.IIoT.App {
                     .UseContentRoot(Directory.GetCurrentDirectory())
                     .UseStartup<Startup>()
                     .UseKestrel(o => o.AddServerHeader = false)
-                    .UseIISIntegration());
+                    .UseIISIntegration())
+                .UseSerilog();
         }
     }
 }

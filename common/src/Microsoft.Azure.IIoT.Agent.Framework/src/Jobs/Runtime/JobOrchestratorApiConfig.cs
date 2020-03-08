@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs.Runtime {
         /// <param name="path"></param>
         /// <returns></returns>
         protected string GetDefaultUrl(string port, string path) {
-            var cloudEndpoint = GetStringOrDefault(PcsVariable.PCS_SERVICE_URL);
+            var cloudEndpoint = GetStringOrDefault(PcsVariable.PCS_SERVICE_URL)?.Trim()?.TrimEnd('/');
             if (string.IsNullOrEmpty(cloudEndpoint)) {
                 // Test port is open
                 if (!int.TryParse(port, out var nPort)) {
