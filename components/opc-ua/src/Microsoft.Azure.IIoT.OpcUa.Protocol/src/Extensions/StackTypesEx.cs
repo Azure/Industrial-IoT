@@ -684,6 +684,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 mask =
                     DataSetContentMask.DataSetWriterId |
                     DataSetContentMask.MetaDataVersion |
+                    DataSetContentMask.MajorVersion |
+                    DataSetContentMask.MinorVersion |
                     DataSetContentMask.SequenceNumber;
             }
             var result = JsonDataSetMessageContentMask.None;
@@ -764,6 +766,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 mask =
                     DataSetContentMask.DataSetWriterId |
                     DataSetContentMask.MetaDataVersion |
+                    DataSetContentMask.MajorVersion |
+                    DataSetContentMask.MinorVersion |
                     DataSetContentMask.SequenceNumber;
             }
             var result = UadpDataSetMessageContentMask.None;

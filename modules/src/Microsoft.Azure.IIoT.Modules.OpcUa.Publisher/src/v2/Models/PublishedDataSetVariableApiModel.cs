@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Models {
             }
             Id = model.Id;
             PublishedVariableNodeId = model.PublishedVariableNodeId;
-            PublishedVariableDisplayName = model.PublishedVariableNodeId;
+            PublishedVariableDisplayName = model.PublishedVariableDisplayName;
             BrowsePath = model.BrowsePath;
             Attribute = model.Attribute;
             DataChangeFilter = model.DataChangeFilter;

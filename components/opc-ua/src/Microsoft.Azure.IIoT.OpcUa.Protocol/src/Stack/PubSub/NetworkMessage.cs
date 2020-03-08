@@ -140,7 +140,6 @@ namespace Opc.Ua.PubSub {
             if ((MessageContentMask & (uint)UadpNetworkMessageContentMask.DataSetClassId) != 0) {
                 DataSetClassId = decoder.ReadString(nameof(DataSetClassId));
             }
-
             var messagesArray = decoder.ReadEncodeableArray("Messages", typeof(DataSetMessage));
             Messages = new List<DataSetMessage>();
             foreach (var value in messagesArray) {
@@ -182,7 +181,6 @@ namespace Opc.Ua.PubSub {
         /// </summary>
         /// <param name="encoder"></param>
         private void EncodeBinary(IEncoder encoder) {
-
             encoder.WriteUInt32(nameof(MessageContentMask), MessageContentMask);
             if ((MessageContentMask & (uint)UadpNetworkMessageContentMask.NetworkMessageNumber) != 0) {
                 encoder.WriteString(nameof(MessageId), MessageId);
