@@ -545,6 +545,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 result |=
                     UaMonitoredItemMessageContentMask.StatusCode |
                     UaMonitoredItemMessageContentMask.SourceTimestamp |
+                    UaMonitoredItemMessageContentMask.ServerTimestamp |
                     UaMonitoredItemMessageContentMask.NodeId |
                     UaMonitoredItemMessageContentMask.EndpointUrl |
                     UaMonitoredItemMessageContentMask.ApplicationUri |

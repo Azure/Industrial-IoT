@@ -48,6 +48,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
                         SubscriptionId = message.DataSetWriterId,
                         EndpointId = message.PublisherId,
                         NodeId = datapoint.Key,
+                        // TODO check how we can transport the Display name
+                        DisplayName = datapoint.Key,
                         SourcePicoseconds = 0,
                         ServerPicoseconds = 0,
                         SourceTimestamp = datapoint.Value.Timestamp,

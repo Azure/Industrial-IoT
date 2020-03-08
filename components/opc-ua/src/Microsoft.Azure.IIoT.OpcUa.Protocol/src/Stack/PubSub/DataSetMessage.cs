@@ -5,6 +5,11 @@
 
 namespace Opc.Ua.PubSub {
     using System;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
+    using Opc.Ua.Encoders;
+    using System.Collections.Generic;
+    using System.Text;
 
     /// <summary>
     /// Data set message
@@ -35,6 +40,11 @@ namespace Opc.Ua.PubSub {
         /// Timestamp
         /// </summary>
         public DateTime Timestamp { get; set; }
+
+        /// <summary>
+        /// Picoseconds
+        /// </summary>
+        public uint Picoseconds { get; set; }
 
         /// <summary>
         /// Status
@@ -102,11 +112,9 @@ namespace Opc.Ua.PubSub {
             if (ReferenceEquals(this, encodeable)) {
                 return true;
             }
-
             if (!(encodeable is DataSetMessage wrapper)) {
                 return false;
             }
-
             if (!Utils.IsEqual(wrapper.MessageContentMask, MessageContentMask) ||
                 !Utils.IsEqual(wrapper.DataSetWriterId, DataSetWriterId) ||
                 !Utils.IsEqual(wrapper.MetaDataVersion, MetaDataVersion) ||
@@ -116,20 +124,48 @@ namespace Opc.Ua.PubSub {
                 !Utils.IsEqual(wrapper.Payload, Payload)) {
                 return false;
             }
-
             return true;
         }
 
-#pragma warning disable IDE0060 // Remove unused parameter
+
         /// <summary>
         /// Encode as binary
         /// </summary>
         /// <param name="encoder"></param>
         private void EncodeBinary(IEncoder encoder) {
-#pragma warning restore IDE0060 // Remove unused parameter
-
-            // TODO
-            throw new NotImplementedException();
+            encoder.WriteUInt32(nameof(MessageContentMask), MessageContentMask);
+            encoder.WriteString(nameof(DataSetWriterId), DataSetWriterId);
+            if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.SequenceNumber) != 0) {
+                encoder.WriteUInt32(nameof(UadpDataSetMessageContentMask.SequenceNumber), SequenceNumber);
+            }
+            if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.MajorVersion) != 0){ 
+                encoder.WriteUInt32(nameof(UadpDataSetMessageContentMask.MajorVersion), MetaDataVersion.MajorVersion);
+            }
+            if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.MinorVersion) != 0) {
+                encoder.WriteUInt32(nameof(UadpDataSetMessageContentMask.MinorVersion), MetaDataVersion.MinorVersion);
+            }
+            if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.Timestamp) != 0) {
+                encoder.WriteDateTime(nameof(UadpDataSetMessageContentMask.Timestamp), Timestamp);
+            }
+            // TODO probably required 
+            /*
+            if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.PicoSeconds) != 0) {
+                encoder.WriteUInt32(nameof(UadpDataSetMessageContentMask.PicoSeconds), Picoseconds);
+            }
+            */
+            if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.Status) != 0) {
+                encoder.WriteStatusCode(nameof(Status), Status);
+            }
+            if (Payload != null) {
+                var payload = new KeyDataValuePairCollection();
+                foreach (var tuple in Payload) {
+                    payload.Add(new KeyDataValuePair() {
+                        Key = tuple.Key,
+                        Value = tuple.Value
+                    });
+                }
+                encoder.WriteEncodeableArray(nameof(Payload), payload.ToArray(), typeof(KeyDataValuePair));
+            }
         }
 
         /// <summary>
@@ -153,20 +189,55 @@ namespace Opc.Ua.PubSub {
                 encoder.WriteStatusCode(nameof(JsonDataSetMessageContentMask.Status), Status);
             }
             if (Payload != null) {
-                encoder.WriteEncodeable(nameof(Payload), Payload, null);
+                var payload = new KeyDataValuePairCollection();
+                foreach (var tuple in Payload) {
+                    payload.Add(new KeyDataValuePair() {
+                        Key = tuple.Key,
+                        Value = tuple.Value
+                    });
+                }
+                encoder.WriteEncodeableArray(nameof(Payload), payload.ToArray(), typeof(KeyDataValuePair));
             }
         }
 
-#pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Encode as binary
         /// </summary>
         /// <param name="decoder"></param>
         private void DecodeBinary(IDecoder decoder) {
-#pragma warning restore IDE0060 // Remove unused parameter
+            MessageContentMask = decoder.ReadUInt32(nameof(MessageContentMask));
+            DataSetWriterId = decoder.ReadString(nameof(DataSetWriterId));
 
-            // TODO
-            throw new NotImplementedException();
+            if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.SequenceNumber) != 0) {
+                SequenceNumber = decoder.ReadUInt32(nameof(UadpDataSetMessageContentMask.SequenceNumber));
+            }
+            MetaDataVersion = new ConfigurationVersionDataType() {
+                MajorVersion = 0,
+                MinorVersion = 0
+            };
+            if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.MajorVersion) != 0) {
+                MetaDataVersion.MajorVersion = decoder.ReadUInt32(nameof(UadpDataSetMessageContentMask.MajorVersion));
+            }
+            if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.MinorVersion) != 0) {
+                MetaDataVersion.MinorVersion = decoder.ReadUInt32(nameof(UadpDataSetMessageContentMask.MinorVersion));
+            }
+            if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.Timestamp) != 0) {
+                Timestamp = decoder.ReadDateTime(nameof(UadpDataSetMessageContentMask.Timestamp));
+            }
+            // TODO probably required 
+            /*
+            if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.PicoSeconds) != 0) {
+                Picoseconds = encoder.ReadUInt32(nameof(UadpDataSetMessageContentMask.PicoSeconds));
+            }
+            */
+            if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.Status) != 0) {
+                Status = decoder.ReadStatusCode(nameof(Status));
+            }
+            var payload = (KeyDataValuePairCollection)decoder.ReadEncodeableArray(nameof(Payload), typeof(KeyDataValuePair));
+            Payload = new DataSet();
+            foreach (var tuple in payload) {
+                Payload[tuple.Key] = new DataValue(tuple.Value);
+            }
         }
 
         /// <summary>
@@ -178,29 +249,29 @@ namespace Opc.Ua.PubSub {
             if (DataSetWriterId != null) {
                 MessageContentMask |= (uint)JsonDataSetMessageContentMask.DataSetWriterId;
             }
-
             SequenceNumber = decoder.ReadUInt32(nameof(JsonDataSetMessageContentMask.SequenceNumber));
             if (SequenceNumber != 0) {
                 MessageContentMask |= (uint)JsonDataSetMessageContentMask.SequenceNumber;
             }
-
-            MetaDataVersion = decoder.ReadEncodeable(nameof(JsonDataSetMessageContentMask.MetaDataVersion), typeof(ConfigurationVersionDataType)) as ConfigurationVersionDataType;
+            MetaDataVersion = decoder.ReadEncodeable(
+                nameof(JsonDataSetMessageContentMask.MetaDataVersion), typeof(ConfigurationVersionDataType))
+                as ConfigurationVersionDataType;
             if (MetaDataVersion != null) {
-                MessageContentMask|= (uint)JsonDataSetMessageContentMask.MetaDataVersion;
+                MessageContentMask |= (uint)JsonDataSetMessageContentMask.MetaDataVersion;
             }
-
             Timestamp = decoder.ReadDateTime(nameof(JsonDataSetMessageContentMask.Timestamp));
             if (Timestamp != null) {
                 MessageContentMask |= (uint)JsonDataSetMessageContentMask.Timestamp;
             }
-
             Status = decoder.ReadStatusCode(nameof(JsonDataSetMessageContentMask.Status));
             if (Status != null) {
                 MessageContentMask |= (uint)JsonDataSetMessageContentMask.Status;
             }
-
+            var payload = (KeyDataValuePairCollection)decoder.ReadEncodeableArray(nameof(Payload), typeof(KeyDataValuePair));
             Payload = new DataSet();
-            Payload.Decode(decoder);
+            foreach (var tuple in payload) {
+                Payload[tuple.Key] = new DataValue(tuple.Value);
+            }
         }
     }
 }

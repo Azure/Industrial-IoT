@@ -10,8 +10,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Opc.Ua;
-    using Opc.Ua.Extensions;
     using Opc.Ua.Encoders;
+    using Opc.Ua.Extensions;
     using Opc.Ua.PubSub;
     using System;
     using System.Collections.Generic;
@@ -98,7 +98,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             // TODO: Group by writer
             foreach (var message in messages) {
                 var networkMessage = new NetworkMessage() {
-                    MessageContentMask = (uint)message.WriterGroup?.MessageSettings?.NetworkMessageContentMask.ToJsonStackType(),
+                    MessageContentMask = message.WriterGroup.MessageSettings.NetworkMessageContentMask
+                        .ToStackType(message.WriterGroup?.MessageType),
                     PublisherId = message.PublisherId,
                     MessageId = message.SequenceNumber.ToString()
                 };
@@ -126,9 +127,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         SequenceNumber = message.SequenceNumber,
                         Status = payload.Values.Any(s => StatusCode.IsNotGood(s.StatusCode)) ?
                             StatusCodes.Bad : StatusCodes.Good,
-                        Payload = new DataSet(payload) { 
-                            FieldContentMask = (uint)message.Writer?.DataSetFieldContentMask.ToStackType()
-                        }
+                        Payload = new DataSet(payload, (uint)message.Writer?.DataSetFieldContentMask.ToStackType())
                     };
                     networkMessage.Messages.Add(dataSetMessage);
                 }

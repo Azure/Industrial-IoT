@@ -68,6 +68,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                     SubscriptionId = message.SubscriptionId,
                     EndpointId = message?.ExtensionFields["EndpointId"],
                     NodeId = message.NodeId.AsString(null),
+                    DisplayName = message.DisplayName,
                     SourcePicoseconds = message.Value.SourcePicoseconds,
                     ServerPicoseconds = message.Value.ServerPicoseconds,
                     SourceTimestamp = message.Value.SourceTimestamp,

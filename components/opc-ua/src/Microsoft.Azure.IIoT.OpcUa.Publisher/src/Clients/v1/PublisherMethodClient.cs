@@ -156,6 +156,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v1 {
                 Items = response.OpcNodes?
                     .Select(s => new PublishedItemModel {
                         NodeId = s.Id,
+                        DisplayName = s.DisplayName,
                         PublishingInterval = s.OpcPublishingInterval == null ? (TimeSpan?)null :
                             TimeSpan.FromMilliseconds(s.OpcPublishingInterval.Value),
                         SamplingInterval = s.OpcSamplingInterval == null ? (TimeSpan?)null :

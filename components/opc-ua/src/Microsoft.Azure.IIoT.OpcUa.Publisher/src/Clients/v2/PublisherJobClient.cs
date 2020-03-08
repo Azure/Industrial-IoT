@@ -133,6 +133,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
                     .SelectMany(source => source.PublishedVariables.PublishedData
                         .Select(variable => new PublishedItemModel {
                             NodeId = variable.PublishedVariableNodeId,
+                            DisplayName = variable.PublishedVariableDisplayName,
                             SamplingInterval = variable.SamplingInterval,
                             PublishingInterval = source.SubscriptionSettings.PublishingInterval
                         }))
@@ -255,7 +256,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
             // Add to published variable list items
             variables.Add(new PublishedDataSetVariableModel {
                 SamplingInterval = publishedItem.SamplingInterval,
-                PublishedVariableNodeId = publishedItem.NodeId
+                PublishedVariableNodeId = publishedItem.NodeId,
+                PublishedVariableDisplayName = publishedItem.DisplayName
             });
         }
 

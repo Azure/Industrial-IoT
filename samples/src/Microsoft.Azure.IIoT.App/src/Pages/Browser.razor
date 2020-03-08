@@ -272,12 +272,13 @@
     {
         if ((bool)ev.Value)
         {
-            var result = await Publisher.StartPublishing(endpointId, node.Id, 1000, 1000);
+            var result = await Publisher.StartPublishing(endpointId, node.Id, node.NodeName, 1000, 1000);
             if (result)
             {
                 node.PublishedItem = new OpcUa.Api.Publisher.Models.PublishedItemApiModel()
                 {
                     NodeId = node.Id,
+                    DisplayName = node.NodeName,
                     PublishingInterval = TimeSpan.FromMilliseconds(1000),
                     SamplingInterval = TimeSpan.FromMilliseconds(1000)
                 };

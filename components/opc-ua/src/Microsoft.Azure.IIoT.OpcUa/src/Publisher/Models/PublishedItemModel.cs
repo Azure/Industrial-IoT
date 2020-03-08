@@ -17,6 +17,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public string NodeId { get; set; }
 
         /// <summary>
+        /// Display name of the variable node monitored
+        /// </summary>
+        public string DisplayName { get; set; }
+
+        /// <summary>
         /// Publishing interval to use
         /// </summary>
         public TimeSpan? PublishingInterval { get; set; }
