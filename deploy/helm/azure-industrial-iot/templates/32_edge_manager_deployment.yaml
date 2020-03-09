@@ -67,7 +67,7 @@ spec:
 {{ toYaml .Values.deployment.microServices.edgeManager.resources | indent 10 }}
 {{- end }}
         ports:
-        - containerPort: 9050
+        - containerPort: 9047
         env:
 {{- /* env  section will be populated by environment variables specified in env.txt file */}}
 {{- $envSecretName := include "azure-industrial-iot.env.fullname" . }}

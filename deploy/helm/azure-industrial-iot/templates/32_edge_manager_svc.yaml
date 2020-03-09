@@ -42,7 +42,7 @@ spec:
 {{- end }}
   ports:
   - port: {{ .Values.deployment.microServices.edgeManager.service.port }}
-    targetPort: 9050
+    targetPort: 9047
     protocol: TCP
     name: http
 {{- if .Values.deployment.microServices.edgeManager.service.nodePort }}
