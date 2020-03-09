@@ -28,28 +28,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
 
         /// <inheritdoc/>
         public int OperationTimeout =>
-            GetIntOrDefault(OperationTimeoutKey, 120000);
+            GetIntOrDefault(OperationTimeoutKey, TransportQuotaConfigEx.DefaultOperationTimeout);
         /// <inheritdoc/>
         public int MaxStringLength =>
-            GetIntOrDefault(MaxStringLengthKey, (128 * 1024) - 256);
+            GetIntOrDefault(MaxStringLengthKey, TransportQuotaConfigEx.DefaultMaxStringLength);
         /// <inheritdoc/>
         public int MaxByteStringLength =>
-            GetIntOrDefault(MaxByteStringLengthKey, ushort.MaxValue);
+            GetIntOrDefault(MaxByteStringLengthKey, TransportQuotaConfigEx.DefaultMaxByteStringLength);
         /// <inheritdoc/>
         public int MaxArrayLength =>
-            GetIntOrDefault(MaxArrayLengthKey, ushort.MaxValue);
+            GetIntOrDefault(MaxArrayLengthKey, TransportQuotaConfigEx.DefaultMaxArrayLength);
         /// <inheritdoc/>
         public int MaxMessageSize =>
-            GetIntOrDefault(MaxMessageSizeKey, 4 * 1024 * 1024);
+            GetIntOrDefault(MaxMessageSizeKey, TransportQuotaConfigEx.DefaultMaxMessageSize);
         /// <inheritdoc/>
         public int MaxBufferSize =>
-            GetIntOrDefault(MaxBufferSizeKey, ushort.MaxValue);
+            GetIntOrDefault(MaxBufferSizeKey, TransportQuotaConfigEx.DefaultMaxBufferSize);
         /// <inheritdoc/>
         public int ChannelLifetime =>
-            GetIntOrDefault(ChannelLifetimeKey, 600000);
+            GetIntOrDefault(ChannelLifetimeKey, TransportQuotaConfigEx.DefaultChannelLifetime);
         /// <inheritdoc/>
         public int SecurityTokenLifetime =>
-            GetIntOrDefault(SecurityTokenLifetimeKey, 3600000);
+            GetIntOrDefault(SecurityTokenLifetimeKey, TransportQuotaConfigEx.DefaultSecurityTokenLifetime);
 
         /// <summary>
         /// Create
@@ -58,6 +58,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         public TransportQuotaConfig(IConfiguration configuration = null) :
             base(configuration) {
         }
-
     }
 }
