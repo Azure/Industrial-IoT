@@ -113,7 +113,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             return (session, handle);
         }
 
-        /// <inhjeritdoc/>
+        /// <inheritdoc/>
         public void Dispose() {
             CloseAsync().Wait();
             _cts.Dispose();
@@ -637,7 +637,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 await complexTypeSystem.Load();
             }
             catch (Exception ex){
-                _logger.Error(ex, "Failed to load complext type system");
+                _logger.Error(ex, "Failed to load complex type system");
             }
             return session;
         }

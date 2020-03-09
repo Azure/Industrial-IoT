@@ -167,7 +167,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     // TODO: Convert to better exception
                     _logger.Error(sre, "Failed apply monitored items.");
                     await _outer._sessionManager.RemoveSessionAsync(Connection, false);
-                    throw sre;
+                    throw ;
                 }
                 finally {
                     _lock.Release();
@@ -403,11 +403,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         PublishingInterval = (int)
                             (_subscription.Configuration.PublishingInterval ?? TimeSpan.Zero).TotalMilliseconds,
                         DisplayName = Id,
-                        KeepAliveCount = _subscription.Configuration.KeepAliveCount ?? 10,
                         MaxNotificationsPerPublish = _subscription.Configuration.MaxNotificationsPerPublish ?? 0,
                         PublishingEnabled = true,
-                        Priority = _subscription.Configuration.Priority ?? 0,
-                        LifetimeCount = _subscription.Configuration.LifetimeCount ?? 2400,
+                        KeepAliveCount = _subscription.Configuration.KeepAliveCount ?? session.DefaultSubscription.KeepAliveCount,
+                        LifetimeCount = _subscription.Configuration.LifetimeCount ?? session.DefaultSubscription.LifetimeCount,
+                        Priority = _subscription.Configuration.Priority ?? session.DefaultSubscription.Priority,
                         TimestampsToReturn = TimestampsToReturn.Both,
                         FastDataChangeCallback = OnSubscriptionDataChanged
 

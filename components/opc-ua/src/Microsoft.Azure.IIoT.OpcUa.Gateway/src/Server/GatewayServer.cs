@@ -252,7 +252,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -293,7 +293,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -320,7 +320,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -343,7 +343,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -378,7 +378,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -412,7 +412,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -453,7 +453,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     }
                 }
 
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -487,7 +487,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -522,7 +522,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -557,7 +557,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -592,7 +592,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -626,7 +626,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                         ServerDiagnostics.SecurityRejectedRequestsCount++;
                     }
                 }
-                throw e;
+                throw;
             }
             finally {
                 OnRequestComplete(context);
@@ -1624,15 +1624,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     AutoAcceptUntrustedCertificates = false
                 },
                 TransportConfigurations = new TransportConfigurationCollection(),
-                TransportQuotas = new TransportQuotas {
-                    OperationTimeout = 120000,
-                    MaxStringLength = ushort.MaxValue,
-                    MaxByteStringLength = ushort.MaxValue * 16,
-                    MaxArrayLength = ushort.MaxValue,
-                    MaxBufferSize = ushort.MaxValue,
-                    ChannelLifetime = 300000,
-                    SecurityTokenLifetime = 3600000
-                },
+                TransportQuotas = TransportQuotaConfigEx.DefaultTransportQuotas(),
                 ServerConfiguration = new ServerConfiguration {
                     ServerProfileArray = new StringCollection {
                         "Local Discovery Server Profile"
@@ -1648,8 +1640,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     SecurityPolicies = new ServerSecurityPolicyCollection {
                         new ServerSecurityPolicy {
                             SecurityMode = MessageSecurityMode.SignAndEncrypt,
-                            SecurityPolicyUri =
-                "http://opcfoundation.org/UA/SecurityPolicy#Basic256Sha256"
+                            SecurityPolicyUri = SecurityPolicies.Basic256Sha256,
                         },
                         new ServerSecurityPolicy {
                             SecurityMode = MessageSecurityMode.None,
@@ -1659,11 +1650,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Gateway.Server {
                     UserTokenPolicies = new UserTokenPolicyCollection {
                         new UserTokenPolicy {
                             TokenType = UserTokenType.Anonymous,
-                            SecurityPolicyUri =
-                "http://opcfoundation.org/UA/SecurityPolicy#None"
+                            SecurityPolicyUri = SecurityPolicies.None
                         },
                         new UserTokenPolicy {
-                            TokenType = UserTokenType.UserName
+                            TokenType = UserTokenType.UserName,
+                            SecurityPolicyUri = SecurityPolicies.Basic256Sha256
                         },
                         new UserTokenPolicy {
                             TokenType = UserTokenType.IssuedToken
