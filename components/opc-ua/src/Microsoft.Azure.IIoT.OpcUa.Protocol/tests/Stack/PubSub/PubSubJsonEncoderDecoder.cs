@@ -29,14 +29,12 @@ namespace Opc.Ua.PubSub.Tests {
                 Status = StatusCodes.Good,
                 Timestamp = DateTime.UtcNow,
                 MessageContentMask = (uint)(
-                JsonDataSetMessageContentMask.DataSetWriterId |
-                JsonDataSetMessageContentMask.SequenceNumber |
-                JsonDataSetMessageContentMask.MetaDataVersion |
-                JsonDataSetMessageContentMask.Timestamp |
-                JsonDataSetMessageContentMask.Status),
-                Payload = new DataSet(payload) {
-                    FieldContentMask = (uint)(DataSetFieldContentMask.StatusCode | DataSetFieldContentMask.SourceTimestamp)
-                }
+                    JsonDataSetMessageContentMask.DataSetWriterId |
+                    JsonDataSetMessageContentMask.SequenceNumber |
+                    JsonDataSetMessageContentMask.MetaDataVersion |
+                    JsonDataSetMessageContentMask.Timestamp |
+                    JsonDataSetMessageContentMask.Status),
+                Payload = new DataSet(payload, (uint)(DataSetFieldContentMask.StatusCode | DataSetFieldContentMask.SourceTimestamp))
             };
 
             var networkMessage = new NetworkMessage {

@@ -38,7 +38,7 @@ namespace Opc.Ua.PubSub {
         public string MessageType { get; set; } = "ua-data";
 
         /// <summary>
-        /// Dataset Messages
+        /// DataSet Messages
         /// </summary>
         public List<DataSetMessage> Messages { get; set; } = new List<DataSetMessage>();
 
@@ -101,11 +101,9 @@ namespace Opc.Ua.PubSub {
             if (ReferenceEquals(this, encodeable)) {
                 return true;
             }
-
             if (!(encodeable is NetworkMessage wrapper)) {
                 return false;
             }
-
             if (!Utils.IsEqual(wrapper.MessageContentMask, MessageContentMask) ||
                 !Utils.IsEqual(wrapper.MessageId, MessageId) ||
                 !Utils.IsEqual(wrapper.DataSetClassId, DataSetClassId) ||
@@ -117,49 +115,58 @@ namespace Opc.Ua.PubSub {
                 !Utils.IsEqual(wrapper.Messages, Messages)) {
                 return false;
             }
-
             if (Messages.Count != wrapper.Messages.Count) {
                 return false;
             }
-
             return true;
         }
 
-#pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Decode from binary
         /// </summary>
         /// <param name="decoder"></param>
         private void DecodeBinary(IDecoder decoder) {
-#pragma warning restore IDE0060 // Remove unused parameter
-            // TODO
-            throw new NotImplementedException();
+            MessageContentMask = decoder.ReadUInt32(nameof(MessageContentMask));
+            if ((MessageContentMask & (uint)UadpNetworkMessageContentMask.NetworkMessageNumber) != 0) {
+                MessageId = decoder.ReadString(nameof(MessageId));
+            }
+            MessageType = decoder.ReadString(nameof(MessageType));
+            if (MessageType != "ua-data") {
+                // todo throw incorrect message format
+            }
+            if ((MessageContentMask & (uint)UadpNetworkMessageContentMask.PublisherId) != 0) {
+                PublisherId = decoder.ReadString(nameof(PublisherId));
+            }
+            if ((MessageContentMask & (uint)UadpNetworkMessageContentMask.DataSetClassId) != 0) {
+                DataSetClassId = decoder.ReadString(nameof(DataSetClassId));
+            }
+            var messagesArray = decoder.ReadEncodeableArray("Messages", typeof(DataSetMessage));
+            Messages = new List<DataSetMessage>();
+            foreach (var value in messagesArray) {
+                Messages.Add(value as DataSetMessage);
+            }
         }
 
         /// <inheritdoc/>
         private void DecodeJson(IDecoder decoder) {
-            MessageId = decoder.ReadString("MessageId");
             MessageContentMask = 0;
+            MessageId = decoder.ReadString(nameof(MessageId));
             if (MessageId != null) {
                 MessageContentMask |= (uint)JsonNetworkMessageContentMask.NetworkMessageHeader;
             }
-            
-            MessageType = decoder.ReadString("MessageType");
+            MessageType = decoder.ReadString(nameof(MessageType));
             if (MessageType != "ua-data"){
                 // todo throw incorrect message format
             }
-
-            PublisherId = decoder.ReadString("PublisherId");
+            PublisherId = decoder.ReadString(nameof(PublisherId));
             if (PublisherId != null) {
                 MessageContentMask |= (uint)JsonNetworkMessageContentMask.PublisherId;
             }
-
-            DataSetClassId = decoder.ReadString("DataSetClassId");
+            DataSetClassId = decoder.ReadString(nameof(DataSetClassId));
             if(DataSetClassId != null){
                 MessageContentMask |= (uint)JsonNetworkMessageContentMask.DataSetClassId;
             }
-
-            Array messagesArray = decoder.ReadEncodeableArray("Messages", typeof(DataSetMessage));
+            var messagesArray = decoder.ReadEncodeableArray("Messages", typeof(DataSetMessage));
             Messages = new List<DataSetMessage>();
             foreach (var value in messagesArray) {
                 Messages.Add(value as DataSetMessage);
@@ -169,15 +176,25 @@ namespace Opc.Ua.PubSub {
             }
         }
 
-#pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Encode as binary
         /// </summary>
         /// <param name="encoder"></param>
         private void EncodeBinary(IEncoder encoder) {
-#pragma warning restore IDE0060 // Remove unused parameter
-            // TODO
-            throw new NotImplementedException();
+            encoder.WriteUInt32(nameof(MessageContentMask), MessageContentMask);
+            if ((MessageContentMask & (uint)UadpNetworkMessageContentMask.NetworkMessageNumber) != 0) {
+                encoder.WriteString(nameof(MessageId), MessageId);
+            }
+            encoder.WriteString(nameof(MessageType), MessageType);
+            if ((MessageContentMask & (uint)UadpNetworkMessageContentMask.PublisherId) != 0) {
+                encoder.WriteString(nameof(PublisherId), PublisherId);
+            }
+            if ((MessageContentMask & (uint)UadpNetworkMessageContentMask.DataSetClassId) != 0) {
+                encoder.WriteString(nameof(DataSetClassId), DataSetClassId);
+            }
+            if (Messages != null && Messages.Count > 0) {
+                encoder.WriteEncodeableArray(nameof(Messages), Messages.ToArray(), typeof(DataSetMessage[]));
+            }
         }
 
         /// <summary>
@@ -187,7 +204,7 @@ namespace Opc.Ua.PubSub {
         private void EncodeJson(IEncoder encoder) {
             if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.NetworkMessageHeader) != 0) {
                 encoder.WriteString(nameof(MessageId), MessageId);
-                encoder.WriteString("MessageType", "ua-data");
+                encoder.WriteString(nameof(MessageType), MessageType);
                 if ((MessageContentMask & (uint)JsonNetworkMessageContentMask.PublisherId) != 0) {
                     encoder.WriteString(nameof(PublisherId), PublisherId);
                 }

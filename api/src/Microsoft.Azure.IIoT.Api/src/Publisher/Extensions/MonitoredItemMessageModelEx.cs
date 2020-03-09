@@ -26,6 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 EndpointId = model.EndpointId,
                 DataSetId = model.DataSetId,
                 NodeId = model.NodeId,
+                DisplayName = model.DisplayName,
                 ServerPicoseconds = model.ServerPicoseconds,
                 ServerTimestamp = model.ServerTimestamp,
                 SourcePicoseconds = model.SourcePicoseconds,

@@ -56,6 +56,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Models {
             }
             return new PublishedItemApiModel {
                 NodeId = model.NodeId,
+                DisplayName = model.DisplayName,
                 SamplingInterval = model.SamplingInterval,
                 PublishingInterval = model.PublishingInterval
             };
@@ -71,6 +72,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Models {
             }
             return new PublishedItemModel {
                 NodeId = model.NodeId,
+                DisplayName = model.DisplayName,
                 SamplingInterval = model.SamplingInterval,
                 PublishingInterval = model.PublishingInterval
             };

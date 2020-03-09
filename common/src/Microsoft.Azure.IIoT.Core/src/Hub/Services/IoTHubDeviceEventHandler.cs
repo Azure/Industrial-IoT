@@ -42,6 +42,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
                 properties.TryGetValue(SystemProperties.MessageSchema, out schemaType)) {
 
                 properties.TryGetValue(CommonProperties.ModuleId, out var moduleId);
+                // TODO: check if ToLowerInvariant() is really necesary
                 if (_handlers.TryGetValue(schemaType.ToLowerInvariant(), out var handler)) {
                     await handler.HandleAsync(deviceId, moduleId?.ToString(), eventData,
                         properties, checkpoint);

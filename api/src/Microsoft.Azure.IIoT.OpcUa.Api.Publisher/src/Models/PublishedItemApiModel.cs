@@ -21,6 +21,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public string NodeId { get; set; }
 
         /// <summary>
+        /// Display name of the node to monitor
+        /// </summary>
+        [JsonProperty(PropertyName = "displayName")]
+        public string DisplayName { get; set; }
+
+        /// <summary>
         /// Publishing interval to use
         /// </summary>
         [JsonProperty(PropertyName = "publishingInterval",

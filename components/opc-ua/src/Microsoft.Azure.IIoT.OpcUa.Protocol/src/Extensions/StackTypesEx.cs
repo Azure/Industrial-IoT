@@ -545,6 +545,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 result |=
                     UaMonitoredItemMessageContentMask.StatusCode |
                     UaMonitoredItemMessageContentMask.SourceTimestamp |
+                    UaMonitoredItemMessageContentMask.ServerTimestamp |
                     UaMonitoredItemMessageContentMask.NodeId |
                     UaMonitoredItemMessageContentMask.EndpointUrl |
                     UaMonitoredItemMessageContentMask.ApplicationUri |
@@ -683,6 +684,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 mask =
                     DataSetContentMask.DataSetWriterId |
                     DataSetContentMask.MetaDataVersion |
+                    DataSetContentMask.MajorVersion |
+                    DataSetContentMask.MinorVersion |
                     DataSetContentMask.SequenceNumber;
             }
             var result = JsonDataSetMessageContentMask.None;
@@ -763,6 +766,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 mask =
                     DataSetContentMask.DataSetWriterId |
                     DataSetContentMask.MetaDataVersion |
+                    DataSetContentMask.MajorVersion |
+                    DataSetContentMask.MinorVersion |
                     DataSetContentMask.SequenceNumber;
             }
             var result = UadpDataSetMessageContentMask.None;

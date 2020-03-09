@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         /// </summary>
         /// <param name="handlers"></param>
         /// <param name="logger"></param>
-        public MonitoredItemSampleJsonHandler(IEnumerable<IMonitoredItemSampleProcessor> handlers, ILogger logger) {
+        public MonitoredItemSampleJsonHandler(IEnumerable<ISubscriberMessageProcessor> handlers, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _handlers = handlers?.ToList() ?? throw new ArgumentNullException(nameof(handlers));
         }
@@ -67,8 +67,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                         message.DisplayName : message.NodeId.AsString(null),
                     Timestamp = DateTime.UtcNow,
                     SubscriptionId = message.SubscriptionId,
-                    EndpointId = message?.ExtensionFields["EndpointId"],
+                    EndpointId = message?.ExtensionFields?["EndpointId"] ?? message.ApplicationUri,
                     NodeId = message.NodeId.AsString(null),
+                    DisplayName = message.DisplayName,
                     SourcePicoseconds = message.Value.SourcePicoseconds,
                     ServerPicoseconds = message.Value.ServerPicoseconds,
                     SourceTimestamp = message.Value.SourceTimestamp,
@@ -89,6 +90,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         }
 
         private readonly ILogger _logger;
-        private readonly List<IMonitoredItemSampleProcessor> _handlers;
+        private readonly List<ISubscriberMessageProcessor> _handlers;
     }
 }
