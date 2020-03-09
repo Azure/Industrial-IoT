@@ -4,11 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Controllers {
+    using Microsoft.Azure.IIoT.Services.Common.Jobs.Auth;
     using Microsoft.Azure.IIoT.Services.Common.Jobs.Models;
     using Microsoft.Azure.IIoT.Services.Common.Jobs.Filters;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System.Threading.Tasks;
     using System.Linq;
@@ -21,6 +23,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Controllers {
     [ApiVersion("2")][Route("v{version:apiVersion}/jobs")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
+    [Authorize(Policy = Policies.CanRead)]
     [ApiController]
     public class JobsController : ControllerBase {
 
@@ -73,6 +76,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Controllers {
         /// return</param>
         /// <returns>Jobs</returns>
         [HttpPost]
+        [Authorize(Policy = Policies.CanWrite)]
         public async Task<JobInfoListApiModel> QueryJobsAsync(
             [FromBody] JobInfoQueryApiModel query,
             [FromQuery] int? pageSize) {
@@ -144,6 +148,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Controllers {
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpDelete("{id}")]
+        [Authorize(Policy = Policies.CanWrite)]
         public async Task DeleteJobAsync(string id) {
             if (string.IsNullOrEmpty(id)) {
                 throw new ArgumentNullException(nameof(id));

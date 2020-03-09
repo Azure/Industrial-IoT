@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
+    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -26,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Runtime {
     /// </summary>
     public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig,
         ICorsConfig, IOpenApiConfig, ICosmosDbConfig, IJobDatabaseConfig,
-        IWorkerDatabaseConfig, IForwardedHeadersConfig {
+        IWorkerDatabaseConfig, IForwardedHeadersConfig, IClientConfig {
 
         /// <inheritdoc/>
         public string CorsWhitelist => _cors.CorsWhitelist;
@@ -43,6 +44,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Runtime {
         public string InstanceUrl => _auth.InstanceUrl;
         /// <inheritdoc/>
         public string Audience => _auth.Audience;
+        /// <inheritdoc/>
+        public string Domain => _auth.Domain;
         /// <inheritdoc/>
         public bool AuthRequired => _auth.AuthRequired;
         /// <inheritdoc/>

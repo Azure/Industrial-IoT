@@ -175,6 +175,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterInstance(Config)
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterInstance(Config.Configuration)
+                .AsImplementedInterfaces().SingleInstance();
 
             // Add diagnostics based on configuration
             builder.AddDiagnostics(Config);
