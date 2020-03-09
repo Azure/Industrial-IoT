@@ -1,4 +1,4 @@
 {
     "name": "iot/industrial-iot-edge-manager-service",
-    "exposes": "9050"
+    "exposes": "9047"
 }
