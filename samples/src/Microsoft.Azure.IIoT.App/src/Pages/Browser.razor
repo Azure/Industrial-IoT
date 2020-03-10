@@ -1,6 +1,6 @@
-@page "/browser/{applicationId}/{endpointId}"
-@page "/browser/{discovererId}/{applicationId}/{supervisorId}/{endpointId}"
-@page "/browser/{discovererId}/{applicationId}/{supervisorId}/{endpointId}/{page}"
+@page "/browser/{applicationId}/{endpointId}/{applicationUri}"
+@page "/browser/{discovererId}/{applicationId}/{supervisorId}/{endpointId}/{applicationUri}"
+@page "/browser/{discovererId}/{applicationId}/{supervisorId}/{endpointId}/{applicationUri}/{page}"
 
 
 @using Microsoft.Azure.IIoT.App.Services
@@ -28,10 +28,37 @@
 <h1>Endpoint Control</h1>
 
 <div>
-    @{ string discover = DiscovererId == RegistryHelper.PathAll ? string.Empty : DiscovererId; }
-    @{ string application = ApplicationId == RegistryHelper.PathAll ? string.Empty : ApplicationId; }
-    @{ string supervisor = SupervisorId == RegistryHelper.PathAll ? string.Empty : SupervisorId; }
-    @discover/@application/@SupervisorId/@BrowseManager.Path
+    @if (DiscovererId != string.Empty && DiscovererId != RegistryHelper.PathAll)
+    {
+        <a href="/discoverers/">/ @DiscovererId</a>
+    }
+    @if (ApplicationUri != string.Empty && ApplicationUri != RegistryHelper.PathAll)
+    {
+        <a href="/applications/">/ @ApplicationUri</a>
+    }
+    @if (SupervisorId != string.Empty && SupervisorId != RegistryHelper.PathAll)
+    {
+        <a href="/supervisors/">/ @SupervisorId</a>
+    }
+
+    @if (BrowseManager.Path != null)
+    {
+        var index = 0;
+        foreach (var item in BrowseManager.Path)
+        {
+            int i = ++index;
+            if (item.Equals(BrowseManager.Path.Last()))
+            {
+                <span>/ @item.ToString()</span>
+            }
+            else
+            {
+                <a href="javascript: void(0)" @onclick="@(() => GetTreeBackAsync(PagedNodeList.Results[0].NextParentId, PagedNodeList.Results[0].ParentIdList, i))">
+                    / @item.ToString()
+                </a>
+            }
+        }
+    }
 </div>
 
 <table class="table @_tableView">
@@ -47,7 +74,7 @@
                 {
                     if (PagedNodeList.Results[0].ParentName != "Root")
                     {
-                        <a href="javascript: void(0)" @onclick="@(() => GetTreeBackAsync(PagedNodeList.Results[0].NextParentId, PagedNodeList.Results[0].ParentIdList))">
+                        <a href="javascript: void(0)" @onclick="@(() => GetTreeBackAsync(PagedNodeList.Results[0].NextParentId, PagedNodeList.Results[0].ParentIdList, PagedNodeList.Results[0].ParentIdList.Count - 1))">
                             <span class="oi oi-arrow-left"></span>
                         </a>
                     }
@@ -90,8 +117,8 @@
                 {
                     <td>@node.NodeClass</td>
                 }
-                @if (node.NodeClass == NodeClass.Variable && (((node.AccessLevel & NodeAccessLevel.CurrentRead) == NodeAccessLevel.CurrentRead) || 
-                        ((node.AccessLevel & NodeAccessLevel.CurrentWrite) == NodeAccessLevel.CurrentWrite)))
+                @if (node.NodeClass == NodeClass.Variable && (((node.AccessLevel & NodeAccessLevel.CurrentRead) == NodeAccessLevel.CurrentRead) ||
+                      ((node.AccessLevel & NodeAccessLevel.CurrentWrite) == NodeAccessLevel.CurrentWrite)))
                 {
                     <td>
                         <div class="td-fixed">
@@ -153,6 +180,9 @@
     public string SupervisorId { get; set; } = string.Empty;
 
     [Parameter]
+    public string ApplicationUri { get; set; } = string.Empty;
+
+    [Parameter]
     public string Page { get; set; } = "1";
 
     public PagedResult<ListNode> NodeList = new PagedResult<ListNode>();
@@ -197,7 +227,7 @@
     {
         if (firstRender)
         {
-            await BrowseTreeAsync(string.Empty, new List<string>(), BrowseDirection.Forward);
+            await BrowseTreeAsync(string.Empty, new List<string>(), BrowseDirection.Forward, 0);
             CommonHelper.Spinner = string.Empty;
             if (PagedNodeList.Error != null)
             {
@@ -215,7 +245,7 @@
     /// <param name="parentId"></param>
     private async Task GetTreeAsync(string id, List<string> parentId)
     {
-        await BrowseTreeAsync(id, parentId, BrowseDirection.Forward);
+        await BrowseTreeAsync(id, parentId, BrowseDirection.Forward, 0);
     }
 
     /// <summary>
@@ -223,10 +253,10 @@
     /// </summary>
     /// <param name="id"></param>
     /// <param name="parentId"></param>
-    private async Task GetTreeBackAsync(string id, List<string> parentId)
+    private async Task GetTreeBackAsync(string id, List<string> parentId, int index)
     {
-        await BrowseTreeAsync(id, parentId, BrowseDirection.Backward);
-        NavigationManager.NavigateTo("/browser/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId);
+        await BrowseTreeAsync(id, parentId, BrowseDirection.Backward, index);
+        NavigationManager.NavigateTo("/browser/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId + "/" + ApplicationUri); 
     }
 
     /// <summary>
@@ -235,10 +265,10 @@
     /// <param name="id"></param>
     /// <param name="parentId"></param>
     /// <param name="direction"></param>
-    private async Task BrowseTreeAsync(String id, List<string> parentId, BrowseDirection direction)
+    private async Task BrowseTreeAsync(String id, List<string> parentId, BrowseDirection direction, int index)
     {
         CommonHelper.Spinner = "loader-big";
-        NodeList = await BrowseManager.GetTreeAsync(EndpointId, id, parentId, DiscovererId, direction);
+        NodeList = await BrowseManager.GetTreeAsync(EndpointId, id, parentId, DiscovererId, direction, index);
         var publishedNodes = await Publisher.PublishedAsync(EndpointId);
 
         foreach (var node in NodeList.Results)

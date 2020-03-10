@@ -1,7 +1,7 @@
 ﻿@page "/endpoints"
 @page "/endpoints/{page}"
-@page "/endpoints/{discovererId}/{applicationId}/{supervisorId}"
-@page "/endpoints/{discovererId}/{applicationId}/{supervisorId}/{page}"
+@page "/endpoints/{discovererId}/{applicationId}/{supervisorId}/{applicationUri}"
+@page "/endpoints/{discovererId}/{applicationId}/{supervisorId}/{applicationUri}/{page}"
 
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Services
@@ -21,7 +21,6 @@
 
 <div>
     @{ string discover = DiscovererId == RegistryHelper.PathAll ? string.Empty : DiscovererId; }
-    @discover
 </div>
 
 <table class="table @_tableView">
@@ -59,7 +58,8 @@
                         @{ discover = DiscovererId == null ? RegistryHelper.PathAll : DiscovererId; }
                         @{ string application = ApplicationId == null ? RegistryHelper.PathAll : ApplicationId; }
                         @{ string supervisor = SupervisorId == null ? RegistryHelper.PathAll : SupervisorId; }
-                        <a href='browser/@discover/@application/@supervisor/@endpoint.Registration.Id'>
+                        @{ string applicationUri = ApplicationUri == null ? RegistryHelper.PathAll : ApplicationUri; }
+                        <a href='browser/@discover/@application/@supervisor/@endpoint.Registration.Id/@applicationUri'>
                             @endpoint.Registration.Endpoint.Url
                         </a>
                     </td>
@@ -112,6 +112,9 @@
 
     [Parameter]
     public string SupervisorId { get; set; } = string.Empty;
+
+    [Parameter]
+    public string ApplicationUri { get; set; } = string.Empty;
 
     public string Status { get; set; }
     private PagedResult<EndpointInfoApiModel> _endpointList =
