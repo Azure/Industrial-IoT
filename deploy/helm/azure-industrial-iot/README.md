@@ -867,7 +867,21 @@ Configuration parameter for data protection key in Azure Key Vault is `azure.key
 
 ### Common Data Model
 
-ToDo
+> **NOTE:** This feature is in preview.
+
+`telemetryCdmProcessor` component can consume events from the secondary telemetry Event Hub and publish
+these events to the configured Azure Data Lake Storage Gen2 resource. It also ensures that the necessary
+[Common Data Model Schema](https://docs.microsoft.com/common-data-model/model-json) files are created so
+that consumers such as Power Apps and Power BI can access the data and metadata. You would have to explicitly
+enable `telemetryCdmProcessor` to use this feature, since it is disabled by default.
+
+Please note, that `telemetryCdmProcessor` requires authentication to be enabled. It also requires additional
+API permissions for `ServicesApp` AAD App Registration. Namely, it need Delegated `user_impersonation`
+permission on `Azure Storage`. Please follow these steps to
+[add API permissions](https://docs.microsoft.com/graph/notifications-integration-app-registration#api-permissions).
+
+Here is a tutorial on
+[how to connect Power BI with Azure Data Lake Storage Gen2 and visualize publisher telemetry](https://github.com/Azure/Industrial-IoT/blob/master/docs/tutorials/tut-power-bi-cdm.md).
 
 ### Swagger
 
