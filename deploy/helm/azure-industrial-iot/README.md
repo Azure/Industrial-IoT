@@ -445,7 +445,7 @@ The following details of the Azure Storage account would be required:
 
 ## Installing the Chart
 
-To install the chart first ensure that you've added `azure-iiot` repository:
+To install the chart first ensure that you have added `azure-iiot` repository:
 
 ```bash
 $ helm repo add azure-iiot https://azureiiot.blob.core.windows.net/helm
@@ -618,32 +618,33 @@ additional configuration parameters for that. But again, we will list configurat
 resource only for one micro-service (`registry`). Please consult `values.yaml` for detailed view of all
 parameters.
 
-Here is the list of all Azure Industrial IoT components that are deployed by this chart:
+Here is the list of all Azure Industrial IoT components that are deployed by this chart. Currently only
+`frontend` and `telemetryCdmProcessor` are disabled by default.
 
-| Name in `values.yaml`     | Description                                                                                                           | Default Image                                                            |
-|---------------------------|-----------------------------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------|
-| `registry`                | [Registry Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/registry.md)                | `mcr.microsoft.com/iot/opc-registry-service:2.6.104`                     |
-| `twin`                    | [OPC Twin Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/twin.md)                    | `mcr.microsoft.com/iot/opc-twin-service:2.6.104`                         |
-| `history`                 | [OPC Historian Access Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/history.md)     | `mcr.microsoft.com/iot/opc-history-service:2.6.104`                      |
-| `gateway`                 | [OPC Gateway Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/gateway.md)              | `mcr.microsoft.com/iot/opc-gateway-service:2.6.104`                      |
-| `vault`                   | [OPC Vault Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/vault.md)                  | `mcr.microsoft.com/iot/opc-vault-service:2.6.104`                        |
-| `alerting`                | [Registry Security Alerting Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/security.md)     | `mcr.microsoft.com/iot/opc-alerting-service:2.6.104`                     |
-| `onboarding`              | [Registry Onboarding Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/onboarding.md)   | `mcr.microsoft.com/iot/opc-onboarding-service:2.6.104`                   |
-| `jobs`                    | [Discovery Multiplexer Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/discovery.md)         | `mcr.microsoft.com/iot/opc-jobs-service:2.6.104`                         |
-| `modelProcessor`          | [Model Importer Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/graph.md)                    | `mcr.microsoft.com/iot/opc-processor-service:2.6.104`                    |
-| `blobNotification`        | Blob Notification Service                                                                                             | `mcr.microsoft.com/iot/blob-notification-service:2.6.104`                |
-| `publisher`               | [OPC Publisher Service](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/publisher.md)               | `mcr.microsoft.com/iot/opc-publisher-service:2.6.104`                    |
-| `configuration`           | [Configuration Service](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/configuration.md)           | `mcr.microsoft.com/iot/industrial-iot-configuration-service:2.6.104`     |
-| `edgeManager`             | [Edge Management Service](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/edgemanager.md)           | `mcr.microsoft.com/iot/industrial-iot-edge-manager-service:2.6.104`      |
-| `eventsProcessor`         | [Edge Event Processor](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/events.md)                   | `mcr.microsoft.com/iot/industrial-iot-events-processor:2.6.104`          |
-| `frontend`                | [Engineering Tool](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/engineeringtool.md)              | `mcr.microsoft.com/iot/industrial-iot-frontend:2.6.104`                  |
-| `identity`                | [Identity Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/identity.md)                       | `mcr.microsoft.com/iot/industrial-iot-identity-service:2.6.104`          |
-| `edgeJobs`                | [Jobs Service and Edge endpoint](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/jobs.md)           | `mcr.microsoft.com/iot/industrial-iot-jobs-orchestrator-service:2.6.104` |
-| `publisherJobs`           |                                                                                                                       | `mcr.microsoft.com/iot/industrial-iot-jobs-service:2.6.104`              |
-| `telemetryCdmProcessor`   | [Datalake and CDM Telemetry export](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/cdm.md)         | `mcr.microsoft.com/iot/industrial-iot-telemetry-cdm-processor:2.6.104`   |
-| `telemetryProcessor`      | [Edge Telemetry processor](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/telemetry.md)            | `mcr.microsoft.com/iot/industrial-iot-telemetry-processor:2.6.104`       |
-| `telemetryUxProcessor`    | [SignalR Telemetry Forwarder](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/ux.md)                | `mcr.microsoft.com/iot/industrial-iot-telemetry-ux-processor:2.6.104`    |
-| `registryEventsForwarder` | [Registry Event Publisher Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/registryevents.md) | `mcr.microsoft.com/iot/opc-registry-events-forwarder:2.6.104`            |
+| Name in `values.yaml`     | Description                                                                                                           | Enabled by Default | Default Image                                                            |
+|---------------------------|-----------------------------------------------------------------------------------------------------------------------|--------------------|--------------------------------------------------------------------------|
+| `registry`                | [Registry Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/registry.md)                | `true`             | `mcr.microsoft.com/iot/opc-registry-service:2.6.104`                     |
+| `twin`                    | [OPC Twin Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/twin.md)                    | `true`             | `mcr.microsoft.com/iot/opc-twin-service:2.6.104`                         |
+| `history`                 | [OPC Historian Access Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/history.md)     | `true`             | `mcr.microsoft.com/iot/opc-history-service:2.6.104`                      |
+| `gateway`                 | [OPC Gateway Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/gateway.md)              | `true`             | `mcr.microsoft.com/iot/opc-gateway-service:2.6.104`                      |
+| `vault`                   | [OPC Vault Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/vault.md)                  | `true`             | `mcr.microsoft.com/iot/opc-vault-service:2.6.104`                        |
+| `alerting`                | [Registry Security Alerting Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/security.md)     | `true`             | `mcr.microsoft.com/iot/opc-alerting-service:2.6.104`                     |
+| `onboarding`              | [Registry Onboarding Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/onboarding.md)   | `true`             | `mcr.microsoft.com/iot/opc-onboarding-service:2.6.104`                   |
+| `jobs`                    | [Discovery Multiplexer Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/discovery.md)         | `true`             | `mcr.microsoft.com/iot/opc-jobs-service:2.6.104`                         |
+| `modelProcessor`          | [Model Importer Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/graph.md)                    | `true`             | `mcr.microsoft.com/iot/opc-processor-service:2.6.104`                    |
+| `blobNotification`        | Blob Notification Service                                                                                             | `true`             | `mcr.microsoft.com/iot/blob-notification-service:2.6.104`                |
+| `publisher`               | [OPC Publisher Service](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/publisher.md)               | `true`             | `mcr.microsoft.com/iot/opc-publisher-service:2.6.104`                    |
+| `configuration`           | [Configuration Service](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/configuration.md)           | `true`             | `mcr.microsoft.com/iot/industrial-iot-configuration-service:2.6.104`     |
+| `edgeManager`             | [Edge Management Service](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/edgemanager.md)           | `true`             | `mcr.microsoft.com/iot/industrial-iot-edge-manager-service:2.6.104`      |
+| `eventsProcessor`         | [Edge Event Processor](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/events.md)                   | `true`             | `mcr.microsoft.com/iot/industrial-iot-events-processor:2.6.104`          |
+| `frontend`                | [Engineering Tool](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/engineeringtool.md)              | `false`            | `mcr.microsoft.com/iot/industrial-iot-frontend:2.6.104`                  |
+| `identity`                | [Identity Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/identity.md)                       | `true`             | `mcr.microsoft.com/iot/industrial-iot-identity-service:2.6.104`          |
+| `edgeJobs`                | [Jobs Service and Edge endpoint](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/jobs.md)           | `true`             | `mcr.microsoft.com/iot/industrial-iot-jobs-orchestrator-service:2.6.104` |
+| `publisherJobs`           |                                                                                                                       | `true`             | `mcr.microsoft.com/iot/industrial-iot-jobs-service:2.6.104`              |
+| `telemetryCdmProcessor`   | [Datalake and CDM Telemetry export](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/cdm.md)         | `false`            | `mcr.microsoft.com/iot/industrial-iot-telemetry-cdm-processor:2.6.104`   |
+| `telemetryProcessor`      | [Edge Telemetry processor](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/telemetry.md)            | `true`             | `mcr.microsoft.com/iot/industrial-iot-telemetry-processor:2.6.104`       |
+| `telemetryUxProcessor`    | [SignalR Telemetry Forwarder](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/ux.md)                | `true`             | `mcr.microsoft.com/iot/industrial-iot-telemetry-ux-processor:2.6.104`    |
+| `registryEventsForwarder` | [Registry Event Publisher Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/registryevents.md) | `true`             | `mcr.microsoft.com/iot/opc-registry-events-forwarder:2.6.104`            |
 
 #### Deployment Resource Configuration
 
@@ -734,9 +735,10 @@ Those are the service ports exposed by components:
 
 Our Ingress resource template uses
 [fanout](https://kubernetes.io/docs/concepts/services-networking/ingress/#simple-fanout)
-configuration to expose components with web APIs.
+configuration to expose components with web APIs or UI.
 
-[Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) resource parameters in `values.yaml`.
+Here are [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) resource parameters
+in `values.yaml`. Note that Ingress is disabled by default.
 
 | Parameter                                | Description                                                                                                                      | Default          |
 |------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|------------------|
@@ -786,12 +788,11 @@ azure:
   tenantId: <TenantId>
 
   iotHub:
-    name: <IoTHubName>
-
     eventHub:
       endpoint: <IoTHubEventHubEndpoint>
-      partitionCount: <IoTHubEventHubPartitions>
-      consumerGroup: <IoTHubEventHubConsumerGroup>
+      consumerGroup:
+        events: <IoTHubEventHubEventsConsumerGroup>
+        telemetry: <IoTHubEventHubTelemetryConsumerGroup>
 
     sharedAccessPolicies:
       iothubowner:
@@ -801,13 +802,18 @@ azure:
     connectionString: <CosmosDBConnectionString>
 
   storageAccount:
-    name: <StorageAccountName>
-    accessKey: <StorageAccountAccessKey>
+    connectionString: <StorageAccountConnectionString>
 
   eventHubNamespace:
     sharedAccessPolicies:
       rootManageSharedAccessKey:
         connectionString: <EventHubNamespaceConnectionString>
+
+    eventHub:
+      name: <EventHubName>
+      consumerGroup:
+        telemetryCdm: <EventHubTelemetryCdmConsumerGroup>
+        telemetryUx: <EventHubTelemetryUxConsumerGroup>
 
   serviceBusNamespace:
     sharedAccessPolicies:
@@ -816,6 +822,9 @@ azure:
 
   keyVault:
     uri: <KeyVaultURI>
+
+  signalR:
+    connectionString: <SignalRConnectionString>
 
   auth:
     required: false
