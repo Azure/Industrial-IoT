@@ -929,7 +929,7 @@ deployment:
     # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#the-ingress-resource
     #
     # NOTE: Bellow are our recommended values to use with NGINX Ingress Controller.
-    # NOTE: deployment.ingress.paths values here should be alligned with value of apps.urlPathBase. They are separated because one might want to have a regex in Ingress paths.
+    # NOTE: deployment.ingress.paths values here should be aligned with value of apps.urlPathBase. They are separated because one might want to have a regex in Ingress paths.
     paths:
       registry: /registry
       twin: /twin
@@ -945,7 +945,7 @@ deployment:
       frontend: /frontend
 
     # Ingress TLS configuration. Secrets must be manually created in the namespace.
-    # The value should be alligned with hostName property.
+    # The value should be aligned with hostName property.
     # Ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#tls
     #
     # tls:

@@ -606,31 +606,44 @@ following aspects of application runtime for microservices:
 
 **Documentation**: [Azure Industrial IoT Platform Components](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/readme.md)
 
-Azure Industrial IoT comprises of ten micro-services that this chart will deploy as
-[Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) resources. Five of them
-expose web APIs. So for those the chart will also create [Service](https://kubernetes.io/docs/concepts/services-networking/service/)
-resources. For those five we also provide one [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/)
+Azure Industrial IoT comprises of twenty two micro-services that this chart will deploy as
+[Deployment](https://kubernetes.io/docs/concepts/workloads/controllers/deployment/) resources. Eleven of them
+expose web APIs, and one has a UI. And for those twelve the chart will also create [Service](https://kubernetes.io/docs/concepts/services-networking/service/)
+resources. For those twelve we also provide one [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/)
 that can be enabled.
 
 All micro-services have the same configuration parameters in `values.yaml`, so we will list them only for
 one service (`registry`) bellow. The ones that also have a Service resource associated with them have
 additional configuration parameters for that. But again, we will list configuration parameters for Service
-resource only for one micro-service (`registry`).
+resource only for one micro-service (`registry`). Please consult `values.yaml` for detailed view of all
+parameters.
 
 Here is the list of all Azure Industrial IoT components that are deployed by this chart:
 
-| Name in `values.yaml` | Description                                                                                                         | Default Image                                           |
-|-----------------------|---------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------|
-| `registry`            | [Registry Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/registry.md)              | `mcr.microsoft.com/iot/opc-registry-service:2.5.2`      |
-| `twin`                | [OPC Twin Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/twin.md)                  | `mcr.microsoft.com/iot/opc-twin-service:2.5.2`          |
-| `history`             | [OPC Historian Access Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/history.md)   | `mcr.microsoft.com/iot/opc-history-service:2.5.2`       |
-| `gateway`             | [OPC Gateway Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/gateway.md)            | `mcr.microsoft.com/iot/opc-gateway-service:2.5.2`       |
-| `vault`               | [OPC Vault Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/vault.md)                | `mcr.microsoft.com/iot/opc-vault-service:2.5.2`         |
-| `alerting`            | [Registry Security Alerting Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/security.md)   | `mcr.microsoft.com/iot/opc-alerting-service:2.5.2`      |
-| `onboarding`          | [Registry Onboarding Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/onboarding.md) | `mcr.microsoft.com/iot/opc-onboarding-service:2.5.2`    |
-| `jobs`                | [Jobs Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/jobs.md)                      | `mcr.microsoft.com/iot/opc-jobs-service:2.5.2`          |
-| `modelProcessor`      | [Model Importer Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/graph.md)                  | `mcr.microsoft.com/iot/opc-processor-service:2.5.2`     |
-| `blobNotification`    | Blob Notification Service                                                                                           | `mcr.microsoft.com/iot/blob-notification-service:2.5.2` |
+| Name in `values.yaml`     | Description                                                                                                           | Default Image                                                           |
+|---------------------------|-----------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| `registry`                | [Registry Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/registry.md)                | `mcr.microsoft.com/iot/opc-registry-service:2.6.99`                     |
+| `twin`                    | [OPC Twin Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/twin.md)                    | `mcr.microsoft.com/iot/opc-twin-service:2.6.99`                         |
+| `history`                 | [OPC Historian Access Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/history.md)     | `mcr.microsoft.com/iot/opc-history-service:2.6.99`                      |
+| `gateway`                 | [OPC Gateway Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/gateway.md)              | `mcr.microsoft.com/iot/opc-gateway-service:2.6.99`                      |
+| `vault`                   | [OPC Vault Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/vault.md)                  | `mcr.microsoft.com/iot/opc-vault-service:2.6.99`                        |
+| `alerting`                | [Registry Security Alerting Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/security.md)     | `mcr.microsoft.com/iot/opc-alerting-service:2.6.99`                     |
+| `onboarding`              | [Registry Onboarding Microservice](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/onboarding.md)   | `mcr.microsoft.com/iot/opc-onboarding-service:2.6.99`                   |
+| `jobs`                    | [Discovery Multiplexer Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/discovery.md)         | `mcr.microsoft.com/iot/opc-jobs-service:2.6.99`                         |
+| `modelProcessor`          | [Model Importer Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/graph.md)                    | `mcr.microsoft.com/iot/opc-processor-service:2.6.99`                    |
+| `blobNotification`        | Blob Notification Service                                                                                             | `mcr.microsoft.com/iot/blob-notification-service:2.6.99`                |
+| `publisher`               | [OPC Publisher Service](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/publisher.md)               | `mcr.microsoft.com/iot/opc-publisher-service:2.6.99`                    |
+| `configuration`           | [Configuration Service](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/configuration.md)           | `mcr.microsoft.com/iot/industrial-iot-configuration-service:2.6.99`     |
+| `edgeManager`             | [Edge Management Service](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/edgemanager.md)           | `mcr.microsoft.com/iot/industrial-iot-edge-manager-service:2.6.99`      |
+| `eventsProcessor`         | [Edge Event Processor](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/events.md)                   | `mcr.microsoft.com/iot/industrial-iot-events-processor:2.6.99`          |
+| `frontend`                | [Engineering Tool](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/engineeringtool.md)              | `mcr.microsoft.com/iot/industrial-iot-frontend:2.6.99`                  |
+| `identity`                | [Identity Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/identity.md)                       | `mcr.microsoft.com/iot/industrial-iot-identity-service:2.6.99`          |
+| `edgeJobs`                | [Jobs Service and Edge endpoint](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/jobs.md)           | `mcr.microsoft.com/iot/industrial-iot-jobs-orchestrator-service:2.6.99` |
+| `publisherJobs`           |                                                                                                                       | `mcr.microsoft.com/iot/industrial-iot-jobs-service:2.6.99`              |
+| `telemetryCdmProcessor`   | [Datalake and CDM Telemetry export](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/cdm.md)         | `mcr.microsoft.com/iot/industrial-iot-telemetry-cdm-processor:2.6.99`   |
+| `telemetryProcessor`      | [Edge Telemetry processor](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/telemetry.md)            | `mcr.microsoft.com/iot/industrial-iot-telemetry-processor:2.6.99`       |
+| `telemetryUxProcessor`    | [SignalR Telemetry Forwarder](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/ux.md)                | `mcr.microsoft.com/iot/industrial-iot-telemetry-ux-processor:2.6.99`    |
+| `registryEventsForwarder` | [Registry Event Publisher Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/registryevents.md) | `mcr.microsoft.com/iot/opc-registry-events-forwarder:2.6.99`            |
 
 #### Deployment Resource Configuration
 
@@ -654,18 +667,30 @@ micro-service.
 Please note that the only parameter that has different values for different components is `imageRepository`.
 Those are the values of `imageRepository` for all components:
 
-| Configuration Parameter for Components                      | Default Image Repository        |
-|-------------------------------------------------------------|---------------------------------|
-| `deployment.microServices.registry.imageRepository`         | `iot/opc-registry-service`      |
-| `deployment.microServices.twin.imageRepository`             | `iot/opc-twin-service`          |
-| `deployment.microServices.history.imageRepository`          | `iot/opc-history-service`       |
-| `deployment.microServices.gateway.imageRepository`          | `iot/opc-gateway-service`       |
-| `deployment.microServices.vault.imageRepository`            | `iot/opc-vault-service`         |
-| `deployment.microServices.alerting.imageRepository`         | `iot/opc-alerting-service`      |
-| `deployment.microServices.onboarding.imageRepository`       | `iot/opc-onboarding-service`    |
-| `deployment.microServices.jobs.imageRepository`             | `iot/opc-jobs-service`          |
-| `deployment.microServices.modelProcessor.imageRepository`   | `iot/opc-processor-service`     |
-| `deployment.microServices.blobNotification.imageRepository` | `iot/blob-notification-service` |
+| Configuration Parameter for Components                             | Default Image Repository                       |
+|--------------------------------------------------------------------|------------------------------------------------|
+| `deployment.microServices.registry.imageRepository`                | `iot/opc-registry-service`                     |
+| `deployment.microServices.twin.imageRepository`                    | `iot/opc-twin-service`                         |
+| `deployment.microServices.history.imageRepository`                 | `iot/opc-history-service`                      |
+| `deployment.microServices.gateway.imageRepository`                 | `iot/opc-gateway-service`                      |
+| `deployment.microServices.vault.imageRepository`                   | `iot/opc-vault-service`                        |
+| `deployment.microServices.alerting.imageRepository`                | `iot/opc-alerting-service`                     |
+| `deployment.microServices.onboarding.imageRepository`              | `iot/opc-onboarding-service`                   |
+| `deployment.microServices.jobs.imageRepository`                    | `iot/opc-jobs-service`                         |
+| `deployment.microServices.modelProcessor.imageRepository`          | `iot/opc-processor-service`                    |
+| `deployment.microServices.blobNotification.imageRepository`        | `iot/blob-notification-service`                |
+| `deployment.microServices.publisher.imageRepository`               | `iot/opc-publisher-service`                    |
+| `deployment.microServices.configuration.imageRepository`           | `iot/industrial-iot-configuration-service`     |
+| `deployment.microServices.edgeManager.imageRepository`             | `iot/industrial-iot-edge-manager-service`      |
+| `deployment.microServices.eventsProcessor.imageRepository`         | `iot/industrial-iot-events-processor`          |
+| `deployment.microServices.frontend.imageRepository`                | `iot/industrial-iot-frontend`                  |
+| `deployment.microServices.identity.imageRepository`                | `iot/industrial-iot-identity-service`          |
+| `deployment.microServices.edgeJobs.imageRepository`                | `iot/industrial-iot-jobs-orchestrator-service` |
+| `deployment.microServices.publisherJobs.imageRepository`           | `iot/industrial-iot-jobs-service`              |
+| `deployment.microServices.telemetryCdmProcessor.imageRepository`   | `iot/industrial-iot-telemetry-cdm-processor`   |
+| `deployment.microServices.telemetryProcessor.imageRepository`      | `iot/industrial-iot-telemetry-processor`       |
+| `deployment.microServices.telemetryUxProcessor.imageRepository`    | `iot/industrial-iot-telemetry-ux-processor`    |
+| `deployment.microServices.registryEventsForwarder.imageRepository` | `iot/opc-registry-events-forwarder`            |
 
 #### Service Resource Configuration
 
@@ -688,13 +713,22 @@ micro-service.
 Please note that the only parameter that has different values for different components is `port`.
 Those are the service ports exposed by components:
 
-| Configuration Parameter for Components           | Default service port |
-|--------------------------------------------------|----------------------|
-| `deployment.microServices.registry.service.port` | `9042`               |
-| `deployment.microServices.twin.service.port`     | `9041`               |
-| `deployment.microServices.history.service.port`  | `9043`               |
-| `deployment.microServices.gateway.service.port`  | `9040`               |
-| `deployment.microServices.vault.service.port`    | `9044`               |
+| Configuration Parameter for Components                | Default service port |
+|-------------------------------------------------------|----------------------|
+| `deployment.microServices.registry.service.port`      | `9042`               |
+| `deployment.microServices.twin.service.port`          | `9041`               |
+| `deployment.microServices.history.service.port`       | `9043`               |
+| `deployment.microServices.gateway.service.port`       | `9040`               |
+| `deployment.microServices.gateway.service.opcPort`    | `51111`              |
+| `deployment.microServices.vault.service.port`         | `9044`               |
+| `deployment.microServices.onboarding.service.port`    | `9060`               |
+| `deployment.microServices.publisher.service.port`     | `9045`               |
+| `deployment.microServices.configuration.service.port` | `9050`               |
+| `deployment.microServices.edgeManager.service.port`   | `9047`               |
+| `deployment.microServices.frontend.service.httpPort`  | `80`                 |
+| `deployment.microServices.frontend.service.httpsPort` | `443`                |
+| `deployment.microServices.edgeJobs.service.port`      | `9051`               |
+| `deployment.microServices.publisherJobs.service.port` | `9046`               |
 
 #### Ingress Resource Configuration
 
@@ -704,18 +738,27 @@ configuration to expose components with web APIs.
 
 [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) resource parameters in `values.yaml`.
 
-| Parameter                           | Description                                                                                                            | Default |
-|-------------------------------------|------------------------------------------------------------------------------------------------------------------------|---------|
-| `deployment.ingress.enabled`        | If true, one Ingress resource will be created for enabled Services                                                     | `false` |
-| `deployment.ingress.hostName`       | Host for the Ingress rule, multiple hosts are not supported                                                            | `null`  |
-| `deployment.ingress.extraLabels`    | Extra labels for the Ingress resource                                                                                  | `{}`    |
-| `deployment.ingress.annotations`    | Annotations for the Ingress resource                                                                                   | `{}`    |
-| `deployment.ingress.tls`            | Ingress [TLS configuration](https://kubernetes.io/docs/concepts/services-networking/ingress/#tls)                      | `[]`    |
-| `deployment.ingress.paths.registry` | Path on which `registry` component should be exposed. Should be set to enable for `registry`. See below for reference. | `null`  |
-| `deployment.ingress.paths.twin`     | Path on which `twin` component should be exposed. Should be set to enable for `twin`. See below for reference.         | `null`  |
-| `deployment.ingress.paths.history`  | Path on which `history` component should be exposed. Should be set to enable for `history`. See below for reference.   | `null`  |
-| `deployment.ingress.paths.gateway`  | Path on which `gateway` component should be exposed. Should be set to enable for `gateway`. See below for reference.   | `null`  |
-| `deployment.ingress.paths.vault`    | Path on which `vault` component should be exposed. Should be set to enable for `vault`. See below for reference.       | `null`  |
+| Parameter                                | Description                                                                                                                      | Default          |
+|------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|------------------|
+| `deployment.ingress.enabled`             | If true, one Ingress resource will be created for enabled Services                                                               | `false`          |
+| `deployment.ingress.hostName`            | Host for the Ingress rule, multiple hosts are not supported                                                                      | `null`           |
+| `deployment.ingress.extraLabels`         | Extra labels for the Ingress resource                                                                                            | `{}`             |
+| `deployment.ingress.annotations`         | Annotations for the Ingress resource                                                                                             | `{}`             |
+| `deployment.ingress.tls`                 | Ingress [TLS configuration](https://kubernetes.io/docs/concepts/services-networking/ingress/#tls)                                | `[]`             |
+| `deployment.ingress.paths.registry`      | Path on which `registry` component should be exposed. Should be set to enable for `registry`. See below for reference.           | `/registry`      |
+| `deployment.ingress.paths.twin`          | Path on which `twin` component should be exposed. Should be set to enable for `twin`. See below for reference.                   | `/twin`          |
+| `deployment.ingress.paths.history`       | Path on which `history` component should be exposed. Should be set to enable for `history`. See below for reference.             | `/history`       |
+| `deployment.ingress.paths.gateway`       | Path on which `gateway` component should be exposed. Should be set to enable for `gateway`. See below for reference.             | `/ua`            |
+| `deployment.ingress.paths.vault`         | Path on which `vault` component should be exposed. Should be set to enable for `vault`. See below for reference.                 | `/vault`         |
+| `deployment.ingress.paths.onboarding`    | Path on which `onboarding` component should be exposed. Should be set to enable for `onboarding`. See below for reference.       | `/onboarding`    |
+| `deployment.ingress.paths.publisher`     | Path on which `publisher` component should be exposed. Should be set to enable for `publisher`. See below for reference.         | `/publisher`     |
+| `deployment.ingress.paths.publisherJobs` | Path on which `publisherJobs` component should be exposed. Should be set to enable for `publisherJobs`. See below for reference. | `/jobs`          |
+| `deployment.ingress.paths.configuration` | Path on which `configuration` component should be exposed. Should be set to enable for `configuration`. See below for reference. | `/configuration` |
+| `deployment.ingress.paths.edgeJobs`      | Path on which `edgeJobs` component should be exposed. Should be set to enable for `edgeJobs`. See below for reference.           | `/edge/jobs`     |
+| `deployment.ingress.paths.edgeManager`   | Path on which `edgeManager` component should be exposed. Should be set to enable for `edgeManager`. See below for reference.     | `/edge/manage`   |
+| `deployment.ingress.paths.frontend`      | Path on which `frontend` component should be exposed. Should be set to enable for `frontend`. See below for reference.           | `/frontend`      |
+
+> **NOTE:** deployment.ingress.paths values here should be alligned with value of apps.urlPathBase. They are separated because one might want to have a regex in Ingress paths.
 
 If you are using [NGINX Ingress Controller](https://www.nginx.com/products/nginx/kubernetes-ingress-controller/),
 here are reference values for `deployment.ingress`:
@@ -726,13 +769,6 @@ deployment:
     enabled: true
     annotations:
       kubernetes.io/ingress.class: nginx
-      nginx.ingress.kubernetes.io/rewrite-target: /$1
-    paths:
-      registry: /registry/(.*)
-      twin: /twin/(.*)
-      history: /history/(.*)
-      gateway: /ua/(.*)
-      vault: /vault/(.*)
 ```
 
 ### Minimal Configuration
