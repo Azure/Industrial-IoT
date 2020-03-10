@@ -25,8 +25,10 @@ enabled servers in a factory network, register them in Azure IoT Hub and start c
 * [Configuration](#configuration)
   * [Image](#image)
   * [Azure Resources](#azure-resources)
+  * [External Service URL](#external-service-url)
   * [RBAC](#rbac)
   * [Service Account](#service-account)
+  * [Application Runtime Configuration](#application-runtime-configuration)
   * [Deployed Components](#deployed-components)
     * [Deployment Resource Configuration](#deployment-resource-configuration)
     * [Service Resource Configuration](#service-resource-configuration)
@@ -34,7 +36,6 @@ enabled servers in a factory network, register them in Azure IoT Hub and start c
   * [Minimal Configuration](#minimal-configuration)
 * [Special Notes](#special-notes)
   * [Data Protection](#data-protection)
-  * [External Service URL](#external-service-url)
   * [Common Data Model](#common-data-model)
   * [Swagger](#swagger)
 
@@ -834,11 +835,35 @@ azure:
 
 ### Data Protection
 
-ToDo
+> Data protection functionality is present only if `frontend` component is enabled.
 
-### External Service URL
+[Data protection](https://docs.microsoft.com/aspnet/core/security/data-protection/introduction?view=aspnetcore-3.1)
+is an ASP.Net Core feature that is used by `frontend` component. It takes care of encryption of cookies that
+are used by the `frontend`.
 
-ToDo
+#### Azure Storage Account Container
+
+Reference: [Data Protection Container](#data-protection-container-(optional))
+
+We use Azure Storage as
+[storage provider](https://docs.microsoft.com/aspnet/core/security/data-protection/implementation/key-storage-providers?view=aspnetcore-3.1#azure-storage)
+for storing data protection keys.
+
+You can specify the name of Azure Storage Container to be used for storing keys or the value will default to `dataprotection`.
+If it doesn't already exist, this Azure Storage Container will be created automatically on startup of `frontend` component.
+Configuration parameter for data protection Azure Storage Container is
+`azure.storageAccount.container.dataProtection.name`.
+
+#### Azure Key Vault Key
+
+Reference: [Data Protection Key](#data-protection-key-(optional))
+
+We use a key in Azure Key Vault to protect keys that are stored in
+[data protection Azure Storage Container](#data-protection-container-(optional)).
+
+You can specify the name of the key in Azure Key Vault to be used or the value will default to `dataprotection`.
+If it doesn't already exist, this key in Azure Key Vault will be created automatically on startup of `frontend` component
+Configuration parameter for data protection key in Azure Key Vault is `azure.keyVault.key.dataProtection`.
 
 ### Common Data Model
 
