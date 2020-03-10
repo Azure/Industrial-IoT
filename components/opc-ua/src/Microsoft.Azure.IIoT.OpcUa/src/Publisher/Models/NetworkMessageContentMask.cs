@@ -6,86 +6,88 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
     using Newtonsoft.Json;
     using Newtonsoft.Json.Converters;
+    using System;
 
     /// <summary>
     /// Network message content
     /// </summary>
+    [Flags]
     [JsonConverter(typeof(StringEnumConverter))]
     public enum NetworkMessageContentMask {
 
         /// <summary>
         /// Publisher id
         /// </summary>
-        PublisherId = 1,
+        PublisherId = 0x1,
 
         /// <summary>
         /// Group header
         /// </summary>
-        GroupHeader = 2,
+        GroupHeader = 0x2,
 
         /// <summary>
         /// Writer group id
         /// </summary>
-        WriterGroupId = 4,
+        WriterGroupId = 0x4,
 
         /// <summary>
         /// Group version
         /// </summary>
-        GroupVersion = 8,
+        GroupVersion = 0x8,
 
         /// <summary>
         /// Network message number
         /// </summary>
-        NetworkMessageNumber = 16,
+        NetworkMessageNumber = 0x10,
 
         /// <summary>
         /// Sequence number
         /// </summary>
-        SequenceNumber = 32,
+        SequenceNumber = 0x20,
 
         /// <summary>
         /// Payload header
         /// </summary>
-        PayloadHeader = 64,
+        PayloadHeader = 0x40,
 
         /// <summary>
         /// Timestamp
         /// </summary>
-        Timestamp = 128,
+        Timestamp = 0x80,
 
         /// <summary>
         /// Picoseconds
         /// </summary>
-        Picoseconds = 256,
+        Picoseconds = 0x100,
 
         /// <summary>
         /// Dataset class id
         /// </summary>
-        DataSetClassId = 512,
+        DataSetClassId = 0x200,
 
         /// <summary>
         /// Promoted fields
         /// </summary>
-        PromotedFields = 1024,
+        PromotedFields = 0x400,
 
         /// <summary>
         /// Network message header
         /// </summary>
-        NetworkMessageHeader = 2048,
+        NetworkMessageHeader = 0x800,
 
         /// <summary>
         /// Dataset message header
         /// </summary>
-        DataSetMessageHeader = 4096,
+        DataSetMessageHeader = 0x1000,
 
         /// <summary>
         /// Single dataset messages
         /// </summary>
-        SingleDataSetMessage = 8192,
+        SingleDataSetMessage = 0x2000,
 
         /// <summary>
         /// Reply to
         /// </summary>
-        ReplyTo = 16384
+        ReplyTo = 0x4000
     }
 }

@@ -85,7 +85,6 @@ namespace Opc.Ua.PubSub {
             }
         }
 
-
         /// <inheritdoc/>
         public override bool Equals(Object value) {
             return IsEqual(value as IEncodeable);

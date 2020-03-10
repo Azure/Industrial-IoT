@@ -65,9 +65,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                             message.Value.WrappedValue.TypeInfo.ValueRank) : null,
                     DataSetId = !string.IsNullOrEmpty(message.DisplayName) ?
                         message.DisplayName : message.NodeId.AsString(null),
-                    Timestamp = DateTime.UtcNow,
-                    SubscriptionId = message.SubscriptionId,
-                    EndpointId = message?.ExtensionFields?["EndpointId"] ?? message.ApplicationUri,
+                    Timestamp = message.Timestamp,
+                    EndpointId = (message.ExtensionFields != null &&
+                        message.ExtensionFields.TryGetValue("EndpointId", out var endpointId))
+                            ? endpointId : message.ApplicationUri ?? message.SubscriptionId,
+                    SubscriptionId = message.SubscriptionId ?? message.ApplicationUri,
                     NodeId = message.NodeId.AsString(null),
                     DisplayName = message.DisplayName,
                     SourcePicoseconds = message.Value.SourcePicoseconds,

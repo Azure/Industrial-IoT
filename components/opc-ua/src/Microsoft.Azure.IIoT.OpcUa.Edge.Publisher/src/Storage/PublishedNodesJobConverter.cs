@@ -126,38 +126,46 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                             DiagnosticsInterval = _config.DiagnosticsInterval
                         },
                         WriterGroup = new WriterGroupModel {
-                            WriterGroupId = null,
+                            WriterGroupId = "LegacyPublisher",
                             DataSetWriters = new List<DataSetWriterModel> {
                                 new DataSetWriterModel {
-                                    DataSetWriterId = Guid.NewGuid().ToString(),
+                                    DataSetWriterId = "LegacyPublisher",//Guid.NewGuid().ToString(),
                                     DataSet = new PublishedDataSetModel {
                                         DataSetSource = dataSetSource.Clone()
                                     },
-                                    DataSetFieldContentMask = DataSetFieldContentMask.SourceTimestamp | 
-                                        DataSetFieldContentMask.ServerTimestamp | 
+                                    DataSetFieldContentMask = 
                                         DataSetFieldContentMask.StatusCode |
-                                        DataSetFieldContentMask.NodeId | 
+                                        DataSetFieldContentMask.SourceTimestamp |
+                                        DataSetFieldContentMask.ServerTimestamp |
+                                        DataSetFieldContentMask.NodeId |
+                                        DataSetFieldContentMask.DisplayName |
                                         DataSetFieldContentMask.ApplicationUri |
-                                        DataSetFieldContentMask.DisplayName,
+                                        DataSetFieldContentMask.EndpointUrl |
+                                        DataSetFieldContentMask.SubscriptionId |
+                                        DataSetFieldContentMask.ExtraFields,
                                     MessageSettings = new DataSetWriterMessageSettingsModel() {
-                                        DataSetMessageContentMask = DataSetContentMask.Timestamp | 
-                                        DataSetContentMask.MetaDataVersion | 
-                                        DataSetContentMask.Status | 
-                                        DataSetContentMask.DataSetWriterId | 
-                                        DataSetContentMask.MajorVersion | 
-                                        DataSetContentMask.MinorVersion | 
-                                        DataSetContentMask.SequenceNumber
+                                        DataSetMessageContentMask =
+                                            DataSetContentMask.Timestamp |
+                                            DataSetContentMask.MetaDataVersion |
+                                            DataSetContentMask.Status |
+                                            DataSetContentMask.DataSetWriterId |
+                                            DataSetContentMask.MajorVersion |
+                                            DataSetContentMask.MinorVersion |
+                                            DataSetContentMask.SequenceNumber
                                     }
                                 }
                             },
                             MessageSettings = new WriterGroupMessageSettingsModel() {
-                                NetworkMessageContentMask = NetworkMessageContentMask.PublisherId | 
-                                NetworkMessageContentMask.WriterGroupId | 
-                                NetworkMessageContentMask.SequenceNumber | 
-                                NetworkMessageContentMask.PayloadHeader | 
-                                NetworkMessageContentMask.NetworkMessageHeader |
-                                NetworkMessageContentMask.Timestamp | 
-                                NetworkMessageContentMask.DataSetMessageHeader
+                                NetworkMessageContentMask =
+                                    NetworkMessageContentMask.PublisherId |
+                                    NetworkMessageContentMask.WriterGroupId |
+                                    NetworkMessageContentMask.NetworkMessageNumber |
+                                    NetworkMessageContentMask.SequenceNumber |
+                                    NetworkMessageContentMask.PayloadHeader |
+                                    NetworkMessageContentMask.Timestamp |
+                                    NetworkMessageContentMask.DataSetClassId |
+                                    NetworkMessageContentMask.NetworkMessageHeader |
+                                    NetworkMessageContentMask.DataSetMessageHeader
                             }
                         }
                     }));

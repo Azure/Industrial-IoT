@@ -53,6 +53,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         EndpointUrl = message.EndpointUrl,
                         ExtensionFields = message.Writer?.DataSet?.ExtensionFields,
                         NodeId = notification.NodeId.ToExpandedNodeId(message.ServiceMessageContext.NamespaceUris),
+                        Timestamp = message.TimeStamp ?? DateTime.UtcNow,
                         Value = notification.Value,
                         DisplayName = notification.DisplayName
                     };
@@ -85,7 +86,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         SubscriptionId = message.SubscriptionId,
                         EndpointUrl = message.EndpointUrl,
                         ExtensionFields = message.Writer?.DataSet?.ExtensionFields,
-                        NodeId = notification.NodeId,
+                        NodeId = notification.NodeId.ToExpandedNodeId(message.ServiceMessageContext.NamespaceUris),
+                        Timestamp = message.TimeStamp ?? DateTime.UtcNow,
                         Value = notification.Value,
                         DisplayName = notification.DisplayName
                     };
