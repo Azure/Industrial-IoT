@@ -147,7 +147,7 @@ is an ASP.Net Core feature that is used by `frontend` component. It takes care o
 are used by the `frontend`.
 
 We use Azure Storage as
-[storage provider](https://docs.microsoft.com/aspnet/core/security/data-protection/implementation/key-storage-providers?view=aspnetcore-3.1&tabs=visual-studio#azure-storage)
+[storage provider](https://docs.microsoft.com/aspnet/core/security/data-protection/implementation/key-storage-providers?view=aspnetcore-3.1#azure-storage)
 for storing data protection keys, and as such we require an Azure Storage Container. You can specify the
 name of Azure Storage Container to be used for storing keys or the value will default to `dataprotection`.
 This Azure Storage Container will be created automatically (if it doesn't already exist) when `frontend`
@@ -536,7 +536,7 @@ values.
 ### External Service URL
 
 External Service URL is URL on which components of Azure Industrial IoT solution will be available externally.
-This property is required so that Publisher Edge Module can communicate with jobs orchestrator service
+This parameter is required so that Publisher Edge Module can communicate with jobs orchestrator service
 (`edgeJobs`) for reporting its status and requesting publisher jobs. If parameter is not set, then Publisher
 Edge Module will be presented with a Kubernetes internal URL, which will be accessible only from within
 Kubernetes cluster. Format of Kubernetes internal URL is `http://<service_name>.<namespace>:<service_port>`.
@@ -560,10 +560,10 @@ Kubernetes cluster. Format of Kubernetes internal URL is `http://<service_name>.
 | `serviceAccount.create` | If true, create and use ServiceAccount resources    | `true`  |
 | `serviceAccount.name`   | Name of the server service account to use or create | `null`  |
 
-### ASP.NET Core Configuration
+### Application Runtime Configuration
 
-Those are ASP.NET Core specific configuration parameters. They define the following aspects of application
-runtime for microservices:
+Those are application runtime configuration parameters, mostly ASP.NET Core specific. They define the
+following aspects of application runtime for microservices:
 
 * URL path base: this determines URL path base that specified microservice with an external APIs should
   run on. So for example, if the value for `registry` component is `/registry`, then a sample API path
@@ -575,22 +575,32 @@ runtime for microservices:
 * [Processing of forwarded headers](https://docs.microsoft.com/aspnet/core/host-and-deploy/proxy-load-balancer).
   This feature enables components with APIs to determine origin incoming HTTP requests.
 
-| Parameter                                  | Description                                                                      | Default          |
-|--------------------------------------------|----------------------------------------------------------------------------------|------------------|
-| `apps.urlPathBase.registry`                | URL path base for `registry` component                                           | `/registry`      |
-| `apps.urlPathBase.twin`                    | URL path base for `twin` component                                               | `/twin`          |
-| `apps.urlPathBase.history`                 | URL path base for `history` component                                            | `/history`       |
-| `apps.urlPathBase.gateway`                 | URL path base for `gateway` component                                            | `/ua`            |
-| `apps.urlPathBase.vault`                   | URL path base for `vault` component                                              | `/vault`         |
-| `apps.urlPathBase.onboarding`              | URL path base for `onboarding` component                                         | `/onboarding`    |
-| `apps.urlPathBase.publisher`               | URL path base for `publisher` component                                          | `/publisher`     |
-| `apps.urlPathBase.configuration`           | URL path base for `configuration` component                                      | `/configuration` |
-| `apps.urlPathBase.edgeManager`             | URL path base for `edgeManager` component                                        | `/edge/manage`   |
-| `apps.urlPathBase.frontend`                | URL path base for `frontend` component                                           | `/frontend`      |
-| `apps.urlPathBase.edgeJobs`                | URL path base for `edgeJobs` component                                           | `/edge/jobs`     |
-| `apps.urlPathBase.publisherJobs`           | URL path base for `publisherJobs` component                                      | `/jobs`          |
-| `apps.aspNetCore.forwardedHeaders.enabled` | Determines whether processing of HTTP forwarded headers should be enabled or not | `true`           |
-| `apps.aspNetCore.forwardedHeaders.enabled` | Determines limit on number of entries in HTTP forwarded headers                  | `1`              |
+* OpenAPI server host. If set, it determines OpenAPI (Swagger) server host that should be used for serving
+  OpenAPI definitions and performing API calls from Swagger UI. If the parameter is not set, then we will
+  use Host header of incoming request as server host for OpenAPI definitions and Swagger UI.
+
+  This value is useful, if services are behind a reverse proxy that does not properly apply HTTP forwarded
+  headers (X-Forwarded-*). In this case, our microservices will not be able to determine original host that
+  request came to to determine server host for OpenAPI definitions. So with this parameter you can enforce
+  value of server host that should be used.
+
+| Parameter                                       | Description                                                                      | Default          |
+|-------------------------------------------------|----------------------------------------------------------------------------------|------------------|
+| `apps.urlPathBase.registry`                     | URL path base for `registry` component                                           | `/registry`      |
+| `apps.urlPathBase.twin`                         | URL path base for `twin` component                                               | `/twin`          |
+| `apps.urlPathBase.history`                      | URL path base for `history` component                                            | `/history`       |
+| `apps.urlPathBase.gateway`                      | URL path base for `gateway` component                                            | `/ua`            |
+| `apps.urlPathBase.vault`                        | URL path base for `vault` component                                              | `/vault`         |
+| `apps.urlPathBase.onboarding`                   | URL path base for `onboarding` component                                         | `/onboarding`    |
+| `apps.urlPathBase.publisher`                    | URL path base for `publisher` component                                          | `/publisher`     |
+| `apps.urlPathBase.configuration`                | URL path base for `configuration` component                                      | `/configuration` |
+| `apps.urlPathBase.edgeManager`                  | URL path base for `edgeManager` component                                        | `/edge/manage`   |
+| `apps.urlPathBase.frontend`                     | URL path base for `frontend` component                                           | `/frontend`      |
+| `apps.urlPathBase.edgeJobs`                     | URL path base for `edgeJobs` component                                           | `/edge/jobs`     |
+| `apps.urlPathBase.publisherJobs`                | URL path base for `publisherJobs` component                                      | `/jobs`          |
+| `apps.aspNetCore.forwardedHeaders.enabled`      | Determines whether processing of HTTP forwarded headers should be enabled or not | `true`           |
+| `apps.aspNetCore.forwardedHeaders.forwardLimit` | Determines limit on number of entries in HTTP forwarded headers                  | `1`              |
+| `apps.openApi.serverHost`                       | Determines OpenAPI (Swagger) server host                                         | `null`           |
 
 ### Deployed Components
 
