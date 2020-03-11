@@ -30,11 +30,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <param name="logger"></param>
         /// <param name="config"></param>
         /// <param name="cryptoProvider"></param>
-        public PublishedNodesJobConverter(ILogger logger,
+        /// <param name="identity"></param>
+        public PublishedNodesJobConverter(ILogger logger, IIdentity identity,
             IEngineConfiguration config = null, ISecureElement cryptoProvider = null) {
             _config = config;
             _cryptoProvider = cryptoProvider;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _identity = identity ?? throw new ArgumentNullException(nameof(identity));
         }
 
         /// <summary>
@@ -126,10 +128,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                             DiagnosticsInterval = _config.DiagnosticsInterval
                         },
                         WriterGroup = new WriterGroupModel {
-                            WriterGroupId = "LegacyPublisher",
+                            WriterGroupId = _identity.DeviceId + "_"+ _identity.ModuleId,
                             DataSetWriters = new List<DataSetWriterModel> {
                                 new DataSetWriterModel {
-                                    DataSetWriterId = "LegacyPublisher",//Guid.NewGuid().ToString(),
+                                    DataSetWriterId = _identity.DeviceId + "_"+ _identity.ModuleId,
                                     DataSet = new PublishedDataSetModel {
                                         DataSetSource = dataSetSource.Clone()
                                     },
@@ -351,5 +353,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         private readonly IEngineConfiguration _config;
         private readonly ISecureElement _cryptoProvider;
         private readonly ILogger _logger;
+        private readonly IIdentity _identity;
     }
 }
