@@ -876,7 +876,7 @@ that consumers such as Power Apps and Power BI can access the data and metadata.
 enable `telemetryCdmProcessor` to use this feature, since it is disabled by default.
 
 Please note, that `telemetryCdmProcessor` requires authentication to be enabled. It also requires additional
-API permissions for `ServicesApp` AAD App Registration. Namely, it need Delegated `user_impersonation`
+API permissions for `ServicesApp` AAD App Registration. Namely, it needs Delegated `user_impersonation`
 permission on `Azure Storage`. Please follow these steps to
 [add API permissions](https://docs.microsoft.com/graph/notifications-integration-app-registration#api-permissions).
 
@@ -885,4 +885,51 @@ Here is a tutorial on
 
 ### Swagger
 
-ToDo
+Ten of our components provide Swagger interfaces for trying out APIs. URL path for Swagger has the
+following general structure:
+
+`/<url_path_base>/swagger/index.html`
+
+Note that `<url_path_base>` above corresponds to value of `apps.urlPathBase.<component_name>` parameter
+of `values.yaml`. Consult [Application Runtime Configuration](#application-runtime-configuration) for
+default values for components.
+
+To open Swagger UI for a specific component you can:
+
+* Use [kubectl port-forward](https://kubernetes.io/docs/tasks/access-application-cluster/port-forward-access-application-cluster/#forward-a-local-port-to-a-port-on-the-pod)
+  to forward local port to a port on the Service or Pod. For example, for `registry` Service the command
+  would look something like this:
+
+  ```bash
+  $ kubectl port-forward --namespace azure-iiot-ns svc/aiiot-registry 9042
+  ```
+
+  Then you can access Swagger UI for `registry` component on the following URL:
+  `http://localhost:9042/registry/swagger/index.html`
+
+* If Ingress is enabled, Swagger UI can be access with Ingress address. You can get the address with
+  a command like this:
+
+  ```bash
+  $ kubectl get ingresses --namespace azure-iiot-ns
+  NAME            HOSTS   ADDRESS         PORTS   AGE
+  aiiot-ingress   *       40.XXX.XX.XXX   80      26d
+  ```
+
+  Then, if the Ingress address is accessible from your network, you can access Swagger UI for `registry`
+  component on the following URL: `https://40.XXX.XX.XXX/registry/swagger/index.html`
+
+Here is the full list of components with Swagger UIs:
+
+| Component       | Default Swagger UI Path             |
+|-----------------|-------------------------------------|
+| `registry`      | `/registry/swagger/index.html`      |
+| `twin`          | `/twin/swagger/index.html`          |
+| `history`       | `/history/swagger/index.html`       |
+| `vault`         | `/vault/swagger/index.html`         |
+| `onboarding`    | `/onboarding/swagger/index.html`    |
+| `publisher`     | `/publisher/swagger/index.html`     |
+| `configuration` | `/configuration/swagger/index.html` |
+| `edgeManager`   | `/edge/manage/swagger/index.html`   |
+| `edgeJobs`      | `/edge/jobs/swagger/index.html`     |
+| `publisherJobs` | `/jobs/swagger/index.html`          |
