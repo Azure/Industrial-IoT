@@ -334,13 +334,13 @@
 					}
 				},
 				"url": {
-					"raw": "https://{{OPC-SERVICEURL}}/twin/v2/publish/uat89dfa72f7e9679b3e217411261b57ea7e082349f",
+					"raw": "https://{{OPC-SERVICEURL}}/publisher/v2/publish/uat89dfa72f7e9679b3e217411261b57ea7e082349f",
 					"protocol": "https",
 					"host": [
 						"{{OPC-SERVICEURL}}"
 					],
 					"path": [
-						"twin",
+						"publisher",
 						"v2",
 						"publish",
 						"uat89dfa72f7e9679b3e217411261b57ea7e082349f"
@@ -371,13 +371,13 @@
 					}
 				},
 				"url": {
-					"raw": "https://{{OPC-SERVICEURL}}/twin/v2/publish/uat89dfa72f7e9679b3e217411261b57ea7e082349f/start",
+					"raw": "https://{{OPC-SERVICEURL}}/publisher/v2/publish/uat89dfa72f7e9679b3e217411261b57ea7e082349f/start",
 					"protocol": "https",
 					"host": [
 						"{{OPC-SERVICEURL}}"
 					],
 					"path": [
-						"twin",
+						"publisher",
 						"v2",
 						"publish",
 						"uat89dfa72f7e9679b3e217411261b57ea7e082349f",
@@ -425,12 +425,12 @@
 			"response": []
 		},
 		{
-			"name": "Registry - Get Supervisors",
+			"name": "Registry - Get Discoverers",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "https://{{OPC-SERVICEURL}}/registry/v2/applications",
+					"raw": "https://{{OPC-SERVICEURL}}/registry/v2/discoverers",
 					"protocol": "https",
 					"host": [
 						"{{OPC-SERVICEURL}}"
@@ -438,7 +438,7 @@
 					"path": [
 						"registry",
 						"v2",
-						"applications"
+						"discoverers"
 					]
 				}
 			},

@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <summary>
         /// Current path
         /// </summary>
-        public string Path { get; set; }
+        public List<string> Path { get; set; }
         public MethodMetadataResponseApiModel Parameter { get; set; }
         public MethodCallResponseApiModel MethodCallResponse { get; set; }
 
@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="direction"></param>
         /// <returns>ListNode</returns>
         public async Task<PagedResult<ListNode>> GetTreeAsync(string endpointId,
-            string id, List<string> parentId, string discovererId, BrowseDirection direction) {
+            string id, List<string> parentId, string discovererId, BrowseDirection direction, int index) {
             var pageResult = new PagedResult<ListNode>();
             var model = new BrowseRequestApiModel {
                 TargetNodesOnly = true,
@@ -56,11 +56,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 model.MaxReferencesToReturn = _MAX_REFERENCES;
                 model.NodeId = id;
                 if (id == string.Empty) {
-                    Path = string.Empty;
+                    Path = new List<string>(); 
                 }
             }
             else {
-                model.NodeId = parentId.ElementAt(parentId.Count - 2);
+                model.NodeId = parentId.ElementAt(index - 1);
             }
 
             try {
@@ -72,11 +72,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
                 if (direction == BrowseDirection.Forward) {
                     parentId.Add(browseData.Node.NodeId);
-                    Path += "/" + browseData.Node.DisplayName;
+                    Path.Add(browseData.Node.DisplayName);
                 }
                 else {
                     parentId.RemoveAt(parentId.Count - 1);
-                    Path = Path.Substring(0, Path.LastIndexOf("/"));
+                    Path.RemoveRange(index, Path.Count - index);
                 }
 
                 do {
