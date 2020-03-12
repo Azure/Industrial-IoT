@@ -32,7 +32,6 @@ azure:
       # azure.iotHub.eventHub.endpoint is Event Hub-compatible endpoint of built-in EventHub of IoT Hub.
       endpoint: null
 
-      # ToDo: Document creation and use of the consumer groups.
       # Details of two consumer groups that are required by microservices.
       # NOTE: consumer groups should have different values.
       consumerGroup:
@@ -64,7 +63,6 @@ azure:
     container:
       # Details of Azure Storage Account Container that should be used for data protection feature.
       dataProtection:
-        # ToDo: Document creation of the container. And the fact that 'dataprotection' container will be created if not set.
         # azure.storageAccount.container.dataProtection.name is the name of Storage Account Container that holds encrypted keys.
         # NOTE: If azure.storageAccount.container.dataProtection.name is not specifid, then a container named 'dataprotection' will be created.
         name: dataprotection
@@ -103,7 +101,6 @@ azure:
       # azure.eventHubNamespace.eventHub.name is the name of the Event Hub within the Namespace that should be used.
       name: null
 
-      # ToDo: Document creation and use of the consumer groups.
       # Details of two consumer groups that are required by microservices.
       # NOTE: consumer groups should have different values.
       consumerGroup:
@@ -126,7 +123,6 @@ azure:
     uri: null
 
     key:
-      # ToDo: Document creation of the key.
       # azure.keyVault.key.dataProtection is the key in Key Vault that should be used for encryption of keys in data protection Storage Account Container.
       # NOTE: If azure.keyVault.key.dataProtection is not specified, then a key named 'dataprotection' will be created.
       dataProtection: dataprotection
@@ -552,6 +548,7 @@ deployment:
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
+    # deployment.microServices.publisher contains values specific to yaml definitions of deployment and service kubernetes resources for opc-publisher-service.
     publisher:
       enabled: true
       deploymentAnnotations: {}
@@ -588,6 +585,7 @@ deployment:
         loadBalancerSourceRanges: []
         nodePort: null
 
+    # deployment.microServices.configuration contains values specific to yaml definitions of deployment and service kubernetes resources for configuration service.
     configuration:
       enabled: true
       deploymentAnnotations: {}
@@ -624,6 +622,7 @@ deployment:
         loadBalancerSourceRanges: []
         nodePort: null
 
+    # deployment.microServices.edgeManager contains values specific to yaml definitions of deployment and service kubernetes resources for edge management service.
     edgeManager:
       enabled: true
       deploymentAnnotations: {}
@@ -660,6 +659,7 @@ deployment:
         loadBalancerSourceRanges: []
         nodePort: null
 
+    # deployment.microServices.eventsProcessor contains values specific to yaml definitions of deployment and service kubernetes resources for edge event processor.
     eventsProcessor:
       enabled: true
       deploymentAnnotations: {}
@@ -682,13 +682,7 @@ deployment:
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
-    # For the frontend to work we require data protection feature. That, in turn, requires you to have
-    # some additional auth details. So it might make sense to allow frontend only if auth is enabled.
-    # frontned relies on the following env vars:
-    #   - PCS_KEYVAULT_KEY_DATAPROTECTION
-    #   - PCS_STORAGE_CONTAINER_DATAPROTECTION
-    #   - PCS_KEYVAULT_APPID
-    #   - PCS_KEYVAULT_SECRET
+    # deployment.microServices.frontend contains values specific to yaml definitions of deployment and service kubernetes resources for frontend service.
     # NOTE: frontend can be enabled only if authentication is enabled and auth details are provided.
     frontend:
       enabled: false
@@ -728,6 +722,7 @@ deployment:
         httpNodePort: null
         httpsNodePort: null
 
+    # deployment.microServices.identity contains values specific to yaml definitions of deployment and service kubernetes resources for identity agent.
     identity:
       enabled: true
       deploymentAnnotations: {}
@@ -750,6 +745,7 @@ deployment:
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
+    # deployment.microServices.edgeJobs contains values specific to yaml definitions of deployment and service kubernetes resources for jobs-orchestrator-service.
     edgeJobs:
       enabled: true
       deploymentAnnotations: {}
@@ -786,6 +782,7 @@ deployment:
         loadBalancerSourceRanges: []
         nodePort: null
 
+    # deployment.microServices.publisherJobs contains values specific to yaml definitions of deployment and service kubernetes resources for publisherJobs service.
     publisherJobs:
       enabled: true
       deploymentAnnotations: {}
@@ -822,6 +819,7 @@ deployment:
         loadBalancerSourceRanges: []
         nodePort: null
 
+    # deployment.microServices.telemetryCdmProcessor contains values specific to yaml definitions of deployment and service kubernetes resources for telemetry cdm processor.
     # NOTE: telemetryCdmProcessor can be enabled only if authentication is enabled and auth details are provided.
     telemetryCdmProcessor:
       enabled: false
@@ -845,6 +843,7 @@ deployment:
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
+    # deployment.microServices.telemetryProcessor contains values specific to yaml definitions of deployment and service kubernetes resources for edge telemetry processor.
     telemetryProcessor:
       enabled: true
       deploymentAnnotations: {}
@@ -867,6 +866,7 @@ deployment:
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
+    # deployment.microServices.telemetryUxProcessor contains values specific to yaml definitions of deployment and service kubernetes resources for SignalR telemetry forwarder.
     telemetryUxProcessor:
       enabled: true
       deploymentAnnotations: {}
@@ -889,6 +889,7 @@ deployment:
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
+    # deployment.microServices.registryEventsForwarder contains values specific to yaml definitions of deployment and service kubernetes resources for registry event publisher agent.
     registryEventsForwarder:
       enabled: true
       deploymentAnnotations: {}
