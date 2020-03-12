@@ -465,17 +465,19 @@ having those for non-production deployments as well, particularly if you have en
 ```bash
 $ helm install azure-iiot azure-iiot/azure-industrial-iot -n azure-iiot-ns \
   --set azure.tenantId=<TenantId> \
-  --set azure.iotHub.name=<IoTHubName> \
   --set azure.iotHub.eventHub.endpoint=<IoTHubEventHubEndpoint> \
-  --set azure.iotHub.eventHub.partitionCount=<IoTHubEventHubPartitions> \
-  --set azure.iotHub.eventHub.consumerGroup=<IoTHubEventHubConsumerGroup> \
+  --set azure.iotHub.eventHub.consumerGroup.events=<IoTHubEventHubEventsConsumerGroup> \
+  --set azure.iotHub.eventHub.consumerGroup.telemetry=<IoTHubEventHubTelemetryConsumerGroup> \
   --set azure.iotHub.sharedAccessPolicies.iothubowner.connectionString=<IoTHubConnectionString> \
   --set azure.cosmosDB.connectionString=<CosmosDBConnectionString> \
-  --set azure.storageAccount.name=<StorageAccountName> \
-  --set azure.storageAccount.accessKey=<StorageAccountAccessKey> \
+  --set azure.storageAccount.connectionString=<StorageAccountConnectionString> \
   --set azure.eventHubNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString=<EventHubNamespaceConnectionString> \
+  --set azure.eventHubNamespace.eventHub.name=<EventHubName> \
+  --set azure.eventHubNamespace.eventHub.consumerGroup.telemetryCdm=<EventHubTelemetryCdmConsumerGroup> \
+  --set azure.eventHubNamespace.eventHub.consumerGroup.telemetryUx=<EventHubTelemetryUxConsumerGroup> \
   --set azure.serviceBusNamespace.sharedAccessPolicies.rootManageSharedAccessKey.connectionString=<ServiceBusNamespaceConnectionString> \
   --set azure.keyVault.uri=<KeyVaultURI> \
+  --set azure.signalR.connectionString=<SignalRConnectionString> \
   --set azure.auth.required=false
 ```
 
@@ -766,7 +768,7 @@ in `values.yaml`. Note that Ingress is disabled by default.
 > **NOTE:** `deployment.ingress.paths` values here should be aligned with value of `apps.urlPathBase`. They are separated because one might want to have a regex in Ingress paths.
 
 If you are using [NGINX Ingress Controller](https://www.nginx.com/products/nginx/kubernetes-ingress-controller/),
-below are reference values for `deployment.ingress`. Please check 
+below are reference values for `deployment.ingress`. Please check
 [special notes on NGINX Ingress Controller](#nginx-ingress-controller) for more details.
 
 ```yaml
