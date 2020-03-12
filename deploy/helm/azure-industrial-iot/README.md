@@ -35,6 +35,7 @@ enabled servers in a factory network, register them in Azure IoT Hub and start c
     * [Ingress Resource Configuration](#ingress-resource-configuration)
   * [Minimal Configuration](#minimal-configuration)
 * [Special Notes](#special-notes)
+  * [Resource Requests And Limits](#resource-requests-and-limits)
   * [Data Protection](#data-protection)
   * [Common Data Model](#common-data-model)
   * [Swagger](#swagger)
@@ -840,6 +841,13 @@ azure:
 ```
 
 ## Special Notes
+
+### Resource Requests And Limits
+
+Helm chart does not set any [resource requests or limits](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/)
+for Pod Containers. We recommend to set memory requests to at least `"64Mi"` and cpu requests to at least
+`"20m"`. If you set resource limits, be informed that some components might require up to `"256Mi"` of
+memory, such as `frontend`, `registry`, `publisher` and a few others.
 
 ### Data Protection
 
