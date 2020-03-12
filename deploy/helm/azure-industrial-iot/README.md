@@ -448,6 +448,8 @@ The following details of the Azure Storage account would be required:
 
 ## Installing the Chart
 
+This chart installs `2.6.104` version of components by default.
+
 To install the chart first ensure that you have added `azure-iiot` repository:
 
 ```bash
@@ -719,7 +721,7 @@ micro-service.
 Please note that the only parameter that has different values for different components is `port`.
 Those are the service ports exposed by components:
 
-| Configuration Parameter for Components                | Default service port |
+| Configuration Parameter for Components                | Default Service Port |
 |-------------------------------------------------------|----------------------|
 | `deployment.microServices.registry.service.port`      | `9042`               |
 | `deployment.microServices.twin.service.port`          | `9041`               |
@@ -939,18 +941,18 @@ To open Swagger UI for a specific component you can:
 
 Here is the full list of components with Swagger UIs:
 
-| Component       | Default Swagger UI Path             |
-|-----------------|-------------------------------------|
-| `registry`      | `/registry/swagger/index.html`      |
-| `twin`          | `/twin/swagger/index.html`          |
-| `history`       | `/history/swagger/index.html`       |
-| `vault`         | `/vault/swagger/index.html`         |
-| `onboarding`    | `/onboarding/swagger/index.html`    |
-| `publisher`     | `/publisher/swagger/index.html`     |
-| `configuration` | `/configuration/swagger/index.html` |
-| `edgeManager`   | `/edge/manage/swagger/index.html`   |
-| `edgeJobs`      | `/edge/jobs/swagger/index.html`     |
-| `publisherJobs` | `/jobs/swagger/index.html`          |
+| Component       | Default Service Port | Default Swagger UI Path             |
+|-----------------|----------------------|-------------------------------------|
+| `registry`      | `9042`               | `/registry/swagger/index.html`      |
+| `twin`          | `9041`               | `/twin/swagger/index.html`          |
+| `history`       | `9043`               | `/history/swagger/index.html`       |
+| `vault`         | `9044`               | `/vault/swagger/index.html`         |
+| `onboarding`    | `9060`               | `/onboarding/swagger/index.html`    |
+| `publisher`     | `9045`               | `/publisher/swagger/index.html`     |
+| `configuration` | `9050`               | `/configuration/swagger/index.html` |
+| `edgeManager`   | `9047`               | `/edge/manage/swagger/index.html`   |
+| `edgeJobs`      | `9051`               | `/edge/jobs/swagger/index.html`     |
+| `publisherJobs` | `9046`               | `/jobs/swagger/index.html`          |
 
 ### NGINX Ingress Controller
 
