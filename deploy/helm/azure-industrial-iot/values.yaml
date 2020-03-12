@@ -919,6 +919,12 @@ deployment:
     #
     # annotations:
     #   kubernetes.io/ingress.class: nginx
+    #   nginx.ingress.kubernetes.io/affinity: cookie
+    #   nginx.ingress.kubernetes.io/session-cookie-name: affinity
+    #   nginx.ingress.kubernetes.io/session-cookie-expires: "14400"
+    #   nginx.ingress.kubernetes.io/session-cookie-max-age: "14400"
+    #   nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    #   nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
     annotations: {}
 
     # host for the Ingress. We do not support multiple hosts at the moment.

@@ -38,6 +38,7 @@ enabled servers in a factory network, register them in Azure IoT Hub and start c
   * [Data Protection](#data-protection)
   * [Common Data Model](#common-data-model)
   * [Swagger](#swagger)
+  * [NGINX Ingress Controller](#nginx-ingress-controller)
 
 ## Introduction
 
@@ -764,7 +765,8 @@ in `values.yaml`. Note that Ingress is disabled by default.
 > **NOTE:** `deployment.ingress.paths` values here should be aligned with value of `apps.urlPathBase`. They are separated because one might want to have a regex in Ingress paths.
 
 If you are using [NGINX Ingress Controller](https://www.nginx.com/products/nginx/kubernetes-ingress-controller/),
-here are reference values for `deployment.ingress`:
+below are reference values for `deployment.ingress`. Please check 
+[special notes on NGINX Ingress Controller](#nginx-ingress-controller) for more details.
 
 ```yaml
 deployment:
@@ -772,6 +774,12 @@ deployment:
     enabled: true
     annotations:
       kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/affinity: cookie
+      nginx.ingress.kubernetes.io/session-cookie-name: affinity
+      nginx.ingress.kubernetes.io/session-cookie-expires: "14400"
+      nginx.ingress.kubernetes.io/session-cookie-max-age: "14400"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
 ```
 
 ### Minimal Configuration
@@ -933,3 +941,75 @@ Here is the full list of components with Swagger UIs:
 | `edgeManager`   | `/edge/manage/swagger/index.html`   |
 | `edgeJobs`      | `/edge/jobs/swagger/index.html`     |
 | `publisherJobs` | `/jobs/swagger/index.html`          |
+
+### NGINX Ingress Controller
+
+We tested Azure Industrial IoT solution with NGINX Ingress Controller. And it required a few configuration
+tweaks to make Ingress work smoothly.
+
+#### ConfigMap
+
+The following values need to be added to NGINX Ingress Controller
+[ConfigMap](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/).
+
+```json
+  "data": {
+    "use-forward-headers": "true",
+    "compute-full-forward-for": "true",
+    "proxy-buffer-size": "32k",
+    "client-header-buffer-size": "32k"
+  }
+```
+
+This configuration makes sure that:
+
+* processing of forwarded headers is enabled:
+  * [`use-forward-headers`](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#use-forwarded-headers)
+  * [`compute-full-forward-for`](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#compute-full-forwarded-for)
+  
+* authentication response from Azure AAD is delivered to components:
+  * [`proxy-buffer-size`](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#proxy-buffer-size)
+
+* WebSocket connection is initialized and working properly for [Blazor](https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor).
+  Blazor is framework that we use in `frontend` component.
+  * [`client-header-buffer-size`](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#client-header-buffer-size)
+
+#### Ingress Annotations
+
+We recommend setting the following addition [Ingress annotations](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/)
+through `deployment.ingress.annotations` in `values.yaml` if you are using NGINX Ingress Controller. Note
+that `nginx.ingress.kubernetes.io/*` annotations are there to enable smooth functionality of `frontend`
+component. If `frontend` is not enabled, you can omit those and only keep `kubernetes.io/ingress.class: nginx`.
+
+```yaml
+deployment:
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/affinity: cookie
+      nginx.ingress.kubernetes.io/session-cookie-name: affinity
+      nginx.ingress.kubernetes.io/session-cookie-expires: "14400"
+      nginx.ingress.kubernetes.io/session-cookie-max-age: "14400"
+      nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+      nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+```
+
+These annotations make sure that:
+
+* Sticky sessions are enabled. This is required for Blazor:
+  * [`nginx.ingress.kubernetes.io/affinity`](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#session-affinity)
+  * [`nginx.ingress.kubernetes.io/session-cookie-name`](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#cookie-affinity)
+  * [`nginx.ingress.kubernetes.io/session-cookie-expires`](https://kubernetes.github.io/ingress-nginx/examples/affinity/cookie/)
+  * [`nginx.ingress.kubernetes.io/session-cookie-max-age`](https://kubernetes.github.io/ingress-nginx/examples/affinity/cookie/)
+
+  Here are Microsoft recommendations for [hosting a Blazor server in Kubernetes](https://docs.microsoft.com/aspnet/core/host-and-deploy/blazor/server?view=aspnetcore-3.1#kubernetes).
+
+  Here are general NGINX Ingress Controller [Ingress Annotations for sticky sessions](https://kubernetes.github.io/ingress-nginx/examples/affinity/cookie/).
+
+* WebSocket connection is kept alive. For this we set [adequate timeout values](https://kubernetes.github.io/ingress-nginx/user-guide/miscellaneous/#websockets) for:
+  * [`nginx.ingress.kubernetes.io/proxy-read-timeout`](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#custom-timeouts)
+  * [`nginx.ingress.kubernetes.io/proxy-send-timeout`](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/#custom-timeouts)
+
+  Here are general NGINX Ingress Controller
+  [recommendations for WebSocket](https://kubernetes.github.io/ingress-nginx/user-guide/miscellaneous/#websockets).
