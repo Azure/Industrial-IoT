@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using System.Threading.Tasks;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Serilog;
@@ -28,11 +29,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         /// <param name="legacyCliModelProvider">The provider that provides the legacy command line arguments.</param>
         /// <param name="jobSerializer">The serializer to (de)serialize job information.</param>
         /// <param name="logger">Logger to write log messages.</param>
-        public LegacyJobOrchestrator(PublishedNodesJobConverter publishedNodesJobConverter, ILegacyCliModelProvider legacyCliModelProvider, IJobSerializer jobSerializer, ILogger logger) {
-            _publishedNodesJobConverter = publishedNodesJobConverter;
-            _legacyCliModel = legacyCliModelProvider.LegacyCliModel;
-            _jobSerializer = jobSerializer;
-            _logger = logger;
+        /// <param name="identity">Module's identity provider.</param>
+
+        public LegacyJobOrchestrator(PublishedNodesJobConverter publishedNodesJobConverter, 
+            ILegacyCliModelProvider legacyCliModelProvider, IJobSerializer jobSerializer, 
+            ILogger logger, IIdentity identity) {
+            _publishedNodesJobConverter = publishedNodesJobConverter
+                ?? throw new ArgumentNullException(nameof(publishedNodesJobConverter));
+            _legacyCliModel = legacyCliModelProvider.LegacyCliModel 
+                    ?? throw new ArgumentNullException(nameof(legacyCliModelProvider));
+            _jobSerializer = jobSerializer ?? throw new ArgumentNullException(nameof(jobSerializer));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _identity = identity ?? throw new ArgumentNullException(nameof(identity));
 
             var directory = Path.GetDirectoryName(_legacyCliModel.PublishedNodesFile);
 
@@ -130,11 +138,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             _jobProcessingInstructionModel = new JobProcessingInstructionModel {
                                 Job = new JobInfoModel {
                                     Demands = new List<DemandModel>(),
-                                    Id = "LegacyJob",
+                                    Id = "LegacyJob" + "_" + _identity.DeviceId +"_" +_identity.ModuleId,
                                     JobConfiguration = serializedJob,
                                     JobConfigurationType = jobConfigurationType,
                                     LifetimeData = new JobLifetimeDataModel(),
-                                    Name = "LegacyJob",
+                                    Name = "LegacyJob" + "_" + _identity.DeviceId + "_" + _identity.ModuleId,
                                     RedundancyConfig = new RedundancyConfigModel {DesiredActiveAgents = 1, DesiredPassiveAgents = 0}
                                 },
                                 ProcessMode = ProcessMode.Active
@@ -163,6 +171,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         private readonly FileSystemWatcher _fileSystemWatcher;
         private readonly IJobSerializer _jobSerializer;
         private readonly LegacyCliModel _legacyCliModel;
+        private readonly IIdentity _identity;
         private readonly ILogger _logger;
 
         private readonly PublishedNodesJobConverter _publishedNodesJobConverter;

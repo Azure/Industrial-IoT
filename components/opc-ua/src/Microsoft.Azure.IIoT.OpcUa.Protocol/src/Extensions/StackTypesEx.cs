@@ -614,13 +614,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="encoding"></param>
         /// <returns></returns>
         public static uint ToStackType(this NetworkMessageContentMask? mask, MessageEncoding? encoding) {
+            if (mask == null) {
+                mask =
+                    NetworkMessageContentMask.NetworkMessageHeader |
+                    NetworkMessageContentMask.NetworkMessageNumber |
+                    NetworkMessageContentMask.DataSetMessageHeader |
+                    NetworkMessageContentMask.PublisherId |
+                    NetworkMessageContentMask.DataSetClassId;
+            }
             switch (encoding) {
                 case MessageEncoding.Uadp:
-                    return (uint)mask.ToUadpStackType();
+                    return (uint)ToUadpStackType(mask.Value);
                 case MessageEncoding.Json:
-                    return (uint)mask.ToJsonStackType();
+                    return (uint)ToJsonStackType(mask.Value);
             }
-            return (uint)mask.ToJsonStackType();
+            return (uint)ToJsonStackType(mask.Value);
         }
 
         /// <summary>
@@ -630,13 +638,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="encoding"></param>
         /// <returns></returns>
         public static uint ToStackType(this DataSetContentMask? mask, MessageEncoding? encoding) {
+            if (mask == null) {
+                mask =
+                    DataSetContentMask.DataSetWriterId |
+                    DataSetContentMask.MetaDataVersion |
+                    DataSetContentMask.MajorVersion |
+                    DataSetContentMask.MinorVersion |
+                    DataSetContentMask.SequenceNumber |
+                    DataSetContentMask.Timestamp |
+                    DataSetContentMask.Status;
+            }
             switch (encoding) {
                 case MessageEncoding.Uadp:
-                    return (uint)mask.ToUadpStackType();
+                    return (uint)ToUadpStackType(mask.Value);
                 case MessageEncoding.Json:
-                    return (uint)mask.ToJsonStackType();
+                    return (uint)ToJsonStackType(mask.Value);
             }
-            return (uint)mask.ToJsonStackType();
+            return (uint)ToJsonStackType(mask.Value);
         }
 
         /// <summary>
@@ -644,15 +662,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="mask"></param>
         /// <returns></returns>
-        public static JsonNetworkMessageContentMask ToJsonStackType(this NetworkMessageContentMask? mask) {
-            if (mask == null) {
-                mask =
-                    NetworkMessageContentMask.NetworkMessageHeader |
-                    NetworkMessageContentMask.DataSetMessageHeader |
-                    NetworkMessageContentMask.PublisherId |
-                    NetworkMessageContentMask.DataSetClassId;
-            }
-            JsonNetworkMessageContentMask result = 0;
+        private static JsonNetworkMessageContentMask ToJsonStackType(this NetworkMessageContentMask mask) {
+            var result = JsonNetworkMessageContentMask.None;
             if (0 != (mask & NetworkMessageContentMask.PublisherId)) {
                 result |= JsonNetworkMessageContentMask.PublisherId;
             }
@@ -679,15 +690,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="mask"></param>
         /// <returns></returns>
-        public static JsonDataSetMessageContentMask ToJsonStackType(this DataSetContentMask? mask) {
-            if (mask == null) {
-                mask =
-                    DataSetContentMask.DataSetWriterId |
-                    DataSetContentMask.MetaDataVersion |
-                    DataSetContentMask.MajorVersion |
-                    DataSetContentMask.MinorVersion |
-                    DataSetContentMask.SequenceNumber;
-            }
+        private static JsonDataSetMessageContentMask ToJsonStackType(this DataSetContentMask mask) {
             var result = JsonDataSetMessageContentMask.None;
             if (0 != (mask & DataSetContentMask.Timestamp)) {
                 result |= JsonDataSetMessageContentMask.Timestamp;
@@ -706,20 +709,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             }
             return result;
         }
+
         /// <summary>
         /// Get network message content mask
         /// </summary>
         /// <param name="mask"></param>
         /// <returns></returns>
-        public static UadpNetworkMessageContentMask ToUadpStackType(this NetworkMessageContentMask? mask) {
-            if (mask == null) {
-                mask =
-                    NetworkMessageContentMask.NetworkMessageHeader |
-                    NetworkMessageContentMask.DataSetMessageHeader |
-                    NetworkMessageContentMask.PublisherId |
-                    NetworkMessageContentMask.DataSetClassId;
-            }
-            UadpNetworkMessageContentMask result = 0;
+        private static UadpNetworkMessageContentMask ToUadpStackType(this NetworkMessageContentMask mask) {
+            var result = UadpNetworkMessageContentMask.None;
             if (0 != (mask & NetworkMessageContentMask.PublisherId)) {
                 result |= UadpNetworkMessageContentMask.PublisherId;
             }
@@ -761,15 +758,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// </summary>
         /// <param name="mask"></param>
         /// <returns></returns>
-        public static UadpDataSetMessageContentMask ToUadpStackType(this DataSetContentMask? mask) {
-            if (mask == null) {
-                mask =
-                    DataSetContentMask.DataSetWriterId |
-                    DataSetContentMask.MetaDataVersion |
-                    DataSetContentMask.MajorVersion |
-                    DataSetContentMask.MinorVersion |
-                    DataSetContentMask.SequenceNumber;
-            }
+        private static UadpDataSetMessageContentMask ToUadpStackType(this DataSetContentMask mask) {
             var result = UadpDataSetMessageContentMask.None;
             if (0 != (mask & DataSetContentMask.Timestamp)) {
                 result |= UadpDataSetMessageContentMask.Timestamp;
@@ -806,7 +795,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                     DataSetFieldContentMask.ServerPicoSeconds |
                     DataSetFieldContentMask.ServerTimestamp;
             }
-            UaDataSetFieldContentMask result = 0;
+            var result = UaDataSetFieldContentMask.None;
             if (0 != (mask & DataSetFieldContentMask.StatusCode)) {
                 result |= UaDataSetFieldContentMask.StatusCode;
             }

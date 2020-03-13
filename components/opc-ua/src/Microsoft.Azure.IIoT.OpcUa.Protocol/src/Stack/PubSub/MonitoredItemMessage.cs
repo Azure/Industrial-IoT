@@ -44,6 +44,11 @@ namespace Opc.Ua.PubSub {
         public string DisplayName { get; set; }
 
         /// <summary>
+        /// Timestamp assigned by publisher 
+        /// </summary>
+        public DateTime Timestamp { get; set; }
+
+        /// <summary>
         /// Data value for variable change notification
         /// </summary>
         public DataValue Value { get; set; }
@@ -69,8 +74,6 @@ namespace Opc.Ua.PubSub {
                 NodeId = decoder.ReadExpandedNodeId(nameof(MonitoredItemMessageContentMask.NodeId));
             }
             Value = new DataValue();
-            
-            // todo check why Value is not encoded as DataValue type
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ServerTimestamp) != 0) {
                 Value.ServerTimestamp = decoder.ReadDateTime(nameof(MonitoredItemMessageContentMask.ServerTimestamp));
             }
@@ -102,14 +105,12 @@ namespace Opc.Ua.PubSub {
                 DisplayName = decoder.ReadString(nameof(MonitoredItemMessageContentMask.DisplayName));
             }
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) != 0) {
-                var timestamp = decoder.ReadDateTime(nameof(MonitoredItemMessageContentMask.Timestamp));
+                Timestamp = decoder.ReadDateTime(nameof(MonitoredItemMessageContentMask.Timestamp));
             }
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.PicoSeconds) != 0) {
                 var picoseconds = decoder.ReadUInt16(nameof(MonitoredItemMessageContentMask.PicoSeconds));
             }
-
             Value.WrappedValue = decoder.ReadVariant("Value");
-
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtraFields) != 0) {
                 var dictionary = (KeyValuePairCollection)decoder.ReadEncodeableArray("ExtensionFields", typeof(Ua.KeyValuePair));
                 ExtensionFields = new Dictionary<string, string>(dictionary.Count);
@@ -163,7 +164,7 @@ namespace Opc.Ua.PubSub {
                 encoder.WriteString(nameof(MonitoredItemMessageContentMask.DisplayName), DisplayName);
             }
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) != 0) {
-                encoder.WriteDateTime(nameof(MonitoredItemMessageContentMask.Timestamp), DateTime.UtcNow);
+                encoder.WriteDateTime(nameof(MonitoredItemMessageContentMask.Timestamp), Timestamp);
             }
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.PicoSeconds) != 0) {
                 encoder.WriteUInt16(nameof(MonitoredItemMessageContentMask.PicoSeconds), 0);
@@ -203,6 +204,7 @@ namespace Opc.Ua.PubSub {
                 !Utils.IsEqual(wrapper.EndpointUrl, EndpointUrl) ||
                 !Utils.IsEqual(wrapper.ApplicationUri, ApplicationUri) ||
                 !Utils.IsEqual(wrapper.DisplayName, DisplayName) ||
+                !Utils.IsEqual(wrapper.Timestamp, Timestamp) ||
                 !Utils.IsEqual(wrapper.Value, Value) ||
                 !Utils.IsEqual(wrapper.BinaryEncodingId, BinaryEncodingId) ||
                 !Utils.IsEqual(wrapper.TypeId, TypeId) ||

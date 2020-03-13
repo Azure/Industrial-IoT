@@ -209,7 +209,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     var message = new DataSetMessageModel {
                         // TODO: Filter changes on the monitored items contained in the template
                         Notifications = notification.Notifications.ToList(),
-
                         ServiceMessageContext = notification.ServiceMessageContext,
                         SubscriptionId = notification.SubscriptionId,
                         SequenceNumber = sequenceNumber,

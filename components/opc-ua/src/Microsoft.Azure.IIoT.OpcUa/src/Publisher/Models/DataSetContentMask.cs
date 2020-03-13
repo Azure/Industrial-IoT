@@ -18,41 +18,41 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Timestamp
         /// </summary>
-        Timestamp = 1,
+        Timestamp = 0x1,
 
         /// <summary>
         /// Picoseconds (uadp)
         /// </summary>
-        PicoSeconds = 2,
+        PicoSeconds = 0x2,
 
         /// <summary>
         /// Metadata version (json)
         /// </summary>
-        MetaDataVersion = 4,
+        MetaDataVersion = 0x4,
 
         /// <summary>
         /// Status
         /// </summary>
-        Status = 8,
+        Status = 0x8,
 
         /// <summary>
         /// Dataset writer id (json)
         /// </summary>
-        DataSetWriterId = 16,
+        DataSetWriterId = 0x10,
 
         /// <summary>
         /// Major version (uadp)
         /// </summary>
-        MajorVersion = 32,
+        MajorVersion = 0x20,
 
         /// <summary>
         /// Minor version (uadp)
         /// </summary>
-        MinorVersion = 64,
+        MinorVersion = 0x40,
 
         /// <summary>
         /// Sequence number
         /// </summary>
-        SequenceNumber = 128
+        SequenceNumber = 0x80
     }
 }

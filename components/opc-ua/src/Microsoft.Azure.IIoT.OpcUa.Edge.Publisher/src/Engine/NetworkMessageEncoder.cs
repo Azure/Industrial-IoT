@@ -123,7 +123,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         },
                         MessageContentMask = (message.Writer?.MessageSettings?.DataSetMessageContentMask)
                             .ToStackType(message.WriterGroup?.MessageType),
-                        Timestamp = message.TimeStamp ?? DateTime.Now,
+                        Timestamp = message.TimeStamp ?? DateTime.UtcNow,
                         SequenceNumber = message.SequenceNumber,
                         Status = payload.Values.Any(s => StatusCode.IsNotGood(s.StatusCode)) ?
                             StatusCodes.Bad : StatusCodes.Good,
