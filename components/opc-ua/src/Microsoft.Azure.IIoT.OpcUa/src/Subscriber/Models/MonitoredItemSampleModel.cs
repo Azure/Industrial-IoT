@@ -16,6 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         /// Node id
         /// </summary>
         public string NodeId { get; set; }
+
         /// <summary>
         /// Display name
         /// </summary>
