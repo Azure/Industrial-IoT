@@ -203,7 +203,7 @@ apps:
     publisher: /publisher
     configuration: /configuration
     edgeManager: /edge/manage
-    frontend: /frontend
+    engineeringTool: /frontend
     edgeJobs: /edge/jobs
     publisherJobs: /jobs
 
@@ -682,9 +682,9 @@ deployment:
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
-    # deployment.microServices.frontend contains values specific to yaml definitions of deployment and service kubernetes resources for frontend service.
-    # NOTE: frontend can be enabled only if authentication is enabled and auth details are provided.
-    frontend:
+    # deployment.microServices.engineeringTool contains values specific to yaml definitions of deployment and service kubernetes resources for Engineering Tool.
+    # NOTE: engineeringTool can be enabled only if authentication is enabled and auth details are provided.
+    engineeringTool:
       enabled: false
       deploymentAnnotations: {}
       podAnnotations: {}
@@ -702,7 +702,7 @@ deployment:
       #     cpu: "150m"
       resources: {}
 
-      # .Values.deployment.microServices.frontend.extraEnv defines additional environment variables for the container.
+      # .Values.deployment.microServices.engineeringTool.extraEnv defines additional environment variables for the container.
       # The value will be inserted with toYaml function, which means that usual scheme for 'env:' applies here.
       extraEnv: []
 
@@ -949,7 +949,7 @@ deployment:
       configuration: /configuration
       edgeJobs: /edge/jobs
       edgeManager: /edge/manage
-      frontend: /frontend
+      engineeringTool: /frontend
 
     # Ingress TLS configuration. Secrets must be manually created in the namespace.
     # The value should be aligned with hostName property.

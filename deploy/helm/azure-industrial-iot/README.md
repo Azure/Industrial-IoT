@@ -143,17 +143,17 @@ The following details of the Azure Storage account would be required:
 
 ##### Data Protection Container (Optional)
 
-> Data protection functionality is present only if `frontend` component is enabled.
+> Data protection functionality is present only if `engineeringTool` component is enabled.
 
 [Data protection](https://docs.microsoft.com/aspnet/core/security/data-protection/introduction?view=aspnetcore-3.1)
-is an ASP.Net Core feature that is used by `frontend` component. It takes care of encryption of cookies that
-are used by the `frontend`.
+is an ASP.Net Core feature that is used by `engineeringTool` component. It takes care of encryption of cookies that
+are used by the `engineeringTool`.
 
 We use Azure Storage as
 [storage provider](https://docs.microsoft.com/aspnet/core/security/data-protection/implementation/key-storage-providers?view=aspnetcore-3.1#azure-storage)
 for storing data protection keys, and as such we require an Azure Storage Container. You can specify the
 name of Azure Storage Container to be used for storing keys or the value will default to `dataprotection`.
-This Azure Storage Container will be created automatically (if it doesn't already exist) when `frontend`
+This Azure Storage Container will be created automatically (if it doesn't already exist) when `engineeringTool`
 component is enabled.
 
 Configuration parameter for data protection Azure Storage Container is
@@ -238,11 +238,11 @@ The following details of the Azure Key Vault would be required:
 
 ##### Data Protection Key (Optional)
 
-> Data protection functionality is present only if `frontend` component is enabled.
+> Data protection functionality is present only if `engineeringTool` component is enabled.
 
 [Data protection](https://docs.microsoft.com/aspnet/core/security/data-protection/introduction?view=aspnetcore-3.1)
-is an ASP.Net Core feature that is used by `frontend` component. It takes care of encryption of cookies that
-are used by the `frontend`.
+is an ASP.Net Core feature that is used by `engineeringTool` component. It takes care of encryption of cookies that
+are used by the `engineeringTool`.
 
 We use a key in Azure Key Vault to protect keys that are stored in
 [data protection Azure Storage Container](#data-protection-container-(optional)). So you can either create
@@ -280,7 +280,7 @@ The following details of Azure SignalR service would be required:
 
 Required for:
 
-* `frontend`
+* `engineeringTool`
 * `telemetryCdmProcessor`
 
 Details of AAD App Registration are required if you want to enable authentication for components of
@@ -602,7 +602,7 @@ following aspects of application runtime for microservices:
 | `apps.urlPathBase.publisher`                    | URL path base for `publisher` component                                          | `/publisher`     |
 | `apps.urlPathBase.configuration`                | URL path base for `configuration` component                                      | `/configuration` |
 | `apps.urlPathBase.edgeManager`                  | URL path base for `edgeManager` component                                        | `/edge/manage`   |
-| `apps.urlPathBase.frontend`                     | URL path base for `frontend` component                                           | `/frontend`      |
+| `apps.urlPathBase.engineeringTool.`             | URL path base for `engineeringTool` component                                    | `/frontend`      |
 | `apps.urlPathBase.edgeJobs`                     | URL path base for `edgeJobs` component                                           | `/edge/jobs`     |
 | `apps.urlPathBase.publisherJobs`                | URL path base for `publisherJobs` component                                      | `/jobs`          |
 | `apps.aspNetCore.forwardedHeaders.enabled`      | Determines whether processing of HTTP forwarded headers should be enabled or not | `true`           |
@@ -626,7 +626,7 @@ resource only for one micro-service (`registry`). Please consult `values.yaml` f
 parameters.
 
 Here is the list of all Azure Industrial IoT components that are deployed by this chart. Currently only
-`frontend` and `telemetryCdmProcessor` are disabled by default.
+`engineeringTool` and `telemetryCdmProcessor` are disabled by default.
 
 | Name in `values.yaml`     | Description                                                                                                           | Enabled by Default | Default Image                                                            |
 |---------------------------|-----------------------------------------------------------------------------------------------------------------------|--------------------|--------------------------------------------------------------------------|
@@ -644,7 +644,7 @@ Here is the list of all Azure Industrial IoT components that are deployed by thi
 | `configuration`           | [Configuration Service](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/configuration.md)           | `true`             | `mcr.microsoft.com/iot/industrial-iot-configuration-service:2.6.104`     |
 | `edgeManager`             | [Edge Management Service](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/edgemanager.md)           | `true`             | `mcr.microsoft.com/iot/industrial-iot-edge-manager-service:2.6.104`      |
 | `eventsProcessor`         | [Edge Event Processor](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/events.md)                   | `true`             | `mcr.microsoft.com/iot/industrial-iot-events-processor:2.6.104`          |
-| `frontend`                | [Engineering Tool](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/engineeringtool.md)              | `false`            | `mcr.microsoft.com/iot/industrial-iot-frontend:2.6.104`                  |
+| `engineeringTool`         | [Engineering Tool](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/engineeringtool.md)              | `false`            | `mcr.microsoft.com/iot/industrial-iot-frontend:2.6.104`                  |
 | `identity`                | [Identity Agent](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/identity.md)                       | `true`             | `mcr.microsoft.com/iot/industrial-iot-identity-service:2.6.104`          |
 | `edgeJobs`                | [Jobs Service and Edge endpoint](https://github.com/Azure/Industrial-IoT/blob/master/docs/services/jobs.md)           | `true`             | `mcr.microsoft.com/iot/industrial-iot-jobs-orchestrator-service:2.6.104` |
 | `publisherJobs`           |                                                                                                                       | `true`             | `mcr.microsoft.com/iot/industrial-iot-jobs-service:2.6.104`              |
@@ -691,7 +691,7 @@ Those are the values of `imageRepository` for all components:
 | `deployment.microServices.configuration.imageRepository`           | `iot/industrial-iot-configuration-service`     |
 | `deployment.microServices.edgeManager.imageRepository`             | `iot/industrial-iot-edge-manager-service`      |
 | `deployment.microServices.eventsProcessor.imageRepository`         | `iot/industrial-iot-events-processor`          |
-| `deployment.microServices.frontend.imageRepository`                | `iot/industrial-iot-frontend`                  |
+| `deployment.microServices.engineeringTool.imageRepository`         | `iot/industrial-iot-frontend`                  |
 | `deployment.microServices.identity.imageRepository`                | `iot/industrial-iot-identity-service`          |
 | `deployment.microServices.edgeJobs.imageRepository`                | `iot/industrial-iot-jobs-orchestrator-service` |
 | `deployment.microServices.publisherJobs.imageRepository`           | `iot/industrial-iot-jobs-service`              |
@@ -721,22 +721,22 @@ micro-service.
 Please note that the only parameter that has different values for different components is `port`.
 Those are the service ports exposed by components:
 
-| Configuration Parameter for Components                | Default Service Port |
-|-------------------------------------------------------|----------------------|
-| `deployment.microServices.registry.service.port`      | `9042`               |
-| `deployment.microServices.twin.service.port`          | `9041`               |
-| `deployment.microServices.history.service.port`       | `9043`               |
-| `deployment.microServices.gateway.service.port`       | `9040`               |
-| `deployment.microServices.gateway.service.opcPort`    | `51111`              |
-| `deployment.microServices.vault.service.port`         | `9044`               |
-| `deployment.microServices.onboarding.service.port`    | `9060`               |
-| `deployment.microServices.publisher.service.port`     | `9045`               |
-| `deployment.microServices.configuration.service.port` | `9050`               |
-| `deployment.microServices.edgeManager.service.port`   | `9047`               |
-| `deployment.microServices.frontend.service.httpPort`  | `80`                 |
-| `deployment.microServices.frontend.service.httpsPort` | `443`                |
-| `deployment.microServices.edgeJobs.service.port`      | `9051`               |
-| `deployment.microServices.publisherJobs.service.port` | `9046`               |
+| Configuration Parameter for Components                       | Default Service Port |
+|--------------------------------------------------------------|----------------------|
+| `deployment.microServices.registry.service.port`             | `9042`               |
+| `deployment.microServices.twin.service.port`                 | `9041`               |
+| `deployment.microServices.history.service.port`              | `9043`               |
+| `deployment.microServices.gateway.service.port`              | `9040`               |
+| `deployment.microServices.gateway.service.opcPort`           | `51111`              |
+| `deployment.microServices.vault.service.port`                | `9044`               |
+| `deployment.microServices.onboarding.service.port`           | `9060`               |
+| `deployment.microServices.publisher.service.port`            | `9045`               |
+| `deployment.microServices.configuration.service.port`        | `9050`               |
+| `deployment.microServices.edgeManager.service.port`          | `9047`               |
+| `deployment.microServices.engineeringTool.service.httpPort`  | `80`                 |
+| `deployment.microServices.engineeringTool.service.httpsPort` | `443`                |
+| `deployment.microServices.edgeJobs.service.port`             | `9051`               |
+| `deployment.microServices.publisherJobs.service.port`        | `9046`               |
 
 #### Ingress Resource Configuration
 
@@ -747,25 +747,25 @@ configuration to expose components with web APIs or UI.
 Here are [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/) resource parameters
 in `values.yaml`. Note that Ingress is disabled by default.
 
-| Parameter                                | Description                                                                                                                      | Default          |
-|------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|------------------|
-| `deployment.ingress.enabled`             | If true, one Ingress resource will be created for enabled Services                                                               | `false`          |
-| `deployment.ingress.hostName`            | Host for the Ingress rule, multiple hosts are not supported                                                                      | `null`           |
-| `deployment.ingress.extraLabels`         | Extra labels for the Ingress resource                                                                                            | `{}`             |
-| `deployment.ingress.annotations`         | Annotations for the Ingress resource                                                                                             | `{}`             |
-| `deployment.ingress.tls`                 | Ingress [TLS configuration](https://kubernetes.io/docs/concepts/services-networking/ingress/#tls)                                | `[]`             |
-| `deployment.ingress.paths.registry`      | Path on which `registry` component should be exposed. Should be set to enable for `registry`. See below for reference.           | `/registry`      |
-| `deployment.ingress.paths.twin`          | Path on which `twin` component should be exposed. Should be set to enable for `twin`. See below for reference.                   | `/twin`          |
-| `deployment.ingress.paths.history`       | Path on which `history` component should be exposed. Should be set to enable for `history`. See below for reference.             | `/history`       |
-| `deployment.ingress.paths.gateway`       | Path on which `gateway` component should be exposed. Should be set to enable for `gateway`. See below for reference.             | `/ua`            |
-| `deployment.ingress.paths.vault`         | Path on which `vault` component should be exposed. Should be set to enable for `vault`. See below for reference.                 | `/vault`         |
-| `deployment.ingress.paths.onboarding`    | Path on which `onboarding` component should be exposed. Should be set to enable for `onboarding`. See below for reference.       | `/onboarding`    |
-| `deployment.ingress.paths.publisher`     | Path on which `publisher` component should be exposed. Should be set to enable for `publisher`. See below for reference.         | `/publisher`     |
-| `deployment.ingress.paths.publisherJobs` | Path on which `publisherJobs` component should be exposed. Should be set to enable for `publisherJobs`. See below for reference. | `/jobs`          |
-| `deployment.ingress.paths.configuration` | Path on which `configuration` component should be exposed. Should be set to enable for `configuration`. See below for reference. | `/configuration` |
-| `deployment.ingress.paths.edgeJobs`      | Path on which `edgeJobs` component should be exposed. Should be set to enable for `edgeJobs`. See below for reference.           | `/edge/jobs`     |
-| `deployment.ingress.paths.edgeManager`   | Path on which `edgeManager` component should be exposed. Should be set to enable for `edgeManager`. See below for reference.     | `/edge/manage`   |
-| `deployment.ingress.paths.frontend`      | Path on which `frontend` component should be exposed. Should be set to enable for `frontend`. See below for reference.           | `/frontend`      |
+| Parameter                                  | Description                                                                                                 | Default          |
+|--------------------------------------------|-------------------------------------------------------------------------------------------------------------|------------------|
+| `deployment.ingress.enabled`               | If true, one Ingress resource will be created for enabled Services                                          | `false`          |
+| `deployment.ingress.hostName`              | Host for the Ingress rule, multiple hosts are not supported                                                 | `null`           |
+| `deployment.ingress.extraLabels`           | Extra labels for the Ingress resource                                                                       | `{}`             |
+| `deployment.ingress.annotations`           | Annotations for the Ingress resource                                                                        | `{}`             |
+| `deployment.ingress.tls`                   | Ingress [TLS configuration](https://kubernetes.io/docs/concepts/services-networking/ingress/#tls)           | `[]`             |
+| `deployment.ingress.paths.registry`        | Path on which `registry` component should be exposed. Should be set to enable for `registry`.               | `/registry`      |
+| `deployment.ingress.paths.twin`            | Path on which `twin` component should be exposed. Should be set to enable for `twin`.                       | `/twin`          |
+| `deployment.ingress.paths.history`         | Path on which `history` component should be exposed. Should be set to enable for `history`.                 | `/history`       |
+| `deployment.ingress.paths.gateway`         | Path on which `gateway` component should be exposed. Should be set to enable for `gateway`.                 | `/ua`            |
+| `deployment.ingress.paths.vault`           | Path on which `vault` component should be exposed. Should be set to enable for `vault`.                     | `/vault`         |
+| `deployment.ingress.paths.onboarding`      | Path on which `onboarding` component should be exposed. Should be set to enable for `onboarding`.           | `/onboarding`    |
+| `deployment.ingress.paths.publisher`       | Path on which `publisher` component should be exposed. Should be set to enable for `publisher`.             | `/publisher`     |
+| `deployment.ingress.paths.publisherJobs`   | Path on which `publisherJobs` component should be exposed. Should be set to enable for `publisherJobs`.     | `/jobs`          |
+| `deployment.ingress.paths.configuration`   | Path on which `configuration` component should be exposed. Should be set to enable for `configuration`.     | `/configuration` |
+| `deployment.ingress.paths.edgeJobs`        | Path on which `edgeJobs` component should be exposed. Should be set to enable for `edgeJobs`.               | `/edge/jobs`     |
+| `deployment.ingress.paths.edgeManager`     | Path on which `edgeManager` component should be exposed. Should be set to enable for `edgeManager`.         | `/edge/manage`   |
+| `deployment.ingress.paths.engineeringTool` | Path on which `engineeringTool` component should be exposed. Should be set to enable for `engineeringTool`. | `/frontend`      |
 
 > **NOTE:** `deployment.ingress.paths` values here should be aligned with value of `apps.urlPathBase`. They are separated because one might want to have a regex in Ingress paths.
 
@@ -851,15 +851,15 @@ azure:
 Helm chart does not set any [resource requests or limits](https://kubernetes.io/docs/concepts/configuration/manage-compute-resources-container/)
 for Pod Containers. We recommend to set memory requests to at least `"64Mi"` and cpu requests to at least
 `"20m"`. If you set resource limits, be informed that some components might require up to `"256Mi"` of
-memory, such as `frontend`, `registry`, `publisher` and a few others.
+memory, such as `engineeringTool`, `registry`, `publisher` and a few others.
 
 ### Data Protection
 
-> Data protection functionality is present only if `frontend` component is enabled.
+> Data protection functionality is present only if `engineeringTool` component is enabled.
 
 [Data protection](https://docs.microsoft.com/aspnet/core/security/data-protection/introduction?view=aspnetcore-3.1)
-is an ASP.Net Core feature that is used by `frontend` component. It takes care of encryption of cookies that
-are used by the `frontend`.
+is an ASP.Net Core feature that is used by `engineeringTool` component. It takes care of encryption of cookies that
+are used by the `engineeringTool`.
 
 #### Azure Storage Account Container
 
@@ -870,7 +870,7 @@ We use Azure Storage as
 for storing data protection keys.
 
 You can specify the name of Azure Storage Container to be used for storing keys or the value will default to `dataprotection`.
-If it doesn't already exist, this Azure Storage Container will be created automatically on startup of `frontend` component.
+If it doesn't already exist, this Azure Storage Container will be created automatically on startup of `engineeringTool` component.
 Configuration parameter for data protection Azure Storage Container is
 `azure.storageAccount.container.dataProtection.name`.
 
@@ -882,7 +882,7 @@ We use a key in Azure Key Vault to protect keys that are stored in
 [data protection Azure Storage Container](#data-protection-container-(optional)).
 
 You can specify the name of the key in Azure Key Vault to be used or the value will default to `dataprotection`.
-If it doesn't already exist, this key in Azure Key Vault will be created automatically on startup of `frontend` component
+If it doesn't already exist, this key in Azure Key Vault will be created automatically on startup of `engineeringTool` component
 Configuration parameter for data protection key in Azure Key Vault is `azure.keyVault.key.dataProtection`.
 
 ### Common Data Model
@@ -983,15 +983,15 @@ This configuration makes sure that:
   * [`proxy-buffer-size`](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#proxy-buffer-size)
 
 * WebSocket connection is initialized and working properly for [Blazor](https://dotnet.microsoft.com/apps/aspnet/web-apps/blazor).
-  Blazor is framework that we use in `frontend` component.
+  Blazor is framework that we use in `engineeringTool` component.
   * [`client-header-buffer-size`](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#client-header-buffer-size)
 
 #### Ingress Annotations
 
 We recommend setting the following addition [Ingress annotations](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/annotations/)
 through `deployment.ingress.annotations` in `values.yaml` if you are using NGINX Ingress Controller. Note
-that `nginx.ingress.kubernetes.io/*` annotations are there to enable smooth functionality of `frontend`
-component. If `frontend` is not enabled, you can omit those and only keep `kubernetes.io/ingress.class: nginx`.
+that `nginx.ingress.kubernetes.io/*` annotations are there to enable smooth functionality of `engineeringTool`
+component. If `engineeringTool` is not enabled, you can omit those and only keep `kubernetes.io/ingress.class: nginx`.
 
 ```yaml
 deployment:

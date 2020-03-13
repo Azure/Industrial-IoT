@@ -101,8 +101,8 @@ Create the names of Industrial-IoT microservices.
 {{- printf "%s-%s" .Release.Name "events-processor" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "azure-industrial-iot.frontend.fullname" -}}
-{{- printf "%s-%s" .Release.Name "frontend" | trunc 63 | trimSuffix "-" -}}
+{{- define "azure-industrial-iot.engineering-tool.fullname" -}}
+{{- printf "%s-%s" .Release.Name "engineering-tool" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{- define "azure-industrial-iot.identity.fullname" -}}
@@ -194,8 +194,8 @@ Those are used in Service selectors so they have to be unique for each microserv
 {{- "industrial-iot-events-processor" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "azure-industrial-iot.frontend.component" -}}
-{{- "industrial-iot-frontend" | trunc 63 | trimSuffix "-" -}}
+{{- define "azure-industrial-iot.engineering-tool.component" -}}
+{{- "industrial-iot-engineering-tool" | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
 {{- define "azure-industrial-iot.identity.component" -}}
