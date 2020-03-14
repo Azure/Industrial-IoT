@@ -1,0 +1,51 @@
+{{- if .Values.deployment.microServices.onboarding.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "azure-industrial-iot.onboarding.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/version: {{ .Chart.AppVersion }}
+    app.kubernetes.io/component: {{ template "azure-industrial-iot.onboarding.component" . }}
+    app.kubernetes.io/part-of: azure-industrial-iot
+{{- if .Values.deployment.microServices.onboarding.extraLabels }}
+{{ toYaml .Values.deployment.microServices.onboarding.extraLabels | indent 4 }}
+{{- end }}
+{{- if .Values.deployment.microServices.onboarding.service.annotations }}
+  annotations:
+{{ toYaml .Values.deployment.microServices.onboarding.service.annotations | indent 4 }}
+{{- end }}
+spec:
+  type: {{ .Values.deployment.microServices.onboarding.service.type }}
+  selector:
+    app.kubernetes.io/name: {{ template "azure-industrial-iot.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: {{ template "azure-industrial-iot.onboarding.component" . }}
+    app.kubernetes.io/part-of: azure-industrial-iot
+{{- if .Values.deployment.microServices.onboarding.service.clusterIP }}
+  clusterIP: {{ .Values.deployment.microServices.onboarding.service.clusterIP }}
+{{- end }}
+{{- if .Values.deployment.microServices.onboarding.service.externalIPs }}
+  externalIPs:
+{{ toYaml .Values.deployment.microServices.onboarding.service.externalIPs | indent 2 }}
+{{- end }}
+{{- if .Values.deployment.microServices.onboarding.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.deployment.microServices.onboarding.service.loadBalancerIP }}
+{{- end }}
+{{- if .Values.deployment.microServices.onboarding.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+{{ toYaml .Values.deployment.microServices.onboarding.service.loadBalancerSourceRanges | indent 2 }}
+{{- end }}
+  ports:
+  - port: {{ .Values.deployment.microServices.onboarding.service.port }}
+    targetPort: 9060
+    protocol: TCP
+    name: http
+{{- if .Values.deployment.microServices.onboarding.service.nodePort }}
+    nodePort: {{ .Values.deployment.microServices.onboarding.service.nodePort }}
+{{- end }}
+{{- end }}
