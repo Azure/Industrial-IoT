@@ -812,6 +812,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                 MinimumSamplingInterval = node.MinimumSamplingInterval,
                 IsAbstract = node.IsAbstract,
                 Value = node.Value == null ? null : codec.Encode(node.Value.Value, out var type),
+                TypeDefinitionId = node.TypeDefinitionId.AsString(session.MessageContext),
                 EventNotifier = node.EventNotifier == null || node.EventNotifier == 0x0 ?
                     (NodeEventNotifier?)null : (NodeEventNotifier)node.EventNotifier,
                 DataTypeDefinition = node.DataTypeDefinition == null ? null :

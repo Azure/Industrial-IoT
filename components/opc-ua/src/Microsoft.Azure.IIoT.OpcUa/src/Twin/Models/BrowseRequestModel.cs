@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
 
         /// <summary>
         /// Node to browse.
-        /// (default: RootFolder).
+        /// (defaults to root folder).
         /// </summary>
         public string NodeId { get; set; }
 
