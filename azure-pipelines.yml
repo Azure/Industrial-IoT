@@ -1,3 +1,8 @@
+pr:
+  autoCancel: true
+  branches:
+    include:
+    - '*'
 trigger:
   batch: true
   branches:

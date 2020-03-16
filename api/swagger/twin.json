@@ -18,7 +18,7 @@
     "https"
   ],
   "paths": {
-    "/v2/browse/{endpointId}": {
+    "/twin/v2/browse/{endpointId}": {
       "post": {
         "tags": [
           "Browse"
@@ -111,7 +111,7 @@
         ]
       }
     },
-    "/v2/browse/{endpointId}/next": {
+    "/twin/v2/browse/{endpointId}/next": {
       "post": {
         "tags": [
           "Browse"
@@ -208,7 +208,7 @@
         }
       }
     },
-    "/v2/browse/{endpointId}/path": {
+    "/twin/v2/browse/{endpointId}/path": {
       "post": {
         "tags": [
           "Browse"
@@ -260,7 +260,7 @@
         ]
       }
     },
-    "/v2/call/{endpointId}/metadata": {
+    "/twin/v2/call/{endpointId}/metadata": {
       "post": {
         "tags": [
           "Call"
@@ -312,7 +312,7 @@
         ]
       }
     },
-    "/v2/call/{endpointId}": {
+    "/twin/v2/call/{endpointId}": {
       "post": {
         "tags": [
           "Call"
@@ -364,7 +364,7 @@
         ]
       }
     },
-    "/v2/read/{endpointId}": {
+    "/twin/v2/read/{endpointId}": {
       "post": {
         "tags": [
           "Read"
@@ -458,7 +458,7 @@
         ]
       }
     },
-    "/v2/read/{endpointId}/attributes": {
+    "/twin/v2/read/{endpointId}/attributes": {
       "post": {
         "tags": [
           "Read"
@@ -510,7 +510,7 @@
         ]
       }
     },
-    "/v2/write/{endpointId}": {
+    "/twin/v2/write/{endpointId}": {
       "post": {
         "tags": [
           "Write"
@@ -562,7 +562,7 @@
         ]
       }
     },
-    "/v2/write/{endpointId}/attributes": {
+    "/twin/v2/write/{endpointId}/attributes": {
       "post": {
         "tags": [
           "Write"
@@ -616,7 +616,8 @@
     }
   },
   "definitions": {
-    "BrowseDirectionNullable": {
+    "BrowseDirection": {
+      "description": "Direction to browse",
       "enum": [
         "Forward",
         "Backward",
@@ -640,7 +641,7 @@
           "type": "string"
         },
         "version": {
-          "format": "int32",
+          "format": "int64",
           "description": "Browses specific version of the view.",
           "type": "integer"
         },
@@ -651,7 +652,26 @@
         }
       }
     },
-    "CredentialTypeNullable": {
+    "NodeClass": {
+      "description": "Node class",
+      "enum": [
+        "Object",
+        "Variable",
+        "Method",
+        "ObjectType",
+        "VariableType",
+        "ReferenceType",
+        "DataType",
+        "View"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "NodeClass",
+        "modelAsString": false
+      }
+    },
+    "CredentialType": {
+      "description": "Type of credentials to use for authentication",
       "enum": [
         "None",
         "UserName",
@@ -669,15 +689,15 @@
       "type": "object",
       "properties": {
         "type": {
-          "$ref": "#/definitions/CredentialTypeNullable"
+          "$ref": "#/definitions/CredentialType"
         },
         "value": {
-          "description": "Value to pass to server",
-          "type": "object"
+          "description": "Value to pass to server"
         }
       }
     },
-    "DiagnosticsLevelNullable": {
+    "DiagnosticsLevel": {
+      "description": "Level of diagnostics requested in responses",
       "enum": [
         "None",
         "Status",
@@ -696,7 +716,7 @@
       "type": "object",
       "properties": {
         "level": {
-          "$ref": "#/definitions/DiagnosticsLevelNullable"
+          "$ref": "#/definitions/DiagnosticsLevel"
         },
         "auditId": {
           "description": "Client audit log entry.\r\n(default: client generated)",
@@ -737,7 +757,7 @@
           "type": "string"
         },
         "direction": {
-          "$ref": "#/definitions/BrowseDirectionNullable"
+          "$ref": "#/definitions/BrowseDirection"
         },
         "view": {
           "$ref": "#/definitions/BrowseViewApiModel"
@@ -752,7 +772,7 @@
           "type": "boolean"
         },
         "maxReferencesToReturn": {
-          "format": "int32",
+          "format": "int64",
           "description": "Max number of references to return. There might\r\nbe less returned as this is up to the client\r\nrestrictions.  Set to 0 to return no references\r\nor target nodes.\r\n(default is decided by client e.g. 60)",
           "type": "integer"
         },
@@ -766,29 +786,34 @@
           "default": false,
           "type": "boolean"
         },
+        "nodeClassFilter": {
+          "description": "Filter returned target nodes by only returning\r\nnodes that have classes defined in this array.\r\n(default: null - all targets are returned)",
+          "enum": [
+            "Object",
+            "Variable",
+            "Method",
+            "ObjectType",
+            "VariableType",
+            "ReferenceType",
+            "DataType",
+            "View"
+          ],
+          "type": "string",
+          "items": {
+            "$ref": "#/definitions/NodeClass"
+          },
+          "x-ms-enum": {
+            "name": "NodeClass",
+            "modelAsString": false
+          }
+        },
         "header": {
           "$ref": "#/definitions/RequestHeaderApiModel"
         }
       }
     },
-    "NodeClassNullable": {
-      "enum": [
-        "Object",
-        "Variable",
-        "Method",
-        "ObjectType",
-        "VariableType",
-        "ReferenceType",
-        "DataType",
-        "View"
-      ],
-      "type": "string",
-      "x-ms-enum": {
-        "name": "NodeClass",
-        "modelAsString": false
-      }
-    },
-    "NodeAccessRestrictionsNullable": {
+    "NodeAccessRestrictions": {
+      "description": "Flags for use with the AccessRestrictions attribute.",
       "enum": [
         "SigningRequired",
         "EncryptionRequired",
@@ -800,7 +825,8 @@
         "modelAsString": false
       }
     },
-    "NodeEventNotifierNullable": {
+    "NodeEventNotifier": {
+      "description": "Flags that can be set for the EventNotifier attribute.",
       "enum": [
         "SubscribeToEvents",
         "HistoryRead",
@@ -812,7 +838,8 @@
         "modelAsString": false
       }
     },
-    "NodeAccessLevelNullable": {
+    "NodeAccessLevel": {
+      "description": "Flags that can be set for the AccessLevel attribute.",
       "enum": [
         "CurrentRead",
         "CurrentWrite",
@@ -831,7 +858,8 @@
         "modelAsString": false
       }
     },
-    "NodeValueRankNullable": {
+    "NodeValueRank": {
+      "description": "Constants defined for the ValueRank attribute.",
       "enum": [
         "OneOrMoreDimensions",
         "OneDimension",
@@ -846,7 +874,8 @@
         "modelAsString": false
       }
     },
-    "RolePermissionsNullable": {
+    "RolePermissions": {
+      "description": "Individual permissions assigned to a role",
       "enum": [
         "Browse",
         "ReadRolePermissions",
@@ -884,7 +913,7 @@
           "type": "string"
         },
         "permissions": {
-          "$ref": "#/definitions/RolePermissionsNullable"
+          "$ref": "#/definitions/RolePermissions"
         }
       }
     },
@@ -896,7 +925,7 @@
       "type": "object",
       "properties": {
         "nodeClass": {
-          "$ref": "#/definitions/NodeClassNullable"
+          "$ref": "#/definitions/NodeClass"
         },
         "displayName": {
           "description": "Display name",
@@ -915,15 +944,15 @@
           "type": "string"
         },
         "accessRestrictions": {
-          "$ref": "#/definitions/NodeAccessRestrictionsNullable"
+          "$ref": "#/definitions/NodeAccessRestrictions"
         },
         "writeMask": {
-          "format": "int32",
+          "format": "int64",
           "description": "Default write mask for the node\r\n(default: 0)",
           "type": "integer"
         },
         "userWriteMask": {
-          "format": "int32",
+          "format": "int64",
           "description": "User write mask for the node\r\n(default: 0)",
           "type": "integer"
         },
@@ -936,7 +965,7 @@
           "type": "boolean"
         },
         "eventNotifier": {
-          "$ref": "#/definitions/NodeEventNotifierNullable"
+          "$ref": "#/definitions/NodeEventNotifier"
         },
         "executable": {
           "description": "If method node class, whether method can\r\nbe called.",
@@ -947,27 +976,26 @@
           "type": "boolean"
         },
         "dataTypeDefinition": {
-          "description": "Data type definition in case node is a\r\ndata type node and definition is available,\r\notherwise null.",
-          "type": "object"
+          "description": "Data type definition in case node is a\r\ndata type node and definition is available,\r\notherwise null."
         },
         "accessLevel": {
-          "$ref": "#/definitions/NodeAccessLevelNullable"
+          "$ref": "#/definitions/NodeAccessLevel"
         },
         "userAccessLevel": {
-          "$ref": "#/definitions/NodeAccessLevelNullable"
+          "$ref": "#/definitions/NodeAccessLevel"
         },
         "dataType": {
           "description": "If variable the datatype of the variable.\r\n(default: null)",
           "type": "string"
         },
         "valueRank": {
-          "$ref": "#/definitions/NodeValueRankNullable"
+          "$ref": "#/definitions/NodeValueRank"
         },
         "arrayDimensions": {
           "description": "Array dimensions of variable or variable type.\r\n(default: empty array)",
           "type": "array",
           "items": {
-            "format": "int32",
+            "format": "int64",
             "type": "integer"
           }
         },
@@ -981,8 +1009,7 @@
           "type": "number"
         },
         "value": {
-          "description": "Value of variable or default value of the\r\nsubtyped variable in case node is a variable\r\ntype, otherwise null.",
-          "type": "object"
+          "description": "Value of variable or default value of the\r\nsubtyped variable in case node is a variable\r\ntype, otherwise null."
         },
         "inverseName": {
           "description": "Inverse name of the reference if the node is\r\na reference type, otherwise null.",
@@ -1028,7 +1055,7 @@
           "type": "string"
         },
         "direction": {
-          "$ref": "#/definitions/BrowseDirectionNullable"
+          "$ref": "#/definitions/BrowseDirection"
         },
         "target": {
           "$ref": "#/definitions/NodeApiModel"
@@ -1040,7 +1067,7 @@
       "type": "object",
       "properties": {
         "statusCode": {
-          "format": "int32",
+          "format": "int64",
           "description": "Error code - if null operation succeeded.",
           "type": "integer"
         },
@@ -1049,8 +1076,7 @@
           "type": "string"
         },
         "diagnostics": {
-          "description": "Additional diagnostics information",
-          "type": "object"
+          "description": "Additional diagnostics information"
         }
       }
     },
@@ -1232,17 +1258,16 @@
           "$ref": "#/definitions/NodeApiModel"
         },
         "defaultValue": {
-          "description": "Default value",
-          "type": "object"
+          "description": "Default value"
         },
         "valueRank": {
-          "$ref": "#/definitions/NodeValueRankNullable"
+          "$ref": "#/definitions/NodeValueRank"
         },
         "arrayDimensions": {
           "description": "Optional, array dimension",
           "type": "array",
           "items": {
-            "format": "int32",
+            "format": "int64",
             "type": "integer"
           }
         }
@@ -1280,8 +1305,7 @@
       "type": "object",
       "properties": {
         "value": {
-          "description": "Initial value or value to use",
-          "type": "object"
+          "description": "Initial value or value to use"
         },
         "dataType": {
           "description": "Data type Id of the value (from meta data)",
@@ -1372,8 +1396,7 @@
       "type": "object",
       "properties": {
         "value": {
-          "description": "Value read",
-          "type": "object"
+          "description": "Value read"
         },
         "dataType": {
           "description": "Built in data type of the value read.",
@@ -1480,8 +1503,7 @@
       "type": "object",
       "properties": {
         "value": {
-          "description": "Attribute value",
-          "type": "object"
+          "description": "Attribute value"
         },
         "errorInfo": {
           "$ref": "#/definitions/ServiceResultApiModel"
@@ -1520,8 +1542,7 @@
           }
         },
         "value": {
-          "description": "Value to write. The system tries to convert\r\nthe value according to the data type value,\r\ne.g. convert comma seperated value strings\r\ninto arrays.  (Mandatory)",
-          "type": "object"
+          "description": "Value to write. The system tries to convert\r\nthe value according to the data type value,\r\ne.g. convert comma seperated value strings\r\ninto arrays.  (Mandatory)"
         },
         "dataType": {
           "description": "A built in datatype for the value. This can\r\nbe a data type from browse, or a built in\r\ntype.\r\n(default: best effort)",
@@ -1562,8 +1583,7 @@
           "$ref": "#/definitions/NodeAttribute"
         },
         "value": {
-          "description": "Value to write (mandatory)",
-          "type": "object"
+          "description": "Value to write (mandatory)"
         }
       }
     },
