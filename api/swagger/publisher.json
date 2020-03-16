@@ -18,7 +18,7 @@
     "https"
   ],
   "paths": {
-    "/v2/monitor/{endpointId}/samples": {
+    "/publisher/v2/monitor/{endpointId}/samples": {
       "put": {
         "tags": [
           "Monitor"
@@ -45,6 +45,7 @@
             "name": "body",
             "description": "The user id that will receive publisher samples.",
             "schema": {
+              "description": "The user id that will receive publisher\r\n            samples.",
               "type": "string"
             }
           }
@@ -63,7 +64,7 @@
         ]
       }
     },
-    "/v2/monitor/{endpointId}/samples/{userId}": {
+    "/publisher/v2/monitor/{endpointId}/samples/{userId}": {
       "delete": {
         "tags": [
           "Monitor"
@@ -101,7 +102,7 @@
         ]
       }
     },
-    "/v2/publish/{endpointId}/start": {
+    "/publisher/v2/publish/{endpointId}/start": {
       "post": {
         "tags": [
           "Publish"
@@ -153,7 +154,7 @@
         ]
       }
     },
-    "/v2/publish/{endpointId}/stop": {
+    "/publisher/v2/publish/{endpointId}/stop": {
       "post": {
         "tags": [
           "Publish"
@@ -205,7 +206,7 @@
         ]
       }
     },
-    "/v2/publish/{endpointId}": {
+    "/publisher/v2/publish/{endpointId}": {
       "post": {
         "tags": [
           "Publish"
@@ -315,6 +316,10 @@
           "description": "Node to monitor",
           "type": "string"
         },
+        "displayName": {
+          "description": "Display name of the node to monitor",
+          "type": "string"
+        },
         "publishingInterval": {
           "format": "date-span",
           "description": "Publishing interval to use",
@@ -327,7 +332,8 @@
         }
       }
     },
-    "CredentialTypeNullable": {
+    "CredentialType": {
+      "description": "Type of credentials to use for authentication",
       "enum": [
         "None",
         "UserName",
@@ -345,15 +351,15 @@
       "type": "object",
       "properties": {
         "type": {
-          "$ref": "#/definitions/CredentialTypeNullable"
+          "$ref": "#/definitions/CredentialType"
         },
         "value": {
-          "description": "Value to pass to server",
-          "type": "object"
+          "description": "Value to pass to server"
         }
       }
     },
-    "DiagnosticsLevelNullable": {
+    "DiagnosticsLevel": {
+      "description": "Level of diagnostics requested in responses",
       "enum": [
         "None",
         "Status",
@@ -372,7 +378,7 @@
       "type": "object",
       "properties": {
         "level": {
-          "$ref": "#/definitions/DiagnosticsLevelNullable"
+          "$ref": "#/definitions/DiagnosticsLevel"
         },
         "auditId": {
           "description": "Client audit log entry.\r\n(default: client generated)",
@@ -424,7 +430,7 @@
       "type": "object",
       "properties": {
         "statusCode": {
-          "format": "int32",
+          "format": "int64",
           "description": "Error code - if null operation succeeded.",
           "type": "integer"
         },
@@ -433,8 +439,7 @@
           "type": "string"
         },
         "diagnostics": {
-          "description": "Additional diagnostics information",
-          "type": "object"
+          "description": "Additional diagnostics information"
         }
       }
     },

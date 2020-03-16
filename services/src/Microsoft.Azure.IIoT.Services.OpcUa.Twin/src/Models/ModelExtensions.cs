@@ -228,7 +228,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Models {
                 TargetNodesOnly = model.TargetNodesOnly,
                 ReadVariableValues = model.ReadVariableValues,
                 NodeClassFilter = model.NodeClassFilter?
-                    .Select(f => (Microsoft.Azure.IIoT.OpcUa.Api.Core.Models.NodeClass)f)
+                    .Select(f => (Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models.NodeClass)f)
                     .ToList(),
                 NoSubtypes = model.NoSubtypes,
                 Header = model.Header.ToApiModel()
