@@ -97,7 +97,7 @@ Note: the Postman requests will use an Authorization Code flow to authenticate t
 5. Test your connectivity with the Microservices by running the request named 'GET Applications'.
     - This should fire a GET request with the inherited auth token. It should return a 200 OK with the list of applications.
 
-  > Note your token will expire regularly. If you get an authentication error during any of the calls, just repeat the process to refresh your token. All of the requests in the Postman collection inherit the same Auth. 
+  > Note your token will expire regularly. If you get an authentication error during any of the calls, just repeat the process to refresh your token. All of the requests in the Postman collection inherit the same Auth.
 
 ## Exercise 1
 
@@ -122,7 +122,7 @@ Note: the Postman requests will use an Authorization Code flow to authenticate t
 
 2. Activate endpoint: run the request 'Registry: Activate endpoint' and replace the endpointId in the URL with your above `endpointId`.
 
-3. Run 'Registry: browse endpoints' again and you should see your endpoint as acvite and ready.
+3. Run 'Registry: browse endpoints' again and you should see your endpoint as active, connected and ready.  Since the request uses the device registry query which caches state, switching to this view might take a couple tries.   A live view of the twin can be retrieved using 'Registry: GetEndpoint' with the `endpointId`.
 
    ``` json
      [ommitted]...
