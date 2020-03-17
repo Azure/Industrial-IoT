@@ -27,7 +27,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Services {
         /// <summary>
         /// Stop module host
         /// </summary>
+        /// <param name="force"></param>
         /// <returns></returns>
-        Task StopAsync();
+        Task StopAsync(bool force = false);
     }
 }

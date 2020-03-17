@@ -605,7 +605,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private async Task<Session> CreateSessionAsync(IUserIdentity identity) {
 
             if (_connection.Endpoint.SecurityMode != SecurityMode.SignAndEncrypt) {
-                _logger.Warning("Establishing unecrypted connection.");
+                _logger.Warning("Establishing unencrypted connection.");
             }
             if (_urlQueue.TryDequeue(out var next)) {
                 if (_endpointUrl != null && _endpointUrl != next) {

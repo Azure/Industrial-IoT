@@ -7,10 +7,8 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
     using Microsoft.Azure.IIoT.Api.Runtime;
     using Microsoft.Azure.IIoT.Api.Jobs.Clients;
     using Microsoft.Azure.IIoT.Api.Jobs;
-    using Microsoft.Azure.IIoT.Api.Jobs.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
@@ -19,7 +17,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault;
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Clients;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
@@ -247,7 +244,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
 
                 Console.WriteLine($"{endpoint.Id} activated.");
 
-                while (options.IsSet("-w", "--waitstate")) {
+                while (options.IsSet("-b", "--browse") || options.IsSet("-w", "--waitstate")) {
                     if (ep.EndpointState != EndpointConnectivityState.Connecting) {
                         Console.WriteLine($"{endpoint.Id} now in {ep.EndpointState} state.");
                         break;
@@ -258,10 +255,16 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                     }
                     ep = await _registry.GetEndpointAsync(endpoint.Id);
                 }
-
-                await Task.Delay(_rand.Next(
+                if (ep.EndpointState == EndpointConnectivityState.Ready &&
+                    options.IsSet("-b", "--browse")) {
+                    // Browse recursively
+                    await BrowseAsync(endpoint.Id, options);
+                }
+                else {
+                    await Task.Delay(_rand.Next(
                         options.GetValueOrDefault("-l", "--min-wait", 1000), // 1 seconds
                         options.GetValueOrDefault("-h", "--max-wait", 20000)));  // 20 seconds
+                }
 
                 await _registry.DeactivateEndpointAsync(endpoint.Id);
                 sw.Restart();
@@ -279,6 +282,82 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             }
         }
 
+        /// <summary>
+        /// Browse nodes
+        /// </summary>
+        private async Task BrowseAsync(string id, CliOptions options) {
+            var silent = options.IsSet("-S", "--silent");
+            var recursive = options.IsSet("-R", "--recursive");
+            var readDuringBrowse = options.IsProvidedOrNull("-v", "--readvalue");
+            var request = new BrowseRequestApiModel {
+                TargetNodesOnly = options.IsProvidedOrNull("-t", "--targets"),
+                ReadVariableValues = readDuringBrowse,
+                MaxReferencesToReturn = options.GetValueOrDefault<uint>("-x", "--maxrefs", null),
+                Direction = options.GetValueOrDefault<BrowseDirection>("-d", "--direction", null)
+            };
+            var nodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
+                options.GetValueOrDefault<string>("-n", "--nodeid", null)
+            };
+            var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var nodesRead = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var errors = 0;
+            var sw = Stopwatch.StartNew();
+            while (nodes.Count > 0) {
+                request.NodeId = nodes.First();
+                nodes.Remove(request.NodeId);
+                try {
+                    var result = await _twin.NodeBrowseAsync(id, request);
+                    visited.Add(request.NodeId);
+                    if (!silent) {
+                        PrintResult(options, result);
+                    }
+                    if (readDuringBrowse ?? false) {
+                        continue;
+                    }
+                    // Do recursive browse
+                    if (recursive) {
+                        foreach (var r in result.References) {
+                            if (!visited.Contains(r.ReferenceTypeId)) {
+                                nodes.Add(r.ReferenceTypeId);
+                            }
+                            if (!visited.Contains(r.Target.NodeId)) {
+                                nodes.Add(r.Target.NodeId);
+                            }
+                            if (nodesRead.Contains(r.Target.NodeId)) {
+                                continue; // We have read this one already
+                            }
+                            if (!r.Target.NodeClass.HasValue ||
+                                r.Target.NodeClass.Value != NodeClass.Variable) {
+                                continue;
+                            }
+                            if (!silent) {
+                                Console.WriteLine($"Reading {r.Target.NodeId}");
+                            }
+                            try {
+                                nodesRead.Add(r.Target.NodeId);
+                                var read = await _twin.NodeValueReadAsync(id,
+                                    new ValueReadRequestApiModel {
+                                        NodeId = r.Target.NodeId
+                                    });
+                                if (!silent) {
+                                    PrintResult(options, read);
+                                }
+                            }
+                            catch (Exception ex) {
+                                Console.WriteLine($"Reading {r.Target.NodeId} resulted in {ex}");
+                                errors++;
+                            }
+                        }
+                    }
+                }
+                catch (Exception e) {
+                    Console.WriteLine($"Browse {request.NodeId} resulted in {e}");
+                    errors++;
+                }
+            }
+            Console.WriteLine($"Browse took {sw.Elapsed}. Visited " +
+                $"{visited.Count} nodes and read {nodesRead.Count} of them with {errors} errors.");
+        }
 
         /// <summary>
         /// Select application registration
@@ -293,6 +372,16 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 Console.WriteLine($"Selected {applicationId}.");
             }
             return applicationId;
+        }
+
+        /// <summary>
+        /// Print result
+        /// </summary>
+        private void PrintResult<T>(CliOptions options, T status) {
+            Console.WriteLine("==================");
+            Console.WriteLine(JsonConvert.SerializeObject(status,
+                options.GetValueOrDefault("-F", "--format", Formatting.Indented)));
+            Console.WriteLine("==================");
         }
 
         /// <summary>

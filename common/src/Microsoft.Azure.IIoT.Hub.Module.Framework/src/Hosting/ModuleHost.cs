@@ -61,17 +61,19 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <inheritdoc/>
-        public async Task StopAsync() {
+        public async Task StopAsync(bool force) {
             if (_client != null) {
                 try {
                     await _lock.WaitAsync();
                     if (_client != null) {
                         _logger.Information("Stopping Module Host...");
                         try {
-                            var twinSettings = new TwinCollection {
-                                [TwinProperty.Connected] = false
-                            };
-                            await _client.UpdateReportedPropertiesAsync(twinSettings);
+                            if (!force) {
+                                var twinSettings = new TwinCollection {
+                                    [TwinProperty.Connected] = false
+                                };
+                                await _client.UpdateReportedPropertiesAsync(twinSettings);
+                            }
                             await _client.CloseAsync();
                         }
                         catch (OperationCanceledException) { }
@@ -81,7 +83,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         catch (Exception se) {
                             _logger.Error(se, "Module Host not cleanly disconnected.");
                         }
-                        _client.Dispose();
                     }
                     _logger.Information("Module Host stopped.");
                 }
@@ -89,6 +90,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     _logger.Error(ce, "Module Host stopping caused exception.");
                 }
                 finally {
+                    _client?.Dispose();
                     _client = null;
                     _reported?.Clear();
                     DeviceId = null;
@@ -284,7 +286,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <inheritdoc/>
         public void Dispose() {
             if (_client != null) {
-                StopAsync().Wait();
+                StopAsync(true).Wait();
             }
             _lock.Dispose();
         }

@@ -217,7 +217,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             sw.Stop();
         }
 
-        private string GetNormalizedEntityName(string publisherId, 
+        private string GetNormalizedEntityName(string publisherId,
             string dataSetWriterId, string metadataVersion) {
             var key = string.Join("", publisherId.Split(Path.GetInvalidFileNameChars())) + '_' +
                       string.Join("", dataSetWriterId.Split(Path.GetInvalidFileNameChars()));
@@ -262,7 +262,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 case TypeCode.Boolean:
                     return CdmDataFormat.Boolean;
                 default:
-                    // treat anything else as cdm string string 
+                    // treat anything else as cdm string string
                     return CdmDataFormat.String;
             }
         }
@@ -344,7 +344,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 //  if we handle a value, lookup it's type property
                 if (property.Name == "Value" &&
                     typeof(MonitoredItemSampleModel).
-                        GetProperty("TypeId")?.GetValue(sample) is Type typeId){ 
+                        GetProperty("TypeId")?.GetValue(sample) is Type typeId){
                     attribute.DataFormat = DataTypeToCdmDataFormat(typeId);
                 }
                 else {
@@ -361,7 +361,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             var newSampleEntityDoc = _cdmCorpus.MakeObject<CdmDocumentDefinition>(
                 CdmObjectType.DocumentDef, $"{newSampleEntity.EntityName}.cdm.json", false);
             newSampleEntityDoc.Imports.Add($"{newSampleEntity.EntityName}.cdm.json");
-            // TODO: remove - apparently not necessary 
+            // TODO: remove - apparently not necessary
             newSampleEntityDoc.Imports.Add(kFoundationJsonPath);
             newSampleEntityDoc.Definitions.Add(newSampleEntity);
             _cdmCorpus.Storage.FetchRootFolder("adls").Documents.Add(
@@ -389,7 +389,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             out string partitionLocation, out string partitionDelimitor) {
             partitionLocation = null;
             partitionDelimitor = kCsvPartitionsDelimiter;
-            var key = GetNormalizedEntityName(dataSet.PublisherId, 
+            var key = GetNormalizedEntityName(dataSet.PublisherId,
                 dataSet.DataSetWriterId, dataSet.MetaDataVersion);
             var entityDeclaration = Manifest.Entities.Item(key);
             if (entityDeclaration == null) {
@@ -439,7 +439,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                     newSampleEntity.Attributes.Add(attribute);
                 }
                 else{
-                    //  Parse the message payload 
+                    //  Parse the message payload
                     foreach (var node in dataSet.Payload.OrderBy(i => i.Key)) {
                         // add the attributes for value, status and timestamp
                         var valueAttribute = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
@@ -505,7 +505,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         }
 
         /// <summary>
-        /// Cache Timer Elapesed handler 
+        /// Cache Timer Elapesed handler
         /// </summary>
         /// <param name="sender"></param>
         private async void CacheTimer_ElapesedAsync(object sender) {

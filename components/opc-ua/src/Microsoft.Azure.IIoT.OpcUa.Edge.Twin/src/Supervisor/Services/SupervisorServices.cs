@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
                 }
                 _logger.Debug("{id} twin starting...", id);
                 _twinHosts.Remove(id);
-                var host = new TwinHost(this, _config, id, secret);
+                var host = new TwinHost(this, _config, id, secret, _logger);
                 _twinHosts.Add(id, host);
                 await host.Started;
                 _logger.Information("{id} twin started.", id);
@@ -197,9 +197,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
             /// <param name="config"></param>
             /// <param name="endpointId"></param>
             /// <param name="secret"></param>
-            public TwinHost(SupervisorServices outer,
-                IModuleConfig config, string endpointId, string secret) {
+            /// <param name="logger"></param>
+            public TwinHost(SupervisorServices outer, IModuleConfig config,
+                string endpointId, string secret, ILogger logger) {
                 _outer = outer;
+                _product = "OpcTwin_" + GetType().Assembly.GetReleaseVersion().ToString();
+                _logger = (logger ?? Log.Logger).ForContext("SourceContext", new {
+                    endpointId,
+                    product = _product
+                }, true);
 
                 BypassCertVerification = config.BypassCertVerification;
                 Transport = config.Transport;
@@ -264,34 +270,36 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
                 var retryCount = 0;
                 var cancel = new TaskCompletionSource<bool>();
                 _cts.Token.Register(() => cancel.TrySetResult(true));
+                var product = "OpcTwin_" +
+                    GetType().Assembly.GetReleaseVersion().ToString();
+                _logger.Information("Starting twin host...");
                 while (!_cts.Token.IsCancellationRequested) {
                     // Wait until the module unloads or is cancelled
                     try {
-                        var product = "OpcTwin_" +
-                            GetType().Assembly.GetReleaseVersion().ToString();
                         await host.StartAsync("twin", _outer._events.SiteId,
                             product, this);
                         Status = EndpointActivationState.ActivatedAndConnected;
                         _started.TrySetResult(true);
+                        _logger.Debug("Twin host (re-)started.");
                         // Reset retry counter on success
                         retryCount = 0;
                         await Task.WhenAny(cancel.Task, _reset.Task);
                         _reset = new TaskCompletionSource<bool>();
+                        _logger.Debug("Twin reset requested...");
                     }
                     catch (Exception ex) {
                         Status = EndpointActivationState.Activated;
-                        var logger = _container.Resolve<ILogger>();
 
                         var notFound = ex.GetFirstOf<DeviceNotFoundException>();
                         if (notFound != null) {
-                            logger.Information(notFound,
+                            _logger.Information(notFound,
                                 "Twin was deleted - exit host...");
                             _started.TrySetException(notFound);
                             return;
                         }
                         var auth = ex.GetFirstOf<UnauthorizedException>();
                         if (auth != null) {
-                            logger.Information(auth,
+                            _logger.Information(auth,
                                 "Twin not authorized using given secret - exit host...");
                             _started.TrySetException(auth);
                             return;
@@ -306,21 +314,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
                             break;
                         }
                         if (retryCount++ > kMaxRetryCount) {
-                            logger.Error(ex,
+                            _logger.Error(ex,
                                 "Error #{retryCount} in twin host - exit host...",
                                 retryCount);
                             return;
                         }
-                        logger.Error(ex,
+                        _logger.Error(ex,
                             "Error #{retryCount} in twin host - restarting...",
                             retryCount);
                     }
                     finally {
+                        _logger.Debug("Stopping twin...");
                         Status = EndpointActivationState.Activated;
-                        await host.StopAsync();
+                        await host.StopAsync(false);
+                        _logger.Information("Twin stopped.");
                         _started.TrySetResult(false); // Cancelled
                     }
                 }
+                _logger.Information("Exiting twin host.");
             }
 
             /// <summary>
@@ -378,7 +389,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
             private TaskCompletionSource<bool> _reset;
             private readonly TaskCompletionSource<bool> _started;
             private ILifetimeScope _container;
+            private readonly string _product;
             private readonly SupervisorServices _outer;
+            private readonly ILogger _logger;
             private readonly CancellationTokenSource _cts;
             private readonly Task _runner;
         }
