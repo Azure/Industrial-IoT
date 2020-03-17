@@ -438,6 +438,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         private Task<(IPEndPoint, Uri)> GetHostEntryAsync(
             Uri discoveryUrl) {
             return Try.Async(async () => {
+
                 var entry = await Dns.GetHostEntryAsync(discoveryUrl.DnsSafeHost);
                 // only pick-up the IPV4 addresses
                 foreach (var address in entry.AddressList
