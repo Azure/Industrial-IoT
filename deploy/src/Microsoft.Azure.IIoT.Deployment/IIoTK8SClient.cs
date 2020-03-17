@@ -415,7 +415,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 var labelsStr = string.Join(",", labels);
 
                 const int secondsDelay = 5;
-                const int secondsRetry = 600;
+                const int secondsRetry = 900;
 
                 var stopwatch = new Stopwatch();
                 stopwatch.Start();
