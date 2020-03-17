@@ -535,6 +535,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         case StatusCodes.BadNotConnected:
                             state = EndpointConnectivityState.NotReachable;
                             break;
+                        case StatusCodes.BadUserAccessDenied:
+                        case StatusCodes.BadUserSignatureInvalid:
+                            state = EndpointConnectivityState.Unauthorized;
+                            break;
                         default:
                             state = EndpointConnectivityState.Error;
                             break;

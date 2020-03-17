@@ -369,7 +369,6 @@ Operations (Mutually exclusive):
             }
         }
 
-
         /// <inheritdoc/>
         private class ConsoleEmitter : IEventEmitter {
 

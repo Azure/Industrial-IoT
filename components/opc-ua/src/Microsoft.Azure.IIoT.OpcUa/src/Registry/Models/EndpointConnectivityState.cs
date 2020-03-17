@@ -46,6 +46,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// General connection error
         /// </summary>
-        Error
+        Error,
+
+        /// <summary>
+        /// User is not authorized to connect.
+        /// </summary>
+        Unauthorized,
     }
 }

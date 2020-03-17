@@ -256,6 +256,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Servic
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Cdm", "components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Cdm\src\Microsoft.Azure.IIoT.OpcUa.Cdm.csproj", "{B32532AB-1D40-4C72-898A-96BA65DF3D9B}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Test.Scenarios", "api\src\Microsoft.Azure.IIoT.Api\tests\Microsoft.Azure.IIoT.Test.Scenarios.csproj", "{5B81D952-2E41-4704-8D22-2D817D5F94E6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -674,6 +676,10 @@ Global
 		{B32532AB-1D40-4C72-898A-96BA65DF3D9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B32532AB-1D40-4C72-898A-96BA65DF3D9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B32532AB-1D40-4C72-898A-96BA65DF3D9B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B81D952-2E41-4704-8D22-2D817D5F94E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B81D952-2E41-4704-8D22-2D817D5F94E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B81D952-2E41-4704-8D22-2D817D5F94E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B81D952-2E41-4704-8D22-2D817D5F94E6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -799,6 +805,7 @@ Global
 		{1BC793A2-7035-4B4B-AF31-983AD756EEFB} = {ADB416A3-C375-4362-B2C0-3A35DA4CB5F8}
 		{A22C4232-6BC6-47B1-9C9F-255F8A1E6621} = {ADB416A3-C375-4362-B2C0-3A35DA4CB5F8}
 		{B32532AB-1D40-4C72-898A-96BA65DF3D9B} = {A6028EDB-3331-48D2-8C7D-8D681172A61A}
+		{5B81D952-2E41-4704-8D22-2D817D5F94E6} = {ECAAA1FA-0A5C-4D41-8E39-E2E296BE8F1B}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F09EFCEA-59F6-4A16-9CB6-7E865A3F62D8}
