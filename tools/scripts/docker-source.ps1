@@ -92,6 +92,14 @@ ENV PATH="${PATH}:/root/vsdbg/vsdbg"
             debugger = $installLinuxDebugger
             entryPoint = "[`"./$($assemblyName)`"]"
         }
+        "linux/arm64" = @{
+            runtimeId = "linux-arm64"
+            image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1"
+            platformTag = "linux-arm64v8"
+            runtimeOnly = "RUN chmod +x $($assemblyName)"
+            debugger = $null
+            entryPoint = "[`"./$($assemblyName)`"]"
+        }
         "linux/amd64" = @{
             runtimeId = "linux-x64"
             image = "mcr.microsoft.com/dotnet/core/runtime-deps:3.1"
