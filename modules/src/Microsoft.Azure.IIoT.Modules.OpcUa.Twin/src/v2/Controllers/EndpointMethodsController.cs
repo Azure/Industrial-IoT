@@ -63,14 +63,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
         public async Task<BrowseResponseApiModel> BrowseAsync(
             BrowseRequestApiModel request) {
 
-            // Limit returned references to fit into 128k response
-            const int kMaxReferences = 100;
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
-            }
-            if (!request.MaxReferencesToReturn.HasValue ||
-                request.MaxReferencesToReturn.Value > kMaxReferences) {
-                request.MaxReferencesToReturn = kMaxReferences;
             }
             var result = await _browse.NodeBrowseFirstAsync(
                 _twin.Endpoint, request.ToServiceModel());

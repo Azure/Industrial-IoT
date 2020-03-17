@@ -868,13 +868,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                             OperationResultEx.Validate("FetchChildren_" + nodeId,
                                 diagnostics, response?.Results?.Select(r => r.StatusCode),
                                 response?.DiagnosticInfos, true);
-                            if (response.Results.Count == 1) {
+                            if (response.Results.Count > 0) {
                                 children = response.Results[0].References.Count != 0;
+                                if (response.Results[0].ContinuationPoint != null) {
+                                    await session.BrowseNextAsync(header, true,
+                                        new ByteStringCollection {
+                                            response.Results[0].ContinuationPoint
+                                        });
+                                }
                             }
                         }
                         catch (Exception ex) {
                             _logger.Debug(ex, "Failed to obtain child information");
-                            // TODO: Add diagnostics result for diagnostics.
                         }
                     }
                     var model = await ReadNodeModelAsync(session, codec, header, nodeId,

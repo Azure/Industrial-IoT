@@ -94,7 +94,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Sample {
                         Buffers = new MemoryBuffer.MemoryBufferInstanceCollection {
                             new MemoryBuffer.MemoryBufferInstance {
                                 Name = "UInt32",
-                                TagCount = 100,
+                                TagCount = 10000,
                                 DataType = "UInt32"
                             },
                             new MemoryBuffer.MemoryBufferInstance {
