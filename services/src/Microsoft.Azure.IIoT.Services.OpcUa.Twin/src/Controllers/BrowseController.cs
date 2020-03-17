@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers {
         /// </summary>
         /// <param name="browser"></param>
         public BrowseController(IBrowseServices<string> browser) {
-            _broser = browser;
+            _browser = browser;
         }
 
         /// <summary>
@@ -54,7 +54,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var browseresult = await _broser.NodeBrowseAsync(endpointId,
+            var browseresult = await _browser.NodeBrowseAsync(endpointId,
                 request.ToServiceModel());
             return browseresult.ToApiModel();
         }
@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers {
             if (request.ContinuationToken == null) {
                 throw new ArgumentNullException(nameof(request.ContinuationToken));
             }
-            var browseresult = await _broser.NodeBrowseNextAsync(endpointId,
+            var browseresult = await _browser.NodeBrowseNextAsync(endpointId,
                 request.ToServiceModel());
             return browseresult.ToApiModel();
         }
@@ -102,7 +102,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            var browseresult = await _broser.NodeBrowsePathAsync(endpointId,
+            var browseresult = await _browser.NodeBrowsePathAsync(endpointId,
                 request.ToServiceModel());
             return browseresult.ToApiModel();
         }
@@ -135,7 +135,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers {
                 TargetNodesOnly = true,
                 ReadVariableValues = true
             };
-            var browseresult = await _broser.NodeBrowseAsync(endpointId, request);
+            var browseresult = await _browser.NodeBrowseAsync(endpointId, request);
             return browseresult.ToApiModel();
         }
 
@@ -170,10 +170,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers {
                 TargetNodesOnly = true,
                 ReadVariableValues = true
             };
-            var browseresult = await _broser.NodeBrowseNextAsync(endpointId, request);
+            var browseresult = await _browser.NodeBrowseNextAsync(endpointId, request);
             return browseresult.ToApiModel();
         }
 
-        private readonly IBrowseServices<string> _broser;
+        private readonly IBrowseServices<string> _browser;
     }
 }

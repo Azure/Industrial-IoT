@@ -1975,6 +1975,75 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
         }
 
+        public async Task NodeBrowseContinuationTest1Async() {
+
+            var browser = _services();
+
+            // Act
+            var results = await browser.NodeBrowseFirstAsync(_endpoint,
+                new BrowseRequestModel {
+                    NodeId = "http://samples.org/UA/memorybuffer/Instance#s=UInt32",
+                    MaxReferencesToReturn = 5
+                });
+
+            Assert.Null(results.ErrorInfo);
+            Assert.NotNull(results.ContinuationToken);
+            Assert.Equal(5, results.References.Count);
+
+            // Act
+            var cont = await browser.NodeBrowseNextAsync(_endpoint,
+                new BrowseNextRequestModel {
+                    ContinuationToken = results.ContinuationToken
+                });
+
+            Assert.Null(results.ErrorInfo);
+            Assert.NotNull(results.ContinuationToken);
+            Assert.Equal(5, results.References.Count);
+        }
+
+
+        public async Task NodeBrowseContinuationTest2Async() {
+
+            var browser = _services();
+
+            // Act
+            var results = await browser.NodeBrowseFirstAsync(_endpoint,
+                new BrowseRequestModel {
+                    NodeId = "http://samples.org/UA/memorybuffer/Instance#s=UInt32",
+                    MaxReferencesToReturn = 200
+                });
+
+            Assert.Null(results.ErrorInfo);
+            Assert.NotNull(results.ContinuationToken);
+            Assert.Equal(200, results.References.Count);
+
+            // Act
+            var cont = await browser.NodeBrowseNextAsync(_endpoint,
+                new BrowseNextRequestModel {
+                    ContinuationToken = results.ContinuationToken
+                });
+
+            Assert.Null(results.ErrorInfo);
+            Assert.NotNull(results.ContinuationToken);
+            Assert.Equal(200, results.References.Count);
+        }
+
+        public async Task NodeBrowseContinuationTest3Async() {
+
+            var browser = _services();
+
+            // Act
+            var results = await browser.NodeBrowseFirstAsync(_endpoint,
+                new BrowseRequestModel {
+                    NodeId = "http://samples.org/UA/memorybuffer/Instance#s=UInt32",
+                    MaxReferencesToReturn = 1,
+                    NodeIdsOnly = true
+                });
+
+            Assert.NotNull(results.ContinuationToken);
+            Assert.Single(results.References);
+        }
+
 
         public async Task NodeBrowsePathStaticScalarMethod3Test1Async() {
             var nodeId = "http://test.org/UA/Data/#i=10157"; // Data
