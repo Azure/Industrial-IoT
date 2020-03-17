@@ -113,6 +113,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
         }
 
         [Fact]
+        public async Task NodeBrowseContinuationTest1Async() {
+            await GetTests().NodeBrowseContinuationTest1Async();
+        }
+
+        [Fact]
+        public async Task NodeBrowseContinuationTest2Async() {
+            await GetTests().NodeBrowseContinuationTest2Async();
+        }
+
+        [Fact]
+        public async Task NodeBrowseContinuationTest3Async() {
+            await GetTests().NodeBrowseContinuationTest3Async();
+        }
+
+        [Fact]
         public async Task NodeBrowsePathStaticScalarMethod3Test1Async() {
             await GetTests().NodeBrowsePathStaticScalarMethod3Test1Async();
         }
