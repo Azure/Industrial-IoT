@@ -141,6 +141,27 @@
 			"response": []
 		},
 		{
+			"name": "Registry: Get endpoint",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://{{OPC-SERVICEURL}}/registry/v2/endpoints/uat5bf736971027939a93e06a35c4a2d5957762409a",
+					"protocol": "https",
+					"host": [
+						"{{OPC-SERVICEURL}}"
+					],
+					"path": [
+						"registry",
+						"v2",
+						"endpoints",
+						"uat5bf736971027939a93e06a35c4a2d5957762409a"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Twin: browse endpoint for ID x",
 			"protocolProfileBehavior": {
 				"disableBodyPruning": true
