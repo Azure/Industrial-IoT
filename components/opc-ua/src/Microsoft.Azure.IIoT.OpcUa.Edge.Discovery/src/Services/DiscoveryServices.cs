@@ -450,6 +450,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                         return (ep, discoveryUrl);
                     }
                 }
+                // if no IPV4 responsive, try IPV6 as fallback
+                foreach (var address in entry.AddressList
+                    .Where(a => a.AddressFamily != AddressFamily.InterNetwork)) {
+                    var reply = await new Ping().SendPingAsync(address);
+                    if (reply.Status == IPStatus.Success) {
+                        var ep = new IPEndPoint(address,
+                            discoveryUrl.IsDefaultPort ? 4840 : discoveryUrl.Port);
+                        return (ep, discoveryUrl);
+                    }
+                }
                 return (null, null);
             });
         }
