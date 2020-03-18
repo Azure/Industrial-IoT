@@ -43,11 +43,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             if ((result.RegisterOnly ?? false) && !events.Any()) {
                 return;
             }
+
             var sites = events.Select(e => e.Application.SiteId).Distinct();
             if (sites.Count() > 1) {
                 throw new ArgumentException("Unexpected number of sites in discovery");
             }
-
             var siteId = sites.SingleOrDefault() ?? gatewayId;
             var gateway = await _gateways.GetGatewayAsync(gatewayId);
 

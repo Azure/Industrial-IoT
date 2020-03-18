@@ -17,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         /// </summary>
         public string PublisherId { get; set; }
 
+
         /// <summary>
         /// Dataset writer id
         /// </summary>

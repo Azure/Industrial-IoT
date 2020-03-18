@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
     using Newtonsoft.Json;
+    using System.Collections.Generic;
     using System.ComponentModel;
 
     /// <summary>
@@ -86,6 +87,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(false)]
         public bool? ReadVariableValues { get; set; }
+
+        /// <summary>
+        /// Filter returned target nodes by only returning
+        /// nodes that have classes defined in this array.
+        /// (default: null - all targets are returned)
+        /// </summary>
+        [JsonProperty(PropertyName = "nodeClassFilter",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public List<NodeClass> NodeClassFilter { get; set; }
 
         /// <summary>
         /// Optional request header

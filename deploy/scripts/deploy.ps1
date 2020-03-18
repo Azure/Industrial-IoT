@@ -390,13 +390,20 @@ Function Set-ResourceGroupTags() {
 #*******************************************************************************************************
 Function Select-ResourceGroup() {
     
+    $first = $true
     while ([string]::IsNullOrEmpty($script:resourceGroupName) `
             -or ($script:resourceGroupName -notmatch "^[a-z0-9-_]*$")) {
         if (!$script:interactive) { 
             throw "Invalid resource group name specified which is mandatory for non-interactive script use."
         }
-        Write-Host
-        Write-Host "Please provide a name for the resource group (Use alphanumeric characters and '-' or '_')"
+        if ($first -eq $false) {
+            Write-Host "Use alphanumeric characters as well as '-' or '_'."
+        }
+        else {
+            Write-Host
+            Write-Host "Please provide a name for the resource group."
+            $first = $false
+        }
         $script:resourceGroupName = Read-Host -Prompt ">"
     }
 
@@ -407,7 +414,7 @@ Function Select-ResourceGroup() {
         Select-ResourceGroupLocation
         $resourceGroup = New-AzResourceGroup -Name $script:resourceGroupName `
             -Location $script:resourceGroupLocation
-        Write-Host "Created new resource group  $($script:resourceGroupName) in $($resourceGroup.Location)."
+        Write-Host "Created new resource group $($script:resourceGroupName) in $($resourceGroup.Location)."
         Set-ResourceGroupTags -state "Created"
         return $True
     }
@@ -617,13 +624,20 @@ Function New-Deployment() {
         }
     }
     else {
+        $first = $true
         while ([string]::IsNullOrEmpty($script:applicationName) `
                 -or ($script:applicationName -notmatch "^[a-z0-9-]*$")) {
             if (!$script:interactive) {
                 throw "Invalid application name specified which is mandatory for non-interactive script use."
             }
-            Write-Host
-            Write-Host "Please specify a name for your application (use alphanumeric characters and '-')."
+            if ($first -eq $false) {
+                Write-Host "You can only use alphanumeric characters as well as '-'."
+            }
+            else {
+                Write-Host
+                Write-Host "Please specify a name for your application."
+                $first = $false
+            }
             if ($script:resourceGroupName -match "^[a-z0-9-]*$") {
                 Write-Host "Hit enter to use $($script:resourceGroupName)."
             }

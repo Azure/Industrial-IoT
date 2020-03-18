@@ -131,7 +131,6 @@ namespace Opc.Ua.PubSub {
         }
 
         private void DecodeJson(IDecoder decoder) {
-
             NodeId = decoder.ReadExpandedNodeId(nameof(MonitoredItemMessageContentMask.NodeId));
             if (NodeId != null) {
                 MessageContentMask |= (uint)MonitoredItemMessageContentMask.NodeId;
@@ -253,8 +252,8 @@ namespace Opc.Ua.PubSub {
                 if (ExtensionFields != null) {
                     var dictionary = new KeyValuePairCollection();
                     foreach (var item in ExtensionFields) {
-                        dictionary.Add(new Ua.KeyValuePair(){ 
-                            Key = item.Key, 
+                        dictionary.Add(new Ua.KeyValuePair(){
+                            Key = item.Key,
                             Value = item.Value});
                     }
                     encoder.WriteEncodeableArray("ExtensionFields", dictionary.ToArray(), typeof(Ua.KeyValuePair));

@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
     class DeploymentExecutor : IDisposable {
 
-        public static readonly string ENV_FILE_PATH = @".env";
+        public const string ENV_FILE_PATH = @".env";
 
         private List<string> _defaultTagsList;
         private Dictionary<string, string> _defaultTagsDict;
