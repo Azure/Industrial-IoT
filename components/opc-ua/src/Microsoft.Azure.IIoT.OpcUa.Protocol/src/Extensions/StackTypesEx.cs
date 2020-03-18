@@ -543,14 +543,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
             UaMonitoredItemMessageContentMask result = 0;
             if (field == null) {
                 result |=
-                    UaMonitoredItemMessageContentMask.StatusCode |
                     UaMonitoredItemMessageContentMask.SourceTimestamp |
                     UaMonitoredItemMessageContentMask.ServerTimestamp |
+                    UaMonitoredItemMessageContentMask.StatusCode |
                     UaMonitoredItemMessageContentMask.NodeId |
                     UaMonitoredItemMessageContentMask.EndpointUrl |
                     UaMonitoredItemMessageContentMask.ApplicationUri |
                     UaMonitoredItemMessageContentMask.DisplayName |
-                    UaMonitoredItemMessageContentMask.SubscriptionId |
                     UaMonitoredItemMessageContentMask.ExtraFields;
             }
             else {
@@ -580,9 +579,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 }
                 if (0 != (field & DataSetFieldContentMask.DisplayName)) {
                     result |= UaMonitoredItemMessageContentMask.DisplayName;
-                }
-                if (0 != (field & DataSetFieldContentMask.SubscriptionId)) {
-                    result |= UaMonitoredItemMessageContentMask.SubscriptionId;
                 }
                 if (0 != (field & DataSetFieldContentMask.ExtraFields)) {
                     result |= UaMonitoredItemMessageContentMask.ExtraFields;

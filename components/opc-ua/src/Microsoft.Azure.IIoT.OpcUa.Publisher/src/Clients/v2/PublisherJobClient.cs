@@ -253,7 +253,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
                         DataSetFieldContentMask.DisplayName |
                         DataSetFieldContentMask.ApplicationUri |
                         DataSetFieldContentMask.EndpointUrl |
-                        DataSetFieldContentMask.SubscriptionId |
                         DataSetFieldContentMask.ExtraFields,
                     MessageSettings = new DataSetWriterMessageSettingsModel() {
                         DataSetMessageContentMask =

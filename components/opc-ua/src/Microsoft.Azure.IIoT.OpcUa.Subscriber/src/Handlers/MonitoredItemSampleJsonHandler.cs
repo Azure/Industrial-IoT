@@ -56,6 +56,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
             }
             try {
                 var sample = new MonitoredItemSampleModel() {
+                    NodeId = message.NodeId.AsString(null),
+                    DisplayName = message.DisplayName,
                     Value = (message?.Value?.WrappedValue.Value != null) ?
                         message.Value.WrappedValue.Value : null,
                     Status = StatusCode.LookupSymbolicId(message.Value.StatusCode.Code),
@@ -63,19 +65,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                         TypeInfo.GetSystemType(
                             message.Value.WrappedValue.TypeInfo.BuiltInType,
                             message.Value.WrappedValue.TypeInfo.ValueRank) : null,
-                    DataSetId = !string.IsNullOrEmpty(message.DisplayName) ?
-                        message.DisplayName : message.NodeId.AsString(null),
+                    SourceTimestamp = message.Value.SourceTimestamp,
+                    ServerTimestamp = message.Value.ServerTimestamp,
                     Timestamp = message.Timestamp,
+                    PublisherId = (message.ExtensionFields != null &&
+                        message.ExtensionFields.TryGetValue("PublisherId", out var publisherId))
+                            ? publisherId : message.ApplicationUri ?? message.EndpointUrl,
+                    DataSetWriterId = (message.ExtensionFields != null &&
+                        message.ExtensionFields.TryGetValue("DataSetWriterId", out var dataSetWriterId))
+                            ? dataSetWriterId : message.EndpointUrl ?? message.ApplicationUri,
                     EndpointId = (message.ExtensionFields != null &&
                         message.ExtensionFields.TryGetValue("EndpointId", out var endpointId))
-                            ? endpointId : message.ApplicationUri ?? message.SubscriptionId,
-                    SubscriptionId = message.SubscriptionId ?? message.ApplicationUri,
-                    NodeId = message.NodeId.AsString(null),
-                    DisplayName = message.DisplayName,
-                    SourcePicoseconds = message.Value.SourcePicoseconds,
-                    ServerPicoseconds = message.Value.ServerPicoseconds,
-                    SourceTimestamp = message.Value.SourceTimestamp,
-                    ServerTimestamp = message.Value.ServerTimestamp
+                            ? endpointId : message.EndpointUrl ?? message.ApplicationUri
                 };
                 await Task.WhenAll(_handlers.Select(h => h.HandleSampleAsync(sample)));
             }

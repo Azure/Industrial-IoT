@@ -230,18 +230,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var expected1 = new Variant(new ExpandedNodeId(2354u, 0, "http://test/", 0));
             var expected2 = new Variant(new ExpandedNodeId(2354u, 0, "http://test/UA", 0));
             var expected3 = new Variant(new ExpandedNodeId(2355u, 0, "http://test/", 0));
+            var expected4 = new Variant(new ExpandedNodeId(2355u, 0, null, 0));
+            var expected5 = new Variant(new ExpandedNodeId(new NodeId(2355u, 1), "http://test/", 0));
 
             var encoded1 = codec.Encode(expected1);
             var encoded2 = codec.Encode(expected2);
             var encoded3 = codec.Encode(expected3);
+            var encoded4 = codec.Encode(expected4);
+            var encoded5 = codec.Encode(expected5);
 
             var variant1 = codec.Decode(encoded1, BuiltInType.ExpandedNodeId);
             var variant2 = codec.Decode(encoded2, BuiltInType.ExpandedNodeId);
             var variant3 = codec.Decode(encoded3, BuiltInType.ExpandedNodeId);
+            var variant4 = codec.Decode(encoded4, BuiltInType.ExpandedNodeId);
+            var variant5 = codec.Decode(encoded5, BuiltInType.ExpandedNodeId);
 
             Assert.Equal(expected1, variant1);
             Assert.Equal(expected2, variant2);
             Assert.Equal(expected3, variant3);
+            Assert.Equal(expected4, variant4);
+            Assert.Equal(expected5, variant5);
         }
 
         [Fact]

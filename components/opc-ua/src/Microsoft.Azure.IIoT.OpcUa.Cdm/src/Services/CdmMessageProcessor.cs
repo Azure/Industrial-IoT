@@ -175,6 +175,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                     }
                     await _storage.WriteInCsvPartition<MonitoredItemSampleModel>(
                         partitionLocation, samplesList, partitionDelimitor);
+                    _logger.Information("Successfully processed CDM data {count} MonitoredItemSample records.", samplesList.Count);
                 }
 
                 foreach(var dataSetsList in _dataSetsCache.Values) {
@@ -192,6 +193,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                     }
                     await _storage.WriteInCsvPartition<DataSetMessageModel>(
                         partitionLocation, dataSetsList, partitionDelimitor);
+                    _logger.Information("Successfully processed CDM data {count} DataSet records.", dataSetsList.Count);
                 }
 
                 if (performSave) {
@@ -199,8 +201,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                         await Manifest.SaveAsAsync("model.json", true);
                     }
                 }
-                _logger.Information("Successfully sent processed CDM data {count} records (took {elapsed}).",
-                    _samplesCacheSize, sw.Elapsed);
+                _logger.Information("Finished sending CDM data records - duration {elapsed}).", sw.Elapsed);
             }
             catch (Exception ex) {
                 _logger.Warning(ex, "Failed to send processed CDM data after {elapsed}",
@@ -219,6 +220,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
 
         private string GetNormalizedEntityName(string publisherId, 
             string dataSetWriterId, string metadataVersion) {
+            if (string.IsNullOrEmpty(publisherId) || string.IsNullOrEmpty(dataSetWriterId)) {
+                return null;
+            }
             var key = string.Join("", publisherId.Split(Path.GetInvalidFileNameChars())) + '_' +
                       string.Join("", dataSetWriterId.Split(Path.GetInvalidFileNameChars()));
             if (!string.IsNullOrEmpty(metadataVersion)) {
@@ -306,6 +310,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             partitionLocation = null;
             partitionDelimitor = kCsvPartitionsDelimiter;
             var key = GetNormalizedEntityName(sample.EndpointId, sample.NodeId, null);
+            if (string.IsNullOrEmpty(key)) {
+                return false;
+            }
             var entityDeclaration = Manifest.Entities.Item(key);
             if (entityDeclaration == null) {
                 return false;
@@ -322,8 +329,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
 
         private bool CreateEntityData(MonitoredItemSampleModel sample,
             out string partitionLocation, out string partitionDelimitor) {
+            partitionLocation = null;
+            partitionDelimitor = kCsvPartitionsDelimiter;
             string key = GetNormalizedEntityName(sample.EndpointId, sample.NodeId, null);
-
+            if (string.IsNullOrEmpty(key)) {
+                return false;
+            }
             // check if the enetity was aleready added
             var entity = Manifest.Entities.Item(key);
             if (entity != null) {
@@ -391,6 +402,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             partitionDelimitor = kCsvPartitionsDelimiter;
             var key = GetNormalizedEntityName(dataSet.PublisherId, 
                 dataSet.DataSetWriterId, dataSet.MetaDataVersion);
+            if (string.IsNullOrEmpty(key)) {
+                return false;
+            }
             var entityDeclaration = Manifest.Entities.Item(key);
             if (entityDeclaration == null) {
                 return false;
@@ -407,14 +421,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
 
         private bool CreateEntityData(DataSetMessageModel dataSet,
             out string partitionLocation, out string partitionDelimitor) {
+            partitionLocation = null;
+            partitionDelimitor = kCsvPartitionsDelimiter;
             var key = GetNormalizedEntityName(dataSet.PublisherId,
                 dataSet.DataSetWriterId, dataSet.MetaDataVersion);
+            if (string.IsNullOrEmpty(key)) {
+                return false;
+            }
             // check if the enetity was aleready added
             var entity = Manifest.Entities.Item(key);
             if (entity != null) {
                 return GetEntityData(dataSet, out partitionLocation, out partitionDelimitor);
             }
-
             // add a new entity for the Message
             var newSampleEntity = _cdmCorpus.MakeObject<CdmEntityDefinition>(
                 CdmObjectType.EntityDef, key, false);

@@ -49,7 +49,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             .DataSetMessageContentMask).ToMonitoredItemMessageMask(
                                 message.Writer?.DataSetFieldContentMask),
                         ApplicationUri = message.ApplicationUri,
-                        SubscriptionId = message.SubscriptionId,
                         EndpointUrl = message.EndpointUrl,
                         ExtensionFields = message.Writer?.DataSet?.ExtensionFields,
                         NodeId = notification.NodeId.ToExpandedNodeId(message.ServiceMessageContext.NamespaceUris),
@@ -70,6 +69,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
             }
         }
+
         /// <summary>
         /// Perform event to message encoding
         /// </summary>
@@ -83,7 +83,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             .DataSetMessageContentMask).ToMonitoredItemMessageMask(
                                 message.Writer?.DataSetFieldContentMask),
                         ApplicationUri = message.ApplicationUri,
-                        SubscriptionId = message.SubscriptionId,
                         EndpointUrl = message.EndpointUrl,
                         ExtensionFields = message.Writer?.DataSet?.ExtensionFields,
                         NodeId = notification.NodeId.ToExpandedNodeId(message.ServiceMessageContext.NamespaceUris),
@@ -92,7 +91,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         DisplayName = notification.DisplayName
                     };
                     using (var encoder = new JsonEncoderEx(writer, message.ServiceMessageContext) {
-                        UseUriEncoding = true}){
+                        UseAdvancedEncoding = true,
+                        UseUriEncoding = true,
+                        UseReversibleEncoding = false
+                    }){
                         value.Encode(encoder);
                     }
                     var encoded = new NetworkMessageModel {

@@ -30,6 +30,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2.Models {
             MaxNotificationsPerPublish = model.MaxNotificationsPerPublish;
             Priority = model.Priority;
             PublishingInterval = model.PublishingInterval;
+            ResolveDisplayName = model.ResolveDisplayName;
         }
 
         /// <summary>
@@ -41,7 +42,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2.Models {
                 MaxKeepAliveCount = MaxKeepAliveCount,
                 MaxNotificationsPerPublish = MaxNotificationsPerPublish,
                 Priority = Priority,
-                PublishingInterval = PublishingInterval
+                PublishingInterval = PublishingInterval,
+                ResolveDisplayName = ResolveDisplayName
             };
         }
 
@@ -79,5 +81,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2.Models {
         [JsonProperty(PropertyName = "priority",
             NullValueHandling = NullValueHandling.Ignore)]
         public byte? Priority { get; set; }
+
+        /// <summary>
+        /// ResolveDisplayName
+        /// </summary>
+        [JsonProperty(PropertyName = "resolveDisplayName",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public bool? ResolveDisplayName { get; set; }
+        
     }
 }

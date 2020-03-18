@@ -20,14 +20,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
                 return null;
             }
             return new MonitoredItemSampleModel {
-                SubscriptionId = model.SubscriptionId,
+                PublisherId = model.PublisherId,
+                DataSetWriterId = model.DataSetWriterId,
                 EndpointId = model.EndpointId,
-                DataSetId = model.DataSetId,
                 NodeId = model.NodeId,
                 DisplayName = model.DisplayName,
-                ServerPicoseconds = model.ServerPicoseconds,
                 ServerTimestamp = model.ServerTimestamp,
-                SourcePicoseconds = model.SourcePicoseconds,
                 SourceTimestamp = model.SourceTimestamp,
                 Timestamp = model.Timestamp,
                 TypeId = model.TypeId,

@@ -43,14 +43,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
                             datapoint.Value.Value : datapoint.Value.Value?.ToString(),
                         TypeId = datapoint.Value.TypeId?.FullName,
                         Status = datapoint.Value.Status,
-                        DataSetId = datapoint.Key,
+                        // TODO: we need to transport somehow also the real endpoint id
+                        EndpointId = message.DataSetWriterId,
                         Timestamp = datapoint.Value.Timestamp,
-                        SubscriptionId = message.DataSetWriterId,
-                        EndpointId = message.PublisherId,
+                        DataSetWriterId = message.DataSetWriterId,
+                        PublisherId = message.PublisherId,
                         NodeId = datapoint.Key,
                         DisplayName = datapoint.Key,
-                        SourcePicoseconds = null,
-                        ServerPicoseconds = null,
                         SourceTimestamp = datapoint.Value.Timestamp,
                         ServerTimestamp = datapoint.Value.Timestamp
                     }

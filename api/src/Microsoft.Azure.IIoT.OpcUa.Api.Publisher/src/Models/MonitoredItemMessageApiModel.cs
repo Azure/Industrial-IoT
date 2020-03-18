@@ -14,11 +14,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     public class MonitoredItemMessageApiModel {
 
         /// <summary>
-        /// Subscription id
+        /// Publisher Id
         /// </summary>
-        [JsonProperty(PropertyName = "subscriptionId",
+        [JsonProperty(PropertyName = "publisherId",
             NullValueHandling = NullValueHandling.Ignore)]
-        public string SubscriptionId { get; set; }
+        public string PublisherId { get; set; }
+
+        /// <summary>
+        /// DataSetWriterId
+        /// </summary>
+        [JsonProperty(PropertyName = "dataSetWriterId",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string DataSetWriterId { get; set; }
 
         /// <summary>
         /// Endpoint
@@ -26,13 +33,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [JsonProperty(PropertyName = "endpointId",
             NullValueHandling = NullValueHandling.Ignore)]
         public string EndpointId { get; set; }
-
-        /// <summary>
-        /// Dataset id
-        /// </summary>
-        [JsonProperty(PropertyName = "dataSetId",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public string DataSetId { get; set; }
 
         /// <summary>
         /// Node id
@@ -51,8 +51,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// </summary>
         [JsonProperty(PropertyName = "value",
             NullValueHandling = NullValueHandling.Ignore)]
-        public dynamic Value {get; set; }
-        
+        public dynamic Value { get; set; }
+
         /// <summary>
         /// Type id
         /// </summary>
@@ -82,24 +82,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public DateTime? SourceTimestamp { get; set; }
 
         /// <summary>
-        /// Source pico
-        /// </summary>
-        [JsonProperty(PropertyName = "sourcePicoseconds",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public ushort? SourcePicoseconds { get; set; }
-
-        /// <summary>
         /// Server time stamp
         /// </summary>
         [JsonProperty(PropertyName = "serverTimestamp",
             NullValueHandling = NullValueHandling.Ignore)]
         public DateTime? ServerTimestamp { get; set; }
-
-        /// <summary>
-        /// Server pico
-        /// </summary>
-        [JsonProperty(PropertyName = "serverPicoseconds",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public ushort? ServerPicoseconds { get; set; }
     }
 }
