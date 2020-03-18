@@ -49,6 +49,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         Error,
 
         /// <summary>
+        /// Client disconnected
+        /// </summary>
+        Disconnected,
+
+        /// <summary>
         /// User is not authorized to connect.
         /// </summary>
         Unauthorized

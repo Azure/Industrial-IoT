@@ -112,8 +112,8 @@
     public string endpointId { get; set; }
 
     [Parameter]
-    public PagedResult<ListNode> pagedNodeList { get; set; }  = new PagedResult<ListNode>();
-    
+    public PagedResult<ListNode> pagedNodeList { get; set; } = new PagedResult<ListNode>();
+
     public enum ActionType { Nothing, Read, Write, Call, Publish };
 
     private string _response { get; set; } = string.Empty;
@@ -169,6 +169,6 @@
     private async Task CallAsync(string nodeId, string[] values)
     {
         _response = await BrowseManager.MethodCallAsync(_parameters, values, endpointId, nodeData.Id);
-         _responseClass = "list-group-item margin body-action-content visible";
+        _responseClass = "list-group-item margin body-action-content visible";
     }
 }

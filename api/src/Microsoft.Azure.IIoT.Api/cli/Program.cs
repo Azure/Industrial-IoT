@@ -2697,19 +2697,19 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
 
             var netProbeTimeout = options.GetValueOrDefault<int>("-T", "--address-probe-timeout", null);
             if (netProbeTimeout != null && netProbeTimeout != 0) {
-                config.NetworkProbeTimeoutMs = netProbeTimeout.Value;
+                config.NetworkProbeTimeout = TimeSpan.FromMilliseconds(netProbeTimeout.Value);
                 empty = false;
             }
 
             var portProbeTimeout = options.GetValueOrDefault<int>("-t", "--port-probe-timeout", null);
             if (portProbeTimeout != null && portProbeTimeout != 0) {
-                config.PortProbeTimeoutMs = portProbeTimeout.Value;
+                config.PortProbeTimeout = TimeSpan.FromMilliseconds(portProbeTimeout.Value);
                 empty = false;
             }
 
             var idleTime = options.GetValueOrDefault<int>("-I", "--idle-time", null);
             if (idleTime != null && idleTime != 0) {
-                config.IdleTimeBetweenScansSec = idleTime.Value;
+                config.IdleTimeBetweenScans = TimeSpan.FromSeconds(idleTime.Value);
                 empty = false;
             }
             return empty ? null : config;

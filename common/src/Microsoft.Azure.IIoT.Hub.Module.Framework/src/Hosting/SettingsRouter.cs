@@ -5,9 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Microsoft.Azure.IIoT.Module.Framework.Services;
-    using Microsoft.Azure.Devices.Shared;
     using Serilog;
-    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
@@ -15,6 +13,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using System.Reflection;
     using System.Threading.Tasks;
     using System.Threading;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Provides set/get routing to controllers
@@ -39,7 +38,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         public SettingsRouter(ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _calltable = new Dictionary<string, CascadingInvoker>();
-            _cache = new Dictionary<string, JToken>();
             _lock = new SemaphoreSlim(1, 1);
         }
 
@@ -49,11 +47,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <inheritdoc/>
-        public async Task<TwinCollection> ProcessSettingsAsync(TwinCollection settings) {
+        public async Task<IDictionary<string, object>> ProcessSettingsAsync(
+            IDictionary<string, object> settings) {
             var controllers = new List<Controller>();
 
             // Set all properties
-            foreach (KeyValuePair<string, dynamic> setting in settings) {
+            foreach (var setting in settings) {
                 if (!TryGetInvoker(setting.Key, out var invoker)) {
                     _logger.Error("Setting {key}/{value} unsupported",
                         setting.Key, setting.Value);
@@ -71,53 +70,30 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 }
             }
 
-            // Apply settings on all affected controllers
+            // Apply settings on all affected controllers and return reported
+            var reported = new Dictionary<string, object>();
             if (controllers.Any()) {
                 var sw = Stopwatch.StartNew();
-                await Task.WhenAll(controllers.Select(c => c.SafeApplyAsync()));
-                _logger.Debug("Applying new settings took {elapsed}...", sw.Elapsed);
-            }
-
-            await _lock.WaitAsync();
-            try {
-                // Gather current values from controller
-                var reported = new TwinCollection();
-                foreach (KeyValuePair<string, dynamic> setting in settings) {
-                    if (TryGetInvoker(setting.Key, out var invoker)) {
-                        try {
-                            if (!invoker.Get(setting.Key, out var value)) {
-                                value = setting.Value; // No getter, echo back desired value.
-                            }
-                            _cache[setting.Key] = value == null ? JValue.CreateNull() : JToken.FromObject(value);
-                            reported[setting.Key] = value;
-                            continue;
-                        }
-                        catch (Exception ex) {
-                            _logger.Error(ex, "Error retrieving reported setting {setting}",
-                                setting);
-                            // Clear value...
-                        }
-                    }
-                    // Clear value
-                    reported[setting.Key] = null;
-                    _cache[setting.Key] = null;
+                await _lock.WaitAsync();
+                try {
+                    await Task.WhenAll(controllers.Select(c => c.SafeApplyAsync()));
+                    var invokers = controllers.SelectMany(c => c.Invokers).Distinct();
+                    CollectSettingsFromControllers(reported, invokers);
+                    _logger.Debug("Applying new settings took {elapsed}...", sw.Elapsed);
                 }
-                // Collect current values of all other settings
-                var remaining = _calltable.Where(v => !settings.Contains(v.Key));
-                CollectSettingsFromControllers(reported, remaining);
-                return reported;
+                finally {
+                    _lock.Release();
+                }
             }
-            finally {
-                _lock.Release();
-            }
+            return reported;
         }
 
         /// <inheritdoc/>
-        public async Task<TwinCollection> GetSettingsChangesAsync() {
+        public async Task<IDictionary<string, object>> GetSettingsStateAsync() {
             await _lock.WaitAsync();
             try {
-                var reported = new TwinCollection();
-                CollectSettingsFromControllers(reported, _calltable);
+                var reported = new Dictionary<string, object>();
+                CollectSettingsFromControllers(reported, _calltable.Values);
                 return reported;
             }
             finally {
@@ -141,34 +117,27 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// </summary>
         /// <param name="reported"></param>
         /// <param name="invokers"></param>
-        private void CollectSettingsFromControllers(TwinCollection reported,
-            IEnumerable<KeyValuePair<string, CascadingInvoker>> invokers) {
+        private void CollectSettingsFromControllers(Dictionary<string, object> reported,
+            IEnumerable<CascadingInvoker> invokers) {
             foreach (var handler in invokers) {
                 try {
-                    var key = handler.Value.Name;
+                    var key = handler.Name;
                     if (string.IsNullOrEmpty(key)) {
                         continue; // DO not return default indexer values
                     }
-                    if (!handler.Value.Get(key, out var value)) {
+                    if (!handler.Get(key, out var value)) {
                         continue;
                     }
-                    var obj = value == null ? null : JToken.FromObject(value);
-                    _cache.TryGetValue(key.ToLowerInvariant(), out var cached);
-                    if (cached == null && value == null) {
-                        // Do not report - both are null and thus equal
-                        continue;
+                    if (reported.ContainsKey(key)) {
+                        reported[key] = value;
                     }
-                    if (cached != null && value != null &&
-                        JToken.DeepEquals(cached, obj)) {
-                        // Value is equal - do not report
-                        continue;
+                    else {
+                        reported.Add(key, value);
                     }
-                    _cache[key.ToLowerInvariant()] = obj;
-                    reported[key] = value;
                 }
                 catch (Exception ex) {
                     _logger.Debug(ex, "Error retrieving controller setting {setting}",
-                        handler.Key);
+                        handler.Name);
                 }
             }
         }
@@ -223,6 +192,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         _calltable.Add(name, invoker);
                     }
                     invoker.Add(controller, propInfo, indexed);
+                    controller.Add(invoker);
                 }
             }
         }
@@ -231,6 +201,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// Wraps a controller
         /// </summary>
         private class Controller {
+
+            /// <summary>
+            /// Attached invokers
+            /// </summary>
+            public IEnumerable<CascadingInvoker> Invokers => _attachedTo;
 
             /// <summary>
             /// Target
@@ -283,8 +258,18 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 }
             }
 
+            /// <summary>
+            /// Add invoker found on controller
+            /// </summary>
+            /// <param name="invoker"></param>
+            internal void Add(CascadingInvoker invoker) {
+                _attachedTo.Add(invoker);
+            }
+
             private readonly ILogger _logger;
             private readonly MethodInfo _applyMethod;
+            private readonly List<CascadingInvoker> _attachedTo =
+                new List<CascadingInvoker>();
         }
 
         /// <summary>
@@ -326,7 +311,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="property"></param>
             /// <param name="value"></param>
             /// <returns></returns>
-            public Controller Set(string property, dynamic value) {
+            public Controller Set(string property, object value) {
                 Exception e = null;
                 foreach (var invoker in _invokers) {
                     try {
@@ -349,7 +334,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="property"></param>
             /// <param name="value"></param>
             /// <returns></returns>
-            public bool Get(string property, out dynamic value) {
+            public bool Get(string property, out object value) {
                 Exception e = null;
                 foreach (var invoker in _invokers) {
                     try {
@@ -402,7 +387,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="property"></param>
             /// <param name="value"></param>
             /// <returns></returns>
-            public Controller Set(string property, dynamic value) {
+            public Controller Set(string property, object value) {
                 try {
                     var cast = Cast(value, _property.PropertyType);
                     if (_indexed) {
@@ -428,19 +413,21 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="property"></param>
             /// <param name="value"></param>
             /// <returns></returns>
-            public bool Get(string property, out dynamic value) {
+            public bool Get(string property, out object value) {
                 try {
                     if (!_property.CanRead) {
                         value = null;
                         return false;
                     }
+                    object gotten;
                     if (_indexed) {
-                        value = _property.GetValue(_controller.Target,
+                        gotten = _property.GetValue(_controller.Target,
                             new object[] { property });
                     }
                     else {
-                        value = _property.GetValue(_controller.Target);
+                        gotten = _property.GetValue(_controller.Target);
                     }
+                    value = gotten;
                     return true;
                 }
                 catch (Exception e) {
@@ -457,15 +444,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="value"></param>
             /// <param name="type"></param>
             /// <returns></returns>
-            public object Cast(dynamic value, Type type) {
+            public object Cast(object value, Type type) {
                 if (value == null) {
                     return null;
                 }
-                JToken val;
-                try {
-                    val = (JToken)value;
-                }
-                catch {
+                if (!(value is JToken val)) {
                     val = JToken.FromObject(value);
                 }
                 if (type == typeof(JToken)) {
@@ -482,7 +465,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
         private const string kDefaultProp = "@default";
         private readonly ILogger _logger;
-        private readonly Dictionary<string, JToken> _cache;
         private readonly Dictionary<string, CascadingInvoker> _calltable;
         private readonly SemaphoreSlim _lock;
     }

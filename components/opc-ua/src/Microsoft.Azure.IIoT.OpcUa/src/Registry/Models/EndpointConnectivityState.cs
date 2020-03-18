@@ -49,8 +49,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         Error,
 
         /// <summary>
+        /// Client disconnected
+        /// </summary>
+        Disconnected,
+
+        /// <summary>
         /// User is not authorized to connect.
         /// </summary>
-        Unauthorized,
+        Unauthorized
     }
 }

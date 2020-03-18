@@ -294,13 +294,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models {
             }
             return new DiscoveryConfigApiModel {
                 AddressRangesToScan = model.AddressRangesToScan,
-                NetworkProbeTimeoutMs = (int?)model.NetworkProbeTimeout?.TotalMilliseconds,
+                NetworkProbeTimeout = model.NetworkProbeTimeout,
                 MaxNetworkProbes = model.MaxNetworkProbes,
                 PortRangesToScan = model.PortRangesToScan,
-                PortProbeTimeoutMs = (int?)model.PortProbeTimeout?.TotalMilliseconds,
+                PortProbeTimeout = model.PortProbeTimeout,
                 MaxPortProbes = model.MaxPortProbes,
                 MinPortProbesPercent = model.MinPortProbesPercent,
-                IdleTimeBetweenScansSec = (int?)model.IdleTimeBetweenScans?.TotalSeconds,
+                IdleTimeBetweenScans = model.IdleTimeBetweenScans,
                 ActivationFilter = model.ActivationFilter.ToApiModel(),
                 Locales = model.Locales,
                 DiscoveryUrls = model.DiscoveryUrls
@@ -318,16 +318,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models {
             }
             return new DiscoveryConfigModel {
                 AddressRangesToScan = model.AddressRangesToScan,
-                NetworkProbeTimeout = model.NetworkProbeTimeoutMs == null ?
-                    (TimeSpan?)null : TimeSpan.FromMilliseconds((double)model.NetworkProbeTimeoutMs),
+                NetworkProbeTimeout = model.NetworkProbeTimeout,
                 MaxNetworkProbes = model.MaxNetworkProbes,
                 PortRangesToScan = model.PortRangesToScan,
-                PortProbeTimeout = model.PortProbeTimeoutMs == null ?
-                    (TimeSpan?)null : TimeSpan.FromMilliseconds((double)model.PortProbeTimeoutMs),
+                PortProbeTimeout = model.PortProbeTimeout,
                 MaxPortProbes = model.MaxPortProbes,
                 MinPortProbesPercent = model.MinPortProbesPercent,
-                IdleTimeBetweenScans = model.IdleTimeBetweenScansSec == null ?
-                    (TimeSpan?)null : TimeSpan.FromSeconds((double)model.IdleTimeBetweenScansSec),
+                IdleTimeBetweenScans = model.IdleTimeBetweenScans,
                 ActivationFilter = model.ActivationFilter.ToServiceModel(),
                 Locales = model.Locales,
                 DiscoveryUrls = model.DiscoveryUrls
