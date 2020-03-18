@@ -430,7 +430,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "https://{{OPC-SERVICEURL}}/registry/v2/discoverers",
+					"raw": "https://{{OPC-SERVICEURL}}/registry/v2/discovery",
 					"protocol": "https",
 					"host": [
 						"{{OPC-SERVICEURL}}"
@@ -438,7 +438,7 @@
 					"path": [
 						"registry",
 						"v2",
-						"discoverers"
+						"discovery"
 					]
 				}
 			},
