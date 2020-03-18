@@ -46,8 +46,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
 
         /// <inheritdoc/>
         public async Task ActivateEndpointAsync(string id, string secret, CancellationToken ct) {
+            await _lock.WaitAsync();
             try {
-                await _lock.WaitAsync();
                 if (_twinHosts.TryGetValue(id, out var twin) && twin.Running) {
                     _logger.Debug("{id} twin already running.", id);
                     return;
@@ -56,6 +56,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
                 _twinHosts.Remove(id);
                 var host = new TwinHost(this, _config, id, secret, _logger);
                 _twinHosts.Add(id, host);
+
+                //
+                // This starts and waits for the twin to be started - versus attaching which
+                // represents the state of the actived and supervised twins in the supervisor
+                // device twin.
+                //
                 await host.Started;
                 _logger.Information("{id} twin started.", id);
             }
@@ -67,8 +73,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
         /// <inheritdoc/>
         public async Task DeactivateEndpointAsync(string id, CancellationToken ct) {
             TwinHost twin;
+            await _lock.WaitAsync();
             try {
-                await _lock.WaitAsync();
                 if (!_twinHosts.TryGetValue(id, out twin)) {
                     _logger.Debug("{id} twin not running.", id);
                     return;
@@ -78,13 +84,59 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
             finally {
                 _lock.Release();
             }
+            //
+            // This stops and waits for the twin to be stopped - versus detaching which
+            // represents the state of the supervised twins through the supervisor device
+            // twin.
+            //
             await StopOneTwinAsync(id, twin);
         }
 
         /// <inheritdoc/>
-        public async Task<SupervisorStatusModel> GetStatusAsync(CancellationToken ct) {
+        public async Task AttachEndpointAsync(string id, string secret) {
+            await _lock.WaitAsync();
             try {
-                await _lock.WaitAsync();
+                if (_twinHosts.TryGetValue(id, out var twin)) {
+                    _logger.Debug("{id} twin already attached.", id);
+                    return;
+                }
+                _logger.Debug("Attaching endpoint {id} twin...", id);
+                var host = new TwinHost(this, _config, id, secret, _logger);
+                _twinHosts.Add(id, host);
+
+                _logger.Information("{id} twin attached to module.", id);
+            }
+            finally {
+                _lock.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task DetachEndpointAsync(string id) {
+            TwinHost twin;
+            await _lock.WaitAsync();
+            try {
+                if (!_twinHosts.TryGetValue(id, out twin)) {
+                    _logger.Debug("{id} twin not attached.", id);
+                    return;
+                }
+
+                // Test whether twin is in error state and only then remove
+                if (!twin.Running) {
+                    // Detach twin that is not running anymore
+                    _twinHosts.Remove(id);
+                }
+                _logger.Information("{id} twin detached from module.", id);
+            }
+            finally {
+                _lock.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<SupervisorStatusModel> GetStatusAsync(CancellationToken ct) {
+            await _lock.WaitAsync();
+            try {
                 var endpoints = _twinHosts
                     .Select(h => new EndpointActivationStatusModel {
                         Id = h.Key,
@@ -126,7 +178,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
         /// <param name="twin"></param>
         /// <returns></returns>
         private async Task StopOneTwinAsync(string id, TwinHost twin) {
-            _logger.Debug("{id} twin is stopped...", id);
+            _logger.Debug("{id} twin is stopping...", id);
             try {
                 // Stop host async
                 await twin.StopAsync();
@@ -326,9 +378,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
                     finally {
                         _logger.Debug("Stopping twin...");
                         Status = EndpointActivationState.Activated;
-                        await host.StopAsync(false);
+                        await host.StopAsync(true);
                         _logger.Information("Twin stopped.");
-                        _started.TrySetResult(false); // Cancelled
+                        _started.TrySetResult(false); // Cancelled before started
                     }
                 }
                 _logger.Information("Exiting twin host.");

@@ -195,20 +195,26 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         private async Task TestActivationAsync(CliOptions options) {
             IEnumerable<EndpointRegistrationApiModel> endpoints;
             if (!options.IsSet("-a", "--all")) {
-                var id = options.GetValueOrDefault<string>("-i", "--id", null);
-                if (id == null) {
-                    id = await SelectApplicationAsync();
+                if (options.IsSet("-e", "--endpoint")) {
+                    var id = await SelectEndpointAsync();
+                    var ep = await _registry.GetEndpointAsync(id);
+                    endpoints = ep.Registration.YieldReturn();
+                }
+                else {
+                    var id = options.GetValueOrDefault<string>("-i", "--id", null);
                     if (id == null) {
-                        throw new ArgumentException("Needs an id");
+                        id = await SelectApplicationAsync();
+                        if (id == null) {
+                            throw new ArgumentException("Needs an id");
+                        }
                     }
-                }
 
-                var app = await _registry.GetApplicationAsync(id);
-                if (app.Endpoints.Count == 0) {
-                    return;
+                    var app = await _registry.GetApplicationAsync(id);
+                    if (app.Endpoints.Count == 0) {
+                        return;
+                    }
+                    endpoints = app.Endpoints;
                 }
-
-                endpoints = app.Endpoints;
             }
             else {
                 var infos = await _registry.ListAllEndpointsAsync();
@@ -237,8 +243,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                         break;
                     }
                     if (sw.ElapsedMilliseconds > 60000) {
-                        Console.WriteLine("Failed to activate!");
-                        return;
+                        throw new Exception($"{endpoint.Id} failed to activate!");
                     }
                 }
 
@@ -250,8 +255,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                         break;
                     }
                     if (sw.ElapsedMilliseconds > 60000) {
-                        Console.WriteLine("Failed to get endpoint state!");
-                        return;
+                        throw new Exception($"{endpoint.Id} failed to get endpoint state!");
                     }
                     ep = await _registry.GetEndpointAsync(endpoint.Id);
                 }
@@ -274,8 +278,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                         break;
                     }
                     if (sw.ElapsedMilliseconds > 60000) {
-                        Console.WriteLine("Failed to deactivate!");
-                        return;
+                        throw new Exception($"{endpoint.Id} failed to deactivate!");
                     }
                 }
                 Console.WriteLine($"{endpoint.Id} deactivated.");
@@ -375,6 +378,21 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         }
 
         /// <summary>
+        /// Select endpoint registration
+        /// </summary>
+        private async Task<string> SelectEndpointAsync() {
+            var result = await _registry.ListAllEndpointsAsync();
+            var endpointId = ConsoleEx.Select(result.Select(r => r.Registration.Id));
+            if (string.IsNullOrEmpty(endpointId)) {
+                Console.WriteLine("Nothing selected - application selection cleared.");
+            }
+            else {
+                Console.WriteLine($"Selected {endpointId}.");
+            }
+            return endpointId;
+        }
+
+        /// <summary>
         /// Print result
         /// </summary>
         private void PrintResult<T>(CliOptions options, T status) {
@@ -398,12 +416,15 @@ Commands and Options
      activation  Tests activation and deactivation of endpoints.
         with ...
         -i, --id        Application id to scope endpoints.
+        -e, --endpoint  Whether to select and test single endpoint
         -a, --all       Use all endpoints
         -r, --repeat    How many times to repeat.
         -w, --waitstate Wait for state changes before deactivating.
         -l, --min-wait  Minimum wait time in between act/deact.
         -h, --max-wait  Maximum wait time in between act/deact.
 
+     console
+     exit        To run in console mode and exit console mode.
      help, -h, -? --help
                  Prints out this help.
 "

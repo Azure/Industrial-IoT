@@ -121,18 +121,19 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             IEnumerable<CascadingInvoker> invokers) {
             foreach (var handler in invokers) {
                 try {
-                    var key = handler.Name;
-                    if (string.IsNullOrEmpty(key)) {
-                        continue; // DO not return default indexer values
-                    }
-                    if (!handler.Get(key, out var value)) {
+
+                    if (string.IsNullOrEmpty(handler.Name)) {
+                        // Get all indexes and retrieve them one by one
+                        if (handler.GetIndexed(out var result)) {
+                            foreach (var item in result) {
+                                reported.AddOrUpdate(item.Key, item.Value);
+                            }
+                        }
                         continue;
                     }
-                    if (reported.ContainsKey(key)) {
-                        reported[key] = value;
-                    }
-                    else {
-                        reported.Add(key, value);
+
+                    if (handler.Get(handler.Name, out var value)) {
+                        reported.AddOrUpdate(handler.Name, value);
                     }
                 }
                 catch (Exception ex) {
@@ -176,11 +177,22 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     var name = propInfo.Name.ToLowerInvariant();
                     var indexers = propInfo.GetIndexParameters();
                     var indexed = false;
+                    MethodInfo indexer = null;
                     if (indexers.Length == 1 && indexers[0].ParameterType == typeof(string)) {
                         // save .net indexer as default
                         if (name == "item") {
                             name = kDefaultProp;
                         }
+
+                        // Get property name enumerator on controller if any
+                        indexer = target.GetType().GetMethod("GetPropertyNames");
+                        if (indexer != null) {
+                            if (indexer.GetParameters().Length != 0 ||
+                                indexer.ReturnType != typeof(IEnumerable<string>)) {
+                                indexer = null;
+                            }
+                        }
+
                         indexed = true;
                     }
                     else if (indexers.Length != 0) {
@@ -191,7 +203,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         invoker = new CascadingInvoker(_logger);
                         _calltable.Add(name, invoker);
                     }
-                    invoker.Add(controller, propInfo, indexed);
+                    invoker.Add(controller, propInfo, indexed, indexer);
                     controller.Add(invoker);
                 }
             }
@@ -299,10 +311,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="controller"></param>
             /// <param name="controllerProp"></param>
             /// <param name="indexed"></param>
+            /// <param name="indexer"></param>
             public void Add(Controller controller, PropertyInfo controllerProp,
-                bool indexed) {
+                bool indexed, MethodInfo indexer) {
                 _invokers.Add(controller.Version, new PropertyInvoker(controller,
-                    controllerProp, indexed, _logger));
+                    controllerProp, indexed, indexer, _logger));
             }
 
             /// <summary>
@@ -351,6 +364,27 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 throw e;
             }
 
+            /// <summary>
+            /// Returns all indexer values
+            /// </summary>
+            /// <param name="result"></param>
+            /// <returns></returns>
+            public bool GetIndexed(out IEnumerable<KeyValuePair<string, object>> result) {
+                Exception e = null;
+                foreach (var invoker in _invokers) {
+                    try {
+                        return invoker.Value.GetIndexed(out result);
+                    }
+                    catch (Exception ex) {
+                        // Save last error, and continue
+                        _logger.Debug(ex, "Retrieving indexed values failed!");
+                        e = ex;
+                    }
+                }
+                _logger.Error(e, "Exception during getter invocation.");
+                throw e;
+            }
+
             private readonly ILogger _logger;
             private readonly SortedList<ulong, PropertyInvoker> _invokers;
         }
@@ -372,12 +406,14 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="controller"></param>
             /// <param name="property"></param>
             /// <param name="indexed"></param>
+            /// <param name="indexer"></param>
             /// <param name="logger"></param>
             public PropertyInvoker(Controller controller, PropertyInfo property,
-                bool indexed, ILogger logger) {
+                bool indexed, MethodInfo indexer, ILogger logger) {
                 _logger = logger;
                 _controller = controller;
                 _indexed = indexed;
+                _indexer = indexer;
                 _property = property;
             }
 
@@ -439,6 +475,39 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
 
             /// <summary>
+            /// Returns all indexed values
+            /// </summary>
+            /// <param name="values"></param>
+            /// <returns></returns>
+            public bool GetIndexed(out IEnumerable<KeyValuePair<string, object>> values) {
+                try {
+                    if (_property.CanRead && _indexed && _indexer != null) {
+                        // Get property names
+                        var indexes = _indexer.Invoke(_controller.Target, new object[0]);
+                        if (indexes is IEnumerable<string> properties) {
+                            var results = new Dictionary<string, object>();
+
+                            foreach (var property in properties) {
+                                if (Get(property, out var value)) {
+                                    results.AddOrUpdate(property, value);
+                                }
+                            }
+                            values = results;
+                            return true;
+                        }
+                    }
+                    values = null;
+                    return false;
+                }
+                catch (Exception e) {
+                    _logger.Warning(e,
+                        "Exception collecting all indexed values on {controller}.",
+                        _controller.Target.GetType().Name);
+                    throw e;
+                }
+            }
+
+            /// <summary>
             /// Cast to object of type
             /// </summary>
             /// <param name="value"></param>
@@ -461,6 +530,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             private readonly Controller _controller;
             private readonly PropertyInfo _property;
             private readonly bool _indexed;
+            private readonly MethodInfo _indexer;
         }
 
         private const string kDefaultProp = "@default";
