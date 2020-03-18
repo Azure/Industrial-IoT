@@ -18,7 +18,7 @@
     "https"
   ],
   "paths": {
-    "/v2/certificates/{serialNumber}": {
+    "/vault/v2/certificates/{serialNumber}": {
       "get": {
         "tags": [
           "Certificates"
@@ -57,7 +57,7 @@
         }
       }
     },
-    "/v2/certificates/{serialNumber}/crl": {
+    "/vault/v2/certificates/{serialNumber}/crl": {
       "get": {
         "tags": [
           "Certificates"
@@ -93,7 +93,7 @@
         ]
       }
     },
-    "/v2/issuer/{serialNumber}": {
+    "/vault/v2/issuer/{serialNumber}": {
       "get": {
         "tags": [
           "Distribution"
@@ -123,7 +123,7 @@
         }
       }
     },
-    "/v2/crl/{serialNumber}": {
+    "/vault/v2/crl/{serialNumber}": {
       "get": {
         "tags": [
           "Distribution"
@@ -153,7 +153,7 @@
         }
       }
     },
-    "/v2/requests/sign": {
+    "/vault/v2/requests/sign": {
       "put": {
         "tags": [
           "Requests"
@@ -198,7 +198,7 @@
         ]
       }
     },
-    "/v2/requests/sign/{requestId}": {
+    "/vault/v2/requests/sign/{requestId}": {
       "get": {
         "tags": [
           "Requests"
@@ -235,7 +235,7 @@
         ]
       }
     },
-    "/v2/requests/keypair": {
+    "/vault/v2/requests/keypair": {
       "put": {
         "tags": [
           "Requests"
@@ -280,7 +280,7 @@
         ]
       }
     },
-    "/v2/requests/keypair/{requestId}": {
+    "/vault/v2/requests/keypair/{requestId}": {
       "get": {
         "tags": [
           "Requests"
@@ -317,7 +317,7 @@
         ]
       }
     },
-    "/v2/requests/{requestId}/approve": {
+    "/vault/v2/requests/{requestId}/approve": {
       "post": {
         "tags": [
           "Requests"
@@ -348,7 +348,7 @@
         ]
       }
     },
-    "/v2/requests/{requestId}/reject": {
+    "/vault/v2/requests/{requestId}/reject": {
       "post": {
         "tags": [
           "Requests"
@@ -379,7 +379,7 @@
         ]
       }
     },
-    "/v2/requests/{requestId}/accept": {
+    "/vault/v2/requests/{requestId}/accept": {
       "post": {
         "tags": [
           "Requests"
@@ -410,7 +410,7 @@
         ]
       }
     },
-    "/v2/requests/{requestId}": {
+    "/vault/v2/requests/{requestId}": {
       "delete": {
         "tags": [
           "Requests"
@@ -475,7 +475,7 @@
         ]
       }
     },
-    "/v2/requests/query": {
+    "/vault/v2/requests/query": {
       "post": {
         "tags": [
           "Requests"
@@ -526,7 +526,7 @@
         ]
       }
     },
-    "/v2/requests": {
+    "/vault/v2/requests": {
       "get": {
         "tags": [
           "Requests"
@@ -572,7 +572,7 @@
         }
       }
     },
-    "/v2/groups": {
+    "/vault/v2/groups": {
       "get": {
         "tags": [
           "TrustGroups"
@@ -661,7 +661,7 @@
         ]
       }
     },
-    "/v2/groups/{groupId}": {
+    "/vault/v2/groups/{groupId}": {
       "get": {
         "tags": [
           "TrustGroups"
@@ -771,7 +771,7 @@
         ]
       }
     },
-    "/v2/groups/root": {
+    "/vault/v2/groups/root": {
       "put": {
         "tags": [
           "TrustGroups"
@@ -816,7 +816,7 @@
         ]
       }
     },
-    "/v2/groups/{groupId}/renew": {
+    "/vault/v2/groups/{groupId}/renew": {
       "post": {
         "tags": [
           "TrustGroups"
@@ -846,7 +846,7 @@
         ]
       }
     },
-    "/v2/trustlists/{entityId}/{trustedEntityId}": {
+    "/vault/v2/trustlists/{entityId}/{trustedEntityId}": {
       "put": {
         "tags": [
           "TrustLists"
@@ -884,7 +884,7 @@
         ]
       }
     },
-    "/v2/trustlists/{entityId}": {
+    "/vault/v2/trustlists/{entityId}": {
       "get": {
         "tags": [
           "TrustLists"
@@ -937,7 +937,7 @@
         }
       }
     },
-    "/v2/trustlists/{entityId}/{untrustedEntityId}": {
+    "/vault/v2/trustlists/{entityId}/{untrustedEntityId}": {
       "delete": {
         "tags": [
           "TrustLists"
@@ -1004,8 +1004,7 @@
           "type": "string"
         },
         "certificate": {
-          "description": "Raw data",
-          "type": "object"
+          "description": "Raw data"
         }
       }
     },
@@ -1031,8 +1030,7 @@
           "type": "string"
         },
         "crl": {
-          "description": "The certificate revocation list.",
-          "type": "object"
+          "description": "The certificate revocation list."
         }
       }
     },
@@ -1072,8 +1070,7 @@
           "type": "string"
         },
         "certificateRequest": {
-          "description": "Request",
-          "type": "object"
+          "description": "Request"
         }
       }
     },
@@ -1153,8 +1150,7 @@
           "$ref": "#/definitions/CertificateRequestType"
         },
         "errorInfo": {
-          "description": "Error diagnostics",
-          "type": "object"
+          "description": "Error diagnostics"
         },
         "submitted": {
           "$ref": "#/definitions/VaultOperationContextApiModel"
@@ -1286,6 +1282,7 @@
           "type": "string"
         },
         "crv": {
+          "description": "The curve for ECC algorithms",
           "type": "string"
         },
         "x": {
@@ -1310,6 +1307,7 @@
         },
         "key_hsm": {
           "format": "byte",
+          "description": "HSM Token, used with \"Bring Your Own Key\"",
           "type": "string"
         }
       }
@@ -1329,21 +1327,6 @@
         }
       }
     },
-    "CertificateRequestStateNullable": {
-      "enum": [
-        "New",
-        "Approved",
-        "Rejected",
-        "Failure",
-        "Completed",
-        "Accepted"
-      ],
-      "type": "string",
-      "x-ms-enum": {
-        "name": "CertificateRequestState",
-        "modelAsString": false
-      }
-    },
     "CertificateRequestQueryRequestApiModel": {
       "description": "Certificate request query model",
       "type": "object",
@@ -1353,7 +1336,7 @@
           "type": "string"
         },
         "state": {
-          "$ref": "#/definitions/CertificateRequestStateNullable"
+          "$ref": "#/definitions/CertificateRequestState"
         }
       }
     },
@@ -1467,21 +1450,6 @@
         }
       }
     },
-    "SignatureAlgorithmNullable": {
-      "enum": [
-        "Rsa256",
-        "Rsa384",
-        "Rsa512",
-        "Rsa256Pss",
-        "Rsa384Pss",
-        "Rsa512Pss"
-      ],
-      "type": "string",
-      "x-ms-enum": {
-        "name": "SignatureAlgorithm",
-        "modelAsString": false
-      }
-    },
     "TrustGroupRegistrationRequestApiModel": {
       "description": "Trust group registration request model",
       "type": "object",
@@ -1509,7 +1477,7 @@
           "type": "integer"
         },
         "issuedSignatureAlgorithm": {
-          "$ref": "#/definitions/SignatureAlgorithmNullable"
+          "$ref": "#/definitions/SignatureAlgorithm"
         }
       }
     },
@@ -1542,7 +1510,7 @@
           "type": "integer"
         },
         "issuedSignatureAlgorithm": {
-          "$ref": "#/definitions/SignatureAlgorithmNullable"
+          "$ref": "#/definitions/SignatureAlgorithm"
         }
       }
     },
@@ -1572,7 +1540,7 @@
           "type": "integer"
         },
         "signatureAlgorithm": {
-          "$ref": "#/definitions/SignatureAlgorithmNullable"
+          "$ref": "#/definitions/SignatureAlgorithm"
         },
         "issuedLifetime": {
           "format": "date-span",
@@ -1585,7 +1553,7 @@
           "type": "integer"
         },
         "issuedSignatureAlgorithm": {
-          "$ref": "#/definitions/SignatureAlgorithmNullable"
+          "$ref": "#/definitions/SignatureAlgorithm"
         }
       }
     },

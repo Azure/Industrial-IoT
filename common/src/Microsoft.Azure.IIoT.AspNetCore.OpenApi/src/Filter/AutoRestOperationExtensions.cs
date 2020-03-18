@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
+    using Microsoft.OpenApi.Models;
+    using Microsoft.OpenApi.Any;
     using Swashbuckle.AspNetCore.SwaggerGen;
     using System;
     using System.Linq;
     using System.Reflection;
-    using Microsoft.OpenApi.Models;
-    using Microsoft.OpenApi.Any;
 
     /// <summary>
     /// Add autorest operation extensions
@@ -57,6 +57,9 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
 
             foreach (var param in operation.Parameters) {
                 param.Description = param.Description.SingleSpacesNoLineBreak();
+                if (param.Schema != null) {
+                    param.Schema.Description = param.Schema.Description.SingleSpacesNoLineBreak();
+                }
             }
             if (operation.RequestBody != null) {
                 operation.RequestBody.Description =

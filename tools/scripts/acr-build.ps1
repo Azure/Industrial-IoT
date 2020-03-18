@@ -217,13 +217,6 @@ $definitions | ForEach-Object {
     $platform = $_.platform.ToLower()
     $platformTag = $_.platformTag.ToLower()
 
-    if ($platform -eq "linux/arm32v7") {
-        $platform = "linux/arm/v7"
-    }
-    if ($platformTag -eq "linux-arm-v7") {
-        $platformTag = "linux-arm32v7"
-    }
-
     $os = ""
     $osVersion = ""
     $osVerArr = $platform.Split(':')
@@ -245,16 +238,6 @@ $definitions | ForEach-Object {
 
     $image = "$($namespace)$($imageName):$($tagPrefix)$($sourceTag)-$($platformTag)$($tagPostfix)"
     Write-Host "Start build job for $($image)"
-
-    # BUGBUG
-    # BUGBUG : ACR fails with arm but it is likely 
-    # BUGBUG : that win-arm does not work now either.
-    # BUGBUG
-    if ($platform -eq "windows/arm") {
-        $platform = "windows/amd64"
-    }
-    # BUGBUG
-    # BUGBUG
 
     # Create acr command line 
     $argumentList = @("acr", "build", "--verbose",

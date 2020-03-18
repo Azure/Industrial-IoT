@@ -18,7 +18,7 @@
     "https"
   ],
   "paths": {
-    "/v2/applications": {
+    "/registry/v2/applications": {
       "post": {
         "tags": [
           "Applications"
@@ -173,7 +173,7 @@
         }
       }
     },
-    "/v2/applications/{applicationId}/disable": {
+    "/registry/v2/applications/{applicationId}/disable": {
       "post": {
         "tags": [
           "Applications"
@@ -204,7 +204,7 @@
         ]
       }
     },
-    "/v2/applications/{applicationId}/enable": {
+    "/registry/v2/applications/{applicationId}/enable": {
       "post": {
         "tags": [
           "Applications"
@@ -235,7 +235,7 @@
         ]
       }
     },
-    "/v2/applications/discover": {
+    "/registry/v2/applications/discover": {
       "post": {
         "tags": [
           "Applications"
@@ -274,7 +274,7 @@
         ]
       }
     },
-    "/v2/applications/discover/{requestId}": {
+    "/registry/v2/applications/discover/{requestId}": {
       "delete": {
         "tags": [
           "Applications"
@@ -305,7 +305,7 @@
         ]
       }
     },
-    "/v2/applications/{applicationId}": {
+    "/registry/v2/applications/{applicationId}": {
       "get": {
         "tags": [
           "Applications"
@@ -414,7 +414,7 @@
         ]
       }
     },
-    "/v2/applications/sites": {
+    "/registry/v2/applications/sites": {
       "get": {
         "tags": [
           "Applications"
@@ -460,7 +460,7 @@
         }
       }
     },
-    "/v2/applications/query": {
+    "/registry/v2/applications/query": {
       "post": {
         "tags": [
           "Applications"
@@ -562,7 +562,7 @@
         ]
       }
     },
-    "/v2/applications/events": {
+    "/registry/v2/applications/events": {
       "put": {
         "tags": [
           "Applications"
@@ -582,6 +582,7 @@
             "name": "body",
             "description": "The user that will receive application events.",
             "schema": {
+              "description": "The user that will receive application\r\n            events.",
               "type": "string"
             }
           }
@@ -600,7 +601,7 @@
         ]
       }
     },
-    "/v2/applications/events/{userId}": {
+    "/registry/v2/applications/events/{userId}": {
       "delete": {
         "tags": [
           "Applications"
@@ -631,7 +632,7 @@
         ]
       }
     },
-    "/v2/discovery/{discovererId}": {
+    "/registry/v2/discovery/{discovererId}": {
       "get": {
         "tags": [
           "Discoverers"
@@ -779,7 +780,7 @@
         ]
       }
     },
-    "/v2/discovery": {
+    "/registry/v2/discovery": {
       "get": {
         "tags": [
           "Discoverers"
@@ -831,7 +832,7 @@
         }
       }
     },
-    "/v2/discovery/query": {
+    "/registry/v2/discovery/query": {
       "post": {
         "tags": [
           "Discoverers"
@@ -959,7 +960,7 @@
         ]
       }
     },
-    "/v2/discovery/events": {
+    "/registry/v2/discovery/events": {
       "put": {
         "tags": [
           "Discoverers"
@@ -979,6 +980,7 @@
             "name": "body",
             "description": "The user id that will receive discoverer events.",
             "schema": {
+              "description": "The user id that will receive discoverer\r\n            events.",
               "type": "string"
             }
           }
@@ -997,7 +999,7 @@
         ]
       }
     },
-    "/v2/discovery/events/{userId}": {
+    "/registry/v2/discovery/events/{userId}": {
       "delete": {
         "tags": [
           "Discoverers"
@@ -1028,7 +1030,7 @@
         ]
       }
     },
-    "/v2/discovery/{discovererId}/events": {
+    "/registry/v2/discovery/{discovererId}/events": {
       "put": {
         "tags": [
           "Discoverers"
@@ -1055,6 +1057,7 @@
             "name": "body",
             "description": "The user id that will receive discovery events.",
             "schema": {
+              "description": "The user id that will receive discovery\r\n            events.",
               "type": "string"
             }
           }
@@ -1073,7 +1076,7 @@
         ]
       }
     },
-    "/v2/discovery/requests/{requestId}/events": {
+    "/registry/v2/discovery/requests/{requestId}/events": {
       "put": {
         "tags": [
           "Discoverers"
@@ -1100,6 +1103,7 @@
             "name": "body",
             "description": "The user id that will receive discovery events.",
             "schema": {
+              "description": "The user id that will receive discovery\r\n            events.",
               "type": "string"
             }
           }
@@ -1118,7 +1122,7 @@
         ]
       }
     },
-    "/v2/discovery/requests/{requestId}/events/{userId}": {
+    "/registry/v2/discovery/requests/{requestId}/events/{userId}": {
       "delete": {
         "tags": [
           "Discoverers"
@@ -1156,7 +1160,7 @@
         ]
       }
     },
-    "/v2/discovery/{discovererId}/events/{userId}": {
+    "/registry/v2/discovery/{discovererId}/events/{userId}": {
       "delete": {
         "tags": [
           "Discoverers"
@@ -1194,7 +1198,7 @@
         ]
       }
     },
-    "/v2/endpoints/{endpointId}/activate": {
+    "/registry/v2/endpoints/{endpointId}/activate": {
       "post": {
         "tags": [
           "Endpoints"
@@ -1225,7 +1229,7 @@
         ]
       }
     },
-    "/v2/endpoints/{endpointId}": {
+    "/registry/v2/endpoints/{endpointId}": {
       "get": {
         "tags": [
           "Endpoints"
@@ -1268,7 +1272,7 @@
         ]
       }
     },
-    "/v2/endpoints": {
+    "/registry/v2/endpoints": {
       "get": {
         "tags": [
           "Endpoints"
@@ -1320,7 +1324,7 @@
         }
       }
     },
-    "/v2/endpoints/query": {
+    "/registry/v2/endpoints/query": {
       "post": {
         "tags": [
           "Endpoints"
@@ -1515,7 +1519,7 @@
         ]
       }
     },
-    "/v2/endpoints/{endpointId}/deactivate": {
+    "/registry/v2/endpoints/{endpointId}/deactivate": {
       "post": {
         "tags": [
           "Endpoints"
@@ -1546,7 +1550,7 @@
         ]
       }
     },
-    "/v2/endpoints/events": {
+    "/registry/v2/endpoints/events": {
       "put": {
         "tags": [
           "Endpoints"
@@ -1566,6 +1570,7 @@
             "name": "body",
             "description": "The user id that will receive endpoint events.",
             "schema": {
+              "description": "The user id that will receive endpoint\r\n            events.",
               "type": "string"
             }
           }
@@ -1584,7 +1589,7 @@
         ]
       }
     },
-    "/v2/endpoints/events/{userId}": {
+    "/registry/v2/endpoints/events/{userId}": {
       "delete": {
         "tags": [
           "Endpoints"
@@ -1615,7 +1620,7 @@
         ]
       }
     },
-    "/v2/gateways/{GatewayId}": {
+    "/registry/v2/gateways/{GatewayId}": {
       "get": {
         "tags": [
           "Gateways"
@@ -1696,7 +1701,7 @@
         ]
       }
     },
-    "/v2/gateways": {
+    "/registry/v2/gateways": {
       "get": {
         "tags": [
           "Gateways"
@@ -1742,7 +1747,7 @@
         }
       }
     },
-    "/v2/gateways/query": {
+    "/registry/v2/gateways/query": {
       "post": {
         "tags": [
           "Gateways"
@@ -1841,7 +1846,7 @@
         ]
       }
     },
-    "/v2/gateways/events": {
+    "/registry/v2/gateways/events": {
       "put": {
         "tags": [
           "Gateways"
@@ -1861,6 +1866,7 @@
             "name": "body",
             "description": "The user id that will receive Gateway events.",
             "schema": {
+              "description": "The user id that will receive Gateway\r\n            events.",
               "type": "string"
             }
           }
@@ -1879,7 +1885,7 @@
         ]
       }
     },
-    "/v2/gateways/events/{userId}": {
+    "/registry/v2/gateways/events/{userId}": {
       "delete": {
         "tags": [
           "Gateways"
@@ -1910,7 +1916,7 @@
         ]
       }
     },
-    "/v2/publishers/{publisherId}": {
+    "/registry/v2/publishers/{publisherId}": {
       "get": {
         "tags": [
           "Publishers"
@@ -1997,7 +2003,7 @@
         ]
       }
     },
-    "/v2/publishers": {
+    "/registry/v2/publishers": {
       "get": {
         "tags": [
           "Publishers"
@@ -2049,7 +2055,7 @@
         }
       }
     },
-    "/v2/publishers/query": {
+    "/registry/v2/publishers/query": {
       "post": {
         "tags": [
           "Publishers"
@@ -2160,7 +2166,7 @@
         ]
       }
     },
-    "/v2/publishers/events": {
+    "/registry/v2/publishers/events": {
       "put": {
         "tags": [
           "Publishers"
@@ -2180,6 +2186,7 @@
             "name": "body",
             "description": "The user id that will receive publisher events.",
             "schema": {
+              "description": "The user id that will receive publisher\r\n            events.",
               "type": "string"
             }
           }
@@ -2198,7 +2205,7 @@
         ]
       }
     },
-    "/v2/publishers/events/{userId}": {
+    "/registry/v2/publishers/events/{userId}": {
       "delete": {
         "tags": [
           "Publishers"
@@ -2229,7 +2236,7 @@
         ]
       }
     },
-    "/v2/supervisors/{supervisorId}": {
+    "/registry/v2/supervisors/{supervisorId}": {
       "get": {
         "tags": [
           "Supervisors"
@@ -2316,7 +2323,7 @@
         ]
       }
     },
-    "/v2/supervisors/{supervisorId}/status": {
+    "/registry/v2/supervisors/{supervisorId}/status": {
       "get": {
         "tags": [
           "Supervisors"
@@ -2353,7 +2360,7 @@
         ]
       }
     },
-    "/v2/supervisors/{supervisorId}/reset": {
+    "/registry/v2/supervisors/{supervisorId}/reset": {
       "post": {
         "tags": [
           "Supervisors"
@@ -2384,7 +2391,7 @@
         ]
       }
     },
-    "/v2/supervisors": {
+    "/registry/v2/supervisors": {
       "get": {
         "tags": [
           "Supervisors"
@@ -2436,7 +2443,7 @@
         }
       }
     },
-    "/v2/supervisors/query": {
+    "/registry/v2/supervisors/query": {
       "post": {
         "tags": [
           "Supervisors"
@@ -2547,7 +2554,7 @@
         ]
       }
     },
-    "/v2/supervisors/events": {
+    "/registry/v2/supervisors/events": {
       "put": {
         "tags": [
           "Supervisors"
@@ -2567,6 +2574,7 @@
             "name": "body",
             "description": "The user id that will receive supervisor events.",
             "schema": {
+              "description": "The user id that will receive supervisor\r\n            events.",
               "type": "string"
             }
           }
@@ -2585,7 +2593,7 @@
         ]
       }
     },
-    "/v2/supervisors/events/{userId}": {
+    "/registry/v2/supervisors/events/{userId}": {
       "delete": {
         "tags": [
           "Supervisors"
@@ -2618,7 +2626,8 @@
     }
   },
   "definitions": {
-    "SecurityModeNullable": {
+    "SecurityMode": {
+      "description": "Security mode of endpoint",
       "enum": [
         "Best",
         "Sign",
@@ -2650,7 +2659,7 @@
           }
         },
         "securityMode": {
-          "$ref": "#/definitions/SecurityModeNullable"
+          "$ref": "#/definitions/SecurityMode"
         }
       }
     },
@@ -2674,7 +2683,8 @@
         }
       }
     },
-    "ApplicationTypeNullable": {
+    "ApplicationType": {
+      "description": "Application type",
       "enum": [
         "Server",
         "Client",
@@ -2699,7 +2709,7 @@
           "type": "string"
         },
         "applicationType": {
-          "$ref": "#/definitions/ApplicationTypeNullable"
+          "$ref": "#/definitions/ApplicationType"
         },
         "productUri": {
           "description": "Product uri of the application.",
@@ -2759,20 +2769,6 @@
           "description": "New id application was registered under",
           "type": "string"
         }
-      }
-    },
-    "ApplicationType": {
-      "description": "Application type",
-      "enum": [
-        "Server",
-        "Client",
-        "ClientAndServer",
-        "DiscoveryServer"
-      ],
-      "type": "string",
-      "x-ms-enum": {
-        "name": "ApplicationType",
-        "modelAsString": false
       }
     },
     "RegistryOperationApiModel": {
@@ -2904,7 +2900,8 @@
         }
       }
     },
-    "DiscoveryModeNullable": {
+    "DiscoveryMode": {
+      "description": "Discovery mode to use",
       "enum": [
         "Off",
         "Local",
@@ -2988,7 +2985,7 @@
           "type": "string"
         },
         "discovery": {
-          "$ref": "#/definitions/DiscoveryModeNullable"
+          "$ref": "#/definitions/DiscoveryMode"
         },
         "configuration": {
           "$ref": "#/definitions/DiscoveryConfigApiModel"
@@ -3015,7 +3012,7 @@
           }
         },
         "securityMode": {
-          "$ref": "#/definitions/SecurityModeNullable"
+          "$ref": "#/definitions/SecurityMode"
         },
         "securityPolicy": {
           "description": "Security policy uri to use for communication\r\ndefault to best.",
@@ -3028,7 +3025,8 @@
         }
       }
     },
-    "CredentialTypeNullable": {
+    "CredentialType": {
+      "description": "Type of credential to use for serverauth",
       "enum": [
         "None",
         "UserName",
@@ -3053,15 +3051,14 @@
           "type": "string"
         },
         "credentialType": {
-          "$ref": "#/definitions/CredentialTypeNullable"
+          "$ref": "#/definitions/CredentialType"
         },
         "securityPolicy": {
           "description": "Security policy to use when passing credential.",
           "type": "string"
         },
         "configuration": {
-          "description": "Method specific configuration",
-          "type": "object"
+          "description": "Method specific configuration"
         }
       }
     },
@@ -3110,7 +3107,8 @@
         }
       }
     },
-    "SecurityAssessmentNullable": {
+    "SecurityAssessment": {
+      "description": "Security assessment of the endpoint or application",
       "enum": [
         "Low",
         "Medium",
@@ -3140,7 +3138,7 @@
           }
         },
         "securityAssessment": {
-          "$ref": "#/definitions/SecurityAssessmentNullable"
+          "$ref": "#/definitions/SecurityAssessment"
         }
       }
     },
@@ -3220,7 +3218,7 @@
       "type": "object",
       "properties": {
         "applicationType": {
-          "$ref": "#/definitions/ApplicationTypeNullable"
+          "$ref": "#/definitions/ApplicationType"
         },
         "applicationUri": {
           "description": "Application uri",
@@ -3264,7 +3262,8 @@
         }
       }
     },
-    "TraceLogLevelNullable": {
+    "TraceLogLevel": {
+      "description": "Log level",
       "enum": [
         "Error",
         "Information",
@@ -3293,13 +3292,13 @@
           "type": "string"
         },
         "discovery": {
-          "$ref": "#/definitions/DiscoveryModeNullable"
+          "$ref": "#/definitions/DiscoveryMode"
         },
         "discoveryConfig": {
           "$ref": "#/definitions/DiscoveryConfigApiModel"
         },
         "logLevel": {
-          "$ref": "#/definitions/TraceLogLevelNullable"
+          "$ref": "#/definitions/TraceLogLevel"
         },
         "outOfSync": {
           "description": "Whether the registration is out of sync between\r\nclient (module) and server (service) (default: false).",
@@ -3320,29 +3319,14 @@
           "type": "string"
         },
         "discovery": {
-          "$ref": "#/definitions/DiscoveryModeNullable"
+          "$ref": "#/definitions/DiscoveryMode"
         },
         "discoveryConfig": {
           "$ref": "#/definitions/DiscoveryConfigApiModel"
         },
         "logLevel": {
-          "$ref": "#/definitions/TraceLogLevelNullable"
+          "$ref": "#/definitions/TraceLogLevel"
         }
-      }
-    },
-    "DiscoveryMode": {
-      "description": "Discovery mode to use",
-      "enum": [
-        "Off",
-        "Local",
-        "Network",
-        "Fast",
-        "Scan"
-      ],
-      "type": "string",
-      "x-ms-enum": {
-        "name": "DiscoveryMode",
-        "modelAsString": false
       }
     },
     "DiscovererListApiModel": {
@@ -3371,7 +3355,7 @@
           "type": "string"
         },
         "discovery": {
-          "$ref": "#/definitions/DiscoveryModeNullable"
+          "$ref": "#/definitions/DiscoveryMode"
         },
         "connected": {
           "description": "Included connected or disconnected",
@@ -3379,7 +3363,8 @@
         }
       }
     },
-    "EndpointActivationStateNullable": {
+    "EndpointActivationState": {
+      "description": "Activation state of the endpoint twin",
       "enum": [
         "Deactivated",
         "Activated",
@@ -3391,7 +3376,8 @@
         "modelAsString": false
       }
     },
-    "EndpointConnectivityStateNullable": {
+    "EndpointConnectivityState": {
+      "description": "State of the endpoint after activation",
       "enum": [
         "Connecting",
         "NotReachable",
@@ -3423,10 +3409,10 @@
           "type": "string"
         },
         "activationState": {
-          "$ref": "#/definitions/EndpointActivationStateNullable"
+          "$ref": "#/definitions/EndpointActivationState"
         },
         "endpointState": {
-          "$ref": "#/definitions/EndpointConnectivityStateNullable"
+          "$ref": "#/definitions/EndpointConnectivityState"
         },
         "outOfSync": {
           "description": "Whether the registration is out of sync",
@@ -3470,7 +3456,7 @@
           "type": "string"
         },
         "securityMode": {
-          "$ref": "#/definitions/SecurityModeNullable"
+          "$ref": "#/definitions/SecurityMode"
         },
         "securityPolicy": {
           "description": "Security policy uri",
@@ -3485,7 +3471,7 @@
           "type": "boolean"
         },
         "endpointState": {
-          "$ref": "#/definitions/EndpointConnectivityStateNullable"
+          "$ref": "#/definitions/EndpointConnectivityState"
         },
         "includeNotSeenSince": {
           "description": "Whether to include endpoints that were soft deleted",
@@ -3551,7 +3537,7 @@
           "type": "string"
         },
         "logLevel": {
-          "$ref": "#/definitions/TraceLogLevelNullable"
+          "$ref": "#/definitions/TraceLogLevel"
         },
         "outOfSync": {
           "description": "Whether the registration is out of sync between\r\nclient (module) and server (service) (default: false).",
@@ -3616,7 +3602,7 @@
           "type": "string"
         },
         "logLevel": {
-          "$ref": "#/definitions/TraceLogLevelNullable"
+          "$ref": "#/definitions/TraceLogLevel"
         },
         "configuration": {
           "$ref": "#/definitions/PublisherConfigApiModel"
@@ -3714,7 +3700,7 @@
           "$ref": "#/definitions/PublisherConfigApiModel"
         },
         "logLevel": {
-          "$ref": "#/definitions/TraceLogLevelNullable"
+          "$ref": "#/definitions/TraceLogLevel"
         }
       }
     },
@@ -3758,7 +3744,7 @@
           "type": "string"
         },
         "logLevel": {
-          "$ref": "#/definitions/TraceLogLevelNullable"
+          "$ref": "#/definitions/TraceLogLevel"
         }
       }
     },
@@ -3774,7 +3760,7 @@
           "type": "string"
         },
         "activationState": {
-          "$ref": "#/definitions/EndpointActivationStateNullable"
+          "$ref": "#/definitions/EndpointActivationState"
         }
       }
     },

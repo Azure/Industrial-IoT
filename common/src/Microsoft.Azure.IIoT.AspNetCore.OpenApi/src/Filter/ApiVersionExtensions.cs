@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
-    using Swashbuckle.AspNetCore.SwaggerGen;
     using Microsoft.OpenApi.Models;
+    using Swashbuckle.AspNetCore.SwaggerGen;
 
     /// <summary>
     /// Add extensions for autorest to schemas

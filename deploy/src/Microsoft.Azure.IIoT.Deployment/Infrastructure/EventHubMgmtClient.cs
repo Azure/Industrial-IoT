@@ -30,11 +30,24 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             string subscriptionId,
             RestClient restClient
         ) {
+            if (string.IsNullOrEmpty(subscriptionId)) {
+                throw new ArgumentNullException(nameof(subscriptionId));
+            }
+            if (restClient is null) {
+                throw new ArgumentNullException(nameof(restClient));
+            }
+
             _eventHubManagementClient = new EventHubManagementClient(restClient) {
                 SubscriptionId = subscriptionId
             };
         }
 
+        /// <summary>
+        /// Generate Event Hub Namespace name.
+        /// </summary>
+        /// <param name="prefix"></param>
+        /// <param name="suffixLen"></param>
+        /// <returns></returns>
         public static string GenerateEventHubNamespaceName(
             string prefix = DEFAULT_EVENT_HUB_NAMESPACE_NAME_PREFIX,
             int suffixLen = 5
@@ -42,6 +55,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             return SdkContext.RandomResourceName(prefix, suffixLen);
         }
 
+        /// <summary>
+        /// Generate Event Hub name.
+        /// </summary>
+        /// <param name="prefix"></param>
+        /// <param name="suffixLen"></param>
+        /// <returns></returns>
         public static string GenerateEventHubName(
             string prefix = DEFAULT_EVENT_HUB_NAME_PREFIX,
             int suffixLen = 5
@@ -60,6 +79,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             string eventHubNamespaceName,
             CancellationToken cancellationToken = default
         ) {
+            if (string.IsNullOrEmpty(eventHubNamespaceName)) {
+                throw new ArgumentNullException(nameof(eventHubNamespaceName));
+            }
+
             try {
                 var nameAvailabilityInfo = await _eventHubManagementClient
                     .Namespaces
@@ -127,12 +150,27 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             throw new Exception(errorMessage);
         }
 
+        /// <summary>
+        /// Create Standard tier Event Hub Namespace.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="eventHubNamespaceName"></param>
+        /// <param name="tags"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<EHNamespaceInner> CreateEventHubNamespaceAsync(
             IResourceGroup resourceGroup,
             string eventHubNamespaceName,
             IDictionary<string, string> tags = null,
             CancellationToken cancellationToken = default
         ) {
+            if (resourceGroup is null) {
+                throw new ArgumentNullException(nameof(resourceGroup));
+            }
+            if (string.IsNullOrEmpty(eventHubNamespaceName)) {
+                throw new ArgumentNullException(nameof(eventHubNamespaceName));
+            }
+
             try {
                 tags ??= new Dictionary<string, string>();
 
@@ -143,8 +181,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                     Tags = tags,
 
                     Sku = new Sku {
-                        Name = SkuName.Basic,
-                        Tier = SkuTier.Basic,
+                        Name = SkuName.Standard,
+                        Tier = SkuTier.Standard,
                         Capacity = 1
                     },
                     IsAutoInflateEnabled = false,
@@ -172,11 +210,25 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             }
         }
 
+        /// <summary>
+        /// Get Event Hub Namespace connection string for RootManageSharedAccessKey policy.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="eventHubNamespace"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<string> GetEventHubNamespaceConnectionStringAsync(
             IResourceGroup resourceGroup,
             EHNamespaceInner eventHubNamespace,
             CancellationToken cancellationToken = default
         ) {
+            if (resourceGroup is null) {
+                throw new ArgumentNullException(nameof(resourceGroup));
+            }
+            if (eventHubNamespace is null) {
+                throw new ArgumentNullException(nameof(eventHubNamespace));
+            }
+
             try {
                 Log.Verbose($"Fetching connection string for Event Hub Namespace: {eventHubNamespace.Name} ...");
 
@@ -199,14 +251,32 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             }
         }
 
+        /// <summary>
+        /// Create an Event Hub in Event Hub Namespace.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="eventHubNamespace"></param>
+        /// <param name="eventHubName"></param>
+        /// <param name="tags"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<EventhubInner> CreateEventHubAsync(
             IResourceGroup resourceGroup,
             EHNamespaceInner eventHubNamespace,
             string eventHubName,
             IDictionary<string, string> tags = null,
             CancellationToken cancellationToken = default
-
         ) {
+            if (resourceGroup is null) {
+                throw new ArgumentNullException(nameof(resourceGroup));
+            }
+            if (eventHubNamespace is null) {
+                throw new ArgumentNullException(nameof(eventHubNamespace));
+            }
+            if (string.IsNullOrEmpty(eventHubName)) {
+                throw new ArgumentNullException(nameof(eventHubName));
+            }
+
             try {
                 tags ??= new Dictionary<string, string>();
 
@@ -258,6 +328,55 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             }
             catch (Exception ex) {
                 Log.Error(ex, $"Failed to created Azure Event Hub: {eventHubName}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Create a consumer group for an Event Hub.
+        /// </summary>
+        /// <param name="resourceGroup"></param>
+        /// <param name="eventHubNamespace"></param>
+        /// <param name="eventHub"></param>
+        /// <param name="consumerGroupName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<ConsumerGroupInner> CreateConsumerGroupAsync(
+            IResourceGroup resourceGroup,
+            EHNamespaceInner eventHubNamespace,
+            EventhubInner eventHub,
+            string consumerGroupName,
+            CancellationToken cancellationToken = default
+        ) {
+            if (resourceGroup is null) {
+                throw new ArgumentNullException(nameof(resourceGroup));
+            }
+            if (eventHubNamespace is null) {
+                throw new ArgumentNullException(nameof(eventHubNamespace));
+            }
+            if (eventHub is null) {
+                throw new ArgumentNullException(nameof(eventHub));
+            }
+            if (string.IsNullOrEmpty(consumerGroupName)) {
+                throw new ArgumentNullException(nameof(consumerGroupName));
+            }
+
+            try {
+                var consumerGroup = await _eventHubManagementClient
+                    .ConsumerGroups
+                    .CreateOrUpdateAsync(
+                        resourceGroup.Name,
+                        eventHubNamespace.Name,
+                        eventHub.Name,
+                        consumerGroupName,
+                        cancellationToken: cancellationToken
+                    );
+
+                return consumerGroup;
+            }
+            catch (Exception ex) {
+                Log.Error(ex, $"Failed to created a consumer group for " +
+                    $"'{eventHub.Name}' Event Hub: {consumerGroupName}");
                 throw;
             }
         }

@@ -201,6 +201,36 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.StartStop {
         }
 
         [SkippableFact]
+        public async Task NodeBrowseContinuationTest1Async() {
+            // Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(async (device, module, services) => {
+                    await GetTests(device, module, services).NodeBrowseContinuationTest1Async();
+                });
+            }
+        }
+
+        [SkippableFact]
+        public async Task NodeBrowseContinuationTest2Async() {
+            // Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(async (device, module, services) => {
+                    await GetTests(device, module, services).NodeBrowseContinuationTest2Async();
+                });
+            }
+        }
+
+        [SkippableFact]
+        public async Task NodeBrowseContinuationTest3Async() {
+            Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(async (device, module, services) => {
+                    await GetTests(device, module, services).NodeBrowseContinuationTest3Async();
+                });
+            }
+        }
+
+        [SkippableFact]
         public async Task NodeBrowsePathStaticScalarMethod3Test1Async() {
             // Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {

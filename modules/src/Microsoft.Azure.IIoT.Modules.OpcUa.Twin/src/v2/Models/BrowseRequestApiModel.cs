@@ -8,6 +8,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Newtonsoft.Json;
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
 
     /// <summary>
     /// Browse request model for module
@@ -35,6 +37,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
             NoSubtypes = model.NoSubtypes;
             TargetNodesOnly = model.TargetNodesOnly;
             ReadVariableValues = model.ReadVariableValues;
+            NodeClassFilter = model.NodeClassFilter?.ToList();
             View = model.View == null ? null :
                 new BrowseViewApiModel(model.View);
             Header = model.Header == null ? null :
@@ -52,6 +55,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
                 MaxReferencesToReturn = MaxReferencesToReturn,
                 Direction = Direction,
                 View = View?.ToServiceModel(),
+                NodeClassFilter = NodeClassFilter?.ToList(),
                 ReferenceTypeId = ReferenceTypeId,
                 TargetNodesOnly = TargetNodesOnly,
                 ReadVariableValues = ReadVariableValues,
@@ -127,6 +131,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Models {
         [JsonProperty(PropertyName = "ReadVariableValues",
             NullValueHandling = NullValueHandling.Ignore)]
         public bool? ReadVariableValues { get; set; }
+
+        /// <summary>
+        /// Filter returned target nodes by only returning
+        /// nodes that have classes defined in this array.
+        /// (default: null - all targets are returned)
+        /// </summary>
+        [JsonProperty(PropertyName = "NodeClassFilter",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public List<NodeClass> NodeClassFilter { get; set; }
 
         /// <summary>
         /// Whether to only return the raw node id
