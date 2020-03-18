@@ -36,9 +36,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         }
 
         /// <inheritdoc/>
-        public async Task HandleAsync(string deviceId, string moduleId,  
+        public async Task HandleAsync(string deviceId, string moduleId,
             byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
-            
             MonitoredItemMessage message;
             try {
                 var context = new ServiceMessageContext();
@@ -81,8 +80,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
             }
             catch (Exception ex) {
                 _logger.Error(ex,
-                    "Publishing message {message} failed with exception - skip",
-                        message);
+                    "Publishing message {message} failed with exception - skip", message);
             }
         }
 

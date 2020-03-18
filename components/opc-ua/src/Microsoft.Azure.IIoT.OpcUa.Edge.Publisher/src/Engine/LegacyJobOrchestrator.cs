@@ -120,7 +120,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         private void RefreshJobFromFile() {
             var retryCount = 3;
-            var jobId = "LegacyJob" + "_" + _identity.DeviceId + "_" + _identity.ModuleId;
+            var jobId = "LegacyPublisher_" + _identity.DeviceId + "_" + _identity.ModuleId;
             while (true) {
                 try {
                     var currentFileHash = GetChecksum(_legacyCliModel.PublishedNodesFile);

@@ -55,10 +55,17 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
 
         /// <inheritdoc/>
         public async Task OnBatchCompleteAsync() {
-            foreach (var handler in _used.ToList()) {
-                await Try.Async(handler.OnBatchCompleteAsync);
+            try {
+                foreach (var handler in _used.ToList()) {
+                    await handler.OnBatchCompleteAsync();
+                }
             }
-            _used.Clear();
+            catch {
+                throw;
+            }
+            finally { 
+                _used.Clear();
+            }
         }
 
         private readonly HashSet<IDeviceTelemetryHandler> _used = new HashSet<IDeviceTelemetryHandler>();

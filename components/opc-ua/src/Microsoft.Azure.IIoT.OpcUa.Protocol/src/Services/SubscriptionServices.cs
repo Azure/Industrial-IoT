@@ -249,7 +249,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             /// <summary>
-            /// reads the display name of the nodes to be minitored
+            /// reads the display name of the nodes to be monitored
             /// </summary>
             /// <param name="rawSubscription"></param>
             /// <param name="monitoredItems"></param>
@@ -258,9 +258,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 var session = await _outer._sessionManager.GetOrCreateSessionAsync(Connection, true);
                 var nodeIds = monitoredItems.Select(n => n.StartNodeId.ToNodeId(session.MessageContext));
                 session.ReadDisplayName(nodeIds.ToList(), out var displayNames, out var errors);
-                int index = 0;
+                var index = 0;
                 foreach (var monitoredItem in monitoredItems) {
                     monitoredItem.DisplayName ??= StatusCode.IsGood(errors[index].StatusCode) ? displayNames[index] : null;
+                    index++;
                 }
             }
 
