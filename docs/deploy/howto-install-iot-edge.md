@@ -15,29 +15,29 @@ To support network scanning for equipment discovery, the Discovery Module should
 The deployment script will setup layered deployments for each IoT Edge Module. These layered deployments will be automatically applied to any gateway with the following Device Twin JSON tags:
 
 ```json
-    […]
-    },
-    "version": 1,
-    "tags": {
-        "__type__": "iiotedge",
-        "os": "Linux"    
-    }
-    "properties": {
-    […]
+... 
+},
+"version": 1,
+"tags": {
+    "__type__": "iiotedge",
+    "os": "Linux"    
+}
+"properties": 
+...
 ```
 
 If your container runtime is Windows Containers set the os property to Windows:
 
 ```json
-[…]
+...
 },
 "version": 1,
 "tags": {
     "__type__": "iiotedge",
     "os": "Windows"
 }
-"properties": {
-[…]
+"properties": 
+...
 ```
 
 Assign these tags to your IoT Edge Gateway’s Device Twin [when you register the new IoT Edge gateway in IoT Hub](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-register-device). The Device Twin configuration JSON can be found in the Azure Portal under IoT Hub -> IoT Edge -> < your IoT Edge device > -> Device Twin.
