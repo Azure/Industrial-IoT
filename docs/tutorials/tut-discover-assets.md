@@ -27,13 +27,13 @@ To discover OPC UA server assets in the connected networks (factories, etc.) you
    ![Discovery](../media/eng-tool-discovery.png)
 
 
-      **Note!**
+   **Note!**
       
-       For windows based edge deployments you need to manually tune the default 'Scan Mask' address range by adding 10.1.8.0/24. This is the network used by the separate VM where the simulation OPC UA Servers run, see below.
-       
-       The linux based edge deployments are capable to automatically discover the outer network so no action is needed.
-       
-       In production scenarios, you will need to add the address range of the local network having the local industrial assets to be discovered.
+   For windows based edge deployments you need to manually tune the default 'Scan Mask' address range by adding 10.1.8.0/24. This is the network used by the separate VM where the simulation OPC UA Servers run, see below.
+   
+   The linux based edge deployments are capable to automatically discover the outer network so no action is needed.
+   
+   In production scenarios, you will need to add the address range of the local network having the local industrial assets to be discovered.
 
    ![Note!](../media/eng-tool-discovery_note1.png)
 
