@@ -1,4 +1,4 @@
-﻿<#
+<#
  .SYNOPSIS
     Registers required applications
 
@@ -330,16 +330,16 @@ Function New-ADApplications() {
         }
     }
     catch {
-        $ex = $_.Exception
+        $ex = $_
 
         Write-Host
-        Write-Host "An error occurred: $($ex.Message)" 
+        Write-Host "An error occurred: $($ex.Exception.Message)"
         Write-Host
-        Write-Host "Ensure you have installed the AzureAD cmdlets:" 
-        Write-Host "1) Run Powershell as an administrator" 
-        Write-Host "2) in the PowerShell window, type: Install-Module AzureAD" 
+        Write-Host "Ensure you have installed the AzureAD cmdlets:"
+        Write-Host "1) Run Powershell as an administrator"
+        Write-Host "2) in the PowerShell window, type: Install-Module AzureAD"
         Write-Host
-   
+
         throw $ex
     }
 }

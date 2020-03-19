@@ -880,7 +880,7 @@ Function New-Deployment() {
             return
         }
         catch {
-            $ex = $_.Exception
+            $ex = $_
             Write-Host $_.Exception.Message
             Write-Host "Deployment failed."
 
