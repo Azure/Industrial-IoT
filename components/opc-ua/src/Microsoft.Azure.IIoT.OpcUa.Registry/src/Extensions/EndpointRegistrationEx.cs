@@ -91,7 +91,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
             twin.Tags.Add(nameof(EntityRegistration.DeviceType), update?.DeviceType);
 
-
             if (update?.EndpointRegistrationUrl != null &&
                 update.EndpointRegistrationUrl != existing?.EndpointRegistrationUrl) {
                 twin.Tags.Add(nameof(EndpointRegistration.EndpointUrlLC),
@@ -241,7 +240,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 Type =
                     properties.GetValueOrDefault<string>(TwinProperty.Type, null),
                 State =
-                    properties.GetValueOrDefault(nameof(EndpointRegistration.State), EndpointConnectivityState.Connecting),
+                    properties.GetValueOrDefault(nameof(EndpointRegistration.State), EndpointConnectivityState.Disconnected),
                 SiteId =
                     properties.GetValueOrDefault(TwinProperty.SiteId,
                         tags.GetValueOrDefault<string>(nameof(EndpointRegistration.SiteId), null)),
@@ -334,45 +333,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 ActivationState = registration.ActivationState,
                 NotSeenSince = registration.NotSeenSince,
                 EndpointState = registration.ActivationState == EndpointActivationState.ActivatedAndConnected ?
-                    registration.State : (EndpointConnectivityState?)null,
+                    (registration.State == EndpointConnectivityState.Disconnected ?
+                        EndpointConnectivityState.Connecting : registration.State) :
+                            EndpointConnectivityState.Disconnected,
                 OutOfSync = registration.Connected && !registration._isInSync ? true : (bool?)null
             };
         }
-
-        /// <summary>
-        /// Returns true if this registration matches the server endpoint
-        /// model provided.
-        /// </summary>
-        /// <param name="registration"></param>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        public static bool Matches(this EndpointRegistration registration, EndpointInfoModel model) {
-            return model != null &&
-                registration.Matches(model.Registration?.Endpoint) &&
-                registration.NotSeenSince == model.NotSeenSince &&
-                registration.ApplicationId == model.ApplicationId &&
-                (registration.ActivationState ?? EndpointActivationState.Deactivated) ==
-                    (model.ActivationState ?? EndpointActivationState.Deactivated);
-        }
-
-        /// <summary>
-        /// Returns true if this registration matches the endpoint
-        /// model provided.
-        /// </summary>
-        /// <param name="registration"></param>
-        /// <param name="endpoint"></param>
-        /// <returns></returns>
-        public static bool Matches(this EndpointRegistration registration, EndpointModel endpoint) {
-            return endpoint != null &&
-                registration.EndpointUrl == endpoint.Url &&
-                registration.AlternativeUrls.DecodeAsList().ToHashSetSafe().SetEqualsSafe(
-                    endpoint.AlternativeUrls) &&
-                registration.SecurityMode == (endpoint.SecurityMode ?? SecurityMode.Best) &&
-                registration.SecurityPolicy == endpoint.SecurityPolicy &&
-                endpoint.Certificate.SequenceEqualsSafe(
-                    registration.Certificate.DecodeAsByteArray());
-        }
-
 
         /// <summary>
         /// Decode tags and property into registration object

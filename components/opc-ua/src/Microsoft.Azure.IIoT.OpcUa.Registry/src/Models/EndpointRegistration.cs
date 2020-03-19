@@ -138,10 +138,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 DiscovererId == registration.DiscovererId &&
                 SupervisorId == registration.SupervisorId &&
                 ApplicationId == registration.ApplicationId &&
-                (Activated ?? false) == (registration.Activated ?? false) &&
                 EndpointUrlLC == registration.EndpointUrlLC &&
                 SupervisorId == registration.SupervisorId &&
-                State == registration.State &&
                 SecurityLevel == registration.SecurityLevel &&
                 SecurityPolicy == registration.SecurityPolicy &&
                 SecurityMode == registration.SecurityMode &&
@@ -170,11 +168,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<string>.Default.GetHashCode(ApplicationId);
             hashCode = (hashCode * -1521134295) +
-                EqualityComparer<bool>.Default.GetHashCode(Activated ?? false);
-            hashCode = (hashCode * -1521134295) +
                 EqualityComparer<int?>.Default.GetHashCode(SecurityLevel);
-            hashCode = (hashCode * -1521134295) +
-                EqualityComparer<EndpointConnectivityState?>.Default.GetHashCode(State);
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<SecurityMode?>.Default.GetHashCode(SecurityMode);
             hashCode = (hashCode * -1521134295) +

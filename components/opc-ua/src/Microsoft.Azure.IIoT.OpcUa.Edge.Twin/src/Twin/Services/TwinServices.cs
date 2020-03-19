@@ -7,8 +7,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Module;
+    using Microsoft.Azure.IIoT.Exceptions;
+    using Serilog;
     using System;
     using System.Threading.Tasks;
+    using System.Threading;
 
     /// <summary>
     /// Manages the endpoint identity information in the twin and reports
@@ -16,44 +19,101 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services {
     /// </summary>
     public class TwinServices : ITwinServices, IDisposable {
 
-        /// <inheritdoc/>
-        public EndpointModel Endpoint { get; set; }
-
         /// <summary>
         /// Create twin services
         /// </summary>
         /// <param name="client"></param>
         /// <param name="events"></param>
-        public TwinServices(IEndpointServices client, IEventEmitter events) {
+        /// <param name="logger"></param>
+        public TwinServices(IEndpointServices client, IEventEmitter events, ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _events = events ?? throw new ArgumentNullException(nameof(events));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _endpoint = new TaskCompletionSource<EndpointModel>();
+            _lock = new SemaphoreSlim(1, 1);
         }
 
         /// <inheritdoc/>
-        public Task SetEndpointAsync(EndpointModel endpoint) {
-            if (!endpoint.IsSameAs(Endpoint)) {
-                // Unregister old endpoint
-                if (Endpoint != null) {
-                    _callback?.Dispose();
-                    _callback = null;
-                    _session?.Dispose();
-                    _session = null;
-                }
+        public async Task SetEndpointAsync(EndpointModel endpoint) {
+            await _lock.WaitAsync();
+            try {
+                var previous = _endpoint.Task.IsCompleted ? _endpoint.Task.Result : null;
+                if (!endpoint.IsSameAs(previous)) {
+                    _logger.Debug(
+                        "Updating twin {device} endpoint from {previous} to {endpoint}...",
+                        _events?.DeviceId, previous?.Url, endpoint?.Url);
 
-                // Set new endpoint
-                Endpoint = endpoint;
+                    if (_endpoint.Task.IsCompleted) {
+                        _endpoint = new TaskCompletionSource<EndpointModel>();
+                    }
 
-                // Register callback to report endpoint state property
-                if (Endpoint != null) {
-                    var connection = new ConnectionModel {
-                        Endpoint = Endpoint
-                    };
-                    _session = _client.GetSessionHandle(connection);
-                    _callback = _client.RegisterCallback(connection,
-                        state => _events?.ReportAsync("State", state));
+                    // Unregister old endpoint
+                    if (previous != null) {
+                        _callback?.Dispose();
+                        _callback = null;
+                        _session?.Dispose();
+                        _session = null;
+
+                        // Clear state
+                        await _events?.ReportAsync("State", null);
+                    }
+
+                    // Register callback to report endpoint state property
+                    if (endpoint != null) {
+                        var connection = new ConnectionModel {
+                            Endpoint = endpoint
+                        };
+                        _session = _client.GetSessionHandle(connection);
+                        _callback = _client.RegisterCallback(connection,
+                            state => _events?.ReportAsync("State", state));
+                        _logger.Information("Endpoint {endpoint} ({device}, {module}) updated.",
+                            endpoint?.Url, _events.DeviceId, _events.ModuleId);
+
+                        // ready to use
+                        _endpoint.TrySetResult(endpoint);
+                    }
+
+                    _logger.Information("Twin {device} endpoint updated to {endpoint}.",
+                         _events?.DeviceId, endpoint?.Url);
                 }
             }
-            return Task.CompletedTask;
+            finally {
+                _lock.Release();
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task<EndpointModel> GetEndpointAsync(CancellationToken ct) {
+            Task<EndpointModel> waiter;
+            await _lock.WaitAsync(ct);
+            try {
+                waiter = _endpoint.Task;
+                if (waiter.IsCompleted) {
+                    // Got endpoint - return waiter
+                    return await waiter;
+                }
+
+                // wait below ...
+            }
+            finally {
+                _lock.Release();
+            }
+
+            // Wait 5 seconds for endpoint to materialize if cancellation token is default
+            using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5))) {
+                if (ct == default) {
+                    ct = cts.Token;
+                }
+                // Wait with cancellation
+                try {
+                    return await Task.Run(() => waiter, ct);
+                }
+                catch (OperationCanceledException) {
+                    _logger.Error("Failed to get endpoint for twin {device} - " +
+                        "timed out waiting for configuration!", _events?.DeviceId);
+                    throw new InvalidConfigurationException("Twin without endpoint configuration");
+                }
+            }
         }
 
         /// <inheritdoc/>
@@ -62,11 +122,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services {
             _callback = null;
             _session?.Dispose();
             _session = null;
+            _endpoint?.TrySetCanceled();
+            _endpoint = null;
+            _lock?.Dispose();
         }
 
         private ISessionHandle _session;
         private IDisposable _callback;
+        private TaskCompletionSource<EndpointModel> _endpoint;
+        private readonly SemaphoreSlim _lock;
         private readonly IEndpointServices _client;
         private readonly IEventEmitter _events;
+        private readonly ILogger _logger;
     }
 }

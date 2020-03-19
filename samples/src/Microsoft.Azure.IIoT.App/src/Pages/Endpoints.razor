@@ -10,6 +10,7 @@
 @using Microsoft.Azure.IIoT.App.Data
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
+@using Microsoft.Azure.IIoT.App.Models;
 @using Microsoft.Azure.IIoT.App.Common
 
 @inject NavigationManager NavigationManager
@@ -30,6 +31,7 @@
             <th>Security Mode</th>
             <th>Security Policy</th>
             <th>Security Level</th>
+            <th>Endpoint State</th>
             <th>Activation Status</th>
             <th>
                 @if ((DiscovererId != null) && (DiscovererId != @RegistryHelper.PathAll))
@@ -51,42 +53,40 @@
         @foreach (var endpoint in _pagedendpointList.Results)
         {
             <tr>
-                @if (endpoint.ActivationState == EndpointActivationState.ActivatedAndConnected ||
-                  endpoint.ActivationState == EndpointActivationState.Activated)
+                @if (endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Ready)
                 {
                     <td>
                         @{ discover = DiscovererId == null ? RegistryHelper.PathAll : DiscovererId; }
                         @{ string application = ApplicationId == null ? RegistryHelper.PathAll : ApplicationId; }
                         @{ string supervisor = SupervisorId == null ? RegistryHelper.PathAll : SupervisorId; }
                         @{ string applicationUri = ApplicationUri == null ? RegistryHelper.PathAll : ApplicationUri; }
-                        <a href='browser/@discover/@application/@supervisor/@endpoint.Registration.Id/@applicationUri'>
-                            @endpoint.Registration.Endpoint.Url
+                        <a href='browser/@discover/@application/@supervisor/@endpoint.EndpointModel.Registration.Id/@applicationUri'>
+                            @endpoint.EndpointModel.Registration.Endpoint.Url
                         </a>
                     </td>
                 }
                 else
                 {
-                    <td>@endpoint.Registration.Endpoint.Url</td>
+                    <td>@endpoint.EndpointModel.Registration.Endpoint.Url</td>
                 }
-                <td>@endpoint.Registration.Endpoint.SecurityMode</td>
-                <td>@endpoint.Registration.Endpoint.SecurityPolicy</td>
-                <td>@endpoint.Registration.SecurityLevel</td>
-
+                <td>@endpoint.EndpointModel.Registration.Endpoint.SecurityMode</td>
+                <td>@endpoint.EndpointModel.Registration.Endpoint.SecurityPolicy</td>
+                <td>@endpoint.EndpointModel.Registration.SecurityLevel</td>
+                <td>@(endpoint.EndpointModel.EndpointState?.ToString() ?? "Disconnected")</td>
                 <td>
-                    @if (endpoint.ActivationState == EndpointActivationState.ActivatedAndConnected ||
-                     endpoint.ActivationState == EndpointActivationState.Activated)
+                    @if (endpoint.EndpointModel.ActivationState == EndpointActivationState.ActivatedAndConnected ||
+                     endpoint.EndpointModel.ActivationState == EndpointActivationState.Activated)
                     {
                         <input type="checkbox" checked
-                               @onchange="async eventArgs => { await SetActivation(endpoint.Registration.Id, eventArgs.Value); }" />
-                        @endpoint.ActivationState.ToString()
+                               @onchange="async eventArgs => { await SetActivation(endpoint.EndpointModel.Registration.Id, eventArgs.Value); }" />
+                        @endpoint.EndpointModel.ActivationState.ToString()
                     }
                     else
                     {
                         <input type="checkbox"
-                               @onchange="async eventArgs => { await SetActivation(endpoint.Registration.Id, eventArgs.Value); }" />
-                        @endpoint.ActivationState.ToString()
+                               @onchange="async eventArgs => { await SetActivation(endpoint.EndpointModel.Registration.Id, eventArgs.Value); }" />
+                        @endpoint.EndpointModel.ActivationState.ToString()
                     }
-
                 </td>
                 <td></td>
             </tr>
@@ -117,10 +117,10 @@
     public string ApplicationUri { get; set; } = string.Empty;
 
     public string Status { get; set; }
-    private PagedResult<EndpointInfoApiModel> _endpointList =
-        new PagedResult<EndpointInfoApiModel>();
-    private PagedResult<EndpointInfoApiModel> _pagedendpointList =
-        new PagedResult<EndpointInfoApiModel>();
+    private PagedResult<EndpointInfo> _endpointList =
+        new PagedResult<EndpointInfo>();
+    private PagedResult<EndpointInfo> _pagedendpointList =
+        new PagedResult<EndpointInfo>();
     private string _tableView { get; set; } = "visible";
 
 

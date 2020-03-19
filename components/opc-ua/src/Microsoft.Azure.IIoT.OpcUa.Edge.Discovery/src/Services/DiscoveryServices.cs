@@ -37,13 +37,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         /// <inheritdoc/>
         public DiscoveryMode Mode {
             get => _request.Mode;
-            set => _request = new DiscoveryRequest(value, _request.Configuration);
         }
 
         /// <inheritdoc/>
         public DiscoveryConfigModel Configuration {
             get => _request.Configuration;
-            set => _request = new DiscoveryRequest(_request.Mode, value);
         }
 
         /// <summary>
@@ -64,6 +62,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
             _runner = Task.Run(() => ProcessDiscoveryRequestsAsync(_cts.Token));
             _timer = new Timer(_ => OnScanScheduling(), null,
                 TimeSpan.FromSeconds(20), Timeout.InfiniteTimeSpan);
+        }
+
+        /// <inheritdoc/>
+        public Task ConfigureAsync(DiscoveryMode mode, DiscoveryConfigModel config) {
+            _request = new DiscoveryRequest(mode, config);
+            return Task.CompletedTask;
         }
 
         /// <inheritdoc/>
@@ -424,6 +428,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                     .Select(GetHostEntryAsync)
                     .ToArray());
                 return results
+                    .SelectMany(v => v)
                     .Where(a => a.Item2 != null)
                     .ToDictionary(k => k.Item1, v => v.Item2);
             }
@@ -435,32 +440,50 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         /// </summary>
         /// <param name="discoveryUrl"></param>
         /// <returns></returns>
-        private Task<(IPEndPoint, Uri)> GetHostEntryAsync(
+        private Task<List<Tuple<IPEndPoint, Uri>>> GetHostEntryAsync(
             Uri discoveryUrl) {
             return Try.Async(async () => {
+                var host = discoveryUrl.DnsSafeHost;
+                var list = new List<Tuple<IPEndPoint, Uri>>();
+                while (!string.IsNullOrEmpty(host)) {
+                    var entry = await Dns.GetHostEntryAsync(host);
 
-                var entry = await Dns.GetHostEntryAsync(discoveryUrl.DnsSafeHost);
-                // only pick-up the IPV4 addresses
-                foreach (var address in entry.AddressList
-                    .Where(a => a.AddressFamily == AddressFamily.InterNetwork)) {
-                    var reply = await new Ping().SendPingAsync(address);
-                    if (reply.Status == IPStatus.Success) {
-                        var ep = new IPEndPoint(address,
-                            discoveryUrl.IsDefaultPort ? 4840 : discoveryUrl.Port);
-                        return (ep, discoveryUrl);
+                    // only pick-up the IPV4 addresses
+                    var foundIpv4 = false;
+                    foreach (var address in entry.AddressList
+                        .Where(a => a.AddressFamily == AddressFamily.InterNetwork)) {
+                        var reply = await new Ping().SendPingAsync(address);
+                        if (reply.Status == IPStatus.Success) {
+                            var ep = new IPEndPoint(address,
+                                discoveryUrl.IsDefaultPort ? 4840 : discoveryUrl.Port);
+                            list.Add(Tuple.Create(ep, discoveryUrl));
+                            foundIpv4 = true;
+                        }
                     }
-                }
-                // if no IPV4 responsive, try IPV6 as fallback
-                foreach (var address in entry.AddressList
-                    .Where(a => a.AddressFamily != AddressFamily.InterNetwork)) {
-                    var reply = await new Ping().SendPingAsync(address);
-                    if (reply.Status == IPStatus.Success) {
-                        var ep = new IPEndPoint(address,
-                            discoveryUrl.IsDefaultPort ? 4840 : discoveryUrl.Port);
-                        return (ep, discoveryUrl);
+                    if (!foundIpv4) {
+                        // if no IPV4 responsive, try IPV6 as fallback
+                        foreach (var address in entry.AddressList
+                            .Where(a => a.AddressFamily != AddressFamily.InterNetwork)) {
+                            var reply = await new Ping().SendPingAsync(address);
+                            if (reply.Status == IPStatus.Success) {
+                                var ep = new IPEndPoint(address,
+                                    discoveryUrl.IsDefaultPort ? 4840 : discoveryUrl.Port);
+                                list.Add(Tuple.Create(ep, discoveryUrl));
+                            }
+                        }
                     }
+
+                    // Check local host
+                    if (host.EqualsIgnoreCase("localhost") &&
+                        (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")?
+                            .EqualsIgnoreCase("true") ?? false)) {
+                        // Also resolve docker internal since we are in a container
+                        host = "host.docker.internal";
+                        continue;
+                    }
+                    break;
                 }
-                return (null, null);
+                return list;
             });
         }
 
@@ -574,7 +597,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
 #if !NO_WATCHDOG
         private int _counter;
 #endif
-
 
         /// <summary> Progress reporting every 3 seconds </summary>
         private static readonly TimeSpan kProgressInterval = TimeSpan.FromSeconds(3);

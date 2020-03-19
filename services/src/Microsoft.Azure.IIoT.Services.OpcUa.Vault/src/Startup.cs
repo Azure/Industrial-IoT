@@ -41,6 +41,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using System;
     using ILogger = Serilog.ILogger;
     using Prometheus;
+    using Microsoft.Azure.IIoT.Auth.Clients.Default;
 
     /// <summary>
     /// Webservice startup
@@ -208,7 +209,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
                 .AsImplementedInterfaces().SingleInstance();
 
             // key vault client ...
-            builder.RegisterType<UserOrServiceTokenProvider>()
+            builder.RegisterType<AppAuthenticationProvider>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<KeyVaultServiceClient>()
                 .AsImplementedInterfaces().SingleInstance();
