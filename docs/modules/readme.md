@@ -10,7 +10,6 @@ The following modules are part of the platform:
 * [OPC Twin Module](twin.md)
 * [Discovery Module](discovery.md)
 
-
 ![Industrial IoT Edge](../media/edge.png)
 
 ## Next steps

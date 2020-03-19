@@ -4,11 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Services {
-    using Microsoft.Azure.Devices.Shared;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Route to the right service
+    /// Route the settings to the right controller implementations
     /// </summary>
     public interface ISettingsRouter {
 
@@ -17,12 +17,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Services {
         /// </summary>
         /// <param name="desired"></param>
         /// <returns></returns>
-        Task<TwinCollection> ProcessSettingsAsync(TwinCollection desired);
+        Task<IDictionary<string, object>> ProcessSettingsAsync(
+            IDictionary<string, object> desired);
 
         /// <summary>
-        /// Get all setting changes to report.
+        /// Get all settings to report.
         /// </summary>
         /// <returns></returns>
-        Task<TwinCollection> GetSettingsChangesAsync();
+        Task<IDictionary<string, object>> GetSettingsStateAsync();
     }
 }

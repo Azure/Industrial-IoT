@@ -18,15 +18,16 @@ The default store type for all cert stores is the file system. You can change th
 You need to take special care how certificate stores are handled. Especially for the application certificate the runtime environment has impact and you want to make sure that it is persisted and not created new on each start:
 
 * Running on Windows natively, you can not use an application certificate store of type `Directory`, since the access to the private key fails. Please use the option `--at X509Store` in this case.
-* Running as Linux docker container, you can map the certificate stores to the host file system by using the docker run option `-v <hostdirectory>:/appdata`. This will make the certificate persistent over starts.
+* Running as Linux docker container, you can map the certificate stores to the host file system by using the docker run option `-v <hostdirectory>:/appdata`. This will make the certificate persistent over re-starts.
 * Running as Linux docker container and want to use an X509Store for the application certificate, you need to use the docker run option `-v x509certstores:/root/.dotnet/corefx/cryptography/x509stores` and the application option `--at X509Store`
 
 ## Legacy configuration using configuration file
 
-To support backwards compatibility with previous versions of the publisher, the publisher also supports a legacy mode where the publishing configuration can be specified through a local configuration file
+To support backwards compatibility with previous versions of the publisher, the publisher also supports a legacy mode where the publishing configuration can be specified through a local configuration file.
 
 An example for the format of the configuration file is:
 
+```json
         [
           {
             "EndpointUrl": "opc.tcp://testserver:62541/Quickstarts/ReferenceServer",
@@ -41,6 +42,25 @@ An example for the format of the configuration file is:
             ]
           }
         ]
+```
+
+### Host files to container binding
+
+To expose the configuration file in the docker container a volume needs to be bind mounted into the container in the [deployment manifest](../deploy/deployment-manifest.md) "createOptions" property.  This volume must contain the JSON configuration file.
+
+An example of a bind configuration is as follows:
+
+```json
+    "Binds": [
+      "c:/iiotedge:/appdata"
+    ]
+```
+
+On Windows you also need to enable file sharing in the Docker configuration UI:
+
+![docker-config](../media/publisher-win-docker1.png)
+
+Check out this [link](https://github.com/Azure/iotedge/issues/1745) for more information.
 
 ## Breaking changes in 2.6.x from 2.5.x and lower versions
 

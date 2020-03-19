@@ -56,7 +56,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 model.MaxReferencesToReturn = _MAX_REFERENCES;
                 model.NodeId = id;
                 if (id == string.Empty) {
-                    Path = new List<string>(); 
+                    Path = new List<string>();
                 }
             }
             else {
