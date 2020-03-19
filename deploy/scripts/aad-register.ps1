@@ -39,9 +39,10 @@ Function Select-Context() {
         }
     }
     try {
-        $profile = Connect-AzAccount -Environment $environmentName `
-            -ErrorAction Stop 
-        
+        $profile = Connect-AzAccount `
+            -Environment $environmentName `
+            -ErrorAction Stop
+
         $reply = Read-Host -Prompt "Save credention in .user file [y/n]"
         if ($reply -match "[yY]") {
             Save-AzContext -Path $contextFile -Profile $connection
@@ -150,17 +151,31 @@ Function New-ADApplications() {
         [string] $applicationName
     )
     try {
-        $creds = Connect-AzureAD -TenantId $context.Tenant.Id `
-            -AccountId $context.Account.Id -Credential $context.Account.Credential
+        try {
+            $creds = Connect-AzureAD `
+                -AzureEnvironmentName $context.Environment.Name `
+                -TenantId $context.Tenant.Id `
+                -AccountId $context.Account.Id `
+                -Credential $context.Account.Credential
+            }
+        catch {
+            # For some accounts $context.Account.Id may be first.last@something.com which might 
+            # not be correct UserPrincipalName. In those cases we will prompt for another login.
+            $creds = Connect-AzureAD `
+                -AzureEnvironmentName $context.Environment.Name `
+                -TenantId $context.Tenant.Id `
+        }
+
         if (!$creds) {
             return $null
         }
- 
+
         $tenant = Get-AzureADTenantDetail
         $defaultTenant = ($tenant.VerifiedDomains | Where-Object { $_._Default -eq $True })
         $tenantName = $defaultTenant.Name
         Write-Host "Selected Tenant '$tenantName' as authority."
-        # Try to get current user 
+
+        # Try to get current user
         try {
             try {
                 $user = Get-AzureADUser -ObjectId $creds.Account.Id -ErrorAction Stop
@@ -396,9 +411,13 @@ catch {
     Import-Module AzureAD.Standard.Preview
 }
 
-$aadConfig = New-ADApplications  `
-    -applicationName $script:Name  `
-    -context (Select-Context -context $script:Context -environmentName $script:EnvironmentName) 
+$selectedContext = Select-Context `
+    -context $script:Context `
+    -environmentName $script:EnvironmentName
+
+$aadConfig = New-ADApplications `
+    -applicationName $script:Name `
+    -context $selectedContext
 
 if ($script:Output) {
     $aadConfig | ConvertTo-Json | Out-File $script:Output
