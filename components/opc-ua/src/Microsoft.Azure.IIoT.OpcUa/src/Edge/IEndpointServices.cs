@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Edge {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -13,9 +14,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge {
     public interface ITwinServices {
 
         /// <summary>
-        /// Endpoint
+        /// Called to get endpoint
         /// </summary>
-        EndpointModel Endpoint { get; }
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<EndpointModel> GetEndpointAsync(CancellationToken ct = default);
 
         /// <summary>
         /// Called to update endpoint

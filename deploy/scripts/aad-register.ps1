@@ -249,9 +249,6 @@ Function New-ADApplications() {
         
         $requiredResourcesAccess = `
             New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.RequiredResourceAccess]
-        $requiredPermissions = Get-RequiredPermissions -applicationDisplayName "Azure Key Vault" `
-            -requiredDelegatedPermissions "user_impersonation"
-        $requiredResourcesAccess.Add($requiredPermissions)
         $requiredPermissions = Get-RequiredPermissions -applicationDisplayName "Microsoft Graph" `
             -requiredDelegatedPermissions "User.Read" 
         $requiredResourcesAccess.Add($requiredPermissions)

@@ -162,7 +162,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                     Assert.Null(status.SiteId);
                     Assert.Empty(status.Endpoints);
                     Assert.Equal(EndpointActivationState.Deactivated, ep3.ActivationState);
-                    Assert.Null(ep3.EndpointState);
+                    Assert.Equal(EndpointConnectivityState.Disconnected, ep3.EndpointState);
                 });
             }
         }
@@ -209,7 +209,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                     Assert.Null(status.SiteId);
                     Assert.Empty(status.Endpoints);
                     Assert.Equal(EndpointActivationState.Deactivated, ep3.ActivationState);
-                    Assert.Null(ep3.EndpointState);
+                    Assert.Equal(EndpointConnectivityState.Disconnected, ep3.EndpointState);
                 });
             }
         }
@@ -255,7 +255,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                     Assert.Null(status.SiteId);
                     Assert.Empty(status.Endpoints);
                     Assert.True(endpoints.All(ep => ep.ActivationState == EndpointActivationState.Deactivated));
-                    Assert.True(endpoints.All(ep => ep.EndpointState == null));
+                    Assert.True(endpoints.All(ep => ep.EndpointState == EndpointConnectivityState.Disconnected));
                 });
             }
         }

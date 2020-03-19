@@ -125,9 +125,8 @@ Options:
                 LogControl.Level.MinimumLevel = verbose ?
                     LogEventLevel.Verbose : LogEventLevel.Information;
 
-                Console.WriteLine("Starting publisher module...");
+                Console.WriteLine("Starting discovery module...");
                 broker.Subscribe(IoTSdkLogger.EventSource, new IoTSdkLogger(logger));
-                Console.WriteLine("Starting twin module...");
                 var arguments = new List<string> {
                     $"EdgeHubConnectionString={cs}"
                 };

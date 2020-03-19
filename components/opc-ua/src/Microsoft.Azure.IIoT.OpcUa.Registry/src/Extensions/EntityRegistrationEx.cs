@@ -28,9 +28,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             var type = twin.Tags.GetValueOrDefault<string>(nameof(EntityRegistration.DeviceType), null);
             if (string.IsNullOrEmpty(type) && twin.Properties.Reported != null) {
                 type = twin.Properties.Reported.GetValueOrDefault<string>(TwinProperty.Type, null);
-                if (string.IsNullOrEmpty(type)) {
-                    type = twin.Tags.GetValueOrDefault<string>(TwinProperty.Type, null);
-                }
+            }
+            if (string.IsNullOrEmpty(type)) {
+                type = twin.Tags.GetValueOrDefault<string>(TwinProperty.Type, null);
             }
             if (IdentityType.Gateway.EqualsIgnoreCase(type)) {
                 return twin.ToGatewayRegistration();

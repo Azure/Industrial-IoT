@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.App.Data;
+    using Microsoft.Azure.IIoT.App.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
     using System;
@@ -29,10 +30,10 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// </summary>
         /// <param name="discovererId"></param>
         /// <returns>EndpointInfoApiModel</returns>
-        public async Task<PagedResult<EndpointInfoApiModel>> GetEndpointListAsync(
+        public async Task<PagedResult<EndpointInfo>> GetEndpointListAsync(
             string discovererId, string applicationId, string supervisorId) {
 
-            var pageResult = new PagedResult<EndpointInfoApiModel>();
+            var pageResult = new PagedResult<EndpointInfo>();
 
             try {
                 var model = new EndpointRegistrationQueryApiModel();
@@ -41,8 +42,12 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 model.SupervisorId = supervisorId == PathAll ? null : supervisorId;
 
                 var endpoints = await _registryService.QueryAllEndpointsAsync(model);
-                foreach (var endpoint in endpoints) {
-                    pageResult.Results.Add(endpoint);
+                foreach (var ep in endpoints) {
+                    // Get non cached version of endpoint
+                    var endpoint = await _registryService.GetEndpointAsync(ep.Registration.Id);
+                    pageResult.Results.Add(new EndpointInfo {
+                        EndpointModel = endpoint
+                    });
                 }
             }
             catch (Exception e) {
@@ -70,25 +75,24 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var applicationModel = new ApplicationRegistrationQueryApiModel();
                 var discoverers = await _registryService.QueryAllDiscoverersAsync(discovererModel);
 
-                if (discoverers != null) {
-                    if (discoverers.Count() > 0) {
-                        foreach (var discoverer in discoverers) {
-                            var info = new DiscovererInfo {
-                                DiscovererModel = discoverer,
-                                HasApplication = false,
-                                ScanStatus = (discoverer.Discovery == DiscoveryMode.Off) || (discoverer.Discovery == null) ? false : true
-                            };
-                            applicationModel.DiscovererId = discoverer.Id;
-                            var applications = await _registryService.QueryAllApplicationsAsync(applicationModel);
-                            if (applications != null) {
-                                info.HasApplication = true;
-                            }
-                            pageResult.Results.Add(info);
+                if (discoverers != null && discoverers.Any()) {
+                    foreach (var disc in discoverers) {
+                        var discoverer = await _registryService.GetDiscovererAsync(disc.Id);
+                        var info = new DiscovererInfo {
+                            DiscovererModel = discoverer,
+                            HasApplication = false,
+                            ScanStatus = (discoverer.Discovery == DiscoveryMode.Off) || (discoverer.Discovery == null) ? false : true
+                        };
+                        applicationModel.DiscovererId = discoverer.Id;
+                        var applications = await _registryService.QueryAllApplicationsAsync(applicationModel);
+                        if (applications != null) {
+                            info.HasApplication = true;
                         }
+                        pageResult.Results.Add(info);
                     }
-                    else {
-                        pageResult.Error = "No Discoveres Found";
-                    }
+                }
+                else {
+                    pageResult.Error = "No Discoveres Found";
                 }
             }
             catch (Exception e) {
@@ -116,8 +120,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var applications = await _registryService.QueryAllApplicationsAsync(applicationModel);
 
                 if (applications != null) {
-                    foreach (var application in applications) {
-                        pageResult.Results.Add(application);
+                    foreach (var app in applications) {
+                        var application = await _registryService.GetApplicationAsync(app.ApplicationId);
+                        pageResult.Results.Add(application.Application);
                     }
                 }
             }
@@ -153,7 +158,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             else {
                 discoveryMode = DiscoveryMode.Off;
             }
-            
+
             try {
                 await _registryService.SetDiscoveryModeAsync(discoverer.DiscovererModel.Id, discoveryMode, model);
             }
@@ -190,17 +195,14 @@ namespace Microsoft.Azure.IIoT.App.Services {
             if (config.MaxPortProbes != null && config.MaxPortProbes != 0) {
                 model.DiscoveryConfig.MaxPortProbes = config.MaxPortProbes;
             }
-            if (config.NetworkProbeTimeoutMs != null && config.NetworkProbeTimeoutMs != 0) {
-                model.DiscoveryConfig.NetworkProbeTimeoutMs = config.NetworkProbeTimeoutMs;
+            if (config.NetworkProbeTimeout != null && config.NetworkProbeTimeout != TimeSpan.Zero) {
+                model.DiscoveryConfig.NetworkProbeTimeout = config.NetworkProbeTimeout;
             }
-            if (config.PortProbeTimeoutMs != null && config.PortProbeTimeoutMs != 0) {
-                model.DiscoveryConfig.PortProbeTimeoutMs = config.PortProbeTimeoutMs;
+            if (config.PortProbeTimeout != null && config.PortProbeTimeout != TimeSpan.Zero) {
+                model.DiscoveryConfig.PortProbeTimeout = config.PortProbeTimeout;
             }
-            if (config.IdleTimeBetweenScansSec != null && config.IdleTimeBetweenScansSec != 0) {
-                model.DiscoveryConfig.IdleTimeBetweenScansSec = config.IdleTimeBetweenScansSec;
-            }
-            else {
-                model.DiscoveryConfig.IdleTimeBetweenScansSec = _5MINUTES;
+            if (config.IdleTimeBetweenScans != null && config.IdleTimeBetweenScans != TimeSpan.Zero) {
+                model.DiscoveryConfig.IdleTimeBetweenScans = config.IdleTimeBetweenScans;
             }
             if (config.DiscoveryUrls != null) {
                 model.DiscoveryConfig.DiscoveryUrls = config.DiscoveryUrls;
@@ -229,8 +231,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var gateways = await _registryService.QueryAllGatewaysAsync(gatewayModel);
 
                 if (gateways != null) {
-                    foreach (var gateway in gateways) {
-                        pageResult.Results.Add(gateway);
+                    foreach (var gw in gateways) {
+                        var gateway = await _registryService.GetGatewayAsync(gw.Id);
+                        pageResult.Results.Add(gateway.Gateway);
                     }
                 }
             }
@@ -259,7 +262,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var publishers = await _registryService.QueryAllPublishersAsync(publisherModel);
 
                 if (publishers != null) {
-                    foreach (var publisher in publishers) {
+                    foreach (var pub in publishers) {
+                        var publisher = await _registryService.GetPublisherAsync(pub.Id);
                         pageResult.Results.Add(publisher);
                     }
                 }
@@ -283,7 +287,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="applicationId"></param>
         /// <returns></returns>
         public async Task<string> UnregisterApplicationAsync(string applicationId) {
-            
+
             try {
                 await _registryService.UnregisterApplicationAsync(applicationId);
             }
@@ -307,8 +311,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var model = new SupervisorQueryApiModel();
 
                 var supervisors = await _registryService.QueryAllSupervisorsAsync(model);
-                foreach (var supervisor in supervisors) {
-                    pageResult.Results.Add(supervisor);
+                if (supervisors != null) {
+                    foreach (var sup in supervisors) {
+                        var supervisor = await _registryService.GetSupervisorAsync(sup.Id);
+                        pageResult.Results.Add(supervisor);
+                    }
                 }
             }
             catch (Exception e) {
@@ -333,13 +340,13 @@ namespace Microsoft.Azure.IIoT.App.Services {
             var supervisorStatus = new SupervisorStatusApiModel();
 
             try {
-                supervisorStatus = await _registryService.GetSupervisorStatusAsync(supervisorId);              
+                supervisorStatus = await _registryService.GetSupervisorStatusAsync(supervisorId);
             }
             catch (Exception exception) {
                 var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
                 _logger.Error(errorMessageTrace);
             }
-   
+
             return supervisorStatus;
         }
 
@@ -364,7 +371,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
         private readonly IRegistryServiceApi _registryService;
         private readonly ILogger _logger;
-        private const int _5MINUTES = 300;
         public string PathAll = "All";
     }
 }
