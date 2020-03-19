@@ -192,6 +192,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
             get {
                 yield return new PortRange(4840, 4841);
                 yield return new PortRange(48000, 48100);
+                yield return new PortRange(49320);
                 yield return new PortRange(50000);
                 yield return new PortRange(51200, 51300);
                 yield return new PortRange(62222);

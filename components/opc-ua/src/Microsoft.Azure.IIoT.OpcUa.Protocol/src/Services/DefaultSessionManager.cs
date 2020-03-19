@@ -192,7 +192,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             if ((!securityMode.HasValue && string.IsNullOrWhiteSpace(securityPolicyUri)) || securityMode == SecurityMode.Best) {
                 return CoreClientUtils.SelectEndpoint(discoveryUrl, true, operationTimeout);
             }
-            else if (securityMode == SecurityMode.None || securityPolicyUri == noneSecurityPolicyUri) {
+            else if (securityMode == SecurityMode.None || securityPolicyUri == SecurityPolicies.None) {
                 return CoreClientUtils.SelectEndpoint(discoveryUrl, false, operationTimeout);
             }
             else {
@@ -209,7 +209,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="operationTimeout">Operation timeout</param>
         /// <returns>Endpoint with the selected security settings or null of none available.</returns>
         private static EndpointDescription SelectEndpoint(string discoveryUrl, MessageSecurityMode? messageSecurityMode, string securityPolicyUri, int operationTimeout = -1) {
-            if (messageSecurityMode == MessageSecurityMode.None || securityPolicyUri == noneSecurityPolicyUri) {
+            if (messageSecurityMode == MessageSecurityMode.None || securityPolicyUri == SecurityPolicies.None) {
                 return CoreClientUtils.SelectEndpoint(discoveryUrl, false, operationTimeout);
             }
 
@@ -298,7 +298,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private readonly Dictionary<ConnectionIdentifier, SessionWrapper> _sessions =
             new Dictionary<ConnectionIdentifier, SessionWrapper>();
         private readonly SemaphoreSlim _lock;
-        private const string noneSecurityPolicyUri = "http://opcfoundation.org/UA/SecurityPolicy#None";
         private const int defaultOperationTimeout = 15000;
     }
 }

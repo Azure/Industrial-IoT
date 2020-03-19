@@ -41,21 +41,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Runtime {
                     .AsImplementedInterfaces().InstancePerLifetimeScope();
                 switch (_jobConfig.MessagingMode) {
                     case MessagingMode.Samples:
-                        builder.RegisterType<MonitoredItemMessageJsonEncoder>()
-                            .AsImplementedInterfaces().InstancePerLifetimeScope();
-                        break;
-                    case MessagingMode.SamplesBinary:
-                        builder.RegisterType<MonitoredItemMessageBinaryEncoder>()
+                        builder.RegisterType<MonitoredItemMessageEncoder>()
                             .AsImplementedInterfaces().InstancePerLifetimeScope();
                         break;
                     case MessagingMode.PubSub:
                         builder.RegisterType<NetworkMessageEncoder>()
                             .AsImplementedInterfaces().InstancePerLifetimeScope();
                         break;
-                    case MessagingMode.PubSubBinary:
-                        throw new NotImplementedException("PubSub binary encoding not implemented");
                     default:
-                        builder.RegisterType<MonitoredItemMessageJsonEncoder>()
+                        builder.RegisterType<MonitoredItemMessageEncoder>()
                             .AsImplementedInterfaces().InstancePerLifetimeScope();
                         break;
                 }

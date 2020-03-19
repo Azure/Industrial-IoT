@@ -10,8 +10,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
     using Serilog;
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Text;
-    using System.Threading;
     using System.Threading.Tasks;
 
     /// <inheritdoc/>
@@ -39,39 +39,65 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
             var info = typeof(T).GetProperties();
             if (addHeader) {
                 foreach (var prop in info) {
-                    sb.Append(prop.Name);
-                    sb.Append(separator);
+                    if (prop.Name != nameof(DataSetMessageModel.Payload)) {
+                        AddAddValueToCsvStringBuilder(prop.Name, separator, sb);
+                    }
+                    else{
+                        var payload = prop.GetValue(data[0]) as Dictionary<string, DataValueModel>;
+                        foreach(var node in payload.OrderBy(i => i.Key)) {
+                            AddAddValueToCsvStringBuilder($"{ node.Key}_value", separator, sb);
+                            AddAddValueToCsvStringBuilder($"{ node.Key}_typeId", separator, sb);
+                            AddAddValueToCsvStringBuilder($"{ node.Key}_status", separator, sb);
+                            AddAddValueToCsvStringBuilder($"{ node.Key}_timestamp", separator, sb);
+                        }
+                    }
                 }
                 sb.Remove(sb.Length - 1, 1);
             }
             foreach (var obj in data) {
                 sb.AppendLine();
                 foreach (var prop in info) {
-                    var value = prop.GetValue(obj);
-                    if (value != null) {
-                        var str = value?.ToString();
-                        if (str != null &&
-                            (str.Contains(separator) ||
-                            str.Contains("\"") || str.Contains("\r") ||
-                            str.Contains("\n"))) {
-                            sb.Append('\"');
-                            foreach (var nextChar in str) {
-                                sb.Append(nextChar);
-                                if (nextChar == '"') {
-                                    sb.Append('\"');
-                                }
+                    if (prop.Name != nameof(DataSetMessageModel.Payload)) {
+                        AddAddValueToCsvStringBuilder(prop.GetValue(obj), separator, sb);
+                    }
+                    else {
+                        var payload = prop.GetValue(obj) as Dictionary<string, DataValueModel>;
+                        foreach (var node in payload.OrderBy(i => i.Key)) {
+                            var nodeProperties = node.Value.GetType().GetProperties();
+                            foreach (var nodeProp in nodeProperties) {
+                                AddAddValueToCsvStringBuilder(nodeProp.GetValue(node.Value), separator, sb);
                             }
-                            sb.Append('\"');
-                        }
-                        else {
-                            sb.Append(str);
                         }
                     }
-                    sb.Append(separator);
                 }
                 sb.Remove(sb.Length - 1, 1);
             }
             return sb.ToString();
+        }
+
+        private void AddAddValueToCsvStringBuilder(object value, 
+            string separator, StringBuilder sb) {
+
+            if (value != null) {
+                var str = value?.ToString();
+                if (str != null &&
+                    (str.Contains(separator) ||
+                    str.Contains("\"") || str.Contains("\r") ||
+                    str.Contains("\n"))) {
+                    sb.Append('\"');
+                    foreach (var nextChar in str) {
+                        sb.Append(nextChar);
+                        if (nextChar == '"') {
+                            sb.Append('\"');
+                        }
+                    }
+                    sb.Append('\"');
+                }
+                else {
+                    sb.Append(str);
+                }
+            }
+            sb.Append(separator);
         }
 
         /// <summary>
@@ -93,8 +119,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
                 if (response.IsError() ||
                     0 == (contentPosition = response.ContentHeaders.ContentLength.Value)) {
                     // create a new file
-                    request = _httpClient.NewRequest($"{partitionUrl}?resource=file",
-                        kResource);
+                    request = _httpClient.NewRequest(
+                        $"{partitionUrl}?resource=file", kResource);
                     response = await _httpClient.PutAsync(request);
                     content = BuildCsvData(data, separator, true);
                 }
@@ -104,15 +130,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
                 // append the the content to the partition
                 if (content != string.Empty) {
                     request = _httpClient.NewRequest(
-                        $"{partitionUrl}?action=append&position={contentPosition}",
-                        kResource);
-                    request.SetContent(content, Encoding.UTF8);
+                        $"{partitionUrl}?action=append&position={contentPosition}", kResource);
+                    byte[] contentBuffer = Encoding.UTF8.GetBytes(content);
+                    request.SetContent(contentBuffer, ContentMimeType.Binary);
                     response = await _httpClient.PatchAsync(request);
-                    contentPosition += Encoding.UTF8.GetByteCount(content);
+                    //  TODO check for errors
+                    contentPosition += contentBuffer.Length;
                     request = _httpClient.NewRequest
                         ($"{partitionUrl}?action=flush&position={contentPosition}",
                         kResource);
                     response = await _httpClient.PatchAsync(request);
+                    //  todo, handle the errors
                 }
             }
             catch (Exception ex) {
@@ -162,6 +190,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
 
         /// <inheritdoc/>
         public void Dispose() {
+
         }
 
         private readonly IHttpClient _httpClient;

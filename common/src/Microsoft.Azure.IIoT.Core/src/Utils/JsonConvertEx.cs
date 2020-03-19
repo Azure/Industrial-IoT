@@ -57,7 +57,11 @@ namespace Newtonsoft.Json {
         /// <returns></returns>
         internal static JsonSerializerSettings GetDefaultSettings() {
             return new JsonSerializerSettings {
-                ContractResolver = new DefaultContractResolver(),
+                ContractResolver = new DefaultContractResolver() {
+                    NamingStrategy = new CamelCaseNamingStrategy {
+                        ProcessDictionaryKeys = false
+                    }
+                },
                 Converters = new List<JsonConverter>(),
                 TypeNameHandling = TypeNameHandling.None,
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,

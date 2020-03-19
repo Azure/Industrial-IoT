@@ -9,9 +9,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
+    using Serilog;
 
     /// <summary>
     /// Browser code behind
@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <summary>
         /// Current path
         /// </summary>
-        public string Path { get; set; }
+        public List<string> Path { get; set; }
         public MethodMetadataResponseApiModel Parameter { get; set; }
         public MethodCallResponseApiModel MethodCallResponse { get; set; }
 
@@ -29,8 +29,10 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// Create browser
         /// </summary>
         /// <param name="twinService"></param>
-        public Browser(ITwinServiceApi twinService) {
-            _twinService = twinService;
+        /// <param name="logger"></param>
+        public Browser(ITwinServiceApi twinService, ILogger logger) {
+            _twinService = twinService ?? throw new ArgumentNullException(nameof(twinService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         /// <summary>
@@ -43,7 +45,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="direction"></param>
         /// <returns>ListNode</returns>
         public async Task<PagedResult<ListNode>> GetTreeAsync(string endpointId,
-            string id, List<string> parentId, string discovererId, BrowseDirection direction) {
+            string id, List<string> parentId, string discovererId, BrowseDirection direction, int index) {
             var pageResult = new PagedResult<ListNode>();
             var model = new BrowseRequestApiModel {
                 TargetNodesOnly = true,
@@ -54,11 +56,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 model.MaxReferencesToReturn = _MAX_REFERENCES;
                 model.NodeId = id;
                 if (id == string.Empty) {
-                    Path = string.Empty;
+                    Path = new List<string>(); 
                 }
             }
             else {
-                model.NodeId = parentId.ElementAt(parentId.Count - 2);
+                model.NodeId = parentId.ElementAt(index - 1);
             }
 
             try {
@@ -70,11 +72,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
                 if (direction == BrowseDirection.Forward) {
                     parentId.Add(browseData.Node.NodeId);
-                    Path += "/" + browseData.Node.DisplayName;
+                    Path.Add(browseData.Node.DisplayName);
                 }
                 else {
                     parentId.RemoveAt(parentId.Count - 1);
-                    Path = Path.Substring(0, Path.LastIndexOf("/"));
+                    Path.RemoveRange(index, Path.Count - index);
                 }
 
                 do {
@@ -113,9 +115,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception e) {
                 // skip this node
-                Trace.TraceError("Can not browse node '{0}'", id);
+                _logger.Error($"Can not browse node '{id}'");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                Trace.TraceError(errorMessage);
+                _logger.Error(errorMessage);
                 pageResult.Error = e.Message;
             }
 
@@ -148,9 +150,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 }
             }
             catch (Exception e) {
-                Trace.TraceError("Can not read value of node '{0}'", nodeId);
+                _logger.Error($"Can not read value of node '{nodeId}'");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                Trace.TraceError(errorMessage);
+                _logger.Error(errorMessage);
                 return errorMessage;
             }
         }
@@ -185,9 +187,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 }
             }
             catch (Exception e) {
-                Trace.TraceError("Can not write value of node '{0}'", nodeId);
+                _logger.Error($"Can not write value of node '{nodeId}'");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                Trace.TraceError(errorMessage);
+                _logger.Error(errorMessage);
                 return errorMessage;
             }
         }
@@ -220,9 +222,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 }
             }
             catch (Exception e) {
-                Trace.TraceError("Can not get method parameter from node '{0}'", nodeId);
+                _logger.Error($"Can not get method parameter from node '{nodeId}'");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                Trace.TraceError(errorMessage);
+                _logger.Error(errorMessage);
                 return errorMessage;
             }
         }
@@ -269,14 +271,15 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 }
             }
             catch (Exception e) {
-                Trace.TraceError("Can not get method parameter from node '{0}'", nodeId);
+                _logger.Error($"Can not get method parameter from node '{nodeId}'");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                Trace.TraceError(errorMessage);
+                _logger.Error(errorMessage);
                 return errorMessage;
             }
         }
 
         private readonly ITwinServiceApi _twinService;
+        private readonly ILogger _logger;
         private const int _MAX_REFERENCES = 50;
     }
 }

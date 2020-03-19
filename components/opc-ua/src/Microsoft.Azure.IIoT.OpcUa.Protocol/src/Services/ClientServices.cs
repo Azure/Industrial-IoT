@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="logger"></param>
         /// <param name="maxOpTimeout"></param>
         public ClientServices(ILogger logger, TimeSpan? maxOpTimeout = null) :
-            this (logger, new ClientServicesConfig(), maxOpTimeout) {
+            this(logger, new ClientServicesConfig(), maxOpTimeout) {
         }
 
         /// <summary>
@@ -410,7 +410,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 effectiveOwnCertPath = _configuration.OwnCertX509StorePathDefault;
             }
 
-            return new ApplicationConfiguration {
+            var applicationConfiguration = new ApplicationConfiguration {
                 ApplicationName = "Azure IIoT OPC Twin Client Services",
                 ApplicationType = Opc.Ua.ApplicationType.Client,
                 ApplicationUri = "urn:" + Utils.GetHostName() + ":Azure:IIoTOpcTwin",
@@ -440,17 +440,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     MinimumCertificateKeySize = 1024
                 },
                 TransportConfigurations = new TransportConfigurationCollection(),
-                TransportQuotas = new TransportQuotas {
-                    OperationTimeout = (int)operationTimeout.TotalMilliseconds,
-                    MaxStringLength = ushort.MaxValue * 32,
-                    MaxByteStringLength = ushort.MaxValue * 32,
-                    MaxArrayLength = ushort.MaxValue * 32,
-                    MaxMessageSize = ushort.MaxValue * 64
-                },
+                TransportQuotas = TransportQuotaConfigEx.DefaultTransportQuotas(),
                 ClientConfiguration = new ClientConfiguration {
                     DefaultSessionTimeout = (int)sessionTimeout.TotalMilliseconds
                 }
             };
+            applicationConfiguration.TransportQuotas.OperationTimeout = (int)operationTimeout.TotalMilliseconds;
+            return applicationConfiguration;
         }
 
         /// <summary>

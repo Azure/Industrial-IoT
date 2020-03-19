@@ -133,6 +133,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
                     .SelectMany(source => source.PublishedVariables.PublishedData
                         .Select(variable => new PublishedItemModel {
                             NodeId = variable.PublishedVariableNodeId,
+                            DisplayName = variable.PublishedVariableDisplayName,
                             SamplingInterval = variable.SamplingInterval,
                             PublishingInterval = source.SubscriptionSettings.PublishingInterval
                         }))
@@ -171,17 +172,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
                 MessagingMode = MessagingMode.Samples,
                 WriterGroup = new WriterGroupModel {
                     WriterGroupId = job.Id,
+                    DataSetWriters = new List<DataSetWriterModel>(),
                     MessageSettings = new WriterGroupMessageSettingsModel() {
-                        NetworkMessageContentMask = NetworkMessageContentMask.PublisherId |
+                        NetworkMessageContentMask = 
+                                NetworkMessageContentMask.PublisherId |
                                 NetworkMessageContentMask.WriterGroupId |
+                                NetworkMessageContentMask.NetworkMessageNumber |
                                 NetworkMessageContentMask.SequenceNumber |
                                 NetworkMessageContentMask.PayloadHeader |
-                                NetworkMessageContentMask.NetworkMessageHeader |
                                 NetworkMessageContentMask.Timestamp |
+                                NetworkMessageContentMask.DataSetClassId |
+                                NetworkMessageContentMask.NetworkMessageHeader |
                                 NetworkMessageContentMask.DataSetMessageHeader
                     },
-                    // ...
-                    DataSetWriters = new List<DataSetWriterModel>()
                 },
                 Engine = null,
                 ConnectionString = null
@@ -237,14 +240,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
                                 PublishedData = new List<PublishedDataSetVariableModel>()
                             },
                             SubscriptionSettings = new PublishedDataSetSettingsModel {
-                                PublishingInterval = publishedItem.PublishingInterval,
+                                PublishingInterval = publishedItem.PublishingInterval
                                 // ...
                             }
                         }
                     },
-                    MessageSettings = null,
+                    DataSetFieldContentMask =
+                        DataSetFieldContentMask.StatusCode |
+                        DataSetFieldContentMask.SourceTimestamp |
+                        DataSetFieldContentMask.ServerTimestamp |
+                        DataSetFieldContentMask.NodeId |
+                        DataSetFieldContentMask.DisplayName |
+                        DataSetFieldContentMask.ApplicationUri |
+                        DataSetFieldContentMask.EndpointUrl |
+                        DataSetFieldContentMask.SubscriptionId |
+                        DataSetFieldContentMask.ExtraFields,
+                    MessageSettings = new DataSetWriterMessageSettingsModel() {
+                        DataSetMessageContentMask =
+                            DataSetContentMask.Timestamp |
+                            DataSetContentMask.MetaDataVersion |
+                            DataSetContentMask.Status |
+                            DataSetContentMask.DataSetWriterId |
+                            DataSetContentMask.MajorVersion |
+                            DataSetContentMask.MinorVersion |
+                            DataSetContentMask.SequenceNumber
+                    },
+                    //  TODO provide default settings
                     KeyFrameCount = null,
-                    DataSetFieldContentMask = null,
                     DataSetMetaDataSendInterval = null,
                     KeyFrameInterval = null
                 };
@@ -255,7 +277,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
             // Add to published variable list items
             variables.Add(new PublishedDataSetVariableModel {
                 SamplingInterval = publishedItem.SamplingInterval,
-                PublishedVariableNodeId = publishedItem.NodeId
+                PublishedVariableNodeId = publishedItem.NodeId,
+                PublishedVariableDisplayName = publishedItem.DisplayName
             });
         }
 

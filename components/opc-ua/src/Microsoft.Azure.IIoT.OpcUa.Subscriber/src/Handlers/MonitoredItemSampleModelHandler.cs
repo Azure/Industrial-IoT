@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         /// </summary>
         /// <param name="handlers"></param>
         /// <param name="logger"></param>
-        public MonitoredItemSampleModelHandler(IEnumerable<IMonitoredItemSampleProcessor> handlers, ILogger logger) {
+        public MonitoredItemSampleModelHandler(IEnumerable<ISubscriberMessageProcessor> handlers, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _handlers = handlers?.ToList() ?? throw new ArgumentNullException(nameof(handlers));
         }
@@ -36,16 +36,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         /// <inheritdoc/>
         public async Task HandleAsync(string deviceId, string moduleId,
             byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
-
             var json = Encoding.UTF8.GetString(payload);
-            var message = JsonConvertEx.DeserializeObject<MonitoredItemSampleModel>(json);
             try {
-                await Task.WhenAll(_handlers.Select(h => h.HandleSampleAsync(message)));
+                var sample = JsonConvertEx.DeserializeObject<MonitoredItemSampleModel>(json);
+                await Task.WhenAll(_handlers.Select(h => h.HandleSampleAsync(sample)));
             }
             catch (Exception ex) {
                 _logger.Error(ex,
-                    "Publishing message {message} failed with exception - skip",
-                        message);
+                    "Exception handling message from {deviceId}-{moduleId} with payload {json}",
+                    deviceId, moduleId, json);
             }
         }
 
@@ -55,6 +54,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         }
 
         private readonly ILogger _logger;
-        private readonly List<IMonitoredItemSampleProcessor> _handlers;
+        private readonly List<ISubscriberMessageProcessor> _handlers;
     }
 }

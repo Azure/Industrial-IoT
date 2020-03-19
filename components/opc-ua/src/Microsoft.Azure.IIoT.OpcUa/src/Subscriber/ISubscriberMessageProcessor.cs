@@ -10,7 +10,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber {
     /// <summary>
     /// Publisher sample processing
     /// </summary>
-    public interface IMonitoredItemSampleProcessor {
+    public interface ISubscriberMessageProcessor {
 
         /// <summary>
         /// Handle individual messages
@@ -18,5 +18,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber {
         /// <param name="sample"></param>
         /// <returns></returns>
         Task HandleSampleAsync(MonitoredItemSampleModel sample);
+        
+        /// <summary>
+        /// Handle PubSub messages 
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
+        Task HandleMessageAsync(DataSetMessageModel message);
     }
 }

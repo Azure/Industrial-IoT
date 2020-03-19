@@ -13,12 +13,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
     using Microsoft.CommonDataModel.ObjectModel.Utilities;
     using Serilog;
     using System;
-    using System.IO;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-
 
     /// <summary>
     /// Process messages and write them to Datalake.
@@ -43,6 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             _cacheUploadTriggered = false;
             _cacheUploadInterval = TimeSpan.FromSeconds(20);
             _samplesCache = new Dictionary<Tuple<string, string>, List<MonitoredItemSampleModel>>();
+            _dataSetsCache = new Dictionary<Tuple<string, string, string>, List<DataSetMessageModel>>();
 
             _cdmCorpus = new CdmCorpusDefinition();
             _cdmCorpus.SetEventCallback(new EventCallback {
@@ -64,8 +65,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 }
             });
 
-            _adapter = new ADLSAdapter($"{config.ADLSg2HostName}/{config.ADLSg2ContainerName}",
-                $"/{config.RootFolder}", config.TenantId, config.AppId, config.AppSecret);
+            _adapter = new ADLSAdapter($"{config.ADLSg2HostName}",
+                $"/{config.ADLSg2ContainerName}/{config.RootFolder}", config.TenantId, config.AppId, config.AppSecret);
             _cdmCorpus.Storage.Mount("adls", _adapter);
             var gitAdapter = new GithubAdapter();
             _cdmCorpus.Storage.Mount("cdm", gitAdapter);
@@ -117,6 +118,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 Manifest.Imports.Add(kFoundationJsonPath);
                 Manifest.Schema = "cdm:/schema.cdm.json";
                 Manifest.JsonSchemaSemanticVersion = "1.0.0";
+                if (Manifest != null) {
+                    await Manifest.SaveAsAsync("model.json", true);
+                }
             }
             Try.Op(() => _cacheUploadTimer.Change(_cacheUploadInterval, Timeout.InfiniteTimeSpan));
         }
@@ -172,16 +176,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                     await _storage.WriteInCsvPartition<MonitoredItemSampleModel>(
                         partitionLocation, samplesList, partitionDelimitor);
                 }
-                if (performSave) {
-                    // persist the model changes
-                    for (var i = 0; i < _cdmCorpus.Documents.Count; i++) {
-                        var item = _cdmCorpus.Documents[i];
-                        var resOpt = new ResolveOptions() {
-                            WrtDoc = item,
-                            Directives = kDirectives
-                        };
-                        await item.RefreshAsync(resOpt);
+
+                foreach(var dataSetsList in _dataSetsCache.Values) {
+                    if (dataSetsList.Count == 0 || dataSetsList[0] == null) {
+                        _logger.Error("DataSet list is empty ...");
+                        continue;
                     }
+                    if (!GetEntityData(dataSetsList[0], out var partitionLocation, out var partitionDelimitor)) {
+                        if (!CreateEntityData(dataSetsList[0], out partitionLocation, out partitionDelimitor)) {
+                            _logger.Error("Failed to create CDM Entity for {PublilsherId}/{DataSetWriterId}/{MetaDataVersion}).",
+                                dataSetsList[0].PublisherId, dataSetsList[0].DataSetWriterId, dataSetsList[0].MetaDataVersion);
+                            continue;
+                        }
+                        performSave = true;
+                    }
+                    await _storage.WriteInCsvPartition<DataSetMessageModel>(
+                        partitionLocation, dataSetsList, partitionDelimitor);
+                }
+
+                if (performSave) {
                     if (Manifest != null) {
                         await Manifest.SaveAsAsync("model.json", true);
                     }
@@ -198,15 +211,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                     list!.Clear();
                 }
                 _samplesCache.Clear();
+                _dataSetsCache.Clear();
                 _samplesCacheSize = 0;
             }
             sw.Stop();
         }
 
-        private string GetNormalizedEntityName(string endpointId, string nodeId) {
-            var key = string.Join("", endpointId.Split(Path.GetInvalidFileNameChars())) + '_' +
-                string.Join("", nodeId.Split(Path.GetInvalidFileNameChars()));
-            return key.Replace('#', '_').Replace('.', '_').Replace('/','_').Replace(':', '_');
+        private string GetNormalizedEntityName(string publisherId, 
+            string dataSetWriterId, string metadataVersion) {
+            var key = string.Join("", publisherId.Split(Path.GetInvalidFileNameChars())) + '_' +
+                      string.Join("", dataSetWriterId.Split(Path.GetInvalidFileNameChars()));
+            if (!string.IsNullOrEmpty(metadataVersion)) {
+                key += '_' + string.Join("", metadataVersion.Split(Path.GetInvalidFileNameChars()));
+            }
+            return key.Replace('#', '_').Replace('.', '_').Replace('/','_').Replace(':', '_').Replace('"', '_').Replace('\'', '_');
         }
 
         private static CdmDataFormat DataTypeToCdmDataFormat(Type type) {
@@ -238,7 +256,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                     return CdmDataFormat.DateTime;
                 case TypeCode.Byte:
                 case TypeCode.SByte:
-                    //  TODO: CDM SDK bug - does not accept Byte for now ...  
+                    //  TODO: CDM SDK bug - does not accept Byte for now ...
                     //return CdmDataFormat.Byte;
                     return CdmDataFormat.Int16;
                 case TypeCode.Boolean:
@@ -287,7 +305,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             out string partitionLocation, out string partitionDelimitor){
             partitionLocation = null;
             partitionDelimitor = kCsvPartitionsDelimiter;
-            var key = GetNormalizedEntityName(sample.EndpointId, sample.NodeId);
+            var key = GetNormalizedEntityName(sample.EndpointId, sample.NodeId, null);
             var entityDeclaration = Manifest.Entities.Item(key);
             if (entityDeclaration == null) {
                 return false;
@@ -304,7 +322,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
 
         private bool CreateEntityData(MonitoredItemSampleModel sample,
             out string partitionLocation, out string partitionDelimitor) {
-            string key = GetNormalizedEntityName(sample.EndpointId, sample.NodeId);
+            string key = GetNormalizedEntityName(sample.EndpointId, sample.NodeId, null);
 
             // check if the enetity was aleready added
             var entity = Manifest.Entities.Item(key);
@@ -318,7 +336,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
 
             var info = typeof(MonitoredItemSampleModel).GetProperties();
             foreach (var property in info) {
-                
                 // add the attributes required
                 var attribute = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
                     CdmObjectType.TypeAttributeDef, property.Name, false);
@@ -333,22 +350,138 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 else {
                     attribute.DataFormat = DataTypeToCdmDataFormat(property.PropertyType);
                 }
-                attribute.DataType = _cdmCorpus.MakeRef<CdmDataTypeReference>(
-                    CdmObjectType.DataTypeRef, 
-                    DataTypeToCdmDataString(attribute.DataFormat), true);
                 newSampleEntity.Attributes.Add(attribute);
             }
 
             newSampleEntity.DisplayName = kPublisherSampleEntityName;
             newSampleEntity.Version = "0.0.1";
-            newSampleEntity.Description = "Opc Ua monitored item  sample model";
+            newSampleEntity.Description = "Opc Ua Monitored Item Sample";
 
             // Create a new document where the new entity's definition will be stored
             var newSampleEntityDoc = _cdmCorpus.MakeObject<CdmDocumentDefinition>(
                 CdmObjectType.DocumentDef, $"{newSampleEntity.EntityName}.cdm.json", false);
             newSampleEntityDoc.Imports.Add($"{newSampleEntity.EntityName}.cdm.json");
             // TODO: remove - apparently not necessary 
-            //newSampleEntityDoc.Imports.Add(kFoundationJsonPath);
+            newSampleEntityDoc.Imports.Add(kFoundationJsonPath);
+            newSampleEntityDoc.Definitions.Add(newSampleEntity);
+            _cdmCorpus.Storage.FetchRootFolder("adls").Documents.Add(
+                newSampleEntityDoc, newSampleEntityDoc.Name);
+            var newSampleEntityDef = Manifest.Entities.Add(newSampleEntity);
+
+            // Define a partition and add it to the local declaration
+            var newSampleEntityPartition = _cdmCorpus.MakeObject<CdmDataPartitionDefinition>(
+                CdmObjectType.DataPartitionDef, newSampleEntity.EntityName);
+            newSampleEntityDef.DataPartitions.Add(newSampleEntityPartition);
+            newSampleEntityPartition.Location =
+                $"adls:/{newSampleEntity.EntityName}/partition-data.csv";
+            newSampleEntityPartition.Explanation = "Opc Ua monitored item sample messages storage";
+            var csvTrait = newSampleEntityPartition.ExhibitsTraits.Add(
+                "is.partition.format.CSV");
+            csvTrait.Arguments.Add("columnHeaders", "true");
+            csvTrait.Arguments.Add("delimiter", kCsvPartitionsDelimiter);
+
+            partitionLocation = _cdmCorpus.Storage.CorpusPathToAdapterPath(newSampleEntityPartition.Location);
+            partitionDelimitor = csvTrait?.Arguments?.FetchValue("delimiter") ?? kCsvPartitionsDelimiter;
+            return true;
+        }
+
+        private bool GetEntityData(DataSetMessageModel dataSet,
+            out string partitionLocation, out string partitionDelimitor) {
+            partitionLocation = null;
+            partitionDelimitor = kCsvPartitionsDelimiter;
+            var key = GetNormalizedEntityName(dataSet.PublisherId, 
+                dataSet.DataSetWriterId, dataSet.MetaDataVersion);
+            var entityDeclaration = Manifest.Entities.Item(key);
+            if (entityDeclaration == null) {
+                return false;
+            }
+            var partition = entityDeclaration?.DataPartitions[0];
+            if (partition == null) {
+                return false;
+            }
+            var csvTrait = partition.ExhibitsTraits.Item("is.partition.format.CSV");
+            partitionLocation = _cdmCorpus.Storage.CorpusPathToAdapterPath(partition.Location);
+            partitionDelimitor = csvTrait?.Arguments?.FetchValue("delimiter") ?? kCsvPartitionsDelimiter;
+            return true;
+        }
+
+        private bool CreateEntityData(DataSetMessageModel dataSet,
+            out string partitionLocation, out string partitionDelimitor) {
+            var key = GetNormalizedEntityName(dataSet.PublisherId,
+                dataSet.DataSetWriterId, dataSet.MetaDataVersion);
+            // check if the enetity was aleready added
+            var entity = Manifest.Entities.Item(key);
+            if (entity != null) {
+                return GetEntityData(dataSet, out partitionLocation, out partitionDelimitor);
+            }
+
+            // add a new entity for the Message
+            var newSampleEntity = _cdmCorpus.MakeObject<CdmEntityDefinition>(
+                CdmObjectType.EntityDef, key, false);
+
+            var info = typeof(DataSetMessageModel).GetProperties();
+            foreach (var property in info) {
+                if (property.Name != nameof(DataSetMessageModel.Payload)) {
+                    // add the attributes required
+                    var attribute = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
+                    CdmObjectType.TypeAttributeDef, property.Name, false);
+                    attribute.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
+                        CdmObjectType.PurposeRef, "hasA", true);
+                    //  if we handle a value, lookup it's type property
+                    if (property.Name == "Value" &&
+                        typeof(DataSetMessageModel).
+                            GetProperty("TypeId")?.GetValue(dataSet) is Type typeId) {
+                        attribute.DataFormat = DataTypeToCdmDataFormat(typeId);
+                    }
+                    else {
+                        attribute.DataFormat = DataTypeToCdmDataFormat(property.PropertyType);
+                    }
+                    newSampleEntity.Attributes.Add(attribute);
+                }
+                else{
+                    //  Parse the message payload 
+                    foreach (var node in dataSet.Payload.OrderBy(i => i.Key)) {
+                        // add the attributes for value, status and timestamp
+                        var valueAttribute = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
+                            CdmObjectType.TypeAttributeDef, $"{node.Key}_value", false);
+                        valueAttribute.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
+                            CdmObjectType.PurposeRef, "hasA", true);
+                        valueAttribute.DataFormat = DataTypeToCdmDataFormat(node.Value.TypeId);
+                        newSampleEntity.Attributes.Add(valueAttribute);
+
+                        var typeIdAttribute = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
+                            CdmObjectType.TypeAttributeDef, $"{node.Key}_typeId", false);
+                        typeIdAttribute.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
+                            CdmObjectType.PurposeRef, "hasA", true);
+                        typeIdAttribute.DataFormat = DataTypeToCdmDataFormat(typeof(string));
+                        newSampleEntity.Attributes.Add(typeIdAttribute);
+
+                        var statusAttribute = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
+                            CdmObjectType.TypeAttributeDef, $"{node.Key}_status", false);
+                        statusAttribute.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
+                            CdmObjectType.PurposeRef, "hasA", true);
+                        statusAttribute.DataFormat = DataTypeToCdmDataFormat(typeof(string));
+                        newSampleEntity.Attributes.Add(statusAttribute);
+
+                        var timestampAttribute = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
+                            CdmObjectType.TypeAttributeDef, $"{node.Key}_timestamp", false);
+                        timestampAttribute.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
+                            CdmObjectType.PurposeRef, "hasA", true);
+                        timestampAttribute.DataFormat = DataTypeToCdmDataFormat(typeof(DateTime));
+                        newSampleEntity.Attributes.Add(timestampAttribute);
+                    }
+                }
+            }
+
+            newSampleEntity.DisplayName = kPublisherDataSetEntityName;
+            newSampleEntity.Version = "0.0.1";
+            newSampleEntity.Description = "Opc Ua Pub/Sub Data Set";
+
+            // Create a new document where the new entity's definition will be stored
+            var newSampleEntityDoc = _cdmCorpus.MakeObject<CdmDocumentDefinition>(
+                CdmObjectType.DocumentDef, $"{newSampleEntity.EntityName}.cdm.json", false);
+            newSampleEntityDoc.Imports.Add($"{newSampleEntity.EntityName}.cdm.json");
+            newSampleEntityDoc.Imports.Add(kFoundationJsonPath);
             newSampleEntityDoc.Definitions.Add(newSampleEntity);
             _cdmCorpus.Storage.FetchRootFolder("adls").Documents.Add(
                 newSampleEntityDoc, newSampleEntityDoc.Name);
@@ -391,18 +524,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         private async Task ProcessCdmSampleAsync<T>(T payload) {
             try {
                 await _lock.WaitAsync();
-                var sample = payload as MonitoredItemSampleModel;
-                if (sample == null) {
-                    throw new ArgumentException("invalid payload provided ");
+                if (payload is MonitoredItemSampleModel sample) {
+                    var key = new Tuple<string, string>(sample.EndpointId, sample.NodeId);
+                    if (!_samplesCache.TryGetValue(key, out var samplesList)) {
+                        _samplesCache[key] = new List<MonitoredItemSampleModel>();
+                    }
+                    _samplesCache[key].Add(sample);
                 }
-                var key = new Tuple<string, string>(sample.EndpointId, sample.NodeId);
-
-                if (!_samplesCache.TryGetValue(key, out var samplesList)) {
-                    _samplesCache[key] = new List<MonitoredItemSampleModel>();
+                else if (payload is DataSetMessageModel dataSet) {
+                    var key = new Tuple<string, string, string>(
+                        dataSet.PublisherId, dataSet.DataSetWriterId, dataSet.MetaDataVersion);
+                    if (!_dataSetsCache.TryGetValue(key, out var dataSetList)) {
+                        _dataSetsCache[key] = new List<DataSetMessageModel>();
+                    }
+                    _dataSetsCache[key].Add(dataSet);
                 }
-                _samplesCache[key].Add(sample);
+                else {
+                    throw new ArgumentException("Invalid payload type");
+                }
                 _samplesCacheSize++;
-
                 if (!_cacheUploadTriggered && _samplesCacheSize >= kSamplesCacheMaxSize) {
                     Try.Op(() => _cacheUploadTimer.Change(TimeSpan.Zero, Timeout.InfiniteTimeSpan));
                     _cacheUploadTriggered = true;
@@ -428,16 +568,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         private readonly Timer _cacheUploadTimer;
         private readonly TimeSpan _cacheUploadInterval;
         private bool _cacheUploadTriggered;
-        private int _samplesCacheSize;
 
+        private int _samplesCacheSize;
         private readonly Dictionary<Tuple<string,string>, List<MonitoredItemSampleModel>> _samplesCache;
+        private readonly Dictionary<Tuple<string, string, string>, List<DataSetMessageModel>> _dataSetsCache;
 
         private static readonly int kSamplesCacheMaxSize = 5000;
-        private static readonly string kPublisherSampleEntityName = "PublisherSampleModel";
+        private static readonly string kPublisherDataSetEntityName = "OpcUaPublisherDataSet";
+        private static readonly string kPublisherSampleEntityName = "OpcUaPublisherSample";
         private static readonly string kFoundationJsonPath = "cdm:/foundations.cdm.json";
         private static readonly string kCsvPartitionsDelimiter = ",";
-        private static readonly AttributeResolutionDirectiveSet kDirectives =
-            new AttributeResolutionDirectiveSet(new HashSet<string>() {
-                "normalized", "referenceOnly" });
     }
 }

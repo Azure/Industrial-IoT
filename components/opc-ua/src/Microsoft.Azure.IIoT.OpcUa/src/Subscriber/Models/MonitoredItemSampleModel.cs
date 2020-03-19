@@ -18,6 +18,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         public string NodeId { get; set; }
 
         /// <summary>
+        /// Display name
+        /// </summary>
+        public string DisplayName { get; set; }
+
+        /// <summary>
         /// Value
         /// </summary>
         public dynamic Value { get; set; }

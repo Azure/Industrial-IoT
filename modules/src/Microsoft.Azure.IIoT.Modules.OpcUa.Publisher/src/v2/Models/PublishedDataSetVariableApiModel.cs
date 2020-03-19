@@ -32,6 +32,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Models {
             }
             Id = model.Id;
             PublishedVariableNodeId = model.PublishedVariableNodeId;
+            PublishedVariableDisplayName = model.PublishedVariableDisplayName;
             BrowsePath = model.BrowsePath;
             Attribute = model.Attribute;
             DataChangeFilter = model.DataChangeFilter;
@@ -54,6 +55,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Models {
             return new PublishedDataSetVariableModel {
                 Id = Id,
                 PublishedVariableNodeId = PublishedVariableNodeId,
+                PublishedVariableDisplayName = PublishedVariableDisplayName,
                 BrowsePath = BrowsePath,
                 Attribute = Attribute,
                 DataChangeFilter = DataChangeFilter,
@@ -83,6 +85,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Models {
         [JsonProperty(PropertyName = "publishedVariableNodeId",
             NullValueHandling = NullValueHandling.Ignore)]
         public string PublishedVariableNodeId { get; set; }
+
+        /// <summary>
+        /// Display name of the published node id
+        /// </summary>
+        [JsonProperty(PropertyName = "publishedVariableDisplayName",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public string PublishedVariableDisplayName { get; set; }
 
         /// <summary>
         /// An optional component path from the node identified by
