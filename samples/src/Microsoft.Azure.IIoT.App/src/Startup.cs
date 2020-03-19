@@ -27,7 +27,6 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Rewrite;
-    using Microsoft.AspNetCore.HttpOverrides;
     using Microsoft.AspNetCore.Mvc.Authorization;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
@@ -40,6 +39,8 @@ namespace Microsoft.Azure.IIoT.App {
     using System.Threading.Tasks;
     using System.Security.Claims;
     using Microsoft.Azure.IIoT.App.Common;
+    using Blazored.SessionStorage;
+    using Microsoft.Azure.IIoT.App.Services.SecureData;
 
     /// <summary>
     /// Webapp startup
@@ -204,6 +205,7 @@ namespace Microsoft.Azure.IIoT.App {
 
             services.AddRazorPages();
             services.AddServerSideBlazor();
+            services.AddBlazoredSessionStorage();
         }
 
         /// <summary>
@@ -258,6 +260,9 @@ namespace Microsoft.Azure.IIoT.App {
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
 
             builder.RegisterType<UICommon>()
+                .AsImplementedInterfaces().AsSelf().SingleInstance();
+
+            builder.RegisterType<SecureData>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
         }
 
