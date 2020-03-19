@@ -797,7 +797,7 @@ Function New-Deployment() {
             $replyUrls = New-Object System.Collections.Generic.List[System.String]
             if ($aadAddReplyUrls) {
                 # retrieve existing urls
-                $app = Get-AzureADApplication -ObjectId $aadConfig.ClientPrincipalId
+                $app = Get-AzADApplication -ObjectId $aadConfig.ClientPrincipalId
                 if ($app.ReplyUrls -and ($app.ReplyUrls.Count -ne 0)) {
                     $replyUrls = $app.ReplyUrls;
                 }
@@ -855,7 +855,7 @@ Function New-Deployment() {
                     #    & (Join-Path $script:ScriptDir "aad-update.ps1") `
                     #        $context `
                     #        -ObjectId $aadConfig.ClientPrincipalId -ReplyUrls $replyUrls
-                    Set-AzureADApplication -ObjectId $aadConfig.ClientPrincipalId -ReplyUrls $replyUrls
+                    Update-AzADApplication -ObjectId $aadConfig.ClientPrincipalId -ReplyUrl $replyUrls
 
                     Write-Host "Reply urls registered in client app $($aadConfig.ClientPrincipalId)..."
                     Write-Host 
