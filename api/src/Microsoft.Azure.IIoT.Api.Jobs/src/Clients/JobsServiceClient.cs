@@ -41,9 +41,14 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
         public async Task<string> GetServiceStatusAsync(CancellationToken ct) {
             var request = _httpClient.NewRequest($"{_serviceUri}/healthz",
                 _resourceId);
-            var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
-            response.Validate();
-            return response.GetContent<string>();
+            try {
+                var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
+                response.Validate();
+                return response.GetContentAsString();
+            }
+            catch (Exception ex) {
+                return ex.Message;
+            }
         }
 
         /// <inheritdoc/>

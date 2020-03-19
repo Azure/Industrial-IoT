@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 return null;
             }
 
-            var user = _ctx.HttpContext.User;
+            var user = _ctx.HttpContext?.User;
             // User id should be known, we need it to sign in on behalf of...
             if (user == null) {
                 _handler.Handle(_ctx.HttpContext,
@@ -86,7 +86,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             var ctx = CreateAuthenticationContext(_config.InstanceUrl,
                 _config.TenantId, cache);
 
-            try {   
+            try {
                 var result = await ctx.AcquireTokenSilentAsync(resource, _config.AppId);
                 return result.ToTokenResult();
             }

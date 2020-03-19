@@ -1,64 +1,72 @@
-# Install Azure IoT Edge Runtime
+# How to Install Azure IoT Edge for Industrial Scenarios
 
 [Home](readme.md)
 
-The machines and factory equipment is connected to Azure through modules running inside a [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/) gateway.  This article shows you how to set up an IoT Edge Gateway on the Edge network.
+The industrial assets (machines and systems) are connected to Azure through modules running on an [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/) gateway. This article explains how to setup an IoT Edge Gateway for industrial scenarios.
 
-## IoT Edge Gateway
+## IoT Edge Runtime
 
-To connect your own equipment obtain a preconfigured IoT Edge gateway.  If you do not have a gateway with IoT Edge pre-installed, you can install the IoT Edge runtime following the Azure IoT Edge [documentation](https://docs.microsoft.com/en-us/azure/iot-edge/).  For example you can install the runtime on [Linux](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux) or [Windows](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-windows).
+You can purchase preconfigured IoT Edge gateways, please see our Azure Device Catalog for a selection. Alternatively, you can install the IoT Edge runtime following the Azure IoT Edge [documentation](https://docs.microsoft.com/en-us/azure/iot-edge/). You can install the runtime on [Linux](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux) or [Windows](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-windows).
 
-To support network scanning and equipment discovery, the discovery module should best run in docker host network mode. To enable host network mode on Windows follow the instructions [below](#Windows-Networking-Configuration).
+To support network scanning for equipment discovery, the Discovery Module should best run in Docker host networking mode. To enable host networking mode on Windows, follow the instructions [below](#Windows-Networking-Configuration).
 
-## Deploy the Industrial IoT Workloads to the Gateway
+## Enable Deployment of the Industrial IoT Modules on your IoT Edge Gateway
 
-If you have not done so yet, [deploy](readme.md) the Industrial IoT platform or at a minimum the required [dependencies](../services/dependencies.md).  
-> If you **only** want to deploy the cloud dependencies, start the [Edge Management](../services/edgemanager.md) Microservice or the [all-in-one](../services/all-in-one.md) service locally to ensure IoT Hub is configured to auto deploy the Industrial IoT Edge modules.
-
-When the platform starts up it will set up layered deployments for each required module.  These layered deployment configurations will be automatically applied to any gateway with the following Device Twin tags:
+The deployment script will setup layered deployments for each IoT Edge Module. These layered deployments will be automatically applied to any gateway with the following Device Twin JSON tags:
 
 ```json
+... 
+},
+"version": 1,
 "tags": {
     "__type__": "iiotedge",
     "os": "Linux"    
 }
+"properties": 
+...
 ```
 
-If your container runtime is Windows Containers set the `os` property to `Windows`:
+If your container runtime is Windows Containers set the os property to Windows:
 
 ```json
+...
+},
+"version": 1,
 "tags": {
     "__type__": "iiotedge",
     "os": "Windows"
 }
+"properties": 
+...
 ```
 
-Assign these tags to the IoT Edge gateway device's twin [when you register the new IoT Edge gateway in IoT Hub](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-register-device).  
+Assign these tags to your IoT Edge Gateway’s Device Twin [when you register the new IoT Edge gateway in IoT Hub](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-register-device). The Device Twin configuration JSON can be found in the Azure Portal under IoT Hub -> IoT Edge -> < your IoT Edge device > -> Device Twin.
 
 > These tags can also be created as part of a Azure Device Provisioning (DPS) enrollment.  An example of the latter can be found in `/deploy/scripts/dps-enroll.ps1`.
 
-### Workload versions
+### Module Versions
 
-By default the same version tag from mcr.microsoft.com is deployed that corresponds to the service's version.
+By default, the same image version tag from mcr.microsoft.com is deployed that corresponds to the corresponding micro-service's version.
 
-If you need to point to a different docker container registry or image version tag, you can configure the source using  environment variables `PCS_DOCKER_SERVER`, `PCS_DOCKER_USER`, `PCS_DOCKER_PASSWORD`, `PCS_IMAGES_NAMESPACE` and `PCS_IMAGES_TAG`, for example in your `.env` file (which can also be set during deployment), then restart the edge management or all-in-one service.
+If you need to point to a different docker container registry or image version tag, you can configure the source using environment variables `PCS_DOCKER_SERVER`, `PCS_DOCKER_USER`, `PCS_DOCKER_PASSWORD`, `PCS_IMAGES_NAMESPACE` and `PCS_IMAGES_TAG`, for example in your .env file (which can also be set during deployment), then restart the edge management or all-in-one service.
 
 ## Windows Networking Configuration
 
-When running the industrial IoT Edge modules in host (transparent) network, the container must be on the transparent host network and might require IP addresses assignment.
+When running the Industrial IoT Edge modules in host (transparent) network, the container must be on the transparent host network and might require IP addresses assignment.
 
 - Ensure Hyper-V must be active  
-- Create a new virtual switch named host having attached to an external network interface (e.g. "Ethernet 2").
+- Create a new virtual switch named **host** and attach it to a network containing the industrial assets you want to connect to (e.g. "Ethernet 2").
 
     ```bash
     New-VMSwitch -name host -NetAdapterName "<Adapter Name>" -AllowManagementOS $true
     ```
 
-- To make sure the container is assigned an IP address it can either obtain a:
+- To make sure the container is assigned an IP address it can either obtain:
 
-    1. Dynamic IP address from a local DHCP server accessible from the host's network interface associated to the container's 'host' network, or a.  
+    1. A Dynamic IP address from a local DHCP server accessible from the host's network interface associated to the container's **host** network  
 
-    2. Static IP address assigned on the container create options statement
+    2. A Static IP address assigned on the container create options statement
+        
         In order to allow static IP address assignment on a Windows container, the docker network requires to be created having the the subnet specified identical to the host's interface
 
         ```bash

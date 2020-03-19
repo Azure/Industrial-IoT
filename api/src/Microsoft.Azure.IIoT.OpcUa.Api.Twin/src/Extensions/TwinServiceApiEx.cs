@@ -32,7 +32,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
                 return await service.NodeBrowseFirstAsync(endpoint, request, ct);
             }
             while (true) {
-                var result = await service.NodeBrowseFirstAsync(endpoint, request);
+                // Limit size of batches to a reasonable default to avoid communication timeouts.
+                request.MaxReferencesToReturn = 500;
+                var result = await service.NodeBrowseFirstAsync(endpoint, request, ct);
                 while (result.ContinuationToken != null) {
                     try {
                         var next = await service.NodeBrowseNextAsync(endpoint,
