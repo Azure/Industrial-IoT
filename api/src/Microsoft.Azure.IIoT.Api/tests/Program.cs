@@ -162,6 +162,10 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                             options = new CliOptions(args, 1);
                             await TestActivationAsync(options);
                             break;
+                        case "browse":
+                            options = new CliOptions(args, 1);
+                            await TestBrowseAsync(options);
+                            break;
 
                         case "-?":
                         case "-h":
@@ -225,6 +229,41 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         }
 
         /// <summary>
+        /// Test browsing
+        /// </summary>
+        private async Task TestBrowseAsync(CliOptions options) {
+            IEnumerable<EndpointRegistrationApiModel> endpoints;
+            if (!options.IsSet("-a", "--all")) {
+                if (options.IsSet("-e", "--endpoint")) {
+                    var id = await SelectEndpointAsync();
+                    var ep = await _registry.GetEndpointAsync(id);
+                    endpoints = ep.Registration.YieldReturn();
+                }
+                else {
+                    var id = options.GetValueOrDefault<string>("-i", "--id", null);
+                    if (id == null) {
+                        id = await SelectApplicationAsync();
+                        if (id == null) {
+                            throw new ArgumentException("Needs an id");
+                        }
+                    }
+
+                    var app = await _registry.GetApplicationAsync(id);
+                    if (app.Endpoints.Count == 0) {
+                        return;
+                    }
+                    endpoints = app.Endpoints;
+                }
+            }
+            else {
+                var infos = await _registry.ListAllEndpointsAsync();
+                endpoints = infos.Select(e => e.Registration);
+            }
+            await Task.WhenAll(endpoints.Select(e => TestBrowseAsync(e, options)));
+            Console.WriteLine("Success!");
+        }
+
+        /// <summary>
         /// Test activation of endpoint
         /// </summary>
         /// <param name="endpoint"></param>
@@ -261,8 +300,17 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 }
                 if (ep.EndpointState == EndpointConnectivityState.Ready &&
                     options.IsSet("-b", "--browse")) {
-                    // Browse recursively
-                    await BrowseAsync(endpoint.Id, options);
+
+                    var silent = !options.IsSet("-V", "--verbose");
+                    var recursive = options.IsSet("-R", "--recursive");
+                    var readDuringBrowse = options.IsProvidedOrNull("-v", "--readvalue");
+                    var node = options.GetValueOrDefault<string>("-n", "--nodeid", null);
+                    var targetNodesOnly = options.IsProvidedOrNull("-t", "--targets");
+                    var maxReferencesToReturn = options.GetValueOrDefault<uint>("-x", "--maxrefs", null);
+                    var direction = options.GetValueOrDefault<BrowseDirection>("-d", "--direction", null);
+
+                    await BrowseAsync(0, endpoint.Id, silent, recursive, readDuringBrowse, node,
+                        targetNodesOnly, maxReferencesToReturn, direction, options);
                 }
                 else {
                     await Task.Delay(_rand.Next(
@@ -286,21 +334,69 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         }
 
         /// <summary>
+        /// Test activation of endpoint
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private async Task TestBrowseAsync(EndpointRegistrationApiModel endpoint,
+            CliOptions options) {
+            EndpointInfoApiModel ep;
+
+            Console.WriteLine($"Activating {endpoint.Id} for recursive browse...");
+            await _registry.ActivateEndpointAsync(endpoint.Id);
+            var sw = Stopwatch.StartNew();
+            while (true) {
+                ep = await _registry.GetEndpointAsync(endpoint.Id);
+                if (ep.ActivationState == EndpointActivationState.ActivatedAndConnected &&
+                    ep.EndpointState == EndpointConnectivityState.Ready) {
+                    break;
+                }
+                if (sw.ElapsedMilliseconds > 60000) {
+                    Console.WriteLine($"{endpoint.Id} could not be activated - skip!");
+                    return;
+                }
+            }
+            Console.WriteLine($"{endpoint.Id} activated - recursive browse.");
+
+            var silent = !options.IsSet("-V", "--verbose");
+            var readDuringBrowse = options.IsProvidedOrNull("-v", "--readvalue");
+            var targetNodesOnly = options.IsProvidedOrNull("-t", "--targets");
+            var maxReferencesToReturn = options.GetValueOrDefault<uint>("-x", "--maxrefs", null);
+
+            var workers = options.GetValueOrDefault("-w", "--workers", 1);  // 1 worker per endpoint
+            await Task.WhenAll(Enumerable.Range(0, workers).Select(i =>
+                BrowseAsync(i, endpoint.Id, silent, true, readDuringBrowse, null,
+                    targetNodesOnly, maxReferencesToReturn, null, options)));
+
+            await _registry.DeactivateEndpointAsync(endpoint.Id);
+            sw.Restart();
+            while (true) {
+                ep = await _registry.GetEndpointAsync(endpoint.Id);
+                if (ep.ActivationState == EndpointActivationState.Deactivated) {
+                    break;
+                }
+                if (sw.ElapsedMilliseconds > 60000) {
+                    throw new Exception($"{endpoint.Id} failed to deactivate!");
+                }
+            }
+            Console.WriteLine($"{endpoint.Id} deactivated.");
+        }
+
+        /// <summary>
         /// Browse nodes
         /// </summary>
-        private async Task BrowseAsync(string id, CliOptions options) {
-            var silent = options.IsSet("-S", "--silent");
-            var recursive = options.IsSet("-R", "--recursive");
-            var readDuringBrowse = options.IsProvidedOrNull("-v", "--readvalue");
+        private async Task BrowseAsync(int index, string id, bool silent, bool recursive,
+            bool? readDuringBrowse, string node, bool? targetNodesOnly,
+            uint? maxReferencesToReturn, BrowseDirection? direction, CliOptions options) {
+
             var request = new BrowseRequestApiModel {
-                TargetNodesOnly = options.IsProvidedOrNull("-t", "--targets"),
+                TargetNodesOnly = targetNodesOnly,
                 ReadVariableValues = readDuringBrowse,
-                MaxReferencesToReturn = options.GetValueOrDefault<uint>("-x", "--maxrefs", null),
-                Direction = options.GetValueOrDefault<BrowseDirection>("-d", "--direction", null)
+                MaxReferencesToReturn = maxReferencesToReturn,
+                Direction = direction
             };
-            var nodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) {
-                options.GetValueOrDefault<string>("-n", "--nodeid", null)
-            };
+            var nodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { node };
             var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var nodesRead = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var errors = 0;
@@ -309,7 +405,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 request.NodeId = nodes.First();
                 nodes.Remove(request.NodeId);
                 try {
-                    var result = await _twin.NodeBrowseAsync(id, request);
+                    var result = await NodeBrowseAsync(_twin, id, request);
                     visited.Add(request.NodeId);
                     if (!silent) {
                         PrintResult(options, result);
@@ -347,19 +443,51 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                                 }
                             }
                             catch (Exception ex) {
-                                Console.WriteLine($"Reading {r.Target.NodeId} resulted in {ex}");
+                                Console.WriteLine($"Browse {index} - reading {r.Target.NodeId} resulted in {ex}");
                                 errors++;
                             }
                         }
                     }
                 }
                 catch (Exception e) {
-                    Console.WriteLine($"Browse {request.NodeId} resulted in {e}");
+                    Console.WriteLine($"Browse {index} {request.NodeId} resulted in {e}");
                     errors++;
                 }
             }
-            Console.WriteLine($"Browse took {sw.Elapsed}. Visited " +
+            Console.WriteLine($"Browse {index} took {sw.Elapsed}. Visited " +
                 $"{visited.Count} nodes and read {nodesRead.Count} of them with {errors} errors.");
+        }
+
+        /// <summary>
+        /// Browse all references
+        /// </summary>
+        private static async Task<BrowseResponseApiModel> NodeBrowseAsync(
+            ITwinServiceApi service, string endpoint, BrowseRequestApiModel request) {
+            while (true) {
+                var result = await service.NodeBrowseFirstAsync(endpoint, request);
+                while (result.ContinuationToken != null) {
+                    try {
+                        var next = await service.NodeBrowseNextAsync(endpoint,
+                            new BrowseNextRequestApiModel {
+                                ContinuationToken = result.ContinuationToken,
+                                Header = request.Header,
+                                ReadVariableValues = request.ReadVariableValues,
+                                TargetNodesOnly = request.TargetNodesOnly
+                            });
+                        result.References.AddRange(next.References);
+                        result.ContinuationToken = next.ContinuationToken;
+                    }
+                    catch (Exception) {
+                        await Try.Async(() => service.NodeBrowseNextAsync(endpoint,
+                            new BrowseNextRequestApiModel {
+                                ContinuationToken = result.ContinuationToken,
+                                Abort = true
+                            }));
+                        throw;
+                    }
+                }
+                return result;
+            }
         }
 
         /// <summary>
@@ -422,6 +550,27 @@ Commands and Options
         -w, --waitstate Wait for state changes before deactivating.
         -l, --min-wait  Minimum wait time in between act/deact.
         -h, --max-wait  Maximum wait time in between act/deact.
+        -b, --browse    Browse after activation if endpoint is Ready.
+            -n, --nodeid    Node to browse
+            -x, --maxrefs   Max number of references
+            -d, --direction Browse direction (Forward, Backward, Both)
+            -R, --recursive Browse recursively and read node values
+            -v, --readvalue Read node values in browse
+            -t, --targets   Only return target nodes
+            -V, --verbose   Print browse results to screen
+            -F, --format    Json format for result
+
+     browse      Tests recursive browsing of endpoints.
+        with ...
+        -i, --id        Application id to scope endpoints.
+        -e, --endpoint  Whether to select and test single endpoint
+        -a, --all       Use all endpoints
+        -w, --workers   How many workers browsing.
+        -x, --maxrefs   Max number of references
+        -v, --readvalue Read node values in browse
+        -t, --targets   Only return target nodes
+        -V, --verbose   Print browse results to screen
+        -F, --format    Json format for result
 
      console
      exit        To run in console mode and exit console mode.

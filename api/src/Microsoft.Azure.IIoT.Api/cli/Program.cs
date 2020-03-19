@@ -2968,7 +2968,7 @@ Commands and Options
         -i, --id        Id of endpoint to browse (mandatory)
         -n, --nodeid    Node to browse
         -x, --maxrefs   Max number of references
-        -x, --direction Browse direction (Forward, Backward, Both)
+        -d, --direction Browse direction (Forward, Backward, Both)
         -r, --recursive Browse recursively and read node values
         -v, --readvalue Read node values in browse
         -t, --targets   Only return target nodes
