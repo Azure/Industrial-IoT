@@ -22,29 +22,41 @@ The Gateway Id is the IoT Edge device id in IoT Hub.
 
 To discover OPC UA server assets in the connected networks (factories, etc.) you will use the IoT Edge [discovery module](../modules/discovery.md) deployed into IoT Edge gateways.   The discovery module supports network scanning which will be used to find all OPC UA assets and upload the results to the [Onboarding Service](../services/onboarding.md) which creates the endpoint and asset identities in IoT Hub.
 
-1. When clicking on **Discovery** a list opens, which shows all currently deployed discovery modules ("Discoverers"), their Connection Status, the Scan status, and the Scan configuration.
+1. When clicking on **Discovery** a list opens, which shows all currently deployed discovery modules, their Connection Status, the Scan status, and the Scan configuration.
 
    ![Discovery](../media/eng-tool-discovery.png)
 
-2. You can turn on and off network scanning, by clicking the checkbox next to the Scan Status (*On/Off*).  Choose the discoverer whose identifier starts with "win" and turn scanning on.
+
+   **Note!**
+      
+   For windows based edge deployments you need to manually tune the default 'Scan Mask' address range by adding 10.1.8.0/24. This is the network used by the separate VM where the simulation OPC UA Servers run, see below.
+   
+   The linux based edge deployments are capable to automatically discover the outer network so no action is needed.
+   
+   In production scenarios, you will need to add the address range of the local network having the local industrial assets to be discovered.
+
+   ![Note!](../media/eng-tool-discovery_note1.png)
+
+2. You can turn on and off network scanning, by clicking the checkbox next to the Scan Status (*On/Off*). Choose the discovery whose identifier starts with "win" and turn scanning on.
 
    ![Scan on](../media/eng-tool-discovery-on.png)
 
-   When the scan completes you can click on the discoverer module (in this case "wingat-bnifrqs_module_discoverer) and see the Endpoints belonging to the discovered servers.
+
+   When the scan completes you can click on the discovery module (in this case "wingat-bnifrqs_module_discoverer") and see the Endpoints belonging to the discovered OPC UA server assets.
 
    ![Specific Endpoints](../media/eng-tool-discovery-endpoints.png)
 
-3. The *Assets* menu shows a list of **all discovered and registered** OPC Servers with their Name, their Id, and the site to which the OPC Server belongs to.
+3. The *Assets* menu shows a list of **all discovered and registered** OPC UA server assets with their Application Name, their Id and site to which the asset belongs to.
 
    ![Assets](../media/eng-tool-assets.png)
 
 ## Explore the OPC UA address space of the Asset
 
-While clicking on one specific OPC Server Asset showed the Endpoints belonging to only that Asset, the Endpoints listed under *Browse* are all currently registered and available Endpoints.
+While clicking on one specific OPC UA Server Asset showed the Endpoints belonging to only that asset, the Endpoints listed under *Browse* are all currently registered and available Endpoints.
 
 ![Browse](../media/eng-tool-browse.png)
 
-Activate an endpoint of your choice using the Activate slider.   The endpoint link can now be used to explore the server address space.  You can navigate into nodes and out using the Breadcrumbs or the back arrow.
+Activate an endpoint of your choice using the Activate slider. The endpoint link can now be used to explore the server address space.  You can navigate into nodes and out using the Breadcrumbs or the back arrow.
 
 ## Next steps
 
