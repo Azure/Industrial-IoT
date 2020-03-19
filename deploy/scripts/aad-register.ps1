@@ -1,4 +1,4 @@
-﻿<#
+<#
  .SYNOPSIS
     Registers required applications
 
@@ -39,9 +39,10 @@ Function Select-Context() {
         }
     }
     try {
-        $profile = Connect-AzAccount -Environment $environmentName `
-            -ErrorAction Stop 
-        
+        $profile = Connect-AzAccount `
+            -Environment $environmentName `
+            -ErrorAction Stop
+
         $reply = Read-Host -Prompt "Save credention in .user file [y/n]"
         if ($reply -match "[yY]") {
             Save-AzContext -Path $contextFile -Profile $connection
@@ -58,11 +59,11 @@ Function Select-Context() {
 #*******************************************************************************************************
 Function Add-ResourcePermission() {
     Param (
-        $requiredAccess, 
-        $exposedPermissions, 
-        [string] $requiredAccesses, 
+        $requiredAccess,
+        $exposedPermissions,
+        [string] $requiredAccesses,
         [string] $permissionType
-    ) 
+    )
     foreach ($permission in $requiredAccesses.Trim().Split("|")) {
         foreach ($exposedPermission in $exposedPermissions) {
             if ($exposedPermission.Value -eq $permission) {
@@ -70,7 +71,7 @@ Function Add-ResourcePermission() {
                 # Scope = Delegated permissions | Role = Application permissions
                 $resourceAccess.Type = $permissionType
                 # Read directory data
-                $resourceAccess.Id = $exposedPermission.Id 
+                $resourceAccess.Id = $exposedPermission.Id
                 $requiredAccess.ResourceAccess.Add($resourceAccess)
             }
         }
@@ -95,7 +96,7 @@ Function Get-RequiredPermissions() {
             }
             else {
                 $requiredAccess.ResourceAppId = $sp.AppId.Trim().Split(" ")[0]
-                $requiredAccess.ResourceAccess =  
+                $requiredAccess.ResourceAccess =
                 New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.ResourceAccess]
 
                 if ($requiredDelegatedPermissions) {
@@ -123,8 +124,8 @@ Function Get-RequiredPermissions() {
 Function New-AppRole() {
     param(
         $current,
-        [string] $name, 
-        [string] $description, 
+        [string] $name,
+        [string] $description,
         [string] $value
     )
     $appRole = $current | Where-Object { $_.Value -eq $value }
@@ -150,17 +151,31 @@ Function New-ADApplications() {
         [string] $applicationName
     )
     try {
-        $creds = Connect-AzureAD -TenantId $context.Tenant.Id `
-            -AccountId $context.Account.Id -Credential $context.Account.Credential
+        try {
+            $creds = Connect-AzureAD `
+                -AzureEnvironmentName $context.Environment.Name `
+                -TenantId $context.Tenant.Id `
+                -AccountId $context.Account.Id `
+                -Credential $context.Account.Credential
+            }
+        catch {
+            # For some accounts $context.Account.Id may be first.last@something.com which might 
+            # not be correct UserPrincipalName. In those cases we will prompt for another login.
+            $creds = Connect-AzureAD `
+                -AzureEnvironmentName $context.Environment.Name `
+                -TenantId $context.Tenant.Id `
+        }
+
         if (!$creds) {
             return $null
         }
- 
+
         $tenant = Get-AzureADTenantDetail
         $defaultTenant = ($tenant.VerifiedDomains | Where-Object { $_._Default -eq $True })
         $tenantName = $defaultTenant.Name
         Write-Host "Selected Tenant '$tenantName' as authority."
-        # Try to get current user 
+
+        # Try to get current user
         try {
             try {
                 $user = Get-AzureADUser -ObjectId $creds.Account.Id -ErrorAction Stop
@@ -189,7 +204,7 @@ Function New-ADApplications() {
                 catch {
                     Write-Verbose "Adding $($user.UserPrincipalName) as owner failed."
                 }
-            }        
+            }
         }
         $clientSecret = New-AzureADApplicationPasswordCredential -ObjectId $clientAadApplication.ObjectId `
             -CustomKeyIdentifier "Client Key" -EndDate (get-date).AddYears(2)
@@ -204,7 +219,7 @@ Function New-ADApplications() {
         # Get or create service application
         $serviceDisplayName = $applicationName + "-service"
         $serviceAadApplication = Get-AzureADApplication `
-            -Filter "identifierUris/any(uri:uri eq 'https://$tenantName/$serviceDisplayName')"  
+            -Filter "identifierUris/any(uri:uri eq 'https://$tenantName/$serviceDisplayName')"
         if (!$serviceAadApplication) {
             $serviceAadApplication = New-AzureADApplication -DisplayName $serviceDisplayName `
                 -PublicClient $False -HomePage "https://localhost" `
@@ -246,21 +261,21 @@ Function New-ADApplications() {
 
         $knownApplications = New-Object System.Collections.Generic.List[System.String]
         $knownApplications.Add($clientAadApplication.AppId)
-        
+
         $requiredResourcesAccess = `
             New-Object System.Collections.Generic.List[Microsoft.Open.AzureAD.Model.RequiredResourceAccess]
         $requiredPermissions = Get-RequiredPermissions -applicationDisplayName "Microsoft Graph" `
-            -requiredDelegatedPermissions "User.Read" 
+            -requiredDelegatedPermissions "User.Read"
         $requiredResourcesAccess.Add($requiredPermissions)
         $requiredPermissions = Get-RequiredPermissions -applicationDisplayName "Azure Storage" `
-            -requiredDelegatedPermissions "user_impersonation" 
+            -requiredDelegatedPermissions "user_impersonation"
         $requiredResourcesAccess.Add($requiredPermissions)
-        
+
         Set-AzureADApplication -ObjectId $serviceAadApplication.ObjectId `
             -KnownClientApplications $knownApplications `
             -AppRoles $appRoles `
             -RequiredResourceAccess $requiredResourcesAccess | Out-Null
-        Write-Host "'$($serviceDisplayName)' updated with required resource access, app roles and known applications."  
+        Write-Host "'$($serviceDisplayName)' updated with required resource access, app roles and known applications."
 
         # Read updated app roles for service principal
         $serviceServicePrincipal = Get-AzureADServicePrincipal -Filter "AppId eq '$($serviceAadApplication.AppId)'"
@@ -297,13 +312,13 @@ Function New-ADApplications() {
             -requiredDelegatedPermissions "user_impersonation" # "Directory.Read.All|User.Read"
         $requiredResourcesAccess.Add($requiredPermissions)
         $requiredPermissions = Get-RequiredPermissions -applicationDisplayName "Microsoft Graph" `
-            -requiredDelegatedPermissions "User.Read" 
+            -requiredDelegatedPermissions "User.Read"
         $requiredResourcesAccess.Add($requiredPermissions)
         Set-AzureADApplication -ObjectId $clientAadApplication.ObjectId `
             -RequiredResourceAccess $requiredResourcesAccess -ReplyUrls $replyUrls `
             -Oauth2AllowImplicitFlow $True -Oauth2AllowUrlPathMatching $True | Out-Null
 
-        Write-Host "'$($clientDisplayName)' updated with required resource access."  
+        Write-Host "'$($clientDisplayName)' updated with required resource access."
         # Grant permissions to app
         try {
             Add-AdminConsentGrant -azureAppId $clientAadApplication.AppId -context $context | Out-Null
@@ -312,8 +327,8 @@ Function New-ADApplications() {
         catch {
             Write-Host "$($_.Exception) - this must be done manually with appropriate permissions."
         }
-  
-        return [pscustomobject] @{ 
+
+        return [pscustomobject] @{
             TenantId           = $creds.Tenant.Id
             Authority          = $context.Environment.ActiveDirectoryAuthority
             Audience           = $serviceAadApplication.IdentifierUris[0].ToString()
@@ -322,7 +337,7 @@ Function New-ADApplications() {
             ServicePrincipalId = $serviceServicePrincipal.ObjectId
             ServiceSecret      = $serviceSecret.Value
             ServiceDisplayName = $serviceDisplayName
-            
+
             ClientId           = $clientAadApplication.AppId
             ClientPrincipalId  = $clientAadApplication.ObjectId
             ClientSecret       = $clientSecret.Value
@@ -330,16 +345,16 @@ Function New-ADApplications() {
         }
     }
     catch {
-        $ex = $_.Exception
+        $ex = $_
 
         Write-Host
-        Write-Host "An error occurred: $($ex.Message)" 
+        Write-Host "An error occurred: $($ex.Exception.Message)"
         Write-Host
-        Write-Host "Ensure you have installed the AzureAD cmdlets:" 
-        Write-Host "1) Run Powershell as an administrator" 
-        Write-Host "2) in the PowerShell window, type: Install-Module AzureAD" 
+        Write-Host "Ensure you have installed the AzureAD cmdlets:"
+        Write-Host "1) Run Powershell as an administrator"
+        Write-Host "2) in the PowerShell window, type: Install-Module AzureAD"
         Write-Host
-   
+
         throw $ex
     }
 }
@@ -367,7 +382,7 @@ Function Add-AdminConsentGrant() {
                 "X-Requested-With"       = "XMLHttpRequest"
                 "x-ms-client-request-id" = [guid]::NewGuid()
                 "x-ms-correlation-id"    = [guid]::NewGuid()
-            } 
+            }
             Invoke-RestMethod -Uri $url -Method POST -Headers $header
             # success
             return
@@ -396,9 +411,13 @@ catch {
     Import-Module AzureAD.Standard.Preview
 }
 
-$aadConfig = New-ADApplications  `
-    -applicationName $script:Name  `
-    -context (Select-Context -context $script:Context -environmentName $script:EnvironmentName) 
+$selectedContext = Select-Context `
+    -context $script:Context `
+    -environmentName $script:EnvironmentName
+
+$aadConfig = New-ADApplications `
+    -applicationName $script:Name `
+    -context $selectedContext
 
 if ($script:Output) {
     $aadConfig | ConvertTo-Json | Out-File $script:Output
