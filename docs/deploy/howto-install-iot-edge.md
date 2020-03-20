@@ -108,7 +108,7 @@ docker -H npipe:////.//pipe//iotedge_moby_engine network ls
     6750449db22d        none                null                local
 ```
 
-## Next steps
+## Other Options
 
 - [Deploy Industrial IoT modules to your Gateway using the Azure Portal and Marketplace](howto-deploy-modules-portal.md)
 - [Deploy Industrial IoT modules using Az](howto-deploy-modules-az.md)
