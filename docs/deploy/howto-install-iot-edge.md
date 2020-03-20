@@ -1,7 +1,5 @@
 # How to Setup a Local Gateway for Industrial Scenarios
 
-[Home](readme.md)
-
 The industrial assets (machines and systems) are connected to Azure through modules running on an [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/) industrial gateway. This article explains how to setup an IoT Edge Gateway for industrial scenarios.
 
 You can purchase industrial gateways compatible with IoT Edge, please see our [Azure Device Catalog](https://catalog.azureiotsolutions.com/alldevices?filters={%223%22:[%222%22,%229%22],%2218%22:[%221%22]}) for a selection of industrial-grade gateways. Alternatively, you can setup an on-prem VM.
