@@ -70,7 +70,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="samplingInterval"></param>
         /// <param name="publishingInterval"></param>
         /// <returns>ErrorStatus</returns>
-        public async Task<bool> StartPublishing(string endpointId, string nodeId, string displayName,
+        public async Task<bool> StartPublishingAsync(string endpointId, string nodeId, string displayName,
             int samplingInterval, int publishingInterval, CredentialModel credential = null) {
 
             try {
@@ -101,7 +101,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="endpointId"></param>
         /// <param name="nodeId"></param>
         /// <returns>ErrorStatus</returns>
-        public async Task<bool> StopPublishing(string endpointId, string nodeId, CredentialModel credential = null) {
+        public async Task<bool> StopPublishingAsync(string endpointId, string nodeId, CredentialModel credential = null) {
             try { 
                 var requestApiModel = new PublishStopRequestApiModel() {
                         NodeId = nodeId,

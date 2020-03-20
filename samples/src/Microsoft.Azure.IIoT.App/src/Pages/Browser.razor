@@ -306,7 +306,7 @@
     {
         if ((bool)ev.Value)
         {
-            var result = await Publisher.StartPublishing(endpointId, node.Id, node.NodeName, 1000, 1000, Credential);
+            var result = await Publisher.StartPublishingAsync(endpointId, node.Id, node.NodeName, 1000, 1000, Credential);
             if (result)
             {
                 node.PublishedItem = new OpcUa.Api.Publisher.Models.PublishedItemApiModel()
@@ -326,7 +326,7 @@
         }
         else
         {
-            var result = await Publisher.StopPublishing(endpointId, node.Id, Credential);
+            var result = await Publisher.StopPublishingAsync(endpointId, node.Id, Credential);
             if (result)
             {
                 node.PublishedItem = null;
@@ -361,7 +361,7 @@
         {
             if (node.Id == samples.NodeId)
             {
-                node.Value = $"{samples.Value?.ToString()} ({samples.Status})";
+                node.Value = $"{samples.Value?.ToString()} ({samples.Status} - {samples.Timestamp})";
                 this.StateHasChanged();
             }
         }
