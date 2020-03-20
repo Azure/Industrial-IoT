@@ -6,11 +6,11 @@ The industrial assets (machines and systems) are connected to Azure through modu
 
 ## IoT Edge Runtime
 
-You can purchase preconfigured IoT Edge gateways, please see our Azure Device Catalog for a selection. Alternatively, you can install the IoT Edge runtime following the Azure IoT Edge [documentation](https://docs.microsoft.com/en-us/azure/iot-edge/). You can install the runtime on [Linux](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux) or [Windows](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-windows).
+You can purchase preconfigured IoT Edge gateways, please see our [Azure Device Catalog](https://catalog.azureiotsolutions.com/alldevices?filters={%223%22:[%222%22,%229%22],%2218%22:[%221%22]}) for a selection of industrial-grade gateways. Alternatively, you can setup an on-prem VM.
 
-To support network scanning for equipment discovery, the Discovery Module should best run in Docker host networking mode. To enable host networking mode on Windows, follow the instructions [below](#Windows-Networking-Configuration).
+Then, run our [Industrial Gateway Installer](https://docs.microsoft.com/en-us/azure/quickstart-gateway-installer/) on your gateway to automatically install the IoT Edge Runtime and Industrial Modules. Alternatively, you can manually install the IoT Edge runtime following the Azure IoT Edge [documentation](https://docs.microsoft.com/en-us/azure/iot-edge/). You can install the runtime on [Linux](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux) or [Windows](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-windows).
 
-## Enable Deployment of the Industrial IoT Modules on your IoT Edge Gateway
+## Manually Enable Deployment of the Industrial IoT Modules on your IoT Edge Gateway
 
 The deployment script will setup layered deployments for each IoT Edge Module. These layered deployments will be automatically applied to any gateway with the following Device Twin JSON tags:
 
@@ -46,15 +46,15 @@ Assign these tags to your IoT Edge Gateway’s Device Twin [when you register th
 
 ### Module Versions
 
-By default, the same image version tag from mcr.microsoft.com is deployed that corresponds to the corresponding micro-service's version.
+By default, the same Docker container image version tag from mcr.microsoft.com is deployed that corresponds to the corresponding micro-service's version.
 
-If you need to point to a different docker container registry or image version tag, you can configure the source using environment variables `PCS_DOCKER_SERVER`, `PCS_DOCKER_USER`, `PCS_DOCKER_PASSWORD`, `PCS_IMAGES_NAMESPACE` and `PCS_IMAGES_TAG`, for example in your .env file (which can also be set during deployment), then restart the edge management or all-in-one service.
+If you need to point to a different Docker container registry or image version tag, you can configure the source using environment variables `PCS_DOCKER_SERVER`, `PCS_DOCKER_USER`, `PCS_DOCKER_PASSWORD`, `PCS_IMAGES_NAMESPACE` and `PCS_IMAGES_TAG`, for example in your .env file (which can also be set during deployment), then restart the edge management or all-in-one service.
 
 ## Windows Networking Configuration
 
-When running the Industrial IoT Edge modules in host (transparent) network, the container must be on the transparent host network and might require IP addresses assignment.
+When running the Industrial IoT Edge modules in host (transparent) network, the container must be on the transparent host network and will require IP addresses assignment if no DNS server is avialable on that network.
 
-- Ensure Hyper-V must be active  
+- Ensure Hyper-V is enabled in the host OS
 - Create a new virtual switch named **host** and attach it to a network containing the industrial assets you want to connect to (e.g. "Ethernet 2").
 
     ```bash
