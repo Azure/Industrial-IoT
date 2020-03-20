@@ -20,6 +20,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
     using Infrastructure;
     using Configuration;
 
+    using Microsoft.Azure.KeyVault.Models;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
     using Microsoft.Azure.Management.KeyVault.Fluent.Models;
@@ -95,6 +96,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
         private const string kAKS_CLUSTER_CN = "aks.cluster.net"; // ToDo: Assign meaningfull value.
         private X509Certificate2 _aksClusterX509Certificate;
+
+        private KeyBundle _dataprotectionKey;
 
         public DeploymentExecutor(
             IConfigurationProvider configurationProvider
@@ -768,6 +771,13 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
                 _aksClusterX509Certificate = await iiotKeyVaultClient.GetCertificateAsync(
                     IIoTKeyVaultClient.AKS_CLUSTER_CERT_NAME,
+                    cancellationToken
+                );
+
+                // Create the key that will be used for dataprotection feature.
+                _dataprotectionKey = await iiotKeyVaultClient.CreateDataprotectionKeyAsync(
+                    IIoTKeyVaultClient.DATAPROTECTION_KEY_NAME,
+                    _defaultTagsDict,
                     cancellationToken
                 );
             }
