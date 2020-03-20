@@ -24,7 +24,7 @@
     The account name to use if not to use default.
 
  .PARAMETER applicationName
-    The name of the application if not local deployment. 
+    The name of the application if not local deployment.
 
  .PARAMETER aadConfig
     The aad configuration object (use aad-register.ps1 to create object).  If not provides calls aad-register.ps1.
@@ -87,14 +87,14 @@ Function Select-Context() {
     if (!$context) {
         try {
             $connection = Connect-AzAccount -Environment $environment.Name `
-                -ErrorAction Stop 
+                -ErrorAction Stop
             $context = $connection.Context
         }
         catch {
             throw "The login to the Azure account was not successful."
         }
     }
-    
+
     $subscriptionDetails = $null
     if (![string]::IsNullOrEmpty($script:subscriptionName)) {
         $subscriptionDetails = Get-AzSubscription -SubscriptionName $script:subscriptionName
@@ -112,7 +112,7 @@ Function Select-Context() {
 
     if (!$subscriptionDetails) {
         $subscriptions = Get-AzSubscription | Where-Object { $_.State -eq "Enabled" }
-        
+
         if ($subscriptions.Count -eq 0) {
             throw "No active subscriptions found - exiting."
         }
@@ -167,7 +167,7 @@ Function Select-Context() {
         }
     }
     if ($writeProfile) {
-        Save-AzContext -Path $contextFile 
+        Save-AzContext -Path $contextFile
     }
 
     Write-Host "Azure subscription $($context.Subscription.Name) ($($context.Subscription.Id)) selected."
@@ -186,12 +186,12 @@ Function Select-RegistryCredentials() {
 
     if (![string]::IsNullOrEmpty($script:acrSubscriptionName) `
             -and ($context.Subscription.Name -ne $script:acrSubscriptionName)) {
-        $acrSubscription = Get-AzSubscription -SubscriptionName $script:acrSubscriptionName 
+        $acrSubscription = Get-AzSubscription -SubscriptionName $script:acrSubscriptionName
         if (!$acrSubscription) {
             Write-Warning "Specified container registry subscription $($script:acrSubscriptionName) not found."
         }
-        $containerContext = Get-AzContext -ListAvailable | Where-Object { 
-            $_.Subscription.Name -eq $script:acrSubscriptionName 
+        $containerContext = Get-AzContext -ListAvailable | Where-Object {
+            $_.Subscription.Name -eq $script:acrSubscriptionName
         }
     }
 
@@ -209,7 +209,7 @@ Function Select-RegistryCredentials() {
     }
 
     Write-Host "Looking up credentials for $($script:acrRegistryName) registry."
-    
+
     try {
         $registry = Get-AzContainerRegistry -DefaultProfile $containerContext `
         | Where-Object { $_.Name -eq $script:acrRegistryName }
@@ -250,9 +250,9 @@ Function Select-ResourceGroupLocations() {
     )
     $regions = @()
     foreach ($item in $(Get-AzResourceProvider -ProviderNamespace $provider)) {
-        foreach ($resourceType in $item.ResourceTypes) { 
+        foreach ($resourceType in $item.ResourceTypes) {
             if ($resourceType.ResourceTypeName -eq $typeName) {
-                foreach ($region in $resourceType.Locations) { 
+                foreach ($region in $resourceType.Locations) {
                     $regions += $region
                 }
             }
@@ -271,15 +271,15 @@ Function Select-ResourceGroupLocations() {
 #*******************************************************************************************************
 Function Get-ResourceGroupLocations() {
     # Filter resource namespaces
-    $locations = Get-AzLocation | Where-Object { 
+    $locations = Get-AzLocation | Where-Object {
         foreach ($provider in $script:requiredProviders) {
             if ($_.Providers -notcontains $provider) {
                 return $false
             }
         }
-        return $true 
+        return $true
     }
-  
+
     # Filter resource types - TODO read parameters from table
     $locations = Select-ResourceGroupLocations -locations $locations `
         -provider "Microsoft.Devices" -typeName "ProvisioningServices"
@@ -389,11 +389,11 @@ Function Set-ResourceGroupTags() {
 # Get or create new resource group for deployment
 #*******************************************************************************************************
 Function Select-ResourceGroup() {
-    
+
     $first = $true
     while ([string]::IsNullOrEmpty($script:resourceGroupName) `
             -or ($script:resourceGroupName -notmatch "^[a-z0-9-_]*$")) {
-        if (!$script:interactive) { 
+        if (!$script:interactive) {
             throw "Invalid resource group name specified which is mandatory for non-interactive script use."
         }
         if ($first -eq $false) {
@@ -432,7 +432,7 @@ Function Select-ResourceGroup() {
 Function New-Password() {
     param(
         $length = 15
-    ) 
+    )
     $punc = 46..46
     $digits = 48..57
     $lcLetters = 65..90
@@ -476,7 +476,7 @@ Function Get-EnvironmentVariables() {
             Write-Output "PCS_AUTH_TENANT=$($var)"
         }
     }
-    
+
     $var = $deployment.Outputs["tsiUrl"].Value
     if (![string]::IsNullOrEmpty($var)) {
         Write-Output "PCS_TSI_URL=$($var)"
@@ -565,9 +565,9 @@ Function New-Deployment() {
     Param(
         $context
     )
-    
+
     $templateParameters = @{ }
-    
+
     if ([string]::IsNullOrEmpty($script:repo)) {
         # Try get repo name / TODO
         $script:repo = "https://github.com/Azure/Industrial-IoT"
@@ -652,7 +652,7 @@ Function New-Deployment() {
             $templateParameters.Add("dockerServer", $creds.dockerServer)
             $templateParameters.Add("dockerUser", $creds.dockerUser)
             $templateParameters.Add("dockerPassword", $creds.dockerPassword)
-            
+
             # see acr-build.ps1 for naming logic
             $namespace = $script:branchName
             if ($namespace.StartsWith("feature/")) {
@@ -686,14 +686,14 @@ Function New-Deployment() {
             }
             # Sort based on sizes and filter minimum requirements
             $availableVmNames = $availableVms `
-                | Select-Object -ExpandProperty Name -Unique 
+                | Select-Object -ExpandProperty Name -Unique
             $vmSizes = Get-AzVMSize $script:resourceGroupLocation `
                 | Where-Object { $availableVmNames -icontains $_.Name } `
                 | Where-Object {
                     ($_.NumberOfCores -ge 2) -and `
                     ($_.MemoryInMB -ge 8192) -and `
                     ($_.OSDiskSizeInMB -ge 1047552) -and `
-                    ($_.ResourceDiskSizeInMB -gt 8192) 
+                    ($_.ResourceDiskSizeInMB -gt 8192)
                 } `
                 | Sort-Object -Property `
                     NumberOfCores,MemoryInMB,ResourceDiskSizeInMB,Name
@@ -716,28 +716,28 @@ Function New-Deployment() {
             $templateParameters.Add("serviceSiteName", $script:applicationName)
         }
     }
-    
+
     $aadAddReplyUrls = $false
     if (!$script:aadConfig) {
         if ([string]::IsNullOrEmpty($script:aadApplicationName)) {
             $script:aadApplicationName = $script:applicationName
         }
-        
+
         # register aad application
-        Write-Host 
+        Write-Host
         Write-Host "Registering client and services AAD applications in your tenant..."
         $script:aadConfig = & (Join-Path $script:ScriptDir "aad-register.ps1") `
             -Context $context -Name $script:aadApplicationName
 
         Write-Host "Client and services AAD applications registered..."
-        Write-Host 
+        Write-Host
         $aadAddReplyUrls = $true
     }
     elseif (($script:aadConfig -is [string]) -and (Test-Path $script:aadConfig)) {
         # read configuration from file
         $script:aadConfig = Get-Content -Raw -Path $script:aadConfig | ConvertFrom-Json
     }
-    
+
     if (![string]::IsNullOrEmpty($script:aadConfig.ServicePrincipalId)) {
         $templateParameters.Add("servicePrincipalId", $script:aadConfig.ServicePrincipalId)
     }
@@ -761,23 +761,23 @@ Function New-Deployment() {
     }
 
     # register providers
-    $script:requiredProviders | ForEach-Object { 
-        Register-AzResourceProvider -ProviderNamespace $_ 
+    $script:requiredProviders | ForEach-Object {
+        Register-AzResourceProvider -ProviderNamespace $_
     } | Out-Null
-    
+
     while ($true) {
         try {
             Write-Host "Starting deployment..."
 
             if (![string]::IsNullOrEmpty($adminUser) -and ![string]::IsNullOrEmpty($adminPassword)) {
-                Write-Host 
+                Write-Host
                 Write-Host "To troubleshoot simulation use the following User and Password to log into the VM's:"
-                Write-Host 
+                Write-Host
                 Write-Host $adminUser
                 Write-Host $adminPassword
-                Write-Host 
+                Write-Host
             }
-    
+
             # Start the deployment
             $templateFilePath = Join-Path (Join-Path (Split-Path $ScriptDir) "templates") "azuredeploy.json"
             $deployment = New-AzResourceGroupDeployment -ResourceGroupName $resourceGroupName `
@@ -797,7 +797,7 @@ Function New-Deployment() {
             $replyUrls = New-Object System.Collections.Generic.List[System.String]
             if ($aadAddReplyUrls) {
                 # retrieve existing urls
-                $app = Get-AzureADApplication -ObjectId $aadConfig.ClientPrincipalId
+                $app = Get-AzADApplication -ObjectId $aadConfig.ClientPrincipalId
                 if ($app.ReplyUrls -and ($app.ReplyUrls.Count -ne 0)) {
                     $replyUrls = $app.ReplyUrls;
                 }
@@ -830,7 +830,7 @@ Function New-Deployment() {
                     $replyUrls.Add($serviceUri + "/vault/swagger/oauth2-redirect.html")
                     $replyUrls.Add($serviceUri + "/publisher/swagger/oauth2-redirect.html")
                 }
-                
+
                 $replyUrls.Add("http://localhost:9080/twin/swagger/oauth2-redirect.html")
                 $replyUrls.Add("http://localhost:9080/registry/swagger/oauth2-redirect.html")
                 $replyUrls.Add("http://localhost:9080/history/swagger/oauth2-redirect.html")
@@ -840,10 +840,10 @@ Function New-Deployment() {
                 $replyUrls.Add("http://localhost:5000/signin-oidc")
                 $replyUrls.Add("https://localhost:5001/signin-oidc")
             }
-            
-            if ($aadAddReplyUrls) {            
+
+            if ($aadAddReplyUrls) {
                 # register reply urls in client application registration
-                Write-Host 
+                Write-Host
                 Write-Host "Registering reply urls for $($aadConfig.ClientPrincipalId)..."
 
                 try {
@@ -855,10 +855,10 @@ Function New-Deployment() {
                     #    & (Join-Path $script:ScriptDir "aad-update.ps1") `
                     #        $context `
                     #        -ObjectId $aadConfig.ClientPrincipalId -ReplyUrls $replyUrls
-                    Set-AzureADApplication -ObjectId $aadConfig.ClientPrincipalId -ReplyUrls $replyUrls
+                    Update-AzADApplication -ObjectId $aadConfig.ClientPrincipalId -ReplyUrl $replyUrls
 
                     Write-Host "Reply urls registered in client app $($aadConfig.ClientPrincipalId)..."
-                    Write-Host 
+                    Write-Host
                 }
                 catch {
                     Write-Host $_.Exception.Message
@@ -871,8 +871,8 @@ Function New-Deployment() {
             #
             # Create environment file
             #
-            Write-EnvironmentVariables -deployment $deployment 
-        
+            Write-EnvironmentVariables -deployment $deployment
+
             if (![string]::IsNullOrEmpty($website)) {
                 # Try open application
                 Start-Process $website -ErrorAction SilentlyContinue | Out-Null
@@ -880,7 +880,7 @@ Function New-Deployment() {
             return
         }
         catch {
-            $ex = $_.Exception
+            $ex = $_
             Write-Host $_.Exception.Message
             Write-Host "Deployment failed."
 
@@ -919,7 +919,7 @@ Function Test-All-Deployment-Options() {
     Param(
         $context
     )
-        
+
     while ([string]::IsNullOrEmpty($script:resourceGroupName) `
             -or ($script:resourceGroupName -notmatch "^[a-z0-9-_]*$")) {
         Write-Host
@@ -978,7 +978,7 @@ $script:ScriptDir = Split-Path $script:MyInvocation.MyCommand.Path
 $script:interactive = !$script:context
 
 $script:requiredProviders = @(
-    "microsoft.devices", 
+    "microsoft.devices",
     "microsoft.documentdb",
     "microsoft.signalrservice",
     "microsoft.servicebus",
