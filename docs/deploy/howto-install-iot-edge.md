@@ -1,22 +1,24 @@
 # How to Setup a Local Gateway for Industrial Scenarios
 
-The industrial assets (machines and systems) are connected to Azure through modules running on an [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/) industrial gateway. This article explains how to setup an IoT Edge Gateway for industrial scenarios.
+The industrial assets (machines and systems) are connected to Azure through modules running on an [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/) industrial gateway.
 
-You can purchase industrial gateways compatible with IoT Edge, please see our [Azure Device Catalog](https://catalog.azureiotsolutions.com/alldevices?filters={%223%22:[%222%22,%229%22],%2218%22:[%221%22]}) for a selection of industrial-grade gateways. Alternatively, you can setup an on-prem VM.
+You can purchase industrial gateways compatible with IoT Edge. Please see our [Azure Device Catalog](https://catalog.azureiotsolutions.com/alldevices?filters={%223%22:[%222%22,%229%22],%2218%22:[%221%22]}) for a selection of industrial-grade gateways. Alternatively, you can setup a local VM.
 
 ## Automatic Industrial IoT Gateway Installation
 
-Run the [Industrial IoT Gateway Installer](quickstart-gateway-installer.md) from your gateway to automatically install the IoT Edge Runtime and Industrial Modules
+Run the [Industrial IoT Gateway Installer](quickstart-gateway-installer.md) from your gateway to automatically install the IoT Edge Runtime and Industrial Modules.
 
 ## Manual Industrial IoT Gateway Installation
 
 ### Create an IoT Edge Instance and Install the IoT Edge Runtime
 
-You can manually [create an IoT Edge instance for an IoT Hub](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-register-device) and install the IoT Edge runtime following the Azure IoT Edge [documentation](https://docs.microsoft.com/en-us/azure/iot-edge/). You can install the IoT Edge Runtime on [Linux](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux) or [Windows](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-windows).
+You can manually [create an IoT Edge instance for an IoT Hub](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-register-device) and install the IoT Edge runtime following the [IoT Edge setup documentation](https://docs.microsoft.com/en-us/azure/iot-edge/). You can install the IoT Edge Runtime on [Linux](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux) or [Windows](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-windows).
 
 ### Install the Industrial Modules
 
 The Azure Industrial IoT deployment script will setup IoT Edge Layered Deployments for each Industrial Module. These Layered Deployments will be automatically applied to any IoT Edge instance with the following Device Twin JSON tags. To enable this for your IoT Edge gateway, add these tags through the [Azure Portal page](http://portal.azure.com) of the IoT Hub your gateway should communicate with:
+
+The Device Twin configuration JSON can be found in the Azure Portal under IoT Hub -> IoT Edge -> [your IoT Edge device] -> Device Twin.
 
 If your gateway uses Linux Containers (Linux Containers on Windows or Linux Containers on Linux), set the "os" property to "Windows":
 
@@ -46,9 +48,7 @@ If your gateway uses Windows Containers, set the "os" property to "Windows":
 ...
 ```
 
-The Device Twin configuration JSON can be found in the Azure Portal under IoT Hub -> IoT Edge -> < your IoT Edge device > -> Device Twin.
-
-> These tags can also be created as part of a Azure Device Provisioning (DPS) enrollment.  An example of the latter can be found in `/deploy/scripts/dps-enroll.ps1`.
+These tags can also be created as part of a Azure Device Provisioning (DPS) enrollment.  An example of the latter can be found in `/deploy/scripts/dps-enroll.ps1`.
 
 ### Module Versions
 
