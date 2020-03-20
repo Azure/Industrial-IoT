@@ -15,6 +15,5 @@ The installation will run completely automatically and a restart may be required
 
 ## Next steps
 
-Get started with discovering your assets by deploying the
-> [!div class="nextstepaction"]
-> [Azure Industrial IoT Platform using the deployment script](../deploy/howto-deploy-all-in-one.md)
+- [Deploy and monitor Edge modules at scale](https://docs.microsoft.com/azure/iot-edge/how-to-deploy-monitor)
+- [Learn more about Azure IoT Edge for Visual Studio Code](https://github.com/microsoft/vscode-azure-iot-edge)
