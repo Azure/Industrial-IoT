@@ -31,13 +31,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         /// <inheritdoc/>
         public async Task<DiscovererModel> GetDiscovererAsync(string id,
-            bool onlyServerState, CancellationToken ct) {
+            CancellationToken ct) {
             if (string.IsNullOrEmpty(id)) {
                 throw new ArgumentException(nameof(id));
             }
             var deviceId = DiscovererModelEx.ParseDeviceId(id, out var moduleId);
             var device = await _iothub.GetAsync(deviceId, moduleId, ct);
-            var registration = device.ToEntityRegistration(onlyServerState)
+            var registration = device.ToEntityRegistration()
                 as DiscovererRegistration;
             if (registration == null) {
                 throw new ResourceNotFoundException(
@@ -76,7 +76,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     // Update registration from update request
                     var patched = registration.ToServiceModel();
                     if (request.Discovery != null) {
-                        patched.Discovery = (DiscoveryMode)request.Discovery;
+                        patched.RequestedMode = (DiscoveryMode)request.Discovery;
                     }
 
                     if (request.SiteId != null) {
@@ -90,53 +90,53 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     }
 
                     if (request.DiscoveryConfig != null) {
-                        if (patched.DiscoveryConfig == null) {
-                            patched.DiscoveryConfig = new DiscoveryConfigModel();
+                        if (patched.RequestedConfig == null) {
+                            patched.RequestedConfig = new DiscoveryConfigModel();
                         }
                         if (request.DiscoveryConfig.AddressRangesToScan != null) {
-                            patched.DiscoveryConfig.AddressRangesToScan =
+                            patched.RequestedConfig.AddressRangesToScan =
                                 string.IsNullOrEmpty(
                                     request.DiscoveryConfig.AddressRangesToScan.Trim()) ?
                                         null : request.DiscoveryConfig.AddressRangesToScan;
                         }
                         if (request.DiscoveryConfig.PortRangesToScan != null) {
-                            patched.DiscoveryConfig.PortRangesToScan =
+                            patched.RequestedConfig.PortRangesToScan =
                                 string.IsNullOrEmpty(
                                     request.DiscoveryConfig.PortRangesToScan.Trim()) ?
                                         null : request.DiscoveryConfig.PortRangesToScan;
                         }
                         if (request.DiscoveryConfig.IdleTimeBetweenScans != null) {
-                            patched.DiscoveryConfig.IdleTimeBetweenScans =
+                            patched.RequestedConfig.IdleTimeBetweenScans =
                                 request.DiscoveryConfig.IdleTimeBetweenScans;
                         }
                         if (request.DiscoveryConfig.MaxNetworkProbes != null) {
-                            patched.DiscoveryConfig.MaxNetworkProbes =
+                            patched.RequestedConfig.MaxNetworkProbes =
                                 request.DiscoveryConfig.MaxNetworkProbes <= 0 ?
                                     null : request.DiscoveryConfig.MaxNetworkProbes;
                         }
                         if (request.DiscoveryConfig.NetworkProbeTimeout != null) {
-                            patched.DiscoveryConfig.NetworkProbeTimeout =
+                            patched.RequestedConfig.NetworkProbeTimeout =
                                 request.DiscoveryConfig.NetworkProbeTimeout.Value.Ticks == 0 ?
                                     null : request.DiscoveryConfig.NetworkProbeTimeout;
                         }
                         if (request.DiscoveryConfig.MaxPortProbes != null) {
-                            patched.DiscoveryConfig.MaxPortProbes =
+                            patched.RequestedConfig.MaxPortProbes =
                                 request.DiscoveryConfig.MaxPortProbes <= 0 ?
                                     null : request.DiscoveryConfig.MaxPortProbes;
                         }
                         if (request.DiscoveryConfig.MinPortProbesPercent != null) {
-                            patched.DiscoveryConfig.MinPortProbesPercent =
+                            patched.RequestedConfig.MinPortProbesPercent =
                                 request.DiscoveryConfig.MinPortProbesPercent <= 0 ||
                                 request.DiscoveryConfig.MinPortProbesPercent > 100 ?
                                     null : request.DiscoveryConfig.MinPortProbesPercent;
                         }
                         if (request.DiscoveryConfig.PortProbeTimeout != null) {
-                            patched.DiscoveryConfig.PortProbeTimeout =
+                            patched.RequestedConfig.PortProbeTimeout =
                                 request.DiscoveryConfig.PortProbeTimeout.Value.Ticks == 0 ?
                                     null : request.DiscoveryConfig.PortProbeTimeout;
                         }
                         if (request.DiscoveryConfig.ActivationFilter != null) {
-                            patched.DiscoveryConfig.ActivationFilter =
+                            patched.RequestedConfig.ActivationFilter =
                                 request.DiscoveryConfig.ActivationFilter.SecurityMode == null &&
                                 request.DiscoveryConfig.ActivationFilter.SecurityPolicies == null &&
                                 request.DiscoveryConfig.ActivationFilter.TrustLists == null ?
@@ -157,7 +157,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         /// <inheritdoc/>
         public async Task<DiscovererListModel> ListDiscoverersAsync(
-            string continuation, bool onlyServerState, int? pageSize, CancellationToken ct) {
+            string continuation, int? pageSize, CancellationToken ct) {
             var query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{TwinProperty.Type} = '{IdentityType.Discoverer}' " +
                 $"AND NOT IS_DEFINED(tags.{nameof(EntityRegistration.NotSeenSince)})";
@@ -165,7 +165,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             return new DiscovererListModel {
                 ContinuationToken = devices.ContinuationToken,
                 Items = devices.Items
-                    .Select(t => t.ToDiscovererRegistration(onlyServerState))
+                    .Select(t => t.ToDiscovererRegistration())
                     .Select(s => s.ToServiceModel())
                     .ToList()
             };
@@ -173,14 +173,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         /// <inheritdoc/>
         public async Task<DiscovererListModel> QueryDiscoverersAsync(
-            DiscovererQueryModel model, bool onlyServerState, int? pageSize, CancellationToken ct) {
+            DiscovererQueryModel model, int? pageSize, CancellationToken ct) {
 
             var query = "SELECT * FROM devices.modules WHERE " +
                 $"properties.reported.{TwinProperty.Type} = '{IdentityType.Discoverer}'";
 
             if (model?.Discovery != null) {
-                // If discovery mode provided, include it in search
-                query += $"AND properties.desired.{nameof(DiscovererRegistration.Discovery)} = " +
+                // If reported discovery mode provided, include it in search
+                query += $"AND properties.reported.{nameof(DiscovererRegistration.Discovery)} = " +
                     $"'{model.Discovery}' ";
             }
             if (model?.SiteId != null) {
@@ -205,7 +205,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             return new DiscovererListModel {
                 ContinuationToken = queryResult.ContinuationToken,
                 Items = queryResult.Items
-                    .Select(t => t.ToDiscovererRegistration(onlyServerState))
+                    .Select(t => t.ToDiscovererRegistration())
                     .Select(s => s.ToServiceModel())
                     .ToList()
             };

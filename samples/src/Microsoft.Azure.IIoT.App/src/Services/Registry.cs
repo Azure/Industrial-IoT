@@ -145,7 +145,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="discoverer"></param>
         /// <returns></returns>
         public async Task<string> SetDiscoveryAsync(DiscovererInfo discoverer) {
-            var model = discoverer.DiscovererModel.DiscoveryConfig;
+            var model = discoverer.DiscovererModel.RequestedConfig;
             DiscoveryMode discoveryMode;
 
             if (model == null) {
@@ -177,37 +177,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="config"></param>
         /// <returns></returns>
         public async Task<string> UpdateDiscovererAsync(DiscovererInfo discoverer, DiscoveryConfigApiModel config) {
-            var model = new DiscovererUpdateApiModel();
-            model.DiscoveryConfig = discoverer.DiscovererModel.DiscoveryConfig;
-
-            if (config.AddressRangesToScan != null) {
-                model.DiscoveryConfig.AddressRangesToScan = config.AddressRangesToScan;
-            }
-            if (config.PortRangesToScan != null) {
-                model.DiscoveryConfig.PortRangesToScan = config.PortRangesToScan;
-            }
-            if (config.ActivationFilter != null) {
-                model.DiscoveryConfig.ActivationFilter = config.ActivationFilter;
-            }
-            if (config.MaxNetworkProbes != null && config.MaxNetworkProbes != 0) {
-                model.DiscoveryConfig.MaxNetworkProbes = config.MaxNetworkProbes;
-            }
-            if (config.MaxPortProbes != null && config.MaxPortProbes != 0) {
-                model.DiscoveryConfig.MaxPortProbes = config.MaxPortProbes;
-            }
-            if (config.NetworkProbeTimeout != null && config.NetworkProbeTimeout != TimeSpan.Zero) {
-                model.DiscoveryConfig.NetworkProbeTimeout = config.NetworkProbeTimeout;
-            }
-            if (config.PortProbeTimeout != null && config.PortProbeTimeout != TimeSpan.Zero) {
-                model.DiscoveryConfig.PortProbeTimeout = config.PortProbeTimeout;
-            }
-            if (config.IdleTimeBetweenScans != null && config.IdleTimeBetweenScans != TimeSpan.Zero) {
-                model.DiscoveryConfig.IdleTimeBetweenScans = config.IdleTimeBetweenScans;
-            }
-            if (config.DiscoveryUrls != null) {
-                model.DiscoveryConfig.DiscoveryUrls = config.DiscoveryUrls;
-            }
-
+            var model = new DiscovererUpdateApiModel {
+                DiscoveryConfig = discoverer.DiscovererModel.RequestedConfig
+            };
             try {
                 await _registryService.UpdateDiscovererAsync(discoverer.DiscovererModel.Id, model);
             }

@@ -111,5 +111,87 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     TimeSpan.Parse(value);
             }
         }
+
+        /// <summary>
+        /// Network probe timeout
+        /// </summary>
+        public string RequestedNetworkProbeTimeout {
+            get => (DiscovererModel.RequestedConfig?.NetworkProbeTimeout ?? TimeSpan.Zero)
+                == TimeSpan.Zero ?
+                null : DiscovererModel.RequestedConfig.NetworkProbeTimeout.ToString();
+            set {
+                if (DiscovererModel.RequestedConfig == null) {
+                    DiscovererModel.RequestedConfig = new DiscoveryConfigApiModel();
+                }
+                DiscovererModel.RequestedConfig.NetworkProbeTimeout =
+                    string.IsNullOrEmpty(value) ? TimeSpan.Zero :
+                    TimeSpan.Parse(value);
+            }
+        }
+
+        /// <summary>
+        /// Max network probes that should ever run.
+        /// </summary>
+        public string RequestedMaxNetworkProbes {
+            get => (DiscovererModel.RequestedConfig?.MaxNetworkProbes ?? 0) == 0 ?
+                null : DiscovererModel.RequestedConfig.MaxNetworkProbes.ToString();
+            set {
+                if (DiscovererModel.RequestedConfig == null) {
+                    DiscovererModel.RequestedConfig = new DiscoveryConfigApiModel();
+                }
+                DiscovererModel.RequestedConfig.MaxNetworkProbes =
+                    string.IsNullOrEmpty(value) ? 0 : int.Parse(value);
+            }
+        }
+
+        /// <summary>
+        /// Port probe timeout
+        /// </summary>
+        public string RequestedPortProbeTimeout {
+            get => (DiscovererModel.RequestedConfig?.PortProbeTimeout ?? TimeSpan.Zero)
+                == TimeSpan.Zero ?
+                null : DiscovererModel.RequestedConfig.PortProbeTimeout.ToString();
+            set {
+                if (DiscovererModel.RequestedConfig == null) {
+                    DiscovererModel.RequestedConfig = new DiscoveryConfigApiModel();
+                }
+                DiscovererModel.RequestedConfig.PortProbeTimeout =
+                    string.IsNullOrEmpty(value) ? TimeSpan.Zero :
+                    TimeSpan.Parse(value);
+            }
+        }
+
+        /// <summary>
+        /// Max port probes that should ever run.
+        /// </summary>
+        public string RequestedMaxPortProbes {
+            get => (DiscovererModel.RequestedConfig?.MaxPortProbes ?? 0) == 0 ?
+                null : DiscovererModel.RequestedConfig.MaxPortProbes.ToString();
+            set {
+                if (DiscovererModel.RequestedConfig == null) {
+                    DiscovererModel.RequestedConfig = new DiscoveryConfigApiModel();
+                }
+                DiscovererModel.RequestedConfig.MaxPortProbes =
+                    string.IsNullOrEmpty(value) ? 0 : int.Parse(value);
+            }
+        }
+
+        /// <summary>
+        /// Delay time between discovery sweeps in seconds
+        /// </summary>
+        public string RequestedIdleTimeBetweenScans {
+            get => (DiscovererModel.RequestedConfig?.IdleTimeBetweenScans ?? TimeSpan.Zero)
+                == TimeSpan.Zero ?
+                null : DiscovererModel.RequestedConfig.IdleTimeBetweenScans.ToString();
+            set {
+                if (DiscovererModel.RequestedConfig == null) {
+                    DiscovererModel.RequestedConfig = new DiscoveryConfigApiModel();
+                }
+                DiscovererModel.RequestedConfig.IdleTimeBetweenScans =
+                    string.IsNullOrEmpty(value) ? TimeSpan.Zero :
+                    TimeSpan.Parse(value);
+            }
+        }
+
     }
 }

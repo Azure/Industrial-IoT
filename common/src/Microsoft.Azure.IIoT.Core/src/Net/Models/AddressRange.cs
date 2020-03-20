@@ -309,9 +309,11 @@ namespace Microsoft.Azure.IIoT.Net.Models {
                     else {
                         var top = results.Peek();
                         if (top.Overlaps(range)) {
+                            var nic = (top.Nic + range.Nic)
+                                .Replace("localhost", "");
                             var union = new AddressRange(
                                 top.Low < range.Low ? top.Low : range.Low,
-                                top.High > range.High ? top.High : range.High);
+                                top.High > range.High ? top.High : range.High, nic);
                             results.Pop();
                             results.Push(union);
                         }

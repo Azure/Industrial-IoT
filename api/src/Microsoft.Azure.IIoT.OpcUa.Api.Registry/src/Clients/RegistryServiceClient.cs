@@ -74,11 +74,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
 
         /// <inheritdoc/>
         public async Task<DiscovererListApiModel> ListDiscoverersAsync(
-            string continuation, bool? onlyServerState, int? pageSize, CancellationToken ct) {
+            string continuation, int? pageSize, CancellationToken ct) {
             var uri = new UriBuilder($"{_serviceUri}/v2/discovery");
-            if (onlyServerState ?? false) {
-                uri.Query = "onlyServerState=true";
-            }
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
             if (continuation != null) {
                 request.AddHeader(HttpHeader.ContinuationToken, continuation);
@@ -93,12 +90,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
 
         /// <inheritdoc/>
         public async Task<DiscovererListApiModel> QueryDiscoverersAsync(
-            DiscovererQueryApiModel query, bool? onlyServerState, int? pageSize,
+            DiscovererQueryApiModel query, int? pageSize,
             CancellationToken ct) {
             var uri = new UriBuilder($"{_serviceUri}/v2/discovery/query");
-            if (onlyServerState ?? false) {
-                uri.Query = "onlyServerState=true";
-            }
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
             if (pageSize != null) {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
@@ -111,14 +105,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
 
         /// <inheritdoc/>
         public async Task<DiscovererApiModel> GetDiscovererAsync(
-            string discovererId, bool? onlyServerState, CancellationToken ct) {
+            string discovererId, CancellationToken ct) {
             if (string.IsNullOrEmpty(discovererId)) {
                 throw new ArgumentNullException(nameof(discovererId));
             }
             var uri = new UriBuilder($"{_serviceUri}/v2/discovery/{discovererId}");
-            if (onlyServerState ?? false) {
-                uri.Query = "onlyServerState=true";
-            }
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();

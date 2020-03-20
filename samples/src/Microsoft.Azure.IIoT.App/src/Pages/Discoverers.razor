@@ -85,8 +85,7 @@
                     @{ string IdleTimeBetweenScans = "Default";}
                     @{ string ActivationFilter = "None";}
                     @{ List<string> DiscoveryUrls = new List<string>();}
-                    @if (discoverer.DiscovererModel.DiscoveryConfig != null)
-                    {
+                    @{
                         ScanMask = string.IsNullOrEmpty(discoverer.DiscovererModel.DiscoveryConfig?.AddressRangesToScan) ?
                             "Default" : discoverer.DiscovererModel.DiscoveryConfig?.AddressRangesToScan;
                         PortRange = string.IsNullOrEmpty(discoverer.DiscovererModel.DiscoveryConfig?.PortRangesToScan) ?
@@ -167,39 +166,39 @@
             <form>
                 <div class="form-group">
                     <label>Mask address range (CIDR notation)</label>
-                    <input @bind="@DiscovererData.DiscovererModel.DiscoveryConfig.AddressRangesToScan" aria-label="addressRange" id="ipAddressMask" type="text" class="form-control" placeholder="IP-address/netmask" />
+                    <input @bind="@DiscovererData.DiscovererModel.RequestedConfig.AddressRangesToScan" aria-label="addressRange" id="ipAddressMask" type="text" class="form-control" placeholder="IP-address/netmask" />
                 </div>
                 <div class="form-group">
                     <label>Port range</label>
-                    <input @bind="@DiscovererData.DiscovererModel.DiscoveryConfig.PortRangesToScan" aria-label="portRange" id="PortRange" type="text" class="form-control" placeholder="StartPort-EndPort" />
+                    <input @bind="@DiscovererData.DiscovererModel.RequestedConfig.PortRangesToScan" aria-label="portRange" id="PortRange" type="text" class="form-control" placeholder="StartPort-EndPort" />
                 </div>
                 <div class="form-group">
                     <label>Max Network Probes</label>
-                    <input @bind="@DiscovererData.MaxNetworkProbes" aria-label="maxNetworkProbes" id="MaxNetworkProbes" type="text" class="form-control" placeholder="Max Network Probes" />
+                    <input @bind="@DiscovererData.RequestedMaxNetworkProbes" aria-label="maxNetworkProbes" id="MaxNetworkProbes" type="text" class="form-control" placeholder="Max Network Probes" />
                 </div>
                 <div class="form-group">
                     <label>Network Probe Timeout</label>
-                    <input @bind="@DiscovererData.NetworkProbeTimeout" aria-label="networkProbeTimeout" id="NetworkProbeTimeout" type="text" class="form-control" placeholder="Network Probe Timeout" />
+                    <input @bind="@DiscovererData.RequestedNetworkProbeTimeout" aria-label="networkProbeTimeout" id="NetworkProbeTimeout" type="text" class="form-control" placeholder="Network Probe Timeout" />
                 </div>
                 <div class="form-group">
                     <label>Max Port Probes</label>
-                    <input @bind="@DiscovererData.MaxPortProbes" aria-label="maxPortProbes" id="MaxPortProbes" type="text" class="form-control" placeholder="Max Port Probes" />
+                    <input @bind="@DiscovererData.RequestedMaxPortProbes" aria-label="maxPortProbes" id="MaxPortProbes" type="text" class="form-control" placeholder="Max Port Probes" />
                 </div>
                 <div class="form-group">
                     <label>Port Probe Timeout</label>
-                    <input @bind="@DiscovererData.PortProbeTimeout" aria-label="portProbeTimeout" id="PortProbeTimeout" type="text" class="form-control" placeholder="Port Probe Timeout" />
+                    <input @bind="@DiscovererData.RequestedPortProbeTimeout" aria-label="portProbeTimeout" id="PortProbeTimeout" type="text" class="form-control" placeholder="Port Probe Timeout" />
                 </div>
                 <div class="form-group">
                     <label>Idle TimeBetween Scans</label>
-                    <input @bind="@DiscovererData.IdleTimeBetweenScans" aria-label="IdleTimeBetweenScans" id="IdleTimeBetweenScans" type="text" class="form-control" placeholder="Idle Time Between Scans" />
+                    <input @bind="@DiscovererData.RequestedIdleTimeBetweenScans" aria-label="IdleTimeBetweenScans" id="IdleTimeBetweenScans" type="text" class="form-control" placeholder="Idle Time Between Scans" />
                 </div>
                 <div class="form-group">
-                    @if (DiscovererData.DiscovererModel.DiscoveryConfig.ActivationFilter == null)
+                    @if (DiscovererData.DiscovererModel.RequestedConfig.ActivationFilter == null)
                     {
-                        DiscovererData.DiscovererModel.DiscoveryConfig.ActivationFilter = new EndpointActivationFilterApiModel();
+                        DiscovererData.DiscovererModel.RequestedConfig.ActivationFilter = new EndpointActivationFilterApiModel();
                     }
                     <label>Activation Filter (Security Modes)</label>
-                    <select class="form-control" @bind="@DiscovererData.DiscovererModel.DiscoveryConfig.ActivationFilter.SecurityMode" name="securityMode">
+                    <select class="form-control" @bind="@DiscovererData.DiscovererModel.RequestedConfig.ActivationFilter.SecurityMode" name="securityMode">
                         <option value="@OpcUa.Api.Registry.Models.SecurityMode.None">None</option>
                         <option value="@OpcUa.Api.Registry.Models.SecurityMode.Sign">Sign</option>
                         <option value="@OpcUa.Api.Registry.Models.SecurityMode.SignAndEncrypt">SignAndEncrypt</option>
@@ -210,22 +209,22 @@
                 <label>Discovery Urls</label>
                 <div class="flex">
                     <input @bind="@_discoveryUrl" aria-label="DiscoveryUrls" id="DiscoveryUrls" type="text" class="form-control" placeholder="Discovery Url" />
-                    <button @onclick="@(() => UpdateDiscovererUrlList(_discoveryUrl, DiscovererData.DiscovererModel.DiscoveryConfig))" type="button" class="btn btn-primary shadow-none margin-right">Add</button>
-                    <button @onclick="@(() => DeleteDiscovererUrlList(DiscovererData.DiscovererModel.DiscoveryConfig))" type="button" class="btn btn-primary shadow-none">Clear</button>
+                    <button @onclick="@(() => UpdateDiscovererUrlList(_discoveryUrl, DiscovererData.DiscovererModel.RequestedConfig))" type="button" class="btn btn-primary shadow-none margin-right">Add</button>
+                    <button @onclick="@(() => DeleteDiscovererUrlList(DiscovererData.DiscovererModel.RequestedConfig))" type="button" class="btn btn-primary shadow-none">Clear</button>
                 </div>
                 <div class="form-group margin-top">
-                    @if (DiscovererData.DiscovererModel.DiscoveryConfig.DiscoveryUrls == null)
+                    @if (DiscovererData.DiscovererModel.RequestedConfig.DiscoveryUrls == null)
                     {
-                        DiscovererData.DiscovererModel.DiscoveryConfig.DiscoveryUrls = new List<string>();
+                        DiscovererData.DiscovererModel.RequestedConfig.DiscoveryUrls = new List<string>();
                     }
                     <select class="form-control">
-                        @if (DiscovererData.DiscovererModel.DiscoveryConfig.DiscoveryUrls.Count == 0)
+                        @if (DiscovererData.DiscovererModel.RequestedConfig.DiscoveryUrls.Count == 0)
                         {
                             <option>(None)</option>
                         }
                         else
                         {
-                            foreach (var discoveryUrl in DiscovererData.DiscovererModel.DiscoveryConfig.DiscoveryUrls)
+                            foreach (var discoveryUrl in DiscovererData.DiscovererModel.RequestedConfig.DiscoveryUrls)
                             {
                                 <option value="@discoveryUrl">@discoveryUrl</option>
                             }
@@ -234,7 +233,7 @@
                 </div>
                 <hr />
                 <div>
-                    <button @onclick="@(async() => await UpdateDiscovererConfigAsync(DiscovererData, DiscovererData.DiscovererModel.DiscoveryConfig))" type="button" class="btn btn-primary shadow-none">Apply</button>
+                    <button @onclick="@(async() => await UpdateDiscovererConfigAsync(DiscovererData, DiscovererData.DiscovererModel.RequestedConfig))" type="button" class="btn btn-primary shadow-none">Apply</button>
                 </div>
                 <ErrorMessage PageError="@null" Status="@Status"></ErrorMessage>
             </form>
@@ -365,9 +364,9 @@
     private void OpenDrawer(DiscovererInfo discoverer)
     {
         IsOpened = true;
-        if (discoverer.DiscovererModel.DiscoveryConfig == null)
+        if (discoverer.DiscovererModel.RequestedConfig == null)
         {
-            discoverer.DiscovererModel.DiscoveryConfig = new DiscoveryConfigApiModel();
+            discoverer.DiscovererModel.RequestedConfig = new DiscoveryConfigApiModel();
         }
         DiscovererData = discoverer;
     }
