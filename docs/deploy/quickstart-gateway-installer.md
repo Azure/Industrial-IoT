@@ -1,6 +1,8 @@
 
 # Azure Industrial IoT Gateway Installer
 
+[Home](readme.md)
+
 The IoT Edge Runtime and the Industrial IoT Edge Modules are automatically installed with the Azure Industrial IoT Gateway Installer.
 
 ## Run the Industrial IoT Gateway Installer

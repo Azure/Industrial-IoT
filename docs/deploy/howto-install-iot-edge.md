@@ -1,5 +1,7 @@
 # How to Setup a Local Gateway for Industrial Scenarios
 
+[Home](readme.md)
+
 The industrial assets (machines and systems) are connected to Azure through modules running on an [Azure IoT Edge](https://azure.microsoft.com/services/iot-edge/) industrial gateway.
 
 You can purchase industrial gateways compatible with IoT Edge. Please see our [Azure Device Catalog](https://catalog.azureiotsolutions.com/alldevices?filters={%223%22:[%222%22,%229%22],%2218%22:[%221%22]}) for a selection of industrial-grade gateways. Alternatively, you can setup a local VM.
@@ -20,7 +22,7 @@ The Azure Industrial IoT deployment script will setup IoT Edge Layered Deploymen
 
 The Device Twin configuration JSON can be found in the Azure Portal under IoT Hub -> IoT Edge -> [your IoT Edge device] -> Device Twin.
 
-If your gateway uses Linux Containers (Linux Containers on Windows or Linux Containers on Linux), set the "os" property to "Windows":
+If your gateway uses Linux as an OS (with Linux Containers), set the "os" property to "Linux":
 
 ```json
 ... 
@@ -34,7 +36,7 @@ If your gateway uses Linux Containers (Linux Containers on Windows or Linux Cont
 ...
 ```
 
-If your gateway uses Windows Containers, set the "os" property to "Windows":
+If your gateway uses Windows as an OS (with Linux or Windows Containers), set the "os" property to "Windows":
 
 ```json
 ...
@@ -48,7 +50,7 @@ If your gateway uses Windows Containers, set the "os" property to "Windows":
 ...
 ```
 
-These tags can also be created as part of a Azure Device Provisioning (DPS) enrollment.  An example of the latter can be found in `/deploy/scripts/dps-enroll.ps1`.
+These tags can also be created as part of an Azure Device Provisioning (DPS) enrollment.  An example of the latter can be found in `/deploy/scripts/dps-enroll.ps1`.
 
 ### Module Versions
 
