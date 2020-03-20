@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Text.RegularExpressions;
     using Microsoft.Azure.IIoT.Deployment.Deployment;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
@@ -19,6 +20,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
         public const string AzureIndustrialIoTDeploymentClientID = "fb2ca262-60d8-4167-ac33-1998d6d5c50b";
 
         private RunMode? _runMode;
+
+        private static readonly Regex kApplicationNameRgx = new Regex(@"^[a-zA-Z0-9-]*$");
 
         public ConsoleConfigurationProvider(
             AppSettings appSettings = null
@@ -192,6 +195,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
 
         public override string GetApplicationName() {
             if (!string.IsNullOrEmpty(_appSettings?.ApplicationName)) {
+                if (!kApplicationNameRgx.IsMatch(_appSettings.ApplicationName)) {
+                    throw new Exception($"Configured '{_appSettings.ApplicationName}' ApplicationName is invalid. " +
+                        $"Use only alphanumeric characters and '-'.");
+                }
+
                 Log.Information($"Configured application name will be used: {_appSettings.ApplicationName}");
                 return _appSettings.ApplicationName;
             }
@@ -200,9 +208,17 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
         }
 
         protected string GetApplicationNameFromConsole() {
-            Console.WriteLine("Please provide a name for the AAD application to register:");
-            var applicationName = ReadNonEmptyString();
-            return applicationName;
+            while(true) {
+                Console.WriteLine("Please provide a name for the AAD application to register. " +
+                    "Use only alphanumeric characters and '-':");
+
+                var applicationName = ReadNonEmptyString();
+                if (kApplicationNameRgx.IsMatch(applicationName)) {
+                    return applicationName;
+                }
+
+                Console.WriteLine("Provided AAD application name is invalid.");
+            }
         }
 
         public override bool IfUseExistingResourceGroup() {
