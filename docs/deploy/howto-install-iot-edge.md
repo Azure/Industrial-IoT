@@ -8,7 +8,7 @@ The industrial assets (machines and systems) are connected to Azure through modu
 
 You can purchase preconfigured IoT Edge gateways, please see our [Azure Device Catalog](https://catalog.azureiotsolutions.com/alldevices?filters={%223%22:[%222%22,%229%22],%2218%22:[%221%22]}) for a selection of industrial-grade gateways. Alternatively, you can setup an on-prem VM.
 
-Then, run our [Industrial Gateway Installer](https://docs.microsoft.com/en-us/azure/quickstart-gateway-installer.md) on your gateway to automatically install the IoT Edge Runtime and Industrial Modules. Alternatively, you can manually install the IoT Edge runtime following the Azure IoT Edge [documentation](https://docs.microsoft.com/en-us/azure/iot-edge/). You can install the runtime on [Linux](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux) or [Windows](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-windows).
+Then, run our [Industrial IoT Gateway Installer](https://docs.microsoft.com/en-us/azure/quickstart-gateway-installer.md) on your gateway to automatically install the IoT Edge Runtime and Industrial Modules. Alternatively, you can manually install the IoT Edge runtime following the Azure IoT Edge [documentation](https://docs.microsoft.com/en-us/azure/iot-edge/). You can install the runtime on [Linux](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux) or [Windows](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-windows).
 
 ### Manually Enable Deployment of the Industrial IoT Modules on your IoT Edge Gateway
 
