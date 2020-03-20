@@ -16,8 +16,8 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Runtime {
 
         /// <inheritdoc/>
         public string ServiceBusConnString => GetStringOrDefault(kServiceBusConnectionString,
-            GetStringOrDefault(PcsVariable.PCS_SERVICEBUS_CONNSTRING,
-                GetStringOrDefault("_SB_CS", null)));
+            () => GetStringOrDefault(PcsVariable.PCS_SERVICEBUS_CONNSTRING,
+                () => GetStringOrDefault("_SB_CS", () => null)));
 
         /// <summary>
         /// Configuration constructor

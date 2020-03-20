@@ -22,21 +22,21 @@ namespace Microsoft.Azure.IIoT.Deploy.Runtime {
 
         /// <inheritdoc/>
         public string DockerServer => GetStringOrDefault(kDockerServer,
-            GetStringOrDefault(PcsVariable.PCS_DOCKER_SERVER));
+            () => GetStringOrDefault(PcsVariable.PCS_DOCKER_SERVER));
         /// <inheritdoc/>
         public string DockerUser => GetStringOrDefault(kDockerUser,
-            GetStringOrDefault(PcsVariable.PCS_DOCKER_USER));
+            () => GetStringOrDefault(PcsVariable.PCS_DOCKER_USER));
         /// <inheritdoc/>
         public string DockerPassword => GetStringOrDefault(kDockerPassword,
-            GetStringOrDefault(PcsVariable.PCS_DOCKER_PASSWORD));
+            () => GetStringOrDefault(PcsVariable.PCS_DOCKER_PASSWORD));
 
         /// <inheritdoc/>
         public string ImagesNamespace => GetStringOrDefault(kImagesNamespace,
-            GetStringOrDefault(PcsVariable.PCS_IMAGES_NAMESPACE));
+            () => GetStringOrDefault(PcsVariable.PCS_IMAGES_NAMESPACE));
         /// <inheritdoc/>
         public string ImagesTag => GetStringOrDefault(kImagesTag,
-            GetStringOrDefault(PcsVariable.PCS_IMAGES_TAG,
-                Assembly.GetExecutingAssembly().GetReleaseVersion().ToString(3)));
+            () => GetStringOrDefault(PcsVariable.PCS_IMAGES_TAG,
+                () => Assembly.GetExecutingAssembly().GetReleaseVersion().ToString(3)));
 
         /// <summary>
         /// Configuration constructor

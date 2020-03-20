@@ -80,7 +80,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Runtime {
         /// <inheritdoc/>
         public string ServicePathBase => GetStringOrDefault(
             PcsVariable.PCS_JOBS_SERVICE_PATH_BASE,
-            _host.ServicePathBase);
+            () => _host.ServicePathBase);
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;

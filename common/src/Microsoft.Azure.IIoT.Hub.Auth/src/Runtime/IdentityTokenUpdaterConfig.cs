@@ -20,15 +20,15 @@ namespace Microsoft.Azure.IIoT.Auth {
         private const string kUpdateIntervalKey = "UpdateInterval";
 
         /// <inheritdoc/>
-        public int TokenLength => GetIntOrDefault(kTokenLengthKey, 64);
+        public int TokenLength => GetIntOrDefault(kTokenLengthKey, () => 64);
 
         /// <inheritdoc/>
         public TimeSpan TokenLifetime =>
-            GetDurationOrDefault(kTokenLifetimeKey, TimeSpan.FromMinutes(15));
+            GetDurationOrDefault(kTokenLifetimeKey, () => TimeSpan.FromMinutes(15));
 
         /// <inheritdoc/>
         public TimeSpan UpdateInterval =>
-            GetDurationOrDefault(kUpdateIntervalKey, TimeSpan.FromMinutes(5));
+            GetDurationOrDefault(kUpdateIntervalKey, () => TimeSpan.FromMinutes(5));
 
         /// <inheritdoc/>
         public TimeSpan TokenStaleInterval => TokenLifetime - UpdateInterval;

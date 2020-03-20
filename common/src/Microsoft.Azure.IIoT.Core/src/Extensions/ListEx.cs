@@ -11,6 +11,7 @@ namespace System.Collections.Generic {
     public static class ListEx {
 
         private static readonly Random rng = new Random();
+
         /// <summary>
         /// Shuffle list
         /// </summary>
