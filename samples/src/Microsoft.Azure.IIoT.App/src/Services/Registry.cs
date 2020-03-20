@@ -145,25 +145,14 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="discoverer"></param>
         /// <returns></returns>
         public async Task<string> SetDiscoveryAsync(DiscovererInfo discoverer) {
-            var model = discoverer.DiscovererModel.RequestedConfig;
-            DiscoveryMode discoveryMode;
-
-            if (model == null) {
-                model = new DiscoveryConfigApiModel();
-            }
-
-            if (discoverer.ScanStatus == true) {
-                discoveryMode = DiscoveryMode.Fast;
-            }
-            else {
-                discoveryMode = DiscoveryMode.Off;
-            }
-
             try {
-                await _registryService.SetDiscoveryModeAsync(discoverer.DiscovererModel.Id, discoveryMode, model);
+                var discoveryMode = discoverer.ScanStatus ? DiscoveryMode.Fast : DiscoveryMode.Off;
+                await _registryService.SetDiscoveryModeAsync(discoverer.DiscovererModel.Id, discoveryMode, discoverer.Patch);
+                discoverer.Patch = new DiscoveryConfigApiModel();
             }
             catch (Exception exception) {
-                var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
+                var errorMessageTrace = string.Concat(exception.Message,
+                    exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
                 _logger.Error(errorMessageTrace);
                 return errorMessageTrace;
             }
@@ -176,15 +165,16 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="discoverer"></param>
         /// <param name="config"></param>
         /// <returns></returns>
-        public async Task<string> UpdateDiscovererAsync(DiscovererInfo discoverer, DiscoveryConfigApiModel config) {
-            var model = new DiscovererUpdateApiModel {
-                DiscoveryConfig = discoverer.DiscovererModel.RequestedConfig
-            };
+        public async Task<string> UpdateDiscovererAsync(DiscovererInfo discoverer) {
             try {
-                await _registryService.UpdateDiscovererAsync(discoverer.DiscovererModel.Id, model);
+                await _registryService.UpdateDiscovererAsync(discoverer.DiscovererModel.Id, new DiscovererUpdateApiModel {
+                    DiscoveryConfig = discoverer.Patch
+                });
+                discoverer.Patch = new DiscoveryConfigApiModel();
             }
             catch (Exception exception) {
-                var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
+                var errorMessageTrace = string.Concat(exception.Message,
+                    exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
                 _logger.Error(errorMessageTrace);
                 return errorMessageTrace;
             }

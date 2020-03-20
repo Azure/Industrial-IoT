@@ -107,7 +107,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                         }
                         if (request.DiscoveryConfig.IdleTimeBetweenScans != null) {
                             patched.RequestedConfig.IdleTimeBetweenScans =
-                                request.DiscoveryConfig.IdleTimeBetweenScans;
+                                request.DiscoveryConfig.IdleTimeBetweenScans.Value.Ticks < 0 ?
+                                    null : request.DiscoveryConfig.IdleTimeBetweenScans;
                         }
                         if (request.DiscoveryConfig.MaxNetworkProbes != null) {
                             patched.RequestedConfig.MaxNetworkProbes =
@@ -116,7 +117,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                         }
                         if (request.DiscoveryConfig.NetworkProbeTimeout != null) {
                             patched.RequestedConfig.NetworkProbeTimeout =
-                                request.DiscoveryConfig.NetworkProbeTimeout.Value.Ticks == 0 ?
+                                request.DiscoveryConfig.NetworkProbeTimeout.Value.Ticks <= 0 ?
                                     null : request.DiscoveryConfig.NetworkProbeTimeout;
                         }
                         if (request.DiscoveryConfig.MaxPortProbes != null) {
@@ -132,7 +133,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                         }
                         if (request.DiscoveryConfig.PortProbeTimeout != null) {
                             patched.RequestedConfig.PortProbeTimeout =
-                                request.DiscoveryConfig.PortProbeTimeout.Value.Ticks == 0 ?
+                                request.DiscoveryConfig.PortProbeTimeout.Value.Ticks <= 0 ?
                                     null : request.DiscoveryConfig.PortProbeTimeout;
                         }
                         if (request.DiscoveryConfig.ActivationFilter != null) {
