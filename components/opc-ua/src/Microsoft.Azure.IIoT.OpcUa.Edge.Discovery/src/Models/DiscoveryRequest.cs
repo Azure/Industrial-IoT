@@ -129,13 +129,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
                 switch (Request.Discovery) {
                     case DiscoveryMode.Local:
                         interfaces = NetworkInformationEx.GetAllNetInterfaces(NetworkClass);
-                        AddressRanges = AddLocalHost(true, interfaces
+                        AddressRanges = AddLocalHost(interfaces
                             .Select(t => new AddressRange(t, true)))
                             .Distinct();
                         break;
                     case DiscoveryMode.Fast:
                         interfaces = NetworkInformationEx.GetAllNetInterfaces(NetworkClass.Wired);
-                        AddressRanges = AddLocalHost(false, interfaces
+                        AddressRanges = AddLocalHost(interfaces
                             .Select(t => new AddressRange(t, false, 24))
                             .Concat(interfaces
                                 .Where(t => t.Gateway != null &&
@@ -146,7 +146,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
                         break;
                     case DiscoveryMode.Scan:
                         interfaces = NetworkInformationEx.GetAllNetInterfaces(NetworkClass);
-                        AddressRanges = AddLocalHost(false, interfaces
+                        AddressRanges = AddLocalHost(interfaces
                             .Select(t => new AddressRange(t, false))
                             .Concat(interfaces
                                 .Where(t => t.Gateway != null &&
@@ -233,11 +233,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
         /// <summary>
         /// Add hosta address as fake address range
         /// </summary>
-        /// <param name="local"></param>
         /// <param name="ranges"></param>
         /// <returns></returns>
-        public IEnumerable<AddressRange> AddLocalHost(bool local,
-            IEnumerable<AddressRange> ranges) {
+        public IEnumerable<AddressRange> AddLocalHost(IEnumerable<AddressRange> ranges) {
             if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")?
                 .EqualsIgnoreCase("true") ?? false) {
                 try {
@@ -250,7 +248,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
                         .Where(a => !listedRanges
                             .Any(r => ((IPv4Address)a) >= r.Low && ((IPv4Address)a) <= r.High))
                         // Select either the local or a small subnet around it
-                        .Select(a => new AddressRange(a, local ? 32 : 24, local ? "localhost" : "default")));
+                        .Select(a => new AddressRange(a, 32, "localhost")));
                 }
                 catch {
                 }
