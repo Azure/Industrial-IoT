@@ -3,7 +3,6 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Blazored.SessionStorage" Version="1.0.11" />
     <PackageReference Include="BuildBundlerMinifier" Version="3.2.435" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="3.1.0" />
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="5.0.1" />
@@ -26,6 +25,7 @@
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Diagnostics.Debug\src\Microsoft.Azure.IIoT.Diagnostics.Debug.csproj" />
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Http.SignalR\src\Microsoft.Azure.IIoT.Http.SignalR.csproj" />
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.AspNetCore\src\Microsoft.Azure.IIoT.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\Blazored.SessionStorage\Blazored.SessionStorage.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Remove="bundleconfig.json" />
