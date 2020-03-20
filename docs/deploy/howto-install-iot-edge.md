@@ -10,7 +10,7 @@ You can purchase preconfigured IoT Edge gateways, please see our [Azure Device C
 
 Then, run our [Industrial Gateway Installer](https://docs.microsoft.com/en-us/azure/quickstart-gateway-installer/) on your gateway to automatically install the IoT Edge Runtime and Industrial Modules. Alternatively, you can manually install the IoT Edge runtime following the Azure IoT Edge [documentation](https://docs.microsoft.com/en-us/azure/iot-edge/). You can install the runtime on [Linux](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-linux) or [Windows](https://docs.microsoft.com/en-us/azure/iot-edge/how-to-install-iot-edge-windows).
 
-## Manually Enable Deployment of the Industrial IoT Modules on your IoT Edge Gateway
+### Manually Enable Deployment of the Industrial IoT Modules on your IoT Edge Gateway
 
 The deployment script will setup layered deployments for each IoT Edge Module. These layered deployments will be automatically applied to any gateway with the following Device Twin JSON tags:
 
