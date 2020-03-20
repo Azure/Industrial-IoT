@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// <param name="args"></param>
         public static void Main(string[] args) {
             Log.Logger = ConsoleLogger.Create();
-            LogControl.Level.MinimumLevel = Serilog.Events.LogEventLevel.Debug;
+            // LogControl.Level.MinimumLevel = Serilog.Events.LogEventLevel.Debug;
             CreateHostBuilder(args).Build().Run();
         }
 
