@@ -22,7 +22,12 @@ namespace Microsoft.Azure.IIoT.Utils {
         public AsyncDisposable(IDisposable disposable = null,
             Func<Task> disposeAsync = null) {
             _disposable = disposable;
-            _disposeAsync = disposeAsync;
+            if (disposeAsync != null) {
+                _disposeAsync = () => Try.Async(() => disposeAsync.Invoke());
+            }
+            else {
+                _disposeAsync = () => Task.CompletedTask;
+            }
         }
 
         /// <summary>

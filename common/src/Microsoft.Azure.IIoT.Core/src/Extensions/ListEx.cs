@@ -30,5 +30,23 @@ namespace System.Collections.Generic {
             }
             return list;
         }
+
+        /// <summary>
+        /// Add range
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="list"></param>
+        /// <param name="range"></param>
+        public static void AddRange<T>(this IList<T> list, IEnumerable<T> range) {
+            if (list == null) {
+                throw new ArgumentNullException(nameof(list));
+            }
+            if (range == null) {
+                return;
+            }
+            foreach (var item in range) {
+                list.Add(item);
+            }
+        }
     }
 }
