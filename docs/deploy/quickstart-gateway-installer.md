@@ -9,7 +9,7 @@ From your edge gateway, run the Industrial IoT Gateway Installer for Windows dir
 
 The Industrial IoT Gateway Installer will make sure all prerequisits are met.
 
-Apart from a name for your gateway, you will be asked to provide the IoT Hub Owner Connection String for the IoT Hub your gateway should communicate with. The person in your organisation responsible for Azure cloud administration can provide this string to you. It is available in the [Azure Portal](portal.azure.com) under the "Shared access policies" tab of the corresponding IoT Hub page.
+Apart from a name for your gateway, you will be asked to provide the IoT Hub Owner Connection String for the IoT Hub your gateway should communicate with. The person in your organisation responsible for Azure cloud administration can provide this string to you. It is available in the [Azure Portal](http://portal.azure.com) under the "Shared access policies" tab of the corresponding IoT Hub page.
 
 The installation will run completely automatically and a restart may be required several times during installation, depending on prerequisits that need to be installed. Simply rerun the Industrial IoT Gateway Installer after restarts.
 
