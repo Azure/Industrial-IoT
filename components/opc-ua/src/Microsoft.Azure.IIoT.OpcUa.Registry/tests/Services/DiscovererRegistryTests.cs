@@ -163,7 +163,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 .ToList();
 
             modules = discoverers
-                .Select(a => a.ToDiscovererRegistration())
+                .Select(a => {
+                    var r = a.ToDiscovererRegistration();
+                    r._desired = r;
+                    return r;
+                })
                 .Select(a => a.ToDeviceTwin())
                 .Select(t => {
                     t.Properties.Reported = new Dictionary<string, JToken> {
