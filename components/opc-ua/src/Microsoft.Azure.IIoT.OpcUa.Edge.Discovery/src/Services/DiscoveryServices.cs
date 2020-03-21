@@ -24,7 +24,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
     using System.Linq;
     using System.Net;
     using System.Net.Sockets;
-    using System.Net.NetworkInformation;
     using System.Threading;
     using System.Threading.Tasks;
     using Serilog;
@@ -446,7 +445,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                 var host = discoveryUrl.DnsSafeHost;
                 var list = new List<Tuple<IPEndPoint, Uri>>();
 
-                // check first if host is an IP Address since the Dns.GetHostEntryAsync 
+                // check first if host is an IP Address since the Dns.GetHostEntryAsync
                 // throws a socket exception when called with an IP address
                 try {
                     var hostIp = IPAddress.Parse(host);
@@ -457,7 +456,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                 }
                 catch {
                     // Parsing failed, therefore not an IP address, continue with dns
-                    // resolution 
+                    // resolution
                 }
 
                 while (!string.IsNullOrEmpty(host)) {
