@@ -445,43 +445,57 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
             return Try.Async(async () => {
                 var host = discoveryUrl.DnsSafeHost;
                 var list = new List<Tuple<IPEndPoint, Uri>>();
-                while (!string.IsNullOrEmpty(host)) {
-                    var entry = await Dns.GetHostEntryAsync(host);
 
-                    // only pick-up the IPV4 addresses
-                    var foundIpv4 = false;
-                    foreach (var address in entry.AddressList
-                        .Where(a => a.AddressFamily == AddressFamily.InterNetwork)) {
-                        var reply = await new Ping().SendPingAsync(address);
-                        if (reply.Status == IPStatus.Success) {
+                // check first if host is an IP Address since the Dns.GetHostEntryAsync 
+                // throws a socket exception when called with an IP address
+                try {
+                    var hostIp = IPAddress.Parse(host);
+                    var ep = new IPEndPoint(hostIp,
+                            discoveryUrl.IsDefaultPort ? 4840 : discoveryUrl.Port);
+                    list.Add(Tuple.Create(ep, discoveryUrl));
+                    return list;
+                }
+                catch {
+                    // Parsing failed, therefore not an IP address, continue with dns
+                    // resolution 
+                }
+
+                while (!string.IsNullOrEmpty(host)) {
+                    try {
+                        var entry = await Dns.GetHostEntryAsync(host);
+                        // only pick-up the IPV4 addresses
+                        var foundIpv4 = false;
+                        foreach (var address in entry.AddressList
+                            .Where(a => a.AddressFamily == AddressFamily.InterNetwork)) {
                             var ep = new IPEndPoint(address,
                                 discoveryUrl.IsDefaultPort ? 4840 : discoveryUrl.Port);
                             list.Add(Tuple.Create(ep, discoveryUrl));
                             foundIpv4 = true;
                         }
-                    }
-                    if (!foundIpv4) {
-                        // if no IPV4 responsive, try IPV6 as fallback
-                        foreach (var address in entry.AddressList
-                            .Where(a => a.AddressFamily != AddressFamily.InterNetwork)) {
-                            var reply = await new Ping().SendPingAsync(address);
-                            if (reply.Status == IPStatus.Success) {
+                        if (!foundIpv4) {
+                            // if no IPV4 responsive, try IPV6 as fallback
+                            foreach (var address in entry.AddressList
+                                .Where(a => a.AddressFamily != AddressFamily.InterNetwork)) {
                                 var ep = new IPEndPoint(address,
                                     discoveryUrl.IsDefaultPort ? 4840 : discoveryUrl.Port);
                                 list.Add(Tuple.Create(ep, discoveryUrl));
                             }
                         }
-                    }
 
-                    // Check local host
-                    if (host.EqualsIgnoreCase("localhost") &&
-                        (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")?
-                            .EqualsIgnoreCase("true") ?? false)) {
-                        // Also resolve docker internal since we are in a container
-                        host = "host.docker.internal";
-                        continue;
+                        // Check local host
+                        if (host.EqualsIgnoreCase("localhost") &&
+                            (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")?
+                                .EqualsIgnoreCase("true") ?? false)) {
+                            // Also resolve docker internal since we are in a container
+                            host = "host.docker.internal";
+                            continue;
+                        }
+                        break;
                     }
-                    break;
+                    catch (Exception e) {
+                        _logger.Warning(e, "Failed to resolve the host for {discoveryUrl}", discoveryUrl);
+                        return list;
+                    }
                 }
                 return list;
             });
