@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
     using Microsoft.Azure.IIoT.AspNetCore.Correlation;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
-    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Extensions;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Deploy;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Deploy;

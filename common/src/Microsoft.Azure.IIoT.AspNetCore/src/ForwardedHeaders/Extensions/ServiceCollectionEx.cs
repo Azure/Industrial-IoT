@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Extensions {
+namespace Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders {
 
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.HttpOverrides;
