@@ -27,7 +27,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Runtime {
         public string OpcUaPublisherServiceResourceId => GetStringOrDefault(
             kOpcUaPublisherServiceIdKey,
             () => GetStringOrDefault("OPC_PUBLISHER_APP_ID",
-                () => null));
+                () => GetStringOrDefault(PcsVariable.PCS_AUTH_AUDIENCE,
+                    () => null)));
 
         /// <inheritdoc/>
         public PublisherConfig(IConfiguration configuration) :

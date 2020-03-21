@@ -17,6 +17,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using Microsoft.Azure.IIoT.OpcUa.Vault.Storage;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
+    using Microsoft.Azure.IIoT.Auth.Clients.Default;
     using Microsoft.Azure.IIoT.Crypto.KeyVault.Clients;
     using Microsoft.Azure.IIoT.Crypto.Storage;
     using Microsoft.Azure.IIoT.Crypto.Default;
@@ -41,7 +42,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using System;
     using ILogger = Serilog.ILogger;
     using Prometheus;
-    using Microsoft.Azure.IIoT.Auth.Clients.Default;
 
     /// <summary>
     /// Webservice startup

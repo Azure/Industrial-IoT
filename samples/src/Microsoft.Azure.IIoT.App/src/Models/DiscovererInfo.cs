@@ -42,8 +42,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// Network probe timeout
         /// </summary>
         public string EffectiveNetworkProbeTimeout {
-            get => (DiscovererModel.DiscoveryConfig?.NetworkProbeTimeout ?? TimeSpan.Zero)
-                == TimeSpan.Zero ?
+            get => (DiscovererModel.DiscoveryConfig?.NetworkProbeTimeout ?? TimeSpan.MinValue)
+                == TimeSpan.MinValue ?
                 null : DiscovererModel.DiscoveryConfig.NetworkProbeTimeout.ToString();
         }
 
@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// Max network probes that should ever run.
         /// </summary>
         public string EffectiveMaxNetworkProbes {
-            get => (DiscovererModel.DiscoveryConfig?.MaxNetworkProbes ?? 0) == 0 ?
+            get => (DiscovererModel.DiscoveryConfig?.MaxNetworkProbes ?? -1) < 0 ?
                 null : DiscovererModel.DiscoveryConfig.MaxNetworkProbes.ToString();
         }
 
@@ -59,8 +59,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// Port probe timeout
         /// </summary>
         public string EffectivePortProbeTimeout {
-            get => (DiscovererModel.DiscoveryConfig?.PortProbeTimeout ?? TimeSpan.Zero)
-                == TimeSpan.Zero ?
+            get => (DiscovererModel.DiscoveryConfig?.PortProbeTimeout ?? TimeSpan.MinValue)
+                == TimeSpan.MinValue ?
                 null : DiscovererModel.DiscoveryConfig.PortProbeTimeout.ToString();
         }
 
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// Max port probes that should ever run.
         /// </summary>
         public string EffectiveMaxPortProbes {
-            get => (DiscovererModel.DiscoveryConfig?.MaxPortProbes ?? 0) == 0 ?
+            get => (DiscovererModel.DiscoveryConfig?.MaxPortProbes ?? -1) < 0 ?
                 null : DiscovererModel.DiscoveryConfig.MaxPortProbes.ToString();
         }
 
@@ -76,8 +76,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// Delay time between discovery sweeps in seconds
         /// </summary>
         public string EffectiveIdleTimeBetweenScans {
-            get => (DiscovererModel.DiscoveryConfig?.IdleTimeBetweenScans ?? TimeSpan.Zero)
-                == TimeSpan.Zero ?
+            get => (DiscovererModel.DiscoveryConfig?.IdleTimeBetweenScans ?? TimeSpan.MinValue)
+                == TimeSpan.MinValue ?
                 null : DiscovererModel.DiscoveryConfig.IdleTimeBetweenScans.ToString();
         }
 
@@ -117,12 +117,12 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// Network probe timeout
         /// </summary>
         public string RequestedNetworkProbeTimeout {
-            get => (DiscovererModel.RequestedConfig?.NetworkProbeTimeout ?? TimeSpan.Zero)
-                == TimeSpan.Zero ?
+            get => (DiscovererModel.RequestedConfig?.NetworkProbeTimeout ?? TimeSpan.MinValue)
+                == TimeSpan.MinValue ?
                 null : DiscovererModel.RequestedConfig.NetworkProbeTimeout.ToString();
             set {
                 Patch.NetworkProbeTimeout =
-                    string.IsNullOrEmpty(value) ? TimeSpan.MinValue :
+                    string.IsNullOrWhiteSpace(value) ? TimeSpan.MinValue :
                     TimeSpan.Parse(value);
             }
         }
@@ -131,11 +131,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// Max network probes that should ever run.
         /// </summary>
         public string RequestedMaxNetworkProbes {
-            get => (DiscovererModel.RequestedConfig?.MaxNetworkProbes ?? 0) == 0 ?
+            get => (DiscovererModel.RequestedConfig?.MaxNetworkProbes ?? -1) < 0 ?
                 null : DiscovererModel.RequestedConfig.MaxNetworkProbes.ToString();
             set {
                 Patch.MaxNetworkProbes =
-                    string.IsNullOrEmpty(value) ? -1 : int.Parse(value);
+                    string.IsNullOrWhiteSpace(value) ? -1 : int.Parse(value);
             }
         }
 
@@ -143,12 +143,12 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// Port probe timeout
         /// </summary>
         public string RequestedPortProbeTimeout {
-            get => (DiscovererModel.RequestedConfig?.PortProbeTimeout ?? TimeSpan.Zero)
-                == TimeSpan.Zero ?
+            get => (DiscovererModel.RequestedConfig?.PortProbeTimeout ?? TimeSpan.MinValue)
+                == TimeSpan.MinValue ?
                 null : DiscovererModel.RequestedConfig.PortProbeTimeout.ToString();
             set {
                 Patch.PortProbeTimeout =
-                    string.IsNullOrEmpty(value) ? TimeSpan.MinValue :
+                    string.IsNullOrWhiteSpace(value) ? TimeSpan.MinValue :
                     TimeSpan.Parse(value);
             }
         }
@@ -157,11 +157,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// Max port probes that should ever run.
         /// </summary>
         public string RequestedMaxPortProbes {
-            get => (DiscovererModel.RequestedConfig?.MaxPortProbes ?? 0) == 0 ?
+            get => (DiscovererModel.RequestedConfig?.MaxPortProbes ?? -1) < 0 ?
                 null : DiscovererModel.RequestedConfig.MaxPortProbes.ToString();
             set {
                 Patch.MaxPortProbes =
-                    string.IsNullOrEmpty(value) ? -1 : int.Parse(value);
+                    string.IsNullOrWhiteSpace(value) ? -1 : int.Parse(value);
             }
         }
 
@@ -169,12 +169,12 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// Delay time between discovery sweeps in seconds
         /// </summary>
         public string RequestedIdleTimeBetweenScans {
-            get => (DiscovererModel.RequestedConfig?.IdleTimeBetweenScans ?? TimeSpan.Zero)
-                == TimeSpan.Zero ?
+            get => (DiscovererModel.RequestedConfig?.IdleTimeBetweenScans ?? TimeSpan.MinValue)
+                == TimeSpan.MinValue ?
                 null : DiscovererModel.RequestedConfig.IdleTimeBetweenScans.ToString();
             set {
                 Patch.IdleTimeBetweenScans =
-                    string.IsNullOrEmpty(value) ? TimeSpan.MinValue :
+                    string.IsNullOrWhiteSpace(value) ? TimeSpan.MinValue :
                     TimeSpan.Parse(value);
             }
         }
@@ -187,7 +187,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 null : DiscovererModel.RequestedConfig.AddressRangesToScan;
             set {
                 Patch.AddressRangesToScan =
-                    string.IsNullOrEmpty(value) ? string.Empty : value;
+                    string.IsNullOrWhiteSpace(value) ? string.Empty : value;
             }
         }
 
@@ -199,7 +199,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 null : DiscovererModel.RequestedConfig.PortRangesToScan;
             set {
                 Patch.PortRangesToScan =
-                    string.IsNullOrEmpty(value) ? string.Empty : value;
+                    string.IsNullOrWhiteSpace(value) ? string.Empty : value;
             }
         }
 
