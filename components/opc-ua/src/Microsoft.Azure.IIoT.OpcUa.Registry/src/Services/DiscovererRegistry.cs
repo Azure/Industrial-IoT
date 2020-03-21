@@ -181,13 +181,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             if (model?.Discovery != null) {
                 // If reported discovery mode provided, include it in search
-                query += $"AND properties.reported.{nameof(DiscovererRegistration.Discovery)} = " +
-                    $"'{model.Discovery}' ";
+                query += $"AND (properties.reported.{nameof(DiscovererRegistration.Discovery)} = " +
+                    $"'{model.Discovery}' " +
+                         $"OR properties.desired.{nameof(DiscovererRegistration.Discovery)} = " +
+                    $"'{model.Discovery}')";
             }
             if (model?.SiteId != null) {
                 // If site id provided, include it in search
                 query += $"AND (properties.reported.{TwinProperty.SiteId} = " +
-                    $"'{model.SiteId}' OR properties.desired.{TwinProperty.SiteId} = " +
+                    $"'{model.SiteId}' " +
+                        $"OR properties.desired.{TwinProperty.SiteId} = " +
                     $"'{model.SiteId}')";
             }
             if (model?.Connected != null) {
