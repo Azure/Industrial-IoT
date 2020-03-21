@@ -93,7 +93,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             return new DiscovererModel {
                 Connected = model.Connected,
                 Discovery = model.Discovery,
+                RequestedMode = model.RequestedMode,
                 DiscoveryConfig = model.DiscoveryConfig.Clone(),
+                RequestedConfig = model.RequestedConfig.Clone(),
                 Id = model.Id,
                 OutOfSync = model.OutOfSync,
                 SiteId = model.SiteId

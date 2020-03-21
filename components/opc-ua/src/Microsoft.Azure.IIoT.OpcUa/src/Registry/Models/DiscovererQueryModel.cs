@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Supervisor discovery mode
+        /// Discovery mode
         /// </summary>
         public DiscoveryMode? Discovery { get; set; }
 

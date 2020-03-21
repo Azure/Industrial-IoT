@@ -362,7 +362,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     continue;
                 }
                 if (!ProcessEdgeHostSettings(property.Key, value)) {
-                    desired[property.Key] = value;
+                    // desired[property.Key] = value;
                     _reported.AddOrUpdate(property.Key, (object)value);
                 }
             }

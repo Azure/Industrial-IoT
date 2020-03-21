@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Correlation;
-    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Extensions;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
@@ -25,8 +25,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Hosting;
     using Microsoft.Extensions.Logging;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.OpenApi.Models;
@@ -127,7 +127,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
             services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 
-
         /// <summary>
         /// This method is called by the runtime, after the ConfigureServices
         /// method above and used to add middleware
@@ -149,6 +148,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
 
             app.UseRouting();
             app.EnableCors();
+            app.UseMetricServer();
 
             if (Config.AuthRequired) {
                 app.UseAuthentication();
@@ -161,7 +161,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
 
             app.UseCorrelation();
             app.UseSwagger();
-            app.UseMetricServer();
+
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();
                 endpoints.MapHealthChecks("/healthz");
@@ -186,6 +186,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
             builder.RegisterInstance(ServiceInfo)
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterInstance(Config)
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterInstance(Config.Configuration)
                 .AsImplementedInterfaces().SingleInstance();
 
             // Add diagnostics based on configuration

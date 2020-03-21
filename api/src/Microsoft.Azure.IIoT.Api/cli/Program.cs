@@ -1598,15 +1598,13 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// </summary>
         private async Task ListDiscoverersAsync(CliOptions options) {
             if (options.IsSet("-A", "--all")) {
-                var result = await _registry.ListAllDiscoverersAsync(
-                    options.IsProvidedOrNull("-S", "--server"));
+                var result = await _registry.ListAllDiscoverersAsync();
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
                 var result = await _registry.ListDiscoverersAsync(
                     options.GetValueOrDefault<string>("-C", "--continuation", null),
-                    options.IsProvidedOrNull("-S", "--server"),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
             }
@@ -1629,7 +1627,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             }
             else {
                 var result = await _registry.QueryDiscoverersAsync(query,
-                    options.IsProvidedOrNull("-S", "--server"),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
             }
@@ -1639,8 +1636,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// Get discoverer
         /// </summary>
         private async Task GetDiscovererAsync(CliOptions options) {
-            var result = await _registry.GetDiscovererAsync(GetDiscovererId(options),
-                options.IsProvidedOrNull("-S", "--server"));
+            var result = await _registry.GetDiscovererAsync(GetDiscovererId(options));
             PrintResult(options, result);
         }
 
@@ -3227,7 +3223,6 @@ Commands and Options
 
      list        List discoverers
         with ...
-        -S, --server    Return only server state (default:false)
         -C, --continuation
                         Continuation from previous result.
         -P, --page-size Size of page
@@ -3235,7 +3230,6 @@ Commands and Options
         -F, --format    Json format for result
 
      query       Find discoverers
-        -S, --server    Return only server state (default:false)
         -c, --connected Only return connected or disconnected.
         -d, --discovery Discovery state.
         -s, --siteId    Site of the discoverers.
@@ -3245,7 +3239,6 @@ Commands and Options
 
      get         Get discoverer
         with ...
-        -S, --server    Return only server state (default:false)
         -i, --id        Id of discoverer to retrieve (mandatory)
         -F, --format    Json format for result
 

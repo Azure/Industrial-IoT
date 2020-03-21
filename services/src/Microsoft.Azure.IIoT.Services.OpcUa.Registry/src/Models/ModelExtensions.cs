@@ -224,6 +224,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models {
                 Id = model.Id,
                 SiteId = model.SiteId,
                 LogLevel = (IIoT.OpcUa.Api.Registry.Models.TraceLogLevel?)model.LogLevel,
+                RequestedMode = (IIoT.OpcUa.Api.Registry.Models.DiscoveryMode?)model.RequestedMode,
+                RequestedConfig = model.RequestedConfig.ToApiModel(),
                 Discovery = (IIoT.OpcUa.Api.Registry.Models.DiscoveryMode?)model.Discovery,
                 DiscoveryConfig = model.DiscoveryConfig.ToApiModel(),
                 OutOfSync = model.OutOfSync,

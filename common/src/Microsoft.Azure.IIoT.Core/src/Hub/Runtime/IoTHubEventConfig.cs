@@ -28,10 +28,13 @@ namespace Microsoft.Azure.IIoT.Hub.Client.Runtime {
         public string EventHubConnString {
             get {
                 var ep = GetStringOrDefault(PcsVariable.PCS_IOTHUB_EVENTHUBENDPOINT,
-                    GetStringOrDefault("PCS_IOTHUBREACT_HUB_ENDPOINT", null));
+                    () => GetStringOrDefault("PCS_IOTHUBREACT_HUB_ENDPOINT",
+                    () => null));
                 if (string.IsNullOrEmpty(ep)) {
-                    var cs = GetStringOrDefault(kEventHubConnStringKey, GetStringOrDefault(
-                        _serviceId + "_EH_CS", GetStringOrDefault("_EH_CS", null)))?.Trim();
+                    var cs = GetStringOrDefault(kEventHubConnStringKey,
+                        () => GetStringOrDefault(_serviceId + "_EH_CS",
+                        () => GetStringOrDefault("_EH_CS",
+                        () => null)))?.Trim();
                     if (string.IsNullOrEmpty(cs)) {
                         return null;
                     }
@@ -50,23 +53,25 @@ namespace Microsoft.Azure.IIoT.Hub.Client.Runtime {
 
         /// <summary> Event hub default consumer group </summary>
         public string ConsumerGroup => GetStringOrDefault(kEventHubConsumerGroupKey,
-            GetStringOrDefault("PCS_IOTHUB_EVENTHUBCONSUMERGROUP",
-                GetStringOrDefault("PCS_IOTHUBREACT_HUB_CONSUMERGROUP", "$default")));
+            () => GetStringOrDefault("PCS_IOTHUB_EVENTHUBCONSUMERGROUP",
+                () => GetStringOrDefault("PCS_IOTHUBREACT_HUB_CONSUMERGROUP", () => "$default")));
         /// <summary> Event hub path </summary>
         public string EventHubPath => GetStringOrDefault(kEventHubPathKey,
-            IoTHubName);
+            () => IoTHubName);
         /// <summary> Whether use websockets to connect </summary>
         public bool UseWebsockets => GetBoolOrDefault(kUseWebsocketsKey,
-            GetBoolOrDefault(_serviceId + "_WS", GetBoolOrDefault("_WS", false)));
+            () => GetBoolOrDefault(_serviceId + "_WS",
+                () => GetBoolOrDefault("_WS", () => false)));
 
         /// <summary>IoT hub connection string</summary>
         public string IoTHubConnString => GetStringOrDefault(kIoTHubConnectionStringKey,
-            GetStringOrDefault(_serviceId + "_HUB_CS",
-                GetStringOrDefault(PcsVariable.PCS_IOTHUB_CONNSTRING, GetStringOrDefault("_HUB_CS", null))));
+            () => GetStringOrDefault(_serviceId + "_HUB_CS",
+               () => GetStringOrDefault(PcsVariable.PCS_IOTHUB_CONNSTRING,
+                   () => GetStringOrDefault("_HUB_CS", () => null))));
         /// <summary>Hub name</summary>
         public string IoTHubName {
             get {
-                var name = GetStringOrDefault("PCS_IOTHUBREACT_HUB_NAME", null);
+                var name = GetStringOrDefault("PCS_IOTHUBREACT_HUB_NAME", () => null);
                 if (!string.IsNullOrEmpty(name)) {
                     return name;
                 }

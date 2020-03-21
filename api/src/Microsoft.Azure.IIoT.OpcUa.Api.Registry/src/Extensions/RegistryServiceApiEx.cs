@@ -117,18 +117,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// List all discoverers
         /// </summary>
         /// <param name="service"></param>
-        /// <param name="onlyServerState"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<IEnumerable<DiscovererApiModel>> ListAllDiscoverersAsync(
-            this IRegistryServiceApi service, bool? onlyServerState = null,
-            CancellationToken ct = default) {
+            this IRegistryServiceApi service, CancellationToken ct = default) {
             var registrations = new List<DiscovererApiModel>();
-            var result = await service.ListDiscoverersAsync(null, onlyServerState, null, ct);
+            var result = await service.ListDiscoverersAsync(null, null, ct);
             registrations.AddRange(result.Items);
             while (result.ContinuationToken != null) {
                 result = await service.ListDiscoverersAsync(result.ContinuationToken,
-                    onlyServerState, null, ct);
+                    null, ct);
                 registrations.AddRange(result.Items);
             }
             return registrations;
@@ -146,11 +144,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
             this IRegistryServiceApi service, DiscovererQueryApiModel query, bool? onlyServerState = null,
             CancellationToken ct = default) {
             var registrations = new List<DiscovererApiModel>();
-            var result = await service.QueryDiscoverersAsync(query, onlyServerState, null, ct);
+            var result = await service.QueryDiscoverersAsync(query, null, ct);
             registrations.AddRange(result.Items);
             while (result.ContinuationToken != null) {
                 result = await service.ListDiscoverersAsync(result.ContinuationToken,
-                    onlyServerState, null, ct);
+                    null, ct);
                 registrations.AddRange(result.Items);
             }
             return registrations;

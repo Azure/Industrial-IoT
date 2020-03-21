@@ -37,10 +37,13 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        protected string GetStringOrDefault(string key, string defaultValue = "") {
-            var value = Configuration.GetValue(key, defaultValue);
+        protected string GetStringOrDefault(string key, Func<string> defaultValue = null) {
+            var value = Configuration.GetValue<string>(key);
             if (string.IsNullOrEmpty(value)) {
-                return defaultValue;
+                if (defaultValue == null) {
+                    return string.Empty;
+                }
+                return defaultValue.Invoke();
             }
             return value.Trim();
         }
@@ -51,12 +54,12 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        protected bool GetBoolOrDefault(string key, bool defaultValue = false) {
+        protected bool GetBoolOrDefault(string key, Func<bool> defaultValue = null) {
             var result = GetBoolOrNull(key);
             if (result.HasValue) {
                 return result.Value;
             }
-            return defaultValue;
+            return defaultValue?.Invoke() ?? false;
         }
 
         /// <summary>
@@ -65,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="key"></param>
         /// <returns></returns>
         protected bool? GetBoolOrNull(string key) {
-            var value = GetStringOrDefault(key, "").ToLowerInvariant();
+            var value = GetStringOrDefault(key, () => "").ToLowerInvariant();
             var knownTrue = new HashSet<string> { "true", "yes", "y", "1" };
             var knownFalse = new HashSet<string> { "false", "no", "n", "0" };
             if (knownTrue.Contains(value)) {
@@ -84,10 +87,10 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="defaultValue"></param>
         /// <returns></returns>
         protected TimeSpan GetDurationOrDefault(string key,
-            TimeSpan? defaultValue = null) {
+            Func<TimeSpan> defaultValue = null) {
             if (!TimeSpan.TryParse(GetStringOrDefault(key), out var result)) {
                 if (defaultValue != null) {
-                    return (TimeSpan)defaultValue;
+                    return defaultValue.Invoke();
                 }
                 throw new InvalidConfigurationException(
                     $"Unable to load timespan value for '{key}' from configuration.");
@@ -118,12 +121,12 @@ namespace Microsoft.Azure.IIoT.Utils {
         /// <param name="key"></param>
         /// <param name="defaultValue"></param>
         /// <returns></returns>
-        protected int GetIntOrDefault(string key, int defaultValue = 0) {
+        protected int GetIntOrDefault(string key, Func<int> defaultValue = null) {
             var value = GetIntOrNull(key);
             if (value.HasValue) {
                 return value.Value;
             }
-            return defaultValue;
+            return defaultValue?.Invoke() ?? 0;
         }
 
         /// <summary>

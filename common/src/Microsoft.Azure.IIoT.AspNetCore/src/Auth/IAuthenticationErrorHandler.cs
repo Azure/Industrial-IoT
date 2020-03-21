@@ -1,4 +1,5 @@
-﻿//  Copyright (c) Microsoft Corporation.  All rights reserved.
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
@@ -10,6 +11,11 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     /// Handle error
     /// </summary>
     public interface IAuthenticationErrorHandler {
+
+        /// <summary>
+        /// Aquire token non-silent if silent fails before handling.
+        /// </summary>
+        bool AcquireTokenIfSilentFails { get; }
 
         /// <summary>
         /// Handle authentication error

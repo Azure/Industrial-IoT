@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Net;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Net.Models;
     using System;
     using System.Collections.Generic;
@@ -117,25 +118,53 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
                 Request.Configuration = new DiscoveryConfigModel();
             }
 
+
+            if (Request.Discovery == null ||
+                Request.Discovery == DiscoveryMode.Off) {
+
+                // Report empty configuration if off
+                Request.Configuration = new DiscoveryConfigModel();
+                Request.Discovery = DiscoveryMode.Off;
+
+                return;
+            }
+
+            // Parse whatever provided
+
+            if (!string.IsNullOrEmpty(Request.Configuration.PortRangesToScan)) {
+                if (PortRange.TryParse(Request.Configuration.PortRangesToScan,
+                    out var ports)) {
+                    PortRanges = ports;
+                    if (Request.Discovery == null) {
+                        Request.Discovery = DiscoveryMode.Fast;
+                    }
+                }
+            }
+
             if (!string.IsNullOrEmpty(Request.Configuration.AddressRangesToScan)) {
                 if (AddressRange.TryParse(Request.Configuration.AddressRangesToScan,
                     out var addresses)) {
                     AddressRanges = addresses;
+                    if (Request.Discovery == null) {
+                        Request.Discovery = DiscoveryMode.Fast;
+                    }
                 }
             }
+
+            // Set default ranges
 
             if (AddressRanges == null) {
                 IEnumerable<NetInterface> interfaces;
                 switch (Request.Discovery) {
                     case DiscoveryMode.Local:
                         interfaces = NetworkInformationEx.GetAllNetInterfaces(NetworkClass);
-                        AddressRanges = AddLocalHost(true, interfaces
+                        AddressRanges = AddLocalHost(interfaces
                             .Select(t => new AddressRange(t, true)))
                             .Distinct();
                         break;
                     case DiscoveryMode.Fast:
                         interfaces = NetworkInformationEx.GetAllNetInterfaces(NetworkClass.Wired);
-                        AddressRanges = AddLocalHost(false, interfaces
+                        AddressRanges = AddLocalHost(interfaces
                             .Select(t => new AddressRange(t, false, 24))
                             .Concat(interfaces
                                 .Where(t => t.Gateway != null &&
@@ -144,9 +173,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
                                 .Select(i => new AddressRange(i.Gateway, 32)))
                             .Distinct());
                         break;
+                    case DiscoveryMode.Network:
                     case DiscoveryMode.Scan:
                         interfaces = NetworkInformationEx.GetAllNetInterfaces(NetworkClass);
-                        AddressRanges = AddLocalHost(false, interfaces
+                        AddressRanges = AddLocalHost(interfaces
                             .Select(t => new AddressRange(t, false))
                             .Concat(interfaces
                                 .Where(t => t.Gateway != null &&
@@ -156,20 +186,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
                             .Distinct());
                         break;
                     case DiscoveryMode.Off:
-                        AddressRanges = Enumerable.Empty<AddressRange>();
-                        break;
                     default:
                         AddressRanges = Enumerable.Empty<AddressRange>();
                         break;
-                }
-            }
-
-            Request.Configuration.AddressRangesToScan = AddressRange.Format(AddressRanges);
-
-            if (!string.IsNullOrEmpty(Request.Configuration.PortRangesToScan)) {
-                if (PortRange.TryParse(Request.Configuration.PortRangesToScan,
-                    out var ports)) {
-                    PortRanges = ports;
                 }
             }
 
@@ -184,22 +203,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
                     case DiscoveryMode.Scan:
                         PortRanges = PortRange.Unassigned;
                         break;
-                    case DiscoveryMode.Off:
-                        PortRanges = Enumerable.Empty<PortRange>();
-                        break;
-                    default:
+                    case DiscoveryMode.Network:
                         PortRanges = PortRange.OpcUa;
+                        break;
+                    case DiscoveryMode.Off:
+                    default:
+                        PortRanges = Enumerable.Empty<PortRange>();
                         break;
                 }
             }
 
-            Request.Configuration.PortRangesToScan = PortRange.Format(PortRanges);
+            // Update reported configuration with used settings
+
+            if (AddressRanges != null && AddressRanges.Any()) {
+                Request.Configuration.AddressRangesToScan = AddressRange.Format(AddressRanges);
+                TotalAddresses = AddressRanges?.Sum(r => r.Count) ?? 0;
+            }
+
+            if (PortRanges != null && PortRanges.Any()) {
+                Request.Configuration.PortRangesToScan = PortRange.Format(PortRanges);
+                TotalPorts = PortRanges?.Sum(r => r.Count) ?? 0;
+            }
+
             Request.Configuration.IdleTimeBetweenScans ??= kDefaultIdleTime;
             Request.Configuration.PortProbeTimeout ??= kDefaultPortProbeTimeout;
             Request.Configuration.NetworkProbeTimeout ??= kDefaultNetworkProbeTimeout;
-
-            TotalAddresses = AddressRanges?.Sum(r => r.Count) ?? 0;
-            TotalPorts = PortRanges?.Sum(r => r.Count) ?? 0;
         }
 
         /// <summary>
@@ -214,7 +242,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
         /// Cancel request
         /// </summary>
         public void Cancel() {
-            _cts.Cancel();
+            Try.Op(() => _cts.Cancel());
         }
 
         /// <inheritdoc/>
@@ -233,11 +261,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
         /// <summary>
         /// Add hosta address as fake address range
         /// </summary>
-        /// <param name="local"></param>
         /// <param name="ranges"></param>
         /// <returns></returns>
-        public IEnumerable<AddressRange> AddLocalHost(bool local,
-            IEnumerable<AddressRange> ranges) {
+        public IEnumerable<AddressRange> AddLocalHost(IEnumerable<AddressRange> ranges) {
             if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")?
                 .EqualsIgnoreCase("true") ?? false) {
                 try {
@@ -250,7 +276,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
                         .Where(a => !listedRanges
                             .Any(r => ((IPv4Address)a) >= r.Low && ((IPv4Address)a) <= r.High))
                         // Select either the local or a small subnet around it
-                        .Select(a => new AddressRange(a, local ? 32 : 24, local ? "localhost" : "default")));
+                        .Select(a => new AddressRange(a, 32, "localhost")));
                 }
                 catch {
                 }

@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     [ApiVersion("2")][Route("v{version:apiVersion}/monitor")]
     [ExceptionsFilter]
     [Produces(ContentMimeType.Json)]
-    [Authorize(Policy = Policies.CanPublish)]
+    [Authorize(Policy = Policies.CanBrowse)]
     [ApiController]
     public class MonitorController : ControllerBase {
 

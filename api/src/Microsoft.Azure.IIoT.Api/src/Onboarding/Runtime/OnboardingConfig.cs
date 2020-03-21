@@ -15,17 +15,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Runtime {
         /// <summary>
         /// Onboarding configuration
         /// </summary>
-        private const string kOpcUaOnboardingServiceUrlKey = "OpcOnboardingServiceUrl";
-        private const string kOpcUaOnboardingServiceIdKey = "OpcOnboardingServiceResourceId";
+        private const string kOnboardingServiceUrlKey = "OnboardingServiceUrl";
+        private const string kOnboardingServiceIdKey = "OnboardingServiceResourceId";
 
-        /// <summary>OPC onboarding endpoint url</summary>
+        /// <summary>onboarding endpoint url</summary>
         public string OpcUaOnboardingServiceUrl => GetStringOrDefault(
-            kOpcUaOnboardingServiceUrlKey, GetStringOrDefault(
-                PcsVariable.PCS_ONBOARDING_SERVICE_URL, GetDefaultUrl("9060", "onboarding")));
-        /// <summary>OPC onboarding service audience</summary>
+            kOnboardingServiceUrlKey,
+            () => GetStringOrDefault(PcsVariable.PCS_ONBOARDING_SERVICE_URL,
+                () => GetDefaultUrl("9060", "onboarding")));
+        /// <summary>onboarding service audience</summary>
         public string OpcUaOnboardingServiceResourceId => GetStringOrDefault(
-            kOpcUaOnboardingServiceIdKey, GetStringOrDefault("OPC_ONBOARDING_APP_ID",
-                GetStringOrDefault(PcsVariable.PCS_AUTH_AUDIENCE, null)));
+            kOnboardingServiceIdKey,
+            () => GetStringOrDefault("OPC_ONBOARDING_APP_ID",
+                () => GetStringOrDefault(PcsVariable.PCS_AUTH_AUDIENCE,
+                    () => null)));
 
         /// <inheritdoc/>
         public OnboardingConfig(IConfiguration configuration) :

@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
     using Microsoft.OpenApi.Any;
     using Microsoft.OpenApi.Models;
     using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using Swashbuckle.AspNetCore.SwaggerGen;
     using System;
     using System.Collections.Generic;
@@ -55,8 +54,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
                     // Replace parameter definition with property schema
                     parameter.Name = propertySchema.Key;
                     // Quick and dirty clone of the schema for the parameter
-                    parameter.Schema = JsonConvertEx.DeserializeObject<OpenApiSchema>(
-                        JsonConvertEx.SerializeObject(propertySchema.Value));
+                    parameter.Schema = JsonConvert.DeserializeObject<OpenApiSchema>(
+                        JsonConvert.SerializeObject(propertySchema.Value));
                 }
                 parameter.Required = context.PropertyInfo
                     .GetCustomAttributes(typeof(RequiredAttribute), true)
@@ -98,8 +97,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
                     model.Type = "string";
                     model.Enum = Enum.GetValues(paramType)
                         .Cast<object>()
-                        .Select(v => JToken.FromObject(v))
-                        .Select(n => (IOpenApiAny)new OpenApiString(n.ToString()))
+                        .Select(v => JsonConvert.SerializeObject(v))
+                        .Select(n => (IOpenApiAny)new OpenApiString(n))
                         .ToList();
                     model.Extensions.AddOrUpdate("x-ms-enum", new OpenApiObject {
                         ["name"] = new OpenApiString(paramType.Name),

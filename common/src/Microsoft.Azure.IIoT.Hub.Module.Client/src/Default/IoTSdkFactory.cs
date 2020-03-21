@@ -330,24 +330,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <inheritdoc />
-            public Task SetStreamsDefaultHandlerAsync(StreamCallback streamHandler,
-                object userContext) {
-                throw new NotSupportedException("Module client does not support streams");
-            }
-
-            /// <inheritdoc />
-            public Task SetStreamHandlerAsync(string streamName, StreamCallback
-                streamHandler, object userContext) {
-                throw new NotSupportedException("Module client does not support streams");
-            }
-
-            /// <inheritdoc />
-            public Task<Stream> CreateStreamAsync(string streamName, string hostName,
-                ushort port, CancellationToken cancellationToken) {
-                throw new NotSupportedException("Module client does not support streams");
-            }
-
-            /// <inheritdoc />
             public void Dispose() {
                 IsClosed = true;
                 _client?.Dispose();
@@ -540,24 +522,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             public Task<MethodResponse> InvokeMethodAsync(string deviceId,
                 MethodRequest methodRequest, CancellationToken cancellationToken) {
                 throw new NotSupportedException("Device client does not support methods");
-            }
-
-            /// <inheritdoc />
-            public Task SetStreamsDefaultHandlerAsync(StreamCallback streamHandler,
-                object userContext) {
-                throw new NotSupportedException("Device client does not support streams");
-            }
-
-            /// <inheritdoc />
-            public Task SetStreamHandlerAsync(string streamName, StreamCallback
-                streamHandler, object userContext) {
-                throw new NotSupportedException("Device client does not support streams");
-            }
-
-            /// <inheritdoc />
-            public Task<Stream> CreateStreamAsync(string streamName, string hostName,
-                ushort port, CancellationToken cancellationToken) {
-                throw new NotSupportedException("Device client does not support streams");
             }
 
             /// <inheritdoc />
