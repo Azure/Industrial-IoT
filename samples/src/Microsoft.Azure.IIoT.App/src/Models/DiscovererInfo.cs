@@ -6,6 +6,8 @@
 namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
 
     public class DiscovererInfo {
 
@@ -13,6 +15,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// Discoverer models.
         /// </summary>
         public DiscovererApiModel DiscovererModel { get; set; }
+
+        /// <summary>
+        /// Patch
+        /// </summary>
+        public DiscoveryConfigApiModel Patch { get; set; } = new DiscoveryConfigApiModel();
 
         /// <summary>
         /// scan status.
@@ -34,16 +41,88 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <summary>
         /// Network probe timeout
         /// </summary>
-        public string NetworkProbeTimeout {
+        public string EffectiveNetworkProbeTimeout {
             get => (DiscovererModel.DiscoveryConfig?.NetworkProbeTimeout ?? TimeSpan.Zero)
                 == TimeSpan.Zero ?
                 null : DiscovererModel.DiscoveryConfig.NetworkProbeTimeout.ToString();
+        }
+
+        /// <summary>
+        /// Max network probes that should ever run.
+        /// </summary>
+        public string EffectiveMaxNetworkProbes {
+            get => (DiscovererModel.DiscoveryConfig?.MaxNetworkProbes ?? 0) == 0 ?
+                null : DiscovererModel.DiscoveryConfig.MaxNetworkProbes.ToString();
+        }
+
+        /// <summary>
+        /// Port probe timeout
+        /// </summary>
+        public string EffectivePortProbeTimeout {
+            get => (DiscovererModel.DiscoveryConfig?.PortProbeTimeout ?? TimeSpan.Zero)
+                == TimeSpan.Zero ?
+                null : DiscovererModel.DiscoveryConfig.PortProbeTimeout.ToString();
+        }
+
+        /// <summary>
+        /// Max port probes that should ever run.
+        /// </summary>
+        public string EffectiveMaxPortProbes {
+            get => (DiscovererModel.DiscoveryConfig?.MaxPortProbes ?? 0) == 0 ?
+                null : DiscovererModel.DiscoveryConfig.MaxPortProbes.ToString();
+        }
+
+        /// <summary>
+        /// Delay time between discovery sweeps in seconds
+        /// </summary>
+        public string EffectiveIdleTimeBetweenScans {
+            get => (DiscovererModel.DiscoveryConfig?.IdleTimeBetweenScans ?? TimeSpan.Zero)
+                == TimeSpan.Zero ?
+                null : DiscovererModel.DiscoveryConfig.IdleTimeBetweenScans.ToString();
+        }
+
+        /// <summary>
+        /// Address ranges to scan (null == all wired nics)
+        /// </summary>
+        public string EffectiveAddressRangesToScan {
+            get => string.IsNullOrEmpty(DiscovererModel.DiscoveryConfig?.AddressRangesToScan) ?
+                null : DiscovererModel.DiscoveryConfig.AddressRangesToScan;
+        }
+
+        /// <summary>
+        /// Port ranges to scan (null == all unassigned)
+        /// </summary>
+        public string EffectivePortRangesToScan {
+            get => string.IsNullOrEmpty(DiscovererModel.DiscoveryConfig?.PortRangesToScan) ?
+                null : DiscovererModel.DiscoveryConfig.PortRangesToScan;
+        }
+
+        /// <summary>
+        /// List of preset discovery urls to use
+        /// </summary>
+        public List<string> EffectiveDiscoveryUrls {
+            get => DiscovererModel.DiscoveryConfig?.DiscoveryUrls == null ?
+                new List<string>() : DiscovererModel.DiscoveryConfig.DiscoveryUrls;
+        }
+
+        /// <summary>
+        /// List of locales to filter with during discovery
+        /// </summary>
+        public List<string> EffectiveLocales {
+            get => DiscovererModel.DiscoveryConfig?.Locales == null ?
+                new List<string>() : DiscovererModel.DiscoveryConfig.Locales;
+        }
+
+        /// <summary>
+        /// Network probe timeout
+        /// </summary>
+        public string RequestedNetworkProbeTimeout {
+            get => (DiscovererModel.RequestedConfig?.NetworkProbeTimeout ?? TimeSpan.Zero)
+                == TimeSpan.Zero ?
+                null : DiscovererModel.RequestedConfig.NetworkProbeTimeout.ToString();
             set {
-                if (DiscovererModel.DiscoveryConfig == null) {
-                    DiscovererModel.DiscoveryConfig = new DiscoveryConfigApiModel();
-                }
-                DiscovererModel.DiscoveryConfig.NetworkProbeTimeout =
-                    string.IsNullOrEmpty(value) ? TimeSpan.Zero :
+                Patch.NetworkProbeTimeout =
+                    string.IsNullOrEmpty(value) ? TimeSpan.MinValue :
                     TimeSpan.Parse(value);
             }
         }
@@ -51,31 +130,25 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <summary>
         /// Max network probes that should ever run.
         /// </summary>
-        public string MaxNetworkProbes {
-            get => (DiscovererModel.DiscoveryConfig?.MaxNetworkProbes ?? 0) == 0 ?
-                null : DiscovererModel.DiscoveryConfig.MaxNetworkProbes.ToString();
+        public string RequestedMaxNetworkProbes {
+            get => (DiscovererModel.RequestedConfig?.MaxNetworkProbes ?? 0) == 0 ?
+                null : DiscovererModel.RequestedConfig.MaxNetworkProbes.ToString();
             set {
-                if (DiscovererModel.DiscoveryConfig == null) {
-                    DiscovererModel.DiscoveryConfig = new DiscoveryConfigApiModel();
-                }
-                DiscovererModel.DiscoveryConfig.MaxNetworkProbes =
-                    string.IsNullOrEmpty(value) ? 0 : int.Parse(value);
+                Patch.MaxNetworkProbes =
+                    string.IsNullOrEmpty(value) ? -1 : int.Parse(value);
             }
         }
 
         /// <summary>
         /// Port probe timeout
         /// </summary>
-        public string PortProbeTimeout {
-            get => (DiscovererModel.DiscoveryConfig?.PortProbeTimeout ?? TimeSpan.Zero)
+        public string RequestedPortProbeTimeout {
+            get => (DiscovererModel.RequestedConfig?.PortProbeTimeout ?? TimeSpan.Zero)
                 == TimeSpan.Zero ?
-                null : DiscovererModel.DiscoveryConfig.PortProbeTimeout.ToString();
+                null : DiscovererModel.RequestedConfig.PortProbeTimeout.ToString();
             set {
-                if (DiscovererModel.DiscoveryConfig == null) {
-                    DiscovererModel.DiscoveryConfig = new DiscoveryConfigApiModel();
-                }
-                DiscovererModel.DiscoveryConfig.PortProbeTimeout =
-                    string.IsNullOrEmpty(value) ? TimeSpan.Zero :
+                Patch.PortProbeTimeout =
+                    string.IsNullOrEmpty(value) ? TimeSpan.MinValue :
                     TimeSpan.Parse(value);
             }
         }
@@ -83,33 +156,127 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <summary>
         /// Max port probes that should ever run.
         /// </summary>
-        public string MaxPortProbes {
-            get => (DiscovererModel.DiscoveryConfig?.MaxPortProbes ?? 0) == 0 ?
-                null : DiscovererModel.DiscoveryConfig.MaxPortProbes.ToString();
+        public string RequestedMaxPortProbes {
+            get => (DiscovererModel.RequestedConfig?.MaxPortProbes ?? 0) == 0 ?
+                null : DiscovererModel.RequestedConfig.MaxPortProbes.ToString();
             set {
-                if (DiscovererModel.DiscoveryConfig == null) {
-                    DiscovererModel.DiscoveryConfig = new DiscoveryConfigApiModel();
-                }
-                DiscovererModel.DiscoveryConfig.MaxPortProbes =
-                    string.IsNullOrEmpty(value) ? 0 : int.Parse(value);
+                Patch.MaxPortProbes =
+                    string.IsNullOrEmpty(value) ? -1 : int.Parse(value);
             }
         }
 
         /// <summary>
         /// Delay time between discovery sweeps in seconds
         /// </summary>
-        public string IdleTimeBetweenScans {
-            get => (DiscovererModel.DiscoveryConfig?.IdleTimeBetweenScans ?? TimeSpan.Zero)
+        public string RequestedIdleTimeBetweenScans {
+            get => (DiscovererModel.RequestedConfig?.IdleTimeBetweenScans ?? TimeSpan.Zero)
                 == TimeSpan.Zero ?
-                null : DiscovererModel.DiscoveryConfig.IdleTimeBetweenScans.ToString();
+                null : DiscovererModel.RequestedConfig.IdleTimeBetweenScans.ToString();
             set {
-                if (DiscovererModel.DiscoveryConfig == null) {
-                    DiscovererModel.DiscoveryConfig = new DiscoveryConfigApiModel();
-                }
-                DiscovererModel.DiscoveryConfig.IdleTimeBetweenScans =
-                    string.IsNullOrEmpty(value) ? TimeSpan.Zero :
+                Patch.IdleTimeBetweenScans =
+                    string.IsNullOrEmpty(value) ? TimeSpan.MinValue :
                     TimeSpan.Parse(value);
             }
+        }
+
+        /// <summary>
+        /// Address ranges to scan (null == all wired nics)
+        /// </summary>
+        public string RequestedAddressRangesToScan {
+            get => string.IsNullOrEmpty(DiscovererModel.RequestedConfig?.AddressRangesToScan) ?
+                null : DiscovererModel.RequestedConfig.AddressRangesToScan;
+            set {
+                Patch.AddressRangesToScan =
+                    string.IsNullOrEmpty(value) ? string.Empty : value;
+            }
+        }
+
+        /// <summary>
+        /// Port ranges to scan (null == all unassigned)
+        /// </summary>
+        public string RequestedPortRangesToScan {
+            get => string.IsNullOrEmpty(DiscovererModel.RequestedConfig?.PortRangesToScan) ?
+                null : DiscovererModel.RequestedConfig.PortRangesToScan;
+            set {
+                Patch.PortRangesToScan =
+                    string.IsNullOrEmpty(value) ? string.Empty : value;
+            }
+        }
+
+        /// <summary>
+        /// List of preset discovery urls to use
+        /// </summary>
+        public List<string> RequestedDiscoveryUrls {
+            get => DiscovererModel.RequestedConfig?.DiscoveryUrls == null ?
+                new List<string>() : DiscovererModel.RequestedConfig.DiscoveryUrls;
+            set {
+                if (DiscovererModel.RequestedConfig == null) {
+                    DiscovererModel.RequestedConfig = new DiscoveryConfigApiModel();
+                }
+                DiscovererModel.RequestedConfig.DiscoveryUrls = value ?? new List<string>();
+            }
+        }
+
+        /// <summary>
+        /// Add url
+        /// </summary>
+        public void AddDiscoveryUrl(string url) {
+            if (Patch.DiscoveryUrls == null) {
+                Patch.DiscoveryUrls = DiscovererModel.RequestedConfig?.DiscoveryUrls?
+                    .ToList() ?? new List<string>();
+            }
+            Patch.DiscoveryUrls.Add(url);
+            RequestedDiscoveryUrls = Patch.DiscoveryUrls;
+        }
+
+        /// <summary>
+        /// Remove url
+        /// </summary>
+        public void RemoveDiscoveryUrl(string url) {
+            if (Patch.DiscoveryUrls == null) {
+                Patch.DiscoveryUrls = DiscovererModel.RequestedConfig?.DiscoveryUrls?
+                    .ToList() ?? new List<string>();
+            }
+            Patch.DiscoveryUrls.Remove(url);
+            RequestedDiscoveryUrls = Patch.DiscoveryUrls;
+        }
+
+        /// <summary>
+        /// List of locales to filter with during discovery
+        /// </summary>
+        public List<string> RequestedLocales {
+            get => DiscovererModel.RequestedConfig?.Locales == null ?
+                new List<string>() : DiscovererModel.RequestedConfig.Locales;
+            set {
+                if (DiscovererModel.RequestedConfig == null) {
+                    DiscovererModel.RequestedConfig = new DiscoveryConfigApiModel();
+                }
+                DiscovererModel.RequestedConfig.Locales = value ?? new List<string>();
+            }
+        }
+
+        /// <summary>
+        /// Add locale
+        /// </summary>
+        public void AddLocale(string locale) {
+            if (Patch.Locales == null) {
+                Patch.Locales = DiscovererModel.RequestedConfig?.Locales?
+                    .ToList() ?? new List<string>();
+            }
+            Patch.Locales.Add(locale);
+            RequestedLocales = Patch.Locales;
+        }
+
+        /// <summary>
+        /// remove locale
+        /// </summary>
+        public void RemoveLocale(string locale) {
+            if (Patch.Locales == null) {
+                Patch.Locales = DiscovererModel.RequestedConfig?.Locales?
+                    .ToList() ?? new List<string>();
+            }
+            Patch.Locales.Remove(locale);
+            RequestedLocales = Patch.Locales;
         }
     }
 }

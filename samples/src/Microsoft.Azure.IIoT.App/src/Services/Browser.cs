@@ -100,10 +100,19 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     }
 
                     if (!string.IsNullOrEmpty(continuationToken)) {
+                        bool? abort = null;
+                        if (pageResult.Results.Count > 5) {
+                            // TODO: !!! Implement real paging - need to make ux responsive for large # tags !!!
+                            abort = true;
+                        }
                         var modelNext = new BrowseNextRequestApiModel {
-                            ContinuationToken = continuationToken
+                            ContinuationToken = continuationToken,
+                            Abort = abort
                         };
                         browseDataNext = await _twinService.NodeBrowseNextAsync(endpointId, modelNext);
+                        if (abort == true) {
+                            break;
+                        }
                         references = browseDataNext.References;
                         continuationToken = browseDataNext.ContinuationToken;
                     }

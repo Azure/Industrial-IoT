@@ -190,7 +190,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         public static string Format(IEnumerable<AddressRange> ranges) {
             var sb = new StringBuilder();
             var first = true;
-            foreach (var range in ranges) {
+            foreach (var range in Merge(ranges)) {
                 if (!first) {
                     sb.Append(';');
                 }
@@ -211,7 +211,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
             }
             var split = value.Split(new char[] { ';', ',' },
                 StringSplitOptions.RemoveEmptyEntries);
-            return split
+            var unmerged = split
                 .SelectMany(s => {
                     var nic = string.Empty;
                     var x = s.Split('[', StringSplitOptions.RemoveEmptyEntries);
@@ -244,7 +244,10 @@ namespace Microsoft.Azure.IIoT.Net.Models {
                     }
                     return new AddressRange(IPAddress.Parse(x[0]), suffix, nic)
                         .YieldReturn();
-                }).Distinct().ToList();
+                })
+                .Distinct()
+                .ToList();
+            return Merge(unmerged);
         }
 
         /// <summary>
@@ -259,10 +262,68 @@ namespace Microsoft.Azure.IIoT.Net.Models {
         }
 
         /// <summary>
+        /// Tests contains address
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public bool Contains(IPv4Address value) {
+            return value >= Low && value <= High;
+        }
+
+        /// <summary>
+        /// Whether it overlaps with another address range
+        /// </summary>
+        /// <param name="other"></param>
+        /// <returns></returns>
+        public bool Overlaps(AddressRange other) {
+            if (other == null) {
+                return false;
+            }
+            return
+                Contains(other.Low) ||
+                Contains(other.High) ||
+                other.Contains(Low) ||
+                other.Contains(High);
+        }
+
+        /// <summary>
         /// Reset range
         /// </summary>
         public void Reset() {
             _cur = 0;
+        }
+
+        /// <summary>
+        /// Merge overlapping ranges
+        /// </summary>
+        /// <param name="ranges"></param>
+        /// <returns></returns>
+        private static IEnumerable<AddressRange> Merge(IEnumerable<AddressRange> ranges) {
+            var results = new Stack<AddressRange>();
+            if (ranges != null) {
+                ranges.OrderBy(k => k.Low);
+                foreach (var range in ranges.OrderBy(k => k.Low)) {
+                    if (results.Count == 0) {
+                        results.Push(range);
+                    }
+                    else {
+                        var top = results.Peek();
+                        if (top.Overlaps(range)) {
+                            var nic = (top.Nic + range.Nic)
+                                .Replace("localhost", "");
+                            var union = new AddressRange(
+                                top.Low < range.Low ? top.Low : range.Low,
+                                top.High > range.High ? top.High : range.High, nic);
+                            results.Pop();
+                            results.Push(union);
+                        }
+                        else {
+                            results.Push(range);
+                        }
+                    }
+                }
+            }
+            return results.Reverse();
         }
 
         /// <summary>
