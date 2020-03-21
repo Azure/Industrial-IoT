@@ -20,12 +20,12 @@ namespace Microsoft.Azure.IIoT.Api.Configuration.Runtime {
 
         /// <summary>Configuration configuration endpoint</summary>
         public string ConfigurationServiceUrl => GetStringOrDefault(
-            kConfigurationServiceUrlKey, GetStringOrDefault(
-                PcsVariable.PCS_CONFIGURATION_SERVICE_URL, GetDefaultUrl("9050", "configuration")));
+            kConfigurationServiceUrlKey, () => GetStringOrDefault(
+                PcsVariable.PCS_CONFIGURATION_SERVICE_URL, () => GetDefaultUrl("9050", "configuration")));
         /// <summary>Configuration service audience</summary>
         public string ConfigurationServiceResourceId => GetStringOrDefault(
-            kConfigurationServiceIdKey, GetStringOrDefault("CONFIGURATION_APP_ID",
-                GetStringOrDefault(PcsVariable.PCS_AUTH_AUDIENCE, null)));
+            kConfigurationServiceIdKey, () => GetStringOrDefault("CONFIGURATION_APP_ID",
+                () => GetStringOrDefault(PcsVariable.PCS_AUTH_AUDIENCE, () => null)));
 
         /// <inheritdoc/>
         public ConfigurationConfig(IConfiguration configuration) :

@@ -21,11 +21,11 @@ namespace Microsoft.Azure.IIoT.Auth.Runtime {
 
         /// <summary>Https enforced</summary>
         public int HttpsRedirectPort => GetIntOrDefault(kAuth_HttpsRedirectPortKey,
-            GetIntOrDefault("PCS_AUTH_HTTPSREDIRECTPORT", 0));
+            () => GetIntOrDefault("PCS_AUTH_HTTPSREDIRECTPORT", () => 0));
 
         /// <inheritdoc/>
         public string ServicePathBase => GetStringOrDefault(kHost_ServicePathBase,
-            GetStringOrDefault(PcsVariable.PCS_SERVICE_PATH_BASE));
+            () => GetStringOrDefault(PcsVariable.PCS_SERVICE_PATH_BASE));
 
         /// <summary>
         /// Configuration constructor

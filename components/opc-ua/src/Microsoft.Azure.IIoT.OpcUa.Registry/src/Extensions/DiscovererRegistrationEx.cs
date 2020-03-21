@@ -231,10 +231,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <summary>
         /// Get discoverer registration from twin
         /// </summary>
+        /// <param name="onlyServerState"></param>
         /// <param name="twin"></param>
         /// <returns></returns>
-        public static DiscovererRegistration ToDiscovererRegistration(this DeviceTwinModel twin) {
-            return ToDiscovererRegistration(twin, out var tmp);
+        public static DiscovererRegistration ToDiscovererRegistration(this DeviceTwinModel twin, bool onlyServerState = false) {
+            return ToDiscovererRegistration(twin, onlyServerState, out var tmp);
         }
 
         /// <summary>
@@ -245,10 +246,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// endpoint.
         /// </summary>
         /// <param name="twin"></param>
+        /// <param name="onlyServerState"></param>
         /// <param name="connected"></param>
         /// <returns></returns>
         public static DiscovererRegistration ToDiscovererRegistration(this DeviceTwinModel twin,
-            out bool connected) {
+             bool onlyServerState, out bool connected) {
 
             if (twin == null) {
                 connected = false;
@@ -274,6 +276,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     // Not set by user, but reported, so set as desired
                     desired.LogLevel = consolidated.LogLevel;
                 }
+            }
+
+            if (onlyServerState) {
+                consolidated = desired;
             }
 
             consolidated._isInSync = consolidated.IsInSyncWith(desired);

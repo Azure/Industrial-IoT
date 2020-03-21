@@ -77,7 +77,8 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
                     _host = new EventHubs.Processor.EventProcessorHost(
                         _hub.EventHubPath, consumerGroup, GetEventHubConnectionString(),
                         _config.BlobStorageConnString,
-                        _config.LeaseContainerName ?? _hub.EventHubPath.ToSha1Hash());
+                        !string.IsNullOrEmpty(_config.LeaseContainerName) ?
+                            _config.LeaseContainerName : _hub.EventHubPath.ToSha1Hash());
                 }
                 else {
                     _logger.Error("No checkpointing storage configured or checkpoint " +

@@ -19,8 +19,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs.Runtime {
         private const string kJobStaleTimeKey = "JobStaleTime";
 
         /// <inheritdoc/>
-        public TimeSpan JobStaleTime =>
-            GetDurationOrDefault(kJobStaleTimeKey, TimeSpan.FromMinutes(15));
+        public TimeSpan JobStaleTime => GetDurationOrDefault(kJobStaleTimeKey,
+            () => TimeSpan.FromMinutes(15));
 
         /// <summary>
         /// Create

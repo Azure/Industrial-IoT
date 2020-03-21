@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.App.Common;
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
-    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Extensions;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;

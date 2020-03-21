@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
         /// <inheritdoc/>
         public string ServicePathBase => GetStringOrDefault(
             PcsVariable.PCS_FRONTEND_APP_SERVICE_PATH_BASE,
-            _host.ServicePathBase);
+            () => _host.ServicePathBase);
 
         /// <inheritdoc/>
         public bool AspNetCoreForwardedHeadersEnabled =>

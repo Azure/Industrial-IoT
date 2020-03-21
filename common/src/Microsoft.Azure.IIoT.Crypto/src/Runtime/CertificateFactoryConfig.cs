@@ -20,10 +20,12 @@ namespace Microsoft.Azure.IIoT.Crypto.Runtime {
 
         /// <summary> Issuer crl root url </summary>
         public string AuthorityCrlRootUrl => GetStringOrDefault(kIssuerCrlRootUrl,
-            GetStringOrDefault("PCS_AUTHORITY_CRL_ROOT_URL", null));
+            () => GetStringOrDefault("PCS_AUTHORITY_CRL_ROOT_URL",
+                () => null));
         /// <summary> Issuer authority information </summary>
         public string AuthorityInfoRootUrl => GetStringOrDefault(kAuthorityInfoRootUrl,
-            GetStringOrDefault("PCS_AUTHORITY_INFO_ROOT_URL", null));
+            () => GetStringOrDefault("PCS_AUTHORITY_INFO_ROOT_URL",
+                () => null));
 
         /// <summary>
         /// Configuration constructor
