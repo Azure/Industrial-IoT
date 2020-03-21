@@ -20,6 +20,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
 
         public const string WEB_APP_CERT_NAME = "webAppCert";
         public const string AKS_CLUSTER_CERT_NAME = "aksClusterCert";
+        public const string DATAPROTECTION_KEY_NAME = "dataprotection";
 
         private readonly KeyVaultClient _keyVaultClient;
         private readonly VaultInner _keyVault;
@@ -168,6 +169,81 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 Log.Error(ex, $"Failed to add certificate to Azure KeyVault: {certificateName}");
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Retrieves the public portion of a key plus its attributes.
+        /// </summary>
+        /// <param name="keyName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<KeyBundle> GetKeyAsync(
+            string keyName,
+            CancellationToken cancellationToken = default
+        ) {
+            var keyBundle = await _keyVaultClient
+                .GetKeyAsync(
+                    _keyVault.Properties.VaultUri,
+                    keyName,
+                    cancellationToken
+                );
+
+            return keyBundle;
+        }
+
+        /// <summary>
+        /// Creates a new key, stores it, then returns key parameters and attributes.
+        /// </summary>
+        /// <param name="keyName"></param>
+        /// <param name="keyParameters"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<KeyBundle> CreateKeyAsync(
+            string keyName,
+            NewKeyParameters keyParameters,
+            CancellationToken cancellationToken = default
+        ) {
+            var keyBundle = await _keyVaultClient
+                .CreateKeyAsync(
+                    _keyVault.Properties.VaultUri,
+                    keyName,
+                    keyParameters,
+                    cancellationToken
+                );
+
+            return keyBundle;
+        }
+
+        /// <summary>
+        /// Creates a new key for dataprotection and returns key parameters and attributes.
+        /// </summary>
+        /// <param name="keyName"></param>
+        /// <param name="tags"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<KeyBundle> CreateDataprotectionKeyAsync(
+            string keyName,
+            IDictionary<string, string> tags = null,
+            CancellationToken cancellationToken = default
+        ) {
+            tags ??= new Dictionary<string, string>();
+            var keyParameters = new NewKeyParameters {
+                KeySize = 2048,
+                Kty = KeyVault.WebKey.JsonWebKeyType.Rsa,
+                KeyOps = new List<string> {
+                    KeyVault.WebKey.JsonWebKeyOperation.Wrap,
+                    KeyVault.WebKey.JsonWebKeyOperation.Unwrap
+                },
+                Tags = tags
+            };
+
+            var keyBundle = await CreateKeyAsync(
+                keyName,
+                keyParameters,
+                cancellationToken
+            );
+
+            return keyBundle;
         }
 
         public void Dispose() {
