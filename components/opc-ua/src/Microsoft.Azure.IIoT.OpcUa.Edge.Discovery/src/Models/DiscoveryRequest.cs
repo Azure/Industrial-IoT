@@ -118,14 +118,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Models {
                 Request.Configuration = new DiscoveryConfigModel();
             }
 
-
             if (Request.Discovery == null ||
                 Request.Discovery == DiscoveryMode.Off) {
-
-                // Report empty configuration if off
-                Request.Configuration = new DiscoveryConfigModel();
+                // Report empty configuration if off, but keep the
+                // discovery urls details from the original request
+                Request.Configuration = new DiscoveryConfigModel() {
+                    ActivationFilter = Request.Configuration.ActivationFilter?.Clone(),
+                    DiscoveryUrls = Request.Configuration.DiscoveryUrls?.ToList(),
+                    Locales = Request.Configuration.Locales?.ToList()
+                };
                 Request.Discovery = DiscoveryMode.Off;
-
                 return;
             }
 
