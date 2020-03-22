@@ -10,10 +10,10 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.Cli {
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using Serilog;
     using Serilog.Core;
     using Serilog.Events;
@@ -208,12 +208,14 @@ Arguments:
         /// </summary>
         private static async Task PingAsync(IIoTHubConfig config, ILogger logger, string deviceId,
             string moduleId, CancellationToken ct) {
+            var serializer = new NewtonSoftJsonSerializer();
             var client = new IoTHubTwinMethodClient(CreateClient(config, logger), logger);
             logger.Information("Starting echo thread");
             var found = false;
+
             for (var index = 0; !ct.IsCancellationRequested; index++) {
                 try {
-                    var message = JsonConvertEx.SerializeObjectPretty(new {
+                    var message = serializer.SerializePretty(new {
                         Index = index,
                         Started = DateTime.UtcNow
                     });
@@ -222,9 +224,9 @@ Arguments:
                         "Echo_V1", message, null, ct);
                     found = true;
                     try {
-                        var returned = (dynamic)JToken.Parse(result);
+                        var returned = serializer.Parse(result);
                         logger.Debug("... received back ECHO {Index} - took {Passed}.",
-                            returned.Index, DateTime.UtcNow - ((DateTime)returned.Started));
+                            returned["Index"], DateTime.UtcNow - ((DateTime)returned["Started"]));
                     }
                     catch (Exception e) {
                         logger.Error(e, "Bad result for ECHO {Index}: {result} ",
@@ -310,7 +312,7 @@ Arguments:
             var registry = CreateClient(config, logger);
             await registry.CreateAsync(new DeviceTwinModel {
                 Id = deviceId,
-                Tags = new Dictionary<string, JToken> {
+                Tags = new Dictionary<string, VariantValue> {
                     [TwinProperty.Type] = IdentityType.Gateway
                 },
                 Capabilities = new DeviceCapabilitiesModel {
@@ -332,8 +334,9 @@ Arguments:
         private static IoTHubServiceHttpClient CreateClient(IIoTHubConfig config,
             ILogger logger) {
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
-                config, logger);
+                config, new NewtonSoftJsonSerializer(), logger);
             return registry;
         }
+
     }
 }

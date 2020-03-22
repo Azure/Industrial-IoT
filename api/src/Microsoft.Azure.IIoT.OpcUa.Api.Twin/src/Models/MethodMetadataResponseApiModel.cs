@@ -4,40 +4,42 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
 
     /// <summary>
     /// Method metadata query model
     /// </summary>
+    [DataContract]
     public class MethodMetadataResponseApiModel {
 
         /// <summary>
         /// Id of object that the method is a component of
         /// </summary>
-        [JsonProperty(PropertyName = "objectId",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "objectId",
+            EmitDefaultValue = false)]
         public string ObjectId { get; set; }
 
         /// <summary>
         /// Input argument meta data
         /// </summary>
-        [JsonProperty(PropertyName = "inputArguments",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "inputArguments",
+            EmitDefaultValue = false)]
         public List<MethodMetadataArgumentApiModel> InputArguments { get; set; }
 
         /// <summary>
         /// output argument meta data
         /// </summary>
-        [JsonProperty(PropertyName = "outputArguments",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "outputArguments",
+            EmitDefaultValue = false)]
         public List<MethodMetadataArgumentApiModel> OutputArguments { get; set; }
 
         /// <summary>
         /// Service result in case of error
         /// </summary>
-        [JsonProperty(PropertyName = "errorInfo",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "errorInfo",
+            EmitDefaultValue = false)]
         public ServiceResultApiModel ErrorInfo { get; set; }
     }
 }

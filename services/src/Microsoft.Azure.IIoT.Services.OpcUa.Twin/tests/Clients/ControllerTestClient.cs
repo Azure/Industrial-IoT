@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers.Test {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
     using Microsoft.Azure.IIoT.Http;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Threading.Tasks;
     using System.Threading;
@@ -21,11 +22,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers.Test {
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="config"></param>
-        public ControllerTestClient(IHttpClient httpClient, ITwinConfig config) {
+        public ControllerTestClient(IHttpClient httpClient, ITwinConfig config,
+            IJsonSerializer serializer) {
             _serviceUri = config?.OpcUaTwinServiceUrl ??
                 throw new ArgumentNullException(nameof(config));
             _httpClient = httpClient ??
                 throw new ArgumentNullException(nameof(httpClient));
+            _serializer = serializer ??
+                throw new ArgumentNullException(nameof(serializer));
         }
 
         /// <inheritdoc/>
@@ -41,7 +45,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers.Test {
             var request = _httpClient.NewRequest(path.ToString());
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
-            return response.GetContent<BrowseResponseApiModel>();
+            return _serializer.DeserializeResponse<BrowseResponseApiModel>(response);
         }
 
         /// <inheritdoc/>
@@ -62,7 +66,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers.Test {
             var request = _httpClient.NewRequest(path.ToString());
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
-            return response.GetContent<BrowseNextResponseApiModel>();
+            return _serializer.DeserializeResponse<BrowseNextResponseApiModel>(response);
         }
 
         /// <inheritdoc/>
@@ -83,7 +87,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers.Test {
             var request = _httpClient.NewRequest(path.ToString());
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
-            return response.GetContent<ValueReadResponseApiModel>();
+            return _serializer.DeserializeResponse<ValueReadResponseApiModel>(response);
         }
 
         /// <inheritdoc/>
@@ -128,6 +132,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers.Test {
         }
 
         private readonly IHttpClient _httpClient;
+        private readonly IJsonSerializer _serializer;
         private readonly string _serviceUri;
     }
 }

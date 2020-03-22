@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Services {
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Collections.Generic;
@@ -13,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
     /// <summary>
     /// Default iot hub device event handler implementation
     /// </summary>
-    public sealed class IoTHubDeviceEventHandler : IEventHandler {
+    public sealed class IoTHubDeviceEventHandler : IEventProcessingHandler {
 
         /// <summary>
         /// Create processor factory
@@ -21,11 +22,11 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         /// <param name="handlers"></param>
         /// <param name="unknown"></param>
         public IoTHubDeviceEventHandler(IEnumerable<IDeviceTelemetryHandler> handlers,
-            IUnknownEventHandler unknown = null) {
+            IUnknownEventProcessor unknown = null) {
             if (handlers == null) {
                 throw new ArgumentNullException(nameof(handlers));
             }
-            _handlers = handlers.ToDictionary(h => h.MessageSchema, h => h);
+            _handlers = handlers.ToDictionary(h => h.MessageSchema.ToLowerInvariant(), h => h);
             _unknown = unknown;
         }
 
@@ -33,15 +34,22 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         public async Task HandleAsync(byte[] eventData, IDictionary<string, string> properties,
             Func<Task> checkpoint) {
             if (!properties.TryGetValue(CommonProperties.DeviceId, out var deviceId) &&
-                !properties.TryGetValue(SystemProperties.ConnectionDeviceId, out deviceId)) {
+                !properties.TryGetValue(SystemProperties.ConnectionDeviceId, out deviceId) &&
+                !properties.TryGetValue(SystemProperties.DeviceId, out deviceId)) {
                 // Not from a device
                 return;
+            }
+
+            if (!properties.TryGetValue(CommonProperties.ModuleId, out var moduleId) &&
+                !properties.TryGetValue(SystemProperties.ConnectionModuleId, out moduleId) &&
+                !properties.TryGetValue(SystemProperties.ModuleId, out moduleId)) {
+                // Not from a module
+                moduleId = null;
             }
 
             if (properties.TryGetValue(CommonProperties.EventSchemaType, out var schemaType) ||
                 properties.TryGetValue(SystemProperties.MessageSchema, out schemaType)) {
 
-                properties.TryGetValue(CommonProperties.ModuleId, out var moduleId);
                 // TODO: check if ToLowerInvariant() is really necesary
                 if (_handlers.TryGetValue(schemaType.ToLowerInvariant(), out var handler)) {
                     await handler.HandleAsync(deviceId, moduleId?.ToString(), eventData,
@@ -71,6 +79,6 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         private readonly HashSet<IDeviceTelemetryHandler> _used =
             new HashSet<IDeviceTelemetryHandler>();
         private readonly Dictionary<string, IDeviceTelemetryHandler> _handlers;
-        private readonly IUnknownEventHandler _unknown;
+        private readonly IUnknownEventProcessor _unknown;
     }
 }

@@ -4,84 +4,92 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
-    using Microsoft.Azure.IIoT.Hub;
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
     using System.Collections.Generic;
 
     /// <summary>
     /// Device twin registration
     /// </summary>
+    [DataContract]
     public abstract class EntityRegistration {
 
         /// <summary>
         /// Device id for registration
         /// </summary>
+        [DataMember]
         public virtual string DeviceId { get; set; }
 
         /// <summary>
         /// Site of the registration
         /// </summary>
+        [DataMember]
         public virtual string SiteId { get; set; }
 
         /// <summary>
         /// Searchable grouping (either device or site id)
         /// </summary>
+        [DataMember]
         public virtual string SiteOrGatewayId =>
             !string.IsNullOrEmpty(SiteId) ? SiteId : DeviceId;
 
         /// <summary>
         /// Etag id
         /// </summary>
-        [JsonProperty(PropertyName = "_etag")]
+        [DataMember(Name = "_etag")]
         public string Etag { get; set; }
 
         /// <summary>
         /// Registration type
         /// </summary>
+        [DataMember]
         public abstract string DeviceType { get; }
 
         /// <summary>
         /// Whether registration is enabled or not
         /// </summary>
+        [DataMember]
         public virtual bool? IsDisabled { get; set; }
 
         /// <summary>
         /// Last time application was seen
         /// </summary>
+        [DataMember]
         public virtual DateTime? NotSeenSince { get; set; }
-
-        /// <summary>
-        /// Certificate hash
-        /// </summary>
-        public virtual string Thumbprint { get; set; }
-
-        /// <summary>
-        /// The certificate of the endpoint
-        /// </summary>
-        public virtual Dictionary<string, string> Certificate { get; set; }
 
         /// <summary>
         /// Reported Type
         /// </summary>
+        [DataMember]
         public virtual string Type { get; set; }
 
         /// <summary>
         /// Connected
         /// </summary>
+        [DataMember]
         public virtual bool Connected { get; set; }
 
         /// <inheritdoc/>
         public override bool Equals(object obj) {
-            var registration = obj as EntityRegistration;
-            return registration != null &&
-                DeviceId == registration.DeviceId &&
-                DeviceType == registration.DeviceType &&
-                SiteId == registration.SiteId &&
-                (IsDisabled ?? false) == (registration.IsDisabled ?? false) &&
-                NotSeenSince == registration.NotSeenSince &&
-                Certificate.DecodeAsByteArray().SequenceEqualsSafe(
-                    registration.Certificate.DecodeAsByteArray());
+            if (!(obj is EntityRegistration registration)) {
+                return false;
+            }
+            if (DeviceId != registration.DeviceId) {
+                return false;
+            }
+            if (DeviceType != registration.DeviceType) {
+                return false;
+            }
+            if (SiteId != registration.SiteId) {
+                return false;
+            }
+            if ((IsDisabled ?? false) != (registration.IsDisabled ?? false)) {
+                return false;
+            }
+            if (NotSeenSince != registration.NotSeenSince) {
+                return false;
+            }
+            return true;
         }
 
         /// <inheritdoc/>
@@ -105,8 +113,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 EqualityComparer<bool>.Default.GetHashCode(IsDisabled ?? false);
             hashCode = (hashCode * -1521134295) +
                 EqualityComparer<DateTime?>.Default.GetHashCode(NotSeenSince);
-            hashCode = (hashCode * -1521134295) +
-                EqualityComparer<string>.Default.GetHashCode(Thumbprint);
             return hashCode;
         }
     }

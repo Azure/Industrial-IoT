@@ -17,10 +17,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber {
         /// </summary>
         /// <param name="sample"></param>
         /// <returns></returns>
-        Task HandleSampleAsync(MonitoredItemSampleModel sample);
-        
+        Task HandleSampleAsync(MonitoredItemMessageModel sample);
+
         /// <summary>
-        /// Handle PubSub messages 
+        /// Handle PubSub messages
         /// </summary>
         /// <param name="message"></param>
         /// <returns></returns>

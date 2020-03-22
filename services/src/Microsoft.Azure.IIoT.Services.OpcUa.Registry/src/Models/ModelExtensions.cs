@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
-    using System;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using System.Linq;
     using System.Collections.Generic;
 
@@ -28,12 +28,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models {
             }
             return new ApplicationInfoApiModel {
                 ApplicationId = model.ApplicationId,
-                ApplicationType = (IIoT.OpcUa.Api.Registry.Models.ApplicationType)model.ApplicationType,
+                ApplicationType = (IIoT.OpcUa.Api.Core.Models.ApplicationType)model.ApplicationType,
                 ApplicationUri = model.ApplicationUri,
                 ApplicationName = model.ApplicationName,
                 Locale = model.Locale,
                 LocalizedNames = model.LocalizedNames,
-                Certificate = model.Certificate,
                 ProductUri = model.ProductUri,
                 SiteId = model.SiteId,
                 HostAddresses = model.HostAddresses,
@@ -78,7 +77,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models {
             }
             return new ApplicationRegistrationApiModel {
                 Application = model.Application.ToApiModel(),
-                SecurityAssessment = (IIoT.OpcUa.Api.Registry.Models.SecurityAssessment?)model.SecurityAssessment,
                 Endpoints = model.Endpoints?
                     .Select(e => e.ToApiModel())
                     .ToList()
@@ -167,7 +165,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models {
                 LocalizedNames = model.LocalizedNames?
                     .ToDictionary(k => k.Key, v => v.Value),
                 ProductUri = model.ProductUri,
-                Certificate = model.Certificate,
                 Capabilities = model.Capabilities,
                 DiscoveryUrls = model.DiscoveryUrls,
                 GatewayServerUri = model.GatewayServerUri,
@@ -205,8 +202,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models {
                 Id = model.Id,
                 SecurityPolicy = model.SecurityPolicy,
                 Configuration = model.Configuration,
-                CredentialType = (IIoT.OpcUa.Api.Registry.Models.CredentialType?)model.CredentialType ??
-                    IIoT.OpcUa.Api.Registry.Models.CredentialType.None
+                CredentialType = (IIoT.OpcUa.Api.Core.Models.CredentialType?)model.CredentialType ??
+                    IIoT.OpcUa.Api.Core.Models.CredentialType.None
             };
         }
 
@@ -362,7 +359,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models {
             return new EndpointActivationFilterApiModel {
                 TrustLists = model.TrustLists,
                 SecurityPolicies = model.SecurityPolicies,
-                SecurityMode = (IIoT.OpcUa.Api.Registry.Models.SecurityMode?)model.SecurityMode
+                SecurityMode = (IIoT.OpcUa.Api.Core.Models.SecurityMode?)model.SecurityMode
             };
         }
 
@@ -411,7 +408,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models {
             return new EndpointApiModel {
                 Url = model.Url,
                 AlternativeUrls = model.AlternativeUrls,
-                SecurityMode = (IIoT.OpcUa.Api.Registry.Models.SecurityMode?)model.SecurityMode,
+                SecurityMode = (IIoT.OpcUa.Api.Core.Models.SecurityMode?)model.SecurityMode,
                 SecurityPolicy = model.SecurityPolicy,
                 Certificate = model.Certificate,
             };
@@ -618,7 +615,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models {
                 Id = model.Id,
                 SiteId = model.SiteId,
                 LogLevel = (IIoT.OpcUa.Api.Registry.Models.TraceLogLevel?)model.LogLevel,
-                Certificate = model.Certificate,
                 Configuration = model.Configuration.ToApiModel(),
                 OutOfSync = model.OutOfSync,
                 Connected = model.Connected
@@ -761,7 +757,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models {
                 Id = model.Id,
                 SiteId = model.SiteId,
                 LogLevel = (IIoT.OpcUa.Api.Registry.Models.TraceLogLevel?)model.LogLevel,
-                Certificate = model.Certificate,
                 OutOfSync = model.OutOfSync,
                 Connected = model.Connected
             };
@@ -836,5 +831,45 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models {
                 LogLevel = (IIoT.OpcUa.Registry.Models.TraceLogLevel?)model.LogLevel
             };
         }
+
+        /// <summary>
+        /// Create api model
+        /// </summary>
+        /// <param name="model"></param>
+        public static X509CertificateApiModel ToApiModel(
+            this X509CertificateModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new X509CertificateApiModel {
+                Certificate = model.Certificate,
+                NotAfterUtc = model.NotAfterUtc,
+                NotBeforeUtc = model.NotBeforeUtc,
+                SerialNumber = model.SerialNumber,
+                Subject = model.Subject,
+                SelfSigned = model.SelfSigned,
+                Thumbprint = model.Thumbprint
+            };
+        }
+
+        /// <summary>
+        /// Create collection
+        /// </summary>
+        /// <param name="model"></param>
+        public static X509CertificateChainApiModel ToApiModel(
+            this X509CertificateChainModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new X509CertificateChainApiModel {
+                Status = model.Status?
+                    .Select(s => (IIoT.OpcUa.Api.Core.Models.X509ChainStatus)s)
+                    .ToList(),
+                Chain = model.Chain?
+                    .Select(c => c.ToApiModel())
+                    .ToList()
+            };
+        }
+
     }
 }

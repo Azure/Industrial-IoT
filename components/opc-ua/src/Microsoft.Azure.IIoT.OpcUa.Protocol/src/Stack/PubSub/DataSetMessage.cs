@@ -5,11 +5,6 @@
 
 namespace Opc.Ua.PubSub {
     using System;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
-    using Opc.Ua.Encoders;
-    using System.Collections.Generic;
-    using System.Text;
 
     /// <summary>
     /// Data set message

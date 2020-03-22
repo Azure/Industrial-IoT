@@ -621,7 +621,7 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public Dictionary<string, DataValue> ReadDataValueDictionary(string property) {
-            
+
             //  todo: probably should be removed
             if (!TryGetToken(property, out var token)) {
                 return null;
@@ -629,7 +629,7 @@ namespace Opc.Ua.Encoders {
 
             if (token is JObject o){
                 var dictionary = new Dictionary<string, DataValue>();
-                foreach (JProperty innerProperty in o.Properties()) {
+                foreach (var innerProperty in o.Properties()) {
                     _stack.Push(o);
                     var innerValue = ReadDataValue(innerProperty.Name);
                     _stack.Pop();

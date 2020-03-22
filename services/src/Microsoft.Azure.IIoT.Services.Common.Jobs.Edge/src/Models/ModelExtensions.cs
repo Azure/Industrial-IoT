@@ -74,7 +74,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Models {
                 return null;
             }
             return new JobHeartbeatModel {
-                State = model.State?.DeepClone(),
+                State = model.State?.Copy(),
                 ProcessMode = (Agent.Framework.Models.ProcessMode)model.ProcessMode,
                 JobHash = model.JobHash,
                 JobId = model.JobId,
@@ -97,7 +97,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Models {
                 RedundancyConfig = model.RedundancyConfig.ToApiModel(),
                 Demands = model.Demands?
                 .Select(d => d.ToApiModel()).ToList(),
-                JobConfiguration = model.JobConfiguration?.DeepClone(),
+                JobConfiguration = model.JobConfiguration?.Copy(),
                 JobConfigurationType = model.JobConfigurationType,
                 Name = model.Name,
                 Id = model.Id
@@ -163,7 +163,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Models {
             }
             return new ProcessingStatusApiModel {
                 LastKnownHeartbeat = model.LastKnownHeartbeat,
-                LastKnownState = model.LastKnownState?.DeepClone(),
+                LastKnownState = model.LastKnownState?.Copy(),
                 ProcessMode = (Api.Jobs.Models.ProcessMode?)model.ProcessMode
             };
         }

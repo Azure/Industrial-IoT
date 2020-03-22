@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Serialize and deserialize jobs
@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// <param name="model"></param>
         /// <param name="jobConfigurationType"></param>
         /// <returns></returns>
-        object DeserializeJobConfiguration(JToken model, string jobConfigurationType);
+        object DeserializeJobConfiguration(VariantValue model, string jobConfigurationType);
 
         /// <summary>
         /// Serialize job
@@ -25,6 +25,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// <param name="jobConfig"></param>
         /// <param name="jobConfigurationType"></param>
         /// <returns></returns>
-        JToken SerializeJobConfiguration<T>(T jobConfig, out string jobConfigurationType);
+        VariantValue SerializeJobConfiguration<T>(T jobConfig, out string jobConfigurationType);
     }
 }

@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Models {
                 Demands = model.Demands?
                     .Select(d => d.ToApiModel())
                     .ToList(),
-                JobConfiguration = model.JobConfiguration?.DeepClone(),
+                JobConfiguration = model.JobConfiguration?.Copy(),
                 JobConfigurationType = model.JobConfigurationType,
                 Name = model.Name,
                 Id = model.Id
@@ -82,7 +82,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Models {
             }
             return new ProcessingStatusApiModel {
                 LastKnownHeartbeat = model.LastKnownHeartbeat,
-                LastKnownState = model.LastKnownState?.DeepClone(),
+                LastKnownState = model.LastKnownState?.Copy(),
                 ProcessMode = (Api.Jobs.Models.ProcessMode?)model.ProcessMode
             };
         }

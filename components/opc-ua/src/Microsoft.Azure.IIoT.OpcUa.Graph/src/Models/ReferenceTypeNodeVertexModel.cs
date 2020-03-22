@@ -5,28 +5,29 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     using Gremlin.Net.CosmosDb.Structure;
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Node vertex
     /// </summary>
     [Label(AddressSpaceElementNames.ReferenceType)]
+    [DataContract]
     public class ReferenceTypeNodeVertexModel : BaseNodeVertexModel {
 
         /// <summary>
         /// Whether type is abstract, if type can
         /// be abstract.  Null if not type node.
         /// </summary>
-        [JsonProperty(PropertyName = "isAbstract",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "isAbstract",
+            EmitDefaultValue = false)]
         public bool? IsAbstract { get; set; }
 
         /// <summary>
         /// Inverse name of the reference if the node is
         /// a reference type, keyed on the locale
         /// </summary>
-        [JsonProperty(PropertyName = "inverseName",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "inverseName",
+            EmitDefaultValue = false)]
         public string InverseName { get; set; }
 
         /// <summary>
@@ -34,8 +35,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// the node is a reference type, otherwise
         /// null.
         /// </summary>
-        [JsonProperty(PropertyName = "symmetric",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "symmetric",
+            EmitDefaultValue = false)]
         public bool? Symmetric { get; set; }
 
         /// <summary>

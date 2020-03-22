@@ -13,9 +13,9 @@ namespace Microsoft.Azure.IIoT.Messaging {
     public interface ICallbackRegistrar : IDisposable {
 
         /// <summary>
-        /// User receiving events
+        /// Connection receiving events
         /// </summary>
-        string UserId { get; }
+        string ConnectionId { get; }
 
         /// <summary>
         /// Register handler to handle a method call

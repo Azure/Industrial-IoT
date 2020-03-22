@@ -6,9 +6,9 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using Opc.Ua;
     using Opc.Ua.Extensions;
-    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Security.Cryptography.X509Certificates;
@@ -289,9 +289,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Convert user token policies to service model
         /// </summary>
         /// <param name="policies"></param>
+        /// <param name="serializer"></param>
         /// <returns></returns>
         public static List<AuthenticationMethodModel> ToServiceModel(
-            this UserTokenPolicyCollection policies) {
+            this UserTokenPolicyCollection policies, IJsonSerializer serializer) {
             if (policies == null || policies.Count == 0) {
                 return new List<AuthenticationMethodModel>{
                      new AuthenticationMethodModel {
@@ -301,7 +302,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 };
             }
             return policies
-                .Select(p => p.ToServiceModel())
+                .Select(p => p.ToServiceModel(serializer))
                 .Where(p => p != null)
                 .Distinct()
                 .ToList();
@@ -332,8 +333,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Convert user token policy to service model
         /// </summary>
         /// <param name="policy"></param>
+        /// <param name="serializer"></param>
         /// <returns></returns>
-        public static AuthenticationMethodModel ToServiceModel(this UserTokenPolicy policy) {
+        public static AuthenticationMethodModel ToServiceModel(this UserTokenPolicy policy,
+            IJsonSerializer serializer) {
             if (policy == null) {
                 return null;
             }
@@ -358,7 +361,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                             result.CredentialType = CredentialType.JwtToken;
                             try {
                                 // See part 6
-                                result.Configuration = JToken.Parse(
+                                result.Configuration = serializer.Parse(
                                     policy.IssuerEndpointUrl);
                             }
                             catch {
@@ -419,21 +422,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         public static IUserIdentity ToStackModel(this CredentialModel authentication) {
             switch (authentication?.Type ?? CredentialType.None) {
                 case CredentialType.UserName:
-                    if (authentication.Value is JObject o &&
-                        o.TryGetValue("user", StringComparison.InvariantCultureIgnoreCase,
-                            out var user) && user.Type == JTokenType.String &&
-                        o.TryGetValue("password", StringComparison.InvariantCultureIgnoreCase,
-                            out var password) && password.Type == JTokenType.String) {
+                    if (authentication.Value.IsObject &&
+                        authentication.Value.TryGetProperty("user", out var user) &&
+                            user.IsString &&
+                        authentication.Value.TryGetProperty("password", out var password) &&
+                            password.IsString) {
                         return new UserIdentity((string)user, (string)password);
                     }
                     throw new ServiceResultException(StatusCodes.BadNotSupported,
                         $"User/passord token format is not supported.");
                 case CredentialType.X509Certificate:
                     return new UserIdentity(new X509Certificate2(
-                        authentication.Value?.ToObject<byte[]>()));
+                        authentication.Value?.ConvertTo<byte[]>()));
                 case CredentialType.JwtToken:
                     return new UserIdentity(new IssuedIdentityToken {
-                        DecryptedTokenData = authentication.Value?.ToObject<byte[]>()
+                        DecryptedTokenData = authentication.Value?.ConvertTo<byte[]>()
                     });
                 case CredentialType.None:
                     return new UserIdentity(new AnonymousIdentityToken());
@@ -451,11 +454,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         public static UserIdentityToken ToUserIdentityToken(this CredentialModel authentication) {
             switch (authentication?.Type ?? CredentialType.None) {
                 case CredentialType.UserName:
-                    if (authentication.Value is JObject o &&
-                        o.TryGetValue("user", StringComparison.InvariantCultureIgnoreCase,
-                            out var user) && user.Type == JTokenType.String &&
-                        o.TryGetValue("password", StringComparison.InvariantCultureIgnoreCase,
-                            out var password) && password.Type == JTokenType.String) {
+                    if (authentication.Value.IsObject &&
+                        authentication.Value.TryGetProperty("user", out var user) &&
+                            user.IsString &&
+                        authentication.Value.TryGetProperty("password", out var password) &&
+                            password.IsString) {
                         return new UserNameIdentityToken {
                             DecryptedPassword = (string)password,
                             UserName = (string)user
@@ -466,11 +469,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 case CredentialType.X509Certificate:
                     return new X509IdentityToken {
                         Certificate = new X509Certificate2(
-                        authentication.Value?.ToObject<byte[]>())
+                        authentication.Value?.ConvertTo<byte[]>())
                     };
                 case CredentialType.JwtToken:
                     return new IssuedIdentityToken {
-                        DecryptedTokenData = authentication.Value?.ToObject<byte[]>()
+                        DecryptedTokenData = authentication.Value?.ConvertTo<byte[]>()
                     };
                 case CredentialType.None:
                     return new AnonymousIdentityToken();
@@ -484,17 +487,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Convert user identity to service model
         /// </summary>
         /// <param name="identity"></param>
+        /// <param name="serializer"></param>
         /// <returns></returns>
-        public static CredentialModel ToServiceModel(this IUserIdentity identity) {
-            return ToServiceModel(identity?.GetIdentityToken());
+        public static CredentialModel ToServiceModel(this IUserIdentity identity, IJsonSerializer serializer) {
+            return ToServiceModel(identity?.GetIdentityToken(), serializer);
         }
 
         /// <summary>
         /// Convert user identity token to service model
         /// </summary>
         /// <param name="token"></param>
+        /// <param name="serializer"></param>
         /// <returns></returns>
-        public static CredentialModel ToServiceModel(this UserIdentityToken token) {
+        public static CredentialModel ToServiceModel(this UserIdentityToken token,
+            IJsonSerializer serializer) {
             if (token == null) {
                 return null;  // Treat as anonymous
             }
@@ -504,7 +510,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                         case IssuedTokenType.JWT:
                             return new CredentialModel {
                                 Type = CredentialType.JwtToken,
-                                Value = JToken.FromObject(it.DecryptedTokenData)
+                                Value = serializer.FromObject(it.DecryptedTokenData)
                             };
                         case IssuedTokenType.SAML:
                         // TODO?
@@ -518,7 +524,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 case UserNameIdentityToken un:
                     return new CredentialModel {
                         Type = CredentialType.UserName,
-                        Value = JToken.FromObject(new {
+                        Value = serializer.FromObject(new {
                             user = un.UserName,
                             password = un.DecryptedPassword
                         })
@@ -526,7 +532,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 case X509IdentityToken x5:
                     return new CredentialModel {
                         Type = CredentialType.X509Certificate,
-                        Value = JToken.FromObject(x5.CertificateData)
+                        Value = serializer.FromObject(x5.CertificateData)
                     };
                 default:
                     throw new ServiceResultException(StatusCodes.BadNotSupported,

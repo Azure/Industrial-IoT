@@ -353,7 +353,7 @@ namespace Opc.Ua.Encoders {
                     _writer.WritePropertyName(property);
                 }
                 if (PerformXmlSerialization || UseAdvancedEncoding) {
-                    var json = JsonConvertEx.SerializeObject(value);
+                    var json = JsonConvert.SerializeObject(value);
                     _writer.WriteRawValue(json);
                 }
                 else {
@@ -1291,7 +1291,7 @@ namespace Opc.Ua.Encoders {
         /// <summary>
         /// Check whether to write the simple value.  If so
         /// andthis is not called in the context of array
-        /// write (property is null) write property.
+        /// write (property == null) write property.
         /// </summary>
         /// <param name="property"></param>
         /// <param name="value"></param>

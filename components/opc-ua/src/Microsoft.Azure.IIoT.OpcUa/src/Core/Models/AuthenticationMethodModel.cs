@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Authentication Method model
@@ -29,6 +29,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// <summary>
         /// Method specific configuration
         /// </summary>
-        public JToken Configuration { get; set; }
+        public VariantValue Configuration { get; set; }
     }
 }

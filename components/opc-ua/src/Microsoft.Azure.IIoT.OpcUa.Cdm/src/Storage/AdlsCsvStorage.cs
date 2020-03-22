@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Microsoft.Azure.IIoT.Cdm;
     using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -75,7 +75,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
             return sb.ToString();
         }
 
-        private void AddAddValueToCsvStringBuilder(object value, 
+        private void AddAddValueToCsvStringBuilder(object value,
             string separator, StringBuilder sb) {
 
             if (value != null) {
@@ -132,7 +132,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
                     request = _httpClient.NewRequest(
                         $"{partitionUrl}?action=append&position={contentPosition}", kResource);
                     byte[] contentBuffer = Encoding.UTF8.GetBytes(content);
-                    request.SetContent(contentBuffer, ContentMimeType.Binary);
+                    request.SetByteArrayContent(contentBuffer,
+                        new System.Net.Http.Headers.MediaTypeHeaderValue(ContentMimeType.Binary));
                     response = await _httpClient.PatchAsync(request);
                     //  TODO check for errors
                     contentPosition += contentBuffer.Length;

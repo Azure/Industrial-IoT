@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Request node history read extensions
@@ -19,9 +19,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
         /// <param name="request"></param>
         /// <param name="convert"></param>
         /// <returns></returns>
-        public static HistoryUpdateRequestModel<JToken> ToRawModel<T>(
-            this HistoryUpdateRequestModel<T> request, Func<T, JToken> convert) {
-            return new HistoryUpdateRequestModel<JToken> {
+        public static HistoryUpdateRequestModel<VariantValue> ToRawModel<T>(
+            this HistoryUpdateRequestModel<T> request, Func<T, VariantValue> convert) {
+            return new HistoryUpdateRequestModel<VariantValue> {
                 Details = convert(request.Details),
                 BrowsePath = request.BrowsePath,
                 NodeId = request.NodeId,
@@ -36,9 +36,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
         /// <param name="request"></param>
         /// <param name="convert"></param>
         /// <returns></returns>
-        public static HistoryReadRequestModel<JToken> ToRawModel<T>(
-            this HistoryReadRequestModel<T> request, Func<T, JToken> convert) {
-            return new HistoryReadRequestModel<JToken> {
+        public static HistoryReadRequestModel<VariantValue> ToRawModel<T>(
+            this HistoryReadRequestModel<T> request, Func<T, VariantValue> convert) {
+            return new HistoryReadRequestModel<VariantValue> {
                 NodeId = request.NodeId,
                 BrowsePath = request.BrowsePath,
                 IndexRange = request.IndexRange,

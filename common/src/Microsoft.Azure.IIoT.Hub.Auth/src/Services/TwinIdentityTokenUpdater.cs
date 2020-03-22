@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.Auth.IoTHub {
     using Microsoft.Azure.IIoT.Hub.Auth.Model;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Utils;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
     using System.Threading;
@@ -24,14 +24,16 @@ namespace Microsoft.Azure.IIoT.Auth.IoTHub {
         /// </summary>
         /// <param name="passwordGenerator"></param>
         /// <param name="ioTHubTwinServices"></param>
-        /// <param name="identityTokenUpdaterConfig"></param>
+        /// <param name="serializer"></param>
+        /// <param name="config"></param>
         /// <param name="logger"></param>
         public TwinIdentityTokenUpdater(IPasswordGenerator passwordGenerator,
-            IIoTHubTwinServices ioTHubTwinServices, IIdentityTokenUpdaterConfig identityTokenUpdaterConfig,
-            ILogger logger) {
+            IIoTHubTwinServices ioTHubTwinServices, IIdentityTokenUpdaterConfig config,
+            IJsonSerializer serializer, ILogger logger) {
             _passwordGenerator = passwordGenerator;
             _ioTHubTwinServices = ioTHubTwinServices;
-            _identityTokenUpdaterConfig = identityTokenUpdaterConfig;
+            _serializer = serializer;
+            _config = config;
             _logger = logger;
             _updateTimer = new Timer(OnUpdateTimerFiredAsync);
         }
@@ -81,7 +83,7 @@ namespace Microsoft.Azure.IIoT.Auth.IoTHub {
             catch (Exception ex) {
                 _logger.Error(ex, "Failed to update identity tokens.");
             }
-            _updateTimer.Change(_identityTokenUpdaterConfig.UpdateInterval,
+            _updateTimer.Change(_config.UpdateInterval,
                 Timeout.InfiniteTimeSpan);
         }
 
@@ -115,18 +117,19 @@ namespace Microsoft.Azure.IIoT.Auth.IoTHub {
         /// Update Identity Token
         /// </summary>
         /// <param name="deviceTwin"></param>
+        /// <param name="ct"></param>
         /// <returns></returns>
         private async Task UpdateIdentityTokenInTwinAsync(DeviceTwinModel deviceTwin,
             CancellationToken ct) {
             var identity = GetIdentity(deviceTwin);
             _logger.Verbose("Updating Identity Token for '{identity}'...", identity);
-            var key = await _passwordGenerator.GeneratePassword(_identityTokenUpdaterConfig.TokenLength,
+            var key = await _passwordGenerator.GeneratePassword(_config.TokenLength,
                 AllowedChars.All, true);
-            var expires = DateTime.UtcNow.Add(_identityTokenUpdaterConfig.TokenLifetime);
+            var expires = DateTime.UtcNow.Add(_config.TokenLifetime);
             deviceTwin.Properties.Desired[Constants.IdentityTokenPropertyName] =
-                JToken.FromObject(new IdentityTokenTwinModel {
-                    Identity = identity,
+                _serializer.FromObject(new IdentityTokenTwinModel {
                     Key = key,
+                    Identity = identity,
                     Expires = expires
                 });
             await _ioTHubTwinServices.PatchAsync(deviceTwin, false, ct);
@@ -146,8 +149,9 @@ namespace Microsoft.Azure.IIoT.Auth.IoTHub {
             return identity;
         }
 
-        private readonly IIdentityTokenUpdaterConfig _identityTokenUpdaterConfig;
+        private readonly IIdentityTokenUpdaterConfig _config;
         private readonly IIoTHubTwinServices _ioTHubTwinServices;
+        private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
         private readonly IPasswordGenerator _passwordGenerator;
         private readonly Timer _updateTimer;

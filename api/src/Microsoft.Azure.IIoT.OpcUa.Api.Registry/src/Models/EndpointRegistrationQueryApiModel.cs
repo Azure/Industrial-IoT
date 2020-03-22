@@ -4,108 +4,97 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
-    using System.ComponentModel;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Endpoint query
     /// </summary>
+    [DataContract]
     public class EndpointRegistrationQueryApiModel {
 
         /// <summary>
         /// Endoint url for direct server access
         /// </summary>
-        [JsonProperty(PropertyName = "url",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "url",
+            EmitDefaultValue = false)]
         public string Url { get; set; }
 
         /// <summary>
-        /// Certificate of the endpoint
+        /// Endpoint certificate thumbprint
         /// </summary>
-        [JsonProperty(PropertyName = "certificate",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public byte[] Certificate { get; set; }
+        [DataMember(Name = "certificate",
+            EmitDefaultValue = false)]
+        public string Certificate { get; set; }
 
         /// <summary>
         /// Security Mode
         /// </summary>
-        [JsonProperty(PropertyName = "securityMode",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "securityMode",
+            EmitDefaultValue = false)]
         public SecurityMode? SecurityMode { get; set; }
 
         /// <summary>
         /// Security policy uri
         /// </summary>
-        [JsonProperty(PropertyName = "securityPolicy",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "securityPolicy",
+            EmitDefaultValue = false)]
         public string SecurityPolicy { get; set; }
 
         /// <summary>
         /// Whether the endpoint was activated
         /// </summary>
-        [JsonProperty(PropertyName = "activated",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "activated",
+            EmitDefaultValue = false)]
         public bool? Activated { get; set; }
 
         /// <summary>
         /// Whether the endpoint is connected on supervisor.
         /// </summary>
-        [JsonProperty(PropertyName = "connected",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "connected",
+            EmitDefaultValue = false)]
         public bool? Connected { get; set; }
 
         /// <summary>
         /// The last state of the the activated endpoint
         /// </summary>
-        [JsonProperty(PropertyName = "endpointState",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "endpointState",
+            EmitDefaultValue = false)]
         public EndpointConnectivityState? EndpointState { get; set; }
 
         /// <summary>
         /// Whether to include endpoints that were soft deleted
         /// </summary>
-        [JsonProperty(PropertyName = "includeNotSeenSince",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "includeNotSeenSince",
+            EmitDefaultValue = false)]
         public bool? IncludeNotSeenSince { get; set; }
 
         /// <summary>
         /// Discoverer id to filter with
         /// </summary>
-        [JsonProperty(PropertyName = "discovererId",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "discovererId",
+            EmitDefaultValue = false)]
         public string DiscovererId { get; set; }
 
         /// <summary>
         /// Application id to filter
         /// </summary>
-        [JsonProperty(PropertyName = "applicationId",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "applicationId",
+            EmitDefaultValue = false)]
         public string ApplicationId { get; set; }
 
         /// <summary>
         /// Supervisor id to filter with
         /// </summary>
-        [JsonProperty(PropertyName = "supervisorId",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "supervisorId",
+            EmitDefaultValue = false)]
         public string SupervisorId { get; set; }
 
         /// <summary>
         /// Site or gateway id to filter with
         /// </summary>
-        [JsonProperty(PropertyName = "siteOrGatewayId",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "siteOrGatewayId",
+            EmitDefaultValue = false)]
         public string SiteOrGatewayId { get; set; }
     }
 }

@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System.Net;
     using System.Threading.Tasks;
@@ -29,16 +30,17 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers {
             var module = _factory.Resolve<ITestModule>();
             module.Endpoint = Endpoint;
             var log = _factory.Resolve<ILogger>();
-            return new ReadArrayValueTests<string>(() => // Create an adapter over the api
-                new TwinAdapter(
-                    new ControllerTestClient(
-                       new HttpClient(_factory, log), new TestConfig(client.BaseAddress))),
-                            "fakeid", (ep, n) => _server.Client.ReadValueAsync(Endpoint, n));
+            var serializer = _factory.Resolve<IJsonSerializer>();
+            return new ReadArrayValueTests<string>(serializer, () => // Create an adapter over the api
+                new TwinServicesApiAdapter(
+                    new ControllerTestClient(new HttpClient(_factory, log),
+                    new TestConfig(client.BaseAddress), serializer), serializer), "fakeid",
+                    (ep, n) => _server.Client.ReadValueAsync(Endpoint, n));
         }
 
         public EndpointModel Endpoint => new EndpointModel {
             Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
-            Certificate = _server.Certificate?.RawData
+            Certificate = _server.Certificate?.RawData?.ToThumbprint()
         };
 
         private readonly WebAppFixture _factory;

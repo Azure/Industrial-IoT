@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Models {
     using Microsoft.Azure.IIoT.OpcUa.Api.History.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.History.Models;
     using System;

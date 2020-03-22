@@ -4,28 +4,29 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
 
     /// <summary>
     /// Read historic values
     /// </summary>
+    [DataContract]
     public class ReadValuesDetailsApiModel {
 
         /// <summary>
         /// Beginning of period to read. Set to null
         /// if no specific start time is specified.
         /// </summary>
-        [JsonProperty(PropertyName = "startTime",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "startTime",
+            EmitDefaultValue = false)]
         public DateTime? StartTime { get; set; }
 
         /// <summary>
         /// End of period to read. Set to null if no
         /// specific end time is specified.
         /// </summary>
-        [JsonProperty(PropertyName = "endTime",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "endTime",
+            EmitDefaultValue = false)]
         public DateTime? EndTime { get; set; }
 
         /// <summary>
@@ -35,15 +36,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// of values. 0 or null indicates that there is no
         /// maximum.
         /// </summary>
-        [JsonProperty(PropertyName = "numValues",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "numValues",
+            EmitDefaultValue = false)]
         public uint? NumValues { get; set; }
 
         /// <summary>
         /// Whether to return the bounding values or not.
         /// </summary>
-        [JsonProperty(PropertyName = "returnBounds",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "returnBounds",
+            EmitDefaultValue = false)]
         public bool? ReturnBounds { get; set; }
     }
 }

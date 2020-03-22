@@ -15,8 +15,8 @@ The following Microservices are part of the platform:
 * [OPC Twin Microservice](twin.md) (GA)
 * [OPC Historic Data Access Microservice](history.md) (Preview)
 * [OPC Publisher service](publisher.md) (Preview)
+* [OPC SignalR Event Service](ux.md) (Preview)
 * [Job Service and Edge Service](jobs.md) (Preview)
-* [Configuration Service](configuration.md) (Preview)
 * [Edge Management Service](edgemanager.md) (Experimental)
 * [OPC Vault Microservice](vault.md) (Experimental)
 * [OPC Gateway Service](gateway.md) (Experimental)
@@ -31,15 +31,11 @@ The following Agents are part of the platform:
 
 * [Edge Telemetry Processor](telemetry.md) (GA)
 * [Edge Event Processor](events.md) (GA)
-* [SignalR Telemetry Forwarder](ux.md) (GA)
 * [Registry Discovery Multiplexer](discovery.md) (GA)
 * [Datalake and CDM Telemetry Exporter](cdm.md) (Preview)
 * [Http Tunnel Processor](tunnel.md)(Preview)
 * [Identity Service](identity.md) (Preview)
-* [Registry Security Alerting Service](security.md) (Preview)
-* [Registry Eventing Service](registryevents.md) (Preview)
 * [File upload Handler](fileupload.md) (Experimental)
-* [OPC Model Importer](graph.md) (Experimental)
 
 ## Other components
 

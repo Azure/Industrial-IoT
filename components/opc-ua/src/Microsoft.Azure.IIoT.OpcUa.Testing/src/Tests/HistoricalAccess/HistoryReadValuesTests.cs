@@ -46,19 +46,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(10, arg.Value);
+                    Assert.True(10 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(20, arg.Value);
+                    Assert.True(20 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(25, arg.Value);
+                    Assert.True(25 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(30, arg.Value);
+                    Assert.True(30 == arg.Value);
                 },
                 arg => {
                     Assert.Equal(2147483648, arg.StatusCode);
@@ -66,31 +66,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(40, arg.Value);
+                    Assert.True(40 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(50, arg.Value);
+                    Assert.True(50 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(60, arg.Value);
+                    Assert.True(60 == arg.Value);
                 },
                 arg => {
                     Assert.Equal(1073741824u, arg.StatusCode);
-                    Assert.Equal(70, arg.Value);
+                    Assert.True(70 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(70, arg.Value);
+                    Assert.True(70 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(80, arg.Value);
+                    Assert.True(80 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(90, arg.Value);
+                    Assert.True(90 == arg.Value);
                 },
                 arg => {
                     Assert.Equal(2161573888, arg.StatusCode);
@@ -117,19 +117,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Collection(results.History,
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(10, arg.Value);
+                    Assert.True(10 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(20, arg.Value);
+                    Assert.True(20 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(25, arg.Value);
+                    Assert.True(25 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(30, arg.Value);
+                    Assert.True(30 == arg.Value);
                 },
                 arg => {
                     Assert.Equal(2147483648u, arg.StatusCode);
@@ -137,23 +137,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(40, arg.Value);
+                    Assert.True(40 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(50, arg.Value);
+                    Assert.True(50 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(60, arg.Value);
+                    Assert.True(60 == arg.Value);
                 },
                 arg => {
                     Assert.Equal(1073741824u, arg.StatusCode);
-                    Assert.Equal(70, arg.Value);
+                    Assert.True(70 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(70, arg.Value);
+                    Assert.True(70 == arg.Value);
                 });
         }
 
@@ -176,19 +176,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Collection(results.History,
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(10, arg.Value);
+                    Assert.True(10 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(20, arg.Value);
+                    Assert.True(20 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(25, arg.Value);
+                    Assert.True(25 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(30, arg.Value);
+                    Assert.True(30 == arg.Value);
                 },
                 arg => {
                     Assert.Equal(2147483648, arg.StatusCode);
@@ -196,31 +196,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(40, arg.Value);
+                    Assert.True(40 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(50, arg.Value);
+                    Assert.True(50 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(60, arg.Value);
+                    Assert.True(60 == arg.Value);
                 },
                 arg => {
                     Assert.Equal(1073741824u, arg.StatusCode);
-                    Assert.Equal(70, arg.Value);
+                    Assert.True(70 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(70, arg.Value);
+                    Assert.True(70 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(80, arg.Value);
+                    Assert.True(80 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(90, arg.Value);
+                    Assert.True(90 == arg.Value);
                 });
         }
 
@@ -243,31 +243,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.Collection(results.History,
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(90, arg.Value);
+                    Assert.True(90 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(80, arg.Value);
+                    Assert.True(80 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(70, arg.Value);
+                    Assert.True(70 == arg.Value);
                 },
                 arg => {
                     Assert.Equal(1073741824u, arg.StatusCode);
-                    Assert.Equal(70, arg.Value);
+                    Assert.True(70 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(60, arg.Value);
+                    Assert.True(60 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(50, arg.Value);
+                    Assert.True(50 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(40, arg.Value);
+                    Assert.True(40 == arg.Value);
                 },
                 arg => {
                     Assert.Equal(2147483648, arg.StatusCode);
@@ -275,11 +275,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(30, arg.Value);
+                    Assert.True(30 == arg.Value);
                 },
                 arg => {
                     Assert.Null(arg.StatusCode);
-                    Assert.Equal(25, arg.Value);
+                    Assert.True(25 == arg.Value);
                 });
         }
 

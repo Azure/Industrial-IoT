@@ -5,38 +5,43 @@
 
 namespace Microsoft.Azure.IIoT.Crypto.Storage.Models {
     using Microsoft.Azure.IIoT.Crypto.Models;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    using System.Runtime.Serialization;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Key document
     /// </summary>
+    [DataContract]
     public class KeyDocument {
 
         /// <summary>
         /// Key id
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
+        [DataMember(Name = "id")]
         public string Id { get; set; }
 
         /// <summary>
         /// Whether the key is disabled
         /// </summary>
+        [DataMember]
         public bool IsDisabled { get; set; }
 
         /// <summary>
         /// Whether the key is exportable
         /// </summary>
+        [DataMember]
         public bool IsExportable { get; set; }
 
         /// <summary>
         /// Key itself in json format
         /// </summary>
-        public JToken KeyJson { get; set; }
+        [DataMember]
+        public VariantValue KeyJson { get; set; }
 
         /// <summary>
         /// Type
         /// </summary>
+        [DataMember]
         public string Type => nameof(Key);
     }
 }

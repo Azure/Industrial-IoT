@@ -7,6 +7,6 @@
     <Description>Azure Industrial IoT OPC Twin API</Description>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Core\src\Microsoft.Azure.IIoT.Core.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Api\src\Microsoft.Azure.IIoT.OpcUa.Api.csproj" />
   </ItemGroup>
 </Project>

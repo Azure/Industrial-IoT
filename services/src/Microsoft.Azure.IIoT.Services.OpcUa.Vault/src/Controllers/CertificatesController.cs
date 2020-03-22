@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Filters;
     using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Vault;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.AspNetCore.Authorization;

@@ -4,36 +4,34 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
-    using Newtonsoft.Json;
-    using System.ComponentModel;
+    using System.Runtime.Serialization;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Demand model
     /// </summary>
+    [DataContract]
     public class DemandApiModel {
 
         /// <summary>
         /// Key
         /// </summary>
-        [JsonProperty(PropertyName = "key")]
+        [DataMember(Name = "key")]
         [Required]
         public string Key { get; set; }
 
         /// <summary>
-        /// Match operator
+        /// Match operator (defaults to equals)
         /// </summary>
-        [JsonProperty(PropertyName = "operator",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(DemandOperators.Equals)]
+        [DataMember(Name = "operator",
+            EmitDefaultValue = false)]
         public DemandOperators? Operator { get; set; }
 
         /// <summary>
         /// Value
         /// </summary>
-        [JsonProperty(PropertyName = "value",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "value",
+            EmitDefaultValue = false)]
         public string Value { get; set; }
     }
 }

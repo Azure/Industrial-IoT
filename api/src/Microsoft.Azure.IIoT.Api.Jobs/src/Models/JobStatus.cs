@@ -4,38 +4,42 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Job status
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
+    [DataContract]
     public enum JobStatus {
 
         /// <summary>
         /// Active
         /// </summary>
+        [EnumMember]
         Active,
 
         /// <summary>
         /// Job cancelled
         /// </summary>
+        [EnumMember]
         Canceled,
 
         /// <summary>
         /// Job completed
         /// </summary>
+        [EnumMember]
         Completed,
 
         /// <summary>
         /// Error
         /// </summary>
+        [EnumMember]
         Error,
 
         /// <summary>
         /// Removed
         /// </summary>
+        [EnumMember]
         Deleted
     }
 }

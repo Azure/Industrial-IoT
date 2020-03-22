@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
     using System.Net;
     using System.Threading.Tasks;
@@ -27,11 +28,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
 
         private EndpointModel Endpoint => new EndpointModel {
             Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
-            Certificate = _server.Certificate?.RawData
+            Certificate = _server.Certificate?.RawData?.ToThumbprint()
         };
 
         private ReadScalarValueTests<string> GetTests(EndpointRegistrationModel endpoint, IContainer services) {
-            return new ReadScalarValueTests<string>(
+            return new ReadScalarValueTests<string>(new NewtonSoftJsonSerializer(),
                 () => services.Resolve<INodeServices<string>>(), endpoint.Id,
                 (ep, n) => _server.Client.ReadValueAsync(endpoint.Endpoint, n));
         }

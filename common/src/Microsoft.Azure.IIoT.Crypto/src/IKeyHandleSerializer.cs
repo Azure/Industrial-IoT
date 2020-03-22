@@ -5,26 +5,25 @@
 
 namespace Microsoft.Azure.IIoT.Crypto {
     using Microsoft.Azure.IIoT.Crypto.Models;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
-    /// Can serialize and deserialize a key handle for 
+    /// Can serialize and deserialize a key handle for
     /// storage.
     /// </summary>
     public interface IKeyHandleSerializer {
 
         /// <summary>
-        /// Serialize a handle to json
+        /// Serialize a handle to buffer
         /// </summary>
         /// <param name="handle"></param>
         /// <returns></returns>
-        JToken SerializeHandle(KeyHandle handle);
+        byte[] SerializeHandle(KeyHandle handle);
 
         /// <summary>
-        /// Deserialize a handle from json
+        /// Deserialize a handle from buffer
         /// </summary>
         /// <param name="token"></param>
         /// <returns></returns>
-        KeyHandle DeserializeHandle(JToken token);
+        KeyHandle DeserializeHandle(byte[] token);
     }
 }

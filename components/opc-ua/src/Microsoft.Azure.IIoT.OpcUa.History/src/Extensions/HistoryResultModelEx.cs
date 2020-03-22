@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
 
     /// <summary>
@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
         /// <param name="model"></param>
         /// <param name="convert"></param>
         public static HistoryReadResultModel<T> ToSpecificModel<T>(
-            this HistoryReadResultModel<JToken> model, Func<JToken, T> convert) {
+            this HistoryReadResultModel<VariantValue> model, Func<VariantValue, T> convert) {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
             }
@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
         /// <param name="model"></param>
         /// <param name="convert"></param>
         public static HistoryReadNextResultModel<T> ToSpecificModel<T>(
-            this HistoryReadNextResultModel<JToken> model, Func<JToken, T> convert) {
+            this HistoryReadNextResultModel<VariantValue> model, Func<VariantValue, T> convert) {
             if (model == null) {
                 throw new ArgumentNullException(nameof(model));
             }

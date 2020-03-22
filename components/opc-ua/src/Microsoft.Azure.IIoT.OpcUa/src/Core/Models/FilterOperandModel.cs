@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Filter operand
@@ -41,7 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// <summary>
         /// Variant value if operand is a literal
         /// </summary>
-        public JToken Value { get; set; }
+        public VariantValue Value { get; set; }
 
         /// <summary>
         /// Optional alias to refer to it makeing it a

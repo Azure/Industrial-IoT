@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime;
-    using Microsoft.Azure.IIoT.OpcUa.Twin;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Correlation;
@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Module.Default;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -22,7 +23,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
     using Microsoft.OpenApi.Models;
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
-    using Newtonsoft.Json;
     using System;
     using ILogger = Serilog.ILogger;
     using Prometheus;
@@ -107,14 +107,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
             // services.AddHttpClient();
 
             // Add controllers as services so they'll be resolved.
-            services.AddControllers()
-                .AddNewtonsoftJson(options => {
-                    options.SerializerSettings.Formatting = Formatting.Indented;
-                    options.SerializerSettings.Converters.Add(new ExceptionConverter(
-                        Environment.IsDevelopment()));
-                    options.SerializerSettings.MaxDepth = 10;
-                });
-
+            services.AddControllers().AddJsonSerializer();
             services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 
@@ -164,8 +157,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
             appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
 
             // Print some useful information at bootstrap time
-            log.Information("{service} web service started with id {id}", ServiceInfo.Name,
-                Uptime.ProcessId);
+            log.Information("{service} web service started with id {id}",
+                ServiceInfo.Name, ServiceInfo.Id);
         }
 
         /// <summary>
@@ -182,6 +175,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
 
             // Add diagnostics based on configuration
             builder.AddDiagnostics(Config);
+            builder.RegisterModule<NewtonSoftJsonModule>();
 
             // CORS setup
             builder.RegisterType<CorsSetup>()
@@ -199,7 +193,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
                 .AsImplementedInterfaces().SingleInstance();
 
             // Edge clients
-            builder.RegisterModule<TwinModuleClients>();
+            builder.RegisterType<TwinModuleControlClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<TwinModuleSupervisorClient>()
+                .AsImplementedInterfaces().SingleInstance();
         }
     }
 }

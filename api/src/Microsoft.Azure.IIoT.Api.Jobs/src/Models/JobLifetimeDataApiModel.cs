@@ -4,40 +4,41 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
     using System.Collections.Generic;
 
     /// <summary>
     /// Lifetime data
     /// </summary>
+    [DataContract]
     public class JobLifetimeDataApiModel {
 
         /// <summary>
         /// Status
         /// </summary>
 
-        [JsonProperty(PropertyName = "status",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "status",
+            EmitDefaultValue = false)]
         public JobStatus Status { get; set; }
 
         /// <summary>
         /// Processing status
         /// </summary>
-        [JsonProperty(PropertyName = "processingStatus",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "processingStatus",
+            EmitDefaultValue = false)]
         public Dictionary<string, ProcessingStatusApiModel> ProcessingStatus { get; set; }
 
         /// <summary>
         /// Updated at
         /// </summary>
-        [JsonProperty(PropertyName = "updated")]
+        [DataMember(Name = "updated")]
         public DateTime Updated { get; set; }
 
         /// <summary>
         /// Created at
         /// </summary>
-        [JsonProperty(PropertyName = "created")]
+        [DataMember(Name = "created")]
         public DateTime Created { get; set; }
     }
 }

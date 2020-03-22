@@ -4,32 +4,33 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Job info query model
     /// </summary>
+    [DataContract]
     public class JobInfoQueryApiModel {
 
         /// <summary>
         /// Name
         /// </summary>
-        [JsonProperty(PropertyName = "name",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "name",
+            EmitDefaultValue = false)]
         public string Name { get; set; }
 
         /// <summary>
         /// Configuration type
         /// </summary>
-        [JsonProperty(PropertyName = "jJobConfigurationType",
-           NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "jobConfigurationType",
+           EmitDefaultValue = false)]
         public string JobConfigurationType { get; set; }
 
         /// <summary>
         /// Job status
         /// </summary>
-        [JsonProperty(PropertyName = "status",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "status",
+            EmitDefaultValue = false)]
         public JobStatus? Status { get; set; }
     }
 }

@@ -4,13 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Vault.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
     /// <summary>
     /// Trust group types
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum TrustGroupType {
 
         /// <summary>

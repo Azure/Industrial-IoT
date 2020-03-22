@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.App.Data;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using System;
     using System.Collections.Generic;
     using System.Linq;

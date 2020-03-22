@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Messaging.Default {
 
         /// <inheritdoc/>
         public async Task StopAsync() {
-            foreach (var token in _handlers.ToList()) {
+            foreach (var token in _handlers.Where(x => x.Value != null).ToList()) {
                 // Unregister using stored token
                 await _client.UnregisterAsync(token.Value);
                 _handlers[token.Key] = null;

@@ -26,9 +26,9 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
     using Autofac;
     using Autofac.Extensions.DependencyInjection;
     using System;
-    using Newtonsoft.Json;
     using ILogger = Serilog.ILogger;
     using Prometheus;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Webservice startup
@@ -107,13 +107,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
             });
 
             // Add controllers as services so they'll be resolved.
-            services.AddControllers()
-                .AddNewtonsoftJson(options => {
-                    options.SerializerSettings.Formatting = Formatting.Indented;
-                    options.SerializerSettings.Converters.Add(new ExceptionConverter(
-                        Environment.IsDevelopment()));
-                    options.SerializerSettings.MaxDepth = 10;
-                });
+            services.AddControllers().AddJsonSerializer();
             services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 
@@ -161,8 +155,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
             appLifetime.ApplicationStopped.Register(applicationContainer.Dispose);
 
             // Print some useful information at bootstrap time
-            log.Information("{service} web service started with id {id}", ServiceInfo.Name,
-                Uptime.ProcessId);
+            log.Information("{service} web service started with id {id}",
+                ServiceInfo.Name, ServiceInfo.Id);
         }
 
         /// <summary>
@@ -178,6 +172,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
 
             // Register logger
             builder.AddDiagnostics(Config);
+            builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Register metrics logger
             builder.RegisterType<MetricsLogger>()

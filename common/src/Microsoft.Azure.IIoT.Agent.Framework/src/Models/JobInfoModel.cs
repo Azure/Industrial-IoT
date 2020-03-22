@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System.Collections.Generic;
 
     /// <summary>
@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
         /// <summary>
         /// Job configuration
         /// </summary>
-        public JToken JobConfiguration { get; set; }
+        public VariantValue JobConfiguration { get; set; }
 
         /// <summary>
         /// Demands

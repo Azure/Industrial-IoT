@@ -15,11 +15,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         /// </summary>
         /// <param name="model"></param>
         /// <returns></returns>
-        public static MonitoredItemSampleModel Clone(this MonitoredItemSampleModel model) {
+        public static MonitoredItemMessageModel Clone(this MonitoredItemMessageModel model) {
             if (model == null) {
                 return null;
             }
-            return new MonitoredItemSampleModel {
+            return new MonitoredItemMessageModel {
                 SubscriptionId = model.SubscriptionId,
                 EndpointId = model.EndpointId,
                 DataSetId = model.DataSetId,
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
                 SourceTimestamp = model.SourceTimestamp,
                 Timestamp = model.Timestamp,
                 TypeId = model.TypeId,
-                Value = model.Value,
+                Value = model.Value?.Copy(),
                 Status = model.Status
             };
         }

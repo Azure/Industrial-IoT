@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.Endpoint {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System.Net;
     using System.Threading.Tasks;
     using Xunit;
@@ -25,12 +26,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.Endpoint {
         }
 
         private WriteScalarValueTests<EndpointRegistrationModel> GetTests() {
-            return new WriteScalarValueTests<EndpointRegistrationModel>(
+            return new WriteScalarValueTests<EndpointRegistrationModel>(new NewtonSoftJsonSerializer(),
                 () => _module.HubContainer.Resolve<INodeServices<EndpointRegistrationModel>>(),
                 new EndpointRegistrationModel {
                     Endpoint = new EndpointModel {
                         Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
-                        Certificate = _server.Certificate?.RawData
+                        Certificate = _server.Certificate?.RawData?.ToThumbprint()
                     },
                     Id = "testid",
                     SupervisorId = SupervisorModelEx.CreateSupervisorId(

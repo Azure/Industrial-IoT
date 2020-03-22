@@ -3,8 +3,8 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.Common.Identity {
-    using Microsoft.Azure.IIoT.Services.Common.Identity.Runtime;
+namespace Microsoft.Azure.IIoT.Services.Common.Hub.Identity {
+    using Microsoft.Azure.IIoT.Services.Common.Hub.Identity.Runtime;
     using Microsoft.Azure.IIoT.Auth.IoTHub;
     using Microsoft.Azure.IIoT.Crypto.Default;
     using Microsoft.Azure.IIoT.Exceptions;
@@ -12,6 +12,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Identity {
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Extensions.Configuration;
     using Autofac;
     using Serilog;
@@ -89,6 +90,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Identity {
             builder.RegisterInstance(serviceConfig)
                 .AsImplementedInterfaces().SingleInstance();
             builder.AddDiagnostics(serviceConfig);
+            builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Register http client module
             builder.RegisterModule<HttpClientModule>();

@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Hub {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
@@ -102,7 +102,7 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="ct"></param>
         /// <returns></returns>
         Task UpdatePropertiesAsync(string deviceId, string moduleId,
-            Dictionary<string, JToken> properties, string etag = null,
+            Dictionary<string, VariantValue> properties, string etag = null,
             CancellationToken ct = default);
 
         /// <summary>

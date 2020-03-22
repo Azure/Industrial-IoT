@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
     using Microsoft.Azure.IIoT.Api.Jobs.Clients;
     using Microsoft.Azure.IIoT.Api.Jobs;
     using Microsoft.Azure.IIoT.Api.Jobs.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
@@ -28,8 +29,8 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
     using Microsoft.Azure.IIoT.Http.SignalR;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Auth.Runtime;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Extensions.Configuration;
-    using Newtonsoft.Json;
     using Autofac;
     using System;
     using System.Collections.Generic;
@@ -60,11 +61,12 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
 
             // Register logger
             builder.AddDiagnostics(config, addConsole: false);
+            builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Register http client module ...
             builder.RegisterModule<HttpClientModule>();
             // ... as well as signalR client (needed for api)
-            builder.RegisterType<SignalRClient>()
+            builder.RegisterType<SignalRHubClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Use bearer authentication
@@ -128,6 +130,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             _publisher = _scope.Resolve<IPublisherServiceApi>();
             _vault = _scope.Resolve<IVaultServiceApi>();
             _jobs = _scope.Resolve<IJobsServiceApi>();
+            _serializer = _scope.Resolve<IJsonSerializer>();
         }
 
         /// <inheritdoc/>
@@ -257,6 +260,9 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                                     break;
                                 case "query":
                                     await QueryEndpointsAsync(options);
+                                    break;
+                                case "validate":
+                                    await GetEndpointCertificateAsync(options);
                                     break;
                                 case "activate":
                                     await ActivateEndpointsAsync(options);
@@ -556,6 +562,9 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                                 case "update":
                                     await UpdateGatewayAsync(options);
                                     break;
+                                case "monitor":
+                                    await MonitorGatewaysAsync();
+                                    break;
                                 case "list":
                                     await ListGatewaysAsync(options);
                                     break;
@@ -744,7 +753,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 new ValueWriteRequestApiModel {
                     NodeId = GetNodeId(options),
                     DataType = options.GetValueOrDefault<string>("-t", "--datatype", null),
-                    Value = options.GetValue<string>("-v", "--value")
+                    Value = _serializer.FromObject(options.GetValue<string>("-v", "--value"))
                 });
             PrintResult(options, result);
         }
@@ -870,7 +879,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             Console.WriteLine("Press any key to stop.");
 
             var finish = await events.NodePublishSubscribeByEndpointAsync(
-                endpointId, null, PrintSample);
+                endpointId, PrintSample);
             try {
                 Console.ReadKey();
             }
@@ -1027,7 +1036,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         private async Task MonitorPublishersAsync() {
             var events = _scope.Resolve<IRegistryServiceEvents>();
             Console.WriteLine("Press any key to stop.");
-            var complete = await events.SubscribePublisherEventsAsync(null, PrintEvent);
+            var complete = await events.SubscribePublisherEventsAsync(PrintEvent);
             try {
                 Console.ReadKey();
             }
@@ -1137,6 +1146,21 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 new GatewayUpdateApiModel {
                     SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null),
                 });
+        }
+
+        /// <summary>
+        /// Monitor gateways
+        /// </summary>
+        private async Task MonitorGatewaysAsync() {
+            var events = _scope.Resolve<IRegistryServiceEvents>();
+            Console.WriteLine("Press any key to stop.");
+            var complete = await events.SubscribeGatewayEventsAsync(PrintEvent);
+            try {
+                Console.ReadKey();
+            }
+            finally {
+                await complete.DisposeAsync();
+            }
         }
 
         private string _groupId;
@@ -1523,7 +1547,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         private async Task MonitorSupervisorsAsync() {
             var events = _scope.Resolve<IRegistryServiceEvents>();
             Console.WriteLine("Press any key to stop.");
-            var complete = await events.SubscribeSupervisorEventsAsync(null, PrintEvent);
+            var complete = await events.SubscribeSupervisorEventsAsync(PrintEvent);
             try {
                 Console.ReadKey();
             }
@@ -1651,10 +1675,10 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             if (discovererId != null) {
                 // If specified - monitor progress
                 complete = await events.SubscribeDiscoveryProgressByDiscovererIdAsync(
-                    discovererId, null, PrintProgress);
+                    discovererId, PrintProgress);
             }
             else {
-                complete = await events.SubscribeDiscovererEventsAsync(null, PrintEvent);
+                complete = await events.SubscribeDiscovererEventsAsync(PrintEvent);
             }
             try {
                 Console.ReadKey();
@@ -1688,7 +1712,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             var events = _scope.Resolve<IRegistryServiceEvents>();
             Console.WriteLine("Press any key to stop.");
             var discovery = await events.SubscribeDiscoveryProgressByDiscovererIdAsync(
-                discovererId, null, PrintProgress);
+                discovererId, PrintProgress);
             try {
                 var config = BuildDiscoveryConfig(options);
                 var mode = options.GetValueOrDefault("-d", "--discovery",
@@ -1789,7 +1813,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 var tcs = new TaskCompletionSource<bool>();
 
                 var discovery = await events.SubscribeDiscoveryProgressByRequestIdAsync(
-                    id, null, async ev => {
+                    id, async ev => {
                         await PrintProgress(ev);
                         switch (ev.EventType) {
                             case DiscoveryProgressType.Error:
@@ -1822,7 +1846,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                     Id = id,
                     DiscoveryUrl = options.GetValue<string>("-u", "--url"),
                     ActivationFilter = !activate ? null : new EndpointActivationFilterApiModel {
-                        SecurityMode = OpcUa.Api.Registry.Models.SecurityMode.None
+                        SecurityMode = SecurityMode.None
                     }
                 });
         }
@@ -1837,7 +1861,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 events = _scope.Resolve<IRegistryServiceEvents>();
                 var tcs = new TaskCompletionSource<bool>();
                 var discovery = await events.SubscribeDiscoveryProgressByRequestIdAsync(
-                    id, null, async ev => {
+                    id, async ev => {
                         await PrintProgress(ev);
                         switch (ev.EventType) {
                             case DiscoveryProgressType.Error:
@@ -2027,7 +2051,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         private async Task MonitorApplicationsAsync() {
             var events = _scope.Resolve<IRegistryServiceEvents>();
             Console.WriteLine("Press any key to stop.");
-            var complete = await events.SubscribeApplicationEventsAsync(null, PrintEvent);
+            var complete = await events.SubscribeApplicationEventsAsync(PrintEvent);
             try {
                 Console.ReadKey();
             }
@@ -2042,20 +2066,20 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         private async Task MonitorAllAsync() {
             var events = _scope.Resolve<IRegistryServiceEvents>();
             Console.WriteLine("Press any key to stop.");
-            var apps = await events.SubscribeApplicationEventsAsync(null, PrintEvent);
+            var apps = await events.SubscribeApplicationEventsAsync(PrintEvent);
             try {
-                var endpoint = await events.SubscribeEndpointEventsAsync(null, PrintEvent);
+                var endpoint = await events.SubscribeEndpointEventsAsync(PrintEvent);
                 try {
-                    var supervisor = await events.SubscribeSupervisorEventsAsync(null, PrintEvent);
+                    var supervisor = await events.SubscribeSupervisorEventsAsync(PrintEvent);
                     try {
-                        var publisher = await events.SubscribePublisherEventsAsync(null, PrintEvent);
+                        var publisher = await events.SubscribePublisherEventsAsync(PrintEvent);
                         try {
-                            var discoverers = await events.SubscribeDiscovererEventsAsync(null, PrintEvent);
+                            var discoverers = await events.SubscribeDiscovererEventsAsync(PrintEvent);
                             try {
                                 var supervisors = await _registry.ListAllDiscoverersAsync();
                                 var discovery = await supervisors
                                     .Select(s => events.SubscribeDiscoveryProgressByDiscovererIdAsync(
-                                        s.Id, null, PrintProgress)).AsAsyncDisposable();
+                                        s.Id, PrintProgress)).AsAsyncDisposable();
                                 try {
                                     Console.ReadKey();
                                 }
@@ -2161,7 +2185,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             var query = new EndpointRegistrationQueryApiModel {
                 Url = options.GetValueOrDefault<string>("-u", "--uri", null),
                 SecurityMode = options
-                    .GetValueOrDefault<OpcUa.Api.Registry.Models.SecurityMode>("-m", "--mode", null),
+                    .GetValueOrDefault<OpcUa.Api.Core.Models.SecurityMode>("-m", "--mode", null),
                 SecurityPolicy = options.GetValueOrDefault<string>("-l", "--policy", null),
                 Connected = options.IsProvidedOrNull("-c", "--connected"),
                 Activated = options.IsProvidedOrNull("-a", "--activated"),
@@ -2200,7 +2224,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
 
             // Activate all sign and encrypt endpoints
             var result = await _registry.QueryAllEndpointsAsync(new EndpointRegistrationQueryApiModel {
-                SecurityMode = options.GetValueOrDefault<OpcUa.Api.Registry.Models.SecurityMode>("-m", "mode", null),
+                SecurityMode = options.GetValueOrDefault<OpcUa.Api.Core.Models.SecurityMode>("-m", "mode", null),
                 Activated = false
             });
             foreach (var item in result) {
@@ -2226,7 +2250,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
 
             // Activate all sign and encrypt endpoints
             var result = await _registry.QueryAllEndpointsAsync(new EndpointRegistrationQueryApiModel {
-                SecurityMode = options.GetValueOrDefault<OpcUa.Api.Registry.Models.SecurityMode>("-m", "mode", null),
+                SecurityMode = options.GetValueOrDefault<OpcUa.Api.Core.Models.SecurityMode>("-m", "mode", null),
                 Activated = true
             });
             foreach (var item in result) {
@@ -2249,12 +2273,20 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         }
 
         /// <summary>
+        /// Get endpoint certificate
+        /// </summary>
+        private async Task GetEndpointCertificateAsync(CliOptions options) {
+            var result = await _registry.GetEndpointCertificateAsync(GetEndpointId(options));
+            PrintResult(options, result);
+        }
+
+        /// <summary>
         /// Monitor endpoints
         /// </summary>
         private async Task MonitorEndpointsAsync() {
             var events = _scope.Resolve<IRegistryServiceEvents>();
             Console.WriteLine("Press any key to stop.");
-            var complete = await events.SubscribeEndpointEventsAsync(null, PrintEvent);
+            var complete = await events.SubscribeEndpointEventsAsync(PrintEvent);
             try {
                 Console.ReadKey();
             }
@@ -2415,7 +2447,8 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             }
             else {
                 var result = await _vault.StartSigningRequestAsync(new StartSigningRequestApiModel {
-                    CertificateRequest = options.GetValue<byte[]>("-c", "--csr"),
+                    CertificateRequest = _serializer.FromObject(
+                        options.GetValue<byte[]>("-c", "--csr")),
                     EntityId = options.GetValue<string>("-e", "--entityId"),
                     GroupId = options.GetValue<string>("-g", "--groupId")
                 });
@@ -2475,10 +2508,10 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Print result
         /// </summary>
-        private void PrintResult<T>(CliOptions options, T status) {
+        private void PrintResult<T>(CliOptions options, T result) {
             Console.WriteLine("==================");
-            Console.WriteLine(JsonConvert.SerializeObject(status,
-                options.GetValueOrDefault("-F", "--format", Formatting.Indented)));
+            Console.WriteLine(_serializer.SerializeToString(result,
+                options.GetValueOrDefault("-F", "--format", SerializeOption.Indented)));
             Console.WriteLine("==================");
         }
 
@@ -2564,48 +2597,56 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Print event
         /// </summary>
-        private static Task PrintEvent(EndpointEventApiModel ev) {
-            Console.WriteLine(JsonConvertEx.SerializeObjectPretty(ev));
+        private Task PrintEvent(EndpointEventApiModel ev) {
+            Console.WriteLine(_serializer.SerializePretty(ev));
             return Task.CompletedTask;
         }
 
         /// <summary>
         /// Print event
         /// </summary>
-        private static Task PrintEvent(ApplicationEventApiModel ev) {
-            Console.WriteLine(JsonConvertEx.SerializeObjectPretty(ev));
+        private Task PrintEvent(ApplicationEventApiModel ev) {
+            Console.WriteLine(_serializer.SerializePretty(ev));
             return Task.CompletedTask;
         }
 
         /// <summary>
         /// Print event
         /// </summary>
-        private static Task PrintEvent(SupervisorEventApiModel ev) {
-            Console.WriteLine(JsonConvertEx.SerializeObjectPretty(ev));
+        private Task PrintEvent(SupervisorEventApiModel ev) {
+            Console.WriteLine(_serializer.SerializePretty(ev));
             return Task.CompletedTask;
         }
 
         /// <summary>
         /// Print event
         /// </summary>
-        private static Task PrintEvent(DiscovererEventApiModel ev) {
-            Console.WriteLine(JsonConvertEx.SerializeObjectPretty(ev));
+        private Task PrintEvent(GatewayEventApiModel ev) {
+            Console.WriteLine(_serializer.SerializePretty(ev));
             return Task.CompletedTask;
         }
 
         /// <summary>
         /// Print event
         /// </summary>
-        private static Task PrintEvent(PublisherEventApiModel ev) {
-            Console.WriteLine(JsonConvertEx.SerializeObjectPretty(ev));
+        private Task PrintEvent(DiscovererEventApiModel ev) {
+            Console.WriteLine(_serializer.SerializePretty(ev));
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Print event
+        /// </summary>
+        private Task PrintEvent(PublisherEventApiModel ev) {
+            Console.WriteLine(_serializer.SerializePretty(ev));
             return Task.CompletedTask;
         }
 
         /// <summary>
         /// Print sample
         /// </summary>
-        private static Task PrintSample(MonitoredItemMessageApiModel samples) {
-            Console.WriteLine(JsonConvertEx.SerializeObject(samples));
+        private Task PrintSample(MonitoredItemMessageApiModel samples) {
+            Console.WriteLine(_serializer.SerializeToString(samples));
             return Task.CompletedTask;
         }
 
@@ -2618,7 +2659,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
 
             if (options.IsSet("-a", "--activate")) {
                 config.ActivationFilter = new EndpointActivationFilterApiModel {
-                    SecurityMode = OpcUa.Api.Registry.Models.SecurityMode.None
+                    SecurityMode = SecurityMode.None
                 };
                 empty = false;
             }
@@ -2920,16 +2961,21 @@ Commands and Options
         -A, --all       Return all endpoints (unpaged)
         -F, --format    Json format for result
 
-     activate    Activate endpoints
-        with ...
-        -i, --id        Id of endpoint or ...
-        -m, --mode      Security mode (default:SignAndEncrypt)
-
      get         Get endpoint
         with ...
         -i, --id        Id of endpoint to retrieve (mandatory)
         -S, --server    Return only server state (default:false)
         -F, --format    Json format for result
+
+     validate    Get endpoint certificate chain and validate
+        with ...
+        -i, --id        Id of endpoint to retrieve (mandatory)
+        -F, --format    Json format for result
+
+     activate    Activate endpoints
+        with ...
+        -i, --id        Id of endpoint or ...
+        -m, --mode      Security mode (default:SignAndEncrypt)
 
      deactivate  Deactivate endpoints
         with ...
@@ -3045,6 +3091,8 @@ Commands and Options
         -i, --id        Gateway id to select.
         -c, --clear     Clear current selection
         -s, --show      Show current selection
+
+     monitor     Monitor changes to gateways.
 
      update      Update gateway
         with ...
@@ -3529,5 +3577,6 @@ Commands and Options
         private readonly IRegistryServiceApi _registry;
         private readonly IHistoryServiceApi _history;
         private readonly IVaultServiceApi _vault;
+        private readonly IJsonSerializer _serializer;
     }
 }

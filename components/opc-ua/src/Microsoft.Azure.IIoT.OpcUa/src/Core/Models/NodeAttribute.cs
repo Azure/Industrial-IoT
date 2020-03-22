@@ -4,13 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
     /// <summary>
     /// Node attribute identifiers
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum NodeAttribute {
 
         /// <summary>

@@ -5,12 +5,13 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Auth.Model {
     using Microsoft.Azure.IIoT.Auth.Models;
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
 
     /// <summary>
     /// Identity token
     /// </summary>
+    [DataContract]
     public class IdentityTokenTwinModel {
 
         /// <summary>
@@ -43,19 +44,19 @@ namespace Microsoft.Azure.IIoT.Hub.Auth.Model {
         /// <summary>
         /// Identity
         /// </summary>
-        [JsonProperty(PropertyName = "identity")]
+        [DataMember(Name = "identity")]
         public string Identity { get; set; }
 
         /// <summary>
         /// Key
         /// </summary>
-        [JsonProperty(PropertyName = "key")]
+        [DataMember(Name = "key")]
         public string Key { get; set; }
 
         /// <summary>
         /// Expiration
         /// </summary>
-        [JsonProperty(PropertyName = "expires")]
+        [DataMember(Name = "expires")]
         public DateTime Expires { get; set; }
     }
 }

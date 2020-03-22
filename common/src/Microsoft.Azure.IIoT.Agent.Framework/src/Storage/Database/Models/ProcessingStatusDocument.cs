@@ -5,30 +5,32 @@
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
+    using System.Runtime.Serialization;
     using System;
 
     /// <summary>
     /// processing status
     /// </summary>
+    [DataContract]
     public class ProcessingStatusDocument {
 
         /// <summary>
         /// id
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
+        [DataMember(Name = "id")]
         public string Id { get; set; }
 
         /// <summary>
         /// Etag
         /// </summary>
-        [JsonProperty(PropertyName = "_etag")]
+        [DataMember(Name = "_etag")]
         public string ETag { get; set; }
 
         /// <summary>
         /// Document type
         /// </summary>
+        [DataMember]
         public string ClassType { get; set; } = ClassTypeName;
         /// <summary/>
         public static readonly string ClassTypeName = "ProcessingStatus";
@@ -36,21 +38,25 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Storage.Database {
         /// <summary>
         /// Identifier of the job document
         /// </summary>
+        [DataMember]
         public string JobId { get; set; }
 
         /// <summary>
         /// Last known heartbeat
         /// </summary>
+        [DataMember]
         public DateTime? LastKnownHeartbeat { get; set; }
 
         /// <summary>
         /// Last known state
         /// </summary>
-        public JToken LastKnownState { get; set; }
+        [DataMember]
+        public VariantValue LastKnownState { get; set; }
 
         /// <summary>
         /// Processing mode
         /// </summary>
+        [DataMember]
         public ProcessMode? ProcessMode { get; set; }
     }
 }

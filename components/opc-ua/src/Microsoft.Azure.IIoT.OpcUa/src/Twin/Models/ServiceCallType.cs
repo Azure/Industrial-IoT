@@ -4,13 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
     /// <summary>
     /// Type of service call
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum ServiceCallType {
 
         /// <summary>

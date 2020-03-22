@@ -5,14 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Microsoft.Azure.IIoT.Module.Framework.Services;
-    using Microsoft.Azure.IIoT.Module.Models;
     using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Azure.IIoT.Hub;
-    using Serilog;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.Devices.Client;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -38,19 +35,30 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <summary>
+        /// Property Di to prevent circular dependency between host and invoker
+        /// </summary>
+        public IEnumerable<IMethodInvoker> ExternalInvokers {
+            set {
+                foreach (var invoker in value) {
+                    _calltable.AddOrUpdate(invoker.MethodName, invoker);
+                }
+            }
+        }
+
+        /// <summary>
         /// Create router
         /// </summary>
+        /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        /// <param name="invokers"></param>
-        public MethodRouter(ILogger logger, IEnumerable<IMethodInvoker> invokers = null) {
+        public MethodRouter(IJsonSerializer serializer, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
 
-            _calltable = invokers?.ToDictionary(i => i.MethodName, i => i) ??
-                new Dictionary<string, IMethodInvoker>();
-
-            // Create chunk server
-            var server = new ChunkMethodServer(this, logger);
-            _calltable.Add(MethodNames.Call, new ChunkMethodServerInvoker(server)); ;
+            // Create chunk server always
+            var server = new ChunkMethodServer(_serializer, logger);
+            _calltable = new Dictionary<string, IMethodInvoker> {
+                { server.MethodName, server }
+            };
         }
 
         /// <inheritdoc/>
@@ -82,7 +90,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 throw new NotSupportedException(
                     $"Unknown controller method {method} called.");
             }
-            return await invoker.InvokeAsync(payload, contentType);
+            return await invoker.InvokeAsync(payload, contentType, this);
         }
 
         /// <summary>
@@ -126,7 +134,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         _calltable.Add(versionedName, invoker);
                     }
                     if (invoker is DynamicInvoker dynamicInvoker) {
-                        dynamicInvoker.Add(target, methodInfo);
+                        dynamicInvoker.Add(target, methodInfo, _serializer);
                     }
                     else {
                         // Should never happen...
@@ -135,38 +143,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Manage chunked messages
-        /// </summary>
-        private class ChunkMethodServerInvoker : IMethodInvoker {
-
-            /// <inheritdoc/>
-            public string MethodName => MethodNames.Call;
-
-            /// <summary>
-            /// Create invoker
-            /// </summary>
-            /// <param name="server"></param>
-            public ChunkMethodServerInvoker(IChunkMethodServer server) {
-                _server = server;
-            }
-
-            /// <inheritdoc/>
-            public async Task<byte[]> InvokeAsync(byte[] payload, string contentType) {
-                var data = JsonConvertEx.DeserializeObject<MethodChunkModel>(
-                    Encoding.UTF8.GetString(payload));
-                data = await _server.ProcessAsync(data);
-                return Encoding.UTF8.GetBytes(JsonConvertEx.SerializeObject(data));
-            }
-
-            /// <inheritdoc/>
-            public void Dispose() {
-                _server.Dispose();
-            }
-
-            private readonly IChunkMethodServer _server;
         }
 
         /// <summary>
@@ -190,19 +166,21 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// </summary>
             /// <param name="controller"></param>
             /// <param name="controllerMethod"></param>
-            public void Add(object controller, MethodInfo controllerMethod) {
+            /// <param name="serializer"></param>
+            public void Add(object controller, MethodInfo controllerMethod, IJsonSerializer serializer) {
                 _logger.Verbose("Adding {controller}.{method} method to invoker...",
                     controller.GetType().Name, controllerMethod.Name);
-                _invokers.Add(new JsonMethodInvoker(controller, controllerMethod, _logger));
+                _invokers.Add(new JsonMethodInvoker(controller, controllerMethod, serializer, _logger));
                 MethodName = controllerMethod.Name;
             }
 
             /// <inheritdoc/>
-            public async Task<byte[]> InvokeAsync(byte[] payload, string contentType) {
+            public async Task<byte[]> InvokeAsync(byte[] payload, string contentType,
+                IMethodHandler handler) {
                 Exception e = null;
                 foreach (var invoker in _invokers) {
                     try {
-                        return await invoker.InvokeAsync(payload, contentType);
+                        return await invoker.InvokeAsync(payload, contentType, handler);
                     }
                     catch (Exception ex) {
                         // Save last, and continue
@@ -247,10 +225,12 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// </summary>
             /// <param name="controller"></param>
             /// <param name="controllerMethod"></param>
+            /// <param name="serializer"></param>
             /// <param name="logger"></param>
             public JsonMethodInvoker(object controller, MethodInfo controllerMethod,
-                ILogger logger) {
+                IJsonSerializer serializer, ILogger logger) {
                 _logger = logger;
+                _serializer = serializer;
                 _controller = controller;
                 _controllerMethod = controllerMethod;
                 _methodParams = _controllerMethod.GetParameters();
@@ -265,7 +245,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
 
             /// <inheritdoc/>
-            public Task<byte[]> InvokeAsync(byte[] payload, string contentType) {
+            public Task<byte[]> InvokeAsync(byte[] payload, string contentType,
+                IMethodHandler handler) {
                 object task;
                 try {
                     object[] inputs;
@@ -273,16 +254,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         inputs = new object[0];
                     }
                     else if (_methodParams.Length == 1) {
-                        var data = JsonConvertEx.DeserializeObject(
-                            Encoding.UTF8.GetString(payload), _methodParams[0].ParameterType);
+                        var data = _serializer.Deserialize(payload, _methodParams[0].ParameterType);
                         inputs = new[] { data };
                     }
                     else {
-                        var data = (JObject)JToken.Parse(Encoding.UTF8.GetString(payload));
+                        var data = _serializer.Parse(payload);
                         inputs = _methodParams.Select(param => {
-                            if (data.TryGetValue(param.Name,
-                                StringComparison.InvariantCultureIgnoreCase, out var value)) {
-                                return value.ToObject(param.ParameterType);
+                            if (data.TryGetProperty(param.Name,
+                                out var value, StringComparison.InvariantCultureIgnoreCase)) {
+                                return value.ConvertTo(param.ParameterType);
                             }
                             return param.HasDefaultValue ? param.DefaultValue : null;
                         }).ToArray();
@@ -321,10 +301,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         _logger.Verbose(ex, "Method call error");
                         ex = _ef.Filter(ex, out var status);
                         throw new MethodCallStatusException(ex != null ?
-                           JsonConvertEx.SerializeObject(ex) : null, status);
+                           _serializer.SerializeToString(ex) : null, status);
                     }
-                    return Encoding.UTF8.GetBytes(
-                        JsonConvertEx.SerializeObject(tr.Result));
+                    return _serializer.SerializeToBytes(tr.Result).ToArray();
                 });
             }
 
@@ -344,7 +323,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         _logger.Verbose(ex, "Method call error");
                         ex = _ef.Filter(ex, out var status);
                         throw new MethodCallStatusException(ex != null ?
-                            JsonConvertEx.SerializeObject(ex) : null, status);
+                            _serializer.SerializeToString(ex) : null, status);
                     }
                     return new byte[0];
                 });
@@ -353,6 +332,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             private static readonly MethodInfo _methodResponseAsContinuation =
                 typeof(JsonMethodInvoker).GetMethod(nameof(MethodResultConverterContinuation),
                     BindingFlags.Public | BindingFlags.Instance);
+            private readonly IJsonSerializer _serializer;
             private readonly ILogger _logger;
             private readonly object _controller;
             private readonly ParameterInfo[] _methodParams;
@@ -362,6 +342,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         private readonly ILogger _logger;
+        private readonly IJsonSerializer _serializer;
         private readonly Dictionary<string, IMethodInvoker> _calltable;
     }
 }

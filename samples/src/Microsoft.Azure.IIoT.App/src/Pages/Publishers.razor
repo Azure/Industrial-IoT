@@ -116,12 +116,14 @@
             }
             StateHasChanged();
 
-            _publisherEvent = await RegistryServiceEvents.SubscribePublisherEventsAsync(null, PublisherEvent);
+            _publisherEvent = await RegistryServiceEvents.SubscribePublisherEventsAsync(
+                ev => InvokeAsync(() => PublisherEvent(ev)));
         }
     }
 
     private Task PublisherEvent(PublisherEventApiModel ev)
     {
+        _publisherList.Results.Update(ev);
         StateHasChanged();
         return Task.CompletedTask;
     }

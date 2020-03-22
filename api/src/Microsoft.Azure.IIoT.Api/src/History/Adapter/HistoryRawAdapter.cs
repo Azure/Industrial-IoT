@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
     using Microsoft.Azure.IIoT.OpcUa.Api.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Threading.Tasks;
 
@@ -20,34 +20,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
         /// Create service
         /// </summary>
         /// <param name="client"></param>
-        public HistoryRawAdapter(IHistoryServiceRawApi client) {
+        /// <param name="serializer"></param>
+        public HistoryRawAdapter(IHistoryServiceRawApi client, ISerializer serializer) {
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryReadResultModel<JToken>> HistoryReadAsync(
-            string endpoint, HistoryReadRequestModel<JToken> request) {
+        public async Task<HistoryReadResultModel<VariantValue>> HistoryReadAsync(
+            string endpoint, HistoryReadRequestModel<VariantValue> request) {
             var result = await _client.HistoryReadRawAsync(endpoint,
-                request.Map<HistoryReadRequestApiModel<JToken>>());
-            return result.Map<HistoryReadResultModel<JToken>>();
+                _serializer.Map<HistoryReadRequestApiModel<VariantValue>>(request));
+            return _serializer.Map<HistoryReadResultModel<VariantValue>>(result);
         }
 
         /// <inheritdoc/>
-        public async Task<HistoryReadNextResultModel<JToken>> HistoryReadNextAsync(
+        public async Task<HistoryReadNextResultModel<VariantValue>> HistoryReadNextAsync(
             string endpoint, HistoryReadNextRequestModel request) {
             var result = await _client.HistoryReadRawNextAsync(endpoint,
-                request.Map<HistoryReadNextRequestApiModel>());
-            return result.Map<HistoryReadNextResultModel<JToken>>();
+                _serializer.Map<HistoryReadNextRequestApiModel>(request));
+            return _serializer.Map<HistoryReadNextResultModel<VariantValue>>(result);
         }
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResultModel> HistoryUpdateAsync(
-            string endpoint, HistoryUpdateRequestModel<JToken> request) {
+            string endpoint, HistoryUpdateRequestModel<VariantValue> request) {
             var result = await _client.HistoryUpdateRawAsync(endpoint,
-                request.Map<HistoryUpdateRequestApiModel<JToken>>());
-            return result.Map<HistoryUpdateResultModel>();
+                _serializer.Map<HistoryUpdateRequestApiModel<VariantValue>>(request));
+            return _serializer.Map<HistoryUpdateResultModel>(result);
         }
 
+        private readonly ISerializer _serializer;
         private readonly IHistoryServiceRawApi _client;
     }
 }

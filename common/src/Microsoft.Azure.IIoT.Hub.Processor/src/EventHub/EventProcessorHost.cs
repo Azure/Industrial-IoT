@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
     using Microsoft.Azure.IIoT.Messaging.EventHub;
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.EventHubs;
     using Microsoft.Azure.EventHubs.Processor;
@@ -18,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
     /// processors.
     /// </summary>
     public sealed class EventProcessorHost : IDisposable,
-        IEventProcessorHost, IHostProcess {
+        IEventProcessingHost, IHostProcess {
 
         /// <summary>
         /// Create host wrapper

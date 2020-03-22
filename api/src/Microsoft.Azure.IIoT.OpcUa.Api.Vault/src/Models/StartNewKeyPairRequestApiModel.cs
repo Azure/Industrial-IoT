@@ -4,42 +4,43 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
 
     /// <summary>
     /// New key pair request
     /// </summary>
+    [DataContract]
     public sealed class StartNewKeyPairRequestApiModel {
 
         /// <summary>
         /// Entity id
         /// </summary>
-        [JsonProperty(PropertyName = "entityId")]
+        [DataMember(Name = "entityId")]
         public string EntityId { get; set; }
 
         /// <summary>
         /// Certificate group
         /// </summary>
-        [JsonProperty(PropertyName = "groupId")]
+        [DataMember(Name = "groupId")]
         public string GroupId { get; set; }
 
         /// <summary>
         /// Type
         /// </summary>
-        [JsonProperty(PropertyName = "certificateType")]
+        [DataMember(Name = "certificateType")]
         public TrustGroupType CertificateType { get; set; }
 
         /// <summary>
         /// Subject name
         /// </summary>
-        [JsonProperty(PropertyName = "subjectName")]
+        [DataMember(Name = "subjectName")]
         public string SubjectName { get; set; }
 
         /// <summary>
         /// Domain names
         /// </summary>
-        [JsonProperty(PropertyName = "domainNames")]
+        [DataMember(Name = "domainNames")]
         public List<string> DomainNames { get; set; }
     }
 }

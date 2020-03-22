@@ -4,36 +4,33 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
-    using System.ComponentModel;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Discovery request
     /// </summary>
+    [DataContract]
     public class DiscoveryRequestApiModel {
 
         /// <summary>
         /// Id of discovery request
         /// </summary>
-        [JsonProperty(PropertyName = "id",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "id",
+            EmitDefaultValue = false)]
         public string Id { get; set; }
 
         /// <summary>
         /// Discovery mode to use
         /// </summary>
-        [JsonProperty(PropertyName = "discovery",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "discovery",
+            EmitDefaultValue = false)]
         public DiscoveryMode? Discovery { get; set; }
 
         /// <summary>
         /// Scan configuration to use
         /// </summary>
-        [JsonProperty(PropertyName = "configuration",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "configuration",
+            EmitDefaultValue = false)]
         public DiscoveryConfigApiModel Configuration { get; set; }
     }
 }

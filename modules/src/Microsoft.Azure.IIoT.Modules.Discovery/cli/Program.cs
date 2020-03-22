@@ -10,6 +10,8 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Cli {
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Extensions.Configuration;
     using Serilog.Events;
     using Serilog;
@@ -19,7 +21,6 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Cli {
     using System.Net;
     using System.Diagnostics.Tracing;
     using System.Collections.Generic;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Discovery module host process
@@ -65,7 +66,6 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.Cli {
                         case "--help":
                             throw new ArgumentException("Help");
                     }
-
                 }
                 if (string.IsNullOrEmpty(cs)) {
                     throw new ArgumentException("Missing connection string.");
@@ -142,10 +142,10 @@ Options:
             string deviceId, string moduleId) {
             var logger = ConsoleLogger.Create(LogEventLevel.Error);
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
-                config, logger);
+                config, new NewtonSoftJsonSerializer(), logger);
             await registry.CreateAsync(new DeviceTwinModel {
                 Id = deviceId,
-                Tags = new Dictionary<string, JToken> {
+                Tags = new Dictionary<string, VariantValue> {
                     [TwinProperty.Type] = IdentityType.Gateway
                 },
                 Capabilities = new DeviceCapabilitiesModel {

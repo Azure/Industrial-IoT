@@ -7,13 +7,13 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
     using Microsoft.Azure.IIoT.Crypto.KeyVault.Models;
     using Microsoft.Azure.IIoT.Crypto.Models;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.KeyVault;
     using Microsoft.Azure.KeyVault.Models;
     using Microsoft.Azure.KeyVault.WebKey;
     using Microsoft.Extensions.Diagnostics.HealthChecks;
-    using Newtonsoft.Json;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -32,12 +32,13 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
         /// Create key vault service client
         /// </summary>
         /// <param name="config">Keyvault configuration.</param>
+        /// <param name="serializer"></param>
         /// <param name="certificates"></param>
         /// <param name="factory"></param>
         /// <param name="provider"></param>
         public KeyVaultServiceClient(ICertificateRepository certificates,
-            ICertificateFactory factory, IKeyVaultConfig config,
-            Auth.ITokenProvider provider) : this (certificates, factory, config,
+            ICertificateFactory factory, IKeyVaultConfig config, IJsonSerializer serializer,
+            Auth.ITokenProvider provider) : this (certificates, factory, config, serializer,
                 new KeyVaultClient(async (_, resource, scope) => {
                     var token = await provider.GetTokenForAsync(
                         resource, scope.YieldReturn());
@@ -49,11 +50,12 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
         /// Create key vault service client
         /// </summary>
         /// <param name="config">Keyvault configuration.</param>
+        /// <param name="serializer"></param>
         /// <param name="certificates"></param>
         /// <param name="factory"></param>
         /// <param name="client"></param>
         public KeyVaultServiceClient(ICertificateRepository certificates,
-            ICertificateFactory factory, IKeyVaultConfig config,
+            ICertificateFactory factory, IKeyVaultConfig config, IJsonSerializer serializer,
             IKeyVaultClient client) {
 
             if (config == null) {
@@ -62,6 +64,7 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
 
             _vaultBaseUrl = config.KeyVaultBaseUrl;
             _keyStoreIsHsm = config.KeyVaultIsHsm;
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
             _certificates = certificates ?? throw new ArgumentNullException(nameof(certificates));
             _keyVaultClient = client ?? throw new ArgumentNullException(nameof(client));
@@ -174,7 +177,7 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
                     null, ct);
                 try {
                     var result = CertificateEx.Create(bundle.Cer,
-                        new KeyVaultKeyHandle(bundle), certificate.IssuerPolicies);
+                        KeyVaultKeyHandle.Create(bundle), certificate.IssuerPolicies);
                     await _certificates.AddCertificateAsync(
                         certificateName, result, bundle.CertificateIdentifier.Identifier, ct);
                     return result;
@@ -243,7 +246,7 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
                 // (2) - Issue root X509 Certificate with the csr.
 
                 var signedcert = await _factory.CreateCertificateAsync(this,
-                    new KeyVaultKeyHandle(createdCertificateBundle), subjectName,
+                    KeyVaultKeyHandle.Create(createdCertificateBundle), subjectName,
                     info.PublicKey,
                     attributes.NotBefore.Value, attributes.Expires.Value,
                     policies.SignatureType.Value, true, extensions, ct);
@@ -259,7 +262,7 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
                 var mergedCert = await _keyVaultClient.GetCertificateAsync(
                     mergeResult.CertificateIdentifier.Identifier, ct);
                 var cert = CertificateEx.Create(mergedCert.Cer,
-                    new KeyVaultKeyHandle(mergedCert), policies);
+                    KeyVaultKeyHandle.Create(mergedCert), policies);
                 await _certificates.AddCertificateAsync(certificateName, cert,
                     mergedCert.CertificateIdentifier.Identifier, ct);
                 return cert;
@@ -365,7 +368,7 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
                         mergeResult.CertificateIdentifier.Identifier, ct);
 
                     var cert = CertificateEx.Create(mergedCert.Cer,
-                        new KeyVaultKeyHandle(mergedCert), policies);
+                        KeyVaultKeyHandle.Create(mergedCert), policies);
                     if (!cert.IsIssuer()) {
                         throw new ArgumentException("Certifcate created is not issuer.");
                     }
@@ -488,7 +491,7 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
                         mergeResult.CertificateIdentifier.Identifier, ct);
 
                     var cert = CertificateEx.Create(mergedCert.Cer,
-                        new KeyVaultKeyHandle(mergedCert));
+                        KeyVaultKeyHandle.Create(mergedCert));
                     System.Diagnostics.Debug.Assert(!cert.IsIssuer());
                     await _certificates.AddCertificateAsync(certificateName,
                         cert, mergedCert.CertificateIdentifier.Identifier, ct);
@@ -531,7 +534,7 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
                             Kty = keyParams.Type.ToKty(_keyStoreIsHsm)
                         }, ct);
 
-                    return new KeyVaultKeyHandle(result);
+                    return KeyVaultKeyHandle.Create(result);
                 }
                 // Create key outside and import
                 return await ImportKeyAsync(name, keyParams.CreateKey(),
@@ -562,15 +565,15 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
                 if (store?.Exportable ?? false) {
                     // Store key as json web key secret so we can export it
                     var secretBundle = await _keyVaultClient.SetSecretAsync(_vaultBaseUrl,
-                        name, JsonConvert.SerializeObject(key.ToJsonWebKey()),
+                        name, _serializer.SerializeToString(key.ToJsonWebKey()),
                         null, ContentMimeType.Json,
                         new SecretAttributes {
                             Enabled = true,
                             NotBefore = DateTime.UtcNow
                         }, ct);
-                    return new KeyVaultKeyHandle(keyBundle, secretBundle);
+                    return KeyVaultKeyHandle.Create(keyBundle, secretBundle);
                 }
-                return new KeyVaultKeyHandle(keyBundle);
+                return KeyVaultKeyHandle.Create(keyBundle);
             }
             catch (KeyVaultErrorException kex) {
                 throw new ExternalDependencyException("Failed to import key", kex);
@@ -589,12 +592,12 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
                 var certBundle = await Try.Async(
                     () => _keyVaultClient.GetCertificateAsync(_vaultBaseUrl, name, ct));
                 if (certBundle != null) {
-                    return new KeyVaultKeyHandle(certBundle);
+                    return KeyVaultKeyHandle.Create(certBundle);
                 }
                 throw new ResourceNotFoundException("Key with name not found");
             }
             var secretBundle = await Try.Async(() => _keyVaultClient.GetSecretAsync(name, ct));
-            return new KeyVaultKeyHandle(keyBundle, secretBundle);
+            return KeyVaultKeyHandle.Create(keyBundle, secretBundle);
         }
 
         /// <inheritdoc/>
@@ -610,7 +613,7 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
                 // Check whether this is an imported key
                 if (secretBundle.ContentType.EqualsIgnoreCase(ContentMimeType.Json)) {
                     // Decode json web key and convert to key
-                    var key = JsonConvert.DeserializeObject<JsonWebKey>(secretBundle.Value);
+                    var key = _serializer.Deserialize<JsonWebKey>(secretBundle.Value);
                     return key.ToKey();
                 }
 
@@ -748,7 +751,7 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
             DateTime? notBefore, TimeSpan lifetime, DateTime maxNotAfter) {
 
             var now = DateTime.UtcNow;
-            notBefore = notBefore ?? now;
+            notBefore ??= now;
             var notAfter = notBefore.Value + lifetime;
             if (notAfter > maxNotAfter) {
                 notAfter = maxNotAfter;
@@ -843,6 +846,7 @@ namespace Microsoft.Azure.IIoT.Crypto.KeyVault.Clients {
 
         private readonly string _vaultBaseUrl;
         private readonly bool _keyStoreIsHsm;
+        private readonly IJsonSerializer _serializer;
         private readonly ICertificateFactory _factory;
         private readonly ICertificateRepository _certificates;
         private readonly IKeyVaultClient _keyVaultClient;

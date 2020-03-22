@@ -15,12 +15,13 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="3.1.2" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.2" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="3.1.2" />
-    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="5.0.1" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Auth.ActiveDirectory\src\Microsoft.Azure.IIoT.Auth.ActiveDirectory.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Serializers.NewtonSoft\src\Microsoft.Azure.IIoT.Serializers.NewtonSoft.csproj" />
   </ItemGroup>
 </Project>

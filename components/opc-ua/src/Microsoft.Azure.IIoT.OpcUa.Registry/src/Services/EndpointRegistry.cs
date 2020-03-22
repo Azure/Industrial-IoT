@@ -5,11 +5,13 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Utils;
+    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -31,13 +33,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <param name="broker"></param>
         /// <param name="logger"></param>
         /// <param name="activator"></param>
+        /// <param name="certificates"></param>
+        /// <param name="serializer"></param>
         /// <param name="events"></param>
-        public EndpointRegistry(IIoTHubTwinServices iothub, IEndpointEventBroker broker,
-            ILogger logger, IActivationServices<EndpointRegistrationModel> activator,
-            IApplicationRegistryEvents events = null) {
+        public EndpointRegistry(IIoTHubTwinServices iothub, IJsonSerializer serializer,
+            IRegistryEventBroker<IEndpointRegistryListener> broker,
+            IActivationServices<EndpointRegistrationModel> activator,
+            ICertificateServices<EndpointRegistrationModel> certificates,
+            ILogger logger, IRegistryEvents<IApplicationRegistryListener> events = null) {
+
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _certificates = certificates ?? throw new ArgumentNullException(nameof(certificates));
             _activator = activator ?? throw new ArgumentNullException(nameof(activator));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _broker = broker ?? throw new ArgumentNullException(nameof(broker));
 
             // Register for application registry events
@@ -115,9 +124,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     $"'{model.SiteOrGatewayId}' ";
             }
             if (model?.Certificate != null) {
-                // If cert provided, include it in search
-                query += $"AND tags.{nameof(EntityRegistration.Thumbprint)} = " +
-                    $"{model.Certificate.ToSha1Hash()} ";
+                // If cert thumbprint provided, include it in search
+                query += $"AND tags.{nameof(EndpointRegistration.Thumbprint)} = " +
+                    $"{model.Certificate} ";
             }
             if (model?.SecurityMode != null) {
                 // If SecurityMode provided, include it in search
@@ -166,6 +175,33 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     .Select(s => s.ToServiceModel())
                     .ToList()
             };
+        }
+
+        /// <inheritdoc/>
+        public async Task<X509CertificateChainModel> GetEndpointCertificateAsync(
+            string endpointId, CancellationToken ct) {
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentException(nameof(endpointId));
+            }
+
+            // Get existing endpoint - get should always throw
+            var twin = await _iothub.GetAsync(endpointId, null, ct);
+
+            // Convert to twin registration
+            var registration = twin.ToEntityRegistration(true) as EndpointRegistration;
+            if (registration == null) {
+                throw new ResourceNotFoundException(
+                    $"{endpointId} is not an endpoint registration.");
+            }
+            if (string.IsNullOrEmpty(registration.SupervisorId)) {
+                throw new ArgumentException(
+                    $"Twin {endpointId} not registered with a supervisor.");
+            }
+
+            var endpoint = registration.ToServiceModel();
+            var rawCertificates = await _certificates.GetEndpointCertificateAsync(
+                endpoint.Registration, ct);
+            return rawCertificates.ToCertificateChain();
         }
 
         /// <inheritdoc/>
@@ -243,7 +279,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         /// <inheritdoc/>
         public Task OnApplicationUpdatedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application) {
+            ApplicationInfoModel application, bool isPatch) {
             return Task.CompletedTask;
         }
 
@@ -259,8 +295,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 try {
                     var endpoint = registration.ToServiceModel();
                     endpoint.NotSeenSince = null;
-                    var update = endpoint.ToEndpointRegistration(false);
-                    await _iothub.PatchAsync(registration.Patch(update));
+                    var update = endpoint.ToEndpointRegistration(_serializer, false);
+                    await _iothub.PatchAsync(registration.Patch(update, _serializer));
                     await _broker.NotifyAllAsync(
                         l => l.OnEndpointEnabledAsync(context, endpoint));
                 }
@@ -305,8 +341,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     try {
                         var endpoint = registration.ToServiceModel();
                         endpoint.NotSeenSince = DateTime.UtcNow;
-                        var update = endpoint.ToEndpointRegistration(true);
-                        await _iothub.PatchAsync(registration.Patch(update));
+                        var update = endpoint.ToEndpointRegistration(_serializer, true);
+                        await _iothub.PatchAsync(registration.Patch(update, _serializer));
                         await _broker.NotifyAllAsync(
                             l => l.OnEndpointDisabledAsync(context, endpoint));
                     }
@@ -319,10 +355,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         /// <inheritdoc/>
         public async Task OnApplicationDeletedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application) {
+            string applicationId, ApplicationInfoModel application) {
             // Get all endpoint registrations and for each one, call delete, if failure,
             // stop half way and throw and do not complete.
-            var endpoints = await GetEndpointsAsync(application.ApplicationId, true);
+            var endpoints = await GetEndpointsAsync(applicationId, true);
             foreach (var registration in endpoints) {
                 var endpoint = registration.ToServiceModel();
                 try {
@@ -334,7 +370,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                         registration.Id);
                 }
                 await _iothub.DeleteAsync(registration.DeviceId);
-                await _broker.NotifyAllAsync(l => l.OnEndpointDeletedAsync(context, endpoint));
+                await _broker.NotifyAllAsync(l => l.OnEndpointDeletedAsync(context,
+                    endpoint.Registration.Id, endpoint));
             }
         }
 
@@ -360,7 +397,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var context = result.Context.Validate();
 
             var found = newEndpoints
-                .Select(e => e.ToEndpointRegistration(false, discovererId, supervisorId))
+                .Select(e => e.ToEndpointRegistration(_serializer, false,
+                    discovererId, supervisorId))
                 .ToList();
 
             var existing = Enumerable.Empty<EndpointRegistration>();
@@ -405,12 +443,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                                 // Then hard delete...
                                 await _iothub.DeleteAsync(item.DeviceId);
                                 await _broker.NotifyAllAsync(l => l.OnEndpointDeletedAsync(context,
-                                	item.ToServiceModel()));
+                                    item.DeviceId, item.ToServiceModel()));
                             }
                             else if (!(item.IsDisabled ?? false)) {
                                 var endpoint = item.ToServiceModel();
-                                var update = endpoint.ToEndpointRegistration(true);
-                                await _iothub.PatchAsync(item.Patch(update), true);
+                                var update = endpoint.ToEndpointRegistration(_serializer, true);
+                                await _iothub.PatchAsync(item.Patch(update, _serializer), true);
                                 await _broker.NotifyAllAsync(
                                     l => l.OnEndpointDisabledAsync(context, endpoint));
                             }
@@ -448,10 +486,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                                 patch, context);
                         }
                         if (exists != patch) {
-                            await _iothub.PatchAsync(exists.Patch(patch), true);
+                            await _iothub.PatchAsync(exists.Patch(patch, _serializer), true);
                             var endpoint = patch.ToServiceModel();
-                            await _broker.NotifyAllAsync(
-                                l => l.OnEndpointUpdatedAsync(context, endpoint));
+
+                           // await _broker.NotifyAllAsync(
+                           //     l => l.OnEndpointUpdatedAsync(context, endpoint));
                             if (exists.IsDisabled ?? false) {
                                 await _broker.NotifyAllAsync(
                                     l => l.OnEndpointEnabledAsync(context, endpoint));
@@ -473,7 +512,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 try {
                     await ApplyActivationFilterAsync(result.DiscoveryConfig?.ActivationFilter,
                         item, context);
-                    await _iothub.CreateAsync(item.ToDeviceTwin(), true);
+                    await _iothub.CreateAsync(item.ToDeviceTwin(_serializer), true);
 
                     var endpoint = item.ToServiceModel();
                     await _broker.NotifyAllAsync(l => l.OnEndpointNewAsync(context, endpoint));
@@ -600,11 +639,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 if (!(registration.Activated ?? false)) {
 
                     // Update twin activation status in twin settings
-                    var patch = endpoint.ToEndpointRegistration(registration.IsDisabled);
+                    var patch = endpoint.ToEndpointRegistration(_serializer,
+                        registration.IsDisabled);
 
                     patch.Activated = true; // Mark registration as activated
 
-                    await _iothub.PatchAsync(registration.Patch(patch), true, ct);
+                    await _iothub.PatchAsync(registration.Patch(patch, _serializer), true, ct);
                 }
                 await _broker.NotifyAllAsync(l => l.OnEndpointActivatedAsync(context, endpoint));
             }
@@ -642,12 +682,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 // Mark as deactivated
                 if (registration.Activated ?? false) {
 
-                    var patch = endpoint.ToEndpointRegistration(registration.IsDisabled);
+                    var patch = endpoint.ToEndpointRegistration(
+                        _serializer, registration.IsDisabled);
 
                     // Mark as deactivated
                     patch.Activated = false;
 
-                    await _iothub.PatchAsync(registration.Patch(patch), true);
+                    await _iothub.PatchAsync(registration.Patch(patch, _serializer), true);
                 }
                 await _broker.NotifyAllAsync(l => l.OnEndpointDeactivatedAsync(context, endpoint));
             }
@@ -713,7 +754,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         private readonly IActivationServices<EndpointRegistrationModel> _activator;
-        private readonly IEndpointEventBroker _broker;
+        private readonly ICertificateServices<EndpointRegistrationModel> _certificates;
+        private readonly IRegistryEventBroker<IEndpointRegistryListener> _broker;
+        private readonly IJsonSerializer _serializer;
         private readonly Action _unregister;
         private readonly IIoTHubTwinServices _iothub;
         private readonly ILogger _logger;

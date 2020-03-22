@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -21,9 +21,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         /// <param name="services"></param>
         /// <param name="endpoint"></param>
         /// <param name="readExpected"></param>
-        public ReadArrayValueTests(Func<INodeServices<T>> services, T endpoint,
-            Func<T, string, Task<JToken>> readExpected) {
+        public ReadArrayValueTests(IJsonSerializer serializer,
+            Func<INodeServices<T>> services, T endpoint,
+            Func<T, string, Task<VariantValue>> readExpected) {
             _services = services;
+            _serializer = serializer;
             _endpoint = endpoint;
             _readExpected = readExpected;
         }
@@ -180,12 +182,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.Equal(JTokenType.Boolean, ((JArray)result.Value)[0].Type);
+            Assert.True(result.Value[0].IsBoolean);
             Assert.Equal("Boolean", result.DataType);
         }
 
@@ -209,12 +211,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.Equal(JTokenType.Integer, ((JArray)result.Value)[0].Type);
+            Assert.True(result.Value[0].IsInteger);
             Assert.Equal("SByte", result.DataType);
         }
 
@@ -238,16 +240,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            if (result.Value.Type == JTokenType.Null) {
+            if (result.Value.IsNull()) {
                 return;
             }
 
-            Assert.Equal(JTokenType.String, result.Value.Type);
+            Assert.True(result.Value.IsString);
             // TODO: Returns a bytestring, not byte array.  Investigate.
-            // Assert.Equal(JTokenType.Bytes, result.Value.Type);
-            // Assert.Equal(JTokenType.Array, result.Value.Type);
-            // if (((JArray)result.Value).Count == 0) return;
-            // Assert.Equal(JTokenType.Integer, ((JArray)result.Value)[0].Type);
+            // Assert.Equal(VariantValueType.Bytes, result.Value.Type);
+            // Assert.True(result.Value.IsArray);
+            // if ((result.Value).Count == 0) return;
+            // Assert.Equal(VariantValueType.Integer, (result.Value)[0].Type);
             Assert.Equal("ByteString", result.DataType);
             // TODO: Assert.Equal("Byte", result.DataType);
         }
@@ -273,12 +275,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.Equal(JTokenType.Integer, ((JArray)result.Value)[0].Type);
+            Assert.True(result.Value[0].IsInteger);
             Assert.Equal("Int16", result.DataType);
         }
 
@@ -302,12 +304,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.Equal(JTokenType.Integer, ((JArray)result.Value)[0].Type);
+            Assert.True(result.Value[0].IsInteger);
             Assert.Equal("UInt16", result.DataType);
         }
 
@@ -331,12 +333,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.Equal(JTokenType.Integer, ((JArray)result.Value)[0].Type);
+            Assert.True(result.Value[0].IsInteger);
             Assert.Equal("Int32", result.DataType);
         }
 
@@ -360,12 +362,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.Equal(JTokenType.Integer, ((JArray)result.Value)[0].Type);
+            Assert.True(result.Value[0].IsInteger);
             Assert.Equal("UInt32", result.DataType);
         }
 
@@ -389,12 +391,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.Equal(JTokenType.Integer, ((JArray)result.Value)[0].Type);
+            Assert.True(result.Value[0].IsInteger);
             Assert.Equal("Int64", result.DataType);
         }
 
@@ -418,12 +420,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.Equal(JTokenType.Integer, ((JArray)result.Value)[0].Type);
+            Assert.True(result.Value[0].IsInteger);
             Assert.Equal("UInt64", result.DataType);
         }
 
@@ -447,12 +449,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.True(((JArray)result.Value)[0].IsFloatValue(), $"First is {result.Value}");
+            Assert.True(result.Value[0].IsFloat, $"First is {result.Value}");
             Assert.Equal("Float", result.DataType);
         }
 
@@ -476,12 +478,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.True(((JArray)result.Value)[0].IsFloatValue());
+            Assert.True(result.Value[0].IsDouble);
             Assert.Equal("Double", result.DataType);
         }
 
@@ -505,12 +507,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.Equal(JTokenType.String, ((JArray)result.Value)[0].Type);
+            Assert.True(result.Value[0].IsString);
             Assert.Equal("String", result.DataType);
         }
 
@@ -534,12 +536,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.Equal(JTokenType.Date, ((JArray)result.Value)[0].Type);
+            Assert.True(result.Value[0].IsDateTime);
             Assert.Equal("DateTime", result.DataType);
         }
 
@@ -563,13 +565,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.Equal(JTokenType.String, ((JArray)result.Value)[0].Type);
-            // TODO: Assert.Equal(JTokenType.Guid, ((JArray)result.Value)[0].Type);
+            Assert.True(result.Value[0].IsGuid);
             Assert.Equal("Guid", result.DataType);
         }
 
@@ -593,15 +594,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            if (result.Value.Type == JTokenType.Null) {
+            if (result.Value.IsNull()) {
                 return;
             }
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
-            // TODO: Can be null.  Assert.Equal(JTokenType.String, ((JArray)result.Value)[0].Type);
-            // TODO:  Assert.Equal(JTokenType.Bytes, ((JArray)result.Value)[0].Type);
+            // TODO: Can be null.  Assert.Equal(VariantValueType.String, (result.Value)[0].Type);
+            // TODO:  Assert.Equal(VariantValueType.Bytes, (result.Value)[0].Type);
             Assert.Equal("ByteString", result.DataType);
         }
 
@@ -625,12 +626,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.Equal(JTokenType.Object, ((JArray)result.Value)[0].Type);
+            Assert.True(result.Value[0].IsObject);
             Assert.Equal("XmlElement", result.DataType);
         }
 
@@ -654,12 +655,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.Equal(JTokenType.String, ((JArray)result.Value)[0].Type);
+            Assert.True(result.Value[0].IsString);
             Assert.Equal("NodeId", result.DataType);
         }
 
@@ -683,12 +684,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.Equal(JTokenType.String, ((JArray)result.Value)[0].Type);
+            Assert.True(result.Value[0].IsString);
             Assert.Equal("ExpandedNodeId", result.DataType);
         }
 
@@ -712,12 +713,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.Equal(JTokenType.String, ((JArray)result.Value)[0].Type);
+            Assert.True(result.Value[0].IsString);
             Assert.Equal("QualifiedName", result.DataType);
         }
 
@@ -741,12 +742,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.Equal(JTokenType.Object, ((JArray)result.Value)[0].Type);
+            Assert.True(result.Value[0].IsObject);
             Assert.Equal("LocalizedText", result.DataType);
         }
 
@@ -770,13 +771,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
             Assert.True(
-               ((JArray)result.Value)[0].Type == JTokenType.Object ||
-               ((JArray)result.Value)[0].Type == JTokenType.Integer);
+               result.Value[0].IsObject ||
+               result.Value[0].IsInteger);
             Assert.Equal("StatusCode", result.DataType);
         }
 
@@ -800,8 +801,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
         }
@@ -826,12 +827,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.Equal(JTokenType.Integer, ((JArray)result.Value)[0].Type);
+            Assert.True(result.Value[0].IsInteger);
             Assert.Equal("Int32", result.DataType);
         }
 
@@ -855,13 +856,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.Equal(JTokenType.Object, ((JArray)result.Value)[0].Type);
-            // TODO: Assert.Equal(JTokenType.Bytes, ((JArray)result.Value)[0].Type);
+            Assert.True(result.Value[0].IsObject);
+            // TODO: Assert.Equal(VariantValueType.Bytes, (result.Value)[0].Type);
             Assert.Equal("ExtensionObject", result.DataType);
         }
 
@@ -885,17 +886,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            if (result.Value.Type == JTokenType.String) {
-                Assert.NotEmpty(((string)result.Value).DecodeAsBase64());
+            Assert.True(result.Value.IsArray, $"Not an array {result.Value}");
+            if (result.Value.Count == 0) {
                 return;
             }
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
-                return;
-            }
-            var type = ((JArray)result.Value)[0].Type;
-            Assert.True(type == JTokenType.Integer ||
-                ((JArray)result.Value)[0].IsFloatValue(), $"Got bad type {type}");
+            Assert.True(result.Value[0].IsDouble || result.Value[0].IsDecimal,
+                $"Not a number {result.Value[0]}");
         }
 
 
@@ -918,16 +914,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            if (result.Value.Type == JTokenType.String) {
-                Assert.NotEmpty(((string)result.Value).DecodeAsBase64());
-                return;
-            }
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsListOfValues);
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.Equal(JTokenType.Integer, ((JArray)result.Value)[0].Type);
+            Assert.True(result.Value[0].IsInteger);
         }
 
 
@@ -950,16 +942,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            if (result.Value.Type == JTokenType.String) {
-                Assert.NotEmpty(((string)result.Value).DecodeAsBase64());
-                return;
-            }
-            Assert.Equal(JTokenType.Array, result.Value.Type);
-            if (((JArray)result.Value).Count == 0) {
+            Assert.True(result.Value.IsArray, $"Not an array {result.Value}");
+            if (result.Value.Count == 0) {
                 return;
             }
 
-            Assert.Equal(JTokenType.Integer, ((JArray)result.Value)[0].Type);
+            Assert.True(result.Value[0].IsInteger);
         }
 
 
@@ -968,15 +956,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         /// </summary>
         /// <param name="expected"></param>
         /// <param name="value"></param>
-        private static void AssertEqualValue(JToken expected, JToken value) {
-            value = value ?? JValue.CreateNull();
-            expected = expected ?? JValue.CreateNull();
-            Assert.True(JToken.DeepEquals(expected, value),
-                $"Expected: {expected} ({expected?.Type}) != Actual: {value} ({value?.Type})");
+        private static void AssertEqualValue(VariantValue expected, VariantValue value) {
+            Assert.True(VariantValue.DeepEquals(expected, value),
+                $"Expected: {expected}  != Actual: {value} ");
         }
 
         private readonly T _endpoint;
-        private readonly Func<T, string, Task<JToken>> _readExpected;
+        private readonly Func<T, string, Task<VariantValue>> _readExpected;
         private readonly Func<INodeServices<T>> _services;
+        private readonly IJsonSerializer _serializer;
     }
 }

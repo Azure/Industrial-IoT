@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Vault {
     using Microsoft.Azure.IIoT.OpcUa.Vault.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using System.Threading;
     using System.Threading.Tasks;
 

@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System.Net;
     using System.Threading.Tasks;
     using Xunit;
@@ -21,12 +22,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
         }
 
         private BrowseServicesTests<EndpointModel> GetTests() {
-            return new BrowseServicesTests<EndpointModel>(
+            return new BrowseServicesTests<EndpointModel>(new NewtonSoftJsonSerializer(),
                 () => new AddressSpaceServices(_server.Client,
                     new VariantEncoderFactory(), _server.Logger),
                 new EndpointModel {
                     Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
-                    Certificate = _server.Certificate?.RawData
+                    Certificate = _server.Certificate?.RawData?.ToThumbprint()
                 });
         }
 
@@ -100,6 +101,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
         [Fact]
         public async Task NodeBrowseStaticArrayVariablesTestAsync() {
             await GetTests().NodeBrowseStaticArrayVariablesTestAsync();
+        }
+
+        [Fact]
+        public async Task NodeBrowseStaticScalarVariablesTestWithFilter1Async() {
+            await GetTests().NodeBrowseStaticScalarVariablesTestWithFilter1Async();
+        }
+
+        [Fact]
+        public async Task NodeBrowseStaticScalarVariablesTestWithFilter2Async() {
+            await GetTests().NodeBrowseStaticScalarVariablesTestWithFilter2Async();
         }
 
         [Fact]

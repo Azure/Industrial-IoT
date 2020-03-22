@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
     using Microsoft.Azure.IIoT.Api.Runtime;
     using Microsoft.Azure.IIoT.Api.Jobs.Clients;
     using Microsoft.Azure.IIoT.Api.Jobs;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
@@ -32,6 +33,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Api command line interface
@@ -55,11 +57,12 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
 
             // Register logger
             builder.AddDiagnostics(config, addConsole: false);
+            builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Register http client module ...
             builder.RegisterModule<HttpClientModule>();
             // ... as well as signalR client (needed for api)
-            builder.RegisterType<SignalRClient>()
+            builder.RegisterType<SignalRHubClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Use bearer authentication

@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.Common.Identity.Runtime {
+namespace Microsoft.Azure.IIoT.Services.Common.Hub.Identity.Runtime {
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;

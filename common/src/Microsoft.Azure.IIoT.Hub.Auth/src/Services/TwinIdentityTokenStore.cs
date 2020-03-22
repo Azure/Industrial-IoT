@@ -8,7 +8,7 @@ namespace Microsoft.Azure.IIoT.Hub.Auth {
     using Microsoft.Azure.IIoT.Auth;
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Azure.IIoT.Exceptions;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System.Threading.Tasks;
     using System;
 
@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.Hub.Auth {
                 throw new IdentityTokenNotFoundException(identity);
             }
             var property = deviceTwin.Properties.Desired[Constants.IdentityTokenPropertyName];
-            var identityToken = ConvertFromJToken(property, identity);
+            var identityToken = ConvertFromVariantValue(property, identity);
             if (string.IsNullOrWhiteSpace(identityToken?.Key)) {
                 throw new IdentityTokenInvalidException(identity);
             }
@@ -64,10 +64,10 @@ namespace Microsoft.Azure.IIoT.Hub.Auth {
         /// <param name="json"></param>
         /// <param name="identity"></param>
         /// <returns></returns>
-        private static IdentityTokenModel ConvertFromJToken(JToken json,
+        private static IdentityTokenModel ConvertFromVariantValue(VariantValue json,
             string identity) {
             try {
-                var identityToken = json.ToObject<IdentityTokenTwinModel>();
+                var identityToken = json.ConvertTo<IdentityTokenTwinModel>();
                 return identityToken?.ToServiceModel();
             }
             catch (Exception ex) {

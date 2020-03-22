@@ -4,24 +4,25 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
 
     /// <summary>
     /// Discovery results
     /// </summary>
+    [DataContract]
     public class DiscoveryResultListApiModel {
 
         /// <summary>
         /// Result
         /// </summary>
-        [JsonProperty(PropertyName = "result")]
+        [DataMember(Name = "result")]
         public DiscoveryResultApiModel Result { get; set; }
 
         /// <summary>
         /// Events
         /// </summary>
-        [JsonProperty(PropertyName = "events")]
+        [DataMember(Name = "events")]
         public List<DiscoveryEventApiModel> Events { get; set; }
     }
 }

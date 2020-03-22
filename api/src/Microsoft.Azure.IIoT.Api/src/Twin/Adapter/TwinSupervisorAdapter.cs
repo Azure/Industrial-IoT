@@ -5,10 +5,12 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using System;
     using System.Threading.Tasks;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Implements node services as adapter on top of supervisor api.
@@ -20,7 +22,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         /// Create adapter
         /// </summary>
         /// <param name="client"></param>
-        public TwinSupervisorAdapter(ITwinModuleApi client) {
+        /// <param name="serializer"></param>
+        public TwinSupervisorAdapter(ITwinModuleApi client, ISerializer serializer) {
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
@@ -28,74 +32,75 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin {
         public async Task<BrowseResultModel> NodeBrowseFirstAsync(
             EndpointApiModel endpoint, BrowseRequestModel request) {
             var result = await _client.NodeBrowseFirstAsync(endpoint,
-                request.Map<BrowseRequestApiModel>());
-            return result.Map<BrowseResultModel>();
+                _serializer.Map<BrowseRequestApiModel>(request));
+            return _serializer.Map<BrowseResultModel>(result);
         }
 
         /// <inheritdoc/>
         public async Task<BrowseNextResultModel> NodeBrowseNextAsync(
             EndpointApiModel endpoint, BrowseNextRequestModel request) {
             var result = await _client.NodeBrowseNextAsync(endpoint,
-                request.Map<BrowseNextRequestApiModel>());
-            return result.Map<BrowseNextResultModel>();
+                _serializer.Map<BrowseNextRequestInternalApiModel>(request));
+            return _serializer.Map<BrowseNextResultModel>(result);
         }
 
         /// <inheritdoc/>
         public async Task<BrowsePathResultModel> NodeBrowsePathAsync(
             EndpointApiModel endpoint, BrowsePathRequestModel request) {
             var result = await _client.NodeBrowsePathAsync(endpoint,
-                request.Map<BrowsePathRequestApiModel>());
-            return result.Map<BrowsePathResultModel>();
+                _serializer.Map<BrowsePathRequestApiModel>(request));
+            return _serializer.Map<BrowsePathResultModel>(result);
         }
 
         /// <inheritdoc/>
         public async Task<ValueReadResultModel> NodeValueReadAsync(
             EndpointApiModel endpoint, ValueReadRequestModel request) {
             var result = await _client.NodeValueReadAsync(endpoint,
-                request.Map<ValueReadRequestApiModel>());
-            return result.Map<ValueReadResultModel>();
+                _serializer.Map<ValueReadRequestApiModel>(request));
+            return _serializer.Map<ValueReadResultModel>(result);
         }
 
         /// <inheritdoc/>
         public async Task<ValueWriteResultModel> NodeValueWriteAsync(
             EndpointApiModel endpoint, ValueWriteRequestModel request) {
             var result = await _client.NodeValueWriteAsync(endpoint,
-                request.Map<ValueWriteRequestApiModel>());
-            return result.Map<ValueWriteResultModel>();
+                _serializer.Map<ValueWriteRequestApiModel>(request));
+            return _serializer.Map<ValueWriteResultModel>(result);
         }
 
         /// <inheritdoc/>
         public async Task<MethodMetadataResultModel> NodeMethodGetMetadataAsync(
             EndpointApiModel endpoint, MethodMetadataRequestModel request) {
             var result = await _client.NodeMethodGetMetadataAsync(endpoint,
-                request.Map<MethodMetadataRequestApiModel>());
-            return result.Map<MethodMetadataResultModel>();
+                _serializer.Map<MethodMetadataRequestApiModel>(request));
+            return _serializer.Map<MethodMetadataResultModel>(result);
         }
 
         /// <inheritdoc/>
         public async Task<MethodCallResultModel> NodeMethodCallAsync(
             EndpointApiModel endpoint, MethodCallRequestModel request) {
             var result = await _client.NodeMethodCallAsync(endpoint,
-                request.Map<MethodCallRequestApiModel>());
-            return result.Map<MethodCallResultModel>();
+                _serializer.Map<MethodCallRequestApiModel>(request));
+            return _serializer.Map<MethodCallResultModel>(result);
         }
 
         /// <inheritdoc/>
         public async Task<ReadResultModel> NodeReadAsync(
             EndpointApiModel endpoint, ReadRequestModel request) {
             var result = await _client.NodeReadAsync(endpoint,
-                request.Map<ReadRequestApiModel>());
-            return result.Map<ReadResultModel>();
+                _serializer.Map<ReadRequestApiModel>(request));
+            return _serializer.Map<ReadResultModel>(result);
         }
 
         /// <inheritdoc/>
         public async Task<WriteResultModel> NodeWriteAsync(
             EndpointApiModel endpoint, WriteRequestModel request) {
             var result = await _client.NodeWriteAsync(endpoint,
-                request.Map<WriteRequestApiModel>());
-            return result.Map<WriteResultModel>();
+                _serializer.Map<WriteRequestApiModel>(request));
+            return _serializer.Map<WriteResultModel>(result);
         }
 
+        private readonly ISerializer _serializer;
         private readonly ITwinModuleApi _client;
     }
 }

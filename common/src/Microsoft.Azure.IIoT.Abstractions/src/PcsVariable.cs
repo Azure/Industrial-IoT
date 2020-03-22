@@ -22,6 +22,9 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Iot hub event hub Events Consumer Group </summary>
         public const string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS =
             "PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS";
+        /// <summary> Iot hub event hub Tunnel Consumer Group </summary>
+        public const string PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL =
+            "PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL";
         /// <summary> Cosmos db connection string </summary>
         public const string PCS_COSMOSDB_CONNSTRING =
             "PCS_COSMOSDB_CONNSTRING";
@@ -158,8 +161,8 @@ namespace Microsoft.Azure.IIoT {
         public const string PCS_JOB_ORCHESTRATOR_SERVICE_URL =
             "PCS_JOB_ORCHESTRATOR_SERVICE_URL";
         /// <summary> Configuration service endpoint url </summary>
-        public const string PCS_CONFIGURATION_SERVICE_URL =
-            "PCS_CONFIGURATION_SERVICE_URL";
+        public const string PCS_EVENTS_SERVICE_URL =
+            "PCS_EVENTS_SERVICE_URL";
         /// <summary> CORS whitelist </summary>
         public const string PCS_CORS_WHITELIST =
             "PCS_CORS_WHITELIST";
@@ -212,8 +215,11 @@ namespace Microsoft.Azure.IIoT {
         public const string PCS_EDGE_MANAGER_SERVICE_PATH_BASE =
             "PCS_EDGE_MANAGER_SERVICE_PATH_BASE";
         /// <summary> Service URL path base for configuration service </summary>
-        public const string PCS_CONFIGURATION_SERVICE_PATH_BASE =
-            "PCS_CONFIGURATION_SERVICE_PATH_BASE";
+        public const string PCS_EVENTS_SERVICE_PATH_BASE =
+            "PCS_EVENTS_SERVICE_PATH_BASE";
+        /// <summary> Service URL path base for user servíce </summary>
+        public const string PCS_USERS_SERVICE_PATH_BASE =
+            "PCS_USERS_SERVICE_PATH_BASE";
         /// <summary> Service URL path base for frontend app </summary>
         public const string PCS_FRONTEND_APP_SERVICE_PATH_BASE =
             "PCS_FRONTEND_APP_SERVICE_PATH_BASE";

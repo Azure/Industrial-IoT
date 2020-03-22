@@ -4,48 +4,49 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
 
     /// <summary>
     /// Trust group registration request model
     /// </summary>
+    [DataContract]
     public sealed class TrustGroupRegistrationRequestApiModel {
 
         /// <summary>
         /// The new name of the trust group
         /// </summary>
-        [JsonProperty(PropertyName = "name")]
+        [DataMember(Name = "name")]
         public string Name { get; set; }
 
         /// <summary>
         /// The identifer of the parent trust group.
         /// </summary>
-        [JsonProperty(PropertyName = "parentId")]
+        [DataMember(Name = "parentId")]
         public string ParentId { get; set; }
 
         /// <summary>
         /// The subject name of the group as distinguished name.
         /// </summary>
-        [JsonProperty(PropertyName = "subjectName")]
+        [DataMember(Name = "subjectName")]
         public string SubjectName { get; set; }
 
         /// <summary>
         /// The lifetime of certificates issued in the group.
         /// </summary>
-        [JsonProperty(PropertyName = "issuedLifetime")]
+        [DataMember(Name = "issuedLifetime")]
         public TimeSpan? IssuedLifetime { get; set; }
 
         /// <summary>
         /// The issued certificate key size in bits.
         /// </summary>
-        [JsonProperty(PropertyName = "issuedKeySize")]
+        [DataMember(Name = "issuedKeySize")]
         public ushort? IssuedKeySize { get; set; }
 
         /// <summary>
         /// The issued certificate signature algorithm.
         /// </summary>
-        [JsonProperty(PropertyName = "issuedSignatureAlgorithm")]
+        [DataMember(Name = "issuedSignatureAlgorithm")]
         public SignatureAlgorithm? IssuedSignatureAlgorithm { get; set; }
     }
 }

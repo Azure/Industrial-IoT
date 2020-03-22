@@ -100,8 +100,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Runtime {
         public string DatabaseName => "iiot_opc";
 
         /// <inheritdoc/>
-        public string SignalRHubName => _sr.SignalRHubName;
-        /// <inheritdoc/>
         public string SignalRConnString => _sr.SignalRConnString;
 
         /// <inheritdoc/>

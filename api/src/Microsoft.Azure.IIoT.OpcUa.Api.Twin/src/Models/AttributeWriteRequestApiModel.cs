@@ -4,34 +4,36 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using Microsoft.Azure.IIoT.Serializers;
+    using System.Runtime.Serialization;
     using System.ComponentModel.DataAnnotations;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Attribute and value to write to it
     /// </summary>
+    [DataContract]
     public class AttributeWriteRequestApiModel {
 
         /// <summary>
         /// Node to write to (mandatory)
         /// </summary>
-        [JsonProperty(PropertyName = "nodeId")]
+        [DataMember(Name = "nodeId")]
         [Required]
         public string NodeId { get; set; }
 
         /// <summary>
         /// Attribute to write (mandatory)
         /// </summary>
-        [JsonProperty(PropertyName = "attribute")]
+        [DataMember(Name = "attribute")]
         [Required]
         public NodeAttribute Attribute { get; set; }
 
         /// <summary>
         /// Value to write (mandatory)
         /// </summary>
-        [JsonProperty(PropertyName = "value")]
+        [DataMember(Name = "value")]
         [Required]
-        public JToken Value { get; set; }
+        public VariantValue Value { get; set; }
     }
 }

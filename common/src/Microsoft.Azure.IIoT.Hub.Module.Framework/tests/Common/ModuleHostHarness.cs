@@ -63,8 +63,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     await test(deviceId, moduleId, hubContainer);
 
                     twin = await services.GetAsync(deviceId, moduleId);
-                    Assert.Equal("testType", twin.Properties.Reported[TwinProperty.Type]);
-                    Assert.Equal("TestSite", twin.Properties.Reported[TwinProperty.SiteId]);
+                    Assert.True(twin.Properties.Reported[TwinProperty.Type] == "testType");
+                    Assert.True("TestSite" == twin.Properties.Reported[TwinProperty.SiteId]);
                     etag = twin.Etag;
 
                     // Act
@@ -76,8 +76,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
 
                     // TODO : Fix cleanup!!!
 
-                    // TODO :Assert.NotEqual("testType", twin.Properties.Reported[TwinProperty.kType]);
-                    // TODO :Assert.NotEqual("TestSite", twin.Properties.Reported[TwinProperty.kSiteId]);
+                    // TODO :Assert.True("testType" != twin.Properties.Reported[TwinProperty.kType]);
+                    // TODO :Assert.True("TestSite" != twin.Properties.Reported[TwinProperty.kSiteId]);
                     // TODO :Assert.Equal("disconnected", twin.ConnectionState);
                     Assert.NotEqual(etag, twin.Etag);
                 }

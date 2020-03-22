@@ -1,0 +1,4 @@
+{
+    "name": "iot/industrial-iot-identity-provider",
+    "exposes": [ 9090 ]
+}

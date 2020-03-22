@@ -4,24 +4,39 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Discoverer event
     /// </summary>
+    [DataContract]
     public class DiscovererEventApiModel {
 
         /// <summary>
         /// Event type
         /// </summary>
-        [JsonProperty(PropertyName = "eventType")]
+        [DataMember(Name = "eventType")]
         public DiscovererEventType EventType { get; set; }
+
+        /// <summary>
+        /// Discoverer id
+        /// </summary>
+        [DataMember(Name = "id",
+            EmitDefaultValue = false)]
+        public string Id { get; set; }
 
         /// <summary>
         /// Discoverer
         /// </summary>
-        [JsonProperty(PropertyName = "discoverer",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "discoverer",
+            EmitDefaultValue = false)]
         public DiscovererApiModel Discoverer { get; set; }
+
+        /// <summary>
+        /// The information is provided as a patch
+        /// </summary>
+        [DataMember(Name = "isPatch",
+            EmitDefaultValue = false)]
+        public bool? IsPatch { get; set; }
     }
 }

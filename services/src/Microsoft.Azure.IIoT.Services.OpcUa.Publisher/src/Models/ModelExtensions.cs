@@ -4,10 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using System.Linq;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using System.Linq;
 
     /// <summary>
     /// Credential model

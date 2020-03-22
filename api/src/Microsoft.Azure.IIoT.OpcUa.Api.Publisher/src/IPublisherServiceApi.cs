@@ -49,25 +49,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         /// <returns></returns>
         Task<PublishedItemListResponseApiModel> NodePublishListAsync(string endpointId,
             PublishedItemListRequestApiModel request, CancellationToken ct = default);
-
-        /// <summary>
-        /// Subscribe client to receive published samples
-        /// </summary>
-        /// <param name="endpointId"></param>
-        /// <param name="userId"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task NodePublishSubscribeByEndpointAsync(string endpointId, string userId,
-            CancellationToken ct = default);
-
-        /// <summary>
-        /// Unsubscribe client from receiving samples
-        /// </summary>
-        /// <param name="endpointId"></param>
-        /// <param name="userId"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task NodePublishUnsubscribeByEndpointAsync(string endpointId, string userId,
-            CancellationToken ct = default);
     }
 }

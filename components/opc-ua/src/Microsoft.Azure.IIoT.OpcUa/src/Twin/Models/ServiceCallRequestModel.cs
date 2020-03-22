@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Service call request
@@ -19,6 +19,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
         /// <summary>
         /// Request model
         /// </summary>
-        public JToken Request { get; set; }
+        public VariantValue Request { get; set; }
     }
 }

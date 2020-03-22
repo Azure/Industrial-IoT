@@ -4,44 +4,40 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
-    using System.ComponentModel;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Discoverer update request
     /// </summary>
+    [DataContract]
     public class DiscovererUpdateApiModel {
 
         /// <summary>
         /// Site the discoverer is part of
         /// </summary>
-        [JsonProperty(PropertyName = "siteId",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "siteId",
+            EmitDefaultValue = false)]
         public string SiteId { get; set; }
 
         /// <summary>
         /// Discovery mode of discoverer
         /// </summary>
-        [JsonProperty(PropertyName = "discovery",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(DiscoveryMode.Off)]
+        [DataMember(Name = "discovery",
+            EmitDefaultValue = false)]
         public DiscoveryMode? Discovery { get; set; }
 
         /// <summary>
         /// Discoverer discovery config
         /// </summary>
-        [JsonProperty(PropertyName = "discoveryConfig",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "discoveryConfig",
+            EmitDefaultValue = false)]
         public DiscoveryConfigApiModel DiscoveryConfig { get; set; }
 
         /// <summary>
         /// Current log level
         /// </summary>
-        [JsonProperty(PropertyName = "logLevel",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "logLevel",
+            EmitDefaultValue = false)]
         public TraceLogLevel? LogLevel { get; set; }
     }
 }

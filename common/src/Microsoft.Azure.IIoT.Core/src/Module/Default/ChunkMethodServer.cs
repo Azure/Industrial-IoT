@@ -6,6 +6,8 @@
 namespace Microsoft.Azure.IIoT.Module.Default {
     using Microsoft.Azure.IIoT.Module.Models;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
     using System.Collections.Concurrent;
@@ -17,15 +19,18 @@ namespace Microsoft.Azure.IIoT.Module.Default {
     /// <summary>
     /// Chunked method provide reliable any size send/receive
     /// </summary>
-    public sealed class ChunkMethodServer : IChunkMethodServer {
+    public sealed class ChunkMethodServer : IMethodInvoker {
+
+        /// <inheritdoc/>
+        public string MethodName => MethodNames.Call;
 
         /// <summary>
         /// Create server
         /// </summary>
-        /// <param name="handler"></param>
+        /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public ChunkMethodServer(IMethodHandler handler, ILogger logger) {
-            _handler = handler ?? throw new ArgumentNullException(nameof(handler));
+        public ChunkMethodServer(IJsonSerializer serializer, ILogger logger) {
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _requests = new ConcurrentDictionary<string, ChunkProcessor>();
             _timer = new Timer(_ => OnTimer(), null,
@@ -39,10 +44,9 @@ namespace Microsoft.Azure.IIoT.Module.Default {
         }
 
         /// <inheritdoc/>
-        public async Task<MethodChunkModel> ProcessAsync(MethodChunkModel request) {
-            if (request == null) {
-                throw new ArgumentNullException(nameof(request));
-            }
+        public async Task<byte[]> InvokeAsync(byte[] payload, string contentType,
+            IMethodHandler handler) {
+            var request = _serializer.Deserialize<MethodChunkModel>(payload);
             ChunkProcessor processor;
             if (request.Handle != null) {
                 if (!_requests.TryGetValue(request.Handle, out processor)) {
@@ -56,11 +60,12 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                     request.ContentType, request.ContentLength, request.MaxChunkLength,
                     request.Timeout);
                 if (!_requests.TryAdd(handle, processor)) {
-                    throw new MethodCallStatusException(
-                        (int)HttpStatusCode.InternalServerError, $"Adding handle {handle} failed.");
+                    throw new MethodCallStatusException((int)HttpStatusCode.InternalServerError,
+                        $"Adding handle {handle} failed.");
                 }
             }
-            return await processor.ProcessAsync(request);
+            var response = await processor.ProcessAsync(handler, request);
+            return _serializer.SerializeToBytes(response).ToArray();
         }
 
         /// <summary>
@@ -119,9 +124,11 @@ namespace Microsoft.Azure.IIoT.Module.Default {
             /// <summary>
             /// Process request and return response
             /// </summary>
+            /// <param name="handler"></param>
             /// <param name="request"></param>
             /// <returns></returns>
-            public async Task<MethodChunkModel> ProcessAsync(MethodChunkModel request) {
+            public async Task<MethodChunkModel> ProcessAsync(IMethodHandler handler,
+                MethodChunkModel request) {
 
                 var status = 200;
                 if (_sent == -1) {
@@ -138,7 +145,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                     }
                     try {
                         // Process
-                        var result = await _outer._handler.InvokeAsync(_method,
+                        var result = await handler.InvokeAsync(_method,
                             _payload.Unzip(), _contentType);
                         // Set response payload
                         _payload = result.Zip();
@@ -190,7 +197,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
 
         private const int kTimeoutCheckInterval = 10000;
         private static long _requestCounter;
-        private readonly IMethodHandler _handler;
+        private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
         private readonly ConcurrentDictionary<string, ChunkProcessor> _requests;
         private readonly Timer _timer;

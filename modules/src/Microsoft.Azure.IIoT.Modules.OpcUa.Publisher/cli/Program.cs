@@ -12,6 +12,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli {
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Extensions.Configuration;
     using Serilog;
     using Serilog.Events;
@@ -23,7 +25,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli {
     using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Publisher module host process
@@ -208,7 +209,7 @@ Options:
             var registry = CreateClient(config, logger);
             await registry.CreateAsync(new DeviceTwinModel {
                 Id = deviceId,
-                Tags = new Dictionary<string, JToken> {
+                Tags = new Dictionary<string, VariantValue> {
                     [TwinProperty.Type] = IdentityType.Gateway
                 },
                 Capabilities = new DeviceCapabilitiesModel {
@@ -229,7 +230,7 @@ Options:
         private static IoTHubServiceHttpClient CreateClient(IIoTHubConfig config,
             ILogger logger) {
             var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
-                config, logger);
+                config, new NewtonSoftJsonSerializer(), logger);
             return registry;
         }
 

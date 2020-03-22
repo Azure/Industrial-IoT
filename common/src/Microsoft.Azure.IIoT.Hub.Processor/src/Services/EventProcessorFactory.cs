@@ -4,10 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
-    using Serilog;
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.EventHubs;
     using Microsoft.Azure.EventHubs.Processor;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -24,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
         /// </summary>
         /// <param name="handler"></param>
         /// <param name="logger"></param>
-        public EventProcessorFactory(IEventHandler handler, ILogger logger) {
+        public EventProcessorFactory(IEventProcessingHandler handler, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _handler = handler ?? throw new ArgumentNullException(nameof(handler));
         }
@@ -222,6 +223,6 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
         }
 
         private readonly ILogger _logger;
-        private readonly IEventHandler _handler;
+        private readonly IEventProcessingHandler _handler;
     }
 }

@@ -4,48 +4,49 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
     using System.Collections.Generic;
 
     /// <summary>
     /// Default publisher agent configuration
     /// </summary>
+    [DataContract]
     public class PublisherConfigApiModel {
 
         /// <summary>
         /// Capabilities
         /// </summary>
-        [JsonProperty(PropertyName = "capabilities",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "capabilities",
+            EmitDefaultValue = false)]
         public Dictionary<string, string> Capabilities { get; set; }
 
         /// <summary>
         /// Interval to check job
         /// </summary>
-        [JsonProperty(PropertyName = "jobCheckInterval",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "jobCheckInterval",
+            EmitDefaultValue = false)]
         public TimeSpan? JobCheckInterval { get; set; }
 
         /// <summary>
         /// Heartbeat interval
         /// </summary>
-        [JsonProperty(PropertyName = "heartbeatInterval",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "heartbeatInterval",
+            EmitDefaultValue = false)]
         public TimeSpan? HeartbeatInterval { get; set; }
 
         /// <summary>
         /// Parallel jobs
         /// </summary>
-        [JsonProperty(PropertyName = "maxWorkers",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "maxWorkers",
+            EmitDefaultValue = false)]
         public int? MaxWorkers { get; set; }
 
         /// <summary>
         /// Job orchestrator endpoint url
         /// </summary>
-        [JsonProperty(PropertyName = "jobOrchestratorUrl",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "jobOrchestratorUrl",
+            EmitDefaultValue = false)]
         public string JobOrchestratorUrl { get; set; }
     }
 }

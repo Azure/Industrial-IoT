@@ -32,7 +32,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Models {
                 ApplicationName = model.ApplicationName,
                 Locale = model.Locale,
                 LocalizedNames = model.LocalizedNames,
-                Certificate = model.Certificate,
                 ProductUri = model.ProductUri,
                 SiteId = model.SiteId,
                 HostAddresses = model.HostAddresses,

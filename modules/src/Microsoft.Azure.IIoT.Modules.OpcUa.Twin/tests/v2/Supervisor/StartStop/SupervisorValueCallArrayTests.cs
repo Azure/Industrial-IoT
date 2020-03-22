@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.StartStop {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System.Net;
     using System.Threading.Tasks;
     using Xunit;
@@ -25,12 +26,12 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.StartStop {
 
         private CallArrayMethodTests<EndpointRegistrationModel> GetTests(
             string deviceId, string moduleId, IContainer services) {
-            return new CallArrayMethodTests<EndpointRegistrationModel>(
+            return new CallArrayMethodTests<EndpointRegistrationModel>(new NewtonSoftJsonSerializer(),
                 () => services.Resolve<INodeServices<EndpointRegistrationModel>>(),
                 new EndpointRegistrationModel {
                     Endpoint = new EndpointModel {
                         Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
-                        Certificate = _server.Certificate?.RawData
+                        Certificate = _server.Certificate?.RawData?.ToThumbprint()
                     },
                     Id = "testid",
                     SupervisorId = SupervisorModelEx.CreateSupervisorId(deviceId, moduleId)

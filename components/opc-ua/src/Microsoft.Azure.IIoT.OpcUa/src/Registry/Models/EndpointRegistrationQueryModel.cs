@@ -17,9 +17,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public string Url { get; set; }
 
         /// <summary>
-        /// Certificate of the endpoint
+        /// Certificate thumbprint of the endpoint
         /// </summary>
-        public byte[] Certificate { get; set; }
+        public string Certificate { get; set; }
 
         /// <summary>
         /// Endpoint security policy to use - null = Best.

@@ -5,14 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Vault.Models {
     using System;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
 
     /// <summary>
     /// Trust direction type
     /// </summary>
     [Flags]
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum TrustDirectionType {
 
         /// <summary>

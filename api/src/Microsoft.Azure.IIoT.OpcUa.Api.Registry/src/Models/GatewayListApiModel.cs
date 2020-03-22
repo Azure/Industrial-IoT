@@ -4,25 +4,26 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
 
     /// <summary>
     /// Gateway registration list
     /// </summary>
+    [DataContract]
     public class GatewayListApiModel {
 
         /// <summary>
         /// Registrations
         /// </summary>
-        [JsonProperty(PropertyName = "items")]
+        [DataMember(Name = "items")]
         public List<GatewayApiModel> Items { get; set; }
 
         /// <summary>
         /// Continuation or null if final
         /// </summary>
-        [JsonProperty(PropertyName = "continuationToken",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "continuationToken",
+            EmitDefaultValue = false)]
         public string ContinuationToken { get; set; }
     }
 }

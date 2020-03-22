@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Microsoft.Azure.IIoT.OpcUa.History.Models;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using Opc.Ua;
     using Opc.Ua.Encoders;
     using Opc.Ua.Extensions;
@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="codec"></param>
         /// <param name="details"></param>
         /// <returns></returns>
-        public static JToken Encode(this IVariantEncoder codec, DeleteValuesAtTimesDetailsModel details) {
+        public static VariantValue Encode(this IVariantEncoder codec, DeleteValuesAtTimesDetailsModel details) {
             if (details == null) {
                 throw new ArgumentNullException(nameof(details));
             }
@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="codec"></param>
         /// <param name="details"></param>
         /// <returns></returns>
-        public static JToken Encode(this IVariantEncoder codec, DeleteEventsDetailsModel details) {
+        public static VariantValue Encode(this IVariantEncoder codec, DeleteEventsDetailsModel details) {
             if (details == null) {
                 throw new ArgumentNullException(nameof(details));
             }
@@ -61,7 +61,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="codec"></param>
         /// <param name="details"></param>
         /// <returns></returns>
-        public static JToken Encode(this IVariantEncoder codec, DeleteValuesDetailsModel details) {
+        public static VariantValue Encode(this IVariantEncoder codec, DeleteValuesDetailsModel details) {
             if (details == null) {
                 throw new ArgumentNullException(nameof(details));
             }
@@ -82,7 +82,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="codec"></param>
         /// <param name="details"></param>
         /// <returns></returns>
-        public static JToken Encode(this IVariantEncoder codec, DeleteModifiedValuesDetailsModel details) {
+        public static VariantValue Encode(this IVariantEncoder codec, DeleteModifiedValuesDetailsModel details) {
             if (details == null) {
                 throw new ArgumentNullException(nameof(details));
             }
@@ -100,7 +100,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="codec"></param>
         /// <param name="details"></param>
         /// <returns></returns>
-        public static JToken Encode(this IVariantEncoder codec, ReplaceValuesDetailsModel details) {
+        public static VariantValue Encode(this IVariantEncoder codec, ReplaceValuesDetailsModel details) {
             if (details == null) {
                 throw new ArgumentNullException(nameof(details));
             }
@@ -117,7 +117,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                         ServerTimestamp = d.ServerTimestamp ?? DateTime.MinValue,
                         SourceTimestamp = d.SourceTimestamp ?? DateTime.MinValue,
                         StatusCode = d.StatusCode ?? StatusCodes.Good,
-                        Value = new EncodeableJToken(d.Value) // TODO: Validate
+                        Value = new EncodeableVariantValue(codec.Serializer, d.Value) // TODO: Validate
                     }))
             }));
         }
@@ -128,7 +128,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="codec"></param>
         /// <param name="details"></param>
         /// <returns></returns>
-        public static JToken Encode(this IVariantEncoder codec, InsertValuesDetailsModel details) {
+        public static VariantValue Encode(this IVariantEncoder codec, InsertValuesDetailsModel details) {
             if (details == null) {
                 throw new ArgumentNullException(nameof(details));
             }
@@ -145,7 +145,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                         ServerTimestamp = d.ServerTimestamp ?? DateTime.MinValue,
                         SourceTimestamp = d.SourceTimestamp ?? DateTime.MinValue,
                         StatusCode = d.StatusCode ?? StatusCodes.Good,
-                        Value = new EncodeableJToken(d.Value) // TODO: Validate
+                        Value = new EncodeableVariantValue(codec.Serializer, d.Value) // TODO: Validate
                     }))
             }));
         }
@@ -156,7 +156,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="codec"></param>
         /// <param name="details"></param>
         /// <returns></returns>
-        public static JToken Encode(this IVariantEncoder codec, ReplaceEventsDetailsModel details) {
+        public static VariantValue Encode(this IVariantEncoder codec, ReplaceEventsDetailsModel details) {
             if (details == null) {
                 throw new ArgumentNullException(nameof(details));
             }
@@ -170,7 +170,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 EventData = new HistoryEventFieldListCollection(details.Events
                     .Select(d => new HistoryEventFieldList {
                         EventFields = new VariantCollection(d.EventFields
-                            .Select(f => new Variant(new EncodeableJToken(f))))
+                            .Select(f => new Variant(new EncodeableVariantValue(codec.Serializer, f))))
                     }))
             }));
         }
@@ -181,7 +181,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="codec"></param>
         /// <param name="details"></param>
         /// <returns></returns>
-        public static JToken Encode(this IVariantEncoder codec, InsertEventsDetailsModel details) {
+        public static VariantValue Encode(this IVariantEncoder codec, InsertEventsDetailsModel details) {
             if (details == null) {
                 throw new ArgumentNullException(nameof(details));
             }
@@ -195,7 +195,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 EventData = new HistoryEventFieldListCollection(details.Events
                     .Select(d => new HistoryEventFieldList {
                         EventFields = new VariantCollection(d.EventFields
-                            .Select(f => new Variant(new EncodeableJToken(f))))
+                            .Select(f => new Variant(new EncodeableVariantValue(codec.Serializer, f))))
                     }))
             }));
         }
@@ -206,7 +206,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="codec"></param>
         /// <param name="details"></param>
         /// <returns></returns>
-        public static JToken Encode(this IVariantEncoder codec, ReadValuesAtTimesDetailsModel details) {
+        public static VariantValue Encode(this IVariantEncoder codec, ReadValuesAtTimesDetailsModel details) {
             if (details == null) {
                 throw new ArgumentNullException(nameof(details));
             }
@@ -225,7 +225,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="codec"></param>
         /// <param name="details"></param>
         /// <returns></returns>
-        public static JToken Encode(this IVariantEncoder codec, ReadEventsDetailsModel details) {
+        public static VariantValue Encode(this IVariantEncoder codec, ReadEventsDetailsModel details) {
             if (details == null) {
                 throw new ArgumentNullException(nameof(details));
             }
@@ -249,7 +249,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="codec"></param>
         /// <param name="details"></param>
         /// <returns></returns>
-        public static JToken Encode(this IVariantEncoder codec, ReadProcessedValuesDetailsModel details) {
+        public static VariantValue Encode(this IVariantEncoder codec, ReadProcessedValuesDetailsModel details) {
             if (details == null) {
                 throw new ArgumentNullException(nameof(details));
             }
@@ -272,7 +272,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="codec"></param>
         /// <param name="details"></param>
         /// <returns></returns>
-        public static JToken Encode(this IVariantEncoder codec, ReadValuesDetailsModel details) {
+        public static VariantValue Encode(this IVariantEncoder codec, ReadValuesDetailsModel details) {
             if (details == null) {
                 throw new ArgumentNullException(nameof(details));
             }
@@ -297,7 +297,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="codec"></param>
         /// <param name="details"></param>
         /// <returns></returns>
-        public static JToken Encode(this IVariantEncoder codec, ReadModifiedValuesDetailsModel details) {
+        public static VariantValue Encode(this IVariantEncoder codec, ReadModifiedValuesDetailsModel details) {
             if (details == null) {
                 throw new ArgumentNullException(nameof(details));
             }
@@ -321,7 +321,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="codec"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        public static HistoricValueModel[] DecodeValues(this IVariantEncoder codec, JToken result) {
+        public static HistoricValueModel[] DecodeValues(this IVariantEncoder codec, VariantValue result) {
             var extensionObject = codec.DecodeExtensionObject(result);
             if (extensionObject?.Body is HistoryData data) {
                 var results = data.DataValues.Select(d => new HistoricValueModel {
@@ -358,7 +358,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="codec"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        public static HistoricEventModel[] DecodeEvents(this IVariantEncoder codec, JToken result) {
+        public static HistoricEventModel[] DecodeEvents(this IVariantEncoder codec, VariantValue result) {
             var extensionObject = codec.DecodeExtensionObject(result);
             if (extensionObject?.Body is HistoryEvent ev) {
                 return ev.Events.Select(d => new HistoricEventModel {
@@ -376,7 +376,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="codec"></param>
         /// <param name="o"></param>
         /// <returns></returns>
-        internal static JToken Encode(this IVariantEncoder codec, ExtensionObject o) {
+        internal static VariantValue Encode(this IVariantEncoder codec, ExtensionObject o) {
             var variant = o == null ? Variant.Null : new Variant(o);
             return codec.Encode(variant);
         }
@@ -388,7 +388,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// <param name="result"></param>
         /// <returns></returns>
         internal static ExtensionObject DecodeExtensionObject(this IVariantEncoder codec,
-            JToken result) {
+            VariantValue result) {
             if (result == null) {
                 return null;
             }

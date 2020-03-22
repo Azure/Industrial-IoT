@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             _cacheUploadTimer = new Timer(CacheTimer_ElapesedAsync);
             _cacheUploadTriggered = false;
             _cacheUploadInterval = TimeSpan.FromSeconds(20);
-            _samplesCache = new Dictionary<Tuple<string, string>, List<MonitoredItemSampleModel>>();
+            _samplesCache = new Dictionary<Tuple<string, string>, List<MonitoredItemMessageModel>>();
             _dataSetsCache = new Dictionary<Tuple<string, string, string>, List<DataSetMessageModel>>();
 
             _cdmCorpus = new CdmCorpusDefinition();
@@ -173,7 +173,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                         }
                         performSave = true;
                     }
-                    await _storage.WriteInCsvPartition<MonitoredItemSampleModel>(
+                    await _storage.WriteInCsvPartition<MonitoredItemMessageModel>(
                         partitionLocation, samplesList, partitionDelimitor);
                 }
 
@@ -301,7 +301,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             }
         }
 
-        private bool GetEntityData(MonitoredItemSampleModel sample,
+        private bool GetEntityData(MonitoredItemMessageModel sample,
             out string partitionLocation, out string partitionDelimitor){
             partitionLocation = null;
             partitionDelimitor = kCsvPartitionsDelimiter;
@@ -320,7 +320,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             return true;
         }
 
-        private bool CreateEntityData(MonitoredItemSampleModel sample,
+        private bool CreateEntityData(MonitoredItemMessageModel sample,
             out string partitionLocation, out string partitionDelimitor) {
             string key = GetNormalizedEntityName(sample.EndpointId, sample.NodeId, null);
 
@@ -334,7 +334,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             var newSampleEntity = _cdmCorpus.MakeObject<CdmEntityDefinition>(
                 CdmObjectType.EntityDef, key, false);
 
-            var info = typeof(MonitoredItemSampleModel).GetProperties();
+            var info = typeof(MonitoredItemMessageModel).GetProperties();
             foreach (var property in info) {
                 // add the attributes required
                 var attribute = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
@@ -343,7 +343,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                     CdmObjectType.PurposeRef, "hasA", true);
                 //  if we handle a value, lookup it's type property
                 if (property.Name == "Value" &&
-                    typeof(MonitoredItemSampleModel).
+                    typeof(MonitoredItemMessageModel).
                         GetProperty("TypeId")?.GetValue(sample) is Type typeId){
                     attribute.DataFormat = DataTypeToCdmDataFormat(typeId);
                 }
@@ -524,10 +524,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         private async Task ProcessCdmSampleAsync<T>(T payload) {
             try {
                 await _lock.WaitAsync();
-                if (payload is MonitoredItemSampleModel sample) {
+                if (payload is MonitoredItemMessageModel sample) {
                     var key = new Tuple<string, string>(sample.EndpointId, sample.NodeId);
                     if (!_samplesCache.TryGetValue(key, out var samplesList)) {
-                        _samplesCache[key] = new List<MonitoredItemSampleModel>();
+                        _samplesCache[key] = new List<MonitoredItemMessageModel>();
                     }
                     _samplesCache[key].Add(sample);
                 }
@@ -570,7 +570,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         private bool _cacheUploadTriggered;
 
         private int _samplesCacheSize;
-        private readonly Dictionary<Tuple<string,string>, List<MonitoredItemSampleModel>> _samplesCache;
+        private readonly Dictionary<Tuple<string,string>, List<MonitoredItemMessageModel>> _samplesCache;
         private readonly Dictionary<Tuple<string, string, string>, List<DataSetMessageModel>> _dataSetsCache;
 
         private static readonly int kSamplesCacheMaxSize = 5000;

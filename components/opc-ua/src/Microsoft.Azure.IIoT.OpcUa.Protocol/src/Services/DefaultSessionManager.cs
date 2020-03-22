@@ -49,14 +49,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     var sessionName = id.ToString();
                     var applicationConfiguration = _clientConfig.ToApplicationConfiguration(true);
                     var endpointConfiguration = _clientConfig.ToEndpointConfiguration();
-                    var endpointDescription = SelectEndpoint(id.Connection.Endpoint.Url, id.Connection.Endpoint.SecurityMode, id.Connection.Endpoint.SecurityPolicy, (int)(connection.Endpoint.OperationTimeout.HasValue ? connection.Endpoint.OperationTimeout.Value.TotalMilliseconds : defaultOperationTimeout));
+                    var endpointDescription = SelectEndpoint(id.Connection.Endpoint.Url,
+                        id.Connection.Endpoint.SecurityMode, id.Connection.Endpoint.SecurityPolicy,
+                        (int)(connection.OperationTimeout.HasValue ?
+                            connection.OperationTimeout.Value.TotalMilliseconds :
+                            kDefaultOperationTimeout));
 
                     if (endpointDescription == null) {
-                        throw new EndpointNotAvailableException(id.Connection.Endpoint.Url, id.Connection.Endpoint.SecurityMode, id.Connection.Endpoint.SecurityPolicy);
+                        throw new EndpointNotAvailableException(id.Connection.Endpoint.Url,
+                            id.Connection.Endpoint.SecurityMode, id.Connection.Endpoint.SecurityPolicy);
                     }
 
-                    if (id.Connection.Endpoint.SecurityMode.HasValue && id.Connection.Endpoint.SecurityMode != SecurityMode.None && endpointDescription.SecurityMode == MessageSecurityMode.None) {
-                        _logger.Warning("Although the use of security was configured, there was no security-enabled endpoint available at url {endpointUrl}. An endpoint with no security will be used.", id.Connection.Endpoint.Url);
+                    if (id.Connection.Endpoint.SecurityMode.HasValue &&
+                        id.Connection.Endpoint.SecurityMode != SecurityMode.None &&
+                        endpointDescription.SecurityMode == MessageSecurityMode.None) {
+                        _logger.Warning("Although the use of security was configured, " +
+                            "there was no security-enabled endpoint available at url " +
+                            "{endpointUrl}. An endpoint with no security will be used.",
+                            id.Connection.Endpoint.Url);
                     }
 
                     var configuredEndpoint = new ConfiguredEndpoint(
@@ -73,7 +83,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             userIdentity, null);
 
                         _logger.Information($"Session '{sessionName}' created.");
-
                         _logger.Information("Loading Complex Type System....");
 
                         try {
@@ -138,7 +147,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="session"></param>
         /// <param name="e"></param>
         private void Session_KeepAlive(Session session, KeepAliveEventArgs e) {
-            _logger.Debug($"Keep Alive received from session {session.SessionName}, state: {e.CurrentState}.");
+            _logger.Debug("Keep Alive received from session {sessionName}, " +
+                "state: {currentState}.", session.SessionName, e.CurrentState);
             if (ServiceResult.IsGood(e.Status)) {
                 return;
             }
@@ -150,13 +160,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
                 entry.Value.MissedKeepAlives++;
                 if (entry.Value.MissedKeepAlives >= entry.Value.MaxKeepAlives) {
-                    _logger.Warning("Session '{name}' exceeded max keep alive count. Disconnecting and removing session...",
-                        session.SessionName);
+                    _logger.Warning("Session '{name}' exceeded max keep alive count. " +
+                        "Disconnecting and removing session...", session.SessionName);
                     _sessions.Remove(entry.Key);
                     Try.Op(session.Close);
                     Try.Op(session.Dispose);
                 }
-                _logger.Warning("{missedKeepAlives}/{_maxKeepAlives} missed keep alives from session '{name}'...",
+                _logger.Warning("{missedKeepAlives}/{_maxKeepAlives} missed keep " +
+                    "alives from session '{name}'...",
                     entry.Value.MissedKeepAlives, entry.Value.MaxKeepAlives, session.SessionName);
             }
             finally {
@@ -170,11 +181,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             switch (securityMode.Value) {
-                case SecurityMode.Best: throw new NotSupportedException("The security mode 'best' is not supported in this scenario.");
-                case SecurityMode.None: return MessageSecurityMode.None;
-                case SecurityMode.Sign: return MessageSecurityMode.Sign;
-                case SecurityMode.SignAndEncrypt: return MessageSecurityMode.SignAndEncrypt;
-                default: throw new NotImplementedException($"The security mode '{securityMode}' is not implemented.");
+                case SecurityMode.Best: 
+                    throw new NotSupportedException("The security mode 'best' is not supported.");
+                case SecurityMode.None: 
+                    return MessageSecurityMode.None;
+                case SecurityMode.Sign: 
+                    return MessageSecurityMode.Sign;
+                case SecurityMode.SignAndEncrypt: 
+                    return MessageSecurityMode.SignAndEncrypt;
+                default: 
+                    throw new NotSupportedException($"The security mode '{securityMode}' is not implemented.");
             }
         }
 
@@ -185,18 +201,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="securityMode">The requested message security mode.</param>
         /// <param name="securityPolicyUri">The requested securityPolicyUrl.</param>
         /// <param name="operationTimeout">Operation timeout</param>
-        /// <returns>Endpoint with the selected security settings or null of none available.</returns>
-        private static EndpointDescription SelectEndpoint(string discoveryUrl, SecurityMode? securityMode, string securityPolicyUri, int operationTimeout = -1) {
-            //if no security settings are specified or is set to 'Best', we use the best available. However, this can result in an endpoint with SecurityMode = None when no
-            //security enabled endpoint is available.
-            if ((!securityMode.HasValue && string.IsNullOrWhiteSpace(securityPolicyUri)) || securityMode == SecurityMode.Best) {
+        /// <returns>Endpoint with the selected security settings or null of none
+        /// available.</returns>
+        private static EndpointDescription SelectEndpoint(string discoveryUrl,
+            SecurityMode? securityMode, string securityPolicyUri, int operationTimeout = -1) {
+            // if no security settings are specified or is set to 'Best', we use the best
+            // available. However, this can result in an endpoint with SecurityMode = None when no
+            // security enabled endpoint is available.
+            if ((!securityMode.HasValue && string.IsNullOrWhiteSpace(securityPolicyUri)) ||
+                securityMode == SecurityMode.Best) {
                 return CoreClientUtils.SelectEndpoint(discoveryUrl, true, operationTimeout);
             }
             else if (securityMode == SecurityMode.None || securityPolicyUri == SecurityPolicies.None) {
                 return CoreClientUtils.SelectEndpoint(discoveryUrl, false, operationTimeout);
             }
             else {
-                return SelectEndpoint(discoveryUrl, ToMessageSecurityMode(securityMode), securityPolicyUri, operationTimeout);
+                return SelectEndpoint(discoveryUrl, ToMessageSecurityMode(securityMode),
+                    securityPolicyUri, operationTimeout);
             }
         }
 
@@ -208,7 +229,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="securityPolicyUri">The requested securityPolicyUrl.</param>
         /// <param name="operationTimeout">Operation timeout</param>
         /// <returns>Endpoint with the selected security settings or null of none available.</returns>
-        private static EndpointDescription SelectEndpoint(string discoveryUrl, MessageSecurityMode? messageSecurityMode, string securityPolicyUri, int operationTimeout = -1) {
+        private static EndpointDescription SelectEndpoint(string discoveryUrl, 
+            MessageSecurityMode? messageSecurityMode, string securityPolicyUri, int operationTimeout = -1) {
             if (messageSecurityMode == MessageSecurityMode.None || securityPolicyUri == SecurityPolicies.None) {
                 return CoreClientUtils.SelectEndpoint(discoveryUrl, false, operationTimeout);
             }
@@ -221,7 +243,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
 
             // parse the selected URL.
-            Uri uri = new Uri(discoveryUrl);
+            var uri = new Uri(discoveryUrl);
 
             var configuration = EndpointConfiguration.Create();
             if (operationTimeout > 0) {
@@ -235,11 +257,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 IEnumerable<EndpointDescription> filteredEndpoints = endpoints.ToArray();
 
                 if (messageSecurityMode.HasValue) {
-                    filteredEndpoints = filteredEndpoints.Where(e => e.SecurityMode == messageSecurityMode.Value);
+                    filteredEndpoints = filteredEndpoints
+                        .Where(e => e.SecurityMode == messageSecurityMode.Value);
                 }
 
                 if (!string.IsNullOrWhiteSpace(securityPolicyUri)) {
-                    filteredEndpoints = filteredEndpoints.Where(e => e.SecurityPolicyUri == securityPolicyUri);
+                    filteredEndpoints = filteredEndpoints
+                        .Where(e => e.SecurityPolicyUri == securityPolicyUri);
                 }
 
                 return filteredEndpoints.OrderByDescending(e => e.SecurityLevel).FirstOrDefault();
@@ -298,6 +322,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private readonly Dictionary<ConnectionIdentifier, SessionWrapper> _sessions =
             new Dictionary<ConnectionIdentifier, SessionWrapper>();
         private readonly SemaphoreSlim _lock;
-        private const int defaultOperationTimeout = 15000;
+        private const int kDefaultOperationTimeout = 15000;
     }
 }

@@ -432,8 +432,9 @@
         "iotHubKeyName": "iothubowner",
         "iotHubContainerName": "[parameters('iotHubName')]",
         "iotHubKeyResource": "[resourceId('Microsoft.Devices/Iothubs/Iothubkeys', parameters('iotHubName'), variables('iotHubKeyName'))]",
-        "iothubConsumerGroup1": "telemetry",
-        "iothubConsumerGroup2": "events",
+        "iothubTelemetryConsumerGroup": "telemetry",
+        "iothubEventsConsumerGroup": "events",
+        "iothubTunnelConsumerGroup": "tunnel",
         "identityResourceName": "[if(empty(parameters('managedIdentityName')), concat('msi', take(uniqueString(subscription().subscriptionId, resourceGroup().id), 5)), parameters('managedIdentityName'))]",
         "identityResourceId": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identityResourceName'))]",
         "storageResourceId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageName'))]",
@@ -475,12 +476,12 @@
                                 "get",
                                 "list",
                                 "sign",
-                                "unwrapKey", 
-                                "wrapKey", 
+                                "unwrapKey",
+                                "wrapKey",
                                 "create"
                             ],
                             "secrets": [
-                                "get", 
+                                "get",
                                 "list",
                                 "set",
                                 "delete"
@@ -513,8 +514,8 @@
                         "permissions": {
                             "keys": [
                                 "get",
-                                "unwrapKey", 
-                                "wrapKey", 
+                                "unwrapKey",
+                                "wrapKey",
                                 "create"
                             ],
                             "secrets": [
@@ -623,18 +624,27 @@
             ]
         },
         {
-            "comments": "Telemetry Consumer Group of IoT Hub",
+            "comments": "Telemetry Consumer Group in IoT Hub",
             "apiVersion": "2019-03-22",
-            "name": "[concat(parameters('iotHubName'), '/events/', variables('iothubConsumerGroup1'))]",
+            "name": "[concat(parameters('iotHubName'), '/events/', variables('iothubTelemetryConsumerGroup'))]",
             "type": "Microsoft.Devices/Iothubs/eventhubEndpoints/ConsumerGroups",
             "dependsOn": [
                 "[variables('iotHubResourceId')]"
             ]
         },
         {
-            "comments": "Events Consumer Group of IoT Hub",
+            "comments": "Edge Events Consumer Group in IoT Hub",
             "apiVersion": "2019-03-22",
-            "name": "[concat(parameters('iotHubName'), '/events/', variables('iothubConsumerGroup2'))]",
+            "name": "[concat(parameters('iotHubName'), '/events/', variables('iothubEventsConsumerGroup'))]",
+            "type": "Microsoft.Devices/Iothubs/eventhubEndpoints/ConsumerGroups",
+            "dependsOn": [
+                "[variables('iotHubResourceId')]"
+            ]
+        },
+        {
+            "comments": "Edge Http Tunnel Consumer Group in IoT Hub",
+            "apiVersion": "2019-03-22",
+            "name": "[concat(parameters('iotHubName'), '/events/', variables('iothubTunnelConsumerGroup'))]",
             "type": "Microsoft.Devices/Iothubs/eventhubEndpoints/ConsumerGroups",
             "dependsOn": [
                 "[variables('iotHubResourceId')]"
@@ -931,9 +941,14 @@
                 "features": [
                     {
                         "flag": "ServiceMode",
-                        "value": "Serverless"
+                        "value": "Default"
                     }
-                ]
+                ],
+                "cors": {
+                    "allowedOrigins": [
+                        "*"
+                    ]
+                }    
             },
             "sku": {
                 "name": "[parameters('signalRSkuName')]",
@@ -1007,11 +1022,15 @@
                             },
                             {
                                 "key": "PCS_IOTHUB_EVENTHUBCONSUMERGROUP",
-                                "value": "[variables('iothubConsumerGroup1')]"
+                                "value": "[variables('iothubTelemetryConsumerGroup')]"
                             },
                             {
                                 "key": "PCS_IOTHUB_EVENTHUBCONSUMERGROUP2",
-                                "value": "[variables('iothubConsumerGroup2')]"
+                                "value": "[variables('iothubEventsConsumerGroup')]"
+                            },
+                            {
+                                "key": "PCS_IOTHUB_EVENTHUBCONSUMERGROUP3",
+                                "value": "[variables('iothubTunnelConsumerGroup')]"
                             },
                             {
                                 "key": "PCS_ADLSG2_ACCOUNT",

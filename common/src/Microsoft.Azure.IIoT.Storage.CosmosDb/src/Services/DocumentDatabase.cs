@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
     using Microsoft.Azure.Documents.Client;
     using Microsoft.Azure.Documents;
-    using Newtonsoft.Json;
     using Serilog;
     using System;
     using System.Linq;
@@ -39,16 +38,14 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         /// </summary>
         /// <param name="client"></param>
         /// <param name="databaseId"></param>
-        /// <param name="serializer"></param>
         /// <param name="databaseThroughput"></param>
         /// <param name="logger"></param>
         internal DocumentDatabase(DocumentClient client, string databaseId,
-            JsonSerializerSettings serializer, int? databaseThroughput, ILogger logger) {
+            int? databaseThroughput, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             Client = client ?? throw new ArgumentNullException(nameof(client));
             DatabaseId = databaseId ?? throw new ArgumentNullException(nameof(databaseId));
             _collections = new ConcurrentDictionary<string, DocumentCollection>();
-            _serializer = serializer;
             _databaseThroughput = databaseThroughput;
         }
 
@@ -105,7 +102,7 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
             if (!_collections.TryGetValue(id, out var collection)) {
                 var coll = await EnsureCollectionExistsAsync(id, options);
                 collection = _collections.GetOrAdd(id, k =>
-                    new DocumentCollection(this, coll, _serializer, _logger));
+                    new DocumentCollection(this, coll, _logger));
             }
             return collection;
         }
@@ -198,7 +195,6 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
 
         private readonly ILogger _logger;
         private readonly ConcurrentDictionary<string, DocumentCollection> _collections;
-        private readonly JsonSerializerSettings _serializer;
         private readonly int? _databaseThroughput;
     }
 }

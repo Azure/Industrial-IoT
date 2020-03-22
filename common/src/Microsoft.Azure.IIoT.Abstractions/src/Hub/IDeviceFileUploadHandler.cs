@@ -12,7 +12,7 @@ namespace Microsoft.Azure.IIoT.Hub {
     /// <summary>
     /// Handler that handles blob file upload notifications
     /// </summary>
-    public interface IBlobUploadHandler : IHandler {
+    public interface IDeviceFileUploadHandler : IHandler {
 
         /// <summary>
         /// Handle blob file upload notifications.

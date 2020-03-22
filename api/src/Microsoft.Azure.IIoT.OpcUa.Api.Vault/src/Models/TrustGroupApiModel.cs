@@ -4,72 +4,73 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
 
     /// <summary>
     /// Trust group model
     /// </summary>
+    [DataContract]
     public sealed class TrustGroupApiModel {
 
         /// <summary>
         /// The name of the trust group.
         /// </summary>
-        [JsonProperty(PropertyName = "name")]
+        [DataMember(Name = "name")]
         public string Name { get; set; }
 
         /// <summary>
         /// The identifer of the parent trust group.
         /// </summary>
-        [JsonProperty(PropertyName = "parentId")]
+        [DataMember(Name = "parentId")]
         public string ParentId { get; set; }
 
         /// <summary>
         /// The trust group type
         /// </summary>
-        [JsonProperty(PropertyName = "type")]
+        [DataMember(Name = "type")]
         public TrustGroupType Type { get; set; }
 
         /// <summary>
         /// The subject name of the group as distinguished name.
         /// </summary>
-        [JsonProperty(PropertyName = "subjectName")]
+        [DataMember(Name = "subjectName")]
         public string SubjectName { get; set; }
 
         /// <summary>
         /// The lifetime of the trust group certificate.
         /// </summary>
-        [JsonProperty(PropertyName = "lifetime")]
+        [DataMember(Name = "lifetime")]
         public TimeSpan Lifetime { get; set; }
 
         /// <summary>
         /// The trust group certificate key size in bits.
         /// </summary>
-        [JsonProperty(PropertyName = "keySize")]
+        [DataMember(Name = "keySize")]
         public ushort KeySize { get; set; }
 
         /// <summary>
         /// The certificate signature algorithm.
         /// </summary>
-        [JsonProperty(PropertyName = "signatureAlgorithm")]
+        [DataMember(Name = "signatureAlgorithm")]
         public SignatureAlgorithm SignatureAlgorithm { get; set; }
 
         /// <summary>
         /// The issued certificate lifetime in months.
         /// </summary>
-        [JsonProperty(PropertyName = "issuedLifetime")]
+        [DataMember(Name = "issuedLifetime")]
         public TimeSpan IssuedLifetime { get; set; }
 
         /// <summary>
         /// The issued certificate key size in bits.
         /// </summary>
-        [JsonProperty(PropertyName = "issuedKeySize")]
+        [DataMember(Name = "issuedKeySize")]
         public ushort IssuedKeySize { get; set; }
 
         /// <summary>
         /// The Signature algorithm for issued certificates
         /// </summary>
-        [JsonProperty(PropertyName = "issuedSignatureAlgorithm")]
+        [DataMember(Name = "issuedSignatureAlgorithm")]
         public SignatureAlgorithm IssuedSignatureAlgorithm { get; set; }
     }
 }

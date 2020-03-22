@@ -127,6 +127,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var expected = new Variant(new string[0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
+            Assert.True(encoded.Equals(str));
             Assert.Equal(str, encoded);
         }
 
@@ -138,6 +139,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var expected = new Variant(new short[0]);
             var encoded = codec.Encode(variant);
             Assert.Equal(expected, variant);
+            Assert.True(encoded.Equals(str));
             Assert.Equal(str, encoded);
         }
 

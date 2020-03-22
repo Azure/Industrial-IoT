@@ -10,11 +10,11 @@
 @using Microsoft.Azure.IIoT.App.Data
 @using Microsoft.AspNetCore.Components
 @using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models
+@using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models
 @using Microsoft.Azure.IIoT.OpcUa.Api.Publisher
 @using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models
 @using Microsoft.Azure.IIoT.App.Common
 @using System.Collections.Generic
-
 
 @inject NavigationManager NavigationManager
 @inject Services.Browser BrowseManager
@@ -234,7 +234,7 @@
                 _tableView = "hidden";
             }
             StateHasChanged();
-            _publishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId, null, PublishEvent);
+            _publishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId, PublishEvent);
         }
     }
 
@@ -357,7 +357,7 @@
         {
             if (node.Id == samples.NodeId)
             {
-                node.Value = $"{samples.Value?.ToString()} ({samples.Status}/{samples.Timestamp})";
+                node.Value = $"{samples.Value?.ToJson()} ({samples.Status}/{samples.Timestamp})";
                 this.StateHasChanged();
             }
         }

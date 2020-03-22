@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
     using System;
     using System.Threading.Tasks;
     using Serilog;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// IoT hub based job event handler
@@ -45,15 +44,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                     await _ioTHubTwinServices.CreateAsync(deviceTwin);
                 }
                 var cs = await _ioTHubTwinServices.GetConnectionStringAsync(deviceTwin.Id);
-                if (job.JobConfiguration?.Type == JTokenType.Object &&
-                    job.JobConfiguration is JObject o) {
-                    var connectionString = JToken.FromObject(cs.ToString());
-                    if (o.ContainsKey(TwinProperties.ConnectionString)) {
-                        o[TwinProperties.ConnectionString] = connectionString;
-                    }
-                    else {
-                        o.Add(TwinProperties.ConnectionString, connectionString);
-                    }
+                if (job.JobConfiguration?.IsObject == true) {
+                    job.JobConfiguration[TwinProperties.ConnectionString].AssignValue(cs.ToString());
                     _logger.Debug("Added connection string to job {id}", jobDeviceId);
                 }
             }

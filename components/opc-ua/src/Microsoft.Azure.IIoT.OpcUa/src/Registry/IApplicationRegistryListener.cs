@@ -26,9 +26,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="application"></param>
+        /// <param name="isPatch"></param>
         /// <returns></returns>
         Task OnApplicationUpdatedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application);
+            ApplicationInfoModel application, bool isPatch = false);
 
         /// <summary>
         /// Called when application is enabled
@@ -52,9 +53,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// Called when application is unregistered
         /// </summary>
         /// <param name="context"></param>
+        /// <param name="applicationId"></param>
         /// <param name="application"></param>
         /// <returns></returns>
         Task OnApplicationDeletedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application);
+            string applicationId, ApplicationInfoModel application);
     }
 }

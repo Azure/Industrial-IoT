@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Credential model extensions
@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
             if (that.Value == null || model.Value == null) {
                 return false;
             }
-            if (!JToken.DeepEquals(that.Value, model.Value)) {
+            if (!VariantValue.DeepEquals(that.Value, model.Value)) {
                 return false;
             }
             return true;
@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
                 return null;
             }
             return new CredentialModel {
-                Value = model.Value?.DeepClone(),
+                Value = model.Value?.Copy(),
                 Type = model.Type
             };
         }

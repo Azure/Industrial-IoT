@@ -4,86 +4,70 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
-    using System.ComponentModel;
 
     /// <summary>
     /// Application registration update request
     /// </summary>
+    [DataContract]
     public class ApplicationRegistrationUpdateApiModel {
 
         /// <summary>
         /// Product uri
         /// </summary>
-        [JsonProperty(PropertyName = "productUri",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "productUri",
+            EmitDefaultValue = false)]
         public string ProductUri { get; set; }
 
         /// <summary>
         /// Default name of the server or client.
         /// </summary>
-        [JsonProperty(PropertyName = "applicationName",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "applicationName",
+            EmitDefaultValue = false)]
         public string ApplicationName { get; set; }
 
         /// <summary>
         /// Locale of default name - defaults to "en"
         /// </summary>
-        [JsonProperty(PropertyName = "locale",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "locale",
+            EmitDefaultValue = false)]
         public string Locale { get; set; }
 
         /// <summary>
         /// Localized names keyed off locale id.
         /// To remove entry, set value for locale id to null.
         /// </summary>
-        [JsonProperty(PropertyName = "localizedNames",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "localizedNames",
+            EmitDefaultValue = false)]
         public Dictionary<string, string> LocalizedNames { get; set; }
-
-        /// <summary>
-        /// Application public cert
-        /// </summary>
-        [JsonProperty(PropertyName = "certificate",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public byte[] Certificate { get; set; }
 
         /// <summary>
         /// Capabilities of the application
         /// </summary>
-        [JsonProperty(PropertyName = "capabilities",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "capabilities",
+            EmitDefaultValue = false)]
         public HashSet<string> Capabilities { get; set; }
 
         /// <summary>
         /// Discovery urls of the application
         /// </summary>
-        [JsonProperty(PropertyName = "discoveryUrls",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "discoveryUrls",
+            EmitDefaultValue = false)]
         public HashSet<string> DiscoveryUrls { get; set; }
 
         /// <summary>
         /// Discovery profile uri
         /// </summary>
-        [JsonProperty(PropertyName = "discoveryProfileUri",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "discoveryProfileUri",
+            EmitDefaultValue = false)]
         public string DiscoveryProfileUri { get; set; }
 
         /// <summary>
         /// Gateway server uri
         /// </summary>
-        [JsonProperty(PropertyName = "gatewayServerUri",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "gatewayServerUri",
+            EmitDefaultValue = false)]
         public string GatewayServerUri { get; set; }
     }
 }

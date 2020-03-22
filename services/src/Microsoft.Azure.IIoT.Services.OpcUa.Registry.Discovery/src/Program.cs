@@ -7,11 +7,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery {
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Handlers;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Tasks.Default;
@@ -100,6 +101,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery {
 
             // Add diagnostics based on configuration
             builder.AddDiagnostics(config);
+            builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Register http client module
             builder.RegisterModule<HttpClientModule>();
@@ -138,7 +140,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<DiscoveryMultiplexer>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<DiscovererClient>()
+            builder.RegisterType<DiscovererModuleClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
             return builder;

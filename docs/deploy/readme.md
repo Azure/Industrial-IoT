@@ -16,4 +16,3 @@ Alternative options to deploy the platform services include:
 
 - Deploying the Industrial IoT platform to [Azure Kubernetes Service (AKS)](howto-deploy-aks.md) as production solution.
 - For development and testing purposes, you can also [deploy only the Microservices dependencies in Azure](howto-deploy-local.md) and [run Microservices locally](howto-run-microservices-locally.md)
-- [Enable ASC for IoT](howto-enable-asc-for-iot-and-sentinel-steps.md) if you want to monitor security of OPC UA endpoints

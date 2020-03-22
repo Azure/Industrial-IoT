@@ -12,6 +12,7 @@
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Diagnostics.AppInsights\src\Microsoft.Azure.IIoT.Diagnostics.AppInsights.csproj" />
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Auth.ActiveDirectory\src\Microsoft.Azure.IIoT.Auth.ActiveDirectory.csproj" />
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Hub.Auth\src\Microsoft.Azure.IIoT.Hub.Auth.csproj" />
+    <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Serializers.NewtonSoft\src\Microsoft.Azure.IIoT.Serializers.NewtonSoft.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="appsettings.Development.json" />

@@ -5,54 +5,61 @@
 
 namespace Microsoft.Azure.IIoT.Crypto.Storage.Models {
     using Microsoft.Azure.IIoT.Crypto.Models;
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
 
     /// <summary>
     /// Crl document
     /// </summary>
+    [DataContract]
     public class CrlDocument {
 
         /// <summary>
         /// Serial number of the certificate
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
+        [DataMember(Name = "id")]
         public string CertificateSerialNumber { get; set; }
 
         /// <summary>
         /// Issuer serial number
         /// </summary>
+        [DataMember]
         public string IssuerSerialNumber { get; set; }
 
         /// <summary>
         /// Crl serial number
         /// </summary>
+        [DataMember]
         public string SerialNumber { get; set; }
 
         /// <summary>
         /// Next update
         /// </summary>
+        [DataMember]
         public DateTime? NextUpdate { get; set; }
 
         /// <summary>
         /// This update
         /// </summary>
+        [DataMember]
         public DateTime ThisUpdate { get; set; }
 
         /// <summary>
         /// Raw crl for the certificate
         /// </summary>
+        [DataMember]
         public byte[] RawData { get; set; }
 
         /// <summary>
         /// Type
         /// </summary>
+        [DataMember]
         public string Type => nameof(Crl);
 
         /// <summary>
         /// Expiration in seconds
         /// </summary>
-        [JsonProperty(PropertyName = "ttl")]
+        [DataMember(Name = "ttl")]
         public int Ttl { get; set; }
     }
 }

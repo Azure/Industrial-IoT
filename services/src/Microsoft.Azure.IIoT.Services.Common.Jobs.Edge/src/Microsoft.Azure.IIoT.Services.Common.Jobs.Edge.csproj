@@ -4,13 +4,12 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="5.0.1" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="3.1.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\api\src\Microsoft.Azure.IIoT.Api.Edge\src\Microsoft.Azure.IIoT.Api.Edge.csproj" />
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Diagnostics.AppInsights\src\Microsoft.Azure.IIoT.Diagnostics.AppInsights.csproj" />
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.AspNetCore.OpenApi\src\Microsoft.Azure.IIoT.AspNetCore.OpenApi.csproj" />
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.AspNetCore\src\Microsoft.Azure.IIoT.AspNetCore.csproj" />
@@ -19,7 +18,7 @@
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Agent.Framework\src\Microsoft.Azure.IIoT.Agent.Framework.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\api\src\Microsoft.Azure.IIoT.Api.Jobs\src\Microsoft.Azure.IIoT.Api.Jobs.csproj" />
+    <ProjectReference Include="..\..\..\..\api\src\Microsoft.Azure.IIoT.Api\src\Microsoft.Azure.IIoT.Api.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="appSettings.Development.json">

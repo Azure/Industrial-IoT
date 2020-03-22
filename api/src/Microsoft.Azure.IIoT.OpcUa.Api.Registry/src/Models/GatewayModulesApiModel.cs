@@ -4,36 +4,33 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
-    using System.ComponentModel;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Gateway modules model
     /// </summary>
+    [DataContract]
     public class GatewayModulesApiModel {
 
         /// <summary>
         /// Supervisor identity if deployed
         /// </summary>
-        [JsonProperty(PropertyName = "supervisor",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "supervisor",
+            EmitDefaultValue = false)]
         public SupervisorApiModel Supervisor { get; set; }
 
         /// <summary>
         /// Publisher identity if deployed
         /// </summary>
-        [JsonProperty(PropertyName = "publisher",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "publisher",
+            EmitDefaultValue = false)]
         public PublisherApiModel Publisher { get; set; }
 
         /// <summary>
         /// Discoverer identity if deployed
         /// </summary>
-        [JsonProperty(PropertyName = "discoverer",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "discoverer",
+            EmitDefaultValue = false)]
         public DiscovererApiModel Discoverer { get; set; }
     }
 }
