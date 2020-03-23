@@ -188,13 +188,13 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
 
             /// <summary>Application id</summary>
             public string AppId => GetStringOrDefault(PcsVariable.PCS_KEYVAULT_APPID,
-                Environment.GetEnvironmentVariable(PcsVariable.PCS_KEYVAULT_APPID))?.Trim();
+                () => Environment.GetEnvironmentVariable(PcsVariable.PCS_KEYVAULT_APPID))?.Trim();
             /// <summary>App secret</summary>
             public string AppSecret => GetStringOrDefault(PcsVariable.PCS_KEYVAULT_SECRET,
-                Environment.GetEnvironmentVariable(PcsVariable.PCS_KEYVAULT_SECRET))?.Trim();
+                () => Environment.GetEnvironmentVariable(PcsVariable.PCS_KEYVAULT_SECRET))?.Trim();
             /// <summary>Optional tenant</summary>
             public string TenantId => GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT,
-                Environment.GetEnvironmentVariable(PcsVariable.PCS_AUTH_TENANT) ??
+                () => Environment.GetEnvironmentVariable(PcsVariable.PCS_AUTH_TENANT) ??
                     kTenantIdDefault).Trim();
 
             /// <summary>Aad instance url</summary>
@@ -214,14 +214,16 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
             /// <summary>Key (in KeyVault) to be used for encription of keys</summary>
             public string KeyVaultKeyDataProtection =>
                 GetStringOrDefault(PcsVariable.PCS_KEYVAULT_KEY_DATAPROTECTION,
-                    Environment.GetEnvironmentVariable(PcsVariable.PCS_KEYVAULT_KEY_DATAPROTECTION) ??
-                    kKeyVaultKeyDataProtectionDefault).Trim();
+                    () => Environment.GetEnvironmentVariable(
+                        PcsVariable.PCS_KEYVAULT_KEY_DATAPROTECTION) ??
+                        kKeyVaultKeyDataProtectionDefault).Trim();
 
             /// <summary>Blob Storage Container that holds encrypted keys</summary>
             public string BlobStorageContainerDataProtection =>
                 GetStringOrDefault(PcsVariable.PCS_STORAGE_CONTAINER_DATAPROTECTION,
-                    Environment.GetEnvironmentVariable(PcsVariable.PCS_STORAGE_CONTAINER_DATAPROTECTION) ??
-                    kBlobStorageContainerDataProtectionDefault).Trim();
+                    () => Environment.GetEnvironmentVariable(
+                        PcsVariable.PCS_STORAGE_CONTAINER_DATAPROTECTION) ??
+                        kBlobStorageContainerDataProtectionDefault).Trim();
 
             /// <summary>
             /// Configuration constructor

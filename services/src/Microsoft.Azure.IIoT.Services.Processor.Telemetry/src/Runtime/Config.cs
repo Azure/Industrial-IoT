@@ -26,8 +26,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
         public string EventHubPath => _eh.EventHubPath;
         /// <summary> Event hub telemetry consumer group </summary>
         public string ConsumerGroup => GetStringOrDefault(kEventHubConsumerGroupTelemetryKey,
-            GetStringOrDefault(PcsVariable.PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY,
-                "telemetry"));
+            () => GetStringOrDefault(PcsVariable.PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY,
+                () => "telemetry"));
         /// <inheritdoc/>
         public bool UseWebsockets => _eh.UseWebsockets;
         /// <inheritdoc/>
@@ -49,6 +49,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
         }
 
         private readonly EventProcessorConfig _ep;
-        private readonly IoTHubEventConfig _eh; 
+        private readonly IoTHubEventConfig _eh;
     }
 }

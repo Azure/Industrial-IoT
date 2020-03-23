@@ -51,13 +51,13 @@ namespace Microsoft.Extensions.Configuration {
 
             /// <summary>Application id</summary>
             public string AppId => GetStringOrDefault(PcsVariable.PCS_KEYVAULT_APPID,
-                Environment.GetEnvironmentVariable(PcsVariable.PCS_KEYVAULT_APPID))?.Trim();
+                () => Environment.GetEnvironmentVariable(PcsVariable.PCS_KEYVAULT_APPID))?.Trim();
             /// <summary>App secret</summary>
             public string AppSecret => GetStringOrDefault(PcsVariable.PCS_KEYVAULT_SECRET,
-                Environment.GetEnvironmentVariable(PcsVariable.PCS_KEYVAULT_SECRET))?.Trim();
+                () => Environment.GetEnvironmentVariable(PcsVariable.PCS_KEYVAULT_SECRET))?.Trim();
             /// <summary>Optional tenant</summary>
             public string TenantId => GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT,
-                Environment.GetEnvironmentVariable(PcsVariable.PCS_AUTH_TENANT) ?? "common").Trim();
+                () => Environment.GetEnvironmentVariable(PcsVariable.PCS_AUTH_TENANT) ?? "common").Trim();
 
             /// <summary>Aad instance url</summary>
             public string InstanceUrl => null;

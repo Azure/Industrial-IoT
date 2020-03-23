@@ -14,7 +14,7 @@
     <EmbeddedResource Include="Script\bulkUpdate.js" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Gremlin.Net" Version="3.4.4" />
+    <PackageReference Include="Gremlin.Net" Version="3.4.6" />
     <PackageReference Include="Gremlin.Net.CosmosDb" Version="0.3.4.4-rc1" />
     <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.9.2" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="4.11.0" />

@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime {
-
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
 
@@ -20,14 +19,16 @@ namespace Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime {
         private const int kAspNetCore_ForwardedHeaders_ForwardLimit_Default = 0;
 
         /// <inheritdoc/>
-        public bool AspNetCoreForwardedHeadersEnabled => GetBoolOrDefault(kAspNetCore_ForwardedHeaders_Enabled,
-            GetBoolOrDefault(AspNetCoreVariable.ASPNETCORE_FORWARDEDHEADERS_ENABLED,
-            kAspNetCore_ForwardedHeaders_Enabled_Default));
+        public bool AspNetCoreForwardedHeadersEnabled =>
+            GetBoolOrDefault(kAspNetCore_ForwardedHeaders_Enabled,
+                () => GetBoolOrDefault(AspNetCoreVariable.ASPNETCORE_FORWARDEDHEADERS_ENABLED,
+                () => kAspNetCore_ForwardedHeaders_Enabled_Default));
 
         /// <inheritdoc/>
-        public int AspNetCoreForwardedHeadersForwardLimit => GetIntOrDefault(kAspNetCore_ForwardedHeaders_ForwardLimit,
-            GetIntOrDefault(AspNetCoreVariable.ASPNETCORE_FORWARDEDHEADERS_FORWARDLIMIT,
-            kAspNetCore_ForwardedHeaders_ForwardLimit_Default));
+        public int AspNetCoreForwardedHeadersForwardLimit =>
+            GetIntOrDefault(kAspNetCore_ForwardedHeaders_ForwardLimit,
+                () => GetIntOrDefault(AspNetCoreVariable.ASPNETCORE_FORWARDEDHEADERS_FORWARDLIMIT,
+                () => kAspNetCore_ForwardedHeaders_ForwardLimit_Default));
 
         /// <summary>
         /// Configuration constructor

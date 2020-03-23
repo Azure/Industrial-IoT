@@ -49,15 +49,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         /// A discoverer id corresponds to the twin modules module identity.
         /// </remarks>
         /// <param name="discovererId">Discoverer identifier</param>
-        /// <param name="onlyServerState">Whether to include only server
-        /// state, or display current client state of the endpoint if
-        /// available</param>
         /// <returns>Discoverer registration</returns>
         [HttpGet("{discovererId}")]
-        public async Task<DiscovererApiModel> GetDiscovererAsync(string discovererId,
-            [FromQuery] bool? onlyServerState) {
-            var result = await _discoverers.GetDiscovererAsync(discovererId,
-                onlyServerState ?? false);
+        public async Task<DiscovererApiModel> GetDiscovererAsync(string discovererId) {
+            var result = await _discoverers.GetDiscovererAsync(discovererId);
             return result.ToApiModel();
         }
 
@@ -90,8 +85,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         /// available.
         /// Call this operation again using the token to retrieve more results.
         /// </remarks>
-        /// <param name="onlyServerState">Whether to include only server
-        /// state, or display current client state of the endpoint if available</param>
         /// <param name="continuationToken">Optional Continuation token</param>
         /// <param name="pageSize">Optional number of results to return</param>
         /// <returns>
@@ -101,7 +94,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         [HttpGet]
         [AutoRestExtension(NextPageLinkName = "continuationToken")]
         public async Task<DiscovererListApiModel> GetListOfDiscoverersAsync(
-            [FromQuery] bool? onlyServerState,
             [FromQuery] string continuationToken,
             [FromQuery] int? pageSize) {
             if (Request.Headers.ContainsKey(HttpHeader.ContinuationToken)) {
@@ -113,7 +105,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
                     .FirstOrDefault());
             }
             var result = await _discoverers.ListDiscoverersAsync(
-                continuationToken, onlyServerState ?? false, pageSize);
+                continuationToken, pageSize);
             return result.ToApiModel();
         }
 
@@ -128,15 +120,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         /// more results.
         /// </remarks>
         /// <param name="query">Discoverers query model</param>
-        /// <param name="onlyServerState">Whether to include only server
-        /// state, or display current client state of the endpoint if
-        /// available</param>
         /// <param name="pageSize">Number of results to return</param>
         /// <returns>Discoverers</returns>
         [HttpPost("query")]
         public async Task<DiscovererListApiModel> QueryDiscoverersAsync(
             [FromBody] [Required] DiscovererQueryApiModel query,
-            [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize) {
             if (query == null) {
                 throw new ArgumentNullException(nameof(query));
@@ -146,7 +134,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
                     .FirstOrDefault());
             }
             var result = await _discoverers.QueryDiscoverersAsync(
-                query.ToServiceModel(), onlyServerState ?? false, pageSize);
+                query.ToServiceModel(), pageSize);
 
             return result.ToApiModel();
         }
@@ -162,15 +150,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         /// more results.
         /// </remarks>
         /// <param name="query">Discoverers Query model</param>
-        /// <param name="onlyServerState">Whether to include only server
-        /// state, or display current client state of the endpoint if
-        /// available</param>
         /// <param name="pageSize">Number of results to return</param>
         /// <returns>Discoverers</returns>
         [HttpGet("query")]
         public async Task<DiscovererListApiModel> GetFilteredListOfDiscoverersAsync(
             [FromQuery] [Required] DiscovererQueryApiModel query,
-            [FromQuery] bool? onlyServerState,
             [FromQuery] int? pageSize) {
 
             if (query == null) {
@@ -181,7 +165,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
                     .FirstOrDefault());
             }
             var result = await _discoverers.QueryDiscoverersAsync(
-                query.ToServiceModel(), onlyServerState ?? false, pageSize);
+                query.ToServiceModel(), pageSize);
 
             return result.ToApiModel();
         }

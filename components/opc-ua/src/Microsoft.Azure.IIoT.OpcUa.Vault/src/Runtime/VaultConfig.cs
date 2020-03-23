@@ -32,19 +32,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Runtime {
 
         /// <inheritdoc/>
         public string DbConnectionString => GetStringOrDefault(kOpcVault_DbConnectionStringKey,
-            GetStringOrDefault(PcsVariable.PCS_COSMOSDB_CONNSTRING,
-               GetStringOrDefault("PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING",
-               GetStringOrDefault("PCS_TELEMETRY_DOCUMENTDB_CONNSTRING",
-                    GetStringOrDefault("_DB_CS", null)))));
+            () => GetStringOrDefault(PcsVariable.PCS_COSMOSDB_CONNSTRING,
+               () => GetStringOrDefault("PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING",
+               () => GetStringOrDefault("PCS_TELEMETRY_DOCUMENTDB_CONNSTRING",
+                    () => GetStringOrDefault("_DB_CS",
+                        () => null)))));
         /// <inheritdoc/>
         public int? ThroughputUnits => GetIntOrDefault(kCosmosDbThroughputUnits,
-            GetIntOrDefault("PCS_COSMOSDB_THROUGHPUT", 400));
+            () => GetIntOrDefault("PCS_COSMOSDB_THROUGHPUT",
+                () => 400));
         /// <inheritdoc/>
         public string DatabaseName => GetStringOrDefault(kOpcVault_DatabaseNameKey,
-            GetStringOrDefault("OPC_VAULT_COSMOSDB_DBNAME", "OpcVault")).Trim();
+            () => GetStringOrDefault("OPC_VAULT_COSMOSDB_DBNAME",
+                () => "OpcVault")).Trim();
         /// <inheritdoc/>
         public string ContainerName => GetStringOrDefault(kOpcVault_ContainerNameKey,
-            GetStringOrDefault("OPC_VAULT_COSMOSDB_COLLNAME", "AppsAndCertRequests")).Trim();
+            () => GetStringOrDefault("OPC_VAULT_COSMOSDB_COLLNAME",
+                () => "AppsAndCertRequests")).Trim();
 
         /// <summary>
         /// Configuration constructor

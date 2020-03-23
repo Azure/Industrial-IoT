@@ -24,18 +24,18 @@ namespace Microsoft.Azure.IIoT.Cdm.Runtime {
 
         /// <inheritdoc/>
         public string ADLSg2HostName => GetStringOrDefault(kCdmAdDLS2HostName,
-            GetStringOrDefault(PcsVariable.PCS_ADLSG2_ACCOUNT,
-            GetStringOrDefault("PCS_ASA_DATA_AZUREBLOB_ACCOUNT",
-            GetAccountNameFromConnectionString(PcsVariable.PCS_ADLSG2_CONNSTRING))) +
+            () => GetStringOrDefault(PcsVariable.PCS_ADLSG2_ACCOUNT,
+            () => GetStringOrDefault("PCS_ASA_DATA_AZUREBLOB_ACCOUNT",
+            () => GetAccountNameFromConnectionString(PcsVariable.PCS_ADLSG2_CONNSTRING))) +
                 ".dfs.core.windows.net");
         /// <inheritdoc/>
         public string ADLSg2ContainerName => GetStringOrDefault(kCdmADLSg2ContainerName,
-            GetStringOrDefault(PcsVariable.PCS_ADLSG2_CONTAINER_CDM,
-            GetStringOrDefault("PCS_CDM_ADLSG2_BLOBNAME", "powerbi")));
+            () => GetStringOrDefault(PcsVariable.PCS_ADLSG2_CONTAINER_CDM,
+            () => GetStringOrDefault("PCS_CDM_ADLSG2_BLOBNAME", () => "powerbi")));
         /// <inheritdoc/>
         public string RootFolder => GetStringOrDefault(kCdmRootFolder,
-            GetStringOrDefault(PcsVariable.PCS_ADLSG2_CONTAINER_CDM_ROOTFOLDER,
-            GetStringOrDefault("PCS_CDM_ROOTFOLDER", "IIoTDataFlow")));
+            () => GetStringOrDefault(PcsVariable.PCS_ADLSG2_CONTAINER_CDM_ROOTFOLDER,
+            () => GetStringOrDefault("PCS_CDM_ROOTFOLDER", () => "IIoTDataFlow")));
 
         /// <inheritdoc/>
         public string AppId => _client.AppId;
@@ -63,7 +63,7 @@ namespace Microsoft.Azure.IIoT.Cdm.Runtime {
         /// <param name="variable"></param>
         /// <returns></returns>
         private string GetAccountNameFromConnectionString(string variable) {
-            var cs = GetStringOrDefault(variable, null);
+            var cs = GetStringOrDefault(variable, () => null);
             return cs == null ? null : ConnectionString.Parse(cs).Endpoint;
         }
 

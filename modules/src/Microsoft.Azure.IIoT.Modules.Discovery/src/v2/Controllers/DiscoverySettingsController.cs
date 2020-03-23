@@ -21,32 +21,10 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.v2.Supervisor {
         /// <summary>
         /// Enable or disable discovery on supervisor
         /// </summary>
-        public JToken Discovery {
-            set {
-                if (value == null) {
-                    _mode = DiscoveryMode.Off;
-                    return;
-                }
-                switch (value.Type) {
-                    case JTokenType.Null:
-                        _mode = DiscoveryMode.Off;
-                        break;
-                    case JTokenType.Boolean:
-                        _mode = (bool)value ?
-                            DiscoveryMode.Local : DiscoveryMode.Off;
-                        break;
-                    case JTokenType.String:
-                        DiscoveryMode mode;
-                        if (Enum.TryParse((string)value, true, out mode)) {
-                            _mode = mode;
-                            break;
-                        }
-                        throw new ArgumentException("bad mode value");
-                    default:
-                        throw new NotSupportedException("bad key value");
-                }
-            }
-            get => JToken.FromObject(_discovery.Mode);
+        public DiscoveryMode? Discovery {
+            set => _mode =
+                value ?? DiscoveryMode.Off;
+            get => _discovery.Mode;
         }
 
         /// <summary>
@@ -61,18 +39,18 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.v2.Supervisor {
         /// <summary>
         /// Network probe timeout.
         /// </summary>
-        public JToken NetworkProbeTimeout {
+        public TimeSpan? NetworkProbeTimeout {
             set => _config.NetworkProbeTimeout =
-                value?.ToObject<TimeSpan>();
+                value;
             get => _discovery.Configuration.NetworkProbeTimeout;
         }
 
         /// <summary>
         /// Max network probes that should ever run.
         /// </summary>
-        public JToken MaxNetworkProbes {
+        public int? MaxNetworkProbes {
             set => _config.MaxNetworkProbes =
-                value?.ToObject<int>();
+                value;
             get => _discovery.Configuration.MaxNetworkProbes;
         }
 
@@ -88,36 +66,36 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery.v2.Supervisor {
         /// <summary>
         /// Port probe timeout
         /// </summary>
-        public JToken PortProbeTimeout {
+        public TimeSpan? PortProbeTimeout {
             set => _config.PortProbeTimeout =
-                value?.ToObject<TimeSpan>();
+                value;
             get => _discovery.Configuration.PortProbeTimeout;
         }
 
         /// <summary>
         /// Max port probes that should ever run.
         /// </summary>
-        public JToken MaxPortProbes {
+        public int? MaxPortProbes {
             set => _config.MaxPortProbes =
-                value?.ToObject<int>();
+                value;
             get => _discovery.Configuration.MaxPortProbes;
         }
 
         /// <summary>
         /// Probes that must always be there as percent of max.
         /// </summary>
-        public JToken MinPortProbesPercent {
+        public int? MinPortProbesPercent {
             set => _config.MinPortProbesPercent =
-                value?.ToObject<int>();
+                value;
             get => _discovery.Configuration.MinPortProbesPercent;
         }
 
         /// <summary>
         /// Delay time between discovery sweeps
         /// </summary>
-        public JToken IdleTimeBetweenScans {
+        public TimeSpan? IdleTimeBetweenScans {
             set => _config.IdleTimeBetweenScans =
-                value?.ToObject<TimeSpan>();
+                value;
             get => _discovery.Configuration.IdleTimeBetweenScans;
         }
 

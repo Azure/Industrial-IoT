@@ -31,6 +31,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public DiscoveryConfigModel DiscoveryConfig { get; set; }
 
         /// <summary>
+        /// Requested discovery mode
+        /// </summary>
+        public DiscoveryMode? RequestedMode { get; set; }
+
+        /// <summary>
+        /// Requested configuration
+        /// </summary>
+        public DiscoveryConfigModel RequestedConfig { get; set; }
+
+        /// <summary>
         /// Current log level
         /// </summary>
         public TraceLogLevel? LogLevel { get; set; }

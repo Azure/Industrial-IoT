@@ -189,5 +189,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         }
 
         internal bool _isInSync;
+        internal DiscovererRegistration _desired;
     }
 }

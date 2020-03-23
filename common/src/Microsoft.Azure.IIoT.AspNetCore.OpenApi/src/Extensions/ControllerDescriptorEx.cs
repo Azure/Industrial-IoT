@@ -27,6 +27,7 @@ namespace Microsoft.AspNetCore.Mvc.Controllers {
             var requirements = attributes
                 .Select(attr => attr.Policy)
                 .Select(options.GetPolicy)
+                .Where(x => x != null)
                 .SelectMany(x => x.Requirements)
                 .Distinct();
             var claims = requirements.OfType<ClaimsAuthorizationRequirement>()
