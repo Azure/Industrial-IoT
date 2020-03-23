@@ -3,12 +3,15 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.App.Common {
-    public class UICommon {
+using System.ComponentModel.DataAnnotations;
 
-        public int PageLength { get; set; } = 10;
-        public string None { get; set; } = "(None)";
-        public string Spinner { get; set; }
-        public string CredentialKey { get; } = "credential";
+namespace Microsoft.Azure.IIoT.App.Models {
+    public class CredentialModel {
+        [Required]
+        public string Username { get; set; }
+
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; }
     }
 }
