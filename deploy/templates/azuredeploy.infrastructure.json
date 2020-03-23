@@ -879,15 +879,15 @@
                 "timeSeriesIdProperties": [
                     {
                         "type": "string",
-                        "name": "SubscriptionId"
+                        "name": "publisherId"
                     },
                     {
                         "type": "string",
-                        "name": "EndpointId"
+                        "name": "dataSetWriterId"
                     },
                     {
                         "type": "string",
-                        "name": "DataSetId"
+                        "name": "dataSetClassId"
                     }
                 ]
             },

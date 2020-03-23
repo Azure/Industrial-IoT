@@ -102,6 +102,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                     MessageContentMask = message.WriterGroup.MessageSettings.NetworkMessageContentMask
                         .ToStackType(message.WriterGroup?.MessageType),
                     PublisherId = message.PublisherId,
+                    DataSetClassId = message.Writer?.DataSet?.DataSetMetaData?.DataSetClassId.ToString(),
                     MessageId = message.SequenceNumber.ToString()
                 };
                 var notificationQueues = message.Notifications.GroupBy(m => m.NodeId)
