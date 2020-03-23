@@ -39,8 +39,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             foreach (var datapoint in message.Payload) {
                 var arguments = new object[] {
                      new MonitoredItemMessageApiModel() {
-                        Value = datapoint.Value.GetType().IsPrimitive == true ?
-                            datapoint.Value.Value : datapoint.Value.Value?.ToString(),
+                        Value = datapoint.Value.GetType().IsPrimitive == true
+                            ? datapoint.Value.Value : datapoint.Value.Value?.ToString(),
                         Status = datapoint.Value.Status,
                         Timestamp = message.Timestamp,
                         DataSetWriterId = message.DataSetWriterId,

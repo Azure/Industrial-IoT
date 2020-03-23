@@ -52,8 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                                 DataSetClassId = networkMessage.DataSetClassId,
                                 DataSetWriterId = dataSetMessage.DataSetWriterId,
                                 SequenceNumber = dataSetMessage.SequenceNumber,
-                                Status = StatusCode.IsGood(dataSetMessage.Status.Code)
-                                    ? null : StatusCode.LookupSymbolicId(dataSetMessage.Status.Code),
+                                Status = StatusCode.LookupSymbolicId(dataSetMessage.Status.Code),
                                 MetaDataVersion = $"{dataSetMessage.MetaDataVersion.MajorVersion}" + 
                                     $".{dataSetMessage.MetaDataVersion.MinorVersion}",
                                 Timestamp = dataSetMessage.Timestamp,

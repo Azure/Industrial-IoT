@@ -51,7 +51,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                                 DataSetClassId = networkMessage.DataSetClassId,
                                 DataSetWriterId = dataSetMessage.DataSetWriterId,
                                 SequenceNumber = dataSetMessage.SequenceNumber,
-                                // assume DataSetWriterId was filled in with endpoint id
                                 Status = StatusCode.LookupSymbolicId(dataSetMessage.Status.Code),
                                 MetaDataVersion = $"{dataSetMessage.MetaDataVersion.MajorVersion}"+
                                     $".{dataSetMessage.MetaDataVersion.MinorVersion}",

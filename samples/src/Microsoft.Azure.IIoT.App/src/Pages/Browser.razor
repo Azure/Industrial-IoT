@@ -127,8 +127,12 @@
                             <a href="javascript: void(0)" @onclick="@(() => OpenDrawer(node))">
                                 @{string outputValue = $"{node.Value}";}
                                 @{string outputType = $"({node.DataType})";}
+                                @{string outputStatus = $"({node.Status} -";}
+                                @{string outputTimestamp = $" {node.Timestamp})";}
                                 <span>@outputValue</span>
                                 <span>@outputType</span>
+                                <span>@outputStatus</span>
+                                <span>@outputTimestamp</span>
                             </a>
                         </div>
                     </td>
@@ -361,7 +365,9 @@
         {
             if (node.Id == samples.NodeId)
             {
-                node.Value = $"{samples.Value?.ToString()} ({samples.Status} - {samples.Timestamp})";
+                node.Value = samples.Value?.ToString();
+                node.Status = string.IsNullOrEmpty(samples.Status) ? "Good" : samples.Status;
+                node.Timestamp = samples.Timestamp.Value.ToLocalTime().ToString();
                 this.StateHasChanged();
             }
         }
