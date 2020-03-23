@@ -6,7 +6,6 @@
 namespace Opc.Ua.PubSub {
     using System;
     using System.Collections.Generic;
-    using Opc.Ua;
 
     /// <summary>
     /// Encodeable monitored item message
@@ -49,7 +48,7 @@ namespace Opc.Ua.PubSub {
         public DataValue Value { get; set; }
 
         /// <summary>
-        /// Extra fields
+        /// Extension fields
         /// </summary>
         public Dictionary<string, string> ExtensionFields { get; set; }
 
@@ -81,7 +80,6 @@ namespace Opc.Ua.PubSub {
 
         /// <inheritdoc/>
         public void Encode(IEncoder encoder) {
-
             ApplyEncodeMask();
             switch (encoder.EncodingType) {
                 case EncodingType.Binary:
@@ -95,6 +93,83 @@ namespace Opc.Ua.PubSub {
                 default:
                     throw new NotImplementedException(
                         $"Unknown encoding: {encoder.EncodingType}");
+            }
+        }
+
+        /// <inheritdoc/>
+        public override bool Equals(object value) {
+            return IsEqual(value as IEncodeable);
+        }
+
+        /// <inheritdoc/>
+        public override int GetHashCode() {
+            return base.GetHashCode();
+        }
+
+        /// <inheritdoc/>
+        public bool IsEqual(IEncodeable encodeable) {
+            if (ReferenceEquals(this, encodeable)) {
+                return true;
+            }
+            if (!(encodeable is MonitoredItemMessage wrapper)) {
+                return false;
+            }
+            if (!Utils.IsEqual(wrapper.MessageContentMask, MessageContentMask) ||
+                !Utils.IsEqual(wrapper.NodeId, NodeId) ||
+                !Utils.IsEqual(wrapper.EndpointUrl, EndpointUrl) ||
+                !Utils.IsEqual(wrapper.ApplicationUri, ApplicationUri) ||
+                !Utils.IsEqual(wrapper.DisplayName, DisplayName) ||
+                !Utils.IsEqual(wrapper.Timestamp, Timestamp) ||
+                !Utils.IsEqual(wrapper.Value, Value) ||
+                !Utils.IsEqual(wrapper.ExtensionFields, ExtensionFields) ||
+                !Utils.IsEqual(wrapper.BinaryEncodingId, BinaryEncodingId) ||
+                !Utils.IsEqual(wrapper.TypeId, TypeId) ||
+                !Utils.IsEqual(wrapper.XmlEncodingId, XmlEncodingId)) {
+                return false;
+            }
+            return true;
+        }
+
+        /// <inheritdoc/>
+        private void ApplyEncodeMask() {
+
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.NodeId) == 0) {
+                NodeId = null;
+            }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.EndpointUrl) == 0) {
+                EndpointUrl = null;
+            }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ApplicationUri) == 0) {
+                ApplicationUri = null;
+            }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.DisplayName) == 0) {
+                DisplayName = null;
+            }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) == 0) {
+                Timestamp = DateTime.MinValue;
+            }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtensionFields) == 0) {
+                ExtensionFields = null;
+            }
+            if (Value == null) {
+                // no point to go further
+                return;
+            }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.Status) == 0 &&
+                (MessageContentMask & (uint)MonitoredItemMessageContentMask.StatusCode) == 0) {
+                Value.StatusCode = StatusCodes.Good;
+            }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.SourceTimestamp) == 0) {
+                Value.SourceTimestamp = DateTime.MinValue;
+            }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ServerTimestamp) == 0) {
+                Value.ServerTimestamp = DateTime.MinValue;
+            }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.SourcePicoSeconds) == 0) {
+                Value.SourcePicoseconds = 0;
+            }
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ServerPicoSeconds) == 0) {
+                Value.ServerPicoseconds = 0;
             }
         }
 
@@ -121,7 +196,7 @@ namespace Opc.Ua.PubSub {
                 Timestamp = decoder.ReadDateTime(nameof(MonitoredItemMessageContentMask.Timestamp));
             }
             Value = decoder.ReadDataValue("Value");
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtraFields) != 0) {
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtensionFields) != 0) {
                 var dictionary = (KeyValuePairCollection)decoder.ReadEncodeableArray("ExtensionFields", typeof(Ua.KeyValuePair));
                 ExtensionFields = new Dictionary<string, string>(dictionary.Count);
                 foreach (var item in dictionary) {
@@ -171,54 +246,11 @@ namespace Opc.Ua.PubSub {
             }
             var dictionary = (KeyValuePairCollection)decoder.ReadEncodeableArray("ExtensionFields", typeof(Ua.KeyValuePair));
             if (dictionary != null && dictionary.Count > 0) {
-                MessageContentMask |= (uint)MonitoredItemMessageContentMask.ExtraFields;
+                MessageContentMask |= (uint)MonitoredItemMessageContentMask.ExtensionFields;
                 ExtensionFields = new Dictionary<string, string>(dictionary.Count);
                 foreach (var item in dictionary) {
                     ExtensionFields[item.Key.Name] = item.Value.ToString();
                 }
-            }
-        }
-
-        /// <inheritdoc/>
-        private void ApplyEncodeMask() {
-
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.NodeId) == 0) {
-                NodeId = null;
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.EndpointUrl) == 0) {
-                EndpointUrl = null;
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ApplicationUri) == 0) {
-                ApplicationUri = null;
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.DisplayName) == 0) {
-                DisplayName = null;
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) == 0) {
-                Timestamp = DateTime.MinValue;
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtraFields) == 0) {
-                ExtensionFields = null;
-            }
-            if (Value == null) {
-                // no point to go further
-                return;
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.Status) == 0 &&
-                (MessageContentMask & (uint)MonitoredItemMessageContentMask.StatusCode) == 0) {
-                Value.StatusCode = StatusCodes.Good;
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.SourceTimestamp) == 0) {
-                Value.SourceTimestamp = DateTime.MinValue;
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ServerTimestamp) == 0) {
-                Value.ServerTimestamp = DateTime.MinValue;
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.SourcePicoSeconds) == 0) {
-                Value.SourcePicoseconds = 0;
-            }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ServerPicoSeconds) == 0) {
-                Value.ServerPicoseconds = 0;
             }
         }
 
@@ -245,10 +277,8 @@ namespace Opc.Ua.PubSub {
                 encoder.WriteString(nameof(MonitoredItemMessageContentMask.Status), 
                     StatusCode.LookupSymbolicId(Value.StatusCode.Code));
             }
-
             encoder.WriteDataValue("Value", Value);
-
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtraFields) != 0) {
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtensionFields) != 0) {
                 if (ExtensionFields != null) {
                     var dictionary = new KeyValuePairCollection();
                     foreach (var item in ExtensionFields) {
@@ -284,7 +314,7 @@ namespace Opc.Ua.PubSub {
                     StatusCode.LookupSymbolicId(Value.StatusCode.Code));
             }
             encoder.WriteDataValue("Value", Value);
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtraFields) != 0) {
+            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtensionFields) != 0) {
                 if (ExtensionFields != null) {
                     var dictionary = new KeyValuePairCollection();
                     foreach (var item in ExtensionFields) {
@@ -296,30 +326,6 @@ namespace Opc.Ua.PubSub {
                     encoder.WriteEncodeableArray("ExtensionFields", dictionary.ToArray(), typeof(Ua.KeyValuePair));
                 }
             }
-        }
-
-        /// <inheritdoc/>
-        public bool IsEqual(IEncodeable encodeable) {
-            if (ReferenceEquals(this, encodeable)) {
-                return true;
-            }
-            if (!(encodeable is MonitoredItemMessage wrapper)) {
-                return false;
-            }
-            if (!Utils.IsEqual(wrapper.MessageContentMask, MessageContentMask) ||
-                !Utils.IsEqual(wrapper.NodeId, NodeId) ||
-                !Utils.IsEqual(wrapper.EndpointUrl, EndpointUrl) ||
-                !Utils.IsEqual(wrapper.ApplicationUri, ApplicationUri) ||
-                !Utils.IsEqual(wrapper.DisplayName, DisplayName) ||
-                !Utils.IsEqual(wrapper.Timestamp, Timestamp) ||
-                !Utils.IsEqual(wrapper.Value, Value) ||
-                !Utils.IsEqual(wrapper.ExtensionFields, ExtensionFields) ||
-                !Utils.IsEqual(wrapper.BinaryEncodingId, BinaryEncodingId) ||
-                !Utils.IsEqual(wrapper.TypeId, TypeId) ||
-                !Utils.IsEqual(wrapper.XmlEncodingId, XmlEncodingId)) {
-                return false;
-            }
-            return true;
         }
     }
 }

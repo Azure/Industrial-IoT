@@ -34,40 +34,5 @@ namespace Opc.Ua.PubSub {
         /// Field content mask
         /// </summary>
         public uint FieldContentMask { get; set; }
-
-        /// <summary>
-        /// Encode a field
-        /// </summary>
-        /// <param name="encoder"></param>
-        /// <param name="fieldName"></param>
-        /// <param name="value"></param>
-        private void EncodeField(IEncoder encoder, string fieldName, DataValue value) {
-            if (FieldContentMask != 0) {
-                if ((FieldContentMask & (uint)DataSetFieldContentMask.RawData) != 0) {
-                    encoder.WriteRaw(fieldName, value);
-                }
-                else {
-                    var dv = new DataValue {
-                        WrappedValue = value.WrappedValue
-                    };
-                    if ((FieldContentMask & (uint)DataSetFieldContentMask.StatusCode) != 0) {
-                        dv.StatusCode = value.StatusCode;
-                    }
-                    if ((FieldContentMask & (uint)DataSetFieldContentMask.SourceTimestamp) != 0) {
-                        dv.SourceTimestamp = value.SourceTimestamp;
-                    }
-                    if ((FieldContentMask & (uint)DataSetFieldContentMask.SourcePicoSeconds) != 0) {
-                        dv.SourcePicoseconds = value.SourcePicoseconds;
-                    }
-                    if ((FieldContentMask & (uint)DataSetFieldContentMask.ServerTimestamp) != 0) {
-                        dv.ServerTimestamp = value.ServerTimestamp;
-                    }
-                    if ((FieldContentMask & (uint)DataSetFieldContentMask.ServerPicoSeconds) != 0) {
-                        dv.ServerPicoseconds = value.ServerPicoseconds;
-                    }
-                    encoder.WriteDataValue(fieldName, dv);
-                }
-            }
-        }
     }
 }

@@ -75,6 +75,6 @@ namespace Opc.Ua {
         /// <summary>
         /// Extra fields included
         /// </summary>
-        ExtraFields = 0x1000
+        ExtensionFields = 0x1000
     }
 }

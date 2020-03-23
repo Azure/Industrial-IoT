@@ -47,8 +47,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             foreach (var networkMessage in GetNetworkMessages(message.YieldReturn())) {
                 using (var writer = new StringWriter()) {
                     using (var encoder = new JsonEncoderEx(writer, message.ServiceMessageContext) {
-                        // TODO: Configure encoding further
-                        UseUriEncoding = false
+                        UseAdvancedEncoding = true,
+                        UseUriEncoding = true,
+                        UseReversibleEncoding = false
                     }) {
                         networkMessage.Encode(encoder);
                     }

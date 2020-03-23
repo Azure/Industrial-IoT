@@ -69,6 +69,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <summary>
         /// Extra fields included
         /// </summary>
-        ExtraFields = 0x100000
+        ExtensionFields = 0x100000
     }
 }

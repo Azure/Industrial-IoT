@@ -701,28 +701,11 @@ namespace Opc.Ua.Encoders {
             return ReadArray(property, () => ReadDataValue(null));
         }
 
-
         /// <inheritdoc/>
-        public Dictionary<string, DataValue> ReadDataValueDictionary(string property) {
-            
-            //  todo: probably should be removed
-            if (!TryGetToken(property, out var token)) {
-                return null;
-            }
+        public IDictionary<string, DataValue> ReadDataValueDictionary(string property) {
 
-            if (token is JObject o){
-                var dictionary = new Dictionary<string, DataValue>();
-                foreach (JProperty innerProperty in o.Properties()) {
-                    _stack.Push(o);
-                    var innerValue = ReadDataValue(innerProperty.Name);
-                    _stack.Pop();
-                    if (innerValue != null) {
-                        dictionary[innerProperty.Name] = innerValue;
-                    }
-                }
-                return dictionary;
-            }
-            return null;
+            return ReadDictionary(property, () => ReadDataValue(null));
+
         }
 
         /// <inheritdoc/>
@@ -1598,6 +1581,18 @@ namespace Opc.Ua.Encoders {
                 return a.Select(t => ReadToken(t, reader)).ToArray();
             }
             return ReadToken(token, reader).YieldReturn().ToArray();
+        }
+
+        private IDictionary<string, T> ReadDictionary<T>(string property,
+            Func<T> reader) {
+            if (!TryGetToken(property, out var token) || !(token is JObject o)) {
+                return null;
+            }
+            var dictionary = new Dictionary<string, T>();
+            foreach (var p in o.Properties()) {
+                    dictionary[p.Name] = ReadToken(p.Value, reader);
+            }
+            return dictionary;
         }
 
         /// <summary>

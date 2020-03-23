@@ -21,13 +21,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         [JsonProperty(PropertyName = "value",
             NullValueHandling = NullValueHandling.Ignore)]
         public dynamic Value {get; set; }
-        
-        /// <summary>
-        /// Type id
-        /// </summary>
-        [JsonProperty(PropertyName = "typeId",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public Type TypeId { get; set; }
 
         /// <summary>
         /// Status of the value (Quality)
@@ -37,10 +30,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         public string Status { get; set; }
 
         /// <summary>
-        /// Sent time stamp
+        /// Source Timesamp
         /// </summary>
-        [JsonProperty(PropertyName = "timestamp",
+        [JsonProperty(PropertyName = "sourceTimestamp",
             NullValueHandling = NullValueHandling.Ignore)]
-        public DateTime? Timestamp { get; set; }
+        public DateTime? SourceTimestamp { get; set; }
+
+        /// <summary>
+        /// Server Timestamp
+        /// </summary>
+        [JsonProperty(PropertyName = "serverTimestamp",
+            NullValueHandling = NullValueHandling.Ignore)]
+        public DateTime? ServerTimestamp { get; set; }
     }
 }

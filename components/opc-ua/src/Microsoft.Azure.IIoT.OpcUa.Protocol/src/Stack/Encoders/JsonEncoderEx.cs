@@ -924,6 +924,11 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
+        public void WriteDataValueDictionary(string property, IDictionary<string, DataValue> values) {
+            WriteDictionary(property, values, (k, v) => WriteDataValue(k, v));
+        }
+
+        /// <inheritdoc/>
         public void WriteExtensionObjectArray(string property, IList<ExtensionObject> values) {
             WriteArray(property, values, v => WriteExtensionObject(null, v));
         }
@@ -1370,6 +1375,26 @@ namespace Opc.Ua.Encoders {
             }
         }
 
+        /// <summary>
+        /// Write array to stream
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="property"></param>
+        /// <param name="values"></param>
+        /// <param name="writer"></param>
+        private void WriteDictionary<T>(string property, IDictionary<string, T> values,
+            Action<string,T> writer) {
+            if (values == null) {
+                WriteNull(property);
+            }
+            else {
+                PushObject(property);
+                foreach (var value in values) {
+                    writer(value.Key, value.Value);
+                }
+                PopObject();
+            }
+        }
         /// <summary>
         /// Check whether to write the simple value.  If so
         /// andthis is not called in the context of array
