@@ -34,40 +34,42 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
         /// <inheritdoc/>
         public CertificateInfo ApplicationCertificate => new CertificateInfo {
             StorePath = GetStringOrDefault(ApplicationCertificateStorePathKey,
-                RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "CurrentUser\\My" : "/pki/own"),
+                () => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                "CurrentUser\\My" : "/pki/own"),
             StoreType = GetStringOrDefault(ApplicationCertificateStoreTypeKey,
-                RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "X509Store" : "Directory"),
+                () => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                "X509Store" : "Directory"),
             SubjectName = GetStringOrDefault(ApplicationCertificateSubjectNameKey,
-                "CN=Microsoft.Azure.IIoT, C=DE, S=Bav, O=Microsoft, DC=localhost")
+                () => "CN=Microsoft.Azure.IIoT, C=DE, S=Bav, O=Microsoft, DC=localhost")
         };
 
         /// <inheritdoc/>
         public CertificateStore TrustedIssuerCertificates => new CertificateStore {
-            StorePath = GetStringOrDefault(TrustedIssuerCertificatesPathKey, "/pki/trusted"),
-            StoreType = GetStringOrDefault(TrustedIssuerCertificatesTypeKey, "Directory"),
+            StorePath = GetStringOrDefault(TrustedIssuerCertificatesPathKey, () => "/pki/trusted"),
+            StoreType = GetStringOrDefault(TrustedIssuerCertificatesTypeKey, () => "Directory"),
         };
 
         /// <inheritdoc/>
         public CertificateStore TrustedPeerCertificates => new CertificateStore {
-            StorePath = GetStringOrDefault(TrustedPeerCertificatesPathKey, "/pki/trusted"),
-            StoreType = GetStringOrDefault(TrustedPeerCertificatesTypeKey, "Directory"),
+            StorePath = GetStringOrDefault(TrustedPeerCertificatesPathKey, () => "/pki/trusted"),
+            StoreType = GetStringOrDefault(TrustedPeerCertificatesTypeKey, () => "Directory"),
         };
 
         /// <inheritdoc/>
         public CertificateStore RejectedCertificateStore => new CertificateStore {
-            StorePath = GetStringOrDefault(RejectedCertificateStorePathKey, "/pki/trusted"),
-            StoreType = GetStringOrDefault(RejectedCertificateStoreTypeKey, "Directory"),
+            StorePath = GetStringOrDefault(RejectedCertificateStorePathKey, () => "/pki/trusted"),
+            StoreType = GetStringOrDefault(RejectedCertificateStoreTypeKey, () => "Directory"),
         };
 
         /// <inheritdoc/>
         public bool AutoAcceptUntrustedCertificates =>
-            GetBoolOrDefault(AutoAcceptUntrustedCertificatesKey, false);
+            GetBoolOrDefault(AutoAcceptUntrustedCertificatesKey, () => false);
         /// <inheritdoc/>
         public bool RejectSha1SignedCertificates =>
-            GetBoolOrDefault(RejectSha1SignedCertificatesKey, false);
+            GetBoolOrDefault(RejectSha1SignedCertificatesKey, () => false);
         /// <inheritdoc/>
         public ushort MinimumCertificateKeySize =>
-            (ushort)GetIntOrDefault(MinimumCertificateKeySizeKey, 1024);
+            (ushort)GetIntOrDefault(MinimumCertificateKeySizeKey, () => 1024);
 
 
         /// <summary>

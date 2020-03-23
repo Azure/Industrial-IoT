@@ -33,15 +33,13 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <param name="config"></param>
         /// <param name="logger"></param>
         /// <param name="handler"></param>
-        /// <param name="acquireTokenIfSilentFails"></param>
         public BehalfOfTokenProvider(IHttpContextAccessor ctx, ITokenCacheProvider store,
-            IClientConfig config, ILogger logger, IAuthenticationErrorHandler handler = null, bool acquireTokenIfSilentFails = false) {
+            IClientConfig config, ILogger logger, IAuthenticationErrorHandler handler = null) {
             _store = store ?? throw new ArgumentNullException(nameof(store));
             _ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _handler = handler ?? new ThrowHandler();
-            _acquireTokenIfSilentFails = acquireTokenIfSilentFails;
 
             if (string.IsNullOrEmpty(_config.AppId) ||
                 string.IsNullOrEmpty(_config.AppSecret)) {
@@ -92,11 +90,16 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
             }
             catch (AdalException ex) {
                 if (ex.ErrorCode == AdalError.FailedToAcquireTokenSilently) {
-                    if (_acquireTokenIfSilentFails == true) {
-                        var result = await ctx.AcquireTokenAsync(resource,
-                        new ClientCredential(_config.AppId, _config.AppSecret),
-                        new UserAssertion(token, kGrantType, name));
-                        return result.ToTokenResult();
+                    if (_handler.AcquireTokenIfSilentFails) {
+                        try {
+                            var result = await ctx.AcquireTokenAsync(resource,
+                            new ClientCredential(_config.AppId, _config.AppSecret),
+                            new UserAssertion(token, kGrantType, name));
+                            return result.ToTokenResult();
+                        }
+                        catch (AdalException ex2) {
+                            ex = ex2;
+                        }
                     }
                 }
                 _handler.Handle(_ctx.HttpContext, new AuthenticationException(
@@ -146,6 +149,9 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// </summary>
         private sealed class ThrowHandler : IAuthenticationErrorHandler {
             /// <inheritdoc/>
+            public bool AcquireTokenIfSilentFails => false;
+
+            /// <inheritdoc/>
             public void Handle(HttpContext context, AuthenticationException ex) {
                 throw ex;
             }
@@ -159,7 +165,5 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         private readonly ILogger _logger;
         private readonly IClientConfig _config;
         private readonly IAuthenticationErrorHandler _handler;
-        private readonly bool _acquireTokenIfSilentFails;
     }
-
 }

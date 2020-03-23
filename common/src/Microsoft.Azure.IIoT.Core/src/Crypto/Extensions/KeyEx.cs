@@ -109,6 +109,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Models {
                     throw new NotSupportedException("Algorithm not supported");
             }
         }
+
         /// <summary>
         /// Convert to key
         /// </summary>

@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.Auth.Server.Default {
             if (jwtToken == null) {
                 throw new ArgumentNullException(nameof(jwtToken));
             }
-            await RefreshSigningKeys(ct);
+            await RefreshSigningKeysAsync(ct);
             var issuer = _issuer;
             var signingKeys = _signingKeys;
             if (string.IsNullOrEmpty(issuer)) {
@@ -74,7 +74,7 @@ namespace Microsoft.Azure.IIoT.Auth.Server.Default {
         /// </summary>
         /// <param name="ct"></param>
         /// <returns></returns>
-        private async Task RefreshSigningKeys(CancellationToken ct) {
+        private async Task RefreshSigningKeysAsync(CancellationToken ct) {
             if (DateTime.UtcNow.Subtract(_stsMetadataRetrievalTime).TotalHours > 24 ||
                 string.IsNullOrEmpty(_issuer) || _signingKeys == null) {
 

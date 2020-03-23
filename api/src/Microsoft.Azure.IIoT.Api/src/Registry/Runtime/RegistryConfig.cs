@@ -20,12 +20,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Runtime {
 
         /// <summary>OPC registry endpoint url</summary>
         public string OpcUaRegistryServiceUrl => GetStringOrDefault(
-            kOpcUaRegistryServiceUrlKey, GetStringOrDefault(
-                PcsVariable.PCS_TWIN_REGISTRY_URL, GetDefaultUrl("9042", "registry")));
+            kOpcUaRegistryServiceUrlKey,
+            () => GetStringOrDefault(PcsVariable.PCS_TWIN_REGISTRY_URL,
+                () => GetDefaultUrl("9042", "registry")));
         /// <summary>OPC registry audience</summary>
         public string OpcUaRegistryServiceResourceId => GetStringOrDefault(
-            kOpcUaRegistryServiceIdKey, GetStringOrDefault("OPC_REGISTRY_APP_ID",
-                GetStringOrDefault(PcsVariable.PCS_AUTH_AUDIENCE, null)));
+            kOpcUaRegistryServiceIdKey,
+            () => GetStringOrDefault("OPC_REGISTRY_APP_ID",
+                () => GetStringOrDefault(PcsVariable.PCS_AUTH_AUDIENCE,
+                    () => null)));
 
         /// <inheritdoc/>
         public RegistryConfig(IConfiguration configuration) :

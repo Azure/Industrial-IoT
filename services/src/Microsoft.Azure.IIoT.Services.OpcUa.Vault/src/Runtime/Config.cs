@@ -41,7 +41,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
         /// <summary>
         /// Whether to use role based access
         /// </summary>
-        public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES, true);
+        public bool UseRoles => GetBoolOrDefault(PcsVariable.PCS_AUTH_ROLES);
 
         /// <inheritdoc/>
         public string CorsWhitelist => _cors.CorsWhitelist;
@@ -85,7 +85,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime {
         /// <inheritdoc/>
         public string ServicePathBase => GetStringOrDefault(
             PcsVariable.PCS_VAULT_SERVICE_PATH_BASE,
-            _host.ServicePathBase);
+            () => _host.ServicePathBase);
 
         /// <inheritdoc/>
         public bool AutoApprove => _vault.AutoApprove;

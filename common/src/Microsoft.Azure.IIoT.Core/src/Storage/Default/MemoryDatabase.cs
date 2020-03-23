@@ -25,8 +25,8 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
         /// <param name="logger"></param>
         /// <param name="queryEngine"></param>
         public MemoryDatabase(ILogger logger, IQueryEngine queryEngine = null) {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _queryEngine = queryEngine;
-            _logger = logger;
         }
 
         /// <inheritdoc/>

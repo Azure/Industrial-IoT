@@ -52,7 +52,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
         /// <inheritdoc/>
         public string ServicePathBase => GetStringOrDefault(
             PcsVariable.PCS_JOB_ORCHESTRATOR_SERVICE_PATH_BASE,
-            _host.ServicePathBase);
+            () => _host.ServicePathBase);
 
         /// <inheritdoc/>
         public string AppId => _auth.AppId;

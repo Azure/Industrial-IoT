@@ -29,6 +29,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
         public string OpcUaOnboardingServiceUrl => _ia.OpcUaOnboardingServiceUrl;
         /// <inheritdoc/>
         public string OpcUaOnboardingServiceResourceId => _ia.OpcUaOnboardingServiceResourceId;
+
         /// <inheritdoc/>
         public string EventHubConnString => _eh.EventHubConnString;
         /// <inheritdoc/>
@@ -36,10 +37,11 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
         /// <inheritdoc/>
         /// <summary> Event hub events consumer group </summary>
         public string ConsumerGroup => GetStringOrDefault(kEventHubConsumerGroupEventsKey,
-            GetStringOrDefault(PcsVariable.PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS,
-                "events"));
+            () => GetStringOrDefault(PcsVariable.PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS,
+                () => "events"));
         /// <inheritdoc/>
         public bool UseWebsockets => _eh.UseWebsockets;
+
         /// <inheritdoc/>
         public int ReceiveBatchSize => _ep.ReceiveBatchSize;
         /// <inheritdoc/>

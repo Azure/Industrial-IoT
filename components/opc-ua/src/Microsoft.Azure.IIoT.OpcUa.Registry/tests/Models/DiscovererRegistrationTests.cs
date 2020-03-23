@@ -145,6 +145,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 .Without(x => x.IsDisabled)
                 .Without(x => x.NotSeenSince)
                 .Create();
+            r._desired = r;
             return r;
         }
     }

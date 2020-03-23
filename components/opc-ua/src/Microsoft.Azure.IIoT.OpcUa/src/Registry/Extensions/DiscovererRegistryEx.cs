@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
             this IDiscovererRegistry service, string discovererId,
             CancellationToken ct = default) {
             try {
-                return await service.GetDiscovererAsync(discovererId, false, ct);
+                return await service.GetDiscovererAsync(discovererId, ct);
             }
             catch (ResourceNotFoundException) {
                 return null;
@@ -38,18 +38,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// List all discoverers
         /// </summary>
         /// <param name="service"></param>
-        /// <param name="onlyServerState"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<List<DiscovererModel>> ListAllDiscoverersAsync(
-            this IDiscovererRegistry service, bool onlyServerState = false,
-            CancellationToken ct = default) {
+            this IDiscovererRegistry service, CancellationToken ct = default) {
             var discoverers = new List<DiscovererModel>();
-            var result = await service.ListDiscoverersAsync(null, onlyServerState, null, ct);
+            var result = await service.ListDiscoverersAsync(null, null, ct);
             discoverers.AddRange(result.Items);
             while (result.ContinuationToken != null) {
                 result = await service.ListDiscoverersAsync(result.ContinuationToken,
-                    onlyServerState, null, ct);
+                    null, ct);
                 discoverers.AddRange(result.Items);
             }
             return discoverers;
@@ -59,18 +57,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// Returns all discoverer ids from the registry
         /// </summary>
         /// <param name="service"></param>
-        /// <param name="onlyServerState"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         public static async Task<List<string>> ListAllDiscovererIdsAsync(
-            this IDiscovererRegistry service, bool onlyServerState = false,
-            CancellationToken ct = default) {
+            this IDiscovererRegistry service, CancellationToken ct = default) {
             var discoverers = new List<string>();
-            var result = await service.ListDiscoverersAsync(null, onlyServerState, null, ct);
+            var result = await service.ListDiscoverersAsync(null, null, ct);
             discoverers.AddRange(result.Items.Select(s => s.Id));
             while (result.ContinuationToken != null) {
                 result = await service.ListDiscoverersAsync(result.ContinuationToken,
-                    onlyServerState, null, ct);
+                    null, ct);
                 discoverers.AddRange(result.Items.Select(s => s.Id));
             }
             return discoverers;

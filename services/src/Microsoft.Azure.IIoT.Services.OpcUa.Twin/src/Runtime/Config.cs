@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime {
         /// <inheritdoc/>
         public string ServicePathBase => GetStringOrDefault(
             PcsVariable.PCS_TWIN_SERVICE_PATH_BASE,
-            _host.ServicePathBase);
+            () => _host.ServicePathBase);
 
         /// <inheritdoc/>
         public string AppId => _auth.AppId;

@@ -21,13 +21,14 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Runtime {
         private const string kLeaseContainerNameKey = "LeaseContainerName";
 
         /// <summary> Checkpoint storage </summary>
-        public string LeaseContainerName => GetStringOrDefault(kLeaseContainerNameKey, null);
+        public string LeaseContainerName => GetStringOrDefault(kLeaseContainerNameKey,
+            () => null);
         /// <summary> Receive batch size </summary>
-        public int ReceiveBatchSize =>
-            GetIntOrDefault(kReceiveBatchSizeKey, 999);
+        public int ReceiveBatchSize => GetIntOrDefault(kReceiveBatchSizeKey,
+            () => 999);
         /// <summary> Receive timeout </summary>
-        public TimeSpan ReceiveTimeout =>
-            GetDurationOrDefault(kReceiveTimeoutKey, TimeSpan.FromSeconds(5));
+        public TimeSpan ReceiveTimeout => GetDurationOrDefault(kReceiveTimeoutKey,
+            () => TimeSpan.FromSeconds(5));
 
         /// <summary>
         /// Configuration constructor

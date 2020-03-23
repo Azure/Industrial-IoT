@@ -28,10 +28,10 @@ namespace Microsoft.Azure.IIoT.Hub.Module.Client.Runtime {
             GetStringOrDefault(EdgeHubConnectionStringKey);
         /// <summary>Whether to bypass cert validation</summary>
         public bool BypassCertVerification =>
-            GetBoolOrDefault(BypassCertVerificationKey, false);
+            GetBoolOrDefault(BypassCertVerificationKey, () => false);
         /// <summary>Transports to use</summary>
         public TransportOption Transport => (TransportOption)Enum.Parse(typeof(TransportOption),
-            GetStringOrDefault(TransportKey, nameof(TransportOption.Any)), true);
+            GetStringOrDefault(TransportKey, () => nameof(TransportOption.Any)), true);
 
         /// <summary>
         /// Create configuration
