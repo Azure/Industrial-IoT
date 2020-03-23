@@ -61,7 +61,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
                 job.Name = endpoint.ApplicationId;
                 publishJob.WriterGroup.WriterGroupId = GetDefaultId(endpoint.Registration.EndpointUrl);
                 // Add subscription
-                AddOrUpdateItemInJob(publishJob, request.Item, endpointId, job.Name,
+                AddOrUpdateItemInJob(publishJob, request.Item, endpointId, job.Id,
                     new ConnectionModel {
                         Endpoint = endpoint.Registration.Endpoint,
                         Diagnostics = request.Header?.Diagnostics,
