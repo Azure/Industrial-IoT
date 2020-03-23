@@ -10,6 +10,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
     using System;
     using System.Threading.Tasks;
     using Serilog;
+    using Microsoft.Azure.IIoT.App.Models;
+    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Browser code behind
@@ -69,7 +71,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="publishingInterval"></param>
         /// <returns>ErrorStatus</returns>
         public async Task<bool> StartPublishingAsync(string endpointId, string nodeId, string displayName,
-            int samplingInterval, int publishingInterval) {
+            int samplingInterval, int publishingInterval, CredentialModel credential = null) {
 
             try {
                 var requestApiModel = new PublishStartRequestApiModel() {
@@ -80,6 +82,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
                         PublishingInterval = TimeSpan.FromMilliseconds(publishingInterval)
                     }
                 };
+
+                requestApiModel.Header = Elevate(new RequestHeaderApiModel(), credential);
 
                 var resultApiModel = await _publisherService.NodePublishStartAsync(endpointId, requestApiModel);
                 return resultApiModel.ErrorInfo == null;
@@ -97,11 +101,13 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="endpointId"></param>
         /// <param name="nodeId"></param>
         /// <returns>ErrorStatus</returns>
-        public async Task<bool> StopPublishingAsync(string endpointId, string nodeId) {
-            try {
+        public async Task<bool> StopPublishingAsync(string endpointId, string nodeId, CredentialModel credential = null) {
+            try { 
                 var requestApiModel = new PublishStopRequestApiModel() {
                         NodeId = nodeId,
                 };
+                requestApiModel.Header = Elevate(new RequestHeaderApiModel(), credential);
+
                 var resultApiModel = await _publisherService.NodePublishStopAsync(endpointId, requestApiModel);
                 return resultApiModel.ErrorInfo == null;
             }
@@ -110,6 +116,26 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 _logger.Error(errorMessage);
             }
             return false;
+        }
+
+        /// <summary>
+        /// Set Elevation property with credential
+        /// </summary>
+        /// <param name="header"></param>
+        /// <param name="credential"></param>
+        /// <returns>RequestHeaderApiModel</returns>
+        private RequestHeaderApiModel Elevate(RequestHeaderApiModel header, CredentialModel credential) {
+            if (credential != null) {
+                if (!string.IsNullOrEmpty(credential.Username) && !string.IsNullOrEmpty(credential.Password)) {
+                    header.Elevation = new CredentialApiModel();
+                    header.Elevation.Type = CredentialType.UserName;
+                    header.Elevation.Value = JToken.FromObject(new {
+                        user = credential.Username,
+                        password = credential.Password
+                    });
+                }
+            }
+            return header;
         }
 
         private readonly IPublisherServiceApi _publisherService;

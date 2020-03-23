@@ -41,6 +41,9 @@ namespace Microsoft.Azure.IIoT.App {
     using System.Threading.Tasks;
     using System.Security.Claims;
 
+    using Blazored.SessionStorage;
+    using Microsoft.Azure.IIoT.App.Services.SecureData;
+
     /// <summary>
     /// Webapp startup
     /// </summary>
@@ -201,6 +204,7 @@ namespace Microsoft.Azure.IIoT.App {
 
             services.AddRazorPages();
             services.AddServerSideBlazor();
+            services.AddBlazoredSessionStorage();
         }
 
         /// <summary>
@@ -256,6 +260,9 @@ namespace Microsoft.Azure.IIoT.App {
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
 
             builder.RegisterType<UICommon>()
+                .AsImplementedInterfaces().AsSelf().SingleInstance();
+
+            builder.RegisterType<SecureData>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
         }
 
