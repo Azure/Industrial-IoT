@@ -170,7 +170,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                             record.Value[0], out var persist, retry);
                         if (partition == null) {
                             _logger.Error("Failed to create CDM Entity for " +
-                                "{PublilsherId}/{DataSetWriterId}/{NodeId}).",
+                                "{PublisherId}/{DataSetWriterId}/{NodeId}).",
                                 record.Value[0].PublisherId, record.Value[0].DataSetWriterId,
                                 record.Value[0].NodeId);
                             continue;
@@ -205,7 +205,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                             record.Value[0], out var persist, retry);
                         if (partition == null) {
                             _logger.Error("Failed to create CDM Entity for " +
-                                "{PublilsherId}/{DataSetWriterId}/{DataSetClassId}/{MetaDataVersion}).",
+                                "{PublisherId}/{DataSetWriterId}/{DataSetClassId}/{MetaDataVersion}).",
                                 record.Value[0].PublisherId, record.Value[0].DataSetWriterId,
                                 record.Value[0].DataSetClassId, record.Value[0].MetaDataVersion);
                             continue;
@@ -258,12 +258,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 string.IsNullOrEmpty(sample.NodeId)) {
                 return null;
             }
-            var key = $"{sample.PublisherId}_{sample.DataSetWriterId}" +
-                $"_{sample.NodeId}";
-            key = string.Join("", key.Split(Path.GetInvalidFileNameChars()));
-            return key.Replace('#', '_').Replace('.', '_')
-                .Replace('/', '_').Replace(':', '_')
-                .Replace('"', '_').Replace('\'', '_');
+            return GetNormalizedKey($"{sample.PublisherId}_{sample.DataSetWriterId}" +
+                $"_{sample.NodeId}");
         }
         
         /// <inheritdoc/>
@@ -272,11 +268,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 string.IsNullOrEmpty(dataSet.DataSetWriterId)) {
                 return null;
             }
-            var key = $"{dataSet.PublisherId}_{dataSet.DataSetWriterId}" +
-                $"_{dataSet.DataSetClassId}_{dataSet.MetaDataVersion}";
+            return GetNormalizedKey($"{dataSet.PublisherId}_{dataSet.DataSetWriterId}" +
+                $"_{dataSet.DataSetClassId}_{dataSet.MetaDataVersion}");
+        }
+
+        /// <inheritdoc/>
+        private string GetNormalizedKey(string key) {
             key = string.Join("", key.Split(Path.GetInvalidFileNameChars()));
             return key.Replace('#', '_').Replace('.', '_')
-                .Replace('/','_').Replace(':', '_')
+                .Replace('/', '_').Replace(':', '_')
                 .Replace('"', '_').Replace('\'', '_');
         }
 
@@ -382,19 +382,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                     attribute.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
                         CdmObjectType.PurposeRef, "hasA", true);
                     //  if we handle a value, lookup it's type property
-                    /*
-                    if (property.Name == "Value" &&
-                        typeof(MonitoredItemSampleModel).
-                            GetProperty("TypeId")?.GetValue(sample) is Type typeId) {
-                        attribute.DataFormat = DataTypeToCdmDataFormat(typeId);
-                    }
-                    else {
-                        attribute.DataFormat = DataTypeToCdmDataFormat(property.PropertyType);
-                    }
-                    */
                     if (property.Name == "Value") {
-                        var typeId = sample.Value.GetType();
-                        attribute.DataFormat = DataTypeToCdmDataFormat(typeId);
+                        attribute.DataFormat = DataTypeToCdmDataFormat(sample.Value.GetType());
                     }
                     else {
                         attribute.DataFormat = DataTypeToCdmDataFormat(property.PropertyType);
@@ -404,7 +393,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 }
 
                 newSampleEntity.DisplayName = kPublisherSampleEntityName;
-                newSampleEntity.Version = "0.0.1";
+                newSampleEntity.Version = "0.0.2";
                 newSampleEntity.Description = "Opc Ua Monitored Item Sample";
 
                 // Create a new document where the new entity's definition will be stored
@@ -478,14 +467,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                                 CdmObjectType.PurposeRef, "hasA", true);
                             valueAttribute.DataFormat = DataTypeToCdmDataFormat(node.Value.Value.GetType());
                             newDataSetEntity.Attributes.Add(valueAttribute);
-/*
-                            var typeIdAttribute = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
-                                CdmObjectType.TypeAttributeDef, $"{node.Key}_typeId", false);
-                            typeIdAttribute.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
-                                CdmObjectType.PurposeRef, "hasA", true);
-                            typeIdAttribute.DataFormat = DataTypeToCdmDataFormat(typeof(string));
-                            newDataSetEntity.Attributes.Add(typeIdAttribute);
-*/
+
                             var statusAttribute = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
                                 CdmObjectType.TypeAttributeDef, $"{node.Key}_status", false);
                             statusAttribute.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
@@ -572,7 +554,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 if (payload is MonitoredItemSampleModel sample) {
 
                     var key = GetNormalizedEntityName(sample);
-                    //var key = new Tuple<string, string>(sample.EndpointId, sample.NodeId);
                     if (!_samplesCache.TryGetValue(key, out var samplesList)) {
                         _samplesCache[key] = new List<MonitoredItemSampleModel>();
                     }

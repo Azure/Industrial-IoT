@@ -189,9 +189,6 @@ namespace Opc.Ua.PubSub {
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.DisplayName) != 0) {
                 DisplayName = decoder.ReadString(nameof(MonitoredItemMessageContentMask.DisplayName));
             }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.Status) != 0) {
-                var status = decoder.ReadString(nameof(MonitoredItemMessageContentMask.Status));
-            }
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) != 0) {
                 Timestamp = decoder.ReadDateTime(nameof(MonitoredItemMessageContentMask.Timestamp));
             }
@@ -226,8 +223,6 @@ namespace Opc.Ua.PubSub {
             if (Timestamp != DateTime.MinValue) {
                 MessageContentMask |= (uint)MonitoredItemMessageContentMask.Timestamp;
             }
-            // no need to look for Status we don't handle it but rely on DataValue's status code
-            // var status = decoder.ReadString(nameof(MonitoredItemMessageContentMask.Status));
             Value = decoder.ReadDataValue("Value");
             if (Value.ServerTimestamp != null) {
                 MessageContentMask |= (uint)MonitoredItemMessageContentMask.ServerTimestamp;
@@ -273,10 +268,6 @@ namespace Opc.Ua.PubSub {
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) != 0) {
                 encoder.WriteDateTime(nameof(MonitoredItemMessageContentMask.Timestamp), Timestamp);
             }
-            if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.Status) != 0 && Value != null) {
-                encoder.WriteString(nameof(MonitoredItemMessageContentMask.Status), 
-                    StatusCode.LookupSymbolicId(Value.StatusCode.Code));
-            }
             encoder.WriteDataValue("Value", Value);
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtensionFields) != 0) {
                 if (ExtensionFields != null) {
@@ -309,6 +300,7 @@ namespace Opc.Ua.PubSub {
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) != 0) {
                 encoder.WriteDateTime(nameof(MonitoredItemMessageContentMask.Timestamp), Timestamp);
             }
+            //  add the status as a string for backwards compatibility
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.Status) != 0 && Value != null) {
                 encoder.WriteString(nameof(MonitoredItemMessageContentMask.Status),
                     StatusCode.LookupSymbolicId(Value.StatusCode.Code));
