@@ -865,12 +865,23 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
+            // Create "events" consumer group.
             await _iotHubManagementClient
                 .CreateEventHubConsumerGroupAsync(
                     _resourceGroup,
                     iotHub,
-                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_ONBOARDING_ENDPOINT_NAME,
-                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_ONBOARDING_CONSUMER_GROUP_NAME,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_EVENTS_CONSUMER_GROUP_NAME,
+                    cancellationToken
+                );
+
+            // Create "telemetry" consumer group.
+            await _iotHubManagementClient
+                .CreateEventHubConsumerGroupAsync(
+                    _resourceGroup,
+                    iotHub,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME,
+                    IotHubMgmtClient.IOT_HUB_EVENT_HUB_TELEMETRY_CONSUMER_GROUP_NAME,
                     cancellationToken
                 );
 
@@ -1002,8 +1013,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 _authConf.TenantId,
                 iotHub,
                 iotHubOwnerConnectionString,
-                IotHubMgmtClient.IOT_HUB_EVENT_HUB_ONBOARDING_CONSUMER_GROUP_NAME,
-                IotHubMgmtClient.IOT_HUB_EVENT_HUB_PARTITIONS_COUNT,
+                IotHubMgmtClient.IOT_HUB_EVENT_HUB_EVENTS_ENDPOINT_NAME,
+                IotHubMgmtClient.IOT_HUB_EVENT_HUB_EVENTS_CONSUMER_GROUP_NAME,
                 cosmosDBAccountConnectionString,
                 storageAccount,
                 storageAccountKey,
