@@ -11,10 +11,12 @@
 @using Microsoft.AspNetCore.Components
 @using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models
 @using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models
+@using System.Collections.Generic
 @using Microsoft.Azure.IIoT.OpcUa.Api.Publisher
 @using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models
 @using Microsoft.Azure.IIoT.App.Common
-@using System.Collections.Generic
+@using Microsoft.Azure.IIoT.App.Models
+@using Microsoft.Azure.IIoT.App.Services.SecureData
 
 @inject NavigationManager NavigationManager
 @inject Services.Browser BrowseManager
@@ -22,8 +24,8 @@
 @inject PublisherServiceEvents PublisherServiceEvents
 @inject Registry RegistryHelper
 @inject UICommon CommonHelper
-
-@implements IDisposable
+@inject Blazored.SessionStorage.ISessionStorageService sessionStorage
+@inject SecureData secureData
 
 <h1>Endpoint Control</h1>
 
@@ -118,7 +120,7 @@
                     <td>@node.NodeClass</td>
                 }
                 @if (node.NodeClass == NodeClass.Variable && (((node.AccessLevel & NodeAccessLevel.CurrentRead) == NodeAccessLevel.CurrentRead) ||
-                      ((node.AccessLevel & NodeAccessLevel.CurrentWrite) == NodeAccessLevel.CurrentWrite)))
+               ((node.AccessLevel & NodeAccessLevel.CurrentWrite) == NodeAccessLevel.CurrentWrite)))
                 {
                     <td>
                         <div class="td-fixed">
@@ -159,7 +161,7 @@
 <ErrorMessage PageError="@PagedNodeList.Error" Status="@null"></ErrorMessage>
 
 <Drawer HeaderText="Select Action" ObjectData="@NodeData" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
-    <_DrawerActionContent nodeData="@NodeData" endpointId="@EndpointId" pagedNodeList="@PagedNodeList"></_DrawerActionContent>
+    <_DrawerActionContent NodeData="@NodeData" EndpointId="@EndpointId" PagedNodeList="@PagedNodeList" Credential="@Credential"></_DrawerActionContent>
 </Drawer>
 
 <Pager Result=@NodeList PageChanged=@(async(Page) => PagerPageChanged(Page)) />
@@ -187,6 +189,7 @@
 
     public PagedResult<ListNode> NodeList = new PagedResult<ListNode>();
     public PagedResult<ListNode> PagedNodeList = new PagedResult<ListNode>();
+    public CredentialModel Credential = new CredentialModel();
     public bool IsOpened { get; set; } = false;
     public ListNode NodeData { get; set; }
     private IAsyncDisposable _publishEvent { get; set; }
@@ -205,7 +208,7 @@
             // fetch the actual value
             if (node.NodeClass == NodeClass.Variable)
             {
-                node.Value = await BrowseManager.ReadValueAsync(EndpointId, node.Id);
+                node.Value = await BrowseManager.ReadValueAsync(EndpointId, node.Id, Credential);
             }
         }
         NavigationManager.NavigateTo("/browser/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId + "/" + page);
@@ -227,6 +230,7 @@
     {
         if (firstRender)
         {
+            Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
             await BrowseTreeAsync(string.Empty, new List<string>(), BrowseDirection.Forward, 0);
             CommonHelper.Spinner = string.Empty;
             if (PagedNodeList.Error != null)
@@ -256,7 +260,7 @@
     private async Task GetTreeBackAsync(string id, List<string> parentId, int index)
     {
         await BrowseTreeAsync(id, parentId, BrowseDirection.Backward, index);
-        NavigationManager.NavigateTo("/browser/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId + "/" + ApplicationUri); 
+        NavigationManager.NavigateTo("/browser/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId + "/" + ApplicationUri);
     }
 
     /// <summary>
@@ -268,7 +272,7 @@
     private async Task BrowseTreeAsync(String id, List<string> parentId, BrowseDirection direction, int index)
     {
         CommonHelper.Spinner = "loader-big";
-        NodeList = await BrowseManager.GetTreeAsync(EndpointId, id, parentId, DiscovererId, direction, index);
+        NodeList = await BrowseManager.GetTreeAsync(EndpointId, id, parentId, DiscovererId, direction, index, Credential);
         var publishedNodes = await Publisher.PublishedAsync(EndpointId);
 
         foreach (var node in NodeList.Results)
@@ -302,7 +306,7 @@
     {
         if ((bool)ev.Value)
         {
-            var result = await Publisher.StartPublishingAsync(endpointId, node.Id, node.NodeName, 1000, 1000);
+            var result = await Publisher.StartPublishingAsync(endpointId, node.Id, node.NodeName, 1000, 1000, Credential);
             if (result)
             {
                 node.PublishedItem = new OpcUa.Api.Publisher.Models.PublishedItemApiModel()
@@ -322,7 +326,7 @@
         }
         else
         {
-            var result = await Publisher.StopPublishingAsync(endpointId, node.Id);
+            var result = await Publisher.StopPublishingAsync(endpointId, node.Id, Credential);
             if (result)
             {
                 node.PublishedItem = null;
@@ -370,5 +374,11 @@
         {
             await _publishEvent.DisposeAsync();
         }
+    }
+
+    private async Task<T> GetSecureItemAsync<T>(string key)
+    {
+        var serializedProtectedData = await sessionStorage.GetItemAsync<string>(key);
+        return secureData.UnprotectDeserialize<T>(serializedProtectedData);
     }
 }

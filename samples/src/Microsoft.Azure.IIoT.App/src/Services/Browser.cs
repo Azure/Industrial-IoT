@@ -13,6 +13,10 @@ namespace Microsoft.Azure.IIoT.App.Services {
     using System.Linq;
     using System.Threading.Tasks;
     using Serilog;
+    using Microsoft.Azure.IIoT.App.Models;
+    using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json;
+    using Microsoft.AspNetCore.Http;
 
     /// <summary>
     /// Browser code behind
@@ -45,8 +49,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="discovererId"></param>
         /// <param name="direction"></param>
         /// <returns>ListNode</returns>
-        public async Task<PagedResult<ListNode>> GetTreeAsync(string endpointId,
-            string id, List<string> parentId, string discovererId, BrowseDirection direction, int index) {
+        public async Task<PagedResult<ListNode>> GetTreeAsync(string endpointId, string id,
+            List<string> parentId, string discovererId, BrowseDirection direction, int index, 
+            CredentialModel credential = null) {
             var pageResult = new PagedResult<ListNode>();
             var model = new BrowseRequestApiModel {
                 TargetNodesOnly = true,
@@ -63,6 +68,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
             else {
                 model.NodeId = parentId.ElementAt(index - 1);
             }
+
+            model.Header = Elevate(new RequestHeaderApiModel(), credential);
 
             try {
                 var browseData = await _twinService.NodeBrowseAsync(endpointId, model);
@@ -128,7 +135,13 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 _logger.Error($"Can not browse node '{id}'");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 _logger.Error(errorMessage);
-                pageResult.Error = e.Message;
+                string error = JToken.Parse(e.Message).ToString(Formatting.Indented);
+                if (error.Contains(StatusCodes.Status401Unauthorized.ToString())) {
+                    pageResult.Error = "Unauthorized access: Bad User Access Denied.";
+                }
+                else {
+                    pageResult.Error = error;
+                } 
             }
 
             pageResult.PageSize = 10;
@@ -143,11 +156,13 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="endpointId"></param>
         /// <param name="nodeId"></param>
         /// <returns>Read value</returns>
-        public async Task<string> ReadValueAsync(string endpointId, string nodeId) {
+        public async Task<string> ReadValueAsync(string endpointId, string nodeId, CredentialModel credential = null) {
 
             var model = new ValueReadRequestApiModel() {
                 NodeId = nodeId
             };
+
+            model.Header = Elevate(new RequestHeaderApiModel(), credential);
 
             try {
                 var value = await _twinService.NodeValueReadAsync(endpointId, model);
@@ -157,12 +172,19 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 }
                 else {
                     return value.ErrorInfo.ToString();
-                }
+                }   
             }
             catch (Exception e) {
                 _logger.Error($"Can not read value of node '{nodeId}'");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 _logger.Error(errorMessage);
+                string error = JToken.Parse(e.Message).ToString(Formatting.Indented);
+                if (error.Contains(StatusCodes.Status401Unauthorized.ToString())) {
+                    errorMessage = "Unauthorized access: Bad User Access Denied.";
+                }
+                else {
+                    errorMessage = error;
+                }
                 return errorMessage;
             }
         }
@@ -174,12 +196,14 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="nodeId"></param>
         /// <param name="value"></param>
         /// <returns>Status</returns>
-        public async Task<string> WriteValueAsync(string endpointId, string nodeId, string value) {
+        public async Task<string> WriteValueAsync(string endpointId, string nodeId, string value, CredentialModel credential = null) {
 
             var model = new ValueWriteRequestApiModel() {
                 NodeId = nodeId,
                 Value = value
             };
+
+            model.Header = Elevate(new RequestHeaderApiModel(), credential);
 
             try {
                 var response = await _twinService.NodeValueWriteAsync(endpointId, model);
@@ -200,6 +224,13 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 _logger.Error($"Can not write value of node '{nodeId}'");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 _logger.Error(errorMessage);
+                string error = JToken.Parse(e.Message).ToString(Formatting.Indented);
+                if (error.Contains(StatusCodes.Status401Unauthorized.ToString())) {
+                    errorMessage = "Unauthorized access: Bad User Access Denied.";
+                }
+                else {
+                    errorMessage = error;
+                }
                 return errorMessage;
             }
         }
@@ -210,11 +241,13 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="endpointId"></param>
         /// <param name="nodeId"></param>
         /// <returns>Status</returns>
-        public async Task<string> GetParameterAsync(string endpointId, string nodeId) {
+        public async Task<string> GetParameterAsync(string endpointId, string nodeId, CredentialModel credential = null) {
             Parameter = new MethodMetadataResponseApiModel();
             var model = new MethodMetadataRequestApiModel() {
                 MethodId = nodeId
             };
+
+            model.Header = Elevate(new RequestHeaderApiModel(), credential);
 
             try {
                 Parameter = await _twinService.NodeMethodGetMetadataAsync(endpointId, model);
@@ -235,6 +268,13 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 _logger.Error($"Can not get method parameter from node '{nodeId}'");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 _logger.Error(errorMessage);
+                string error = JToken.Parse(e.Message).ToString(Formatting.Indented);
+                if (error.Contains(StatusCodes.Status401Unauthorized.ToString())) {
+                    errorMessage = "Unauthorized access: Bad User Access Denied.";
+                }
+                else {
+                    errorMessage = error;
+                }
                 return errorMessage;
             }
         }
@@ -246,13 +286,15 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="nodeId"></param>
         /// <returns>Status</returns>
         public async Task<string> MethodCallAsync(MethodMetadataResponseApiModel parameters, string[] parameterValues,
-            string endpointId, string nodeId) {
+            string endpointId, string nodeId, CredentialModel credential = null) {
 
             var argumentsList = new List<MethodCallArgumentApiModel>();
             var model = new MethodCallRequestApiModel() {
                 MethodId = nodeId,
                 ObjectId = parameters.ObjectId
             };
+
+            model.Header = Elevate(new RequestHeaderApiModel(), credential);
 
             try {
                 var count = 0;
@@ -284,8 +326,35 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 _logger.Error($"Can not get method parameter from node '{nodeId}'");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 _logger.Error(errorMessage);
+                string error = JToken.Parse(e.Message).ToString(Formatting.Indented);
+                if (error.Contains(StatusCodes.Status401Unauthorized.ToString())) {
+                    errorMessage = "Unauthorized access: Bad User Access Denied.";
+                }
+                else {
+                    errorMessage = error;
+                }
                 return errorMessage;
             }
+        }
+
+        /// <summary>
+        /// Set Elevation property with credential
+        /// </summary>
+        /// <param name="header"></param>
+        /// <param name="credential"></param>
+        /// <returns>RequestHeaderApiModel</returns>
+        private RequestHeaderApiModel Elevate(RequestHeaderApiModel header, CredentialModel credential) {
+            if (credential != null) {
+                if (!string.IsNullOrEmpty(credential.Username) && !string.IsNullOrEmpty(credential.Password)) {
+                    header.Elevation = new CredentialApiModel();
+                    header.Elevation.Type = CredentialType.UserName;
+                    header.Elevation.Value = JToken.FromObject(new {
+                        user = credential.Username,
+                        password = credential.Password
+                    });
+                }
+            }
+            return header;
         }
 
         private readonly ITwinServiceApi _twinService;

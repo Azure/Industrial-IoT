@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
 @using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+@using Microsoft.Azure.IIoT.App.Models
 
 @inject NavigationManager NavigationManager
 @inject Services.Browser BrowseManager
@@ -14,25 +15,25 @@
         <br>
         <div class="dropdown">
             <div class="select">
-                <select name="dropdown" @onchange="((eventArgs) => SelectActionAsync(nodeData.Id, eventArgs))">
+                <select name="dropdown" @onchange="((eventArgs) => SelectActionAsync(NodeData.Id, eventArgs))">
                     <option value="@ActionType.Nothing">Select an action</option>
-                    @if (nodeData.NodeClass == NodeClass.Variable)
+                    @if (NodeData.NodeClass == NodeClass.Variable)
                     {
-                        if (nodeData.AccessLevel == NodeAccessLevel.CurrentRead)
+                        if (NodeData.AccessLevel == NodeAccessLevel.CurrentRead)
                         {
                             <option value="@ActionType.Read">@ActionType.Read.ToString()</option>
                         }
-                        if (nodeData.AccessLevel == NodeAccessLevel.CurrentWrite)
+                        if (NodeData.AccessLevel == NodeAccessLevel.CurrentWrite)
                         {
                             <option value="@ActionType.Write">@ActionType.Write.ToString()</option>
                         }
-                        if (nodeData.AccessLevel == (NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite))
+                        if (NodeData.AccessLevel == (NodeAccessLevel.CurrentRead | NodeAccessLevel.CurrentWrite))
                         {
                             <option value="@ActionType.Read">@ActionType.Read.ToString()</option>
                             <option value="@ActionType.Write">@ActionType.Write.ToString()</option>
                         }
                     }
-                    else if (nodeData.NodeClass == NodeClass.Method)
+                    else if (NodeData.NodeClass == NodeClass.Method)
                     {
                         <option value="@ActionType.Call">@ActionType.Call.ToString()</option>
                     }
@@ -58,7 +59,7 @@
                 </div>
                 <hr />
                 <div>
-                    <button @onclick="@(() => WriteAsync(nodeData.Id, _value))" type="button" class="btn btn-primary shadow-none">Apply</button>
+                    <button @onclick="@(() => WriteAsync(NodeData.Id, _value))" type="button" class="btn btn-primary shadow-none">Apply</button>
                 </div>
             </form>
             <div class="@_responseClass">@_response</div>
@@ -82,7 +83,7 @@
                 </form>
                 <hr />
                 <div>
-                    <button @onclick="@(async() => await CallAsync(nodeData.Id, _valueArray))" type="button" class="btn btn-primary shadow-none">Apply</button>
+                    <button @onclick="@(async() => await CallAsync(NodeData.Id, _valueArray))" type="button" class="btn btn-primary shadow-none">Apply</button>
                 </div>
                 <div class="@_responseClass">
                     @if (BrowseManager.MethodCallResponse != null)
@@ -106,13 +107,16 @@
 
 @code {
     [Parameter]
-    public ListNode nodeData { get; set; }
+    public ListNode NodeData { get; set; }
 
     [Parameter]
-    public string endpointId { get; set; }
+    public string EndpointId { get; set; }
 
     [Parameter]
-    public PagedResult<ListNode> pagedNodeList { get; set; } = new PagedResult<ListNode>();
+    public PagedResult<ListNode> PagedNodeList { get; set; } = new PagedResult<ListNode>();
+
+    [Parameter]
+    public CredentialModel Credential { get; set; }
 
     public enum ActionType { Nothing, Read, Write, Call, Publish };
 
@@ -145,30 +149,30 @@
 
     private async Task ReadAsync(string nodeId)
     {
-        _response = await BrowseManager.ReadValueAsync(endpointId, nodeId);
+        _response = await BrowseManager.ReadValueAsync(EndpointId, nodeId, Credential);
         _responseClass = "list-group-item text-left margin body-action-content visible";
     }
 
     private async Task WriteAsync(string nodeId, string value)
     {
-        _response = await BrowseManager.WriteValueAsync(endpointId, nodeId, value);
+        _response = await BrowseManager.WriteValueAsync(EndpointId, nodeId, value, Credential);
 
-        var newValue = await BrowseManager.ReadValueAsync(endpointId, nodeId);
-        var index = pagedNodeList.Results.IndexOf(pagedNodeList.Results.SingleOrDefault(x => x.Id == nodeId));
-        pagedNodeList.Results[index].Value = newValue;
+        var newValue = await BrowseManager.ReadValueAsync(EndpointId, nodeId, Credential);
+        var index = PagedNodeList.Results.IndexOf(PagedNodeList.Results.SingleOrDefault(x => x.Id == nodeId));
+        PagedNodeList.Results[index].Value = newValue;
         _responseClass = "list-group-item margin body-action-content visible";
     }
 
     private async Task ParameterAsync()
     {
-        _response = await BrowseManager.GetParameterAsync(endpointId, nodeData.Id);
+        _response = await BrowseManager.GetParameterAsync(EndpointId, NodeData.Id, Credential);
         _parameters = BrowseManager.Parameter;
         _valueArray = new string[_parameters.InputArguments.Count];
     }
 
     private async Task CallAsync(string nodeId, string[] values)
     {
-        _response = await BrowseManager.MethodCallAsync(_parameters, values, endpointId, nodeData.Id);
+        _response = await BrowseManager.MethodCallAsync(_parameters, values, EndpointId, NodeData.Id, Credential);
         _responseClass = "list-group-item margin body-action-content visible";
     }
 }
