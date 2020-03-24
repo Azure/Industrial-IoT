@@ -22,6 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services {
 
         /// <inheritdoc/>
         public EndpointConnectivityState State { get; private set; }
+            = EndpointConnectivityState.Disconnected;
 
         /// <summary>
         /// Create twin services
