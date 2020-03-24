@@ -22,6 +22,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public const string DEFAULT_EVENT_HUB_NAME_PREFIX = "eventhub-";
         public const int NUM_OF_MAX_NAME_AVAILABILITY_CHECKS = 5;
 
+        public const string EVENT_HUB_CONSUMER_GROUP_TELEMETRY_CDM = "telemetry_cdm";
+        public const string EVENT_HUB_CONSUMER_GROUP_TELEMETRY_UX = "telemetry_ux";
+
         private const string kEVENT_HUB_NAMESPACE_AUTHORIZATION_RULE = "RootManageSharedAccessKey";
 
         private readonly EventHubManagementClient _eventHubManagementClient;
