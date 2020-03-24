@@ -102,6 +102,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             if (!string.IsNullOrEmpty(eventSchema)) {
                 msg.Properties.Add(CommonProperties.EventSchemaType, eventSchema);
             }
+            if (!string.IsNullOrEmpty(contentType)) {
+                msg.Properties.Add(SystemProperties.MessageSchema, contentType);
+            }
             if (!string.IsNullOrEmpty(contentEncoding)) {
                 msg.Properties.Add(CommonProperties.ContentEncoding, contentEncoding);
                 msg.ContentEncoding = contentEncoding;
