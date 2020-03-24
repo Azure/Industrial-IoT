@@ -906,6 +906,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             // Create Azure Event Hub Namespace and Azure Event Hub
             EHNamespaceInner eventHubNamespace;
             EventhubInner eventHub;
+            ConsumerGroupInner telemetryCdm;
+            ConsumerGroupInner telemetryUx;
 
             // Create Azure Event Hub Namespace
             eventHubNamespace = await _eventHubManagementClient
@@ -923,6 +925,26 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     eventHubNamespace,
                     _eventHubName,
                     _defaultTagsDict,
+                    cancellationToken
+                );
+
+            // Create "telemetry_cdm" consumer group.
+            telemetryCdm = await _eventHubManagementClient
+                .CreateConsumerGroupAsync(
+                    _resourceGroup,
+                    eventHubNamespace,
+                    eventHub,
+                    EventHubMgmtClient.EVENT_HUB_CONSUMER_GROUP_TELEMETRY_CDM,
+                    cancellationToken
+                );
+
+            // Create "telemetry_ux" consumer group.
+            telemetryUx = await _eventHubManagementClient
+                .CreateConsumerGroupAsync(
+                    _resourceGroup,
+                    eventHubNamespace,
+                    eventHub,
+                    EventHubMgmtClient.EVENT_HUB_CONSUMER_GROUP_TELEMETRY_UX,
                     cancellationToken
                 );
 
