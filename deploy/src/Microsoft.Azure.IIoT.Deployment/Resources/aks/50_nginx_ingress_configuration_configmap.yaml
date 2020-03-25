@@ -1,0 +1,9 @@
+﻿apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: nginx-ingress-configuration
+  namespace: ingress-nginx
+data:
+  compute-full-forward-for: "true"
+  use-forward-headers: "true"
+  proxy-buffer-size: "16k"

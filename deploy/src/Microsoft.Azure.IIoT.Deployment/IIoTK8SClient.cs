@@ -197,6 +197,44 @@ namespace Microsoft.Azure.IIoT.Deployment {
             }
         }
 
+        public async Task<V1ConfigMap> CreateV1ConfigMapAsync(
+            string v1ConfigMapContent,
+            string namespaceParameter = null,
+            IDictionary<string, string> data = null,
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                Log.Verbose("Loading k8s ConfigMap definition ...");
+                var v1ConfigMapDefinition = Yaml.LoadFromString<V1ConfigMap>(v1ConfigMapContent);
+
+                if (null != data) {
+                    foreach (var dataKVP in data) {
+                        v1ConfigMapDefinition.Data[dataKVP.Key] = dataKVP.Value;
+                    }
+                }
+
+                if (null != namespaceParameter) {
+                    v1ConfigMapDefinition.Metadata.NamespaceProperty = namespaceParameter;
+                }
+
+                Log.Verbose($"Creating k8s ConfigMap: {v1ConfigMapDefinition.Metadata.Name} ...");
+                var v1ConfigMap = await _k8sClient
+                    .CreateNamespacedConfigMapAsync(
+                        v1ConfigMapDefinition,
+                        v1ConfigMapDefinition.Metadata.NamespaceProperty,
+                        cancellationToken: cancellationToken
+                    );
+
+                Log.Verbose($"Created k8s ConfigMap: {v1ConfigMap.Metadata.Name}");
+
+                return v1ConfigMap;
+            }
+            catch (Exception ex) {
+                Log.Error(ex, $"Failed to create k8s ConfigMap");
+                throw;
+            }
+        }
+
         public async Task<V1Secret> CreateIIoTEnvSecretAsync(
             IDictionary<string, string> env,
             CancellationToken cancellationToken = default
@@ -483,6 +521,12 @@ namespace Microsoft.Azure.IIoT.Deployment {
             CancellationToken cancellationToken = default
         ) {
             try {
+                await CreateV1ConfigMapAsync(
+                    Resources.IIoTK8SResources._50_nginx_ingress_configuration_configmap,
+                    _nginxNamespace,
+                    cancellationToken: cancellationToken
+                );
+
                 await CreateV1DeploymentAsync(
                     Resources.IIoTK8SResources._51_nginx_ingress_controller_deployment,
                     _nginxNamespace,
