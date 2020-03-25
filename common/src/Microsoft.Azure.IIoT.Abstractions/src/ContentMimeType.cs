@@ -80,6 +80,12 @@ namespace Microsoft.Azure.IIoT {
             "application/ua+json+ref+nr";
 
         /// <summary>
+        /// For backwards compatibility with legacy publisher
+        /// </summary>
+        public const string UaLegacyPublisher =
+            "application/opcua+uajson";
+
+        /// <summary>
         /// Certificate content
         /// </summary>
         public const string Cert =
