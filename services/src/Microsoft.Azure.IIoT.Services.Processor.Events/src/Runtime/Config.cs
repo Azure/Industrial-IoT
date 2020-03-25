@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
     /// Telemetry processor service configuration
     /// </summary>
     public class Config : DiagnosticsConfig, IEventProcessorConfig, IEventHubConsumerConfig,
-        IOnboardingConfig, ISignalRServiceConfig {
+        IOnboardingConfig, ISignalRServiceConfig, IEventProcessorHostConfig  {
 
         private const string kEventHubConsumerGroupEventsKey =
             "EventHubConsumerGroupEvents";
@@ -29,6 +29,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
         public string OpcUaOnboardingServiceUrl => _ia.OpcUaOnboardingServiceUrl;
         /// <inheritdoc/>
         public string OpcUaOnboardingServiceResourceId => _ia.OpcUaOnboardingServiceResourceId;
+
         /// <inheritdoc/>
         public string EventHubConnString => _eh.EventHubConnString;
         /// <inheritdoc/>
@@ -36,10 +37,11 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
         /// <inheritdoc/>
         /// <summary> Event hub events consumer group </summary>
         public string ConsumerGroup => GetStringOrDefault(kEventHubConsumerGroupEventsKey,
-            GetStringOrDefault(PcsVariable.PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS,
-                "events"));
+            () => GetStringOrDefault(PcsVariable.PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS,
+                () => "events"));
         /// <inheritdoc/>
         public bool UseWebsockets => _eh.UseWebsockets;
+
         /// <inheritdoc/>
         public int ReceiveBatchSize => _ep.ReceiveBatchSize;
         /// <inheritdoc/>
@@ -48,6 +50,11 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
         public string BlobStorageConnString => _ep.BlobStorageConnString;
         /// <inheritdoc/>
         public string LeaseContainerName => _ep.LeaseContainerName;
+        /// <inheritdoc/>
+        public bool InitialReadFromEnd => _ep.InitialReadFromEnd;
+        /// <inheritdoc/>
+        public TimeSpan? CheckpointInterval => _ep.CheckpointInterval;
+
         /// <inheritdoc/>
         public string SignalRHubName => _sr.SignalRHubName;
         /// <inheritdoc/>

@@ -15,27 +15,14 @@ The ARM deployment templates included in the repository deploy the platform and 
 
 The platform and simulation can also be deployed using the deploy script.
 
-1. If you have not done so yet, clone this GitHub repository.  Open a command prompt or terminal and run:
+1. If you have not done so yet, clone the GitHub repository.  To clone the repository you need git.  If you do not have git installed on your system, follow the instructions for [Linux or Mac](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git), or [Windows](https://gitforwindows.org/) to install it.  Open a new command prompt or terminal and run:
 
    ```bash
    git clone https://github.com/Azure/Industrial-IoT
    cd Industrial-IoT
    ```
 
-2. Install all required dependencies:
-
-   - On **Windows**, install Azure PowerShell. Azure PowerShell works with PowerShell 5.1 or higher. Run following two commands in PowerShell as Administrator. For more info on AzureRM and Az modules, refer [here](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps).
-
-     ```pwsh
-     Install-Module -Name Az -AllowClobber
-     Install-Module -Name AzureAD -AllowClobber
-     ```
-
-   - On **Ubuntu**, Linux continue to step 3 and choose (y) to install required dependencies.  You must have Administrator rights.
-
-     > For how to install required depdendencies on other Linux distributions see [here](#Deploy-from-Linux-other-than-Ubuntu).
-
-3. Open a command prompt or terminal in the repository root and depending on your operating system run:
+2. Open a command prompt or terminal to the repository root and run:
 
    - On Windows:
 
@@ -49,9 +36,9 @@ The platform and simulation can also be deployed using the deploy script.
      ./deploy.sh
      ```
 
-   The supported parameters could be found [below](#deployment-script-options).
+   > Additional supported parameters can be found [here](#deployment-script-options).
 
-4. Follow the prompts to assign a name to the resource group of the deployment and a name to the website. The script deploys the Microservices and their Azure platform dependencies into the resource group in your Azure subscription.  The script also registers an Application in your Azure Active Directory (AAD) tenant to support OAUTH based authentication.  
+3. Follow the prompts to assign a name to the resource group of the deployment and a name to the website. The script deploys the Microservices and their Azure platform dependencies into the resource group in your Azure subscription.  The script also registers an Application in your Azure Active Directory (AAD) tenant to support OAUTH based authentication.  
    Deployment will take several minutes.  An example of what you'd see once the solution is successfully deployed:
 
    ![Deployment Result](../media/deployment-succeeded.png)
@@ -60,7 +47,7 @@ The platform and simulation can also be deployed using the deploy script.
 
    In case you run into issues please follow the steps [below](#troubleshooting-deployment-failures).
 
-5. Once the script completes successfully, select whether you want to save the `.env` file.  You need the `.env` environment file if you want to connect to the cloud endpoint using tools such as the [Console](../tutorials/tut-use-cli.md) or for debugging.
+4. Once the script completes successfully, select whether you want to save the `.env` file.  You need the `.env` environment file if you want to connect to the cloud endpoint using tools such as the [Console](../tutorials/tut-use-cli.md) or for debugging.
 
 ## Troubleshooting deployment failures
 
@@ -114,6 +101,19 @@ cd deploy/scripts
 ./deploy.ps1 -aadConfig aad.json ...
 ```
 
+### Missing Script dependencies
+
+On **Windows**, the script uses Powershell, which comes with Windows.  The deploy batch file uses it to install all required modules.
+
+In case you run into issues, e.g. because you want to use pscore, run following two commands in PowerShell as Administrator. For more info on AzureAD and Az modules, refer [here](https://docs.microsoft.com/en-us/powershell/azure/install-az-ps).
+
+   ```pwsh
+   Install-Module -Name Az -AllowClobber
+   Install-Module -Name AzureAD -AllowClobber
+   ```
+
+On non - **Ubuntu** Linux or in case you run into issues follow the guidance in the next section.
+
 ### Deploy from Linux other than Ubuntu
 
 To install all necessary requirements on other Linux distributions follow these steps:
@@ -140,7 +140,7 @@ To install all necessary requirements on other Linux distributions follow these 
 
 ## Deployment script options
 
-Using the  `deploy/scripts/deploy.ps1`  script you can deploy several configurations including deploying images from your private Azure Container Registry (ACR).
+Using the  `deploy/scripts/deploy.ps1`  script you can deploy several configurations including deploying images from a private Azure Container Registry (ACR).
 
 To support these scenarios, the `deploy.ps1` takes the following parameters:
 

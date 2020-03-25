@@ -21,17 +21,20 @@ namespace Microsoft.Azure.IIoT.Storage.Blob.Runtime {
         public string BlobStorageConnString {
             get {
                 var cs = GetStringOrDefault(kBlobStorageConnStringKey,
-                    GetStringOrDefault(PcsVariable.PCS_STORAGE_CONNSTRING, null))?.Trim();
+                    () => GetStringOrDefault(PcsVariable.PCS_STORAGE_CONNSTRING,
+                        () => null))?.Trim();
                 if (!string.IsNullOrEmpty(cs)) {
                     return cs;
                 }
                 var account = GetStringOrDefault("PCS_ASA_DATA_AZUREBLOB_ACCOUNT",
-                    GetStringOrDefault("PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT", null));
+                    () => GetStringOrDefault("PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT",
+                        () => null));
                 var key = GetStringOrDefault("PCS_ASA_DATA_AZUREBLOB_KEY",
-                    GetStringOrDefault("PCS_IOTHUBREACT_AZUREBLOB_KEY", null));
+                    () => GetStringOrDefault("PCS_IOTHUBREACT_AZUREBLOB_KEY",
+                        () => null));
                 var suffix = GetStringOrDefault("PCS_ASA_DATA_AZUREBLOB_ENDPOINT_SUFFIX",
-                    GetStringOrDefault("PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX",
-                        "core.windows.net"));
+                    () => GetStringOrDefault("PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX",
+                        () => "core.windows.net"));
                 if (string.IsNullOrEmpty(account) || string.IsNullOrEmpty(key)) {
                     return null;
                 }

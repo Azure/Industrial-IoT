@@ -454,8 +454,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     Oauth2PermissionScopes = oauth2Permissions
                 };
 
+                // ODataType = null is a workaround for a bug:
+                // https://github.com/microsoftgraph/msgraph-beta-sdk-dotnet/issues/87
                 var serviceApplicationWebApplication = new WebApplication {
                     ImplicitGrantSettings = new ImplicitGrantSettings {
+                        ODataType = null,
                         EnableIdTokenIssuance = true
                     }
                 };
@@ -642,9 +645,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 // Note: Oauth2AllowImplicitFlow will be enabled automatically since both
                 // EnableIdTokenIssuance and EnableAccessTokenIssuance are set to true.
 
+                // ODataType = null is a workaround for a bug:
+                // https://github.com/microsoftgraph/msgraph-beta-sdk-dotnet/issues/87
                 var clientApplicationWebApplication = new WebApplication {
                     //Oauth2AllowImplicitFlow = true,
                     ImplicitGrantSettings = new ImplicitGrantSettings {
+                        ODataType = null,
                         EnableIdTokenIssuance = true,
                         EnableAccessTokenIssuance = true
                     }
@@ -732,8 +738,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     Oauth2PermissionScopes = aksOauth2Permissions
                 };
 
+                // ODataType = null is a workaround for a bug:
+                // https://github.com/microsoftgraph/msgraph-beta-sdk-dotnet/issues/87
                 var aksApplicationWebApplication = new WebApplication {
                     ImplicitGrantSettings = new ImplicitGrantSettings {
+                        ODataType = null,
                         EnableIdTokenIssuance = true
                     }
                 };

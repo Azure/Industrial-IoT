@@ -6,9 +6,10 @@
 namespace Microsoft.Azure.IIoT.App {
     using Microsoft.Azure.IIoT.App.Services;
     using Microsoft.Azure.IIoT.App.Runtime;
+    using Microsoft.Azure.IIoT.App.Common;
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
-    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Extensions;
+    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
@@ -22,13 +23,12 @@ namespace Microsoft.Azure.IIoT.App {
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authentication.AzureAD.UI;
     using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Rewrite;
-    using Microsoft.AspNetCore.HttpOverrides;
-    using Microsoft.AspNetCore.Mvc.Authorization;
+    using Microsoft.AspNetCore.Components.Authorization;
+    using Microsoft.AspNetCore.Components.Server;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -37,9 +37,12 @@ namespace Microsoft.Azure.IIoT.App {
     using Autofac.Extensions.DependencyInjection;
     using Autofac;
     using System;
+    using System.Security.Authentication;
     using System.Threading.Tasks;
     using System.Security.Claims;
-    using Microsoft.Azure.IIoT.App.Common;
+
+    using Blazored.SessionStorage;
+    using Microsoft.Azure.IIoT.App.Services.SecureData;
 
     /// <summary>
     /// Webapp startup
@@ -113,8 +116,8 @@ namespace Microsoft.Azure.IIoT.App {
             app.UseRouting();
             app.UseRewriter(
                 new RewriteOptions().Add(context => {
-                    if (context.HttpContext.Request.Path == "/AzureAD/Account/SignedOut") {
-                        context.HttpContext.Response.Redirect("/discoverers");
+                    if (context.HttpContext.Request.Path == Config.ServicePathBase +  "/AzureAD/Account/SignedOut") {
+                        context.HttpContext.Response.Redirect(Config.ServicePathBase + "/discoverers");
                         context.HttpContext.SignOutAsync("Cookies");
                     }
                 })
@@ -193,17 +196,15 @@ namespace Microsoft.Azure.IIoT.App {
                     options.Events.OnAuthorizationCodeReceived = OnAuthorizationCodeReceivedAsync;
                 });
 
-            services.AddControllersWithViews(options => {
-                if (!string.IsNullOrEmpty(Config.AppId)) {
-                    options.Filters.Add(new AuthorizeFilter(
-                        new AuthorizationPolicyBuilder()
-                            .RequireAuthenticatedUser()
-                            .Build()));
-                }
+            services.AddControllersWithViews();
+
+            services.AddAuthorization(options => {
+                options.AddPolicy("Auth", c => c.RequireAuthenticatedUser());
             });
 
             services.AddRazorPages();
             services.AddServerSideBlazor();
+            services.AddBlazoredSessionStorage();
         }
 
         /// <summary>
@@ -229,8 +230,9 @@ namespace Microsoft.Azure.IIoT.App {
                 .AsImplementedInterfaces().SingleInstance();
             // Use behalf of token provider to get tokens from user
             builder.RegisterType<BehalfOfTokenProvider>()
-                .AsImplementedInterfaces().SingleInstance()
-                .WithParameter("acquireTokenIfSilentFails", true);
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<SignOutHandler>()
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<DistributedTokenCache>()
                 .AsImplementedInterfaces().SingleInstance();
 
@@ -258,6 +260,9 @@ namespace Microsoft.Azure.IIoT.App {
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
 
             builder.RegisterType<UICommon>()
+                .AsImplementedInterfaces().AsSelf().SingleInstance();
+
+            builder.RegisterType<SecureData>()
                 .AsImplementedInterfaces().AsSelf().SingleInstance();
         }
 
@@ -299,6 +304,24 @@ namespace Microsoft.Azure.IIoT.App {
             context.Response.Redirect("/Error");
             context.HandleResponse(); // Suppress the exception
             return Task.CompletedTask;
+        }
+
+        /// <inheritdoc/>
+        private class SignOutHandler : IAuthenticationErrorHandler {
+
+            /// <inheritdoc/>
+            public bool AcquireTokenIfSilentFails => true;
+
+            /// <inheritdoc/>
+            public void Handle(HttpContext context, AuthenticationException ex) {
+                // Force signout
+                var provider = context?.RequestServices.GetService<AuthenticationStateProvider>();
+                if (provider is ServerAuthenticationStateProvider s) {
+                    var anonymousUser = new ClaimsPrincipal(new ClaimsIdentity());
+                    var anonymousState = new AuthenticationState(anonymousUser);
+                    s.SetAuthenticationState(Task.FromResult(anonymousState));
+                }
+            }
         }
     }
 }

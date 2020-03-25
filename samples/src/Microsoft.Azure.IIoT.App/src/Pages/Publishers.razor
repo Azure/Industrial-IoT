@@ -79,7 +79,7 @@
     private PagedResult<PublisherApiModel> _pagedPublisherList = new PagedResult<PublisherApiModel>();
     private IAsyncDisposable _publisherEvent { get; set; }
     private string _tableView { get; set; } = "visible";
-  
+
     /// <summary>
     /// Notify page change
     /// </summary>
@@ -87,7 +87,7 @@
     public void PagerPageChanged(int page)
     {
         _pagedPublisherList = _publisherList.GetPaged(page, CommonHelper.PageLength, null);
-        NavigationManager.NavigateTo("/publishers/" + page);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "publishers/" + page);
     }
 
     /// <summary>

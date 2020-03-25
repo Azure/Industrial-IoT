@@ -10,7 +10,11 @@ namespace Microsoft.Azure.IIoT.Exceptions {
     public class NotInitializedException : ResourceInvalidStateException {
         /// <inheritdoc/>
         public NotInitializedException() :
-            base("Please call 'Initialize' method before running.") {
+            this("Please call 'Initialize' method before running.") {
+        }
+
+        /// <inheritdoc/>
+        public NotInitializedException(string message) : base(message) {
         }
     }
 }

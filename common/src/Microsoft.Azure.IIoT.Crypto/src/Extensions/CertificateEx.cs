@@ -239,10 +239,14 @@ namespace Microsoft.Azure.IIoT.Crypto {
             using (var validator = new X509Chain(false)) {
                 var extra = chain.ToX509Certificate2Collection();
                 try {
+                    validator.ChainPolicy.RevocationFlag =
+                        X509RevocationFlag.EntireChain;
                     validator.ChainPolicy.RevocationMode =
                         X509RevocationMode.NoCheck;
+#if TRUE // TODO
                     validator.ChainPolicy.VerificationFlags =
                         X509VerificationFlags.AllowUnknownCertificateAuthority;
+#endif
                     validator.ChainPolicy.ExtraStore.AddRange(extra);
                     if (!validator.Build(cert)) {
                         status = validator.ChainStatus;

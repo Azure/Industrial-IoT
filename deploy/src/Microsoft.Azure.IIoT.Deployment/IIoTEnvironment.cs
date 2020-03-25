@@ -78,8 +78,8 @@ namespace Microsoft.Azure.IIoT.Deployment {
             Guid tenantId,
             IotHubDescription iotHub,
             string iotHubOwnerConnectionString,
+            string iotHubEventHubOnboardingEndpointName,
             string iotHubOnboardingConsumerGroupName,
-            int iotHubEventHubEndpointsPartitionsCount,
             string cosmosDBAccountConnectionString,
             StorageAccountInner storageAccount,
             StorageAccountKey storageAccountKey,
@@ -104,9 +104,9 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
             PCS_IOTHUBREACT_ACCESS_CONNSTRING = iotHubOwnerConnectionString; // duplicate
             PCS_IOTHUBREACT_HUB_NAME = iotHub.Name;
-            PCS_IOTHUBREACT_HUB_ENDPOINT = iotHub.Properties.EventHubEndpoints["events"].Endpoint;
+            PCS_IOTHUBREACT_HUB_ENDPOINT = iotHub.Properties.EventHubEndpoints[iotHubEventHubOnboardingEndpointName].Endpoint;
             PCS_IOTHUBREACT_HUB_CONSUMERGROUP = iotHubOnboardingConsumerGroupName;
-            PCS_IOTHUBREACT_HUB_PARTITIONS = $"{iotHubEventHubEndpointsPartitionsCount}";
+            PCS_IOTHUBREACT_HUB_PARTITIONS = $"{iotHub.Properties.EventHubEndpoints[iotHubEventHubOnboardingEndpointName].PartitionCount.Value}";
             PCS_IOTHUBREACT_AZUREBLOB_ACCOUNT = storageAccount.Name;
             PCS_IOTHUBREACT_AZUREBLOB_KEY = storageAccountKey.Value;
             PCS_IOTHUBREACT_AZUREBLOB_ENDPOINT_SUFFIX = azureEnvironment.StorageEndpointSuffix;

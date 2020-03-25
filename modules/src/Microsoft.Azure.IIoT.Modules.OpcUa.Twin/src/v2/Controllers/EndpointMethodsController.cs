@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _export.ModelUploadStartAsync(
-                _twin.Endpoint, request.ToServiceModel());
+                await _twin.GetEndpointAsync(), request.ToServiceModel());
             return new ModelUploadStartResponseApiModel(result);
         }
 
@@ -67,7 +67,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _browse.NodeBrowseFirstAsync(
-                _twin.Endpoint, request.ToServiceModel());
+                await _twin.GetEndpointAsync(), request.ToServiceModel());
             return new BrowseResponseApiModel(result);
         }
 
@@ -82,7 +82,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _browse.NodeBrowseNextAsync(
-                _twin.Endpoint, request.ToServiceModel());
+                await _twin.GetEndpointAsync(), request.ToServiceModel());
             return new BrowseNextResponseApiModel(result);
         }
 
@@ -97,7 +97,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _browse.NodeBrowsePathAsync(
-                _twin.Endpoint, request.ToServiceModel());
+                await _twin.GetEndpointAsync(), request.ToServiceModel());
             return new BrowsePathResponseApiModel(result);
         }
 
@@ -112,7 +112,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _nodes.NodeValueReadAsync(
-                _twin.Endpoint, request.ToServiceModel());
+                await _twin.GetEndpointAsync(), request.ToServiceModel());
             return new ValueReadResponseApiModel(result);
         }
 
@@ -127,7 +127,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _nodes.NodeValueWriteAsync(
-                _twin.Endpoint, request.ToServiceModel());
+                await _twin.GetEndpointAsync(), request.ToServiceModel());
             return new ValueWriteResponseApiModel(result);
         }
 
@@ -142,7 +142,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _nodes.NodeMethodGetMetadataAsync(
-                _twin.Endpoint, request.ToServiceModel());
+                await _twin.GetEndpointAsync(), request.ToServiceModel());
             return new MethodMetadataResponseApiModel(result);
         }
 
@@ -157,7 +157,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _nodes.NodeMethodCallAsync(
-                _twin.Endpoint, request.ToServiceModel());
+                await _twin.GetEndpointAsync(), request.ToServiceModel());
             return new MethodCallResponseApiModel(result);
         }
 
@@ -172,7 +172,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _nodes.NodeReadAsync(
-                _twin.Endpoint, request.ToServiceModel());
+                await _twin.GetEndpointAsync(), request.ToServiceModel());
             return new ReadResponseApiModel(result);
         }
 
@@ -187,7 +187,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _nodes.NodeWriteAsync(
-                _twin.Endpoint, request.ToServiceModel());
+                await _twin.GetEndpointAsync(), request.ToServiceModel());
             return new WriteResponseApiModel(result);
         }
 
@@ -202,7 +202,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _historian.HistoryReadAsync(
-               _twin.Endpoint, request.ToServiceModel());
+               await _twin.GetEndpointAsync(), request.ToServiceModel());
             return new HistoryReadResponseApiModel(result);
         }
 
@@ -217,7 +217,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _historian.HistoryReadNextAsync(
-               _twin.Endpoint, request.ToServiceModel());
+               await _twin.GetEndpointAsync(), request.ToServiceModel());
             return new HistoryReadNextResponseApiModel(result);
         }
 
@@ -232,7 +232,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _historian.HistoryUpdateAsync(
-               _twin.Endpoint, request.ToServiceModel());
+               await _twin.GetEndpointAsync(), request.ToServiceModel());
             return new HistoryUpdateResponseApiModel(result);
         }
 

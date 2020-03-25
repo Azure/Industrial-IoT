@@ -22,14 +22,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         [Fact]
         public void GetDiscovererThatDoesNotExist() {
-            CreateDiscovererFixtures(out var site, out var discoverers, out var modules);
+            CreateDiscovererFixtures(out _, out _, out var modules);
 
             using (var mock = AutoMock.GetLoose()) {
                 mock.Provide<IIoTHubTwinServices>(IoTHubServices.Create(modules));
                 IDiscovererRegistry service = mock.Create<DiscovererRegistry>();
 
                 // Run
-                var t = service.GetDiscovererAsync("test", false);
+                var t = service.GetDiscovererAsync("test");
 
                 // Assert
                 Assert.NotNull(t.Exception);
@@ -40,14 +40,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         [Fact]
         public void GetDiscovererThatExists() {
-            CreateDiscovererFixtures(out var site, out var discoverers, out var modules);
+            CreateDiscovererFixtures(out _, out var discoverers, out var modules);
 
             using (var mock = AutoMock.GetLoose()) {
                 mock.Provide<IIoTHubTwinServices>(IoTHubServices.Create(modules));
                 IDiscovererRegistry service = mock.Create<DiscovererRegistry>();
 
                 // Run
-                var result = service.GetDiscovererAsync(discoverers.First().Id, false).Result;
+                var result = service.GetDiscovererAsync(discoverers.First().Id).Result;
 
                 // Assert
                 Assert.True(result.IsSameAs(discoverers.First()));
@@ -56,14 +56,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         [Fact]
         public void ListAllDiscoverers() {
-            CreateDiscovererFixtures(out var site, out var discoverers, out var modules);
+            CreateDiscovererFixtures(out _, out var discoverers, out var modules);
 
             using (var mock = AutoMock.GetLoose()) {
                 mock.Provide<IIoTHubTwinServices>(IoTHubServices.Create(modules));
                 IDiscovererRegistry service = mock.Create<DiscovererRegistry>();
 
                 // Run
-                var records = service.ListDiscoverersAsync(null, false, null).Result;
+                var records = service.ListDiscoverersAsync(null, null).Result;
 
                 // Assert
                 Assert.True(discoverers.IsSameAs(records.Items));
@@ -72,14 +72,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         [Fact]
         public void ListAllDiscoverersUsingQuery() {
-            CreateDiscovererFixtures(out var site, out var discoverers, out var modules);
+            CreateDiscovererFixtures(out _, out var discoverers, out var modules);
 
             using (var mock = AutoMock.GetLoose()) {
                 mock.Provide<IIoTHubTwinServices>(IoTHubServices.Create(modules));
                 IDiscovererRegistry service = mock.Create<DiscovererRegistry>();
 
                 // Run
-                var records = service.QueryDiscoverersAsync(null, false, null).Result;
+                var records = service.QueryDiscoverersAsync(null, null).Result;
 
                 // Assert
                 Assert.True(discoverers.IsSameAs(records.Items));
@@ -97,7 +97,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 // Run
                 var records = service.QueryDiscoverersAsync(new DiscovererQueryModel {
                     Discovery = DiscoveryMode.Network
-                }, false, null).Result;
+                }, null).Result;
 
                 // Assert
                 Assert.True(records.Items.Count == discoverers.Count(x => x.Discovery == DiscoveryMode.Network));
@@ -115,7 +115,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 // Run
                 var records = service.QueryDiscoverersAsync(new DiscovererQueryModel {
                     SiteId = site
-                }, false, null).Result;
+                }, null).Result;
 
                 // Assert
                 Assert.True(discoverers.IsSameAs(records.Items));
@@ -124,7 +124,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         [Fact]
         public void QueryDiscoverersByNoneExistantSiteId() {
-            CreateDiscovererFixtures(out var site, out var discoverers, out var modules, true);
+            CreateDiscovererFixtures(out _, out _, out var modules, true);
 
             using (var mock = AutoMock.GetLoose()) {
                 mock.Provide<IIoTHubTwinServices>(IoTHubServices.Create(modules));
@@ -133,7 +133,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 // Run
                 var records = service.QueryDiscoverersAsync(new DiscovererQueryModel {
                     SiteId = "test"
-                }, false, null).Result;
+                }, null).Result;
 
                 // Assert
                 Assert.True(records.Items.Count == 0);
@@ -163,7 +163,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 .ToList();
 
             modules = discoverers
-                .Select(a => a.ToDiscovererRegistration())
+                .Select(a => {
+                    var r = a.ToDiscovererRegistration();
+                    r._desired = r;
+                    return r;
+                })
                 .Select(a => a.ToDeviceTwin())
                 .Select(t => {
                     t.Properties.Reported = new Dictionary<string, JToken> {

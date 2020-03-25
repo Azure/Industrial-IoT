@@ -255,20 +255,30 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <inheritdoc />
-            public Task CloseAsync() {
+            public async Task CloseAsync() {
+                if (IsClosed) {
+                    return;
+                }
                 _client.OperationTimeoutInMilliseconds = 3000;
                 _client.SetRetryPolicy(new NoRetry());
-                return IsClosed ? Task.CompletedTask : _client.CloseAsync();
+                IsClosed = true;
+                await _client.CloseAsync();
             }
 
             /// <inheritdoc />
-            public Task SendEventAsync(Message message) {
-                return IsClosed ? Task.CompletedTask : _client.SendEventAsync(message);
+            public async Task SendEventAsync(Message message) {
+                if (IsClosed) {
+                    return;
+                }
+                await _client.SendEventAsync(message);
             }
 
             /// <inheritdoc />
-            public Task SendEventBatchAsync(IEnumerable<Message> messages) {
-                return IsClosed ? Task.CompletedTask : _client.SendEventBatchAsync(messages);
+            public async Task SendEventBatchAsync(IEnumerable<Message> messages) {
+                if (IsClosed) {
+                    return;
+                }
+                await _client.SendEventBatchAsync(messages);
             }
 
             /// <inheritdoc />
@@ -295,8 +305,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <inheritdoc />
-            public Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties) {
-                return IsClosed ? Task.CompletedTask : _client.UpdateReportedPropertiesAsync(reportedProperties);
+            public async Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties) {
+                if (IsClosed) {
+                    return;
+                }
+                await _client.UpdateReportedPropertiesAsync(reportedProperties);
             }
 
             /// <inheritdoc />
@@ -317,25 +330,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <inheritdoc />
-            public Task SetStreamsDefaultHandlerAsync(StreamCallback streamHandler,
-                object userContext) {
-                throw new NotSupportedException("Module client does not support streams");
-            }
-
-            /// <inheritdoc />
-            public Task SetStreamHandlerAsync(string streamName, StreamCallback
-                streamHandler, object userContext) {
-                throw new NotSupportedException("Module client does not support streams");
-            }
-
-            /// <inheritdoc />
-            public Task<Stream> CreateStreamAsync(string streamName, string hostName,
-                ushort port, CancellationToken cancellationToken) {
-                throw new NotSupportedException("Module client does not support streams");
-            }
-
-            /// <inheritdoc />
             public void Dispose() {
+                IsClosed = true;
                 _client?.Dispose();
             }
 
@@ -451,20 +447,30 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <inheritdoc />
-            public Task CloseAsync() {
+            public async Task CloseAsync() {
+                if (IsClosed) {
+                    return;
+                }
                 _client.OperationTimeoutInMilliseconds = 3000;
                 _client.SetRetryPolicy(new NoRetry());
-                return IsClosed ? Task.CompletedTask : _client.CloseAsync();
+                IsClosed = true;
+                await _client.CloseAsync();
             }
 
             /// <inheritdoc />
-            public Task SendEventAsync(Message message) {
-                return IsClosed ? Task.CompletedTask : _client.SendEventAsync(message);
+            public async Task SendEventAsync(Message message) {
+                if (IsClosed) {
+                    return;
+                }
+                await _client.SendEventAsync(message);
             }
 
             /// <inheritdoc />
-            public Task SendEventBatchAsync(IEnumerable<Message> messages) {
-                return IsClosed ? Task.CompletedTask : _client.SendEventBatchAsync(messages);
+            public async Task SendEventBatchAsync(IEnumerable<Message> messages) {
+                if (IsClosed) {
+                    return;
+                }
+                await _client.SendEventBatchAsync(messages);
             }
 
             /// <inheritdoc />
@@ -491,13 +497,19 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <inheritdoc />
-            public Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties) {
-                return IsClosed ? Task.CompletedTask : _client.UpdateReportedPropertiesAsync(reportedProperties);
+            public async Task UpdateReportedPropertiesAsync(TwinCollection reportedProperties) {
+                if (IsClosed) {
+                    return;
+                }
+                await _client.UpdateReportedPropertiesAsync(reportedProperties);
             }
 
             /// <inheritdoc />
-            public Task UploadToBlobAsync(string blobName, Stream source) {
-                return IsClosed ? Task.CompletedTask : _client.UploadToBlobAsync(blobName, source);
+            public async Task UploadToBlobAsync(string blobName, Stream source) {
+                if (IsClosed) {
+                    return;
+                }
+                await _client.UploadToBlobAsync(blobName, source);
             }
 
             /// <inheritdoc />
@@ -513,25 +525,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
             }
 
             /// <inheritdoc />
-            public Task SetStreamsDefaultHandlerAsync(StreamCallback streamHandler,
-                object userContext) {
-                throw new NotSupportedException("Device client does not support streams");
-            }
-
-            /// <inheritdoc />
-            public Task SetStreamHandlerAsync(string streamName, StreamCallback
-                streamHandler, object userContext) {
-                throw new NotSupportedException("Device client does not support streams");
-            }
-
-            /// <inheritdoc />
-            public Task<Stream> CreateStreamAsync(string streamName, string hostName,
-                ushort port, CancellationToken cancellationToken) {
-                throw new NotSupportedException("Device client does not support streams");
-            }
-
-            /// <inheritdoc />
             public void Dispose() {
+                IsClosed = true;
                 _client?.Dispose();
             }
 

@@ -2,9 +2,9 @@
 
 [Home](readme.md)
 
-All the cloud microservices of Industrial IoT platform have been instrumented with Application Insights already. The instrumentation monitors your app and sends telemetry data to Application Insights. 
+All the cloud microservices of Industrial IoT platform have been instrumented with Application Insights already. The instrumentation monitors your app and sends telemetry data to Application Insights.
 
-To send custom metrics from your microservice, first get an instance of `IMetricsLogger` by using constructor injection. A class `ApplicationInsightsMetrics` implements this interface and provides the necessary methods to create custom metrics. A singleton instance of `ApplicationInsightsMetrics` is already registered in the `DependencyInjection` container, which shares `TelemetryConfiguration` with rest of the telemetry. 
+To send custom metrics from your microservice, first get an instance of `IMetricsLogger` by using constructor injection. A class `ApplicationInsightsMetrics` implements this interface and provides the necessary methods to create custom metrics. A singleton instance of `ApplicationInsightsMetrics` is already registered in the `DependencyInjection` container, which shares `TelemetryConfiguration` with rest of the telemetry.
 
 Currently we abstract out and provide support to use three types of metrics : Counter, Gauge and Operation Duration.
 
@@ -18,11 +18,11 @@ Available methods to provide above metrics are :
 
 To begin using it, please have a look at the following examples:
 
-### Counters
+## Counters
 
 Each invocation of `TrackEvent` would set a value of 1.
 
-```
+```csharp
 using Microsoft.Azure.IIoT.Diagnostics;
 
 public class EndpointSecurityAlerter : IEndpointRegistryListener, IApplicationRegistryListener {
@@ -48,11 +48,11 @@ public class EndpointSecurityAlerter : IEndpointRegistryListener, IApplicationRe
 }
 ```
 
-### Gauges
+## Gauges
 
 Gauges can have any numeric value and change arbitrarily.
 
-```
+```csharp
 using Microsoft.Azure.IIoT.Diagnostics;
 
 public class EndpointSecurityAlerter : IEndpointRegistryListener, IApplicationRegistryListener {
@@ -78,11 +78,11 @@ public class EndpointSecurityAlerter : IEndpointRegistryListener, IApplicationRe
 }
 ```
 
-### Track operation duration
+## Track operation duration
 
 Timers can be used to report the duration of an operation(in milliseconds). Wrap the operation you want to measure in a using block.
 
-```
+```csharp
 using Microsoft.Azure.IIoT.Diagnostics;
 
 public class EndpointSecurityAlerter : IEndpointRegistryListener, IApplicationRegistryListener {
@@ -109,8 +109,6 @@ public class EndpointSecurityAlerter : IEndpointRegistryListener, IApplicationRe
     }
 }
 ```
-
-
 
 ***Please Note***:
 

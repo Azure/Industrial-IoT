@@ -56,12 +56,26 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         TenantId = tenantId,
                         ObjectId = serviceApplicationSP.Id,
                         Permissions = new Permissions {
+                            Keys = new List<KeyPermissions> {
+                                KeyPermissions.Get,
+                                KeyPermissions.List,
+                                KeyPermissions.Sign,
+                                KeyPermissions.UnwrapKey,
+                                KeyPermissions.WrapKey,
+                                KeyPermissions.Create
+                            },
                             Secrets = new List<SecretPermissions> {
-                                SecretPermissions.Get
+                                SecretPermissions.Get,
+                                SecretPermissions.List,
+                                SecretPermissions.Set,
+                                SecretPermissions.Delete
                             },
                             Certificates = new List<CertificatePermissions> {
                                 CertificatePermissions.Get,
-                                CertificatePermissions.List
+                                CertificatePermissions.List,
+                                CertificatePermissions.Update,
+                                CertificatePermissions.Create,
+                                CertificatePermissions.Import
                             }
                         }
                     },
@@ -72,7 +86,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                             Keys = new List<KeyPermissions> {
                                 KeyPermissions.Get,
                                 KeyPermissions.List,
-                                KeyPermissions.Sign 
+                                KeyPermissions.Sign,
+                                KeyPermissions.Create
                             },
                             Secrets = new List<SecretPermissions> {
                                 SecretPermissions.Get,

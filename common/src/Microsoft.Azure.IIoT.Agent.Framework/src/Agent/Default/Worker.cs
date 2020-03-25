@@ -116,6 +116,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
             catch (OperationCanceledException) { }
             finally {
                 _cts?.Dispose();
+                _cts = null;
                 _lock.Release();
             }
         }

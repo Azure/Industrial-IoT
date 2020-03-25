@@ -17,36 +17,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// Get all discoverers in paged form
         /// </summary>
         /// <param name="continuation"></param>
-        /// <param name="onlyServerState"></param>
         /// <param name="pageSize"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<DiscovererListModel> ListDiscoverersAsync(
-            string continuation, bool onlyServerState = false,
-            int? pageSize = null, CancellationToken ct = default);
+            string continuation, int? pageSize = null,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Find discoverers using specific criterias.
         /// </summary>
         /// <param name="query"></param>
-        /// <param name="onlyServerState"></param>
         /// <param name="pageSize"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<DiscovererListModel> QueryDiscoverersAsync(
-            DiscovererQueryModel query, bool onlyServerState = false,
-            int? pageSize = null,
+            DiscovererQueryModel query, int? pageSize = null,
             CancellationToken ct = default);
 
         /// <summary>
         /// Get discoverer registration by identifer.
         /// </summary>
-        /// <param name="onlyServerState"></param>
         /// <param name="id"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        Task<DiscovererModel> GetDiscovererAsync(
-            string id, bool onlyServerState = false,
+        Task<DiscovererModel> GetDiscovererAsync(string id,
             CancellationToken ct = default);
 
         /// <summary>

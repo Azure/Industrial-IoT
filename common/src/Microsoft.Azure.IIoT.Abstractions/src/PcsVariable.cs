@@ -62,7 +62,7 @@ namespace Microsoft.Azure.IIoT {
         public const string PCS_EVENTHUB_NAME =
             "PCS_EVENTHUB_NAME";
         /// <summary> Event hub consumer group telemetrycdm </summary>
-        public const string PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_CDM = 
+        public const string PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_CDM =
             "PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_CDM";
         /// <summary> Event hub consumer group telemetryux </summary>
         public const string PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_UX =

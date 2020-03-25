@@ -29,25 +29,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
 
         /// <inheritdoc/>
         public string ApplicationName =>
-            GetStringOrDefault(ApplicationNameKey, "Microsoft.Azure.IIoT");
+            GetStringOrDefault(ApplicationNameKey, () => "Microsoft.Azure.IIoT");
         /// <inheritdoc/>
         public string ApplicationUri =>
-            GetStringOrDefault(ApplicationUriKey, $"urn:{Dns.GetHostName()}:{ApplicationName}:microsoft:");
+            GetStringOrDefault(ApplicationUriKey, () => $"urn:{Dns.GetHostName()}:{ApplicationName}:microsoft:");
         /// <inheritdoc/>
         public string ProductUri =>
-            GetStringOrDefault(ProductUriKey, "https://www.github.com/Azure/Industrial-IoT");
+            GetStringOrDefault(ProductUriKey, () => "https://www.github.com/Azure/Industrial-IoT");
         /// <inheritdoc/>
         public uint DefaultSessionTimeout =>
-            (uint)GetDurationOrDefault(DefaultSessionTimeoutKey, TimeSpan.Zero).TotalMilliseconds;
+            (uint)GetDurationOrDefault(DefaultSessionTimeoutKey, () => TimeSpan.Zero).TotalMilliseconds;
         /// <inheritdoc/>
         public int MinSubscriptionLifetime =>
-            (int)GetDurationOrDefault(MinSubscriptionLifetimeKey, TimeSpan.Zero).TotalMilliseconds;
+            (int)GetDurationOrDefault(MinSubscriptionLifetimeKey, () => TimeSpan.Zero).TotalMilliseconds;
         /// <inheritdoc/>
         public int KeepAliveInterval =>
-            (int)GetDurationOrDefault(KeepAliveIntervalKey, TimeSpan.FromSeconds(10)).TotalMilliseconds;
+            (int)GetDurationOrDefault(KeepAliveIntervalKey, () => TimeSpan.FromSeconds(10)).TotalMilliseconds;
         /// <inheritdoc/>
         public uint MaxKeepAliveCount =>
-            (uint)GetIntOrDefault(MaxKeepAliveCountKey, 5);
+            (uint)GetIntOrDefault(MaxKeepAliveCountKey, () => 5);
 
 
         /// <inheritdoc/>

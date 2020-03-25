@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Opc.Ua.Client;
     using System.Threading.Tasks;
     using System;
@@ -18,6 +19,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
         /// Connection
         /// </summary>
         ConnectionModel Connection { get; }
+
+        /// <summary>
+        /// State
+        /// </summary>
+        EndpointConnectivityState State { get; }
 
         /// <summary>
         /// Session

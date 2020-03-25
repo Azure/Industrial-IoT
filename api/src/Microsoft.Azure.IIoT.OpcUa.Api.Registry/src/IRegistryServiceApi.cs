@@ -329,12 +329,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// Get discoverer
         /// </summary>
         /// <param name="discovererId"></param>
-        /// <param name="onlyServerState"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<DiscovererApiModel> GetDiscovererAsync(
-            string discovererId, bool? onlyServerState = null,
-            CancellationToken ct = default);
+            string discovererId, CancellationToken ct = default);
 
         /// <summary>
         /// Update discoverer including config updates.
@@ -351,13 +349,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// List all discoverers
         /// </summary>
         /// <param name="continuation"></param>
-        /// <param name="onlyServerState"></param>
         /// <param name="pageSize"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<DiscovererListApiModel> ListDiscoverersAsync(
-            string continuation = null, bool? onlyServerState = null,
-            int? pageSize = null, CancellationToken ct = default);
+            string continuation = null, int? pageSize = null,
+            CancellationToken ct = default);
 
         /// <summary>
         /// Find discoverers based on specified criteria. Pass
@@ -365,12 +362,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry {
         /// retrieve remaining items.
         /// </summary>
         /// <param name="query"></param>
-        /// <param name="onlyServerState"></param>
         /// <param name="pageSize"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
         Task<DiscovererListApiModel> QueryDiscoverersAsync(
-            DiscovererQueryApiModel query, bool? onlyServerState = null,
+            DiscovererQueryApiModel query,
             int? pageSize = null, CancellationToken ct = default);
 
         /// <summary>

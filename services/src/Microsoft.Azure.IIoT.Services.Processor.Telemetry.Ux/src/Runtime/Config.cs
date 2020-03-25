@@ -17,10 +17,10 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux.Runtime {
     /// <summary>
     /// Telemetry processor service configuration
     /// </summary>
-    public class Config : DiagnosticsConfig, IEventProcessorConfig, 
-        IEventHubConsumerConfig, ISignalRServiceConfig {
+    public class Config : DiagnosticsConfig, IEventProcessorConfig,
+        IEventHubConsumerConfig, ISignalRServiceConfig, IEventProcessorHostConfig {
 
-        private const string kEventHubConsumerGroupTelemetryUxKey = 
+        private const string kEventHubConsumerGroupTelemetryUxKey =
             "EventHubConsumerGroupTelemetryUx";
 
         /// <inheritdoc/>
@@ -29,8 +29,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux.Runtime {
         public string EventHubPath => _eh.EventHubPath;
         /// <summary> Event hub consumer group telemetry ux</summary>
         public string ConsumerGroup => GetStringOrDefault(kEventHubConsumerGroupTelemetryUxKey,
-            GetStringOrDefault(PcsVariable.PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_UX,
-                "telemetryux"));
+            () => GetStringOrDefault(PcsVariable.PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_UX,
+                () => "telemetryux"));
         /// <inheritdoc/>
         public bool UseWebsockets => _eh.UseWebsockets;
         /// <inheritdoc/>
@@ -41,6 +41,11 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux.Runtime {
         public string BlobStorageConnString => _ep.BlobStorageConnString;
         /// <inheritdoc/>
         public string LeaseContainerName => _ep.LeaseContainerName;
+        /// <inheritdoc/>
+        public bool InitialReadFromEnd => true;
+        /// <inheritdoc/>
+        public TimeSpan? CheckpointInterval => _ep.CheckpointInterval;
+
         /// <inheritdoc/>
         public string SignalRHubName => _sr.SignalRHubName;
         /// <inheritdoc/>

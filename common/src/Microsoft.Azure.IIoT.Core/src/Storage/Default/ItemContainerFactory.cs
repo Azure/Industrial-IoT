@@ -26,22 +26,12 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
         }
 
         /// <summary>
-        /// Create container factory - the container name is the specified
-        /// service id, which allows binding containers to service.
-        /// </summary>
-        /// <param name="server"></param>
-        /// <param name="process"></param>
-        public ItemContainerFactory(IDatabaseServer server, IProcessIdentity process) :
-            this(server, null, process?.ServiceId) {
-        }
-
-        /// <summary>
         /// Create container factory
         /// </summary>
         /// <param name="server"></param>
         /// <param name="database"></param>
         /// <param name="container"></param>
-        public ItemContainerFactory(IDatabaseServer server, string database,
+        private ItemContainerFactory(IDatabaseServer server, string database,
             string container) {
             _server = server ?? throw new ArgumentNullException(nameof(server));
             _container = container;

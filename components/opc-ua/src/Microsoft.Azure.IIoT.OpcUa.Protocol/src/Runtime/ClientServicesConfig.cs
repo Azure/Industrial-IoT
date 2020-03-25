@@ -29,28 +29,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Runtime {
 
         /// <inheritdoc/>
         public string AppCertStoreType => GetStringOrDefault(AppCertStoreTypeKey,
-            RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "X509Store" : "Directory");
+            () => RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ?
+                "X509Store" : "Directory");
         /// <inheritdoc/>
         public string PkiRootPath =>
-            GetStringOrDefault(PkiRootPathKey, "pki");
+            GetStringOrDefault(PkiRootPathKey,
+                () => "pki");
         /// <inheritdoc/>
         public string OwnCertPath =>
-            GetStringOrDefault(OwnCertPathKey, PkiRootPath + "/own");
+            GetStringOrDefault(OwnCertPathKey,
+                () => PkiRootPath + "/own");
         /// <inheritdoc/>
         public string TrustedCertPath =>
-            GetStringOrDefault(TrustedCertPathKey, PkiRootPath + "/trusted");
+            GetStringOrDefault(TrustedCertPathKey,
+                () => PkiRootPath + "/trusted");
         /// <inheritdoc/>
         public string IssuerCertPath =>
-            GetStringOrDefault(IssuerCertPathKey, PkiRootPath + "/issuer");
+            GetStringOrDefault(IssuerCertPathKey,
+                () => PkiRootPath + "/issuer");
         /// <inheritdoc/>
         public string RejectedCertPath =>
-            GetStringOrDefault(RejectedCertPathKey, PkiRootPath + "/rejected");
+            GetStringOrDefault(RejectedCertPathKey,
+                () => PkiRootPath + "/rejected");
         /// <inheritdoc/>
         public string OwnCertX509StorePathDefault =>
-            GetStringOrDefault(OwnCertX509StorePathDefaultKey, "CurrentUser\\UA_MachineDefault");
+            GetStringOrDefault(OwnCertX509StorePathDefaultKey,
+                () => "CurrentUser\\UA_MachineDefault");
         /// <inheritdoc/>
         public bool AutoAcceptUntrustedCertificates =>
-            GetBoolOrDefault(AutoAcceptKey, false);
+            GetBoolOrDefault(AutoAcceptKey);
         /// <inheritdoc/>
         public TimeSpan? DefaultSessionTimeout =>
             GetDurationOrNull(SessionTimeoutKey);

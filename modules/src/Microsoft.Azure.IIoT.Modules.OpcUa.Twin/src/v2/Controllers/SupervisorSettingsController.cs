@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
-    using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.Module.Framework;
+    using Microsoft.Azure.IIoT.OpcUa.Edge;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Serilog;
     using Serilog.Events;
@@ -57,6 +57,18 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
         }
 
         /// <summary>
+        /// Create controller with service
+        /// </summary>
+        /// <param name="supervisor"></param>
+        /// <param name="logger"></param>
+        public SupervisorSettingsController(ISupervisorServices supervisor,
+            ILogger logger) {
+            _supervisor = supervisor ?? throw new ArgumentNullException(nameof(supervisor));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _endpoints = new Dictionary<string, string>();
+        }
+
+        /// <summary>
         /// Called to start or remove twins
         /// </summary>
         /// <param name="endpointId"></param>
@@ -82,15 +94,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
         }
 
         /// <summary>
-        /// Create controller with service
+        /// Returns all currently existing endpoints
         /// </summary>
-        /// <param name="activator"></param>
-        /// <param name="logger"></param>
-        public SupervisorSettingsController(IActivationServices<string> activator,
-            ILogger logger) {
-            _activator = activator ?? throw new ArgumentNullException(nameof(activator));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _endpoints = new Dictionary<string, string>();
+        /// <returns></returns>
+        public IEnumerable<string> GetPropertyNames() {
+            return _supervisor.GetStatusAsync().Result.Endpoints.Select(e => e.Id);
         }
 
         /// <summary>
@@ -101,18 +109,18 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
             foreach (var item in _endpoints.ToList()) {
                 if (string.IsNullOrEmpty(item.Value)) {
                     try {
-                        await _activator.DeactivateEndpointAsync(item.Key);
+                        await _supervisor.DetachEndpointAsync(item.Key);
                     }
                     catch (Exception ex) {
-                        _logger.Error(ex, "Error stopping twin {Key}", item.Key);
+                        _logger.Error(ex, "Error detaching twin {Key}", item.Key);
                     }
                 }
                 else {
                     try {
-                        await _activator.ActivateEndpointAsync(item.Key, item.Value);
+                        await _supervisor.AttachEndpointAsync(item.Key, item.Value);
                     }
                     catch (Exception ex) {
-                        _logger.Error(ex, "Error starting twin {Key}", item.Key);
+                        _logger.Error(ex, "Error attaching twin {Key}", item.Key);
                     }
                 }
                 _endpoints.Remove(item.Key);
@@ -120,7 +128,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
         }
 
         private readonly Dictionary<string, string> _endpoints;
-        private readonly IActivationServices<string> _activator;
+        private readonly ISupervisorServices _supervisor;
         private readonly ILogger _logger;
     }
 }

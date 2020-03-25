@@ -45,6 +45,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         public DiscoveryConfigApiModel DiscoveryConfig { get; set; }
 
         /// <summary>
+        /// Requested discovery mode
+        /// </summary>
+        [JsonProperty(PropertyName = "requestedMode",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(DiscoveryMode.Off)]
+        public DiscoveryMode? RequestedMode { get; set; }
+
+        /// <summary>
+        /// Requested discoverer configuration
+        /// </summary>
+        [JsonProperty(PropertyName = "requestedConfig",
+            NullValueHandling = NullValueHandling.Ignore)]
+        [DefaultValue(null)]
+        public DiscoveryConfigApiModel RequestedConfig { get; set; }
+
+        /// <summary>
         /// Current log level
         /// </summary>
         [JsonProperty(PropertyName = "logLevel",

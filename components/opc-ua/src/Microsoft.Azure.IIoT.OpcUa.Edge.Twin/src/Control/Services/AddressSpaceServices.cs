@@ -879,7 +879,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                             }
                         }
                         catch (Exception ex) {
-                            _logger.Debug(ex, "Failed to obtain child information");
+                            _logger.Information(ex, "Failed to obtain child information");
                         }
                     }
                     var model = await ReadNodeModelAsync(session, codec, header, nodeId,

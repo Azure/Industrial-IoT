@@ -17,6 +17,8 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.History;
+    using Microsoft.Azure.IIoT.OpcUa.Api.History.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault;
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
@@ -77,6 +79,8 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<RegistryServiceClient>()
                 .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<HistoryServiceClient>()
+                .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<VaultServiceClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<PublisherServiceClient>()
@@ -120,6 +124,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             _scope = container.BeginLifetimeScope();
             _twin = _scope.Resolve<ITwinServiceApi>();
             _registry = _scope.Resolve<IRegistryServiceApi>();
+            _history = _scope.Resolve<IHistoryServiceApi>();
             _publisher = _scope.Resolve<IPublisherServiceApi>();
             _vault = _scope.Resolve<IVaultServiceApi>();
             _jobs = _scope.Resolve<IJobsServiceApi>();
@@ -1593,15 +1598,13 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// </summary>
         private async Task ListDiscoverersAsync(CliOptions options) {
             if (options.IsSet("-A", "--all")) {
-                var result = await _registry.ListAllDiscoverersAsync(
-                    options.IsProvidedOrNull("-S", "--server"));
+                var result = await _registry.ListAllDiscoverersAsync();
                 PrintResult(options, result);
                 Console.WriteLine($"{result.Count()} item(s) found...");
             }
             else {
                 var result = await _registry.ListDiscoverersAsync(
                     options.GetValueOrDefault<string>("-C", "--continuation", null),
-                    options.IsProvidedOrNull("-S", "--server"),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
             }
@@ -1624,7 +1627,6 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             }
             else {
                 var result = await _registry.QueryDiscoverersAsync(query,
-                    options.IsProvidedOrNull("-S", "--server"),
                     options.GetValueOrDefault<int>("-P", "--page-size", null));
                 PrintResult(options, result);
             }
@@ -1634,8 +1636,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// Get discoverer
         /// </summary>
         private async Task GetDiscovererAsync(CliOptions options) {
-            var result = await _registry.GetDiscovererAsync(GetDiscovererId(options),
-                options.IsProvidedOrNull("-S", "--server"));
+            var result = await _registry.GetDiscovererAsync(GetDiscovererId(options));
             PrintResult(options, result);
         }
 
@@ -2463,51 +2464,12 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// Get status
         /// </summary>
         private async Task GetStatusAsync(CliOptions options) {
-            try {
-                var cfg = _scope.Resolve<ITwinConfig>();
-                Console.WriteLine($"Connecting to {cfg.OpcUaTwinServiceUrl}...");
-                var result = await _twin.GetServiceStatusAsync();
-                PrintResult(options, result);
-            }
-            catch (Exception ex) {
-                PrintResult(options, ex);
-            }
-            try {
-                var cfg = _scope.Resolve<IRegistryConfig>();
-                Console.WriteLine($"Connecting to {cfg.OpcUaRegistryServiceUrl}...");
-                var result = await _registry.GetServiceStatusAsync();
-                PrintResult(options, result);
-            }
-            catch (Exception ex) {
-                PrintResult(options, ex);
-            }
-            try {
-                var cfg = _scope.Resolve<IVaultConfig>();
-                Console.WriteLine($"Connecting to {cfg.OpcUaVaultServiceUrl}...");
-                var result = await _vault.GetServiceStatusAsync();
-                PrintResult(options, result);
-            }
-            catch (Exception ex) {
-                PrintResult(options, ex);
-            }
-            try {
-                var cfg = _scope.Resolve<IPublisherConfig>();
-                Console.WriteLine($"Connecting to {cfg.OpcUaPublisherServiceUrl}...");
-                var result = await _publisher.GetServiceStatusAsync();
-                PrintResult(options, result);
-            }
-            catch (Exception ex) {
-                PrintResult(options, ex);
-            }
-            try {
-                var cfg = _scope.Resolve<IJobsServiceConfig>();
-                Console.WriteLine($"Connecting to {cfg.JobServiceUrl}...");
-                var result = await _jobs.GetServiceStatusAsync();
-                PrintResult(options, result);
-            }
-            catch (Exception ex) {
-                PrintResult(options, ex);
-            }
+            Console.WriteLine("Twin:      " + await _twin.GetServiceStatusAsync());
+            Console.WriteLine("Registry:  " + await _registry.GetServiceStatusAsync());
+            Console.WriteLine("Publisher: " + await _publisher.GetServiceStatusAsync());
+            Console.WriteLine("Jobs:      " + await _jobs.GetServiceStatusAsync());
+            Console.WriteLine("Vault:     " + await _vault.GetServiceStatusAsync());
+            Console.WriteLine("History:   " + await _history.GetServiceStatusAsync());
         }
 
         /// <summary>
@@ -2697,19 +2659,19 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
 
             var netProbeTimeout = options.GetValueOrDefault<int>("-T", "--address-probe-timeout", null);
             if (netProbeTimeout != null && netProbeTimeout != 0) {
-                config.NetworkProbeTimeoutMs = netProbeTimeout.Value;
+                config.NetworkProbeTimeout = TimeSpan.FromMilliseconds(netProbeTimeout.Value);
                 empty = false;
             }
 
             var portProbeTimeout = options.GetValueOrDefault<int>("-t", "--port-probe-timeout", null);
             if (portProbeTimeout != null && portProbeTimeout != 0) {
-                config.PortProbeTimeoutMs = portProbeTimeout.Value;
+                config.PortProbeTimeout = TimeSpan.FromMilliseconds(portProbeTimeout.Value);
                 empty = false;
             }
 
             var idleTime = options.GetValueOrDefault<int>("-I", "--idle-time", null);
             if (idleTime != null && idleTime != 0) {
-                config.IdleTimeBetweenScansSec = idleTime.Value;
+                config.IdleTimeBetweenScans = TimeSpan.FromSeconds(idleTime.Value);
                 empty = false;
             }
             return empty ? null : config;
@@ -3002,7 +2964,7 @@ Commands and Options
         -i, --id        Id of endpoint to browse (mandatory)
         -n, --nodeid    Node to browse
         -x, --maxrefs   Max number of references
-        -x, --direction Browse direction (Forward, Backward, Both)
+        -d, --direction Browse direction (Forward, Backward, Both)
         -r, --recursive Browse recursively and read node values
         -v, --readvalue Read node values in browse
         -t, --targets   Only return target nodes
@@ -3261,7 +3223,6 @@ Commands and Options
 
      list        List discoverers
         with ...
-        -S, --server    Return only server state (default:false)
         -C, --continuation
                         Continuation from previous result.
         -P, --page-size Size of page
@@ -3269,7 +3230,6 @@ Commands and Options
         -F, --format    Json format for result
 
      query       Find discoverers
-        -S, --server    Return only server state (default:false)
         -c, --connected Only return connected or disconnected.
         -d, --discovery Discovery state.
         -s, --siteId    Site of the discoverers.
@@ -3279,7 +3239,6 @@ Commands and Options
 
      get         Get discoverer
         with ...
-        -S, --server    Return only server state (default:false)
         -i, --id        Id of discoverer to retrieve (mandatory)
         -F, --format    Json format for result
 
@@ -3568,6 +3527,7 @@ Commands and Options
         private readonly IJobsServiceApi _jobs;
         private readonly IPublisherServiceApi _publisher;
         private readonly IRegistryServiceApi _registry;
+        private readonly IHistoryServiceApi _history;
         private readonly IVaultServiceApi _vault;
     }
 }
