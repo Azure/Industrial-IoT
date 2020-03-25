@@ -158,83 +158,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                     _logger.Warning("Manifest is not assigned yet. Retry ... ");
                     await OpenAsync();
                 }
-
                 foreach (var record in _samplesCache) {
                     if (record.Value.Count == 0 || record.Value[0] == null) {
                         _logger.Error("Samples list is empty ...");
                         continue;
                     }
-                    var retry = false;
-                    do {
-                        var partition = GetOrCreateEntityDataPartition(record.Key,
-                            record.Value[0], out var persist, retry);
-                        if (partition == null) {
-                            _logger.Error("Failed to create CDM Entity for " +
-                                "{PublisherId}/{DataSetWriterId}/{NodeId}).",
-                                record.Value[0].PublisherId, record.Value[0].DataSetWriterId,
-                                record.Value[0].NodeId);
-                            continue;
-                        }
-                        performSave |= persist;
-
-                        var csvTrait = partition.ExhibitsTraits.Item("is.partition.format.CSV");
-                        var partitionUrl = _cdmCorpus.Storage.CorpusPathToAdapterPath(partition.Location);
-                        var partitionDelimitor = csvTrait?.Arguments?.FetchValue("delimiter") ?? kCsvPartitionsDelimiter;
-                        var result = await _storage.WriteInCsvPartition<MonitoredItemSampleModel>(
-                            partitionUrl, record.Value, partitionDelimitor);
-                        if (result == false && retry == false) {
-                            retry = true;
-                        }
-                        else {
-                            retry = false;
-                        }
-                    } while (retry);
-
-                    _logger.Information("Successfully processed CDM data {count}" +
-                        " MonitoredItemSample records.", record.Value.Count);
+                    performSave |= await WriteRecordToPartition<MonitoredItemSampleModel>(
+                        record.Key, record.Value);
                 }
-
                 foreach (var record in _dataSetsCache) {
-                    if (record.Value.Count == 0 ||record.Value[0] == null) {
+                    if (record.Value.Count == 0 || record.Value[0] == null) {
                         _logger.Error("DataSet list is empty ...");
                         continue;
                     }
-                    var retry = false;
-                    do {
-                        var partition = GetOrCreateEntityDataPartition(record.Key,
-                            record.Value[0], out var persist, retry);
-                        if (partition == null) {
-                            _logger.Error("Failed to create CDM Entity for " +
-                                "{PublisherId}/{DataSetWriterId}/{DataSetClassId}/{MetaDataVersion}).",
-                                record.Value[0].PublisherId, record.Value[0].DataSetWriterId,
-                                record.Value[0].DataSetClassId, record.Value[0].MetaDataVersion);
-                            continue;
-                        }
-                        performSave |= persist;
-
-                        var csvTrait = partition.ExhibitsTraits.Item("is.partition.format.CSV");
-                        var partitionUrl = _cdmCorpus.Storage.CorpusPathToAdapterPath(partition.Location);
-                        var partitionDelimitor = csvTrait?.Arguments?.FetchValue("delimiter") ?? kCsvPartitionsDelimiter;
-                        var result = await _storage.WriteInCsvPartition<DataSetMessageModel>(
-                            partitionUrl, record.Value, partitionDelimitor);
-                        if (result == false && retry == false) {
-                            retry = true;
-                        }
-                        else {
-                            retry = false;
-                        }
-                    } while (retry);
-
-                    _logger.Information("Successfully processed CDM data {count} DataSet records.",
-                        record.Value.Count);
+                    performSave |= await WriteRecordToPartition<DataSetMessageModel>(
+                        record.Key, record.Value);
                 }
-
                 if (performSave) {
-                    if (Manifest != null) {
-                        await Manifest.SaveAsAsync("model.json", true);
-                    }
+                    await Manifest.SaveAsAsync("model.json", true);
                 }
-                _logger.Information("Finished sending CDM data records - duration {elapsed}).", sw.Elapsed);
+                _logger.Information("Finished sending CDM data records - duration {elapsed}).",
+                    sw.Elapsed);
             }
             catch (Exception ex) {
                 _logger.Warning(ex, "Failed to send processed CDM data after {elapsed}",
@@ -245,10 +189,53 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                     list!.Clear();
                 }
                 _samplesCache.Clear();
+                foreach (var list in _dataSetsCache.Values) {
+                    list!.Clear();
+                }
                 _dataSetsCache.Clear();
                 _samplesCacheSize = 0;
             }
             sw.Stop();
+        }
+
+        /// <inheritdoc/>
+        private async Task<bool> WriteRecordToPartition<T>(string partitionKey, IList<T> record) {
+            var retry = false;
+            var result = true;
+            bool persist;
+            var dataSetRecordList = record as List<DataSetMessageModel>;
+            var samplesRecordList = record as List<MonitoredItemSampleModel>;
+            do {
+                var partition = (dataSetRecordList != null)
+                    ? GetOrCreateEntityDataPartition(partitionKey, dataSetRecordList[0], out persist, retry)
+                    : GetOrCreateEntityDataPartition(partitionKey, samplesRecordList[0], out persist, retry);
+                if (partition == null) {
+                    _logger.Error("Failed to create CDM Entity for {key} records).", partitionKey);
+                    continue;
+                }
+                var csvTrait = partition.ExhibitsTraits.Item("is.partition.format.CSV");
+                var partitionUrl = _cdmCorpus.Storage.CorpusPathToAdapterPath(partition.Location);
+                var partitionDelimitor = csvTrait?.Arguments?.FetchValue("delimiter") ?? kCsvPartitionsDelimiter;
+                result = (dataSetRecordList != null)
+                    ? await _storage.WriteInCsvPartition<DataSetMessageModel>(
+                        partitionUrl, dataSetRecordList, partitionDelimitor)
+                    : await _storage.WriteInCsvPartition<MonitoredItemSampleModel>(
+                        partitionUrl, samplesRecordList, partitionDelimitor);
+                if (result == false && retry == false) {
+                    retry = true;
+                }
+                else {
+                    retry = false;
+                }
+            } while (retry);
+
+            if (result) {
+                _logger.Information("Successfully processed to CDM {count} records.", record.Count);
+            }
+            else {
+                _logger.Warning("Failed to process CDM data for {record.Key} records.", partitionKey);
+            }
+            return persist;
         }
 
         /// <inheritdoc/>
