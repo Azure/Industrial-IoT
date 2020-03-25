@@ -116,8 +116,8 @@ namespace Microsoft.Azure.IIoT.App {
             app.UseRouting();
             app.UseRewriter(
                 new RewriteOptions().Add(context => {
-                    if (context.HttpContext.Request.Path == "/AzureAD/Account/SignedOut") {
-                        context.HttpContext.Response.Redirect("/discoverers");
+                    if (context.HttpContext.Request.Path == Config.ServicePathBase +  "/AzureAD/Account/SignedOut") {
+                        context.HttpContext.Response.Redirect(Config.ServicePathBase + "/discoverers");
                         context.HttpContext.SignOutAsync("Cookies");
                     }
                 })
