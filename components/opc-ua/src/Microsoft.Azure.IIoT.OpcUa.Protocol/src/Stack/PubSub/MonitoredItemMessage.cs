@@ -5,6 +5,7 @@
 
 namespace Opc.Ua.PubSub {
     using System;
+    using Opc.Ua.Encoders;
     using System.Collections.Generic;
 
     /// <summary>
@@ -239,13 +240,10 @@ namespace Opc.Ua.PubSub {
             if (Value.StatusCode != 0) {
                 MessageContentMask |= (uint)MonitoredItemMessageContentMask.StatusCode;
             }
-            var dictionary = (KeyValuePairCollection)decoder.ReadEncodeableArray("ExtensionFields", typeof(Ua.KeyValuePair));
-            if (dictionary != null && dictionary.Count > 0) {
+            var jsonDecoder = decoder as JsonDecoderEx;
+            ExtensionFields = (Dictionary<string,string>)jsonDecoder.ReadStringDictionary(nameof(ExtensionFields));
+            if (ExtensionFields != null) {
                 MessageContentMask |= (uint)MonitoredItemMessageContentMask.ExtensionFields;
-                ExtensionFields = new Dictionary<string, string>(dictionary.Count);
-                foreach (var item in dictionary) {
-                    ExtensionFields[item.Key.Name] = item.Value.ToString();
-                }
             }
         }
 
@@ -308,14 +306,8 @@ namespace Opc.Ua.PubSub {
             encoder.WriteDataValue("Value", Value);
             if ((MessageContentMask & (uint)MonitoredItemMessageContentMask.ExtensionFields) != 0) {
                 if (ExtensionFields != null) {
-                    var dictionary = new KeyValuePairCollection();
-                    foreach (var item in ExtensionFields) {
-                        dictionary.Add(new Ua.KeyValuePair() {
-                            Key = item.Key,
-                            Value = item.Value
-                        });
-                    }
-                    encoder.WriteEncodeableArray("ExtensionFields", dictionary.ToArray(), typeof(Ua.KeyValuePair));
+                    var jsonEncoder = encoder as JsonEncoderEx;
+                    jsonEncoder.WriteStringDictionary(nameof(ExtensionFields), ExtensionFields);
                 }
             }
         }

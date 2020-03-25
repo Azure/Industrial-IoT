@@ -6,7 +6,6 @@
 namespace Opc.Ua.PubSub {
     using System;
     using Opc.Ua.Encoders;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Data set message

@@ -89,7 +89,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "mm|messagingmode=", "The messaging mode for messages " +
                         $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(MessagingMode)))}).",
                         (MessagingMode m) => this[LegacyCliConfigKeys.MessagingMode] = m.ToString() },
-                    { "fm|fullfeaturedmessage=", "The full featured mode for messages (all fields filled in)." ,
+                    { "fm|fullfeaturedmessage=", "The full featured mode for messages (all fields filled in)." + 
+                        "Default is 'true', for legacy compatibility use 'false'",
                         (bool b) => this[LegacyCliConfigKeys.FullFeaturedMessage] = b.ToString() },
 
                     // Client settings

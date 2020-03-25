@@ -642,6 +642,11 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
+        public IDictionary<string, string> ReadStringDictionary(string property) {
+            return ReadDictionary(property, () => ReadString(null));
+        }
+
+        /// <inheritdoc/>
         public DateTimeCollection ReadDateTimeArray(string property) {
             return ReadArray(property, () => ReadDateTime(null));
         }
@@ -703,9 +708,7 @@ namespace Opc.Ua.Encoders {
 
         /// <inheritdoc/>
         public IDictionary<string, DataValue> ReadDataValueDictionary(string property) {
-
             return ReadDictionary(property, () => ReadDataValue(null));
-
         }
 
         /// <inheritdoc/>

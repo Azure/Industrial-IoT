@@ -859,6 +859,11 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
+        public void WriteStringDictionary(string property, IDictionary<string, string> values) {
+            WriteDictionary(property, values, (k, v) => WriteString(k, v));
+        }
+
+        /// <inheritdoc/>
         public void WriteDateTimeArray(string property, IList<DateTime> values) {
             WriteArray(property, values, v => WriteDateTime(null, v));
         }
