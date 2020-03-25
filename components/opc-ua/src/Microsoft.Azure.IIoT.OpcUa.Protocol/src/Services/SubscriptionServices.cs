@@ -113,7 +113,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         var subscription = session.Subscriptions
                             .SingleOrDefault(s => s.DisplayName == Id);
                         if (subscription != null) {
-                            session.RemoveSubscription(subscription);
+                            Try.Op(() => subscription.RemoveItems(subscription.MonitoredItems));
+                            Try.Op(() => subscription.DeleteItems());
+                            Try.Op(() => session.RemoveSubscription(subscription));
                         }
                         // Cleanup session if empty
                         await _outer._sessionManager.RemoveSessionAsync(Connection);
@@ -160,6 +162,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     var rawSubscription = await GetSubscriptionAsync(configuration);
 
                     ReviseConfiguration(rawSubscription, configuration);
+
+                    if (configuration?.ResolveDisplayName ?? false) {
+                        await ResolveDisplayName(rawSubscription, monitoredItems);
+                    }
 
                     await SetMonitoredItemsAsync(rawSubscription, monitoredItems);
                 }
@@ -239,6 +245,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (modifySubscription) {
                     _subscription.Configuration = configuration.Clone();
                     rawSubscription.Modify();
+                }
+            }
+
+            /// <summary>
+            /// reads the display name of the nodes to be monitored
+            /// </summary>
+            /// <param name="rawSubscription"></param>
+            /// <param name="monitoredItems"></param>
+            /// <returns></returns>
+            private async Task ResolveDisplayName(Subscription rawSubscription, IEnumerable<MonitoredItemModel> monitoredItems) {
+                var session = await _outer._sessionManager.GetOrCreateSessionAsync(Connection, true);
+                var nodeIds = monitoredItems.Select(n => n.StartNodeId.ToNodeId(session.MessageContext));
+                session.ReadDisplayName(nodeIds.ToList(), out var displayNames, out var errors);
+                var index = 0;
+                foreach (var monitoredItem in monitoredItems) {
+                    monitoredItem.DisplayName ??= StatusCode.IsGood(errors[index].StatusCode) ? displayNames[index] : null;
+                    index++;
                 }
             }
 

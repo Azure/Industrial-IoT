@@ -51,11 +51,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
             }
 
             var endpoint = await _endpoints.GetEndpointAsync(endpointId);
+            if (endpoint == null) {
+                throw new ArgumentException("Invalid endpointId");
+            }
+
             var result = await _jobs.NewOrUpdateJobAsync(GetDefaultId(endpointId), job => {
                 var publishJob = AsJob(job);
-
+                // TODO change to application uri?
+                job.Name = endpoint.ApplicationId;
+                publishJob.WriterGroup.WriterGroupId = GetDefaultId(endpoint.Registration.EndpointUrl);
                 // Add subscription
-                AddOrUpdateItemInJob(publishJob, request.Item, endpointId,
+                AddOrUpdateItemInJob(publishJob, request.Item, endpointId, job.Id,
                     new ConnectionModel {
                         Endpoint = endpoint.Registration.Endpoint,
                         Diagnostics = request.Header?.Diagnostics,
@@ -89,6 +95,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
             }
 
             var endpoint = await _endpoints.GetEndpointAsync(endpointId);
+            if (endpoint == null) {
+                throw new ArgumentException("Invalid endpointId");
+            }
             var result = await _jobs.NewOrUpdateJobAsync(GetDefaultId(endpointId), job => {
 
                 // remove from job
@@ -197,9 +206,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
         /// <param name="publishJob"></param>
         /// <param name="publishedItem"></param>
         /// <param name="endpointId"></param>
+        /// <param name="publisherId"></param>
         /// <param name="connection"></param>
         private void AddOrUpdateItemInJob(WriterGroupJobModel publishJob,
-            PublishedItemModel publishedItem, string endpointId, ConnectionModel connection) {
+            PublishedItemModel publishedItem, string endpointId, string publisherId,
+            ConnectionModel connection) {
 
             // Simple - first remove - then add.
             RemoveItemFromJob(publishJob, publishedItem.NodeId, connection);
@@ -231,7 +242,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
                             Name = endpointId
                         },
                         ExtensionFields = new Dictionary<string, string> {
-                            ["EndpointId"] = endpointId
+                            ["EndpointId"] = endpointId,
+                            ["PublisherId"] = publisherId,
+                            // todo, probably not needed
+                            ["DataSetWriterId"] = endpointId
                         },
                         DataSetSource = new PublishedDataSetSourceModel {
                             Connection = connection,
@@ -253,8 +267,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
                         DataSetFieldContentMask.DisplayName |
                         DataSetFieldContentMask.ApplicationUri |
                         DataSetFieldContentMask.EndpointUrl |
-                        DataSetFieldContentMask.SubscriptionId |
-                        DataSetFieldContentMask.ExtraFields,
+                        DataSetFieldContentMask.ExtensionFields,
                     MessageSettings = new DataSetWriterMessageSettingsModel() {
                         DataSetMessageContentMask =
                             DataSetContentMask.Timestamp |
@@ -272,6 +285,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
                 };
                 variables = dataSetWriter.DataSet.DataSetSource.PublishedVariables.PublishedData;
                 publishJob.WriterGroup.DataSetWriters.Add(dataSetWriter);
+                
             }
 
             // Add to published variable list items

@@ -35,5 +35,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// Priority
         /// </summary>
         public byte? Priority { get; set; }
+
+        /// <summary>
+        /// Resolves the display names for the monitored items
+        /// </summary>
+        public bool? ResolveDisplayName { get; set; }
     }
 }
