@@ -99,7 +99,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         Body = Encoding.UTF8.GetBytes(writer.ToString()),
                         ContentEncoding = "utf-8",
                         Timestamp = DateTime.UtcNow,
-                        ContentType = ContentMimeType.Json,
+                        ContentType = ContentMimeType.UaLegacyPublisher,
                         MessageId = message.SequenceNumber.ToString(),
                         MessageSchema = MessageSchemaTypes.MonitoredItemMessageJson
                     };
