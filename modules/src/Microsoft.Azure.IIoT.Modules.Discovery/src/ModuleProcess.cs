@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                     _reset = new TaskCompletionSource<bool>();
                     var module = hostScope.Resolve<IModuleHost>();
                     var logger = hostScope.Resolve<ILogger>();
-                    var server = new MetricServer(hostname: "discovery", port: 9603);
+                    var server = new MetricServer(hostname: "localhost", port: 9603);
                     try {
                         server.Start();
                         // Start module
