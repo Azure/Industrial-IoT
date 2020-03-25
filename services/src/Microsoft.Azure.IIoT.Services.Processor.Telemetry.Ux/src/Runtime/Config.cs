@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux.Runtime {
     /// Telemetry processor service configuration
     /// </summary>
     public class Config : DiagnosticsConfig, IEventProcessorConfig,
-        IEventHubConsumerConfig, ISignalRServiceConfig {
+        IEventHubConsumerConfig, ISignalRServiceConfig, IEventProcessorHostConfig {
 
         private const string kEventHubConsumerGroupTelemetryUxKey =
             "EventHubConsumerGroupTelemetryUx";
@@ -41,6 +41,11 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux.Runtime {
         public string BlobStorageConnString => _ep.BlobStorageConnString;
         /// <inheritdoc/>
         public string LeaseContainerName => _ep.LeaseContainerName;
+        /// <inheritdoc/>
+        public bool InitialReadFromEnd => true;
+        /// <inheritdoc/>
+        public TimeSpan? CheckpointInterval => _ep.CheckpointInterval;
+
         /// <inheritdoc/>
         public string SignalRHubName => _sr.SignalRHubName;
         /// <inheritdoc/>

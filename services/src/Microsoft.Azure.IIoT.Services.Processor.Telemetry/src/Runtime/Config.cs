@@ -15,7 +15,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
     /// <summary>
     /// Telemetry processor service configuration
     /// </summary>
-    public class Config : DiagnosticsConfig, IEventProcessorConfig, IEventHubConsumerConfig {
+    public class Config : DiagnosticsConfig, IEventProcessorConfig,
+        IEventHubConsumerConfig, IEventProcessorHostConfig {
 
         private const string kEventHubConsumerGroupTelemetryKey =
             "EventHubConsumerGroupTelemetry";
@@ -38,6 +39,10 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
         public string BlobStorageConnString => _ep.BlobStorageConnString;
         /// <inheritdoc/>
         public string LeaseContainerName => _ep.LeaseContainerName;
+        /// <inheritdoc/>
+        public bool InitialReadFromEnd => _ep.InitialReadFromEnd;
+        /// <inheritdoc/>
+        public TimeSpan? CheckpointInterval => _ep.CheckpointInterval;
 
         /// <summary>
         /// Configuration constructor
