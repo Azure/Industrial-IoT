@@ -88,7 +88,9 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
                 }
                 await _host.RegisterEventProcessorFactoryAsync(
                     _factory, new EventProcessorOptions {
-                        InitialOffsetProvider = s => EventPosition.FromEnqueuedTime(DateTime.UtcNow),
+                        InitialOffsetProvider = s => _config.InitialReadFromEnd ?
+                            EventPosition.FromEnqueuedTime(DateTime.UtcNow) :
+                            EventPosition.FromStart(),
                         MaxBatchSize = _config.ReceiveBatchSize,
                         ReceiveTimeout = _config.ReceiveTimeout,
                         InvokeProcessorAfterReceiveTimeout = true

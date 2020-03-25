@@ -42,7 +42,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux.Runtime {
         /// <inheritdoc/>
         public string LeaseContainerName => _ep.LeaseContainerName;
         /// <inheritdoc/>
-        public bool InitialReadFromEnd => false;
+        public bool InitialReadFromEnd => true;
         /// <inheritdoc/>
         public TimeSpan? CheckpointInterval => _ep.CheckpointInterval;
 
