@@ -55,6 +55,11 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
         /// <inheritdoc/>
         public TimeSpan? CheckpointInterval => _ep.CheckpointInterval;
 
+        /// <inheritdoc/>
+        public string SignalRHubName => _sr.SignalRHubName;
+        /// <inheritdoc/>
+        public string SignalRConnString => _sr.SignalRConnString;
+
         /// <summary>
         /// Configuration constructor
         /// </summary>
