@@ -116,14 +116,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 if (onlyIfEmpty && session.SubscriptionCount > 0) {
                     return;
                 }
+                _sessions.Remove(key);
+
                 // Remove subscriptions
                 if (session.SubscriptionCount > 0) {
-                    if (onlyIfEmpty) {
-                        return;
+                    foreach (var subscription in session.Subscriptions){
+                        Try.Op(() => subscription.RemoveItems(subscription.MonitoredItems));
+                        Try.Op(() => subscription.DeleteItems());
                     }
                     Try.Op(() => session.RemoveSubscriptions(session.Subscriptions));
                 }
-                _sessions.Remove(key);
+                
+                
                 Try.Op(session.Close);
                 Try.Op(session.Dispose);
             }

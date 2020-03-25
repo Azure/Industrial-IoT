@@ -120,7 +120,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
 
         private void RefreshJobFromFile() {
             var retryCount = 3;
-
+            var jobId = "LegacyPublisher_" + _identity.DeviceId + "_" + _identity.ModuleId;
             while (true) {
                 try {
                     var currentFileHash = GetChecksum(_legacyCliModel.PublishedNodesFile);
@@ -132,22 +132,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                         using (var reader = new StreamReader(_legacyCliModel.PublishedNodesFile)) {
                             var jobs = _publishedNodesJobConverter.Read(reader, _legacyCliModel);
                             var flattened = Flatten(jobs);
-
+                            flattened.WriterGroup.DataSetWriters.ForEach(d => {
+                                d.DataSet.ExtensionFields ??= new Dictionary<string, string>();
+                                d.DataSet.ExtensionFields["PublisherId"] = jobId;
+                                d.DataSet.ExtensionFields["DataSetWriterId"] = d.DataSetWriterId;
+                            });
                             var serializedJob = _jobSerializer.SerializeJobConfiguration(flattened, out var jobConfigurationType);
 
                             _jobProcessingInstructionModel = new JobProcessingInstructionModel {
                                 Job = new JobInfoModel {
                                     Demands = new List<DemandModel>(),
-                                    Id = "LegacyJob" + "_" + _identity.DeviceId +"_" +_identity.ModuleId,
+                                    Id = jobId,
                                     JobConfiguration = serializedJob,
                                     JobConfigurationType = jobConfigurationType,
                                     LifetimeData = new JobLifetimeDataModel(),
-                                    Name = "LegacyJob" + "_" + _identity.DeviceId + "_" + _identity.ModuleId,
+                                    Name = jobId,
                                     RedundancyConfig = new RedundancyConfigModel {DesiredActiveAgents = 1, DesiredPassiveAgents = 0}
                                 },
                                 ProcessMode = ProcessMode.Active
                             };
-
+                            
                             _updated = true;
                         }
                     }

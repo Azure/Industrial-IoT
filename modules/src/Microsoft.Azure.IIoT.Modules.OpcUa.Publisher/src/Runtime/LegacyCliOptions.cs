@@ -89,6 +89,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     { "mm|messagingmode=", "The messaging mode for messages " +
                         $"(allowed values: {string.Join(", ", Enum.GetNames(typeof(MessagingMode)))}).",
                         (MessagingMode m) => this[LegacyCliConfigKeys.MessagingMode] = m.ToString() },
+                    { "fm|fullfeaturedmessage=", "The full featured mode for messages (all fields filled in)." + 
+                        "Default is 'true', for legacy compatibility use 'false'",
+                        (bool b) => this[LegacyCliConfigKeys.FullFeaturedMessage] = b.ToString() },
 
                     // Client settings
                     { "ot|operationtimeout=", "the operation timeout of the publisher OPC UA client in ms.",
@@ -118,7 +121,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                     // cert store options
                     { "aa|autoaccept", "the publisher trusts all servers it is establishing a connection to.",
                           b => this[LegacyCliConfigKeys.AutoAcceptCerts] = (b != null).ToString() },
-                    { "to|trustowncert", "the publisher certificate is put into the trusted store automatically.",
+                    { "tm|trustmyself", "the publisher certificate is put into the trusted store automatically.",
                         t => this[LegacyCliConfigKeys.TrustMyself] = (t != null).ToString() },
                     { "at|appcertstoretype=", "the own application cert store type (allowed: Directory, X509Store).",
                         s => {
@@ -221,6 +224,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
             LoggerConfiguration loggerConfiguration = null;
 
             if (!string.IsNullOrWhiteSpace(LegacyCliModel.LogFilename)) {
+                loggerConfiguration ??= new LoggerConfiguration();
                 loggerConfiguration = loggerConfiguration.WriteTo.File(LegacyCliModel.LogFilename, flushToDiskInterval: LegacyCliModel.LogFileFlushTimeSpan ?? TimeSpan.FromSeconds(30));
             }
 
@@ -242,6 +246,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
                 LogFilename = GetValueOrDefault<string>(LegacyCliConfigKeys.LogFileName),
                 Transport = GetValueOrDefault<string>(LegacyCliConfigKeys.HubTransport),
                 MessagingMode = GetValueOrDefault(LegacyCliConfigKeys.MessagingMode, MessagingMode.Samples),
+                FullFeaturedMessage = GetValueOrDefault(LegacyCliConfigKeys.FullFeaturedMessage, false),
                 EdgeHubConnectionString = GetValueOrDefault<string>(LegacyCliConfigKeys.EdgeHubConnectionString),
                 OperationTimeout = GetValueOrDefault<TimeSpan?>(LegacyCliConfigKeys.OpcOperationTimeout),
                 MaxStringLength = GetValueOrDefault<long?>(LegacyCliConfigKeys.OpcMaxStringLength),

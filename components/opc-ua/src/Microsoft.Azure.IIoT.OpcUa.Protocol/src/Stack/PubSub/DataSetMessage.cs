@@ -5,11 +5,7 @@
 
 namespace Opc.Ua.PubSub {
     using System;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
     using Opc.Ua.Encoders;
-    using System.Collections.Generic;
-    using System.Text;
 
     /// <summary>
     /// Data set message
@@ -83,6 +79,7 @@ namespace Opc.Ua.PubSub {
 
         /// <inheritdoc/>
         public void Encode(IEncoder encoder) {
+            ApplyEncodeMask();
             switch (encoder.EncodingType) {
                 case EncodingType.Binary:
                     EncodeBinary(encoder);
@@ -121,17 +118,48 @@ namespace Opc.Ua.PubSub {
                 !Utils.IsEqual(wrapper.SequenceNumber, SequenceNumber) ||
                 !Utils.IsEqual(wrapper.Status, Status) ||
                 !Utils.IsEqual(wrapper.Timestamp, Timestamp) ||
-                !Utils.IsEqual(wrapper.Payload, Payload)) {
+                !Utils.IsEqual(wrapper.Payload, Payload) ||
+                !Utils.IsEqual(wrapper.BinaryEncodingId, BinaryEncodingId) ||
+                !Utils.IsEqual(wrapper.TypeId, TypeId) ||
+                !Utils.IsEqual(wrapper.XmlEncodingId, XmlEncodingId)) {
                 return false;
             }
             return true;
         }
 
+        /// <inheritdoc/>
+        private void ApplyEncodeMask() {
+            if (Payload == null) {
+                return;
+            }
+            foreach (var value in Payload.Values) {
+                if (value == null) {
+                    continue;
+                }
+                if ((Payload.FieldContentMask & (uint)DataSetFieldContentMask.RawData) != 0 ||
+                    (Payload.FieldContentMask & (uint)DataSetFieldContentMask.StatusCode) == 0) {
+                    value.StatusCode = StatusCodes.Good;
+                }
+                if ((Payload.FieldContentMask & (uint)DataSetFieldContentMask.RawData) != 0 ||
+                    (Payload.FieldContentMask & (uint)DataSetFieldContentMask.SourceTimestamp) == 0) {
+                    value.SourceTimestamp = DateTime.MinValue;
+                }
+                if ((Payload.FieldContentMask & (uint)DataSetFieldContentMask.RawData) != 0 ||
+                    (Payload.FieldContentMask & (uint)DataSetFieldContentMask.ServerTimestamp) == 0) {
+                    value.ServerTimestamp = DateTime.MinValue;
+                }
+                if ((Payload.FieldContentMask & (uint)DataSetFieldContentMask.RawData) != 0 ||
+                    (Payload.FieldContentMask & (uint)DataSetFieldContentMask.SourcePicoSeconds) == 0) {
+                    value.SourcePicoseconds = 0;
+                }
+                if ((Payload.FieldContentMask & (uint)DataSetFieldContentMask.RawData) != 0 ||
+                    (Payload.FieldContentMask & (uint)DataSetFieldContentMask.ServerPicoSeconds) == 0) {
+                    value.ServerPicoseconds = 0;
+                }
+            }
+        }
 
-        /// <summary>
-        /// Encode as binary
-        /// </summary>
-        /// <param name="encoder"></param>
+        /// <inheritdoc/>
         private void EncodeBinary(IEncoder encoder) {
             encoder.WriteUInt32(nameof(MessageContentMask), MessageContentMask);
             encoder.WriteString(nameof(DataSetWriterId), DataSetWriterId);
@@ -147,12 +175,9 @@ namespace Opc.Ua.PubSub {
             if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.Timestamp) != 0) {
                 encoder.WriteDateTime(nameof(UadpDataSetMessageContentMask.Timestamp), Timestamp);
             }
-            // TODO probably required 
-            /*
             if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.PicoSeconds) != 0) {
                 encoder.WriteUInt32(nameof(UadpDataSetMessageContentMask.PicoSeconds), Picoseconds);
             }
-            */
             if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.Status) != 0) {
                 encoder.WriteStatusCode(nameof(Status), Status);
             }
@@ -166,12 +191,10 @@ namespace Opc.Ua.PubSub {
                 }
                 encoder.WriteEncodeableArray(nameof(Payload), payload.ToArray(), typeof(KeyDataValuePair));
             }
+
         }
 
-        /// <summary>
-        /// Encode as json
-        /// </summary>
-        /// <param name="encoder"></param>
+        /// <inheritdoc/>
         private void EncodeJson(IEncoder encoder) {
             if ((MessageContentMask & (uint)JsonDataSetMessageContentMask.DataSetWriterId) != 0) {
                 encoder.WriteString(nameof(JsonDataSetMessageContentMask.DataSetWriterId), DataSetWriterId);
@@ -189,21 +212,12 @@ namespace Opc.Ua.PubSub {
                 encoder.WriteStatusCode(nameof(JsonDataSetMessageContentMask.Status), Status);
             }
             if (Payload != null) {
-                var payload = new KeyDataValuePairCollection();
-                foreach (var tuple in Payload) {
-                    payload.Add(new KeyDataValuePair() {
-                        Key = tuple.Key,
-                        Value = tuple.Value
-                    });
-                }
-                encoder.WriteEncodeableArray(nameof(Payload), payload.ToArray(), typeof(KeyDataValuePair));
+                var jsonEncoder = encoder as JsonEncoderEx;
+                jsonEncoder.WriteDataValueDictionary(nameof(Payload), Payload);
             }
         }
 
-        /// <summary>
-        /// Encode as binary
-        /// </summary>
-        /// <param name="decoder"></param>
+        /// <inheritdoc/>
         private void DecodeBinary(IDecoder decoder) {
             MessageContentMask = decoder.ReadUInt32(nameof(MessageContentMask));
             DataSetWriterId = decoder.ReadString(nameof(DataSetWriterId));
@@ -224,12 +238,9 @@ namespace Opc.Ua.PubSub {
             if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.Timestamp) != 0) {
                 Timestamp = decoder.ReadDateTime(nameof(UadpDataSetMessageContentMask.Timestamp));
             }
-            // TODO probably required 
-            /*
             if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.PicoSeconds) != 0) {
-                Picoseconds = encoder.ReadUInt32(nameof(UadpDataSetMessageContentMask.PicoSeconds));
+                Picoseconds = decoder.ReadUInt32(nameof(UadpDataSetMessageContentMask.PicoSeconds));
             }
-            */
             if ((MessageContentMask & (uint)UadpDataSetMessageContentMask.Status) != 0) {
                 Status = decoder.ReadStatusCode(nameof(Status));
             }
@@ -240,10 +251,7 @@ namespace Opc.Ua.PubSub {
             }
         }
 
-        /// <summary>
-        /// Decode as json
-        /// </summary>
-        /// <param name="decoder"></param>
+        /// <inheritdoc/>
         private void DecodeJson(IDecoder decoder) {
             DataSetWriterId = decoder.ReadString(nameof(JsonDataSetMessageContentMask.DataSetWriterId));
             if (DataSetWriterId != null) {
@@ -267,11 +275,10 @@ namespace Opc.Ua.PubSub {
             if (Status != null) {
                 MessageContentMask |= (uint)JsonDataSetMessageContentMask.Status;
             }
-            var payload = (KeyDataValuePairCollection)decoder.ReadEncodeableArray(nameof(Payload), typeof(KeyDataValuePair));
-            Payload = new DataSet();
-            foreach (var tuple in payload) {
-                Payload[tuple.Key] = new DataValue(tuple.Value);
-            }
+
+            var jsonDecoder = decoder as JsonDecoderEx;
+            var payload = jsonDecoder.ReadDataValueDictionary(nameof(Payload));
+            Payload = new DataSet(payload, 0);
         }
     }
 }

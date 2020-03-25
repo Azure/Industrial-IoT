@@ -87,6 +87,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public MessagingMode MessagingMode { get; set; } = MessagingMode.Samples;
 
         /// <summary>
+        /// Flag to demand full featured message creation from publisher
+        /// </summary>
+        public bool FullFeaturedMessage { get; set; }
+
+        /// <summary>
         /// The maximum string length.
         /// </summary>
         public long? MaxStringLength { get; set; }

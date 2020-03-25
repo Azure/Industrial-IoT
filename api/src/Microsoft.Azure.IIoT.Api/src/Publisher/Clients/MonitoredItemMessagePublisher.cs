@@ -39,25 +39,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             foreach (var datapoint in message.Payload) {
                 var arguments = new object[] {
                      new MonitoredItemMessageApiModel() {
-                        Value = datapoint.Value.TypeId?.IsPrimitive == true ?
-                            datapoint.Value.Value : datapoint.Value.Value?.ToString(),
-                        TypeId = datapoint.Value.TypeId?.FullName,
+                        Value = datapoint.Value.GetType().IsPrimitive == true
+                            ? datapoint.Value.Value : datapoint.Value.Value?.ToString(),
                         Status = datapoint.Value.Status,
-                        DataSetId = datapoint.Key,
-                        Timestamp = datapoint.Value.Timestamp,
-                        SubscriptionId = message.DataSetWriterId,
-                        EndpointId = message.PublisherId,
+                        Timestamp = message.Timestamp,
+                        DataSetWriterId = message.DataSetWriterId,
+                        PublisherId = message.PublisherId,
                         NodeId = datapoint.Key,
                         DisplayName = datapoint.Key,
-                        SourcePicoseconds = null,
-                        ServerPicoseconds = null,
-                        SourceTimestamp = datapoint.Value.Timestamp,
-                        ServerTimestamp = datapoint.Value.Timestamp
+                        SourceTimestamp = datapoint.Value.SourceTimestamp,
+                        ServerTimestamp = datapoint.Value.ServerTimestamp
                     }
                 };
-                if (!string.IsNullOrEmpty(message.PublisherId)) {
+                if (!string.IsNullOrEmpty(message.DataSetWriterId)) {
                     // Send to endpoint listeners
-                    await _callback.MulticastAsync(message.PublisherId,
+                    await _callback.MulticastAsync(message.DataSetWriterId,
                         EventTargets.PublisherSampleTarget, arguments);
                 }
             }

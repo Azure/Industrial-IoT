@@ -48,6 +48,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime {
         public const string MessagingMode = "MessagingMode";
 
         /// <summary>
+        /// Flag to demand full featured message creation from publisher
+        /// </summary>
+        public const string FullFeaturedMessage = "FullFeaturedMessage";
+        
+        /// <summary>
         /// Key for the default sampling interval in milliseconds.
         /// </summary>
         public const string OpcSamplingInterval = "DefaultSamplingInterval";

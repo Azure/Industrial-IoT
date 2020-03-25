@@ -43,8 +43,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
             }
             catch (Exception ex) {
                 _logger.Error(ex,
-                    "Exception handling sample from {deviceId}-{moduleId} with payload {json}",
-                    deviceId, moduleId, json);
+                    "Exception handling sample from {deviceId}-{moduleId}", deviceId, moduleId);
             }
         }
 

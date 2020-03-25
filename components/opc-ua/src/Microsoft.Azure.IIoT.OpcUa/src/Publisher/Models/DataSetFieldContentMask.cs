@@ -67,13 +67,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         ApplicationUri = 0x80000,
 
         /// <summary>
-        /// Subscription id included
-        /// </summary>
-        SubscriptionId = 0x100000,
-
-        /// <summary>
         /// Extra fields included
         /// </summary>
-        ExtraFields = 0x200000
+        ExtensionFields = 0x100000
     }
 }

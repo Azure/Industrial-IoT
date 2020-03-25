@@ -45,27 +45,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                 try {
                     using (var decoder = new JsonDecoderEx(stream, context)) {
                         var networkMessage = decoder.ReadEncodeable(null, typeof(NetworkMessage)) as NetworkMessage;
-                        foreach (var message in networkMessage.Messages) {
+                        foreach (var dataSetMessage in networkMessage.Messages) {
                             var dataset = new DataSetMessageModel {
                                 PublisherId = networkMessage.PublisherId,
                                 MessageId = networkMessage.MessageId,
                                 DataSetClassId = networkMessage.DataSetClassId,
-                                DataSetWriterId = message.DataSetWriterId,
-                                SequenceNumber = message.SequenceNumber,
-                                Status = StatusCode.LookupSymbolicId(message.Status.Code),
-                                MetaDataVersion = $"{message.MetaDataVersion.MajorVersion}.{message.MetaDataVersion.MinorVersion}",
-                                Timestamp = message.Timestamp,
+                                DataSetWriterId = dataSetMessage.DataSetWriterId,
+                                SequenceNumber = dataSetMessage.SequenceNumber,
+                                Status = StatusCode.LookupSymbolicId(dataSetMessage.Status.Code),
+                                MetaDataVersion = $"{dataSetMessage.MetaDataVersion.MajorVersion}" + 
+                                    $".{dataSetMessage.MetaDataVersion.MinorVersion}",
+                                Timestamp = dataSetMessage.Timestamp,
                                 Payload = new Dictionary<string, DataValueModel>()
                             };
-                            foreach (var datapoint in message.Payload) {
+                            foreach (var datapoint in dataSetMessage.Payload) {
                                 dataset.Payload[datapoint.Key] = new DataValueModel() {
                                     Value = datapoint.Value?.Value,
-                                    Status = StatusCode.LookupSymbolicId(datapoint.Value.StatusCode.Code),
-                                    TypeId = (datapoint.Value?.WrappedValue.TypeInfo != null) ?
-                                        TypeInfo.GetSystemType(
-                                            datapoint.Value.WrappedValue.TypeInfo.BuiltInType,
-                                            datapoint.Value.WrappedValue.TypeInfo.ValueRank) : null,
-                                    Timestamp = datapoint.Value?.SourceTimestamp
+                                    Status = (datapoint.Value?.StatusCode.Code == StatusCodes.Good)
+                                        ? null : StatusCode.LookupSymbolicId(datapoint.Value.StatusCode.Code),
+                                    SourceTimestamp = (datapoint.Value?.SourceTimestamp == DateTime.MinValue)
+                                        ? null : (DateTime?)datapoint.Value?.SourceTimestamp,
+                                    ServerTimestamp = (datapoint.Value?.ServerTimestamp == DateTime.MinValue)
+                                        ? null : (DateTime?)datapoint.Value?.ServerTimestamp
                                 };
                             }
                             await Task.WhenAll(_handlers.Select(h => h.HandleMessageAsync(dataset)));
