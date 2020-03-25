@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.Runtime {
     /// Cdm processor service configuration
     /// </summary>
     public class Config : DiagnosticsConfig, IEventProcessorConfig,
-        IEventHubConsumerConfig, ICdmClientConfig {
+        IEventHubConsumerConfig, ICdmClientConfig, IEventProcessorHostConfig {
 
         private const string kEventHubConsumerGroupTelemetryCdmKey =
             "EventHubConsumerGroupTelemetryCdm";
@@ -41,6 +41,10 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.Runtime {
         public string BlobStorageConnString => _ep.BlobStorageConnString;
         /// <inheritdoc/>
         public string LeaseContainerName => _ep.LeaseContainerName;
+        /// <inheritdoc/>
+        public bool InitialReadFromEnd => _ep.InitialReadFromEnd;
+        /// <inheritdoc/>
+        public TimeSpan? CheckpointInterval => _ep.CheckpointInterval;
 
         /// <inheritdoc/>
         public string ADLSg2HostName => _cdm.ADLSg2HostName;

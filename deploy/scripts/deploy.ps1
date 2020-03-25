@@ -855,7 +855,8 @@ Function New-Deployment() {
                     #    & (Join-Path $script:ScriptDir "aad-update.ps1") `
                     #        $context `
                     #        -ObjectId $aadConfig.ClientPrincipalId -ReplyUrls $replyUrls
-                    Update-AzADApplication -ObjectId $aadConfig.ClientPrincipalId -ReplyUrl $replyUrls
+                    Update-AzADApplication -ObjectId $aadConfig.ClientPrincipalId -ReplyUrl $replyUrls `
+                        | Out-Null
 
                     Write-Host "Reply urls registered in client app $($aadConfig.ClientPrincipalId)..."
                     Write-Host
@@ -863,7 +864,8 @@ Function New-Deployment() {
                 catch {
                     Write-Host $_.Exception.Message
                     Write-Host
-                    Write-Host "Registering reply urls failed.  Please add the following urls manually:"
+                    Write-Host "Registering reply urls failed. Please add the following urls to"
+                    Write-Host "the client app '$($aadConfig.ClientPrincipalId)' manually:"
                     $replyUrls | ForEach-Object { Write-Host $_ }
                 }
             }
