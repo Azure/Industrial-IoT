@@ -1,4 +1,4 @@
-﻿apiVersion: v1
+apiVersion: v1
 kind: ConfigMap
 metadata:
   name: nginx-ingress-configuration
@@ -6,4 +6,5 @@ metadata:
 data:
   compute-full-forward-for: "true"
   use-forward-headers: "true"
-  proxy-buffer-size: "16k"
+  proxy-buffer-size: "32k"
+  client-header-buffer-size: "32k"
