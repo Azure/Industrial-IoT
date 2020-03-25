@@ -20,6 +20,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
     using System.Diagnostics;
     using System.Threading;
     using Serilog;
+    using Prometheus;
 
     /// <summary>
     /// Module Process
@@ -78,10 +79,13 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                     _reset = new TaskCompletionSource<bool>();
                     var module = hostScope.Resolve<IModuleHost>();
                     var logger = hostScope.Resolve<ILogger>();
+                    var server = new MetricServer(hostname: "discovery", port: 9603);
                     try {
+                        server.Start();
                         // Start module
                         var product = "OpcDiscovery_" +
                             GetType().Assembly.GetReleaseVersion().ToString();
+                        _discoveryModuleStart.Inc();
                         await module.StartAsync(IdentityType.Discoverer, SiteId,
                             product, this);
                         OnRunning?.Invoke(this, true);
@@ -97,6 +101,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                         logger.Error(ex, "Error during module execution - restarting!");
                     }
                     finally {
+                        server.Stop();
                         await module.StopAsync();
                         OnRunning?.Invoke(this, false);
                     }
@@ -155,5 +160,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
         private readonly TaskCompletionSource<bool> _exit;
         private TaskCompletionSource<bool> _reset;
         private int _exitCode;
+        private static readonly Counter _discoveryModuleStart = Metrics
+    .CreateCounter("iiot_edge_discovery_discoveryModuleStart", "discovery module started");
     }
 }

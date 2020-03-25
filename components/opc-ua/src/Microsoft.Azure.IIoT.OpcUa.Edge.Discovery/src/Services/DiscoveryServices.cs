@@ -27,6 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
     using System.Threading;
     using System.Threading.Tasks;
     using Serilog;
+    using Prometheus;
 
     /// <summary>
     /// Provides discovery services
@@ -71,6 +72,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
 
         /// <inheritdoc/>
         public async Task DiscoverAsync(DiscoveryRequestModel request, CancellationToken ct) {
+            _discoverAsync.Inc();
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -97,6 +99,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
 
         /// <inheritdoc/>
         public async Task CancelAsync(DiscoveryCancelModel request, CancellationToken ct) {
+            _cancelAsync.Inc();
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
@@ -383,6 +386,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         private async Task<List<ApplicationRegistrationModel>> DiscoverServersAsync(
             DiscoveryRequest request, Dictionary<IPEndPoint, Uri> discoveryUrls,
             List<string> locales) {
+            _discoverServersAsync.Inc();
             var discovered = new List<ApplicationRegistrationModel>();
             var count = 0;
             _progress.OnServerDiscoveryStarted(request.Request, 1, count, discoveryUrls.Count);
@@ -629,6 +633,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         private readonly CancellationTokenSource _cts =
             new CancellationTokenSource();
         private DiscoveryRequest _request = new DiscoveryRequest();
+        private static readonly String _PREFIX = "iiot_edge_discovery_";
 #pragma warning restore IDE0069 // Disposable fields should be disposed
+        private static readonly Counter _discoverAsync = Metrics
+    .CreateCounter(_PREFIX + "discoverAsync", "call to discover");
+        private static readonly Counter _cancelAsync = Metrics
+    .CreateCounter(_PREFIX + "cancelAsync", "call to cancel");
+        private static readonly Counter _discoverServersAsync = Metrics
+    .CreateCounter(_PREFIX + "discoverServersAsync", "call to discoverServersAsync");
     }
 }
