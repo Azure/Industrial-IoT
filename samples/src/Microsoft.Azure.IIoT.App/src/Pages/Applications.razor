@@ -84,7 +84,7 @@
     public void PagerPageChanged(int page)
     {
         _pagedapplicationList = _applicationList.GetPaged(page, CommonHelper.PageLength, null);
-        NavigationManager.NavigateTo("/applications/" + page);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "applications/" + page);
     }
 
     /// <summary>

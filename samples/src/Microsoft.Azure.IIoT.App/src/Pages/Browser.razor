@@ -84,7 +84,7 @@
                     {
                         if (PagedNodeList.Results[0].DiscovererId != null)
                         {
-                            <a href='endpoints/@PagedNodeList.Results[0].DiscovererId/@ApplicationId/@SupervisorId'>
+                            <a href='endpoints/@PagedNodeList.Results[0].DiscovererId/@ApplicationId/@SupervisorId/@ApplicationUri'>
                                 <span class="oi oi-arrow-left"></span>
                             </a>
                         }
@@ -211,7 +211,7 @@
                 node.Value = await BrowseManager.ReadValueAsync(EndpointId, node.Id, Credential);
             }
         }
-        NavigationManager.NavigateTo("/browser/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId + "/" + page);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "browser/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId + "/" + ApplicationUri + "/" + page);
     }
 
     /// <summary>
@@ -260,7 +260,7 @@
     private async Task GetTreeBackAsync(string id, List<string> parentId, int index)
     {
         await BrowseTreeAsync(id, parentId, BrowseDirection.Backward, index);
-        NavigationManager.NavigateTo("/browser/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId + "/" + ApplicationUri);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "browser/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId + "/" + ApplicationUri);
     }
 
     /// <summary>

@@ -58,7 +58,7 @@
     public void PagerPageChanged(int page)
     {
         _pagedGatewayList = _gatewayList.GetPaged(page, CommonHelper.PageLength, null);
-        NavigationManager.NavigateTo("/gateways/" + page);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "gateways/" + page);
     }
 
     /// <summary>

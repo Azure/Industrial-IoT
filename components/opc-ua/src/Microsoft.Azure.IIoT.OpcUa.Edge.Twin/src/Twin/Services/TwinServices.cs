@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Exceptions;
     using Serilog;
@@ -18,6 +19,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services {
     /// the endpoint's status back to the hub.
     /// </summary>
     public class TwinServices : ITwinServices, IDisposable {
+
+        /// <inheritdoc/>
+        public EndpointConnectivityState State { get; private set; }
+            = EndpointConnectivityState.Disconnected;
 
         /// <summary>
         /// Create twin services
@@ -55,7 +60,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services {
                         _session = null;
 
                         // Clear state
-                        await _events?.ReportAsync("State", null);
+                        State = EndpointConnectivityState.Disconnected;
                     }
 
                     // Register callback to report endpoint state property
@@ -64,8 +69,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services {
                             Endpoint = endpoint
                         };
                         _session = _client.GetSessionHandle(connection);
+
+                        // Set initial state
+                        State = _session.State;
+
+                        // update reported state
                         _callback = _client.RegisterCallback(connection,
-                            state => _events?.ReportAsync("State", state));
+                            state => {
+                                State = state;
+                                return _events?.ReportAsync("State",
+                                     state);
+                            });
                         _logger.Information("Endpoint {endpoint} ({device}, {module}) updated.",
                             endpoint?.Url, _events.DeviceId, _events.ModuleId);
 
@@ -111,7 +125,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Twin.Services {
                 catch (OperationCanceledException) {
                     _logger.Error("Failed to get endpoint for twin {device} - " +
                         "timed out waiting for configuration!", _events?.DeviceId);
-                    throw new InvalidConfigurationException("Twin without endpoint configuration");
+                    throw new InvalidConfigurationException(
+                        "Twin without endpoint configuration");
                 }
             }
         }

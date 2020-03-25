@@ -131,7 +131,7 @@
     public void PagerPageChanged(int page)
     {
         _pagedendpointList = _endpointList.GetPaged(page, CommonHelper.PageLength, null);
-        NavigationManager.NavigateTo("/endpoints/" + page);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "endpoints/" + page);
     }
 
     /// <summary>
