@@ -38,7 +38,7 @@ spec:
               cpu: "200m"
           args:
             - /nginx-ingress-controller
-            # - --configmap=$(POD_NAMESPACE)/nginx-configuration
+            - --configmap=$(POD_NAMESPACE)/nginx-ingress-configuration
             # - --tcp-services-configmap=$(POD_NAMESPACE)/tcp-services
             # - --udp-services-configmap=$(POD_NAMESPACE)/udp-services
             - --election-id=ingress-controller-leader
