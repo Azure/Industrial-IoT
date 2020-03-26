@@ -80,9 +80,13 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                     _reset = new TaskCompletionSource<bool>();
                     var module = hostScope.Resolve<IModuleHost>();
                     var logger = hostScope.Resolve<ILogger>();
-                    var server = new MetricServer(hostname: Dns.GetHostName(), port: 9603);
+                    var hostname = Dns.GetHostName();
+                    var port = 9604;
+                    logger.Information("Initiating prometheus at {0}:{1}/metrics", hostname, port);
+                    var server = new MetricServer(hostname: hostname, port: port);
                     try {
                         server.Start();
+                        logger.Information("Started prometheus server");
                         // Start module
                         var product = "OpcDiscovery_" +
                             GetType().Assembly.GetReleaseVersion().ToString();
