@@ -28,10 +28,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Runtime {
         }
 
         /// <inheritdoc/>
-        public Action<ContainerBuilder> GetJobContainerScope(string agentId, string jobId) {
+        public Action<ContainerBuilder> GetJobContainerScope(string agentId, string publisherId) {
             return builder => {
                 // Register job configuration
-                builder.RegisterInstance(_jobConfig.ToWriterGroupJobConfiguration(jobId))
+                builder.RegisterInstance(_jobConfig.ToWriterGroupJobConfiguration(publisherId))
                     .AsImplementedInterfaces();
 
                 // Register processing engine - trigger, transform, sink

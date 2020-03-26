@@ -17,7 +17,7 @@ namespace Opc.Ua.PubSub.Tests {
         [Fact]
         public void EncodeDecodeNetworkMessage() {
             var payload = new Dictionary<string, DataValue> {
-                { "1", new DataValue(new Variant(5), StatusCodes.Good, DateTime.Now) },
+                { "1", new DataValue(new Variant(5), StatusCodes.Good, DateTime.Now, DateTime.UtcNow) },
                 { "2", new DataValue(new Variant(0.5), StatusCodes.Good, DateTime.Now) },
                 { "3", new DataValue("abcd") }
             };
@@ -34,7 +34,9 @@ namespace Opc.Ua.PubSub.Tests {
                     JsonDataSetMessageContentMask.MetaDataVersion |
                     JsonDataSetMessageContentMask.Timestamp |
                     JsonDataSetMessageContentMask.Status),
-                Payload = new DataSet(payload, (uint)(DataSetFieldContentMask.StatusCode | DataSetFieldContentMask.SourceTimestamp))
+                Payload = new DataSet(payload, (uint)(
+                    DataSetFieldContentMask.StatusCode | 
+                    DataSetFieldContentMask.SourceTimestamp))
             };
 
             var networkMessage = new NetworkMessage {
@@ -51,15 +53,12 @@ namespace Opc.Ua.PubSub.Tests {
                 JsonNetworkMessageContentMask.SingleDataSetMessage);
 
             byte[] buffer;
-            string json;
             var context = new ServiceMessageContext();
             using (var stream = new MemoryStream()) {
-                
                 using (var encoder = new JsonEncoderEx(stream, context)) {
                     networkMessage.Encode(encoder);
                 }
                 buffer = stream.ToArray();
-                json = buffer.ToBase16String();
             }
 
             using (var stream = new MemoryStream(buffer)) {
@@ -69,5 +68,72 @@ namespace Opc.Ua.PubSub.Tests {
                 }
             }
         }
+
+
+        [Fact]
+        public void EncodeDecodeNetworkMessageFull() {
+
+            var payload = new Dictionary<string, DataValue> {
+                ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.Now, DateTime.UtcNow),
+                ["http://microsoft.com"] = new DataValue(new Variant(-222222222), StatusCodes.Bad, DateTime.MinValue, DateTime.Now),
+                ["1111111111111111111111111"] = new DataValue(new Variant(false), StatusCodes.Bad, DateTime.UtcNow, DateTime.MinValue),
+                ["@#$%^&*()_+~!@#$%^*(){}"] = new DataValue(new Variant(new byte[] { 0, 2, 4, 6}), StatusCodes.Good),
+                ["1245"] = new DataValue(new Variant("hello"), StatusCodes.Bad, DateTime.Now, DateTime.MinValue),
+                ["..."] = new DataValue(new Variant(new Variant("imbricated")))
+            };
+
+            var message = new DataSetMessage {
+                DataSetWriterId = "WriterId",
+                MetaDataVersion = new ConfigurationVersionDataType { MajorVersion = 1, MinorVersion = 1 },
+                SequenceNumber = ++_currentSequenceNumber,
+                Status = StatusCodes.Good,
+                Timestamp = DateTime.UtcNow,
+                Picoseconds = 1234,
+                MessageContentMask = (uint)(
+                    JsonDataSetMessageContentMask.DataSetWriterId |
+                    JsonDataSetMessageContentMask.SequenceNumber |
+                    JsonDataSetMessageContentMask.MetaDataVersion |
+                    JsonDataSetMessageContentMask.Timestamp |
+                    JsonDataSetMessageContentMask.Status),
+                Payload = new DataSet(payload, (uint)(
+                    DataSetFieldContentMask.StatusCode |
+                    DataSetFieldContentMask.SourceTimestamp |
+                    DataSetFieldContentMask.ServerTimestamp |
+                    DataSetFieldContentMask.SourcePicoSeconds |
+                    DataSetFieldContentMask.ServerPicoSeconds))
+            };
+
+            var networkMessage = new NetworkMessage {
+                MessageId = Guid.NewGuid().ToString(), // TODO
+                MessageType = "ua-data",
+                Messages = new List<DataSetMessage>(),
+                PublisherId = "PublisherId",
+                DataSetClassId = "1234"
+            };
+
+            networkMessage.Messages.Add(message);
+            networkMessage.MessageContentMask = (uint)(
+                JsonNetworkMessageContentMask.PublisherId |
+                JsonNetworkMessageContentMask.NetworkMessageHeader |
+                JsonNetworkMessageContentMask.SingleDataSetMessage |
+                JsonNetworkMessageContentMask.DataSetClassId);
+
+            byte[] buffer;
+            var context = new ServiceMessageContext();
+            using (var stream = new MemoryStream()) {
+                using (var encoder = new JsonEncoderEx(stream, context)) {
+                    networkMessage.Encode(encoder);
+                }
+                buffer = stream.ToArray();
+            }
+
+            using (var stream = new MemoryStream(buffer)) {
+                using (var decoder = new JsonDecoderEx(stream, context)) {
+                    var result = decoder.ReadEncodeable(null, typeof(NetworkMessage)) as NetworkMessage;
+                    Assert.Equal(networkMessage, result);
+                }
+            }
+        }
+
     }
 }

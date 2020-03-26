@@ -13,10 +13,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     using Opc.Ua.Encoders;
     using Serilog;
     using System;
-    using System.IO;
-    using System.Threading.Tasks;
     using System.Collections.Generic;
+    using System.IO;
     using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
 
     /// <summary>
     /// Publisher message handling
@@ -39,14 +40,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         /// <inheritdoc/>
         public async Task HandleAsync(string deviceId, string moduleId,
             byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
-            
+            var json = Encoding.UTF8.GetString(payload);
             MonitoredItemMessage message;
             try {
                 var context = new ServiceMessageContext();
                 using (var stream = new MemoryStream(payload)) {
                     using (var decoder = new JsonDecoderEx(stream, context)) {
-                        var result = decoder.ReadEncodeable(null, typeof(MonitoredItemMessage)) as MonitoredItemMessage;
-                        message = result;
+                        message = decoder.ReadEncodeable(null,
+                            typeof(MonitoredItemMessage)) as MonitoredItemMessage;
                     }
                 }
             }
@@ -55,29 +56,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                 return;
             }
             try {
-                var sample = new MonitoredItemSampleModel() {
-                    Value = (message?.Value?.WrappedValue.Value != null) ?
-                        message.Value.WrappedValue.Value : null,
+                var dataset = new DataSetMessageModel {
+                    PublisherId = (message.ExtensionFields != null &&
+                        message.ExtensionFields.TryGetValue("PublisherId", out var publisherId))
+                            ? publisherId : message.ApplicationUri ?? message.EndpointUrl,
+                    MessageId = null,
+                    DataSetClassId = message.NodeId.AsString(null),
+                    DataSetWriterId = (message.ExtensionFields != null &&
+                        message.ExtensionFields.TryGetValue("DataSetWriterId", out var dataSetWriterId))
+                            ? dataSetWriterId : message.EndpointUrl ?? message.ApplicationUri,
+                    SequenceNumber = 0,
                     Status = StatusCode.LookupSymbolicId(message.Value.StatusCode.Code),
-                    TypeId = (message?.Value?.WrappedValue.TypeInfo != null) ?
-                        TypeInfo.GetSystemType(
-                            message.Value.WrappedValue.TypeInfo.BuiltInType,
-                            message.Value.WrappedValue.TypeInfo.ValueRank) : null,
-                    DataSetId = !string.IsNullOrEmpty(message.DisplayName) ?
-                        message.DisplayName : message.NodeId.AsString(null),
+                    MetaDataVersion = "1.0",
                     Timestamp = message.Timestamp,
-                    EndpointId = (message.ExtensionFields != null &&
-                        message.ExtensionFields.TryGetValue("EndpointId", out var endpointId))
-                            ? endpointId : message.ApplicationUri ?? message.SubscriptionId,
-                    SubscriptionId = message.SubscriptionId ?? message.ApplicationUri,
-                    NodeId = message.NodeId.AsString(null),
-                    DisplayName = message.DisplayName,
-                    SourcePicoseconds = message.Value.SourcePicoseconds,
-                    ServerPicoseconds = message.Value.ServerPicoseconds,
-                    SourceTimestamp = message.Value.SourceTimestamp,
-                    ServerTimestamp = message.Value.ServerTimestamp
+                    Payload = new Dictionary<string, DataValueModel>() {
+                        [message.NodeId.AsString(null)] = new DataValueModel() {
+                            Value = message?.Value?.WrappedValue.Value,
+                            Status = (message?.Value?.StatusCode.Code == StatusCodes.Good)
+                                ? null : StatusCode.LookupSymbolicId(message.Value.StatusCode.Code),
+                            SourceTimestamp = (message?.Value?.SourceTimestamp == DateTime.MinValue)
+                                ? null : (DateTime?)message?.Value?.SourceTimestamp,
+                            ServerTimestamp = (message?.Value?.ServerTimestamp == DateTime.MinValue)
+                                ? null : (DateTime?)message?.Value?.ServerTimestamp
+                        }
+                    }
                 };
-                await Task.WhenAll(_handlers.Select(h => h.HandleSampleAsync(sample)));
+                await Task.WhenAll(_handlers.Select(h => h.HandleMessageAsync(dataset)));
             }
             catch (Exception ex) {
                 _logger.Error(ex,

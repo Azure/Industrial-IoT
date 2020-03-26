@@ -103,6 +103,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                         Connection = group.Key.Clone(),
                         SubscriptionSettings = new PublishedDataSetSettingsModel {
                             PublishingInterval = GetPublishingIntervalFromNodes(opcNodes, legacyCliModel),
+                            ResolveDisplayName = legacyCliModel.FetchOpcNodeDisplayName
                         },
                         PublishedVariables = new PublishedDataItemsModel {
                             PublishedData = opcNodes
@@ -111,7 +112,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                                     PublishedVariableNodeId = node.Id,
                                     PublishedVariableDisplayName = node.DisplayName,
                                     SamplingInterval = node.OpcSamplingIntervalTimespan ?? legacyCliModel.DefaultSamplingInterval ?? (TimeSpan?)null
-
                                     // TODO: Link all to server time sampled at heartbeat interval
                                     // HeartbeatInterval = opcNode.HeartbeatInterval == null ? (TimeSpan?)null :
                                     //    TimeSpan.FromMilliseconds(opcNode.HeartbeatInterval.Value),
@@ -122,6 +122,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                     }))
                 .SelectMany(dataSetSourceBatches => dataSetSourceBatches
                     .Select(dataSetSource => new WriterGroupJobModel {
+                        
                         MessagingMode = legacyCliModel.MessagingMode,
                         Engine = _config == null ? null : new EngineConfigurationModel {
                             BatchSize = _config.BatchSize,
@@ -133,21 +134,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                                 new DataSetWriterModel {
                                     DataSetWriterId = _identity.DeviceId + "_"+ _identity.ModuleId,
                                     DataSet = new PublishedDataSetModel {
-                                        DataSetSource = dataSetSource.Clone()
+                                        DataSetSource = dataSetSource.Clone(),
                                     },
                                     DataSetFieldContentMask = 
                                         DataSetFieldContentMask.StatusCode |
                                         DataSetFieldContentMask.SourceTimestamp |
-                                        DataSetFieldContentMask.ServerTimestamp |
+                                        (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.ServerTimestamp : 0) |
                                         DataSetFieldContentMask.NodeId |
                                         DataSetFieldContentMask.DisplayName |
                                         DataSetFieldContentMask.ApplicationUri |
-                                        DataSetFieldContentMask.EndpointUrl |
-                                        DataSetFieldContentMask.SubscriptionId |
-                                        DataSetFieldContentMask.ExtraFields,
+                                        (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.EndpointUrl : 0) |
+                                        (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.ExtensionFields : 0) ,
                                     MessageSettings = new DataSetWriterMessageSettingsModel() {
                                         DataSetMessageContentMask =
-                                            DataSetContentMask.Timestamp |
+                                            (legacyCliModel.FullFeaturedMessage ? DataSetContentMask.Timestamp : 0) |
                                             DataSetContentMask.MetaDataVersion |
                                             DataSetContentMask.Status |
                                             DataSetContentMask.DataSetWriterId |
