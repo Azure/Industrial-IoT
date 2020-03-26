@@ -833,6 +833,24 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to apiVersion: v1
+        ///kind: ConfigMap
+        ///metadata:
+        ///  name: nginx-ingress-configuration
+        ///  namespace: ingress-nginx
+        ///data:
+        ///  compute-full-forward-for: &quot;true&quot;
+        ///  use-forward-headers: &quot;true&quot;
+        ///  proxy-buffer-size: &quot;16k&quot;
+        ///.
+        /// </summary>
+        internal static string _50_nginx_ingress_configuration_configmap {
+            get {
+                return ResourceManager.GetString("_50_nginx_ingress_configuration_configmap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to apiVersion: apps/v1
         ///kind: Deployment
         ///metadata:
