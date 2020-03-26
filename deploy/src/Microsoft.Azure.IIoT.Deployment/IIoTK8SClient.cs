@@ -129,6 +129,26 @@ namespace Microsoft.Azure.IIoT.Deployment {
             }
         }
 
+        public async Task<V1ConfigMap> EnablePrometheusMetricsScrapingAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                // Create configuration for oms agent that will enable scraping of prometheus metrics.
+                // Here is the source of 04_oms_agent_configmap.yaml:
+                // https://github.com/microsoft/OMS-docker/blob/ci_feature_prod/Kubernetes/container-azm-ms-agentconfig.yaml
+                var v1ConfigMap = await CreateV1ConfigMapAsync(
+                    Resources.IIoTK8SResources._04_oms_agent_configmap,
+                    cancellationToken: cancellationToken
+                );
+
+                return v1ConfigMap;
+            }
+            catch (Exception ex) {
+                Log.Error(ex, $"Failed to create configuration for oms agent.");
+                throw;
+            }
+        }
+
         public async Task<V1ServiceAccount> SetupNGINXServiceAccountAsync(
             CancellationToken cancellationToken = default
         ) {
