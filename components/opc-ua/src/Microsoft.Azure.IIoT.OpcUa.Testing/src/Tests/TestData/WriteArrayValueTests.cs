@@ -785,7 +785,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""StringValue"": ""레몬 딸기^ 고양이) 파인애플"",
             ""DateTimeValue"": ""2071-08-08T14:25:16.7814639Z"",
             ""GuidValue"": ""2f1b64e2-9b6c-9ff9-9bcb-681a5030910b"",
-            ""ByteStringValue"": [ 78, 26, 144, 111, 40, 225, 81, 183, 165, 4, 6, 209 ],
+            ""ByteStringValue"": ""XmIaOczWGerdvT4+Y1BOuQ=="",
             ""XmlElementValue"": {
                 ""n0:緑犬ドラゴン"": {
                     ""@ブルーベリー"": ""암소말"",
@@ -849,7 +849,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""StringValue"": ""Голубика> Дракон@"",
             ""DateTimeValue"": ""2014-01-20T12:32:21.1556352Z"",
             ""GuidValue"": ""252c98f0-ad64-fd43-2056-044339a3fb6e"",
-            ""ByteStringValue"": [ 19, 115, 252, 193, 79, 226, 78, 195, 92, 154, 199, 148, 133, 200, 199, 179, 108, 246, 219, 192, 47, 93, 69, 226, 196, 23, 48, 35, 142, 60, 63, 148, 90, 210, 236, 69, 128, 10, 160, 182, 222, 98, 8, 19, 123, 104, 154, 141, 60, 144, 204, 173, 32, 174, 4, 182, 45, 25, 253, 56, 177, 42, 52, 31, 91, 51, 58, 178, 219, 130, 51, 97, 85, 36, 225, 205, 85, 50, 103, 91, 124, 162 ],
+            ""ByteStringValue"": ""E3P8wU/iTsNcmseUhcjHs2z228AvXUXixBcwI448g6SHNFPFKEwN8n/uLZBxf4/6s2ljkAsraA=="",
             ""XmlElementValue"": {
                 ""n0:복숭아"": {
                     ""@검정황색"": ""Кот"",
@@ -911,7 +911,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""StringValue"": ""Виноградина Слон:"",
             ""DateTimeValue"": ""1923-03-18T00:11:38.731972Z"",
             ""GuidValue"": ""82622490-4f77-4562-6290-1295bf97c2e1"",
-            ""ByteStringValue"": [ 131, 164, 135, 52, 83, 197, 40, 76, 13, 242, 127, 238, 45, 144, 113, 127, 143, 250, 179, 105, 99, 144, 11, 43, 104 ],
+            ""ByteStringValue"": ""g6SHNFPFKEwN8n/uLZBxf4/6s2ljkAsraA=="",
             ""XmlElementValue"": {
                 ""n0:石灰"": {
                     ""@xmlns:n0"": ""http://狗绵羊"",
@@ -974,7 +974,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""StringValue"": ""ヘビ~ 猫* 緑) マンゴ< レモン ブタ\"" 石灰 石灰{ 黒! ブタ 猿 馬 ブタ@ 牛 ヘビ' 犬 犬\"" 牛$"",
             ""DateTimeValue"": ""1949-12-22T18:46:59.3619463Z"",
             ""GuidValue"": ""bfa4b0cc-483b-8dcf-f31c-be1ab6a22373"",
-            ""ByteStringValue"": [ 230, 77, 255, 50, 44, 50, 177, 162, 80, 111, 68, 190, 135, 246, 90, 118, 33, 196, 15, 169, 10, 92, 225, 21, 231, 78, 108, 231, 209, 160, 223, 65, 218, 145, 33, 192, 68, 73, 160, 126, 242, 28, 234, 217, 139, 206, 108, 38, 99, 164, 148, 221, 20 ],
+            ""ByteStringValue"": ""5k3/MiwysaJQb0S+h/ZadiHED6kKXOEV505s59Gg"",
             ""XmlElementValue"": {
                 ""n0:香蕉芒果"": {
                     ""@芒果"": ""Dog"",
@@ -1037,7 +1037,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""StringValue"": ""яблоко Ананас~ Овцы Корова Пурпурово_ Банан Крыса Собака Кот Бело( Корова'"",
             ""DateTimeValue"": ""2034-12-05T15:52:28.675232Z"",
             ""GuidValue"": ""0500899c-1c30-8180-cbc7-333928152ed2"",
-            ""ByteStringValue"": [ 231, 20, 90, 216, 130, 131, 90, 67, 79, 157, 9, 52, 206, 116, 148, 59, 17 ],
+            ""ByteStringValue"": ""5xRa2IKDWkNPnQk0znSUOxE="",
             ""XmlElementValue"": {
                 ""n0:Корова"": {
                     ""@Желтыйцвет"": ""Strawberry"",
@@ -1211,7 +1211,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""StringValue"": ""ラット} 馬` いちご 青い 白い 象 レモン. パイナップル"",
             ""DateTimeValue"": ""1985-11-03T22:42:37.1296614Z"",
             ""GuidValue"": ""5b9f4a59-1a25-042a-e156-e9e08f8eed3d"",
-            ""ByteStringValue"": [ 192, 70, 43, 233, 29, 173, 191, 102, 6, 234, 173, 153 ],
+            ""ByteStringValue"": ""wEYr6R2tv2YG6q2Z"",
             ""XmlElementValue"": {
                 ""n0:绵羊"": {
                     ""@猫菠萝"": ""馬"",

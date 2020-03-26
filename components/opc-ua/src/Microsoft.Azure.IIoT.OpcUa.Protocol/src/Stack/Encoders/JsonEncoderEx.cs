@@ -542,7 +542,7 @@ namespace Opc.Ua.Encoders {
                 WriteNull(property);
             }
             else if (UseReversibleEncoding) {
-                if (UseUriEncoding || UseAdvancedEncoding) {
+                if (UseUriEncoding && UseAdvancedEncoding) {
                     WriteString(property, value.AsString(Context));
                 }
                 else {
