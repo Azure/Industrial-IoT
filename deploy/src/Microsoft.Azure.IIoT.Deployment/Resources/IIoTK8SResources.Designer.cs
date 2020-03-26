@@ -154,6 +154,32 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         
         /// <summary>
         ///   Looks up a localized string similar to apiVersion: v1
+        ///kind: ConfigMap
+        ///metadata:
+        ///  name: container-azm-ms-agentconfig
+        ///  namespace: kube-system
+        ///data:
+        ///  schema-version:
+        ///    v1
+        ///  config-version:
+        ///    ver1
+        ///  log-data-collection-settings: |-
+        ///    # Log data collection settings
+        ///    [log_collection_settings]
+        ///       [log_collection_settings.stdout]
+        ///          # In the absense of this configmap, default value for enabled is true
+        ///          enabled = true
+        ///          # exclude_namespaces setting holds good only if enabled is set to true
+        ///          # kube-system l [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string _04_oms_agent_configmap {
+            get {
+                return ResourceManager.GetString("_04_oms_agent_configmap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to apiVersion: v1
         ///kind: Secret
         ///metadata:
         ///  name: industrial-iot-env
@@ -841,7 +867,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///data:
         ///  compute-full-forward-for: &quot;true&quot;
         ///  use-forward-headers: &quot;true&quot;
-        ///  proxy-buffer-size: &quot;16k&quot;
+        ///  proxy-buffer-size: &quot;32k&quot;
+        ///  client-header-buffer-size: &quot;32k&quot;
         ///.
         /// </summary>
         internal static string _50_nginx_ingress_configuration_configmap {

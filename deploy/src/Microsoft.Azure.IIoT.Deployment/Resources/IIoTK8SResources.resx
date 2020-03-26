@@ -130,6 +130,9 @@
   <data name="_03_industrial_iot_role_binding" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>aks\03_industrial_iot_role_binding.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
+  <data name="_04_oms_agent_configmap" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\04_oms_agent_configmap.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="_10_industrial_iot_env_secret" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>aks\10_industrial_iot_env_secret.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>

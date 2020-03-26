@@ -80,6 +80,11 @@ namespace Microsoft.Azure.IIoT.Deployment {
             }
         }
 
+        /// <summary>
+        /// Create namespace for Azure Industrial IoT components.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<V1Namespace> CreateIIoTNamespaceAsync(
             CancellationToken cancellationToken = default
         ) {
@@ -89,6 +94,11 @@ namespace Microsoft.Azure.IIoT.Deployment {
             );
         }
 
+        /// <summary>
+        /// Create namespace for NGINX Ingress Controller.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<V1Namespace> CreateNGINXNamespaceAsync(
             CancellationToken cancellationToken = default
         ) {
@@ -98,6 +108,11 @@ namespace Microsoft.Azure.IIoT.Deployment {
             );
         }
 
+        /// <summary>
+        /// Create service account, role and role binding for Azure Industrial IoT components.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<V1ServiceAccount> SetupIIoTServiceAccountAsync(
             CancellationToken cancellationToken = default
         ) {
@@ -129,6 +144,36 @@ namespace Microsoft.Azure.IIoT.Deployment {
             }
         }
 
+        /// <summary>
+        /// Deploy oms agent configuration to enable scraping of Prometheus metrics.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<V1ConfigMap> EnablePrometheusMetricsScrapingAsync(
+            CancellationToken cancellationToken = default
+        ) {
+            try {
+                // Create configuration for oms agent that will enable scraping of Prometheus metrics.
+                // Here is the source of 04_oms_agent_configmap.yaml:
+                // https://github.com/microsoft/OMS-docker/blob/ci_feature_prod/Kubernetes/container-azm-ms-agentconfig.yaml
+                var v1ConfigMap = await CreateV1ConfigMapAsync(
+                    Resources.IIoTK8SResources._04_oms_agent_configmap,
+                    cancellationToken: cancellationToken
+                );
+
+                return v1ConfigMap;
+            }
+            catch (Exception ex) {
+                Log.Error(ex, $"Failed to create configuration for oms agent.");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Create service account, roles and role bindings for NGINX Ingress Controller components.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<V1ServiceAccount> SetupNGINXServiceAccountAsync(
             CancellationToken cancellationToken = default
         ) {
@@ -255,6 +300,12 @@ namespace Microsoft.Azure.IIoT.Deployment {
             }
         }
 
+        /// <summary>
+        /// Create configuration secret for Azure Industrial IoT components.
+        /// </summary>
+        /// <param name="env"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<V1Secret> CreateIIoTEnvSecretAsync(
             IDictionary<string, string> env,
             CancellationToken cancellationToken = default
@@ -344,6 +395,11 @@ namespace Microsoft.Azure.IIoT.Deployment {
             }
         }
 
+        /// <summary>
+        /// Deploy Azure Industrial IoT components.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task DeployIIoTServicesAsync(
             CancellationToken cancellationToken = default
         ) {
@@ -453,6 +509,11 @@ namespace Microsoft.Azure.IIoT.Deployment {
             }
         }
 
+        /// <summary>
+        /// Create Ingress for Azure Industrial IoT components. 
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<Extensionsv1beta1Ingress> CreateIIoTIngressAsync(
             CancellationToken cancellationToken = default
         ) {
@@ -532,6 +593,13 @@ namespace Microsoft.Azure.IIoT.Deployment {
             throw exception;
         }
 
+        /// <summary>
+        /// Crete SSL Secret.
+        /// </summary>
+        /// <param name="certPem"></param>
+        /// <param name="privateKeyPem"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<V1Secret> CreateNGINXDefaultSSLCertificateSecretAsync(
             string certPem,
             string privateKeyPem,
@@ -560,6 +628,11 @@ namespace Microsoft.Azure.IIoT.Deployment {
             return defaultSslCertificateSecret;
         }
 
+        /// <summary>
+        /// Deploy components of NGINX Ingress Controller.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task DeployNGINXIngressControllerAsync(
             CancellationToken cancellationToken = default
         ) {
