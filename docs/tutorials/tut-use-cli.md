@@ -49,7 +49,7 @@ To make the demo deterministic we also start a demo OPC UA server.
 2. Build and start the CLI in console mode by running
 
    ```bash
-   cd ./api/src/Microsoft.Azure.IIoT.OpcUa.Api/cli
+   cd ./api/src/Microsoft.Azure.IIoT.Api/cli
    dotnet run console
    ```
 
