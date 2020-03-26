@@ -70,6 +70,7 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
 #pragma warning restore IDE0067 // Dispose objects before losing scope
         }
 
+
         /// <summary>
         /// Run module host
         /// </summary>
@@ -80,10 +81,11 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                     _reset = new TaskCompletionSource<bool>();
                     var module = hostScope.Resolve<IModuleHost>();
                     var logger = hostScope.Resolve<ILogger>();
-                    var hostname = "discovery";
+                    //var hostname = Bash("hostname -i");
                     var port = 9604;
-                    logger.Information("Initiating prometheus at {0}:{1}/metrics", hostname, port);
-                    var server = new MetricServer(hostname: hostname, port: port);
+                    logger.Information("Initiating prometheus at port {0}/metrics", port);
+                    //var server = new MetricServer(hostname: hostname, port: port);
+                    var server = new MetricServer(port: port);
                     try {
                         server.Start();
                         logger.Information("Started prometheus server");
