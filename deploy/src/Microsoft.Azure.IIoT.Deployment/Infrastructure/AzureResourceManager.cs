@@ -20,13 +20,19 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
     class AzureResourceManager {
 
         public static readonly Region[] FunctionalRegions = new Region[] {
+            Region.USEast,
             Region.USEast2,
+            Region.USWest,
             Region.USWest2,
+            Region.USCentral,
             Region.EuropeNorth,
             Region.EuropeWest,
             //Region.CanadaCentral, // As of 2019.11.25, SignalR resource is not available in this region.
             //Region.IndiaCentral, // App Service Plan scaling is not available in this region.
-            Region.AsiaSouthEast
+            Region.AsiaSouthEast,
+            Region.AustraliaEast,
+            // ToDo: Uncomment Region.UKSouth once we are able to test the deployment.
+            //Region.UKSouth // 2020.03.26: No capacity to test.
         };
 
         private readonly Azure.IAuthenticated _authenticated;
