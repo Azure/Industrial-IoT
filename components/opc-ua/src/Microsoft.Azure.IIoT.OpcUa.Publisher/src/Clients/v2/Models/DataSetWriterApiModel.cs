@@ -55,7 +55,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2.Models {
         /// <summary>
         /// Dataset writer id
         /// </summary>
-        [JsonProperty(PropertyName = "DataSetWriterId")]
+        [JsonProperty(PropertyName = "dataSetWriterId")]
         public string DataSetWriterId { get; set; }
 
         /// <summary>
