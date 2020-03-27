@@ -16,9 +16,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.History;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Supervisor method controller

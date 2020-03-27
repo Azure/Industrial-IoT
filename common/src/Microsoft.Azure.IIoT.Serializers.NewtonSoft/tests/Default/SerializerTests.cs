@@ -322,6 +322,88 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
         }
 
         [Fact]
+        public void SerializerFromObjectContainerToContainerWithObject() {
+            var expected = new TestContainer {
+                Value = Serializer.FromObject(new {
+                    Test = "Text",
+                    Locale = "de"
+                })
+            };
+            var tmp = Serializer.FromObject(expected);
+            var actual = tmp.ConvertTo<TestContainer>();
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetScalars))]
+        [MemberData(nameof(GetEmptyArrays))]
+        [MemberData(nameof(GetFilledArrays))]
+        public void SerializerFromObjectContainerToContainerWithSerializedVariant(object o, Type type) {
+            var t = type.MakeArrayType();
+            var expected = new TestContainer {
+                Value = Serializer.FromObject(o)
+            };
+            var tmp = Serializer.FromObject(expected);
+            var actual = tmp.ConvertTo<TestContainer>();
+            Assert.Equal(expected, actual);
+            Assert.NotNull(actual.Value);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetScalars))]
+        [MemberData(nameof(GetEmptyArrays))]
+        [MemberData(nameof(GetFilledArrays))]
+        public void SerializerFromObjectContainerToContainerWithArray(object o, Type type) {
+            var t = type.MakeArrayType();
+            var expected = new TestContainer {
+                Value = Serializer.FromArray(o, o, o)
+            };
+            var tmp = Serializer.FromObject(expected);
+            var actual = tmp.ConvertTo<TestContainer>();
+            Assert.Equal(expected, actual);
+            Assert.NotNull(actual.Value);
+        }
+
+        [Fact]
+        public void SerializerFromObjectContainerToContainerWithStringArray() {
+            var expected = new TestContainer {
+                Value = Serializer.FromArray("", "", "")
+            };
+            var tmp = Serializer.FromObject(expected);
+            var actual = tmp.ConvertTo<TestContainer>();
+            Assert.Equal(expected, actual);
+            Assert.NotNull(actual.Value);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetVariantValues))]
+        public void SerializerFromObjectContainerToContainer(VariantValue v) {
+            var expected = new TestContainer {
+                Value = v
+            };
+            var tmp = Serializer.FromObject(expected);
+            var actual = tmp.ConvertTo<TestContainer>();
+            Assert.Equal(expected, actual);
+        }
+
+        [DataContract]
+        public class TestContainer {
+            [DataMember]
+            public VariantValue Value { get; set; }
+
+            public override bool Equals(object obj) {
+                if (obj is TestContainer c) {
+                    return VariantValue.DeepEquals(c.Value, Value);
+                }
+                return false;
+            }
+
+            public override int GetHashCode() {
+                return -1937169414 + EqualityComparer<VariantValue>.Default.GetHashCode(Value);
+            }
+        }
+
+        [Fact]
         public void SerializeFromComplexObjectAndGetByPath() {
             var o = Serializer.FromObject(new {
                 Test = 0,

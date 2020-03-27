@@ -64,27 +64,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// <returns></returns>
         Task<X509CertificateChainModel> GetEndpointCertificateAsync(
             string endpointId, CancellationToken ct = default);
-
-        /// <summary>
-        /// Set the endpoint state to activated
-        /// </summary>
-        /// <param name="endpointId"></param>
-        /// <param name="context"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task ActivateEndpointAsync(string endpointId,
-            RegistryOperationContextModel context = null,
-            CancellationToken ct = default);
-
-        /// <summary>
-        /// Set the endpoint state to deactivated
-        /// </summary>
-        /// <param name="endpointId"></param>
-        /// <param name="context"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task DeactivateEndpointAsync(string endpointId,
-            RegistryOperationContextModel context = null,
-            CancellationToken ct = default);
     }
 }

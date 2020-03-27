@@ -51,6 +51,9 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
             if (!handled && _unknown != null) {
                 // From a device, but does not have any event schema or message schema
                 await _unknown.HandleAsync(eventData, properties);
+                if (checkpoint != null) {
+                    await Try.Async(() => checkpoint());
+                }
             }
         }
 

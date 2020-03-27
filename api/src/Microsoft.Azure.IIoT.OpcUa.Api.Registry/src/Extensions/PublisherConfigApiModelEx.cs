@@ -15,27 +15,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         /// <param name="config"></param>
         /// <param name="update"></param>
-        /// <param name="isPatch"></param>
         public static PublisherConfigApiModel Patch(this PublisherConfigApiModel update,
-            PublisherConfigApiModel config, bool isPatch = false) {
+            PublisherConfigApiModel config) {
+            if (update == null) {
+                return config;
+            }
             if (config == null) {
-                return update;
+                config = new PublisherConfigApiModel();
             }
-            if (!isPatch || update.Capabilities != null) {
-                config.Capabilities = update.Capabilities;
-            }
-            if (!isPatch || update.HeartbeatInterval != null) {
-                config.HeartbeatInterval = update.HeartbeatInterval;
-            }
-            if (!isPatch || update.JobCheckInterval != null) {
-                config.JobCheckInterval = update.JobCheckInterval;
-            }
-            if (!isPatch || update.JobOrchestratorUrl != null) {
-                config.JobOrchestratorUrl = update.JobOrchestratorUrl;
-            }
-            if (!isPatch || update.MaxWorkers != null) {
-                config.MaxWorkers = update.MaxWorkers;
-            }
+            config.Capabilities = update.Capabilities;
+            config.HeartbeatInterval = update.HeartbeatInterval;
+            config.JobCheckInterval = update.JobCheckInterval;
+            config.JobOrchestratorUrl = update.JobOrchestratorUrl;
+            config.MaxWorkers = update.MaxWorkers;
             return config;
         }
     }

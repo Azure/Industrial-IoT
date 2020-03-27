@@ -18,90 +18,6 @@
     "https"
   ],
   "paths": {
-    "/publisher/v2/monitor/{endpointId}/samples": {
-      "put": {
-        "tags": [
-          "Monitor"
-        ],
-        "summary": "Subscribe to receive samples",
-        "description": "Register a client to receive publisher samples through SignalR.",
-        "operationId": "Subscribe",
-        "consumes": [
-          "application/json-patch+json",
-          "application/json",
-          "text/json",
-          "application/*+json"
-        ],
-        "parameters": [
-          {
-            "in": "path",
-            "name": "endpointId",
-            "description": "The endpoint to subscribe to",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "in": "body",
-            "name": "body",
-            "description": "The user id that will receive publisher samples.",
-            "schema": {
-              "description": "The user id that will receive publisher\r\n            samples.",
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
-      }
-    },
-    "/publisher/v2/monitor/{endpointId}/samples/{userId}": {
-      "delete": {
-        "tags": [
-          "Monitor"
-        ],
-        "summary": "Unsubscribe from receiving samples.",
-        "description": "Unregister a client and stop it from receiving samples.",
-        "operationId": "Unsubscribe",
-        "parameters": [
-          {
-            "in": "path",
-            "name": "endpointId",
-            "description": "The endpoint to unsubscribe from",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "in": "path",
-            "name": "userId",
-            "description": "The user id that will not receive any more published samples",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Success"
-          }
-        },
-        "security": [
-          {
-            "oauth2": [
-              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
-            ]
-          }
-        ]
-      }
-    },
     "/publisher/v2/publish/{endpointId}/start": {
       "post": {
         "tags": [
@@ -142,6 +58,58 @@
             "description": "Success",
             "schema": {
               "$ref": "#/definitions/PublishStartResponseApiModel"
+            }
+          }
+        },
+        "security": [
+          {
+            "oauth2": [
+              "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication"
+            ]
+          }
+        ]
+      }
+    },
+    "/publisher/v2/publish/{endpointId}/bulk": {
+      "post": {
+        "tags": [
+          "Publish"
+        ],
+        "summary": "Bulk publish node values",
+        "description": "Adds or removes in bulk values that should be published from a particular endpoint.",
+        "operationId": "BulkPublishValues",
+        "consumes": [
+          "application/json-patch+json",
+          "application/json",
+          "text/json",
+          "application/*+json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "endpointId",
+            "description": "The identifier of an activated endpoint.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "in": "body",
+            "name": "body",
+            "description": "The bulk publish request",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/PublishBulkRequestApiModel"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/PublishBulkResponseApiModel"
             }
           }
         },
@@ -354,7 +322,8 @@
           "$ref": "#/definitions/CredentialType"
         },
         "value": {
-          "description": "Value to pass to server"
+          "description": "Value to pass to server",
+          "type": "string"
         }
       }
     },
@@ -439,7 +408,8 @@
           "type": "string"
         },
         "diagnostics": {
-          "description": "Additional diagnostics information"
+          "description": "Additional diagnostics information",
+          "type": "string"
         }
       }
     },
@@ -449,6 +419,49 @@
       "properties": {
         "errorInfo": {
           "$ref": "#/definitions/ServiceResultApiModel"
+        }
+      }
+    },
+    "PublishBulkRequestApiModel": {
+      "description": "Publish in bulk request",
+      "type": "object",
+      "properties": {
+        "NodesToAdd": {
+          "description": "Node to add",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/PublishedItemApiModel"
+          }
+        },
+        "NodesToRemove": {
+          "description": "Node to remove",
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "Header": {
+          "$ref": "#/definitions/RequestHeaderApiModel"
+        }
+      }
+    },
+    "PublishBulkResponseApiModel": {
+      "description": "Result of bulk request",
+      "type": "object",
+      "properties": {
+        "NodesToAdd": {
+          "description": "Node to add",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ServiceResultApiModel"
+          }
+        },
+        "NodesToRemove": {
+          "description": "Node to remove",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/ServiceResultApiModel"
+          }
         }
       }
     },
@@ -517,10 +530,6 @@
     }
   },
   "tags": [
-    {
-      "name": "Monitor",
-      "description": "Value and Event monitoring services"
-    },
     {
       "name": "Publish",
       "description": "Value and Event publishing services"

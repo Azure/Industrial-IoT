@@ -206,7 +206,7 @@ namespace Microsoft.Azure.IIoT.App {
             services.AddRazorPages();
             services.AddSignalR()
                 .AddJsonSerializer()
-             //   .AddMessagePackSerializer()
+                .AddMessagePackSerializer()
              //   .AddAzureSignalRService(Config)
                 ;
             services.AddServerSideBlazor();
@@ -225,12 +225,13 @@ namespace Microsoft.Azure.IIoT.App {
 
             // Register logger
             builder.AddDiagnostics(Config);
+            builder.RegisterModule<MessagePackModule>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Register http client module (needed for api)...
             builder.RegisterModule<HttpClientModule>();
             builder.RegisterType<SignalRHubClient>()
-                .AsImplementedInterfaces().AsSelf().SingleInstance();
+                .AsImplementedInterfaces(); // Per request
 
             // Use bearer authentication
             builder.RegisterType<HttpBearerAuthentication>()

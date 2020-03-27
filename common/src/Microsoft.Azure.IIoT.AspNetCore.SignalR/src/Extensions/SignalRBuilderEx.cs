@@ -70,12 +70,11 @@ namespace Microsoft.Extensions.DependencyInjection {
             // Configure json serializer settings transiently to pick up all converters
             builder.Services.AddTransient<IConfigureOptions<MessagePackHubProtocolOptions>>(services =>
                 new ConfigureNamedOptions<MessagePackHubProtocolOptions>(Options.DefaultName, options => {
-                    var provider = services.GetService<IMessagePackFormatterResolverProvider>();
-                    var resolvers = provider?.GetResolvers();
-                    if (resolvers == null) {
-                        return;
+                    var provider = services.GetService<IMessagePackSerializerOptionsProvider>();
+                    var resolvers = provider?.Resolvers;
+                    if (resolvers != null) {
+                        options.FormatterResolvers = resolvers.ToList();
                     }
-                    options.FormatterResolvers = resolvers.ToList();
                 }));
             return builder;
         }

@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
-    using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.OpcUa.Edge;
     using Microsoft.Azure.IIoT.Diagnostics;
@@ -83,8 +82,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
         /// </summary>
         /// <param name="supervisor"></param>
         /// <param name="logger"></param>
-        public SupervisorSettingsController(ISupervisorServices supervisor,
-            ILogger logger) {
+        public SupervisorSettingsController(ISupervisorServices supervisor, ILogger logger) {
             _supervisor = supervisor ?? throw new ArgumentNullException(nameof(supervisor));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _endpoints = new Dictionary<string, VariantValue>();

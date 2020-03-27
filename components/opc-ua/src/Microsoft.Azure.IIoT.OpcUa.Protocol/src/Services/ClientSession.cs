@@ -576,7 +576,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             _lastState = state;
             _logger.Information(
-                "Connectino to {endpoint} changed from {previous} to {state}",
+                "Connecting to {endpoint} changed from {previous} to {state}",
                 _endpointUrl, previous, state);
             try {
                 await _statusCb?.Invoke(_connection, state);
@@ -934,6 +934,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
             /// <inheritdoc/>
             public Session Session => _outer._session;
+
+            /// <inheritdoc/>
+            public EndpointConnectivityState State => _outer._lastState;
 
             /// <inheritdoc/>
             internal ClientSessionHandle(ClientSession outer) {

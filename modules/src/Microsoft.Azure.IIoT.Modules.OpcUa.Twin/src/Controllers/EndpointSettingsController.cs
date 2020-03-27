@@ -72,7 +72,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
         /// <summary>
         /// State of the endpoint
         /// </summary>
-        public EndpointConnectivityState State { get; set; }
+        public EndpointConnectivityState State {
+            get => _twin.State;
+            set { /* Only reporting */ }
+        }
 
         /// <summary>
         /// Create controller with service

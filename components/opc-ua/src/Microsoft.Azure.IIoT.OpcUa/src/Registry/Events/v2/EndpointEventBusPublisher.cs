@@ -67,9 +67,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
 
         /// <inheritdoc/>
         public Task OnEndpointUpdatedAsync(
-            RegistryOperationContextModel context, EndpointInfoModel endpoint, bool isPatch) {
+            RegistryOperationContextModel context, EndpointInfoModel endpoint) {
             return _bus.PublishAsync(Wrap(EndpointEventType.Updated, context,
-                endpoint.Registration.Id, endpoint, isPatch));
+                endpoint.Registration.Id, endpoint));
         }
 
         /// <summary>
@@ -79,17 +79,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
         /// <param name="context"></param>
         /// <param name="endpointId"></param>
         /// <param name="endpoint"></param>
-        /// <param name="isPatch"></param>
         /// <returns></returns>
         private static EndpointEventModel Wrap(EndpointEventType type,
             RegistryOperationContextModel context, string endpointId,
-            EndpointInfoModel endpoint, bool isPatch = false) {
+            EndpointInfoModel endpoint) {
             return new EndpointEventModel {
                 EventType = type,
                 Context = context,
                 Id = endpointId,
-                Endpoint = endpoint,
-                IsPatch = isPatch == true ? true : (bool?)null
+                Endpoint = endpoint
             };
         }
 

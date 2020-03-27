@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Http.Exceptions;
     using Microsoft.Azure.IIoT.Http;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;
     using Microsoft.Azure.Documents.Linq;
@@ -18,8 +19,9 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
-    using CosmosContainer = Documents.DocumentCollection;
     using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json;
+    using CosmosContainer = Documents.DocumentCollection;
 
     /// <summary>
     /// Wraps a cosmos db container
@@ -40,11 +42,13 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         /// <param name="db"></param>
         /// <param name="container"></param>
         /// <param name="logger"></param>
+        /// <param name="jsonConfig"></param>
         internal DocumentCollection(DocumentDatabase db, CosmosContainer container,
-            ILogger logger) {
+            ILogger logger, IJsonSerializerSettingsProvider jsonConfig = null) {
             Container = container ?? throw new ArgumentNullException(nameof(container));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _db = db ?? throw new ArgumentNullException(nameof(db));
+            _jsonConfig = jsonConfig;
             _partitioned = container.PartitionKey.Paths.Any();
         }
 
@@ -110,7 +114,8 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
                 try {
                     return new DocumentInfo<T>(await this._db.Client.UpsertDocumentAsync(
                         UriFactory.CreateDocumentCollectionUri(_db.DatabaseId, Container.Id),
-                        DocumentCollection.GetItem(id, newItem, options),
+                        DocumentCollection.GetItem(id, newItem, options,
+                            _jsonConfig?.Settings),
                         options.ToRequestOptions(_partitioned, etag),
                         false, ct));
                 }
@@ -133,7 +138,8 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
                 try {
                     return new DocumentInfo<T>(await this._db.Client.ReplaceDocumentAsync(
                         UriFactory.CreateDocumentUri(_db.DatabaseId, Container.Id, existing.Id),
-                        DocumentCollection.GetItem(existing.Id, newItem, options),
+                        DocumentCollection.GetItem(existing.Id, newItem, options,
+                            _jsonConfig?.Settings),
                         options.ToRequestOptions(_partitioned, existing.Etag), ct));
                 }
                 catch (Exception ex) {
@@ -150,7 +156,8 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
                 try {
                     return new DocumentInfo<T>(await this._db.Client.CreateDocumentAsync(
                         UriFactory.CreateDocumentCollectionUri(_db.DatabaseId, Container.Id),
-                        DocumentCollection.GetItem(id, newItem, options),
+                        DocumentCollection.GetItem(id, newItem, options,
+                            _jsonConfig?.Settings),
                         options.ToRequestOptions(_partitioned), false, ct));
                 }
                 catch (Exception ex) {
@@ -217,9 +224,12 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         /// <param name="id"></param>
         /// <param name="value"></param>
         /// <param name="options"></param>
+        /// <param name="settings"></param>
         /// <returns></returns>
-        private static dynamic GetItem<T>(string id, T value, OperationOptions options) {
-            var token = JObject.FromObject(value);
+        private static dynamic GetItem<T>(string id, T value, OperationOptions options,
+            JsonSerializerSettings settings) {
+            var token = JObject.FromObject(value, settings == null ?
+                JsonSerializer.CreateDefault() : JsonSerializer.Create(settings));
             if (options?.PartitionKey != null) {
                 token.AddOrUpdate(PartitionKeyProperty, options.PartitionKey);
             }
@@ -247,6 +257,7 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         internal const string PartitionKeyProperty = "__pk";
 
         private readonly DocumentDatabase _db;
+        private readonly IJsonSerializerSettingsProvider _jsonConfig;
         private readonly ILogger _logger;
         private readonly bool _partitioned;
     }

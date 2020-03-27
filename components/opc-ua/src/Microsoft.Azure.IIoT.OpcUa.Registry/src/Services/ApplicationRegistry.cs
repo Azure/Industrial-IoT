@@ -420,9 +420,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 _metrics.TrackValue("applicationsAdded", added);
                 _metrics.TrackValue("applicationsUpdated", updated);
                 _metrics.TrackValue("applicationsUnchanged", unchanged);
-                _appsAdded.Set(added);
-                _appsUpdated.Set(updated);
-                _appsUnchanged.Set(unchanged);
+                kAppsAdded.Set(added);
+                kAppsUpdated.Set(updated);
+                kAppsUnchanged.Set(unchanged);
             }
         }
 
@@ -432,11 +432,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         private readonly IEndpointBulkProcessor _bulk;
         private readonly IApplicationEndpointRegistry _endpoints;
         private readonly IRegistryEventBroker<IApplicationRegistryListener> _broker;
-        private static readonly Gauge _appsAdded = Metrics
+        private static readonly Gauge kAppsAdded = Metrics
             .CreateGauge("iiot_registry_applicationAdded", "Number of applications added ");
-        private static readonly Gauge _appsUpdated = Metrics
+        private static readonly Gauge kAppsUpdated = Metrics
             .CreateGauge("iiot_registry_applicationsUpdated", "Number of applications updated ");
-        private static readonly Gauge _appsUnchanged = Metrics
+        private static readonly Gauge kAppsUnchanged = Metrics
             .CreateGauge("iiot_registry_applicationUnchanged", "Number of applications unchanged ");
     }
 }

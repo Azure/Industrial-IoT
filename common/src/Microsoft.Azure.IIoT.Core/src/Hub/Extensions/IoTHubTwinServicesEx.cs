@@ -26,9 +26,8 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <param name="moduleId"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task<DeviceTwinModel> FindAsync(
-            this IIoTHubTwinServices service, string deviceId,
-            string moduleId = null, CancellationToken ct = default) {
+        public static async Task<DeviceTwinModel> FindAsync(this IIoTHubTwinServices service,
+            string deviceId, string moduleId = null, CancellationToken ct = default) {
             try {
                 return await service.GetAsync(deviceId, moduleId, ct);
             }
@@ -190,7 +189,7 @@ namespace Microsoft.Azure.IIoT.Hub {
             CancellationToken ct = default) {
             return service.UpdatePropertiesAsync(deviceId, moduleId,
                 new Dictionary<string, VariantValue> {
-                    [property] = value
+                    [property] = value ?? VariantValue.Null
                 }, null, ct);
         }
 

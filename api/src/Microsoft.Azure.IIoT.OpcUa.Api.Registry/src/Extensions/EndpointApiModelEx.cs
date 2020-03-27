@@ -16,27 +16,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="update"></param>
-        /// <param name="isPatch"></param>
         public static EndpointApiModel Patch(this EndpointApiModel update,
-            EndpointApiModel endpoint, bool isPatch = false) {
+            EndpointApiModel endpoint) {
+            if (update == null) {
+                return endpoint;
+            }
             if (endpoint == null) {
-                return update;
+                endpoint = new EndpointApiModel();
             }
-            if (!isPatch || update.AlternativeUrls != null) {
-                endpoint.AlternativeUrls = update.AlternativeUrls;
-            }
-            if (!isPatch || update.Certificate != null) {
-                endpoint.Certificate = update.Certificate;
-            }
-            if (!isPatch || update.SecurityMode != null) {
-                endpoint.SecurityMode = update.SecurityMode;
-            }
-            if (!isPatch || update.SecurityPolicy != null) {
-                endpoint.SecurityPolicy = update.SecurityPolicy;
-            }
-            if (!isPatch || update.Url != null) {
-                endpoint.Url = update.Url;
-            }
+            endpoint.AlternativeUrls = update.AlternativeUrls;
+            endpoint.Certificate = update.Certificate;
+            endpoint.SecurityMode = update.SecurityMode;
+            endpoint.SecurityPolicy = update.SecurityPolicy;
+            endpoint.Url = update.Url;
             return endpoint;
         }
     }

@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "Microsoft.Azure.IIoT.Services.Common.Hub.Fileupload": {
+      "commandName": "Project"
+    }
+  }
+}

@@ -15,63 +15,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         /// <param name="application"></param>
         /// <param name="update"></param>
-        /// <param name="isPatch"></param>
         public static ApplicationInfoApiModel Patch(this ApplicationInfoApiModel update,
-            ApplicationInfoApiModel application, bool isPatch = false) {
+            ApplicationInfoApiModel application) {
+            if (update == null) {
+                return application;
+            }
             if (application == null) {
-                return update;
+                application = new ApplicationInfoApiModel();
             }
-            if (!isPatch || update.ApplicationId != null) {
-                application.ApplicationId = update.ApplicationId;
-            }
-            if (!isPatch || update.ApplicationName != null) {
-                application.ApplicationName = update.ApplicationName;
-            }
-            if (!isPatch) {
-                application.ApplicationType = update.ApplicationType;
-            }
-            if (!isPatch || update.ApplicationUri != null) {
-                application.ApplicationUri = update.ApplicationUri;
-            }
-            if (!isPatch || update.Capabilities != null) {
-                application.Capabilities = update.Capabilities;
-            }
-            if (!isPatch || update.Created != null) {
-                application.Created = update.Created;
-            }
-            if (!isPatch || update.DiscovererId != null) {
-                application.DiscovererId = update.DiscovererId;
-            }
-            if (!isPatch || update.DiscoveryProfileUri != null) {
-                application.DiscoveryProfileUri = update.DiscoveryProfileUri;
-            }
-            if (!isPatch || update.DiscoveryUrls != null) {
-                application.DiscoveryUrls = update.DiscoveryUrls;
-            }
-            if (!isPatch || update.GatewayServerUri != null) {
-                application.GatewayServerUri = update.GatewayServerUri;
-            }
-            if (!isPatch || update.HostAddresses != null) {
-                application.HostAddresses = update.HostAddresses;
-            }
-            if (!isPatch || update.Locale != null) {
-                application.Locale = update.Locale;
-            }
-            if (!isPatch || update.LocalizedNames != null) {
-                application.LocalizedNames = update.LocalizedNames;
-            }
-            if (!isPatch || update.NotSeenSince != null) {
-                application.NotSeenSince = update.NotSeenSince;
-            }
-            if (!isPatch || update.ProductUri != null) {
-                application.ProductUri = update.ProductUri;
-            }
-            if (!isPatch || update.SiteId != null) {
-                application.SiteId = update.SiteId;
-            }
-            if (!isPatch || update.Updated != null) {
-                application.Updated = update.Updated;
-            }
+            application.ApplicationId = update.ApplicationId;
+            application.ApplicationName = update.ApplicationName;
+            application.ApplicationType = update.ApplicationType;
+            application.ApplicationUri = update.ApplicationUri;
+            application.Capabilities = update.Capabilities;
+            application.Created = update.Created;
+            application.DiscovererId = update.DiscovererId;
+            application.DiscoveryProfileUri = update.DiscoveryProfileUri;
+            application.DiscoveryUrls = update.DiscoveryUrls;
+            application.GatewayServerUri = update.GatewayServerUri;
+            application.HostAddresses = update.HostAddresses;
+            application.Locale = update.Locale;
+            application.LocalizedNames = update.LocalizedNames;
+            application.NotSeenSince = update.NotSeenSince;
+            application.ProductUri = update.ProductUri;
+            application.SiteId = update.SiteId;
+            application.Updated = update.Updated;
             return application;
         }
     }

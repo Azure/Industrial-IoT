@@ -53,9 +53,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
 
         /// <inheritdoc/>
         public Task OnApplicationUpdatedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application, bool isPatch) {
+            ApplicationInfoModel application) {
             return _bus.PublishAsync(Wrap(ApplicationEventType.Updated, context,
-                application.ApplicationId, application, isPatch));
+                application.ApplicationId, application));
         }
 
         /// <summary>
@@ -65,17 +65,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
         /// <param name="context"></param>
         /// <param name="applicationId"></param>
         /// <param name="application"></param>
-        /// <param name="isPatch"></param>
         /// <returns></returns>
         private static ApplicationEventModel Wrap(ApplicationEventType type,
             RegistryOperationContextModel context, string applicationId,
-            ApplicationInfoModel application, bool isPatch = false) {
+            ApplicationInfoModel application) {
             return new ApplicationEventModel {
                 EventType = type,
                 Context = context,
                 Id = applicationId,
-                Application = application,
-                IsPatch = isPatch == true ? true : (bool?)null
+                Application = application
             };
         }
 

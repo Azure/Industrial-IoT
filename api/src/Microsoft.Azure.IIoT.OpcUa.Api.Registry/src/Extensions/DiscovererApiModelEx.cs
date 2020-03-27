@@ -15,35 +15,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         /// <param name="discoverer"></param>
         /// <param name="update"></param>
-        /// <param name="isPatch"></param>
         public static DiscovererApiModel Patch(this DiscovererApiModel update,
-            DiscovererApiModel discoverer, bool isPatch = false) {
-            if (discoverer == null) {
-                return update;
-            }
+            DiscovererApiModel discoverer) {
             if (update == null) {
                 return discoverer;
             }
-            if (!isPatch || update.Connected != null) {
-                discoverer.Connected = update.Connected;
+            if (discoverer == null) {
+                discoverer = new DiscovererApiModel();
             }
-            if (!isPatch || update.Discovery != null) {
-                discoverer.Discovery = update.Discovery;
-            }
-            if (!isPatch || update.Id != null) {
-                discoverer.Id = update.Id;
-            }
-            if (!isPatch || update.LogLevel != null) {
-                discoverer.LogLevel = update.LogLevel;
-            }
-            if (!isPatch || update.OutOfSync != null) {
-                discoverer.OutOfSync = update.OutOfSync;
-            }
-            if (!isPatch || update.SiteId != null) {
-                discoverer.SiteId = update.SiteId;
-            }
-            discoverer.DiscoveryConfig = update.DiscoveryConfig.Patch(
-                discoverer.DiscoveryConfig, isPatch);
+            discoverer.Connected = update.Connected;
+            discoverer.Discovery = update.Discovery;
+            discoverer.Id = update.Id;
+            discoverer.LogLevel = update.LogLevel;
+            discoverer.OutOfSync = update.OutOfSync;
+            discoverer.SiteId = update.SiteId;
+            discoverer.RequestedMode = update.RequestedMode;
+            discoverer.RequestedConfig = (update.RequestedConfig ?? new DiscoveryConfigApiModel())
+                .Patch(discoverer.RequestedConfig);
+            discoverer.DiscoveryConfig = (update.DiscoveryConfig ?? new DiscoveryConfigApiModel())
+                .Patch(discoverer.DiscoveryConfig);
             return discoverer;
         }
     }

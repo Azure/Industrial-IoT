@@ -4,6 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+
     /// <summary>
     /// Endpoint registration extensions
     /// </summary>
@@ -14,34 +16,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="update"></param>
-        /// <param name="isPatch"></param>
         public static EndpointRegistrationApiModel Patch(this EndpointRegistrationApiModel update,
-            EndpointRegistrationApiModel endpoint, bool isPatch = false) {
+            EndpointRegistrationApiModel endpoint) {
+            if (update == null) {
+                return endpoint;
+            }
             if (endpoint == null) {
-                return update;
+                endpoint = new EndpointRegistrationApiModel();
             }
-            if (!isPatch || update.AuthenticationMethods != null) {
-                endpoint.AuthenticationMethods = update.AuthenticationMethods;
-            }
-            if (!isPatch || update.DiscovererId != null) {
-                endpoint.DiscovererId = update.DiscovererId;
-            }
-            if (!isPatch || update.EndpointUrl != null) {
-                endpoint.EndpointUrl = update.EndpointUrl;
-            }
-            if (!isPatch || update.Id != null) {
-                endpoint.Id = update.Id;
-            }
-            if (!isPatch || update.SecurityLevel != null) {
-                endpoint.SecurityLevel = update.SecurityLevel;
-            }
-            if (!isPatch || update.SiteId != null) {
-                endpoint.SiteId = update.SiteId;
-            }
-            if (!isPatch || update.SupervisorId != null) {
-                endpoint.SupervisorId = update.SupervisorId;
-            }
-            endpoint.Endpoint = update.Endpoint.Patch(endpoint.Endpoint, isPatch);
+            endpoint.AuthenticationMethods = update.AuthenticationMethods;
+            endpoint.DiscovererId = update.DiscovererId;
+            endpoint.EndpointUrl = update.EndpointUrl;
+            endpoint.Id = update.Id;
+            endpoint.SecurityLevel = update.SecurityLevel;
+            endpoint.SiteId = update.SiteId;
+            endpoint.SupervisorId = update.SupervisorId;
+            endpoint.Endpoint = (update.Endpoint ?? new EndpointApiModel())
+                .Patch(endpoint.Endpoint);
             return endpoint;
         }
     }

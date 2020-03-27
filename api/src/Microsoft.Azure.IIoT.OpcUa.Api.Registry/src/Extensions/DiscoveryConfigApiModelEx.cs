@@ -15,48 +15,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         /// <param name="config"></param>
         /// <param name="update"></param>
-        /// <param name="isPatch"></param>
         public static DiscoveryConfigApiModel Patch(this DiscoveryConfigApiModel update,
-            DiscoveryConfigApiModel config, bool isPatch = false) {
-            if (config == null) {
-                return update;
-            }
+            DiscoveryConfigApiModel config) {
             if (update == null) {
                 return config;
             }
-            if (!isPatch || update.ActivationFilter != null) {
-                config.ActivationFilter = update.ActivationFilter;
+            if (config == null) {
+                config = new DiscoveryConfigApiModel();
             }
-            if (!isPatch || update.AddressRangesToScan != null) {
-                config.AddressRangesToScan = update.AddressRangesToScan;
-            }
-            if (!isPatch || update.DiscoveryUrls != null) {
-                config.DiscoveryUrls = update.DiscoveryUrls;
-            }
-            if (!isPatch || update.IdleTimeBetweenScans != null) {
-                config.IdleTimeBetweenScans = update.IdleTimeBetweenScans;
-            }
-            if (!isPatch || update.Locales != null) {
-                config.Locales = update.Locales;
-            }
-            if (!isPatch || update.MaxNetworkProbes != null) {
-                config.MaxNetworkProbes = update.MaxNetworkProbes;
-            }
-            if (!isPatch || update.MaxPortProbes != null) {
-                config.MaxPortProbes = update.MaxPortProbes;
-            }
-            if (!isPatch || update.MinPortProbesPercent != null) {
-                config.MinPortProbesPercent = update.MinPortProbesPercent;
-            }
-            if (!isPatch || update.NetworkProbeTimeout != null) {
-                config.NetworkProbeTimeout = update.NetworkProbeTimeout;
-            }
-            if (!isPatch || update.PortProbeTimeout != null) {
-                config.PortProbeTimeout = update.PortProbeTimeout;
-            }
-            if (!isPatch || update.PortRangesToScan != null) {
-                config.PortRangesToScan = update.PortRangesToScan;
-            }
+            config.ActivationFilter = update.ActivationFilter;
+            config.AddressRangesToScan = update.AddressRangesToScan;
+            config.DiscoveryUrls = update.DiscoveryUrls;
+            config.IdleTimeBetweenScans = update.IdleTimeBetweenScans;
+            config.Locales = update.Locales;
+            config.MaxNetworkProbes = update.MaxNetworkProbes;
+            config.MaxPortProbes = update.MaxPortProbes;
+            config.MinPortProbesPercent = update.MinPortProbesPercent;
+            config.NetworkProbeTimeout = update.NetworkProbeTimeout;
+            config.PortProbeTimeout = update.PortProbeTimeout;
+            config.PortRangesToScan = update.PortRangesToScan;
             return config;
         }
     }

@@ -10,9 +10,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Cli {
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients;
-    using Microsoft.Azure.IIoT.Messaging.ServiceBus.Runtime;
-    using Microsoft.Azure.IIoT.Messaging.ServiceBus.Services;
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Net;
@@ -24,7 +21,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Cli {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Transport.Probe;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Runtime;
     using Newtonsoft.Json;
@@ -34,7 +30,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Cli {
     using System.Diagnostics;
     using System.Linq;
     using System.Net;
-    using System.Runtime.Loader;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
@@ -45,7 +40,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Cli {
     public class Program {
         private enum Op {
             None,
-            RunEventListener,
             TestOpcUaDiscoveryService,
             TestOpcUaServerScanner,
             TestNetworkScanner,
@@ -68,12 +62,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Cli {
             try {
                 for (var i = 0; i < args.Length; i++) {
                     switch (args[i]) {
-                        case "--events":
-                            if (op != Op.None) {
-                                throw new ArgumentException("Operations are mutually exclusive");
-                            }
-                            op = Op.RunEventListener;
-                            break;
                         case "--stress":
                             stress = true;
                             break;
@@ -171,7 +159,6 @@ Operations (Mutually exclusive):
     --clear-registry        Clear device registry content.
     --clear-supervisors     Clear supervisors in device registry.
 
-    --events                Listen for events
     --scan-net              Tests network scanning.
     --scan-ports            Tests port scanning.
     --scan-servers          Tests opc server scanning on single machine.
@@ -185,9 +172,6 @@ Operations (Mutually exclusive):
             try {
                 Console.WriteLine($"Running {op}...");
                 switch (op) {
-                    case Op.RunEventListener:
-                        RunEventListenerAsync().Wait();
-                        break;
                     case Op.TestNetworkScanner:
                         TestNetworkScannerAsync().Wait();
                         break;
@@ -220,22 +204,6 @@ Operations (Mutually exclusive):
 
             Console.WriteLine("Press key to exit...");
             Console.ReadKey();
-        }
-
-        /// <summary>
-        /// Run listener
-        /// </summary>
-        private static async Task RunEventListenerAsync() {
-            var logger = ConsoleLogger.Create();
-            var bus = new ServiceBusEventBus(new ServiceBusClientFactory(
-                new ServiceBusConfig(null)), new NewtonSoftJsonSerializer(), logger);
-            var listener = new ConsoleListener();
-            using (var subscriber1 = new ApplicationEventBusSubscriber(bus, listener.YieldReturn()))
-            using (var subscriber2 = new EndpointEventBusSubscriber(bus, listener.YieldReturn())) {
-                var tcs = new TaskCompletionSource<bool>();
-                AssemblyLoadContext.Default.Unloading += _ => tcs.TrySetResult(true);
-                await tcs.Task;
-            }
         }
 
         /// <summary>
@@ -451,7 +419,7 @@ Operations (Mutually exclusive):
 
             /// <inheritdoc/>
             public Task OnApplicationUpdatedAsync(RegistryOperationContextModel context,
-                ApplicationInfoModel application, bool isPatch) {
+                ApplicationInfoModel application) {
                 Console.WriteLine($"Updated {application.ApplicationId}");
                 return Task.CompletedTask;
             }
@@ -500,7 +468,7 @@ Operations (Mutually exclusive):
 
             /// <inheritdoc/>
             public Task OnEndpointUpdatedAsync(RegistryOperationContextModel context,
-                EndpointInfoModel endpoint, bool isPatch) {
+                EndpointInfoModel endpoint) {
                 Console.WriteLine($"Updated {endpoint.Registration.Id}");
                 return Task.CompletedTask;
             }

@@ -6,27 +6,26 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2.Models;
-    using Microsoft.Azure.IIoT.Messaging.Default;
     using Microsoft.Azure.IIoT.Messaging;
     using System.Threading.Tasks;
-    using Serilog;
+    using System;
 
     /// <summary>
     /// Supervisor registry event publisher
     /// </summary>
-    public class SupervisorEventForwarder<THub> :
-        EventBusCallbackBridge<THub, SupervisorEventModel> {
+    public class SupervisorEventForwarder<THub> : IEventHandler<SupervisorEventModel> {
 
         /// <inheritdoc/>
-        public SupervisorEventForwarder(IEventBus bus, ICallbackInvokerT<THub> callback,
-            ILogger logger) : base(bus, callback, logger) {
+        public SupervisorEventForwarder(ICallbackInvokerT<THub> callback) {
+            _callback = callback ?? throw new ArgumentNullException(nameof(callback));
         }
 
         /// <inheritdoc/>
-        public override Task HandleAsync(SupervisorEventModel eventData) {
+        public Task HandleAsync(SupervisorEventModel eventData) {
             var arguments = new object[] { eventData.ToApiModel() };
-            return Callback.BroadcastAsync(
+            return _callback.BroadcastAsync(
                 EventTargets.SupervisorEventTarget, arguments);
         }
+        private readonly ICallbackInvoker _callback;
     }
 }

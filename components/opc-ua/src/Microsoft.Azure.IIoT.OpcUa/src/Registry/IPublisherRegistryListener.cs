@@ -26,10 +26,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="publisher"></param>
-        /// <param name="isPatch"></param>
         /// <returns></returns>
         Task OnPublisherUpdatedAsync(RegistryOperationContextModel context,
-            PublisherModel publisher, bool isPatch = false);
+            PublisherModel publisher);
 
         /// <summary>
         /// Called when publisher is deleted

@@ -1,8 +1,8 @@
 {
-    "profiles": {
-        "WebService": {
-            "commandName": "Project",
-            "applicationUrl": "http://localhost:9048"
-        }
+  "profiles": {
+    "WebService": {
+      "commandName": "Project",
+      "applicationUrl": "http://localhost:9048"
     }
+  }
 }

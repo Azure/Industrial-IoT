@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Tunnel.Runtime {
     /// Telemetry processor service configuration
     /// </summary>
     public class Config : DiagnosticsConfig, IEventProcessorConfig,
-        IEventHubConsumerConfig, IIoTHubConfig {
+        IEventHubConsumerConfig, IIoTHubConfig, IEventProcessorHostConfig {
 
         /// <inheritdoc/>
         public string EventHubConnString => _eh.EventHubConnString;
@@ -27,18 +27,20 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Tunnel.Runtime {
         public string ConsumerGroup => GetStringOrDefault(
             PcsVariable.PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TUNNEL,
                 () => "tunnel");
-
         /// <inheritdoc/>
         public bool UseWebsockets => _eh.UseWebsockets;
         /// <inheritdoc/>
         public int ReceiveBatchSize => _ep.ReceiveBatchSize;
         /// <inheritdoc/>
         public TimeSpan ReceiveTimeout => _ep.ReceiveTimeout;
-
-        /// <inheritdoc/>
-        public string BlobStorageConnString => _ep.BlobStorageConnString;
         /// <inheritdoc/>
         public string LeaseContainerName => _ep.LeaseContainerName;
+        /// <inheritdoc/>
+        public bool InitialReadFromEnd => true;
+        /// <inheritdoc/>
+        public TimeSpan? CheckpointInterval => _ep.CheckpointInterval;
+        /// <inheritdoc/>
+        public string BlobStorageConnString => _ep.BlobStorageConnString;
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;

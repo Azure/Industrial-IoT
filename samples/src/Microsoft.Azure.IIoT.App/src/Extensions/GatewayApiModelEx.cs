@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.App.Data {
                     }
                     break;
                 case GatewayEventType.Updated:
-                    ev.Gateway.Patch(gateway, ev.IsPatch ?? false);
+                    ev.Gateway.Patch(gateway);
                     break;
                 case GatewayEventType.Deleted:
                     results.Remove(gateway);

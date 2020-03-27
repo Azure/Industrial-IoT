@@ -204,12 +204,13 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
                 }.ToEndpointRegistration(_serializer).ToDeviceTwin(_serializer);
             var result = _hub.CreateAsync(twin).Result;
             var registry = HubContainer.Resolve<IEndpointRegistry>();
+            var activate = HubContainer.Resolve<IEndpointActivation>();
             var endpoints = registry.ListAllEndpointsAsync().Result;
             var ep1 = endpoints.FirstOrDefault();
 
             if (ep1.ActivationState == EndpointActivationState.Deactivated) {
                 // Activate
-                registry.ActivateEndpointAsync(ep1.Registration.Id).Wait();
+                activate.ActivateEndpointAsync(ep1.Registration.Id).Wait();
             }
             return ep1.Registration;
         }
@@ -220,9 +221,9 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
         /// <param name="endpoint"></param>
         /// <returns></returns>
         public void DeactivateTwinId(EndpointRegistrationModel endpoint) {
-            var registry = HubContainer.Resolve<IEndpointRegistry>();
+            var activate = HubContainer.Resolve<IEndpointActivation>();
             // Deactivate
-            registry.DeactivateEndpointAsync(endpoint.Id).Wait();
+            activate.DeactivateEndpointAsync(endpoint.Id).Wait();
         }
 
         /// <inheritdoc/>

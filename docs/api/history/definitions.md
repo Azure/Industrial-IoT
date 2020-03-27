@@ -44,12 +44,14 @@ Credential model
 
 |Name|Description|Schema|
 |---|---|---|
-|**type**  <br>*optional*||[CredentialTypeNullable](definitions.md#credentialtypenullable)|
-|**value**  <br>*optional*|Value to pass to server|object|
+|**type**  <br>*optional*||[CredentialType](definitions.md#credentialtype)|
+|**value**  <br>*optional*|Value to pass to server|string|
 
 
-<a name="credentialtypenullable"></a>
-### CredentialTypeNullable
+<a name="credentialtype"></a>
+### CredentialType
+Type of credentials to use for authentication
+
 *Type* : enum (None, UserName, X509Certificate, JwtToken)
 
 
@@ -155,12 +157,14 @@ Diagnostics configuration
 |Name|Description|Schema|
 |---|---|---|
 |**auditId**  <br>*optional*|Client audit log entry.<br>(default: client generated)|string|
-|**level**  <br>*optional*||[DiagnosticsLevelNullable](definitions.md#diagnosticslevelnullable)|
+|**level**  <br>*optional*||[DiagnosticsLevel](definitions.md#diagnosticslevel)|
 |**timeStamp**  <br>*optional*|Timestamp of request.<br>(default: client generated)|string (date-time)|
 
 
-<a name="diagnosticslevelnullable"></a>
-### DiagnosticsLevelNullable
+<a name="diagnosticslevel"></a>
+### DiagnosticsLevel
+Level of diagnostics requested in responses
+
 *Type* : enum (None, Status, Operations, Diagnostics, Verbose)
 
 
@@ -183,12 +187,12 @@ Filter operand
 |Name|Description|Schema|
 |---|---|---|
 |**alias**  <br>*optional*|Optional alias to refer to it makeing it a<br>full blown attribute operand|string|
-|**attributeId**  <br>*optional*||[NodeAttributeNullable](definitions.md#nodeattributenullable)|
+|**attributeId**  <br>*optional*||[NodeAttribute](definitions.md#nodeattribute)|
 |**browsePath**  <br>*optional*|Browse path of attribute operand|< string > array|
-|**index**  <br>*optional*|Element reference in the outer list if<br>operand is an element operand|integer (int32)|
+|**index**  <br>*optional*|Element reference in the outer list if<br>operand is an element operand|integer (int64)|
 |**indexRange**  <br>*optional*|Index range of attribute operand|string|
 |**nodeId**  <br>*optional*|Type definition node id if operand is<br>simple or full attribute operand.|string|
-|**value**  <br>*optional*|Variant value if operand is a literal|object|
+|**value**  <br>*optional*|Variant value if operand is a literal|string|
 
 
 <a name="filteroperatortype"></a>
@@ -205,11 +209,11 @@ Historic event
 
 |Name|Description|Schema|
 |---|---|---|
-|**eventFields**  <br>*optional*|The selected fields of the event|< object > array|
+|**eventFields**  <br>*optional*|The selected fields of the event|< string > array|
 
 
-<a name="historiceventapimodel-historyreadnextresponseapimodel"></a>
-### HistoricEventApiModel[]HistoryReadNextResponseApiModel
+<a name="historiceventapimodelarrayhistoryreadnextresponseapimodel"></a>
+### HistoricEventApiModelArrayHistoryReadNextResponseApiModel
 History read continuation result
 
 
@@ -220,8 +224,8 @@ History read continuation result
 |**history**  <br>*optional*|History as json encoded extension object|< [HistoricEventApiModel](definitions.md#historiceventapimodel) > array|
 
 
-<a name="historiceventapimodel-historyreadresponseapimodel"></a>
-### HistoricEventApiModel[]HistoryReadResponseApiModel
+<a name="historiceventapimodelarrayhistoryreadresponseapimodel"></a>
+### HistoricEventApiModelArrayHistoryReadResponseApiModel
 History read results
 
 
@@ -244,12 +248,12 @@ Historic data
 |**serverTimestamp**  <br>*optional*|The server timestamp associated with the value.|string (date-time)|
 |**sourcePicoseconds**  <br>*optional*|Additional resolution for the source timestamp.|integer (int32)|
 |**sourceTimestamp**  <br>*optional*|The source timestamp associated with the value.|string (date-time)|
-|**statusCode**  <br>*optional*|The status code associated with the value.|integer (int32)|
-|**value**  <br>*optional*|,<br>            The value of data value.|object|
+|**statusCode**  <br>*optional*|The status code associated with the value.|integer (int64)|
+|**value**  <br>*optional*|,<br>            The value of data value.|string|
 
 
-<a name="historicvalueapimodel-historyreadnextresponseapimodel"></a>
-### HistoricValueApiModel[]HistoryReadNextResponseApiModel
+<a name="historicvalueapimodelarrayhistoryreadnextresponseapimodel"></a>
+### HistoricValueApiModelArrayHistoryReadNextResponseApiModel
 History read continuation result
 
 
@@ -260,8 +264,8 @@ History read continuation result
 |**history**  <br>*optional*|History as json encoded extension object|< [HistoricValueApiModel](definitions.md#historicvalueapimodel) > array|
 
 
-<a name="historicvalueapimodel-historyreadresponseapimodel"></a>
-### HistoricValueApiModel[]HistoryReadResponseApiModel
+<a name="historicvalueapimodelarrayhistoryreadresponseapimodel"></a>
+### HistoricValueApiModelArrayHistoryReadResponseApiModel
 History read results
 
 
@@ -279,13 +283,15 @@ Request node history read continuation
 
 |Name|Description|Schema|
 |---|---|---|
-|**abort**  <br>*optional*|Abort reading after this read  <br>**Default** : `false`|boolean|
+|**abort**  <br>*optional*|Abort reading after this read|boolean|
 |**continuationToken**  <br>*required*|Continuation token to continue reading more<br>results.|string|
 |**header**  <br>*optional*||[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
 
 
-<a name="historyupdateoperationnullable"></a>
-### HistoryUpdateOperationNullable
+<a name="historyupdateoperation"></a>
+### HistoryUpdateOperation
+History update type
+
 *Type* : enum (Insert, Replace, Update, Delete)
 
 
@@ -347,57 +353,6 @@ Request node history update
 |**nodeId**  <br>*optional*|Node to update|string|
 
 
-<a name="jtokenhistoryreadnextresponseapimodel"></a>
-### JTokenHistoryReadNextResponseApiModel
-History read continuation result
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
-|**errorInfo**  <br>*optional*||[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
-|**history**  <br>*optional*|History as json encoded extension object|object|
-
-
-<a name="jtokenhistoryreadrequestapimodel"></a>
-### JTokenHistoryReadRequestApiModel
-Request node history read
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
-|**details**  <br>*optional*|The HistoryReadDetailsType extension object<br>encoded in json and containing the tunneled<br>Historian reader request.|object|
-|**header**  <br>*optional*||[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
-|**nodeId**  <br>*optional*|Node to read from (mandatory)|string|
-
-
-<a name="jtokenhistoryreadresponseapimodel"></a>
-### JTokenHistoryReadResponseApiModel
-History read results
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
-|**errorInfo**  <br>*optional*||[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
-|**history**  <br>*optional*|History as json encoded extension object|object|
-
-
-<a name="jtokenhistoryupdaterequestapimodel"></a>
-### JTokenHistoryUpdateRequestApiModel
-Request node history update
-
-
-|Name|Description|Schema|
-|---|---|---|
-|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
-|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.|object|
-|**header**  <br>*optional*||[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**nodeId**  <br>*optional*|Node to update|string|
-
-
 <a name="modificationinfoapimodel"></a>
 ### ModificationInfoApiModel
 Modification information
@@ -406,12 +361,14 @@ Modification information
 |Name|Description|Schema|
 |---|---|---|
 |**modificationTime**  <br>*optional*|Modification time|string (date-time)|
-|**updateType**  <br>*optional*||[HistoryUpdateOperationNullable](definitions.md#historyupdateoperationnullable)|
+|**updateType**  <br>*optional*||[HistoryUpdateOperation](definitions.md#historyupdateoperation)|
 |**userName**  <br>*optional*|User who made the change|string|
 
 
-<a name="nodeattributenullable"></a>
-### NodeAttributeNullable
+<a name="nodeattribute"></a>
+### NodeAttribute
+Node attribute identifiers
+
 *Type* : enum (NodeClass, BrowseName, DisplayName, Description, WriteMask, UserWriteMask, IsAbstract, Symmetric, InverseName, ContainsNoLoops, EventNotifier, Value, DataType, ValueRank, ArrayDimensions, AccessLevel, UserAccessLevel, MinimumSamplingInterval, Historizing, Executable, UserExecutable, DataTypeDefinition, RolePermissions, UserRolePermissions, AccessRestrictions)
 
 
@@ -424,7 +381,7 @@ Read event data
 |---|---|---|
 |**endTime**  <br>*optional*|End time to read to|string (date-time)|
 |**filter**  <br>*optional*||[EventFilterApiModel](definitions.md#eventfilterapimodel)|
-|**numEvents**  <br>*optional*|Number of events to read|integer (int32)|
+|**numEvents**  <br>*optional*|Number of events to read|integer (int64)|
 |**startTime**  <br>*optional*|Start time to read from|string (date-time)|
 
 
@@ -450,7 +407,7 @@ Read modified data
 |Name|Description|Schema|
 |---|---|---|
 |**endTime**  <br>*optional*|The end time to read to|string (date-time)|
-|**numValues**  <br>*optional*|The number of values to read|integer (int32)|
+|**numValues**  <br>*optional*|The number of values to read|integer (int64)|
 |**startTime**  <br>*optional*|The start time to read from|string (date-time)|
 
 
@@ -529,7 +486,7 @@ Read historic values
 |Name|Description|Schema|
 |---|---|---|
 |**endTime**  <br>*optional*|End of period to read. Set to null if no<br>specific end time is specified.|string (date-time)|
-|**numValues**  <br>*optional*|The maximum number of values returned for any Node<br>over the time range. If only one time is specified,<br>the time range shall extend to return this number<br>of values. 0 or null indicates that there is no<br>maximum.|integer (int32)|
+|**numValues**  <br>*optional*|The maximum number of values returned for any Node<br>over the time range. If only one time is specified,<br>the time range shall extend to return this number<br>of values. 0 or null indicates that there is no<br>maximum.|integer (int64)|
 |**returnBounds**  <br>*optional*|Whether to return the bounding values or not.|boolean|
 |**startTime**  <br>*optional*|Beginning of period to read. Set to null<br>if no specific start time is specified.|string (date-time)|
 
@@ -614,9 +571,9 @@ Service result
 
 |Name|Description|Schema|
 |---|---|---|
-|**diagnostics**  <br>*optional*|Additional diagnostics information|object|
+|**diagnostics**  <br>*optional*|Additional diagnostics information|string|
 |**errorMessage**  <br>*optional*|Error message in case of error or null.|string|
-|**statusCode**  <br>*optional*|Error code - if null operation succeeded.|integer (int32)|
+|**statusCode**  <br>*optional*|Error code - if null operation succeeded.|integer (int64)|
 
 
 <a name="simpleattributeoperandapimodel"></a>
@@ -626,10 +583,61 @@ Simple attribute operand model
 
 |Name|Description|Schema|
 |---|---|---|
-|**attributeId**  <br>*optional*||[NodeAttributeNullable](definitions.md#nodeattributenullable)|
+|**attributeId**  <br>*optional*||[NodeAttribute](definitions.md#nodeattribute)|
 |**browsePath**  <br>*optional*|Browse path of attribute operand|< string > array|
 |**indexRange**  <br>*optional*|Index range of attribute operand|string|
 |**nodeId**  <br>*optional*|Type definition node id if operand is<br>simple or full attribute operand.|string|
+
+
+<a name="variantvaluehistoryreadnextresponseapimodel"></a>
+### VariantValueHistoryReadNextResponseApiModel
+History read continuation result
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
+|**errorInfo**  <br>*optional*||[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
+|**history**  <br>*optional*|History as json encoded extension object|string|
+
+
+<a name="variantvaluehistoryreadrequestapimodel"></a>
+### VariantValueHistoryReadRequestApiModel
+Request node history read
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*optional*|The HistoryReadDetailsType extension object<br>encoded in json and containing the tunneled<br>Historian reader request.|string|
+|**header**  <br>*optional*||[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**indexRange**  <br>*optional*|Index range to read, e.g. 1:2,0:1 for 2 slices<br>out of a matrix or 0:1 for the first item in<br>an array, string or bytestring.<br>See 7.22 of part 4: NumericRange.|string|
+|**nodeId**  <br>*optional*|Node to read from (mandatory)|string|
+
+
+<a name="variantvaluehistoryreadresponseapimodel"></a>
+### VariantValueHistoryReadResponseApiModel
+History read results
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**continuationToken**  <br>*optional*|Continuation token if more results pending.|string|
+|**errorInfo**  <br>*optional*||[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
+|**history**  <br>*optional*|History as json encoded extension object|string|
+
+
+<a name="variantvaluehistoryupdaterequestapimodel"></a>
+### VariantValueHistoryUpdateRequestApiModel
+Request node history update
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**browsePath**  <br>*optional*|An optional path from NodeId instance to<br>the actual node.|< string > array|
+|**details**  <br>*required*|The HistoryUpdateDetailsType extension object<br>encoded as json Variant and containing the tunneled<br>update request for the Historian server. The value<br>is updated at edge using above node address.|string|
+|**header**  <br>*optional*||[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**nodeId**  <br>*optional*|Node to update|string|
 
 
 

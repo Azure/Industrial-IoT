@@ -27,21 +27,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
         public Task OnPublisherDeletedAsync(RegistryOperationContextModel context,
             string publisherId) {
             return _bus.PublishAsync(Wrap(PublisherEventType.Deleted, context,
-                publisherId, null, false));
+                publisherId, null));
         }
 
         /// <inheritdoc/>
         public Task OnPublisherNewAsync(RegistryOperationContextModel context,
             PublisherModel publisher) {
             return _bus.PublishAsync(Wrap(PublisherEventType.New, context,
-                publisher.Id, publisher, false));
+                publisher.Id, publisher));
         }
 
         /// <inheritdoc/>
         public Task OnPublisherUpdatedAsync(RegistryOperationContextModel context,
-            PublisherModel publisher, bool isPatch) {
+            PublisherModel publisher) {
             return _bus.PublishAsync(Wrap(PublisherEventType.Updated, context,
-                publisher.Id, publisher, isPatch));
+                publisher.Id, publisher));
         }
 
         /// <summary>
@@ -51,17 +51,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
         /// <param name="context"></param>
         /// <param name="publisherId"></param>
         /// <param name="publisher"></param>
-        /// <param name="isPatch"></param>
         /// <returns></returns>
         private static PublisherEventModel Wrap(PublisherEventType type,
             RegistryOperationContextModel context, string publisherId,
-            PublisherModel publisher, bool isPatch) {
+            PublisherModel publisher) {
             return new PublisherEventModel {
                 EventType = type,
                 Context = context,
                 Id = publisherId,
-                Publisher = publisher,
-                IsPatch = isPatch == true ? true : (bool?)null
+                Publisher = publisher
             };
         }
 

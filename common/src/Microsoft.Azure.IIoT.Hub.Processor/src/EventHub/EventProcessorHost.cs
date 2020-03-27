@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
         /// <param name="config"></param>
         /// <param name="logger"></param>
         public EventProcessorHost(IEventProcessorFactory factory, IEventHubConsumerConfig hub,
-            IEventProcessorConfig config, ILogger logger) :
+            IEventProcessorHostConfig config, ILogger logger) :
             this(factory, hub, config, null, null, logger) {
         }
 
@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
         /// <param name="lease"></param>
         /// <param name="logger"></param>
         public EventProcessorHost(IEventProcessorFactory factory, IEventHubConsumerConfig hub,
-            IEventProcessorConfig config, ICheckpointManager checkpoint,
+            IEventProcessorHostConfig config, ICheckpointManager checkpoint,
             ILeaseManager lease, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _hub = hub ?? throw new ArgumentNullException(nameof(hub));
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
                 if (string.IsNullOrEmpty(consumerGroup)) {
                     consumerGroup = "$default";
                 }
-                _logger.Information($"Using Consumer Group: \"{consumerGroup}\"");
+                _logger.Information("Using Consumer Group: \"{consumerGroup}\"", consumerGroup);
                 if (_lease != null && _checkpoint != null) {
                     _host = new EventHubs.Processor.EventProcessorHost(
                         $"host-{Guid.NewGuid()}", _hub.EventHubPath, consumerGroup,
@@ -82,15 +82,13 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
                             _config.LeaseContainerName : _hub.EventHubPath.ToSha1Hash());
                 }
                 else {
-                    _logger.Error("No checkpointing storage configured or checkpoint " +
+                    _logger.Error("No storage configured or checkpoint " +
                         "manager/lease manager implementation injected.");
-                    throw new InvalidConfigurationException(
-                        "Invalid checkpoint configuration.");
+                    throw new InvalidConfigurationException("Invalid checkpoint configuration.");
                 }
                 await _host.RegisterEventProcessorFactoryAsync(
                     _factory, new EventProcessorOptions {
-                        InitialOffsetProvider = s =>
-                            EventPosition.FromEnqueuedTime(DateTime.UtcNow),
+                        InitialOffsetProvider = s => EventPosition.FromEnqueuedTime(DateTime.UtcNow),
                         MaxBatchSize = _config.ReceiveBatchSize,
                         ReceiveTimeout = _config.ReceiveTimeout,
                         InvokeProcessorAfterReceiveTimeout = true
@@ -167,7 +165,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.EventHub {
         private readonly SemaphoreSlim _lock;
         private readonly ILogger _logger;
         private readonly IEventHubConsumerConfig _hub;
-        private readonly IEventProcessorConfig _config;
+        private readonly IEventProcessorHostConfig _config;
         private readonly IEventProcessorFactory _factory;
         private readonly ILeaseManager _lease;
         private readonly ICheckpointManager _checkpoint;

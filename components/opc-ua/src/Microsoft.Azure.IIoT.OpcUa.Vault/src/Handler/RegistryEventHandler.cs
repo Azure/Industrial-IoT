@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Handler {
 
         /// <inheritdoc/>
         public Task OnApplicationUpdatedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application, bool isPatch) {
+            ApplicationInfoModel application) {
             return Task.CompletedTask;
         }
 
@@ -87,7 +87,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Handler {
 
         /// <inheritdoc/>
         public Task OnEndpointUpdatedAsync(RegistryOperationContextModel context,
-            EndpointInfoModel endpoint, bool isPatch) {
+            EndpointInfoModel endpoint) {
             return Task.CompletedTask;
         }
 

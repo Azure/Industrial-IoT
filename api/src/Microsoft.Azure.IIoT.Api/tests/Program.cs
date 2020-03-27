@@ -24,6 +24,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
     using Microsoft.Azure.IIoT.Http.SignalR;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Auth.Runtime;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Extensions.Configuration;
     using Newtonsoft.Json;
     using Autofac;
@@ -33,7 +34,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
     using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
 
     /// <summary>
     /// Api command line interface
@@ -169,6 +170,10 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                             options = new CliOptions(args, 1);
                             await TestBrowseAsync(options);
                             break;
+                        case "publish":
+                            options = new CliOptions(args, 1);
+                            await TestPublishAsync(options);
+                            break;
 
                         case "-?":
                         case "-h":
@@ -267,6 +272,41 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         }
 
         /// <summary>
+        /// Test publishing
+        /// </summary>
+        private async Task TestPublishAsync(CliOptions options) {
+            IEnumerable<EndpointRegistrationApiModel> endpoints;
+            if (!options.IsSet("-a", "--all")) {
+                if (options.IsSet("-e", "--endpoint")) {
+                    var id = await SelectEndpointAsync();
+                    var ep = await _registry.GetEndpointAsync(id);
+                    endpoints = ep.Registration.YieldReturn();
+                }
+                else {
+                    var id = options.GetValueOrDefault<string>("-i", "--id", null);
+                    if (id == null) {
+                        id = await SelectApplicationAsync();
+                        if (id == null) {
+                            throw new ArgumentException("Needs an id");
+                        }
+                    }
+
+                    var app = await _registry.GetApplicationAsync(id);
+                    if (app.Endpoints.Count == 0) {
+                        return;
+                    }
+                    endpoints = app.Endpoints;
+                }
+            }
+            else {
+                var infos = await _registry.ListAllEndpointsAsync();
+                endpoints = infos.Select(e => e.Registration);
+            }
+            await Task.WhenAll(endpoints.Select(e => TestPublishAsync(e, options)));
+            Console.WriteLine("Success!");
+        }
+
+        /// <summary>
         /// Test activation of endpoint
         /// </summary>
         /// <param name="endpoint"></param>
@@ -337,6 +377,65 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         }
 
         /// <summary>
+        /// Test publish and unpublish
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="options"></param>
+        /// <returns></returns>
+        private async Task TestPublishAsync(EndpointRegistrationApiModel endpoint,
+            CliOptions options) {
+            EndpointInfoApiModel ep;
+
+            Console.WriteLine($"Activating {endpoint.Id} for publishing ...");
+            await _registry.ActivateEndpointAsync(endpoint.Id);
+            var sw = Stopwatch.StartNew();
+            while (true) {
+                ep = await _registry.GetEndpointAsync(endpoint.Id);
+                if (ep.ActivationState == EndpointActivationState.ActivatedAndConnected &&
+                    ep.EndpointState == EndpointConnectivityState.Ready) {
+                    break;
+                }
+                if (sw.ElapsedMilliseconds > 60000) {
+                    Console.WriteLine($"{endpoint.Id} could not be activated - skip!");
+                    return;
+                }
+            }
+            Console.WriteLine($"{endpoint.Id} activated - get all variables.");
+
+            var nodes = new List<string>();
+            await BrowseAsync(0, endpoint.Id, true, true, false, null,
+                true, 1000, null, options, nodes);
+
+            Console.WriteLine($"{endpoint.Id} has {nodes.Count} variables.");
+            sw.Restart();
+            await _publisher.NodePublishBulkAsync(endpoint.Id, new PublishBulkRequestApiModel {
+                NodesToAdd = nodes.Select(n => new PublishedItemApiModel {
+                    NodeId = n
+                }).ToList()
+            });
+            Console.WriteLine($"{endpoint.Id} Publishing {nodes.Count} variables took {sw.Elapsed}.");
+
+            sw.Restart();
+            await _publisher.NodePublishBulkAsync(endpoint.Id, new PublishBulkRequestApiModel {
+                NodesToRemove = nodes.ToList()
+            });
+            Console.WriteLine($"{endpoint.Id} Unpublishing {nodes.Count} variables took {sw.Elapsed}.");
+
+            await _registry.DeactivateEndpointAsync(endpoint.Id);
+            sw.Restart();
+            while (true) {
+                ep = await _registry.GetEndpointAsync(endpoint.Id);
+                if (ep.ActivationState == EndpointActivationState.Deactivated) {
+                    break;
+                }
+                if (sw.ElapsedMilliseconds > 60000) {
+                    throw new Exception($"{endpoint.Id} failed to deactivate!");
+                }
+            }
+            Console.WriteLine($"{endpoint.Id} deactivated.");
+        }
+
+        /// <summary>
         /// Test activation of endpoint
         /// </summary>
         /// <param name="endpoint"></param>
@@ -391,7 +490,8 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// </summary>
         private async Task BrowseAsync(int index, string id, bool silent, bool recursive,
             bool? readDuringBrowse, string node, bool? targetNodesOnly,
-            uint? maxReferencesToReturn, BrowseDirection? direction, CliOptions options) {
+            uint? maxReferencesToReturn, BrowseDirection? direction, CliOptions options,
+            List<string> variables = null) {
 
             var request = new BrowseRequestApiModel {
                 TargetNodesOnly = targetNodesOnly,
@@ -424,6 +524,10 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                             }
                             if (!visited.Contains(r.Target.NodeId)) {
                                 nodes.Add(r.Target.NodeId);
+                                if (variables != null &&
+                                    r.Target.NodeClass == NodeClass.Variable) {
+                                    variables.Add(r.Target.NodeId);
+                                }
                             }
                             if (nodesRead.Contains(r.Target.NodeId)) {
                                 continue; // We have read this one already
@@ -573,6 +677,13 @@ Commands and Options
         -v, --readvalue Read node values in browse
         -t, --targets   Only return target nodes
         -V, --verbose   Print browse results to screen
+        -F, --format    Json format for result
+
+     publish     Tests publishing and unpublishing.
+        with ...
+        -i, --id        Application id to scope endpoints.
+        -e, --endpoint  Whether to select and test single endpoint
+        -a, --all       Use all endpoints
         -F, --format    Json format for result
 
      console

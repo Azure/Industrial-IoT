@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
     using System.Text;
     using System.Linq;
     using Xunit;
+    using System.Runtime.Serialization;
 
     public class JsonInteropTests {
 
@@ -251,6 +252,88 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
                 TeSt = 1
             });
             Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void SerializerFromObjectContainerToContainerWithObject() {
+            var expected = new TestContainer {
+                Value = Json.FromObject(new {
+                    Test = "Text",
+                    Locale = "de"
+                })
+            };
+            var tmp = MsgPack.FromObject(expected);
+            var actual = tmp.ConvertTo<TestContainer>();
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetVariantValues))]
+        public void SerializerFromObjectContainerToContainer(object v) {
+            var expected = new TestContainer {
+                Value = Json.FromObject(v)
+            };
+            var tmp = MsgPack.FromObject(expected);
+            var actual = tmp.ConvertTo<TestContainer>();
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetScalars))]
+        [MemberData(nameof(GetEmptyArrays))]
+        [MemberData(nameof(GetFilledArrays))]
+        public void SerializerFromObjectContainerToContainerWithSerializedVariant(object o, Type type) {
+            var t = type.MakeArrayType();
+            var expected = new TestContainer {
+                Value = Json.FromObject(o)
+            };
+            var tmp = MsgPack.FromObject(expected);
+            var actual = tmp.ConvertTo<TestContainer>();
+            Assert.Equal(expected, actual);
+            Assert.NotNull(actual.Value);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetScalars))]
+        [MemberData(nameof(GetEmptyArrays))]
+        [MemberData(nameof(GetFilledArrays))]
+        public void SerializerFromObjectContainerToContainerWithArray(object o, Type type) {
+            var t = type.MakeArrayType();
+            var expected = new TestContainer {
+                Value = Json.FromArray(o, o, o)
+            };
+            var tmp = MsgPack.FromObject(expected);
+            var actual = tmp.ConvertTo<TestContainer>();
+            Assert.Equal(expected, actual);
+            Assert.NotNull(actual.Value);
+        }
+
+        [Fact]
+        public void SerializerFromObjectContainerToContainerWithStringArray() {
+            var expected = new TestContainer {
+                Value = Json.FromArray("", "", "")
+            };
+            var tmp = MsgPack.FromObject(expected);
+            var actual = tmp.ConvertTo<TestContainer>();
+            Assert.Equal(expected, actual);
+            Assert.NotNull(actual.Value);
+        }
+
+        [DataContract]
+        public class TestContainer {
+            [DataMember]
+            public VariantValue Value { get; set; }
+
+            public override bool Equals(object obj) {
+                if (obj is TestContainer c) {
+                    return VariantValue.DeepEquals(c.Value, Value);
+                }
+                return false;
+            }
+
+            public override int GetHashCode() {
+                return -1937169414 + EqualityComparer<VariantValue>.Default.GetHashCode(Value);
+            }
         }
 
         public static IEnumerable<object[]> GetScalars() {

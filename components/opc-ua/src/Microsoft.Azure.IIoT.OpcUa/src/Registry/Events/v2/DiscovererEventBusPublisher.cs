@@ -27,21 +27,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
         public Task OnDiscovererDeletedAsync(RegistryOperationContextModel context,
             string discovererId) {
             return _bus.PublishAsync(Wrap(DiscovererEventType.Deleted, context,
-                discovererId, null, false));
+                discovererId, null));
         }
 
         /// <inheritdoc/>
         public Task OnDiscovererNewAsync(RegistryOperationContextModel context,
             DiscovererModel discoverer) {
             return _bus.PublishAsync(Wrap(DiscovererEventType.New, context,
-                discoverer.Id, discoverer, false));
+                discoverer.Id, discoverer));
         }
 
         /// <inheritdoc/>
         public Task OnDiscovererUpdatedAsync(RegistryOperationContextModel context,
-            DiscovererModel discoverer, bool isPatch) {
+            DiscovererModel discoverer) {
             return _bus.PublishAsync(Wrap(DiscovererEventType.Updated, context,
-                discoverer.Id, discoverer, isPatch));
+                discoverer.Id, discoverer));
         }
 
         /// <summary>
@@ -51,17 +51,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
         /// <param name="context"></param>
         /// <param name="discovererId"></param>
         /// <param name="discoverer"></param>
-        /// <param name="isPatch"></param>
         /// <returns></returns>
         private static DiscovererEventModel Wrap(DiscovererEventType type,
             RegistryOperationContextModel context, string discovererId,
-            DiscovererModel discoverer, bool isPatch) {
+            DiscovererModel discoverer) {
             return new DiscovererEventModel {
                 EventType = type,
                 Context = context,
                 Id = discovererId,
-                Discoverer = discoverer,
-                IsPatch = isPatch == true ? true : (bool?)null
+                Discoverer = discoverer
             };
         }
 

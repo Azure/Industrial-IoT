@@ -15,21 +15,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         /// <param name="gateway"></param>
         /// <param name="update"></param>
-        /// <param name="isPatch"></param>
         public static GatewayApiModel Patch(this GatewayApiModel update,
-            GatewayApiModel gateway, bool isPatch = false) {
+            GatewayApiModel gateway) {
+            if (update == null) {
+                return gateway;
+            }
             if (gateway == null) {
-                return update;
+                return new GatewayApiModel();
             }
-            if (!isPatch || update.Connected != null) {
-                gateway.Connected = update.Connected;
-            }
-            if (!isPatch || update.Id != null) {
-                gateway.Id = update.Id;
-            }
-            if (!isPatch || update.SiteId != null) {
-                gateway.SiteId = update.SiteId;
-            }
+            gateway.Connected = update.Connected;
+            gateway.Id = update.Id;
+            gateway.SiteId = update.SiteId;
             return gateway;
         }
     }

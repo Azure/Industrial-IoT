@@ -80,6 +80,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
         }
 
         /// <inheritdoc/>
+        public async Task<PublishBulkResponseApiModel> NodePublishBulkAsync(string endpointId,
+            PublishBulkRequestApiModel content, CancellationToken ct = default) {
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
+            }
+            if (content == null) {
+                throw new ArgumentNullException(nameof(content));
+            }
+            var request = _httpClient.NewRequest($"{_serviceUri}/v2/publish/{endpointId}/bulk",
+                _resourceId);
+            _serializer.SerializeToRequest(request, content);
+            var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
+            response.Validate();
+            return _serializer.DeserializeResponse<PublishBulkResponseApiModel>(response);
+        }
+
+        /// <inheritdoc/>
         public async Task<PublishedItemListResponseApiModel> NodePublishListAsync(
             string endpointId, PublishedItemListRequestApiModel content, CancellationToken ct) {
             if (string.IsNullOrEmpty(endpointId)) {

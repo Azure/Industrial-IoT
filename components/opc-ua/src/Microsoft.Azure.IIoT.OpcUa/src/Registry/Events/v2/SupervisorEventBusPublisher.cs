@@ -27,21 +27,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
         public Task OnSupervisorDeletedAsync(RegistryOperationContextModel context,
             string supervisorId) {
             return _bus.PublishAsync(Wrap(SupervisorEventType.Deleted, context,
-                supervisorId, null, false));
+                supervisorId, null));
         }
 
         /// <inheritdoc/>
         public Task OnSupervisorNewAsync(RegistryOperationContextModel context,
             SupervisorModel supervisor) {
             return _bus.PublishAsync(Wrap(SupervisorEventType.New, context,
-                supervisor.Id, supervisor, false));
+                supervisor.Id, supervisor));
         }
 
         /// <inheritdoc/>
         public Task OnSupervisorUpdatedAsync(RegistryOperationContextModel context,
-            SupervisorModel supervisor, bool isPatch) {
+            SupervisorModel supervisor) {
             return _bus.PublishAsync(Wrap(SupervisorEventType.Updated, context,
-                supervisor.Id, supervisor, isPatch));
+                supervisor.Id, supervisor));
         }
 
         /// <summary>
@@ -51,17 +51,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
         /// <param name="context"></param>
         /// <param name="supervisorId"></param>
         /// <param name="supervisor"></param>
-        /// <param name="isPatch"></param>
         /// <returns></returns>
         private static SupervisorEventModel Wrap(SupervisorEventType type,
             RegistryOperationContextModel context, string supervisorId,
-            SupervisorModel supervisor, bool isPatch) {
+            SupervisorModel supervisor) {
             return new SupervisorEventModel {
                 EventType = type,
                 Context = context,
                 Id = supervisorId,
-                Supervisor = supervisor,
-                IsPatch = isPatch == true ? true : (bool?)null
+                Supervisor = supervisor
             };
         }
 

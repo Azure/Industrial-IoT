@@ -33,7 +33,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         /// Create controller for endpoints services
         /// </summary>
         /// <param name="endpoints"></param>
-        public EndpointsController(IEndpointRegistry endpoints) {
+        /// <param name="activation"></param>
+        public EndpointsController(IEndpointRegistry endpoints, IEndpointActivation activation) {
+            _activation = activation;
             _endpoints = endpoints;
         }
 
@@ -64,7 +66,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         [HttpPost("{endpointId}/activate")]
         [Authorize(Policy = Policies.CanChange)]
         public async Task ActivateEndpointAsync(string endpointId) {
-            await _endpoints.ActivateEndpointAsync(endpointId);
+            await _activation.ActivateEndpointAsync(endpointId);
         }
 
         /// <summary>
@@ -198,9 +200,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         [HttpPost("{endpointId}/deactivate")]
         [Authorize(Policy = Policies.CanChange)]
         public async Task DeactivateEndpointAsync(string endpointId) {
-            await _endpoints.DeactivateEndpointAsync(endpointId);
+            await _activation.DeactivateEndpointAsync(endpointId);
         }
 
         private readonly IEndpointRegistry _endpoints;
+        private readonly IEndpointActivation _activation;
     }
 }

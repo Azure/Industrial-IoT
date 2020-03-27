@@ -27,21 +27,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
         public Task OnGatewayDeletedAsync(RegistryOperationContextModel context,
             string gatewayId) {
             return _bus.PublishAsync(Wrap(GatewayEventType.Deleted, context,
-                gatewayId, null, false));
+                gatewayId, null));
         }
 
         /// <inheritdoc/>
         public Task OnGatewayNewAsync(RegistryOperationContextModel context,
             GatewayModel gateway) {
             return _bus.PublishAsync(Wrap(GatewayEventType.New, context,
-                gateway.Id, gateway, false));
+                gateway.Id, gateway));
         }
 
         /// <inheritdoc/>
         public Task OnGatewayUpdatedAsync(RegistryOperationContextModel context,
-            GatewayModel gateway, bool isPatch) {
+            GatewayModel gateway) {
             return _bus.PublishAsync(Wrap(GatewayEventType.Updated, context,
-                gateway.Id, gateway, isPatch));
+                gateway.Id, gateway));
         }
 
         /// <summary>
@@ -51,17 +51,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
         /// <param name="context"></param>
         /// <param name="gatewayId"></param>
         /// <param name="gateway"></param>
-        /// <param name="isPatch"></param>
         /// <returns></returns>
         private static GatewayEventModel Wrap(GatewayEventType type,
             RegistryOperationContextModel context, string gatewayId,
-            GatewayModel gateway, bool isPatch) {
+            GatewayModel gateway) {
             return new GatewayEventModel {
                 EventType = type,
                 Context = context,
                 Id = gatewayId,
-                Gateway = gateway,
-                IsPatch = isPatch == true ? true : (bool?)null
+                Gateway = gateway
             };
         }
 

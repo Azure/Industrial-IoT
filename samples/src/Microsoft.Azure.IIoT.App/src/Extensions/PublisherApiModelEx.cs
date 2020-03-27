@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.App.Data {
                     }
                     break;
                 case PublisherEventType.Updated:
-                    ev.Publisher.Patch(publisher, ev.IsPatch ?? false);
+                    ev.Publisher.Patch(publisher);
                     break;
                 case PublisherEventType.Deleted:
                     results.Remove(publisher);

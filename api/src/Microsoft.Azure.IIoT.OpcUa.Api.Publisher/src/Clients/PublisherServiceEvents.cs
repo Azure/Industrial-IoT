@@ -62,23 +62,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
             if (callback == null) {
                 throw new ArgumentNullException(nameof(callback));
             }
-            var registrar = await _client.GetHubAsync($"{_serviceUri}/v2/publishers/events", _resourceId);
+            var hub = await _client.GetHubAsync($"{_serviceUri}/v2/publishers/events", _resourceId);
+            var registration = hub.Register(EventTargets.PublisherSampleTarget, callback);
             try {
-                var registration = registrar.Register(EventTargets.PublisherSampleTarget, callback);
-                try {
-                    await NodePublishSubscribeByEndpointAsync(endpointId, registrar.ConnectionId,
-                        CancellationToken.None);
-                    return new AsyncDisposable(registration,
-                        () => NodePublishUnsubscribeByEndpointAsync(endpointId,
-                            registrar.ConnectionId, CancellationToken.None));
-                }
-                catch {
-                    registration.Dispose();
-                    throw;
-                }
+                await NodePublishSubscribeByEndpointAsync(endpointId, hub.ConnectionId,
+                    CancellationToken.None);
+                return new AsyncDisposable(registration,
+                    () => NodePublishUnsubscribeByEndpointAsync(endpointId,
+                        hub.ConnectionId, CancellationToken.None));
             }
             catch {
-                registrar.Dispose();
+                registration.Dispose();
                 throw;
             }
         }

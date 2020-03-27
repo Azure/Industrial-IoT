@@ -24,7 +24,7 @@ Azure Industrial IoT OPC UA Registry Service
 ### Tags
 
 * Applications : CRUD and Query application resources
-* Discoverers : Configure discovery
+* Discovery : Configure discovery
 * Endpoints : Activate, Deactivate and Query endpoint resources
 * Gateways : Read, Update and Query Gateway resources
 * Publishers : Read, Update and Query publisher resources
@@ -44,7 +44,7 @@ CRUD and Query application resources
 <a name="registerserver"></a>
 #### Register new server
 ```
-POST /v2/applications
+POST /registry/v2/applications
 ```
 
 
@@ -84,7 +84,7 @@ Registers a server solely using a discovery url. Requires that the onboarding ag
 <a name="getlistofapplications"></a>
 #### Get list of applications
 ```
-GET /v2/applications
+GET /registry/v2/applications
 ```
 
 
@@ -122,7 +122,7 @@ Get all registered applications in paged form. The returned model can contain a 
 <a name="createapplication"></a>
 #### Create new application
 ```
-PUT /v2/applications
+PUT /registry/v2/applications
 ```
 
 
@@ -167,7 +167,7 @@ The application is registered using the provided information, but it is not asso
 <a name="deletealldisabledapplications"></a>
 #### Purge applications
 ```
-DELETE /v2/applications
+DELETE /registry/v2/applications
 ```
 
 
@@ -199,7 +199,7 @@ Purges all applications that have not been seen for a specified amount of time.
 <a name="discoverserver"></a>
 #### Discover servers
 ```
-POST /v2/applications/discover
+POST /registry/v2/applications/discover
 ```
 
 
@@ -239,7 +239,7 @@ Registers servers by running a discovery scan in a supervisor's network. Require
 <a name="cancel"></a>
 #### Cancel discovery
 ```
-DELETE /v2/applications/discover/{requestId}
+DELETE /registry/v2/applications/discover/{requestId}
 ```
 
 
@@ -268,82 +268,10 @@ Cancels a discovery request using the request identifier.
 |**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
-<a name="subscribe"></a>
-#### Subscribe for application events
-```
-PUT /v2/applications/events
-```
-
-
-##### Description
-Register a client to receive application events through SignalR.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Body**|**body**  <br>*optional*|The user that will receive application events.|string|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
-<a name="unsubscribe"></a>
-#### Unsubscribe from application events
-```
-DELETE /v2/applications/events/{userId}
-```
-
-
-##### Description
-Unregister a user and stop it from receiving events.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**userId**  <br>*required*|The user id that will not receive any more events|string|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="queryapplications"></a>
 #### Query applications
 ```
-POST /v2/applications/query
+POST /registry/v2/applications/query
 ```
 
 
@@ -389,7 +317,7 @@ List applications that match a query model. The returned model can contain a con
 <a name="getfilteredlistofapplications"></a>
 #### Get filtered list of applications
 ```
-GET /v2/applications/query
+GET /registry/v2/applications/query
 ```
 
 
@@ -435,7 +363,7 @@ Get a list of applications filtered using the specified query parameters. The re
 <a name="getlistofsites"></a>
 #### Get list of sites
 ```
-GET /v2/applications/sites
+GET /registry/v2/applications/sites
 ```
 
 
@@ -473,7 +401,7 @@ List all sites applications are registered in.
 <a name="getapplicationregistration"></a>
 #### Get application registration
 ```
-GET /v2/applications/{applicationId}
+GET /registry/v2/applications/{applicationId}
 ```
 
 
@@ -506,7 +434,7 @@ GET /v2/applications/{applicationId}
 <a name="deleteapplication"></a>
 #### Unregister application
 ```
-DELETE /v2/applications/{applicationId}
+DELETE /registry/v2/applications/{applicationId}
 ```
 
 
@@ -538,7 +466,7 @@ Unregisters and deletes application and all its associated endpoints.
 <a name="updateapplicationregistration"></a>
 #### Update application registration
 ```
-PATCH /v2/applications/{applicationId}
+PATCH /registry/v2/applications/{applicationId}
 ```
 
 
@@ -579,7 +507,7 @@ The application information is updated with new properties. Note that this infor
 <a name="disableapplication"></a>
 #### Disable an enabled application.
 ```
-POST /v2/applications/{applicationId}/disable
+POST /registry/v2/applications/{applicationId}/disable
 ```
 
 
@@ -611,7 +539,7 @@ A manager can disable an application.
 <a name="enableapplication"></a>
 #### Re-enable a disabled application.
 ```
-POST /v2/applications/{applicationId}/enable
+POST /registry/v2/applications/{applicationId}/enable
 ```
 
 
@@ -640,15 +568,15 @@ A manager can enable an application.
 |**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
-<a name="discoverers_resource"></a>
-### Discoverers
+<a name="discovery_resource"></a>
+### Discovery
 Configure discovery
 
 
 <a name="getlistofdiscoverers"></a>
 #### Get list of discoverers
 ```
-GET /v2/discovery
+GET /registry/v2/discovery
 ```
 
 
@@ -661,7 +589,6 @@ Get all registered discoverers and therefore twin modules in paged form. The ret
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Query**|**continuationToken**  <br>*optional*|Optional Continuation token|string|
-|**Query**|**onlyServerState**  <br>*optional*|Whether to include only server state, or display current client state of the endpoint if available|boolean|
 |**Query**|**pageSize**  <br>*optional*|Optional number of results to return|integer (int32)|
 
 
@@ -684,82 +611,10 @@ Get all registered discoverers and therefore twin modules in paged form. The ret
 |**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
-<a name="subscribe"></a>
-#### Subscribe to discoverer registry events
-```
-PUT /v2/discovery/events
-```
-
-
-##### Description
-Register a user to receive discoverer events through SignalR.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Body**|**body**  <br>*optional*|The user id that will receive discoverer events.|string|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
-<a name="unsubscribe"></a>
-#### Unsubscribe registry events
-```
-DELETE /v2/discovery/events/{userId}
-```
-
-
-##### Description
-Unregister a user and stop it from receiving discoverer events.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**userId**  <br>*required*|The user id that will not receive any more discoverer events|string|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="querydiscoverers"></a>
 #### Query discoverers
 ```
-POST /v2/discovery/query
+POST /registry/v2/discovery/query
 ```
 
 
@@ -771,7 +626,6 @@ Get all discoverers that match a specified query. The returned model can contain
 
 |Type|Name|Description|Schema|
 |---|---|---|---|
-|**Query**|**onlyServerState**  <br>*optional*|Whether to include only server state, or display current client state of the endpoint if available|boolean|
 |**Query**|**pageSize**  <br>*optional*|Number of results to return|integer (int32)|
 |**Body**|**body**  <br>*required*|Discoverers query model|[DiscovererQueryApiModel](definitions.md#discovererqueryapimodel)|
 
@@ -806,7 +660,7 @@ Get all discoverers that match a specified query. The returned model can contain
 <a name="getfilteredlistofdiscoverers"></a>
 #### Get filtered list of discoverers
 ```
-GET /v2/discovery/query
+GET /registry/v2/discovery/query
 ```
 
 
@@ -820,7 +674,6 @@ Get a list of discoverers filtered using the specified query parameters. The ret
 |---|---|---|---|
 |**Query**|**connected**  <br>*optional*|Included connected or disconnected|boolean|
 |**Query**|**discovery**  <br>*optional*|Discovery mode of discoverer|enum (Off, Local, Network, Fast, Scan)|
-|**Query**|**onlyServerState**  <br>*optional*|Whether to include only server state, or display current client state of the endpoint if available|boolean|
 |**Query**|**pageSize**  <br>*optional*|Number of results to return|integer (int32)|
 |**Query**|**siteId**  <br>*optional*|Site of the discoverer|string|
 
@@ -844,84 +697,10 @@ Get a list of discoverers filtered using the specified query parameters. The ret
 |**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
-<a name="subscribebyrequestid"></a>
-#### Subscribe to discovery progress for a request
-```
-PUT /v2/discovery/requests/{requestId}/events
-```
-
-
-##### Description
-Register a client to receive discovery progress events through SignalR for a particular request.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**requestId**  <br>*required*|The request to monitor|string|
-|**Body**|**body**  <br>*optional*|The user id that will receive discovery events.|string|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
-<a name="unsubscribebyrequestid"></a>
-#### Unsubscribe from discovery progress for a request.
-```
-DELETE /v2/discovery/requests/{requestId}/events/{userId}
-```
-
-
-##### Description
-Unregister a client and stop it from receiving discovery events for a particular request.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**requestId**  <br>*required*|The request to unsubscribe from|string|
-|**Path**|**userId**  <br>*required*|The user id that will not receive any more discovery progress|string|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="setdiscoverymode"></a>
 #### Enable server discovery
 ```
-POST /v2/discovery/{discovererId}
+POST /registry/v2/discovery/{discovererId}
 ```
 
 
@@ -963,7 +742,7 @@ Allows a caller to configure recurring discovery runs on the discovery module id
 <a name="getdiscoverer"></a>
 #### Get discoverer registration information
 ```
-GET /v2/discovery/{discovererId}
+GET /registry/v2/discovery/{discovererId}
 ```
 
 
@@ -976,7 +755,6 @@ Returns a discoverer's registration and connectivity information. A discoverer i
 |Type|Name|Description|Schema|
 |---|---|---|---|
 |**Path**|**discovererId**  <br>*required*|Discoverer identifier|string|
-|**Query**|**onlyServerState**  <br>*optional*|Whether to include only server state, or display current client state of the endpoint if available|boolean|
 
 
 ##### Responses
@@ -1001,7 +779,7 @@ Returns a discoverer's registration and connectivity information. A discoverer i
 <a name="updatediscoverer"></a>
 #### Update discoverer information
 ```
-PATCH /v2/discovery/{discovererId}
+PATCH /registry/v2/discovery/{discovererId}
 ```
 
 
@@ -1039,80 +817,6 @@ Allows a caller to configure recurring discovery runs on the twin module identif
 |**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
-<a name="subscribebydiscovererid"></a>
-#### Subscribe to discovery progress from discoverer
-```
-PUT /v2/discovery/{discovererId}/events
-```
-
-
-##### Description
-Register a client to receive discovery progress events through SignalR from a particular discoverer.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**discovererId**  <br>*required*|The discoverer to subscribe to|string|
-|**Body**|**body**  <br>*optional*|The user id that will receive discovery events.|string|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
-<a name="unsubscribebydiscovererid"></a>
-#### Unsubscribe from discovery progress from discoverer.
-```
-DELETE /v2/discovery/{discovererId}/events/{userId}
-```
-
-
-##### Description
-Unregister a client and stop it from receiving discovery events.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**discovererId**  <br>*required*|The discoverer to unsubscribe from|string|
-|**Path**|**userId**  <br>*required*|The user id that will not receive any more discovery progress|string|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="endpoints_resource"></a>
 ### Endpoints
 Activate, Deactivate and Query endpoint resources
@@ -1121,7 +825,7 @@ Activate, Deactivate and Query endpoint resources
 <a name="getlistofendpoints"></a>
 #### Get list of endpoints
 ```
-GET /v2/endpoints
+GET /registry/v2/endpoints
 ```
 
 
@@ -1157,82 +861,10 @@ Get all registered endpoints in paged form. The returned model can contain a con
 |**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
-<a name="subscribe"></a>
-#### Subscribe for endpoint events
-```
-PUT /v2/endpoints/events
-```
-
-
-##### Description
-Register a user to receive endpoint events through SignalR.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Body**|**body**  <br>*optional*|The user id that will receive endpoint events.|string|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
-<a name="unsubscribe"></a>
-#### Unsubscribe from endpoint events
-```
-DELETE /v2/endpoints/events/{userId}
-```
-
-
-##### Description
-Unregister a user and stop it from receiving endpoint events.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**userId**  <br>*required*|The user id that will not receive any more endpoint events|string|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="queryendpoints"></a>
 #### Query endpoints
 ```
-POST /v2/endpoints/query
+POST /registry/v2/endpoints/query
 ```
 
 
@@ -1279,7 +911,7 @@ Return endpoints that match the specified query. The returned model can contain 
 <a name="getfilteredlistofendpoints"></a>
 #### Get filtered list of endpoints
 ```
-GET /v2/endpoints/query
+GET /registry/v2/endpoints/query
 ```
 
 
@@ -1293,10 +925,10 @@ Get a list of endpoints filtered using the specified query parameters. The retur
 |---|---|---|---|
 |**Query**|**activated**  <br>*optional*|Whether the endpoint was activated|boolean|
 |**Query**|**applicationId**  <br>*optional*|Application id to filter|string|
-|**Query**|**certificate**  <br>*optional*|Certificate of the endpoint|string (byte)|
+|**Query**|**certificate**  <br>*optional*|Endpoint certificate thumbprint|string|
 |**Query**|**connected**  <br>*optional*|Whether the endpoint is connected on supervisor.|boolean|
 |**Query**|**discovererId**  <br>*optional*|Discoverer id to filter with|string|
-|**Query**|**endpointState**  <br>*optional*|The last state of the the activated endpoint|enum (Connecting, NotReachable, Busy, NoTrust, CertificateInvalid, Ready, Error)|
+|**Query**|**endpointState**  <br>*optional*|The last state of the the activated endpoint|enum (Connecting, NotReachable, Busy, NoTrust, CertificateInvalid, Ready, Error, Disconnected, Unauthorized)|
 |**Query**|**includeNotSeenSince**  <br>*optional*|Whether to include endpoints that were soft deleted|boolean|
 |**Query**|**onlyServerState**  <br>*optional*|Whether to include only server state, or display current client state of the endpoint if available|boolean|
 |**Query**|**pageSize**  <br>*optional*|Optional number of results to return|integer (int32)|
@@ -1329,7 +961,7 @@ Get a list of endpoints filtered using the specified query parameters. The retur
 <a name="getendpoint"></a>
 #### Get endpoint information
 ```
-GET /v2/endpoints/{endpointId}
+GET /registry/v2/endpoints/{endpointId}
 ```
 
 
@@ -1367,7 +999,7 @@ Gets information about an endpoint.
 <a name="activateendpoint"></a>
 #### Activate endpoint
 ```
-POST /v2/endpoints/{endpointId}/activate
+POST /registry/v2/endpoints/{endpointId}/activate
 ```
 
 
@@ -1396,10 +1028,47 @@ Activates an endpoint for subsequent use in twin service. All endpoints must be 
 |**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
+<a name="getendpointcertificate"></a>
+#### Get endpoint certificate chain
+```
+GET /registry/v2/endpoints/{endpointId}/certificate
+```
+
+
+##### Description
+Gets current certificate of the endpoint.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**endpointId**  <br>*required*|endpoint identifier|string|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[X509CertificateChainApiModel](definitions.md#x509certificatechainapimodel)|
+
+
+##### Produces
+
+* `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="deactivateendpoint"></a>
 #### Deactivate endpoint
 ```
-POST /v2/endpoints/{endpointId}/deactivate
+POST /registry/v2/endpoints/{endpointId}/deactivate
 ```
 
 
@@ -1436,7 +1105,7 @@ Read, Update and Query Gateway resources
 <a name="getlistofgateway"></a>
 #### Get list of Gateways
 ```
-GET /v2/gateways
+GET /registry/v2/gateways
 ```
 
 
@@ -1471,82 +1140,10 @@ Get all registered Gateways and therefore twin modules in paged form. The return
 |**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
-<a name="subscribe"></a>
-#### Subscribe to Gateway registry events
-```
-PUT /v2/gateways/events
-```
-
-
-##### Description
-Register a user to receive Gateway events through SignalR.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Body**|**body**  <br>*optional*|The user id that will receive Gateway events.|string|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
-<a name="unsubscribe"></a>
-#### Unsubscribe registry events
-```
-DELETE /v2/gateways/events/{userId}
-```
-
-
-##### Description
-Unregister a user and stop it from receiving Gateway events.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**userId**  <br>*required*|The user id that will not receive any more Gateway events|string|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="querygateway"></a>
 #### Query Gateways
 ```
-POST /v2/gateways/query
+POST /registry/v2/gateways/query
 ```
 
 
@@ -1592,7 +1189,7 @@ Get all Gateways that match a specified query. The returned model can contain a 
 <a name="getfilteredlistofgateway"></a>
 #### Get filtered list of Gateways
 ```
-GET /v2/gateways/query
+GET /registry/v2/gateways/query
 ```
 
 
@@ -1631,7 +1228,7 @@ Get a list of Gateways filtered using the specified query parameters. The return
 <a name="getgateway"></a>
 #### Get Gateway registration information
 ```
-GET /v2/gateways/{GatewayId}
+GET /registry/v2/gateways/{GatewayId}
 ```
 
 
@@ -1668,7 +1265,7 @@ Returns a Gateway's registration and connectivity information. A Gateway id corr
 <a name="updategateway"></a>
 #### Update Gateway configuration
 ```
-PATCH /v2/gateways/{GatewayId}
+PATCH /registry/v2/gateways/{GatewayId}
 ```
 
 
@@ -1714,7 +1311,7 @@ Read, Update and Query publisher resources
 <a name="getlistofpublisher"></a>
 #### Get list of publishers
 ```
-GET /v2/publishers
+GET /registry/v2/publishers
 ```
 
 
@@ -1750,82 +1347,10 @@ Get all registered publishers and therefore twin modules in paged form. The retu
 |**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
-<a name="subscribe"></a>
-#### Subscribe to publisher registry events
-```
-PUT /v2/publishers/events
-```
-
-
-##### Description
-Register a user to receive publisher events through SignalR.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Body**|**body**  <br>*optional*|The user id that will receive publisher events.|string|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
-<a name="unsubscribe"></a>
-#### Unsubscribe registry events
-```
-DELETE /v2/publishers/events/{userId}
-```
-
-
-##### Description
-Unregister a user and stop it from receiving publisher events.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**userId**  <br>*required*|The user id that will not receive any more publisher events|string|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="querypublisher"></a>
 #### Query publishers
 ```
-POST /v2/publishers/query
+POST /registry/v2/publishers/query
 ```
 
 
@@ -1872,7 +1397,7 @@ Get all publishers that match a specified query. The returned model can contain 
 <a name="getfilteredlistofpublisher"></a>
 #### Get filtered list of publishers
 ```
-GET /v2/publishers/query
+GET /registry/v2/publishers/query
 ```
 
 
@@ -1912,7 +1437,7 @@ Get a list of publishers filtered using the specified query parameters. The retu
 <a name="getpublisher"></a>
 #### Get publisher registration information
 ```
-GET /v2/publishers/{publisherId}
+GET /registry/v2/publishers/{publisherId}
 ```
 
 
@@ -1950,7 +1475,7 @@ Returns a publisher's registration and connectivity information. A publisher id 
 <a name="updatepublisher"></a>
 #### Update publisher configuration
 ```
-PATCH /v2/publishers/{publisherId}
+PATCH /registry/v2/publishers/{publisherId}
 ```
 
 
@@ -1996,7 +1521,7 @@ Read, Update and Query supervisor resources
 <a name="getlistofsupervisors"></a>
 #### Get list of supervisors
 ```
-GET /v2/supervisors
+GET /registry/v2/supervisors
 ```
 
 
@@ -2032,82 +1557,10 @@ Get all registered supervisors and therefore twin modules in paged form. The ret
 |**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
-<a name="subscribe"></a>
-#### Subscribe to supervisor registry events
-```
-PUT /v2/supervisors/events
-```
-
-
-##### Description
-Register a user to receive supervisor events through SignalR.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Body**|**body**  <br>*optional*|The user id that will receive supervisor events.|string|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
-<a name="unsubscribe"></a>
-#### Unsubscribe registry events
-```
-DELETE /v2/supervisors/events/{userId}
-```
-
-
-##### Description
-Unregister a user and stop it from receiving supervisor events.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**userId**  <br>*required*|The user id that will not receive any more supervisor events|string|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
 <a name="querysupervisors"></a>
 #### Query supervisors
 ```
-POST /v2/supervisors/query
+POST /registry/v2/supervisors/query
 ```
 
 
@@ -2154,7 +1607,7 @@ Get all supervisors that match a specified query. The returned model can contain
 <a name="getfilteredlistofsupervisors"></a>
 #### Get filtered list of supervisors
 ```
-GET /v2/supervisors/query
+GET /registry/v2/supervisors/query
 ```
 
 
@@ -2194,7 +1647,7 @@ Get a list of supervisors filtered using the specified query parameters. The ret
 <a name="getsupervisor"></a>
 #### Get supervisor registration information
 ```
-GET /v2/supervisors/{supervisorId}
+GET /registry/v2/supervisors/{supervisorId}
 ```
 
 
@@ -2232,7 +1685,7 @@ Returns a supervisor's registration and connectivity information. A supervisor i
 <a name="updatesupervisor"></a>
 #### Update supervisor information
 ```
-PATCH /v2/supervisors/{supervisorId}
+PATCH /registry/v2/supervisors/{supervisorId}
 ```
 
 
@@ -2273,7 +1726,7 @@ Allows a caller to configure recurring discovery runs on the twin module identif
 <a name="resetsupervisor"></a>
 #### Reset supervisor
 ```
-POST /v2/supervisors/{supervisorId}/reset
+POST /registry/v2/supervisors/{supervisorId}/reset
 ```
 
 
@@ -2305,7 +1758,7 @@ Allows a caller to reset the twin module using its supervisor identity identifie
 <a name="getsupervisorstatus"></a>
 #### Get runtime status of supervisor
 ```
-GET /v2/supervisors/{supervisorId}/status
+GET /registry/v2/supervisors/{supervisorId}/status
 ```
 
 

@@ -38,14 +38,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <param name="events"></param>
         public EndpointRegistry(IIoTHubTwinServices iothub, IJsonSerializer serializer,
             IRegistryEventBroker<IEndpointRegistryListener> broker,
-            IActivationServices<EndpointRegistrationModel> activator,
+            IEndpointRegistryActivation activator,
             ICertificateServices<EndpointRegistrationModel> certificates,
             ILogger logger, IRegistryEvents<IApplicationRegistryListener> events = null) {
 
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _certificates = certificates ?? throw new ArgumentNullException(nameof(certificates));
-            _activator = activator ?? throw new ArgumentNullException(nameof(activator));
+            _activation = activator ?? throw new ArgumentNullException(nameof(activator));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _broker = broker ?? throw new ArgumentNullException(nameof(broker));
 
@@ -205,73 +205,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         /// <inheritdoc/>
-        public async Task ActivateEndpointAsync(string endpointId,
-            RegistryOperationContextModel context, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
-                throw new ArgumentException(nameof(endpointId));
-            }
-            context = context.Validate();
-
-            // Get existing endpoint and compare to see if we need to patch.
-            var twin = await _iothub.GetAsync(endpointId, null, ct);
-            if (twin.Id != endpointId) {
-                throw new ArgumentException("Id must be same as twin to activate",
-                    nameof(endpointId));
-            }
-
-            // Convert to twin registration
-            var registration = twin.ToEntityRegistration(true) as EndpointRegistration;
-            if (registration == null) {
-                throw new ResourceNotFoundException(
-                    $"{endpointId} is not an endpoint registration.");
-            }
-            if (string.IsNullOrEmpty(registration.SupervisorId)) {
-                throw new ArgumentException(
-                    $"Twin {endpointId} not registered with a supervisor.");
-            }
-
-            if (registration.IsDisabled ?? false) {
-                throw new ResourceInvalidStateException(
-                    $"{endpointId} is disabled - cannot activate");
-            }
-
-            if (!(registration.Activated ?? false)) {
-                // Only activate if not yet activated
-                await ActivateAsync(registration, context, ct);
-            }
-        }
-
-        /// <inheritdoc/>
-        public async Task DeactivateEndpointAsync(string endpointId,
-            RegistryOperationContextModel context, CancellationToken ct) {
-            if (string.IsNullOrEmpty(endpointId)) {
-                throw new ArgumentException(nameof(endpointId));
-            }
-            context = context.Validate();
-            // Get existing endpoint and compare to see if we need to patch.
-            var twin = await _iothub.GetAsync(endpointId, null, ct);
-            if (twin.Id != endpointId) {
-                throw new ArgumentException("Id must be same as twin to deactivate",
-                    nameof(endpointId));
-            }
-            // Convert to twin registration
-            var registration = twin.ToEntityRegistration(true) as EndpointRegistration;
-            if (registration == null) {
-                throw new ResourceNotFoundException(
-                    $"{endpointId} is not an endpoint registration.");
-            }
-
-            if (string.IsNullOrEmpty(registration.SupervisorId)) {
-                throw new ArgumentException(
-                    $"Twin {endpointId} not registered with a supervisor.");
-            }
-
-            if (registration.Activated ?? false) {
-                await DeactivateAsync(registration, context, ct);
-            }
-        }
-
-        /// <inheritdoc/>
         public Task OnApplicationNewAsync(RegistryOperationContextModel context,
             ApplicationInfoModel application) {
             return Task.CompletedTask;
@@ -279,7 +212,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
         /// <inheritdoc/>
         public Task OnApplicationUpdatedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application, bool isPatch) {
+            ApplicationInfoModel application) {
             return Task.CompletedTask;
         }
 
@@ -310,7 +243,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     continue; // No need to re-activate on enable
                 }
                 try {
-                    await ActivateAsync(registration, context);
+                    await _activation.ActivateEndpointAsync(registration, context);
                 }
                 catch (Exception ex) {
                     _logger.Error(ex,
@@ -328,7 +261,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 if (registration.Activated ?? false) {
                     try {
                         registration.Activated = false; // Prevent patching...
-                        await DeactivateAsync(registration, context);
+                        await _activation.DeactivateEndpointAsync(registration, context);
                         registration.Activated = true; // reset activated state
                     }
                     catch (Exception ex) {
@@ -363,7 +296,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 var endpoint = registration.ToServiceModel();
                 try {
                     registration.Activated = false; // Prevents patching since we delete below.
-                    await DeactivateAsync(registration, context);
+                    await _activation.DeactivateEndpointAsync(registration, context);
                 }
                 catch (Exception ex) {
                     _logger.Error(ex, "Failed deleting registered endpoint endpoint {id}",
@@ -436,9 +369,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                                 var device = await _iothub.GetAsync(item.DeviceId);
                                 // First we update any registration
                                 var existingEndpoint = device.ToEndpointRegistration(false);
-                                if (!string.IsNullOrEmpty(existingEndpoint.SupervisorId)) {
-                                    await SetSupervisorTwinSecretAsync(existingEndpoint.SupervisorId,
-                                        device.Id, null);
+                                if (existingEndpoint.Activated ?? false) {
+                                    await Try.Async(() => _activation.DeactivateEndpointAsync(
+                                        existingEndpoint, context));
                                 }
                                 // Then hard delete...
                                 await _iothub.DeleteAsync(item.DeviceId);
@@ -482,8 +415,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                             patch.ActivationState = exists.ActivationState;
                         }
                         else {
-                            await ApplyActivationFilterAsync(result.DiscoveryConfig?.ActivationFilter,
-                                patch, context);
+                            await _activation.ApplyActivationFilterAsync(patch,
+                                result.DiscoveryConfig?.ActivationFilter, context);
                         }
                         if (exists != patch) {
                             await _iothub.PatchAsync(exists.Patch(patch, _serializer), true);
@@ -510,8 +443,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             // Add endpoint
             foreach (var item in add) {
                 try {
-                    await ApplyActivationFilterAsync(result.DiscoveryConfig?.ActivationFilter,
-                        item, context);
+                    await _activation.ApplyActivationFilterAsync(item,
+                        result.DiscoveryConfig?.ActivationFilter, context);
                     await _iothub.CreateAsync(item.ToDeviceTwin(_serializer), true);
 
                     var endpoint = item.ToServiceModel();
@@ -565,172 +498,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         /// <summary>
-        /// Apply activation filter
-        /// </summary>
-        /// <param name="filter"></param>
-        /// <param name="registration"></param>
-        /// <param name="context"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private async Task<string> ApplyActivationFilterAsync(
-            EndpointActivationFilterModel filter, EndpointRegistration registration,
-            RegistryOperationContextModel context, CancellationToken ct = default) {
-            if (filter == null || registration == null) {
-                return null;
-            }
-            // TODO: Get trust list entry and validate endpoint.Certificate
-            var mode = registration.SecurityMode ?? SecurityMode.None;
-            if (!mode.MatchesFilter(filter.SecurityMode ?? SecurityMode.Best)) {
-                return null;
-            }
-            var policy = registration.SecurityPolicy;
-            if (filter.SecurityPolicies != null) {
-                if (!filter.SecurityPolicies.Any(p =>
-                    p.EqualsIgnoreCase(registration.SecurityPolicy))) {
-                    return null;
-                }
-            }
-            try {
-                var endpoint = registration.ToServiceModel();
-                // Get endpoint twin secret
-                var secret = await _iothub.GetPrimaryKeyAsync(registration.DeviceId, null, ct);
-
-                // Try activate endpoint - if possible...
-                await _activator.ActivateEndpointAsync(endpoint.Registration, secret, ct);
-
-                // Mark in supervisor
-                await SetSupervisorTwinSecretAsync(registration.SupervisorId,
-                    registration.DeviceId, secret, ct);
-
-                registration.Activated = true;
-
-                await _broker.NotifyAllAsync(
-                    l => l.OnEndpointActivatedAsync(context, endpoint));
-                return secret;
-            }
-            catch (Exception ex) {
-                _logger.Information(ex, "Failed activating {eeviceId} based off " +
-                    "filter.  Manual activation required.", registration.DeviceId);
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Activate
-        /// </summary>
-        /// <param name="registration"></param>
-        /// <param name="context"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private async Task ActivateAsync(EndpointRegistration registration,
-            RegistryOperationContextModel context, CancellationToken ct = default) {
-
-            // Update supervisor settings
-            var secret = await _iothub.GetPrimaryKeyAsync(registration.DeviceId, null, ct);
-            var endpoint = registration.ToServiceModel();
-            try {
-                // Call down to supervisor to activate - this can fail
-                await _activator.ActivateEndpointAsync(endpoint.Registration, secret, ct);
-
-                // Update supervisor desired properties
-                await SetSupervisorTwinSecretAsync(registration.SupervisorId,
-                    registration.DeviceId, secret, ct);
-
-                if (!(registration.Activated ?? false)) {
-
-                    // Update twin activation status in twin settings
-                    var patch = endpoint.ToEndpointRegistration(_serializer,
-                        registration.IsDisabled);
-
-                    patch.Activated = true; // Mark registration as activated
-
-                    await _iothub.PatchAsync(registration.Patch(patch, _serializer), true, ct);
-                }
-                await _broker.NotifyAllAsync(l => l.OnEndpointActivatedAsync(context, endpoint));
-            }
-            catch (Exception ex) {
-                // Undo activation
-                await Try.Async(() => _activator.DeactivateEndpointAsync(
-                    endpoint.Registration));
-                await Try.Async(() => SetSupervisorTwinSecretAsync(
-                    registration.SupervisorId, registration.DeviceId, null));
-                _logger.Error(ex, "Failed to activate twin");
-                throw ex;
-            }
-        }
-
-        /// <summary>
-        /// Deactivate
-        /// </summary>
-        /// <param name="registration"></param>
-        /// <param name="context"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private async Task DeactivateAsync(EndpointRegistration registration,
-            RegistryOperationContextModel context, CancellationToken ct = default) {
-
-            var endpoint = registration.ToServiceModel();
-
-            // Deactivate twin in twin settings - do no matter what
-            await SetSupervisorTwinSecretAsync(registration.SupervisorId,
-                registration.DeviceId, null, ct);
-
-            // Call down to supervisor to ensure deactivation is complete - do no matter what
-            await Try.Async(() => _activator.DeactivateEndpointAsync(endpoint.Registration));
-
-            try {
-                // Mark as deactivated
-                if (registration.Activated ?? false) {
-
-                    var patch = endpoint.ToEndpointRegistration(
-                        _serializer, registration.IsDisabled);
-
-                    // Mark as deactivated
-                    patch.Activated = false;
-
-                    await _iothub.PatchAsync(registration.Patch(patch, _serializer), true);
-                }
-                await _broker.NotifyAllAsync(l => l.OnEndpointDeactivatedAsync(context, endpoint));
-            }
-            catch (Exception ex) {
-                _logger.Error(ex, "Failed to deactivate twin");
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Enable or disable twin on supervisor
-        /// </summary>
-        /// <param name="supervisorId"></param>
-        /// <param name="twinId"></param>
-        /// <param name="secret"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        private async Task SetSupervisorTwinSecretAsync(string supervisorId,
-            string twinId, string secret, CancellationToken ct = default) {
-
-            if (string.IsNullOrEmpty(twinId)) {
-                throw new ArgumentNullException(nameof(twinId));
-            }
-            if (string.IsNullOrEmpty(supervisorId)) {
-                return; // ok, no supervisor
-            }
-            var deviceId = SupervisorModelEx.ParseDeviceId(supervisorId, out var moduleId);
-            if (secret == null) {
-                // Remove from supervisor - this disconnects the device
-                await _iothub.UpdatePropertyAsync(deviceId, moduleId, twinId, null, ct);
-                _logger.Information("Twin {twinId} deactivated on {supervisorId}.",
-                    twinId, supervisorId);
-            }
-            else {
-                // Update supervisor to start supervising this endpoint
-                await _iothub.UpdatePropertyAsync(deviceId, moduleId, twinId, secret, ct);
-                _logger.Information("Twin {twinId} activated on {supervisorId}.",
-                    twinId, supervisorId);
-            }
-        }
-
-        /// <summary>
         /// Convert device twin registration property to registration model
         /// </summary>
         /// <param name="twin"></param>
@@ -753,9 +520,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             return registration.ToServiceModel();
         }
 
-        private readonly IActivationServices<EndpointRegistrationModel> _activator;
         private readonly ICertificateServices<EndpointRegistrationModel> _certificates;
         private readonly IRegistryEventBroker<IEndpointRegistryListener> _broker;
+        private readonly IEndpointRegistryActivation _activation;
         private readonly IJsonSerializer _serializer;
         private readonly Action _unregister;
         private readonly IIoTHubTwinServices _iothub;

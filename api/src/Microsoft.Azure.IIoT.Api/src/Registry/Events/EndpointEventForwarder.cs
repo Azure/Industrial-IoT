@@ -7,26 +7,25 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2.Models;
     using Microsoft.Azure.IIoT.Messaging;
-    using Microsoft.Azure.IIoT.Messaging.Default;
     using System.Threading.Tasks;
-    using Serilog;
+    using System;
 
     /// <summary>
     /// Endpoint registry event publisher
     /// </summary>
-    public class EndpointEventForwarder<THub> :
-        EventBusCallbackBridge<THub, EndpointEventModel> {
+    public class EndpointEventForwarder<THub> : IEventHandler<EndpointEventModel> {
 
         /// <inheritdoc/>
-        public EndpointEventForwarder(IEventBus bus, ICallbackInvokerT<THub> callback,
-            ILogger logger) : base(bus, callback, logger) {
+        public EndpointEventForwarder(ICallbackInvokerT<THub> callback) {
+            _callback = callback ?? throw new ArgumentNullException(nameof(callback));
         }
 
         /// <inheritdoc/>
-        public override Task HandleAsync(EndpointEventModel eventData) {
+        public Task HandleAsync(EndpointEventModel eventData) {
             var arguments = new object[] { eventData.ToApiModel() };
-            return Callback.BroadcastAsync(
+            return _callback.BroadcastAsync(
                 EventTargets.EndpointEventTarget, arguments);
         }
+        private readonly ICallbackInvoker _callback;
     }
 }

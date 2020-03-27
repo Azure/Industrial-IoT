@@ -22,7 +22,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
             return new ApplicationEventApiModel {
                 EventType = (ApplicationEventType)model.EventType,
                 Id = model.Id,
-                IsPatch = model.IsPatch,
                 Application = model.Application.ToApiModel()
             };
         }

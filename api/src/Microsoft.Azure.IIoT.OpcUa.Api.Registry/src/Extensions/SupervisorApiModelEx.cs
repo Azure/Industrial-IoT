@@ -15,27 +15,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         /// <param name="supervisor"></param>
         /// <param name="update"></param>
-        /// <param name="isPatch"></param>
         public static SupervisorApiModel Patch(this SupervisorApiModel update,
-            SupervisorApiModel supervisor, bool isPatch = false) {
+            SupervisorApiModel supervisor) {
+            if (update == null) {
+                return supervisor;
+            }
             if (supervisor == null) {
-                return update;
+                supervisor = new SupervisorApiModel();
             }
-            if (!isPatch || update.Connected != null) {
-                supervisor.Connected = update.Connected;
-            }
-            if (!isPatch || update.Id != null) {
-                supervisor.Id = update.Id;
-            }
-            if (!isPatch || update.LogLevel != null) {
-                supervisor.LogLevel = update.LogLevel;
-            }
-            if (!isPatch || update.OutOfSync != null) {
-                supervisor.OutOfSync = update.OutOfSync;
-            }
-            if (!isPatch || update.SiteId != null) {
-                supervisor.SiteId = update.SiteId;
-            }
+            supervisor.Connected = update.Connected;
+            supervisor.Id = update.Id;
+            supervisor.LogLevel = update.LogLevel;
+            supervisor.OutOfSync = update.OutOfSync;
+            supervisor.SiteId = update.SiteId;
             return supervisor;
         }
     }

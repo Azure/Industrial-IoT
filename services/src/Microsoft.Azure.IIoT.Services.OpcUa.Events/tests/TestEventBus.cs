@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     /// <summary>
     /// Simple in memory event bus
     /// </summary>
-    public class TestEventBus : IEventBus {
+    public class TestEventBus : IEventBus, IEventProcessingHost {
 
         public Task PublishAsync<T>(T message) {
             var name = typeof(T).GetMoniker();
@@ -27,6 +27,14 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
 
         public Task UnregisterAsync(string token) {
             _handlers.Remove(token);
+            return Task.CompletedTask;
+        }
+
+        public Task StartAsync() {
+            return Task.CompletedTask;
+        }
+
+        public Task StopAsync() {
             return Task.CompletedTask;
         }
 

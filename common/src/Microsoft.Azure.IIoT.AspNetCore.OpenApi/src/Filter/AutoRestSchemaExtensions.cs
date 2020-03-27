@@ -7,6 +7,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
     using Microsoft.OpenApi.Any;
     using Microsoft.OpenApi.Models;
     using Newtonsoft.Json;
+    using Newtonsoft.Json.Converters;
     using Swashbuckle.AspNetCore.SwaggerGen;
     using System;
     using System.Collections.Generic;
@@ -97,7 +98,8 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi {
                     model.Type = "string";
                     model.Enum = Enum.GetValues(paramType)
                         .Cast<object>()
-                        .Select(v => JsonConvert.SerializeObject(v))
+                        .Select(v => JsonConvert.SerializeObject(v, new StringEnumConverter())
+                            .TrimQuotes())
                         .Select(n => (IOpenApiAny)new OpenApiString(n))
                         .ToList();
                     model.Extensions.AddOrUpdate("x-ms-enum", new OpenApiObject {

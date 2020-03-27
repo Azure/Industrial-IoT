@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Deploy;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Services;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
@@ -28,7 +29,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
     using System;
     using ILogger = Serilog.ILogger;
     using Prometheus;
-    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Webservice startup
@@ -107,7 +107,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
             });
 
             // Add controllers as services so they'll be resolved.
-            services.AddControllers().AddJsonSerializer();
+            services.AddControllers().AddJsonSerializer().AddMessagePackSerializer();
             services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 
@@ -172,6 +172,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager {
 
             // Register logger
             builder.AddDiagnostics(Config);
+            builder.RegisterModule<MessagePackModule>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Register metrics logger

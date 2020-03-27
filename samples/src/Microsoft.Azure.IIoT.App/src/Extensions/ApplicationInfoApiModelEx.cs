@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.App.Data {
                     }
                     break;
                 case ApplicationEventType.Updated:
-                    ev.Application.Patch(application, ev.IsPatch ?? false);
+                    ev.Application.Patch(application);
                     break;
                 case ApplicationEventType.Disabled:
                 case ApplicationEventType.Deleted:

@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.App.Data {
                     }
                     break;
                 case DiscovererEventType.Updated:
-                    ev.Discoverer.Patch(discoverer.DiscovererModel, ev.IsPatch ?? false);
+                    ev.Discoverer.Patch(discoverer.DiscovererModel);
                     break;
                 case DiscovererEventType.Deleted:
                     results.Remove(discoverer);

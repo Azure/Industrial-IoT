@@ -26,10 +26,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="supervisor"></param>
-        /// <param name="isPatch"></param>
         /// <returns></returns>
         Task OnSupervisorUpdatedAsync(RegistryOperationContextModel context,
-            SupervisorModel supervisor, bool isPatch = false);
+            SupervisorModel supervisor);
 
         /// <summary>
         /// Called when supervisor is deleted

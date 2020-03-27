@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
     using System.Text;
     using System.Linq;
     using Xunit;
+    using System.Runtime.Serialization;
 
     public class MessagePackInteropTests {
 
@@ -99,7 +100,9 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
             yield return (Guid.Empty, Guid.Empty);
             var now1 = DateTime.UtcNow;
             yield return (now1, now1);
+#if MessagePack2
             yield return (DateTime.MaxValue, DateTime.MaxValue);
+#endif
             yield return (DateTime.MinValue, DateTime.MinValue);
             yield return ((DateTime?)null, (DateTime?)null);
             var now2 = DateTimeOffset.UtcNow;
@@ -225,13 +228,14 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
 
         [Fact]
         public void SerializeFromObjectsWithSameContent2() {
+            var dt = DateTime.UtcNow;
             var expected = MsgPack.FromObject(new {
                 Test = 1,
                 LoCale = "de",
-                TimeStamp = DateTime.FromBinary(111111)
+                TimeStamp = dt
             });
             var actual = Json.FromObject(new {
-                TimeStamp = DateTime.FromBinary(111111),
+                TimeStamp = dt,
                 Locale = "de",
                 TeSt = 1
             });
@@ -240,24 +244,108 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
 
         [Fact]
         public void SerializeFromObjectsWithSameContent3() {
+            var dt = DateTime.UtcNow;
             var expected = MsgPack.FromObject(new {
                 Test = 1,
                 LoCale = "de",
                 Inner = new {
-                    TimeStamp = DateTime.FromBinary(111111),
+                    TimeStamp = dt,
                     Test = 1
                 }
             });
             var actual = Json.FromObject(new {
                 Locale = "de",
                 Inner = new {
-                    TimeStamp = DateTime.FromBinary(111111),
+                    TimeStamp = dt,
                     Test = 1
                 },
                 TeSt = 1
             });
             Assert.Equal(expected, actual);
         }
+
+        [Fact]
+        public void SerializerFromObjectContainerToContainerWithObject() {
+            var expected = new TestContainer {
+                Value = MsgPack.FromObject(new {
+                    Test = "Text",
+                    Locale = "de"
+                })
+            };
+            var tmp = Json.FromObject(expected);
+            var actual = tmp.ConvertTo<TestContainer>();
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetVariantValues))]
+        public void SerializerFromObjectContainerToContainer(object v) {
+            var expected = new TestContainer {
+                Value = MsgPack.FromObject(v)
+            };
+            var tmp = Json.FromObject(expected);
+            var actual = tmp.ConvertTo<TestContainer>();
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetScalars))]
+        [MemberData(nameof(GetEmptyArrays))]
+        [MemberData(nameof(GetFilledArrays))]
+        public void SerializerFromObjectContainerToContainerWithSerializedVariant(object o, Type type) {
+            var t = type.MakeArrayType();
+            var expected = new TestContainer {
+                Value = MsgPack.FromObject(o)
+            };
+            var tmp = Json.FromObject(expected);
+            var actual = tmp.ConvertTo<TestContainer>();
+            Assert.Equal(expected, actual);
+            Assert.NotNull(actual.Value);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetScalars))]
+        [MemberData(nameof(GetEmptyArrays))]
+        [MemberData(nameof(GetFilledArrays))]
+        public void SerializerFromObjectContainerToContainerWithArray(object o, Type type) {
+            var t = type.MakeArrayType();
+            var expected = new TestContainer {
+                Value = MsgPack.FromArray(o, o, o)
+            };
+            var tmp = Json.FromObject(expected);
+            var actual = tmp.ConvertTo<TestContainer>();
+            Assert.Equal(expected, actual);
+            Assert.NotNull(actual.Value);
+        }
+
+        [Fact]
+        public void SerializerFromObjectContainerToContainerWithStringArray() {
+            var expected = new TestContainer {
+                Value = MsgPack.FromArray("", "", "")
+            };
+            var tmp = Json.FromObject(expected);
+            var actual = tmp.ConvertTo<TestContainer>();
+            Assert.Equal(expected, actual);
+            Assert.NotNull(actual.Value);
+        }
+
+        [DataContract]
+        public class TestContainer {
+            [DataMember]
+            public VariantValue Value { get; set; }
+
+            public override bool Equals(object obj) {
+                if (obj is TestContainer c) {
+                    return VariantValue.DeepEquals(c.Value, Value);
+                }
+                return false;
+            }
+
+            public override int GetHashCode() {
+                return -1937169414 + EqualityComparer<VariantValue>.Default.GetHashCode(Value);
+            }
+        }
+
 
         public static IEnumerable<object[]> GetScalars() {
             return GetStrings()

@@ -11,6 +11,7 @@ namespace Microsoft.Extensions.DependencyInjection {
     using System;
     using System.Linq;
     using Newtonsoft.Json;
+    using MessagePack.AspNetCoreMvcFormatter;
 
     /// <summary>
     /// Mvc setup extensions
@@ -51,6 +52,28 @@ namespace Microsoft.Extensions.DependencyInjection {
                         options.SerializerSettings.Converters =
                             set.MergeWith(settings.Converters).ToList();
                     }
+                }));
+            return builder;
+        }
+
+        /// <summary>
+        /// Add MessagePack serializer
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static IMvcBuilder AddMessagePackSerializer(this IMvcBuilder builder) {
+            if (builder == null) {
+                throw new ArgumentNullException(nameof(builder));
+            }
+            builder.Services.AddTransient<IConfigureOptions<MvcOptions>>(services =>
+                new ConfigureNamedOptions<MvcOptions>(Options.DefaultName, option => {
+                    var provider = services.GetService<IMessagePackSerializerOptionsProvider>();
+                    if (provider?.Options == null) {
+                        return;
+                    }
+
+                    option.OutputFormatters.Add(new MessagePackOutputFormatter(provider.Options));
+                    option.InputFormatters.Add(new MessagePackInputFormatter(provider.Options));
                 }));
             return builder;
         }

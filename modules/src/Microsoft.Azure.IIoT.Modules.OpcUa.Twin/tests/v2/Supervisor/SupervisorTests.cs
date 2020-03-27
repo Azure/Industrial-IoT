@@ -84,7 +84,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
 
                     // Setup
                     var supervisorId = SupervisorModelEx.CreateSupervisorId(device, module);
-                    var activation = services.Resolve<IActivationServices<EndpointRegistrationModel>>();
+                    var activation = services.Resolve<IEndpointActivation>();
                     var hub = services.Resolve<IIoTHubTwinServices>();
                     var twin = new EndpointInfoModel {
                         Registration = new EndpointRegistrationModel {
@@ -102,7 +102,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                     Assert.NotNull(ep1);
 
                     // Act
-                    await registry.ActivateEndpointAsync(ep1.Registration.Id);
+                    await activation.ActivateEndpointAsync(ep1.Registration.Id);
                     endpoints = await registry.ListAllEndpointsAsync();
                     var ep2 = endpoints.FirstOrDefault();
                     var diagnostics = services.Resolve<ISupervisorDiagnostics>();
@@ -130,7 +130,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
 
                     // Setup
                     var supervisorId = SupervisorModelEx.CreateSupervisorId(device, module);
-                    var activation = services.Resolve<IActivationServices<EndpointRegistrationModel>>();
+                    var activation = services.Resolve<IEndpointActivation>();
                     var hub = services.Resolve<IIoTHubTwinServices>();
                     var twin = new EndpointInfoModel {
                         Registration = new EndpointRegistrationModel {
@@ -149,10 +149,10 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                     Assert.NotNull(ep1);
 
                     // Act
-                    await registry.ActivateEndpointAsync(ep1.Registration.Id);
+                    await activation.ActivateEndpointAsync(ep1.Registration.Id);
                     endpoints = await registry.ListAllEndpointsAsync();
                     var ep2 = endpoints.FirstOrDefault();
-                    await registry.DeactivateEndpointAsync(ep2.Registration.Id);
+                    await activation.DeactivateEndpointAsync(ep2.Registration.Id);
                     var diagnostics = services.Resolve<ISupervisorDiagnostics>();
                     endpoints = await registry.ListAllEndpointsAsync();
                     var ep3 = endpoints.FirstOrDefault();
@@ -176,7 +176,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
 
                     // Setup
                     var supervisorId = SupervisorModelEx.CreateSupervisorId(device, module);
-                    var activation = services.Resolve<IActivationServices<EndpointRegistrationModel>>();
+                    var activation = services.Resolve<IEndpointActivation>();
                     var hub = services.Resolve<IIoTHubTwinServices>();
                     var twin = new EndpointInfoModel {
                         Registration = new EndpointRegistrationModel {
@@ -196,8 +196,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
 
                     for (var i = 0; i < 20; i++) {
                         // Act
-                        await registry.ActivateEndpointAsync(ep1.Registration.Id);
-                        await registry.DeactivateEndpointAsync(ep1.Registration.Id);
+                        await activation.ActivateEndpointAsync(ep1.Registration.Id);
+                        await activation.DeactivateEndpointAsync(ep1.Registration.Id);
                     }
 
                     var diagnostics = services.Resolve<ISupervisorDiagnostics>();
@@ -223,7 +223,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
 
                     // Setup
                     var supervisorId = SupervisorModelEx.CreateSupervisorId(device, module);
-                    var activation = services.Resolve<IActivationServices<EndpointRegistrationModel>>();
+                    var activation = services.Resolve<IEndpointActivation>();
                     var hub = services.Resolve<IIoTHubTwinServices>();
 
                     for (var i = 0; i < 20; i++) {
@@ -243,8 +243,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
                     var endpoints = await registry.ListAllEndpointsAsync();
 
                     for (var i = 0; i < 5; i++) {
-                        await Task.WhenAll(endpoints.Select(ep => registry.ActivateEndpointAsync(ep.Registration.Id)));
-                        await Task.WhenAll(endpoints.Select(ep => registry.DeactivateEndpointAsync(ep.Registration.Id)));
+                        await Task.WhenAll(endpoints.Select(ep => activation.ActivateEndpointAsync(ep.Registration.Id)));
+                        await Task.WhenAll(endpoints.Select(ep => activation.DeactivateEndpointAsync(ep.Registration.Id)));
                     }
 
                     var diagnostics = services.Resolve<ISupervisorDiagnostics>();

@@ -1003,9 +1003,50 @@
           "description": "Not after validity",
           "type": "string"
         },
+        "selfSigned": {
+          "description": "Self signed",
+          "type": "boolean"
+        },
         "certificate": {
-          "description": "Raw data"
+          "format": "byte",
+          "description": "Raw data",
+          "type": "string"
         }
+      }
+    },
+    "X509ChainStatus": {
+      "description": "Status of x509 chain",
+      "enum": [
+        "NoError",
+        "NotTimeValid",
+        "Revoked",
+        "NotSignatureValid",
+        "NotValidForUsage",
+        "UntrustedRoot",
+        "RevocationStatusUnknown",
+        "Cyclic",
+        "InvalidExtension",
+        "InvalidPolicyConstraints",
+        "InvalidBasicConstraints",
+        "InvalidNameConstraints",
+        "HasNotSupportedNameConstraint",
+        "HasNotDefinedNameConstraint",
+        "HasNotPermittedNameConstraint",
+        "HasExcludedNameConstraint",
+        "PartialChain",
+        "CtlNotTimeValid",
+        "CtlNotSignatureValid",
+        "CtlNotValidForUsage",
+        "HasWeakSignature",
+        "OfflineRevocation",
+        "NoIssuanceChainPolicy",
+        "ExplicitDistrust",
+        "HasNotSupportedCriticalExtension"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "X509ChainStatus",
+        "modelAsString": false
       }
     },
     "X509CertificateChainApiModel": {
@@ -1017,6 +1058,44 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/X509CertificateApiModel"
+          }
+        },
+        "status": {
+          "description": "Chain validation status if validated",
+          "enum": [
+            "NoError",
+            "NotTimeValid",
+            "Revoked",
+            "NotSignatureValid",
+            "NotValidForUsage",
+            "UntrustedRoot",
+            "RevocationStatusUnknown",
+            "Cyclic",
+            "InvalidExtension",
+            "InvalidPolicyConstraints",
+            "InvalidBasicConstraints",
+            "InvalidNameConstraints",
+            "HasNotSupportedNameConstraint",
+            "HasNotDefinedNameConstraint",
+            "HasNotPermittedNameConstraint",
+            "HasExcludedNameConstraint",
+            "PartialChain",
+            "CtlNotTimeValid",
+            "CtlNotSignatureValid",
+            "CtlNotValidForUsage",
+            "HasWeakSignature",
+            "OfflineRevocation",
+            "NoIssuanceChainPolicy",
+            "ExplicitDistrust",
+            "HasNotSupportedCriticalExtension"
+          ],
+          "type": "string",
+          "items": {
+            "$ref": "#/definitions/X509ChainStatus"
+          },
+          "x-ms-enum": {
+            "name": "X509ChainStatus",
+            "modelAsString": false
           }
         }
       }
@@ -1030,7 +1109,8 @@
           "type": "string"
         },
         "crl": {
-          "description": "The certificate revocation list."
+          "description": "The certificate revocation list.",
+          "type": "string"
         }
       }
     },
@@ -1050,7 +1130,7 @@
     "NotFoundResult": {
       "type": "object",
       "properties": {
-        "statusCode": {
+        "StatusCode": {
           "format": "int32",
           "type": "integer",
           "readOnly": true
@@ -1070,7 +1150,8 @@
           "type": "string"
         },
         "certificateRequest": {
-          "description": "Request"
+          "description": "Request",
+          "type": "string"
         }
       }
     },
@@ -1150,7 +1231,8 @@
           "$ref": "#/definitions/CertificateRequestType"
         },
         "errorInfo": {
-          "description": "Error diagnostics"
+          "description": "Error diagnostics",
+          "type": "string"
         },
         "submitted": {
           "$ref": "#/definitions/VaultOperationContextApiModel"
@@ -1593,7 +1675,7 @@
     },
     {
       "name": "Distribution",
-      "description": "Certificate CRL Distribution Point and Authority\r\nInformation Access\r\nservices."
+      "description": "Certificate CRL Distribution Point and Authority Information Access services."
     },
     {
       "name": "Requests",

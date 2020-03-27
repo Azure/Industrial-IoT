@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
     /// </summary>
     public class Config : DiagnosticsConfig, IEventProcessorConfig,
         IEventHubConsumerConfig, IOnboardingConfig, IServiceBusConfig,
-        IIoTHubConfig {
+        IIoTHubConfig, IEventProcessorHostConfig {
 
         /// <inheritdoc/>
         public string ServiceBusConnString => _sb.ServiceBusConnString;
@@ -38,8 +38,8 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
         public string EventHubPath => _eh.EventHubPath;
         /// <inheritdoc/>
         public string ConsumerGroup => GetStringOrDefault(
-            PcsVariable.PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS,
-                () => "events");
+            PcsVariable.PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS, () => "events");
+
         /// <inheritdoc/>
         public bool UseWebsockets => _eh.UseWebsockets;
 
@@ -51,6 +51,10 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
         public string BlobStorageConnString => _ep.BlobStorageConnString;
         /// <inheritdoc/>
         public string LeaseContainerName => _ep.LeaseContainerName;
+        /// <inheritdoc/>
+        public bool InitialReadFromEnd => _ep.InitialReadFromEnd;
+        /// <inheritdoc/>
+        public TimeSpan? CheckpointInterval => _ep.CheckpointInterval;
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;

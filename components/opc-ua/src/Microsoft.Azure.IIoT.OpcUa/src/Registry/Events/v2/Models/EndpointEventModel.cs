@@ -30,10 +30,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2.Models {
         /// Endpoint info
         /// </summary>
         public EndpointInfoModel Endpoint { get; set; }
-
-        /// <summary>
-        /// The event is a patch
-        /// </summary>
-        public bool? IsPatch { get; set; }
     }
 }

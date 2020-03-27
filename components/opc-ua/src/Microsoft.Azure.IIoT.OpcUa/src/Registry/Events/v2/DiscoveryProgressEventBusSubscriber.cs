@@ -4,34 +4,23 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.Messaging;
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
 
     /// <summary>
     /// Discovery progress listener
     /// </summary>
-    public class DiscoveryProgressEventBusSubscriber : IEventHandler<DiscoveryProgressModel>,
-        IDisposable {
+    public class DiscoveryProgressEventBusSubscriber : IEventHandler<DiscoveryProgressModel> {
 
         /// <summary>
         /// Create event subscriber
         /// </summary>
-        /// <param name="bus"></param>
         /// <param name="listeners"></param>
-        public DiscoveryProgressEventBusSubscriber(IEventBus bus,
-            IEnumerable<IDiscoveryProgressProcessor> listeners) {
-            _bus = bus ?? throw new ArgumentNullException(nameof(bus));
+        public DiscoveryProgressEventBusSubscriber(IEnumerable<IDiscoveryProgressProcessor> listeners) {
             _listeners = listeners?.ToList() ?? new List<IDiscoveryProgressProcessor>();
-            _token = _bus.RegisterAsync(this).Result;
-        }
-
-        /// <inheritdoc/>
-        public void Dispose() {
-            _bus.UnregisterAsync(_token).Wait();
         }
 
         /// <inheritdoc/>
@@ -41,8 +30,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
                 .ContinueWith(t => Task.CompletedTask)));
         }
 
-        private readonly IEventBus _bus;
         private readonly List<IDiscoveryProgressProcessor> _listeners;
-        private readonly string _token;
     }
 }

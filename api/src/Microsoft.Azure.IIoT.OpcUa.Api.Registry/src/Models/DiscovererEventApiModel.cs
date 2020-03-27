@@ -31,12 +31,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         [DataMember(Name = "discoverer",
             EmitDefaultValue = false)]
         public DiscovererApiModel Discoverer { get; set; }
-
-        /// <summary>
-        /// The information is provided as a patch
-        /// </summary>
-        [DataMember(Name = "isPatch",
-            EmitDefaultValue = false)]
-        public bool? IsPatch { get; set; }
     }
 }

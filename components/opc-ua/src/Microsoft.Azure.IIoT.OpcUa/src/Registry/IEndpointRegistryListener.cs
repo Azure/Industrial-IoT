@@ -62,10 +62,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="endpoint"></param>
-        /// <param name="partial"></param>
         /// <returns></returns>
         Task OnEndpointUpdatedAsync(RegistryOperationContextModel context,
-            EndpointInfoModel endpoint, bool partial = false);
+            EndpointInfoModel endpoint);
 
         /// <summary>
         /// New endpoint

@@ -41,6 +41,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
             PublishStopRequestApiModel request, CancellationToken ct = default);
 
         /// <summary>
+        /// Add or remove published node from endpoint in bulk
+        /// </summary>
+        /// <param name="endpointId"></param>
+        /// <param name="request"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<PublishBulkResponseApiModel> NodePublishBulkAsync(string endpointId,
+            PublishBulkRequestApiModel request, CancellationToken ct = default);
+
+        /// <summary>
         /// Get all published nodes for endpoint.
         /// </summary>
         /// <param name="endpointId"></param>

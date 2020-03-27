@@ -6,36 +6,36 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
-    using Microsoft.Azure.IIoT.Messaging.Default;
     using Microsoft.Azure.IIoT.Messaging;
     using System.Threading.Tasks;
-    using Serilog;
+    using System;
 
     /// <summary>
     /// Endpoint registry event publisher
     /// </summary>
-    public class DiscoveryProgressForwarder<THub> :
-        EventBusCallbackBridge<THub, DiscoveryProgressModel> {
+    public class DiscoveryProgressForwarder<THub> : IEventHandler<DiscoveryProgressModel> {
 
         /// <inheritdoc/>
-        public DiscoveryProgressForwarder(IEventBus bus, ICallbackInvokerT<THub> callback,
-            ILogger logger) : base(bus, callback, logger) {
+        public DiscoveryProgressForwarder(ICallbackInvokerT<THub> callback) {
+            _callback = callback ?? throw new ArgumentNullException(nameof(callback));
         }
 
         /// <inheritdoc/>
-        public async override Task HandleAsync(DiscoveryProgressModel eventData) {
+        public async Task HandleAsync(DiscoveryProgressModel eventData) {
             var requestId = eventData.Request?.Id;
             var arguments = new object[] { eventData.ToApiModel() };
             if (!string.IsNullOrEmpty(requestId)) {
                 // Send to user
-                await Callback.MulticastAsync(requestId,
+                await _callback.MulticastAsync(requestId,
                     EventTargets.DiscoveryProgressTarget, arguments);
             }
             if (!string.IsNullOrEmpty(eventData.DiscovererId)) {
                 // Send to discovery listeners
-                await Callback.MulticastAsync(eventData.DiscovererId,
+                await _callback.MulticastAsync(eventData.DiscovererId,
                     EventTargets.DiscoveryProgressTarget, arguments);
             }
         }
+
+        private readonly ICallbackInvoker _callback;
     }
 }

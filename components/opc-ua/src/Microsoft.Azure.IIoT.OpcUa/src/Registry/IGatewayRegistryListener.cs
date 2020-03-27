@@ -26,10 +26,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="gateway"></param>
-        /// <param name="isPatch"></param>
         /// <returns></returns>
         Task OnGatewayUpdatedAsync(RegistryOperationContextModel context,
-            GatewayModel gateway, bool isPatch = false);
+            GatewayModel gateway);
 
         /// <summary>
         /// Called when gateway is deleted

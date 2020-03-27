@@ -26,10 +26,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="discoverer"></param>
-        /// <param name="isPatch"></param>
         /// <returns></returns>
         Task OnDiscovererUpdatedAsync(RegistryOperationContextModel context,
-            DiscovererModel discoverer, bool isPatch = false);
+            DiscovererModel discoverer);
 
         /// <summary>
         /// Called when discoverer is delted

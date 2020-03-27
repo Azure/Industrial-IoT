@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.App.Data {
                     }
                     break;
                 case SupervisorEventType.Updated:
-                    ev.Supervisor.Patch(supervisor, ev.IsPatch ?? false);
+                    ev.Supervisor.Patch(supervisor);
                     break;
                 case SupervisorEventType.Deleted:
                     results.Remove(supervisor);

@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Extensions.DependencyInjection {
-    using Microsoft.Extensions.Options;
     using Microsoft.AspNetCore.SignalR;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.Azure.SignalR;
@@ -30,7 +29,7 @@ namespace Microsoft.Extensions.DependencyInjection {
                 return builder;
             }
             builder.AddAzureSignalR().Services.Configure<ServiceOptions>(options => {
-                 options.ConnectionString = config.SignalRConnString;
+                options.ConnectionString = config.SignalRConnString;
             });
             return builder;
         }

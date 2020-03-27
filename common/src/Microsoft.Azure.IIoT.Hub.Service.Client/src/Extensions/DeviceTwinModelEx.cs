@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <param name="twin"></param>
         /// <param name="isPatch"></param>
         /// <returns></returns>
-        public static Twin ToTwin(this DeviceTwinModel twin, bool isPatch = false) {
+        public static Twin ToTwin(this DeviceTwinModel twin, bool isPatch) {
             if (twin == null) {
                 return null;
             }

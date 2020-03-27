@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2.Models;
     using Microsoft.Azure.IIoT.Messaging;
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -14,23 +13,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
     /// <summary>
     /// Supervisor registry change listener
     /// </summary>
-    public class SupervisorEventBusSubscriber : IEventHandler<SupervisorEventModel>, IDisposable {
+    public class SupervisorEventBusSubscriber : IEventHandler<SupervisorEventModel> {
 
         /// <summary>
         /// Create event subscriber
         /// </summary>
-        /// <param name="bus"></param>
         /// <param name="listeners"></param>
-        public SupervisorEventBusSubscriber(IEventBus bus,
-            IEnumerable<ISupervisorRegistryListener> listeners) {
-            _bus = bus ?? throw new ArgumentNullException(nameof(bus));
+        public SupervisorEventBusSubscriber(IEnumerable<ISupervisorRegistryListener> listeners) {
             _listeners = listeners?.ToList() ?? new List<ISupervisorRegistryListener>();
-            _token = _bus.RegisterAsync(this).Result;
-        }
-
-        /// <inheritdoc/>
-        public void Dispose() {
-            _bus.UnregisterAsync(_token).Wait();
         }
 
         /// <inheritdoc/>
@@ -45,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
                 case SupervisorEventType.Updated:
                     await Task.WhenAll(_listeners
                         .Select(l => l.OnSupervisorUpdatedAsync(
-                            eventData.Context, eventData.Supervisor, eventData.IsPatch ?? false)
+                            eventData.Context, eventData.Supervisor)
                         .ContinueWith(t => Task.CompletedTask)));
                     break;
                 case SupervisorEventType.Deleted:
@@ -57,8 +47,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
             }
         }
 
-        private readonly IEventBus _bus;
         private readonly List<ISupervisorRegistryListener> _listeners;
-        private readonly string _token;
     }
 }

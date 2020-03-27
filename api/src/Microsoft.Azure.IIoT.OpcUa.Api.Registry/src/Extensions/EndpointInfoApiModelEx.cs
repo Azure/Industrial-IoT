@@ -15,32 +15,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         /// <param name="endpoint"></param>
         /// <param name="update"></param>
-        /// <param name="isPatch"></param>
         public static EndpointInfoApiModel Patch(this EndpointInfoApiModel update,
-            EndpointInfoApiModel endpoint, bool isPatch = false) {
+            EndpointInfoApiModel endpoint) {
+            if (update == null) {
+                return endpoint;
+            }
             if (endpoint == null) {
-                return update;
+                endpoint = new EndpointInfoApiModel();
             }
-            if (!isPatch || update.ActivationState != null) {
-                endpoint.ActivationState = update.ActivationState;
-            }
-            if (!isPatch || update.ApplicationId != null) {
-                endpoint.ApplicationId = update.ApplicationId;
-            }
-            if (!isPatch || update.EndpointState != null) {
-                if (update.EndpointState == null && endpoint.EndpointState != null) {
-                    System.Console.WriteLine();
-                }
-                endpoint.EndpointState = update.EndpointState;
-            }
-            if (!isPatch || update.NotSeenSince != null) {
-                endpoint.NotSeenSince = update.NotSeenSince;
-            }
-            if (!isPatch || update.OutOfSync != null) {
-                endpoint.OutOfSync = update.OutOfSync;
-            }
-            endpoint.Registration = update.Registration.Patch(
-                endpoint.Registration, isPatch);
+            endpoint.ActivationState = update.ActivationState;
+            endpoint.ApplicationId = update.ApplicationId;
+            endpoint.EndpointState = update.EndpointState;
+            endpoint.NotSeenSince = update.NotSeenSince;
+            endpoint.OutOfSync = update.OutOfSync;
+            endpoint.Registration = (update.Registration ?? new EndpointRegistrationApiModel())
+                .Patch(endpoint.Registration);
             return endpoint;
         }
     }

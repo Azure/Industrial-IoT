@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Processor.Services;
+    using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
     using Microsoft.Azure.IIoT.Messaging.Default;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Services;
@@ -23,7 +24,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Azure.EventHubs.Processor;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
@@ -35,6 +35,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Autofac.Extensions.DependencyInjection;
     using Prometheus;
     using System;
+    using Microsoft.Azure.IIoT.Messaging;
 
     /// <summary>
     /// Webservice startup
@@ -113,7 +114,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
             });
 
             // Add controllers as services so they'll be resolved.
-            services.AddControllers().AddJsonSerializer();
+            services.AddControllers().AddJsonSerializer().AddMessagePackSerializer();
 
             // Add signalr and optionally configure signalr service
             services.AddSignalR()
@@ -158,8 +159,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
             app.UseSwagger();
             app.UseMetricServer();
             app.UseEndpoints(endpoints => {
-                endpoints.MapControllers();
                 endpoints.MapHubs();
+                endpoints.MapControllers();
                 endpoints.MapHealthChecks("/healthz");
             });
 
@@ -181,6 +182,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
 
             // Register logger
             builder.AddDiagnostics(Config);
+            builder.RegisterModule<MessagePackModule>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Register metrics logger
@@ -250,11 +252,13 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
             builder.RegisterType<ServiceBusClientFactory>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<ServiceBusEventBus>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().SingleInstance()
+                .IfNotRegistered(typeof(IEventBus));
 
             // Register event processor host for telemetry
             builder.RegisterType<EventProcessorHost>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().SingleInstance()
+                .IfNotRegistered(typeof(IEventProcessingHost));
             builder.RegisterType<EventProcessorFactory>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<EventHubDeviceEventHandler>()

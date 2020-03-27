@@ -37,10 +37,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
             if (ev.Handled) {
                 return;
             }
+            if (string.IsNullOrEmpty(ev.Twin.Id)) {
+                return;
+            }
             var type = ev.Twin.Tags.GetValueOrDefault<string>(
                 nameof(EntityRegistration.DeviceType), null);
-            if (string.IsNullOrEmpty(type) && string.IsNullOrEmpty(ev.Twin.ModuleId) &&
-                ev.Event != DeviceTwinEventType.Delete && ev.IsPatch) {
+            if ((ev.Event != DeviceTwinEventType.Delete && ev.IsPatch) || string.IsNullOrEmpty(type)) {
                 try {
                     ev.Twin = await _iothub.GetAsync(ev.Twin.Id);
                     ev.IsPatch = false;
@@ -65,7 +67,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Handlers {
                         break;
                     case DeviceTwinEventType.Update:
                         await _broker.NotifyAllAsync(l => l.OnApplicationUpdatedAsync(ctx,
-                            ev.Twin.ToApplicationRegistration().ToServiceModel(), true));
+                            ev.Twin.ToApplicationRegistration().ToServiceModel()));
                         break;
                     case DeviceTwinEventType.Delete:
                         await _broker.NotifyAllAsync(l => l.OnApplicationDeletedAsync(ctx,

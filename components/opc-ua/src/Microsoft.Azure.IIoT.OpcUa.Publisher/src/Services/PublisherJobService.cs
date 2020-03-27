@@ -76,6 +76,57 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
         }
 
         /// <inheritdoc/>
+        public async Task<PublishBulkResultModel> NodePublishBulkAsync(string endpointId,
+            PublishBulkRequestModel request) {
+            if (string.IsNullOrEmpty(endpointId)) {
+                throw new ArgumentNullException(nameof(endpointId));
+            }
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var endpoint = await _endpoints.GetEndpointAsync(endpointId);
+            var result = await _jobs.NewOrUpdateJobAsync(GetDefaultId(endpointId), job => {
+                var publishJob = AsJob(job);
+                var jobChanged = false;
+                var connection = new ConnectionModel {
+                    Endpoint = endpoint.Registration.Endpoint,
+                    Diagnostics = request.Header?.Diagnostics,
+                    User = request.Header?.Elevation
+                };
+
+                if (request.NodesToAdd != null) {
+                    foreach (var item in request.NodesToAdd) {
+                        AddOrUpdateItemInJob(publishJob, item, endpointId, connection);
+                        jobChanged = true;
+                    }
+                }
+                if (request.NodesToRemove != null) {
+                    foreach (var item in request.NodesToRemove) {
+                        jobChanged = RemoveItemFromJob(publishJob, item, connection);
+                    }
+                }
+
+                if (jobChanged) {
+                    job.JobConfiguration = _serializer.SerializeJobConfiguration(
+                        publishJob, out var jobType);
+                    job.JobConfigurationType = jobType;
+                    if (publishJob.WriterGroup.DataSetWriters.Count != 0 &&
+                        job.LifetimeData.Status != JobStatus.Deleted) {
+                        job.LifetimeData.Status = JobStatus.Active;
+                    }
+                    job.Demands = PublisherDemands(endpoint);
+                }
+                return Task.FromResult(jobChanged);
+            });
+            return new PublishBulkResultModel {
+                NodesToAdd = request.NodesToAdd?
+                    .Select(_ => new ServiceResultModel()).ToList(),
+                NodesToRemove = request.NodesToRemove?
+                    .Select(_ => new ServiceResultModel()).ToList(),
+            };
+        }
+
+        /// <inheritdoc/>
         public async Task<PublishStopResultModel> NodePublishStopAsync(
             string endpointId, PublishStopRequestModel request) {
             if (string.IsNullOrEmpty(endpointId)) {
@@ -174,7 +225,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients {
                     WriterGroupId = job.Id,
                     DataSetWriters = new List<DataSetWriterModel>(),
                     MessageSettings = new WriterGroupMessageSettingsModel() {
-                        NetworkMessageContentMask = 
+                        NetworkMessageContentMask =
                                 NetworkMessageContentMask.PublisherId |
                                 NetworkMessageContentMask.WriterGroupId |
                                 NetworkMessageContentMask.NetworkMessageNumber |

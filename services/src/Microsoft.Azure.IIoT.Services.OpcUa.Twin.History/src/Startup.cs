@@ -111,7 +111,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
             // services.AddHttpClient();
 
             // Add controllers as services so they'll be resolved.
-            services.AddControllers().AddJsonSerializer();
+            services.AddControllers().AddJsonSerializer().AddMessagePackSerializer();
             services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 
@@ -178,6 +178,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History {
 
             // Add diagnostics based on configuration
             builder.AddDiagnostics(Config);
+            builder.RegisterModule<MessagePackModule>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
             // CORS setup

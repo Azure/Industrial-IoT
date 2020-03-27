@@ -42,7 +42,7 @@ Browse nodes services
 <a name="browse"></a>
 #### Browse node references
 ```
-POST /v2/browse/{endpointId}
+POST /twin/v2/browse/{endpointId}
 ```
 
 
@@ -88,7 +88,7 @@ Browse a node on the specified endpoint. The endpoint must be activated and conn
 <a name="getsetofuniquenodes"></a>
 #### Browse set of unique target nodes
 ```
-GET /v2/browse/{endpointId}
+GET /twin/v2/browse/{endpointId}
 ```
 
 
@@ -126,7 +126,7 @@ Browse the set of unique hierarchically referenced target nodes on the endpoint.
 <a name="browsenext"></a>
 #### Browse next set of references
 ```
-POST /v2/browse/{endpointId}/next
+POST /twin/v2/browse/{endpointId}/next
 ```
 
 
@@ -172,7 +172,7 @@ Browse next set of references on the endpoint. The endpoint must be activated an
 <a name="getnextsetofuniquenodes"></a>
 #### Browse next set of unique target nodes
 ```
-GET /v2/browse/{endpointId}/next
+GET /twin/v2/browse/{endpointId}/next
 ```
 
 
@@ -210,7 +210,7 @@ Browse the next set of unique hierarchically referenced target nodes on the endp
 <a name="browseusingpath"></a>
 #### Browse using a browse path
 ```
-POST /v2/browse/{endpointId}/path
+POST /twin/v2/browse/{endpointId}/path
 ```
 
 
@@ -261,7 +261,7 @@ Call node method services
 <a name="callmethod"></a>
 #### Call a method
 ```
-POST /v2/call/{endpointId}
+POST /twin/v2/call/{endpointId}
 ```
 
 
@@ -307,7 +307,7 @@ Invoke method node with specified input arguments. The endpoint must be activate
 <a name="getcallmetadata"></a>
 #### Get method meta data
 ```
-POST /v2/call/{endpointId}/metadata
+POST /twin/v2/call/{endpointId}/metadata
 ```
 
 
@@ -358,7 +358,7 @@ Node read services
 <a name="readvalue"></a>
 #### Read variable value
 ```
-POST /v2/read/{endpointId}
+POST /twin/v2/read/{endpointId}
 ```
 
 
@@ -404,7 +404,7 @@ Read a variable node's value. The endpoint must be activated and connected and t
 <a name="getvalue"></a>
 #### Get variable value
 ```
-GET /v2/read/{endpointId}
+GET /twin/v2/read/{endpointId}
 ```
 
 
@@ -442,7 +442,7 @@ Get a variable node's value using its node id. The endpoint must be activated an
 <a name="readattributes"></a>
 #### Read node attributes
 ```
-POST /v2/read/{endpointId}/attributes
+POST /twin/v2/read/{endpointId}/attributes
 ```
 
 
@@ -493,7 +493,7 @@ Node writing services
 <a name="writevalue"></a>
 #### Write variable value
 ```
-POST /v2/write/{endpointId}
+POST /twin/v2/write/{endpointId}
 ```
 
 
@@ -539,7 +539,7 @@ Write variable node's value. The endpoint must be activated and connected and th
 <a name="writeattributes"></a>
 #### Write node attributes
 ```
-POST /v2/write/{endpointId}/attributes
+POST /twin/v2/write/{endpointId}/attributes
 ```
 
 

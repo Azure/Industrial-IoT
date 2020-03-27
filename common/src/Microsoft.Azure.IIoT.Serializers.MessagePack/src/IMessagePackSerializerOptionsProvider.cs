@@ -6,17 +6,24 @@
 
 namespace Microsoft.Azure.IIoT.Serializers {
     using global::MessagePack;
+    using System.Collections.Generic;
+#if !MessagePack2
+    using MessagePackSerializerOptions = global::MessagePack.IFormatterResolver;
+#endif
 
     /// <summary>
     /// Message pack serializer options provider
     /// </summary>
     public interface IMessagePackSerializerOptionsProvider {
 
-#if MessagePack2
         /// <summary>
         /// Serializer options
         /// </summary>
         MessagePackSerializerOptions Options { get; }
-#endif
+
+        /// <summary>
+        /// Resolvers
+        /// </summary>
+        IEnumerable<IFormatterResolver> Resolvers { get; }
     }
 }

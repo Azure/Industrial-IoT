@@ -49,9 +49,9 @@ call :generate_sdk_for_service publisher
 call :generate_sdk_for_service registry
 call :generate_sdk_for_service history
 call :generate_sdk_for_service vault
-
+call :generate_sdk_for_service events
 rem call :generate_sdk_for_service jobs
-rem call :generate_sdk_for_service onboarding
+call :generate_sdk_for_service onboarding
 
 popd
 popd

@@ -26,10 +26,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
         /// </summary>
         /// <param name="context"></param>
         /// <param name="application"></param>
-        /// <param name="isPatch"></param>
         /// <returns></returns>
         Task OnApplicationUpdatedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application, bool isPatch = false);
+            ApplicationInfoModel application);
 
         /// <summary>
         /// Called when application is enabled

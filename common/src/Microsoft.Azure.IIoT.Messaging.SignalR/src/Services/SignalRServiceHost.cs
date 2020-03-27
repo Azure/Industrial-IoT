@@ -7,13 +7,13 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
     using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.SignalR.Management;
+    using Microsoft.Azure.SignalR.Common;
     using Microsoft.AspNetCore.SignalR;
     using Microsoft.Extensions.Diagnostics.HealthChecks;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Serilog;
-    using Microsoft.Azure.SignalR.Common;
 
     /// <summary>
     /// Publish subscriber service built using signalr
@@ -120,8 +120,8 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
         }
 
         /// <inheritdoc/>
-        public async Task UnicastAsync(string target, string method, object[] arguments,
-            CancellationToken ct) {
+        public async Task UnicastAsync(string target, string method,
+            object[] arguments, CancellationToken ct) {
             if (string.IsNullOrEmpty(method)) {
                 throw new ArgumentNullException(nameof(method));
             }
@@ -142,8 +142,8 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Services {
         }
 
         /// <inheritdoc/>
-        public async Task MulticastAsync(string group, string method, object[] arguments,
-            CancellationToken ct) {
+        public async Task MulticastAsync(string group, string method,
+            object[] arguments, CancellationToken ct) {
             if (string.IsNullOrEmpty(method)) {
                 throw new ArgumentNullException(nameof(method));
             }

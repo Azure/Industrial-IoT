@@ -359,7 +359,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                         twin.Properties.Desired = new Dictionary<string, VariantValue>();
                     }
                     // Double clone but that is ok.
-                    return twin.ToTwin();
+                    return twin.ToTwin(false);
                 }
             }
 

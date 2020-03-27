@@ -56,8 +56,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
                 return AuthenticateResult.Success(ticket);
             }
             catch (Exception ex) {
-                Log.Warning(ex, "Could not validate token.");
-                return AuthenticateResult.Fail("Invalid token.");
+                return AuthenticateResult.Fail(ex);
             }
         }
 

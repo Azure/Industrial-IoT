@@ -10,14 +10,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Microsoft.Azure.IIoT.OpcUa.Api.Events.Runtime;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Http.SignalR;
-    using Microsoft.Extensions.Hosting;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Configuration;
-    using Serilog;
     using Autofac;
-    using Autofac.Extensions.Hosting;
-    using System;
-    using System.Collections.Generic;
 
     /// <summary>
     /// Startup class for tests
@@ -34,14 +29,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
 
         /// <inheritdoc/>
         public override void ConfigureContainer(ContainerBuilder builder) {
-            base.ConfigureContainer(builder);
-
-            // Test configuration
 
             // Register test event bus
             builder.RegisterType<TestEventBus>()
                 .AsImplementedInterfaces().SingleInstance();
 
+            base.ConfigureContainer(builder);
 
             // Register events api configuration interface
             builder.RegisterType<EventsConfig>()

@@ -23,7 +23,6 @@ Azure Industrial IoT OPC UA Publisher Service
 
 ### Tags
 
-* Monitor : Value and Event monitoring services
 * Publish : Value and Event publishing services
 
 
@@ -31,85 +30,6 @@ Azure Industrial IoT OPC UA Publisher Service
 
 <a name="paths"></a>
 ## Resources
-
-<a name="monitor_resource"></a>
-### Monitor
-Value and Event monitoring services
-
-
-<a name="subscribe"></a>
-#### Subscribe to receive samples
-```
-PUT /v2/monitor/{endpointId}/samples
-```
-
-
-##### Description
-Register a client to receive publisher samples through SignalR.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The endpoint to subscribe to|string|
-|**Body**|**body**  <br>*optional*|The user id that will receive publisher samples.|string|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Consumes
-
-* `application/json-patch+json`
-* `application/json`
-* `text/json`
-* `application/*+json`
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
-
-<a name="unsubscribe"></a>
-#### Unsubscribe from receiving samples.
-```
-DELETE /v2/monitor/{endpointId}/samples/{userId}
-```
-
-
-##### Description
-Unregister a client and stop it from receiving samples.
-
-
-##### Parameters
-
-|Type|Name|Description|Schema|
-|---|---|---|---|
-|**Path**|**endpointId**  <br>*required*|The endpoint to unsubscribe from|string|
-|**Path**|**userId**  <br>*required*|The user id that will not receive any more published samples|string|
-
-
-##### Responses
-
-|HTTP Code|Description|Schema|
-|---|---|---|
-|**200**|Success|No Content|
-
-
-##### Security
-
-|Type|Name|Scopes|
-|---|---|---|
-|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
-
 
 <a name="publish_resource"></a>
 ### Publish
@@ -119,7 +39,7 @@ Value and Event publishing services
 <a name="getfirstlistofpublishednodes"></a>
 #### Get currently published nodes
 ```
-POST /v2/publish/{endpointId}
+POST /publisher/v2/publish/{endpointId}
 ```
 
 
@@ -165,7 +85,7 @@ Returns currently published node ids for an endpoint. The endpoint must be activ
 <a name="getnextlistofpublishednodes"></a>
 #### Get next set of published nodes
 ```
-GET /v2/publish/{endpointId}
+GET /publisher/v2/publish/{endpointId}
 ```
 
 
@@ -200,10 +120,56 @@ Returns next set of currently published node ids for an endpoint. The endpoint m
 |**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
 
 
+<a name="bulkpublishvalues"></a>
+#### Bulk publish node values
+```
+POST /publisher/v2/publish/{endpointId}/bulk
+```
+
+
+##### Description
+Adds or removes in bulk values that should be published from a particular endpoint.
+
+
+##### Parameters
+
+|Type|Name|Description|Schema|
+|---|---|---|---|
+|**Path**|**endpointId**  <br>*required*|The identifier of an activated endpoint.|string|
+|**Body**|**body**  <br>*required*|The bulk publish request|[PublishBulkRequestApiModel](definitions.md#publishbulkrequestapimodel)|
+
+
+##### Responses
+
+|HTTP Code|Description|Schema|
+|---|---|---|
+|**200**|Success|[PublishBulkResponseApiModel](definitions.md#publishbulkresponseapimodel)|
+
+
+##### Consumes
+
+* `application/json-patch+json`
+* `application/json`
+* `text/json`
+* `application/*+json`
+
+
+##### Produces
+
+* `application/json`
+
+
+##### Security
+
+|Type|Name|Scopes|
+|---|---|---|
+|**oauth2**|**[oauth2](security.md#oauth2)**|http://schemas.xmlsoap.org/ws/2005/05/identity/claims/authentication|
+
+
 <a name="startpublishingvalues"></a>
 #### Start publishing node values
 ```
-POST /v2/publish/{endpointId}/start
+POST /publisher/v2/publish/{endpointId}/start
 ```
 
 
@@ -249,7 +215,7 @@ Start publishing variable node values to IoT Hub. The endpoint must be activated
 <a name="stoppublishingvalues"></a>
 #### Stop publishing node values
 ```
-POST /v2/publish/{endpointId}/stop
+POST /publisher/v2/publish/{endpointId}/stop
 ```
 
 

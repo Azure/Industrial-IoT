@@ -30,10 +30,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2.Models {
         /// Supervisor
         /// </summary>
         public SupervisorModel Supervisor { get; set; }
-
-        /// <summary>
-        /// The information is provided as a patch
-        /// </summary>
-        public bool? IsPatch { get; set; }
     }
 }

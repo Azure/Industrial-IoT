@@ -43,6 +43,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher {
         }
 
         /// <inheritdoc/>
+        public async Task<PublishBulkResultModel> NodePublishBulkAsync(
+            string endpoint, PublishBulkRequestModel request) {
+            var result = await _client.NodePublishBulkAsync(endpoint,
+                _serializer.Map<PublishBulkRequestApiModel>(request));
+            return _serializer.Map<PublishBulkResultModel>(result);
+        }
+
+        /// <inheritdoc/>
         public async Task<PublishedItemListResultModel> NodePublishListAsync(
             string endpoint, PublishedItemListRequestModel request) {
             var result = await _client.NodePublishListAsync(endpoint,

@@ -40,7 +40,7 @@ namespace Microsoft.Azure.IIoT.App.Data {
                 case EndpointEventType.Deactivated:
                     break;
                 case EndpointEventType.Updated:
-                    ev.Endpoint.Patch(endpoint.EndpointModel, ev.IsPatch ?? false);
+                    ev.Endpoint.Patch(endpoint.EndpointModel);
                     break;
                 case EndpointEventType.Disabled:
                 case EndpointEventType.Deleted:

@@ -30,7 +30,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
     /// </summary>
     public class Config : DiagnosticsConfig, IAuthConfig, IServiceBusConfig,
         ICorsConfig, IClientConfig, IOpenApiConfig, ISignalRServiceConfig,
-        IEventProcessorConfig, IEventHubConsumerConfig, IForwardedHeadersConfig {
+        IEventProcessorConfig, IEventHubConsumerConfig, IForwardedHeadersConfig,
+        IEventProcessorHostConfig {
 
         /// <inheritdoc/>
         public string CorsWhitelist => _cors.CorsWhitelist;
@@ -101,6 +102,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
         public string BlobStorageConnString => _ep.BlobStorageConnString;
         /// <inheritdoc/>
         public string LeaseContainerName => _ep.LeaseContainerName;
+        /// <inheritdoc/>
+        public bool InitialReadFromEnd => _ep.InitialReadFromEnd;
+        /// <inheritdoc/>
+        public TimeSpan? CheckpointInterval => null; // Never checkpoint
 
         /// <inheritdoc/>
         public bool AspNetCoreForwardedHeadersEnabled =>

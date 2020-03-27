@@ -43,9 +43,15 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
             if (_handlers.Count == 0) {
                 return;
             }
-
             if (!properties.TryGetValue("opType", out var opType) ||
                 !properties.TryGetValue("operationTimestamp", out var ts)) {
+                return;
+            }
+            DateTime.TryParse(ts, out var timestamp);
+            if (timestamp + TimeSpan.FromSeconds(10) < DateTime.UtcNow) {
+                // Drop twin events that are too far in our past.
+                _logger.Debug("Skipping {event} from {deviceId}({moduleId}) from {ts}.",
+                    opType, deviceId, moduleId, timestamp);
                 return;
             }
 
@@ -53,22 +59,19 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
             if (twin == null) {
                 return;
             }
-
             twin.ModuleId = moduleId;
             twin.Id = deviceId;
             var operation = GetOperation(opType);
             if (operation == null) {
                 return;
             }
-
-            DateTime.TryParse(ts, out var time);
             var ev = new DeviceTwinEvent {
                 Twin = twin,
                 Event = operation.Value,
                 IsPatch = true,
                 Handled = false,
                 AuthorityId = null, // TODO
-                Timestamp = time
+                Timestamp = timestamp
             };
             foreach (var handler in _handlers) {
                 await handler.HandleDeviceTwinEventAsync(ev);

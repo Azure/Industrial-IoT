@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
     using System.Linq;
     using System.Threading.Tasks;
     using System.Collections;
+    using System.Diagnostics;
 
     /// <summary>
     /// Default event hub event processor factory.
@@ -24,10 +25,13 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
         /// Create processor factory
         /// </summary>
         /// <param name="handler"></param>
+        /// <param name="config"></param>
         /// <param name="logger"></param>
-        public EventProcessorFactory(IEventProcessingHandler handler, ILogger logger) {
+        public EventProcessorFactory(IEventProcessingHandler handler,
+            IEventProcessorConfig config, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _handler = handler ?? throw new ArgumentNullException(nameof(handler));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
         /// <inheritdoc/>
@@ -49,6 +53,9 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 _logger = logger ?? throw new ArgumentNullException(nameof(logger));
                 _factory = factory ?? throw new ArgumentNullException(nameof(factory));
                 _processorId = Guid.NewGuid().ToString();
+                _interval = (long?)_factory._config.CheckpointInterval?.TotalMilliseconds
+                    ?? long.MaxValue;
+                _sw = Stopwatch.StartNew();
                 logger.Information("EventProcessor {id} created", _processorId);
             }
 
@@ -67,7 +74,24 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                         continue;
                     }
                     await _factory._handler.HandleAsync(eventData.Body.Array, properties,
-                        () => Try.Async(() => context.CheckpointAsync(eventData)));
+                        () => CheckpointAsync(context, eventData));
+                }
+
+                // Checkpoint if needed
+                if (_sw.ElapsedMilliseconds >= _interval) {
+                    try {
+                        _logger.Debug("Checkpointing partition {partitionId}...", context.PartitionId);
+                        await context.CheckpointAsync();
+                        _sw.Restart();
+                    }
+                    catch (Exception ex) {
+                        _logger.Debug(ex, "Failed checkpointing partition {partitionId}...",
+                            context.PartitionId);
+                        if (_sw.ElapsedMilliseconds >= 2 * _interval) {
+                            // Give up checkpointing after trying a couple more times
+                            _sw.Restart();
+                        }
+                    }
                 }
                 await Try.Async(_factory._handler.OnBatchCompleteAsync);
             }
@@ -88,6 +112,26 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             public Task CloseAsync(PartitionContext context, CloseReason reason) {
                 _logger.Information("Partition {id} closed ({reason})", _processorId, reason);
                 return Task.CompletedTask;
+            }
+
+            /// <summary>
+            /// Wraps checkpointing
+            /// </summary>
+            /// <param name="context"></param>
+            /// <param name="eventData"></param>
+            /// <returns></returns>
+            private async Task CheckpointAsync(PartitionContext context, EventData eventData) {
+                try {
+                    _logger.Debug("Checkpointing partition {partition} with {event}...",
+                        eventData, context.PartitionId);
+                    await context.CheckpointAsync(eventData).ConfigureAwait(false);
+                }
+                catch {
+                    _logger.Debug("Failed to checkpoint event {event}", eventData);
+                }
+                finally {
+                    _sw.Restart();
+                }
             }
 
             /// <summary>
@@ -202,10 +246,10 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
                 /// <inheritdoc/>
                 public IEnumerator<KeyValuePair<string, string>> GetEnumerator() {
                     return _user
-.Select(v => new KeyValuePair<string, string>(v.Key, v.Value.ToString()))
-.Concat(_system
-.Select(v => new KeyValuePair<string, string>(v.Key, v.Value.ToString())))
-.GetEnumerator();
+            .Select(v => new KeyValuePair<string, string>(v.Key, v.Value.ToString()))
+            .Concat(_system
+            .Select(v => new KeyValuePair<string, string>(v.Key, v.Value.ToString())))
+            .GetEnumerator();
                 }
 
                 /// <inheritdoc/>
@@ -220,9 +264,12 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
             private readonly ILogger _logger;
             private readonly EventProcessorFactory _factory;
             private readonly string _processorId;
+            private readonly long? _interval;
+            private readonly Stopwatch _sw;
         }
 
         private readonly ILogger _logger;
         private readonly IEventProcessingHandler _handler;
+        private readonly IEventProcessorConfig _config;
     }
 }

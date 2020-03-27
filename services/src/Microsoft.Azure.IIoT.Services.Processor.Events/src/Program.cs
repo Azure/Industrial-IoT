@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
     using Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Handlers;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Messaging.Default;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients;
@@ -28,7 +29,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events {
     using System.IO;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2;
 
     /// <summary>
     /// IoT Hub device events event processor host.  Processes all

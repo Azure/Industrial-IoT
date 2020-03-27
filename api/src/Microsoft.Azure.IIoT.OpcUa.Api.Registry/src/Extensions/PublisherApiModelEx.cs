@@ -14,29 +14,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// </summary>
         /// <param name="publisher"></param>
         /// <param name="update"></param>
-        /// <param name="isPatch"></param>
         public static PublisherApiModel Patch(this PublisherApiModel update,
-            PublisherApiModel publisher, bool isPatch = false) {
+            PublisherApiModel publisher) {
+            if (update == null) {
+                return publisher;
+            }
             if (publisher == null) {
-                return update;
+                publisher = new PublisherApiModel();
             }
-            if (!isPatch || update.Connected != null) {
-                publisher.Connected = update.Connected;
-            }
-            if (!isPatch || update.Id != null) {
-                publisher.Id = update.Id;
-            }
-            if (!isPatch || update.LogLevel != null) {
-                publisher.LogLevel = update.LogLevel;
-            }
-            if (!isPatch || update.OutOfSync != null) {
-                publisher.OutOfSync = update.OutOfSync;
-            }
-            if (!isPatch || update.SiteId != null) {
-                publisher.SiteId = update.SiteId;
-            }
-            publisher.Configuration = update.Configuration.Patch(
-                publisher.Configuration, isPatch);
+            publisher.Connected = update.Connected;
+            publisher.Id = update.Id;
+            publisher.LogLevel = update.LogLevel;
+            publisher.OutOfSync = update.OutOfSync;
+            publisher.SiteId = update.SiteId;
+            publisher.Configuration = (update.Configuration ?? new PublisherConfigApiModel())
+                .Patch(publisher.Configuration);
             return publisher;
         }
     }

@@ -105,7 +105,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
                     "DeviceTokenAuth", null);
 
             // Add controllers as services so they'll be resolved.
-            services.AddControllers().AddJsonSerializer();
+            services.AddControllers().AddJsonSerializer().AddMessagePackSerializer();
             services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 
@@ -170,6 +170,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
 
             // Add diagnostics based on configuration
             builder.AddDiagnostics(Config);
+            builder.RegisterModule<MessagePackModule>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
             // CORS setup
@@ -201,8 +202,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
             builder.RegisterType<IoTHubServiceHttpClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<TwinIdentityTokenStore>()
-                .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<JobOrchestratorEndpointSync>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Activate all hosts

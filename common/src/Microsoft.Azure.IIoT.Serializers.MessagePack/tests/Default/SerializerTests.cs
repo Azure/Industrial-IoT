@@ -10,6 +10,7 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
     using System.Text;
     using System.Linq;
     using Xunit;
+    using System.Runtime.Serialization;
 
     public class SerializerTests {
 
@@ -201,6 +202,161 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
             var expected = v;
             var actual = Serializer.FromObject(v);
             Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void TestDataContractDefaultValues() {
+            var str = Serializer.SerializeToBytes(new DataContractModelWithDefaultValues());
+            var result = Serializer.Deserialize<DataContractModelWithDefaultValues>(str.ToArray());
+            Assert.Equal(0, result.Test1);
+            Assert.Null(result.Test2);
+            Assert.Null(result.Test3);
+            Assert.Equal(4, result.Test4);
+        }
+
+        [DataContract]
+        public class DataContractModelWithDefaultValues {
+
+            [DataMember(EmitDefaultValue = false)]
+            public int Test1 { get; set; } = 0;
+
+            [DataMember(EmitDefaultValue = false)]
+            public string Test2 { get; set; }
+
+            [DataMember(EmitDefaultValue = false)]
+            public DataContractEnum? Test3 { get; set; }
+
+            public int Test4 { get; set; } = 4;
+        }
+
+        [Fact]
+        public void TestDataContract() {
+            var str = Serializer.SerializeToBytes(new DataContractModel());
+            Assert.True(str.SequenceEqual(new byte[] { 130, 161, 97, 8, 161, 98, 192 }));
+        }
+
+        [DataContract]
+        public class DataContractModel {
+
+            [DataMember(Name = "a", EmitDefaultValue = false)]
+            public int Test1 { get; set; } = 8;
+
+            [DataMember(Name = "b", EmitDefaultValue = false)]
+            public string Test2 { get; set; } = null;
+        }
+
+        [Fact]
+        public void TestDataContractEnum1() {
+            var str = Serializer.SerializeToBytes(DataContractEnum.Test1 | DataContractEnum.Test2);
+            Assert.True(str.SequenceEqual(new byte[] { 3 }));
+            var result = Serializer.Deserialize<DataContractEnum>(str.ToArray());
+            Assert.Equal(DataContractEnum.Test1 | DataContractEnum.Test2, result);
+        }
+
+        [Fact]
+        public void TestDataContractEnum2() {
+            var str = Serializer.SerializeToBytes(DataContractEnum.All);
+            Assert.True(str.SequenceEqual(new byte[] { 7 }));
+            var result = Serializer.Deserialize<DataContractEnum>(str.ToArray());
+            Assert.Equal(DataContractEnum.All, result);
+        }
+
+        [Flags]
+        [DataContract]
+        public enum DataContractEnum {
+            [EnumMember(Value = "tst1")]
+            Test1 = 1,
+            [EnumMember]
+            Test2 = 2,
+            [EnumMember]
+            Test3 = 4,
+            [EnumMember]
+            All = 7
+        }
+
+        [Fact]
+        public void SerializerFromObjectContainerToContainerWithObject() {
+            var expected = new TestContainer {
+                Value = Serializer.FromObject(new {
+                    Test = "Text",
+                    Locale = "de"
+                })
+            };
+            var tmp = Serializer.FromObject(expected);
+            var actual = tmp.ConvertTo<TestContainer>();
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetVariantValues))]
+        public void SerializerFromObjectContainerToContainer(VariantValue v) {
+            var expected = new TestContainer {
+                Value = v
+            };
+            var tmp = Serializer.FromObject(expected);
+            var actual = tmp.ConvertTo<TestContainer>();
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetScalars))]
+        [MemberData(nameof(GetEmptyArrays))]
+        [MemberData(nameof(GetFilledArrays))]
+        public void SerializerFromObjectContainerToContainerWithSerializedVariant(object o, Type type) {
+            var t = type.MakeArrayType();
+            var expected = new TestContainer {
+                Value = Serializer.FromObject(o)
+            };
+            var tmp = Serializer.FromObject(expected);
+            var actual = tmp.ConvertTo<TestContainer>();
+            Assert.Equal(expected, actual);
+            Assert.NotNull(actual.Value);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetScalars))]
+        [MemberData(nameof(GetEmptyArrays))]
+        [MemberData(nameof(GetFilledArrays))]
+        public void SerializerFromObjectContainerToContainerWithArray(object o, Type type) {
+            var t = type.MakeArrayType();
+            var expected = new TestContainer {
+                Value = Serializer.FromArray(o, o, o)
+            };
+            var tmp = Serializer.FromObject(expected);
+            var actual = tmp.ConvertTo<TestContainer>();
+            Assert.Equal(expected, actual);
+            Assert.NotNull(actual.Value);
+        }
+
+        [Fact]
+        public void SerializerFromObjectContainerToContainerWithStringArray() {
+            var expected = new TestContainer {
+                Value = Serializer.FromArray("", "", "")
+            };
+            var tmp = Serializer.FromObject(expected);
+            var actual = tmp.ConvertTo<TestContainer>();
+            Assert.Equal(expected, actual);
+            Assert.NotNull(actual.Value);
+        }
+
+        [DataContract]
+        public class TestContainer {
+            [DataMember]
+            public VariantValue Value { get; set; }
+
+            public override bool Equals(object obj) {
+                if (obj is TestContainer c) {
+                    if (VariantValue.DeepEquals(c.Value, Value)) {
+                        return true;
+                    }
+                    return false;
+                }
+                return false;
+            }
+
+            public override int GetHashCode() {
+                return -1937169414 + EqualityComparer<VariantValue>.Default.GetHashCode(Value);
+            }
         }
 
         [Fact]

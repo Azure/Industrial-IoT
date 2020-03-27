@@ -14,12 +14,11 @@ namespace Microsoft.Azure.IIoT.Http.SignalR {
     using System.Threading.Tasks;
     using System.Collections.Generic;
     using System.Threading;
-    using System.Linq;
 
     /// <summary>
     /// Hub client factory for signalr
     /// </summary>
-    public sealed class SignalRHubClient : ICallbackClient, IDisposable {
+    public sealed class SignalRHubClient : ICallbackClient, IDisposable, IAsyncDisposable {
 
         /// <summary>
         /// Create client
@@ -37,15 +36,14 @@ namespace Microsoft.Azure.IIoT.Http.SignalR {
             _provider = provider;
             _clients = new Dictionary<string, SignalRClientRegistrar>();
             _lock = new SemaphoreSlim(1, 1);
-
-            // Garbage collect every 30 seconds
-            _timer = new Timer(_ => TryGcAsync(), null,
-                TimeSpan.FromSeconds(30), TimeSpan.FromSeconds(30));
         }
 
         /// <inheritdoc/>
         public async Task<ICallbackRegistrar> GetHubAsync(string endpointUrl,
             string resourceId) {
+            if (_disposed) {
+                throw new ObjectDisposedException(nameof(SignalRHubClient));
+            }
             if (string.IsNullOrEmpty(endpointUrl)) {
                 throw new ArgumentNullException(nameof(endpointUrl));
             }
@@ -60,7 +58,7 @@ namespace Microsoft.Azure.IIoT.Http.SignalR {
                         _config, endpointUrl, _logger, resourceId, _provider, _jsonSettings);
                     _clients.Add(lookup, client);
                 }
-                return client.GetHandle();
+                return client;
             }
             finally {
                 _lock.Release();
@@ -69,52 +67,48 @@ namespace Microsoft.Azure.IIoT.Http.SignalR {
 
         /// <inheritdoc/>
         public void Dispose() {
-            _timer.Dispose();
-            _lock.Wait();
+            DisposeAsync().GetAwaiter().GetResult();
+        }
+
+        /// <summary>
+        /// Dispose
+        /// </summary>
+        /// <returns></returns>
+        public async ValueTask DisposeAsync() {
+            if (_disposed) {
+                return;
+            }
+            await _lock.WaitAsync();
             try {
-                if (_clients.Count > 0) {
-                    Task.WaitAll(_clients.Values
-                        .Select(c => c.DisposeIfEmptyAsync(true))
-                        .ToArray());
-                    _clients.Clear();
+                foreach (var client in _clients.Values) {
+                    await client.DisposeAsync();
                 }
+                _clients.Clear();
             }
             finally {
                 _lock.Release();
+                _disposed = true;
             }
             _lock.Dispose();
         }
 
         /// <summary>
-        /// Garbage collect unused clients
-        /// </summary>
-        private async void TryGcAsync() {
-            try {
-                await _lock.WaitAsync();
-                try {
-                    foreach (var client in _clients.ToList()) {
-                        if (await client.Value.DisposeIfEmptyAsync()) {
-                            _clients.Remove(client.Key);
-                        }
-                    }
-                }
-                finally {
-                    _lock.Release();
-                }
-            }
-            catch (Exception ex) {
-                _logger.Verbose(ex, "Failed to check.");
-            }
-        }
-
-        /// <summary>
         /// SignalR client registry that manages consumed handles to it
         /// </summary>
-        private sealed class SignalRClientRegistrar {
+        private sealed class SignalRClientRegistrar : ICallbackRegistrar {
+
+            /// <inheritdoc/>
+            public string ConnectionId {
+                get {
+                    if (_disposed) {
+                        throw new ObjectDisposedException(nameof(SignalRClientRegistrar));
+                    }
+                    return _client.ConnectionId;
+                }
+            }
 
             private SignalRClientRegistrar(SignalRHubClientHost client) {
                 _client = client;
-                _handles = new HashSet<SignalRRegistrarHandle>();
             }
 
             /// <summary>
@@ -139,113 +133,42 @@ namespace Microsoft.Azure.IIoT.Http.SignalR {
                     config.UseMessagePackProtocol,
                     logger.ForContext<SignalRHubClientHost>(),
                     resourceId, provider, jsonSettings);
+
                 await host.StartAsync().ConfigureAwait(false);
                 return new SignalRClientRegistrar(host);
             }
 
-            /// <summary>
-            /// Try close
-            /// </summary>
-            /// <param name="force"></param>
-            /// <returns></returns>
-            internal async Task<bool> DisposeIfEmptyAsync(bool force = false) {
-                lock (_handles) {
-                    if (_handles.Count == 0 && !_disposed) {
-                        _disposed = true;
-                        force = true;
-                    }
-                    else if (force && !_disposed) {
-                        _disposed = true;
-                        _handles.Clear();
-                    }
-                    else {
-                        force = false;
-                    }
+            /// <inheritdoc/>
+            public IDisposable Register(Func<object[], object, Task> handler,
+                object thiz, string method, Type[] arguments) {
+                if (_disposed) {
+                    throw new ObjectDisposedException(nameof(SignalRClientRegistrar));
                 }
-                if (force) {
-                    // Refcount is 0 or forced dispose, stop.
-                    await _client.StopAsync();
-                    _client.Dispose();
-                }
-                return force;
+                return _client.Register(handler, thiz, method, arguments);
             }
 
             /// <summary>
-            /// Get a new handle
+            /// Dispose
             /// </summary>
             /// <returns></returns>
-            internal ICallbackRegistrar GetHandle() {
-                lock (_handles) {
-                    if (_disposed) {
-                        throw new ObjectDisposedException(nameof(SignalRClientRegistrar));
-                    }
-                    var handle = new SignalRRegistrarHandle(this);
-                    _handles.Add(handle);
-                    return handle;
+            public async Task DisposeAsync() {
+                if (_disposed) {
+                    throw new ObjectDisposedException(nameof(SignalRClientRegistrar));
                 }
-            }
-
-            /// <summary>
-            /// Disposable SignalR Client handle
-            /// </summary>
-            private sealed class SignalRRegistrarHandle : ICallbackRegistrar {
-
-                /// <inheritdoc/>
-                public string ConnectionId {
-                    get {
-                        if (_outer._disposed) {
-                            throw new ObjectDisposedException(nameof(SignalRRegistrarHandle));
-                        }
-                        return _outer._client.ConnectionId;
-                    }
-                }
-
-                /// <summary>
-                /// Create client
-                /// </summary>
-                /// <param name="outer"></param>
-                public SignalRRegistrarHandle(SignalRClientRegistrar outer) {
-                    _outer = outer;
-                }
-
-                /// <inheritdoc/>
-                public IDisposable Register(Func<object[], object, Task> handler,
-                    object thiz, string method, Type[] arguments) {
-                    if (_outer._disposed) {
-                        throw new ObjectDisposedException(nameof(SignalRRegistrarHandle));
-                    }
-                    return _outer._client.Register(handler, thiz, method, arguments);
-                }
-
-                /// <inheritdoc/>
-                public void Dispose() {
-                    _outer.Dispose(this);
-                }
-
-                private readonly SignalRClientRegistrar _outer;
-            }
-
-            /// <summary>
-            /// Remove client handle from handle list
-            /// </summary>
-            /// <param name="signalRClient"></param>
-            private void Dispose(SignalRRegistrarHandle signalRClient) {
-                lock (_handles) {
-                    _handles.Remove(signalRClient);
-                }
+                _disposed = true;
+                await _client.StopAsync();
             }
 
             private bool _disposed;
             private readonly SignalRHubClientHost _client;
-            private readonly HashSet<SignalRRegistrarHandle> _handles;
         }
 
         private readonly IJsonSerializerSettingsProvider _jsonSettings;
         private readonly ISignalRClientConfig _config;
         private readonly Dictionary<string, SignalRClientRegistrar> _clients;
         private readonly SemaphoreSlim _lock;
-        private readonly Timer _timer;
         private readonly ILogger _logger;
         private readonly ITokenProvider _provider;
+        private bool _disposed;
     }
 }

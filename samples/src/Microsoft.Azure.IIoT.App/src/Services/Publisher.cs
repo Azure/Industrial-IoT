@@ -5,13 +5,14 @@
 
 namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.App.Data;
+    using Microsoft.Azure.IIoT.App.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Threading.Tasks;
     using Serilog;
-    using Microsoft.Azure.IIoT.App.Models;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Browser code behind
@@ -22,8 +23,10 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// Create browser
         /// </summary>
         /// <param name="publisherService"></param>
+        /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public Publisher(IPublisherServiceApi publisherService, ILogger logger) {
+        public Publisher(IPublisherServiceApi publisherService, IJsonSerializer serializer, ILogger logger) {
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _publisherService = publisherService ?? throw new ArgumentNullException(nameof(publisherService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
@@ -50,10 +53,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             catch (Exception e) {
                 // skip this node
-                _logger.Error($"Cannot get published nodes for endpointId'{endpointId}'");
+                _logger.Error(e, "Cannot get published nodes for endpointId'{endpointId}'", endpointId);
                 var errorMessage = string.Format(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                _logger.Error(errorMessage);
-                pageResult.Error = e.Message;
+                pageResult.Error = errorMessage;
             }
             pageResult.PageSize = 10;
             pageResult.RowCount = pageResult.Results.Count;
@@ -89,8 +91,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 return resultApiModel.ErrorInfo == null;
             }
             catch(Exception e) {
-                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                _logger.Error(errorMessage);
+                _logger.Error(e, "Cannot publish node {nodeId} on endpointId '{endpointId}'", nodeId, endpointId);
             }
             return false;
         }
@@ -102,7 +103,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="nodeId"></param>
         /// <returns>ErrorStatus</returns>
         public async Task<bool> StopPublishingAsync(string endpointId, string nodeId, CredentialModel credential = null) {
-            try { 
+            try {
                 var requestApiModel = new PublishStopRequestApiModel() {
                         NodeId = nodeId,
                 };
@@ -112,8 +113,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 return resultApiModel.ErrorInfo == null;
             }
             catch (Exception e) {
-                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                _logger.Error(errorMessage);
+                _logger.Error(e, "Cannot unpublish node {nodeId} on endpointId '{endpointId}'", nodeId, endpointId);
             }
             return false;
         }
@@ -127,17 +127,19 @@ namespace Microsoft.Azure.IIoT.App.Services {
         private RequestHeaderApiModel Elevate(RequestHeaderApiModel header, CredentialModel credential) {
             if (credential != null) {
                 if (!string.IsNullOrEmpty(credential.Username) && !string.IsNullOrEmpty(credential.Password)) {
-                    header.Elevation = new CredentialApiModel();
-                    header.Elevation.Type = CredentialType.UserName;
-                    header.Elevation.Value = JToken.FromObject(new {
-                        user = credential.Username,
-                        password = credential.Password
-                    });
+                    header.Elevation = new CredentialApiModel {
+                        Type = CredentialType.UserName,
+                        Value = _serializer.FromObject(new {
+                            user = credential.Username,
+                            password = credential.Password
+                        })
+                    };
                 }
             }
             return header;
         }
 
+        private readonly IJsonSerializer _serializer;
         private readonly IPublisherServiceApi _publisherService;
         private readonly ILogger _logger;
     }

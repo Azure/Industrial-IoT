@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
                 case DiscovererEventType.Updated:
                     await Task.WhenAll(_listeners
                         .Select(l => l.OnDiscovererUpdatedAsync(
-                            eventData.Context, eventData.Discoverer, eventData.IsPatch ?? false)
+                            eventData.Context, eventData.Discoverer)
                         .ContinueWith(t => Task.CompletedTask)));
                     break;
                 case DiscovererEventType.Deleted:

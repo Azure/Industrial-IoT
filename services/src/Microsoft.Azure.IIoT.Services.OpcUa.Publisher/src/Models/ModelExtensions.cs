@@ -162,6 +162,34 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Models {
         }
 
         /// <summary>
+        /// Create service model from api model
+        /// </summary>
+        public static PublishBulkRequestModel ToServiceModel(this PublishBulkRequestApiModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new PublishBulkRequestModel {
+                NodesToAdd = model.NodesToAdd?.Select(n => n.ToServiceModel()).ToList(),
+                NodesToRemove = model.NodesToRemove?.ToList(),
+                Header = model.Header?.ToServiceModel()
+            };
+        }
+
+        /// <summary>
+        /// Create api model from service model
+        /// </summary>
+        /// <param name="model"></param>
+        public static PublishBulkResponseApiModel ToApiModel(this PublishBulkResultModel model) {
+            if (model == null) {
+                return null;
+            }
+            return new PublishBulkResponseApiModel {
+                NodesToAdd = model.NodesToAdd?.Select(n => n.ToApiModel()).ToList(),
+                NodesToRemove = model.NodesToRemove?.Select(n => n.ToApiModel()).ToList()
+            };
+        }
+
+        /// <summary>
         /// Convert back to service model
         /// </summary>
         /// <returns></returns>
