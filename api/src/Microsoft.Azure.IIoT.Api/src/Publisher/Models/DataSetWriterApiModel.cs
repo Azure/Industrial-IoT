@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Dataset writer id
         /// </summary>
-        [DataMember(Name = "DataSetWriterId")]
+        [DataMember(Name = "dataSetWriterId")]
         public string DataSetWriterId { get; set; }
 
         /// <summary>

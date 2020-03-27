@@ -36,9 +36,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Processors {
         /// <inheritdoc/>
         public Task HandleSampleAsync(MonitoredItemMessageModel sample) {
             // Set timestamp as source timestamp
-            // TODO: Make configurable
-            sample.Timestamp = sample.SourceTimestamp;
-
             var properties = new Dictionary<string, string>() {
                 [CommonProperties.EventSchemaType] =
                     Core.MessageSchemaTypes.MonitoredItemMessageModelJson

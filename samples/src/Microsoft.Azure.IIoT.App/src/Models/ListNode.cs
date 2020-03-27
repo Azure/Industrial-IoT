@@ -23,6 +23,8 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
         public string Value { get; set; }
         public string DataType { get; set; }
+        public string Status { get; set; }
+        public string Timestamp { get; set; }
 
         public List<string> ParentIdList { get; set; }
 

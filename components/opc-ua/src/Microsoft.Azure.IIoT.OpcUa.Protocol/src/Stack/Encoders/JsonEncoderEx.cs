@@ -369,20 +369,51 @@ namespace Opc.Ua.Encoders {
             if (NodeId.IsNull(value)) {
                 WriteNull(property);
             }
-            else if (UseReversibleEncoding) {
-                if (UseUriEncoding || UseAdvancedEncoding) {
+            else if (UseAdvancedEncoding) {
+                if (UseUriEncoding || UseReversibleEncoding) {
                     WriteString(property, value.AsString(Context));
                 }
                 else {
-                    // Back compat to json encoding
                     WriteString(property, value.ToString());
                 }
             }
             else {
                 PushObject(property);
-                _writer.WritePropertyName("Id");
-                _writer.WriteValue(new NodeId(value.Identifier, 0).ToString());
-                WriteNamespaceIndex(value.NamespaceIndex);
+                if (value.IdType != IdType.Numeric) {
+                    WriteByte("IdType", (byte)value.IdType);
+                }
+                switch (value.IdType) {
+                    case IdType.Numeric:
+                        WriteUInt32("Id", (uint)value.Identifier);
+                        break;
+                    case IdType.String:
+                        WriteString("Id", (string)value.Identifier);
+                        break;
+                    case IdType.Guid:
+                        WriteGuid("Id", (Guid)value.Identifier);
+                        break;
+                    case IdType.Opaque:
+                        WriteByteString("Id", (byte[])value.Identifier);
+                        break;
+                }
+                switch (value.NamespaceIndex) {
+                    case 0:
+                        // default namespace - nothing to do 
+                        break;
+                    case 1:
+                        // always as integer 
+                        WriteUInt16("Namespace", value.NamespaceIndex);
+                        break;
+                    default:
+                        var namespaceUri = Context.NamespaceUris.GetString(value.NamespaceIndex);
+                        if (namespaceUri != null && !UseReversibleEncoding) {
+                            WriteString("Namespace", namespaceUri);
+                        }
+                        else {
+                            WriteUInt16("Namespace", value.NamespaceIndex);
+                        }
+                        break;
+                }
                 PopObject();
             }
         }
@@ -392,21 +423,61 @@ namespace Opc.Ua.Encoders {
             if (NodeId.IsNull(value)) {
                 WriteNull(property);
             }
-            else if (UseReversibleEncoding) {
-                if (UseUriEncoding || UseAdvancedEncoding) {
+            else if (UseAdvancedEncoding) {
+                if (UseUriEncoding || UseReversibleEncoding) {
                     WriteString(property, value.AsString(Context));
                 }
                 else {
-                    // Back compat to json encoding
                     WriteString(property, value.ToString());
                 }
             }
             else {
                 PushObject(property);
-                _writer.WritePropertyName("Id");
-                _writer.WriteValue(new NodeId(value.Identifier, 0).ToString());
-                WriteNamespaceIndex(value.NamespaceIndex);
-                WriteServerIndex(value.ServerIndex);
+                if (value.IdType != IdType.Numeric) {
+                    WriteByte("IdType", (byte)value.IdType);
+                }
+                switch (value.IdType) {
+                    case IdType.Numeric:
+                        WriteUInt32("Id", (uint)value.Identifier);
+                        break;
+                    case IdType.String:
+                        WriteString("Id", (string)value.Identifier);
+                        break;
+                    case IdType.Guid:
+                        WriteGuid("Id", (Guid)value.Identifier);
+                        break;
+                    case IdType.Opaque:
+                        WriteByteString("Id", (byte[])value.Identifier);
+                        break;
+                }
+                switch (value.NamespaceIndex) {
+                    case 0:
+                        // default namespace - nothing to do 
+                        break;
+                    case 1:
+                        // namespace 1 always as integer
+                        WriteUInt16("Namespace", value.NamespaceIndex);
+                        break;
+                    default:
+                        var namespaceUri = UseReversibleEncoding ? 
+                            null : Context.NamespaceUris.GetString(value.NamespaceIndex);
+                        if (namespaceUri != null) {
+                            WriteString("Namespace", namespaceUri);
+                        }
+                        else {
+                            WriteUInt16("Namespace", value.NamespaceIndex);
+                        }
+                        break;
+                }
+                if (value.ServerIndex != 0) {
+                    var serverUri = Context.ServerUris.GetString(value.ServerIndex);
+                    if (serverUri != null) {
+                        WriteString("ServerUri", serverUri);
+                    }
+                    else {
+                        WriteUInt32("ServerUri", value.ServerIndex);
+                    }
+                }
                 PopObject();
             }
         }
@@ -555,8 +626,12 @@ namespace Opc.Ua.Encoders {
                 WriteNull(property);
             }
             else {
-                PushObject(property);
-                if (value != null) {
+                if (value.StatusCode != StatusCodes.Good ||
+                    value.SourceTimestamp != DateTime.MinValue ||
+                    value.ServerTimestamp != DateTime.MinValue ||
+                    value.SourcePicoseconds != 0 ||
+                    value.ServerPicoseconds != 0) {
+                    PushObject(property);
                     if (value.WrappedValue.TypeInfo != null &&
                         value.WrappedValue.TypeInfo.BuiltInType != BuiltInType.Null) {
                         WriteVariant("Value", value.WrappedValue);
@@ -577,8 +652,15 @@ namespace Opc.Ua.Encoders {
                             WriteUInt16("ServerPicoseconds", value.ServerPicoseconds);
                         }
                     }
+                    PopObject();
                 }
-                PopObject();
+                else {
+                    // raw value
+                    if (value.WrappedValue.TypeInfo != null &&
+                        value.WrappedValue.TypeInfo.BuiltInType != BuiltInType.Null) {
+                        WriteVariant(property, value.WrappedValue);
+                    }
+                }
             }
         }
 
@@ -777,6 +859,11 @@ namespace Opc.Ua.Encoders {
         }
 
         /// <inheritdoc/>
+        public void WriteStringDictionary(string property, IDictionary<string, string> values) {
+            WriteDictionary(property, values, (k, v) => WriteString(k, v));
+        }
+
+        /// <inheritdoc/>
         public void WriteDateTimeArray(string property, IList<DateTime> values) {
             WriteArray(property, values, v => WriteDateTime(null, v));
         }
@@ -839,6 +926,11 @@ namespace Opc.Ua.Encoders {
         /// <inheritdoc/>
         public void WriteDataValueArray(string property, IList<DataValue> values) {
             WriteArray(property, values, v => WriteDataValue(null, v));
+        }
+
+        /// <inheritdoc/>
+        public void WriteDataValueDictionary(string property, IDictionary<string, DataValue> values) {
+            WriteDictionary(property, values, (k, v) => WriteDataValue(k, v));
         }
 
         /// <inheritdoc/>
@@ -1288,6 +1380,26 @@ namespace Opc.Ua.Encoders {
             }
         }
 
+        /// <summary>
+        /// Write array to stream
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="property"></param>
+        /// <param name="values"></param>
+        /// <param name="writer"></param>
+        private void WriteDictionary<T>(string property, IDictionary<string, T> values,
+            Action<string,T> writer) {
+            if (values == null) {
+                WriteNull(property);
+            }
+            else {
+                PushObject(property);
+                foreach (var value in values) {
+                    writer(value.Key, value.Value);
+                }
+                PopObject();
+            }
+        }
         /// <summary>
         /// Check whether to write the simple value.  If so
         /// andthis is not called in the context of array

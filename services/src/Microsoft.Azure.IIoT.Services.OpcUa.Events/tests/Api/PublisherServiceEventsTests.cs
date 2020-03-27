@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Api {
 
             var endpointId = "testid";
             var expected = new MonitoredItemMessageModel {
-                DataSetId = "testid",
+                DataSetWriterId = "testid",
                 EndpointId = endpointId,
                 DisplayName = "holla",
                 NodeId = "nodeid",
@@ -55,7 +55,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Api {
                 var received = result.Task.Result;
 
                 Assert.Equal(expected.DisplayName, received.DisplayName);
-                Assert.Equal(expected.DataSetId, received.DataSetId);
+                Assert.Equal(expected.DataSetWriterId, received.DataSetWriterId);
                 Assert.Equal(expected.NodeId, received.NodeId);
                 Assert.Equal(expected.SourceTimestamp, received.SourceTimestamp);
                 Assert.Equal(expected.Timestamp, received.Timestamp);
@@ -76,7 +76,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Api {
 
             var endpointId = "testid";
             var expected = new MonitoredItemMessageModel {
-                DataSetId = "testid",
+                DataSetWriterId = "testid",
                 EndpointId = endpointId,
                 DisplayName = "holla",
                 NodeId = "nodeid",

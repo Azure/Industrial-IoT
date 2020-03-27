@@ -50,7 +50,8 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
             if (properties.TryGetValue(CommonProperties.EventSchemaType, out var schemaType) ||
                 properties.TryGetValue(SystemProperties.MessageSchema, out schemaType)) {
 
-                // TODO: check if ToLowerInvariant() is really necesary
+                //  TODO: when handling third party OPC UA Pub/Sub Messages
+                //  the schemaType might not exist
                 if (_handlers.TryGetValue(schemaType.ToLowerInvariant(), out var handler)) {
                     await handler.HandleAsync(deviceId, moduleId?.ToString(), eventData,
                         properties, checkpoint);

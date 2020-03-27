@@ -35,6 +35,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Priority
         /// </summary>
         public byte? Priority { get; set; }
+
+        /// <summary>
+        /// Triggers automatic monitored items display name discovery
+        /// </summary>
+        public bool? ResolveDisplayName { get; set; }
     //
     //   /// <summary>
     //   /// Whether to send change messages

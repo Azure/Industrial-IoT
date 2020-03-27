@@ -47,5 +47,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "priority",
             EmitDefaultValue = false)]
         public byte? Priority { get; set; }
+
+        /// <summary>
+        /// Resolve Display Name
+        /// </summary>
+        [DataMember(Name = "resolveDisplayName",
+            EmitDefaultValue = false)]
+        public bool? ResolveDisplayName { get; set; }
     }
 }

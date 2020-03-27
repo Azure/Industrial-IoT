@@ -727,6 +727,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 MaxKeepAliveCount = model.MaxKeepAliveCount,
                 MaxNotificationsPerPublish = model.MaxNotificationsPerPublish,
                 Priority = model.Priority,
+                ResolveDisplayName = model.ResolveDisplayName,
                 PublishingInterval = model.PublishingInterval
             };
         }
@@ -743,6 +744,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models {
                 MaxKeepAliveCount = model.MaxKeepAliveCount,
                 MaxNotificationsPerPublish = model.MaxNotificationsPerPublish,
                 Priority = model.Priority,
+                ResolveDisplayName = model.ResolveDisplayName,
                 PublishingInterval = model.PublishingInterval
             };
         }

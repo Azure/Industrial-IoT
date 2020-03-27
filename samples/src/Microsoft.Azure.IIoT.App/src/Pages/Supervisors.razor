@@ -93,7 +93,7 @@
     public void PagerPageChanged(int page)
     {
         _pagedsupervisorList = _supervisorList.GetPaged(page, CommonHelper.PageLength, null);
-        NavigationManager.NavigateTo("/supervisors/" + page);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "supervisors/" + page);
     }
 
     /// <summary>

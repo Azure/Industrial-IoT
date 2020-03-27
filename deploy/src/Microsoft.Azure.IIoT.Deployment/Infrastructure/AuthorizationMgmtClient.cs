@@ -23,6 +23,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         // Docs: https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#network-contributor
         public const string NETWORK_CONTRIBUTOR_ROLE_ID = "4d97b98b-1d4f-4787-a291-c67834d212e7";
 
+        // We will use built-in "Storage Blob Data Contributor" role
+        // Docs: https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles#storage-blob-data-contributor
+        public const string STORAGE_BLOB_DATA_CONTRIBUTOR_ROLE_ID = "ba92f5b4-2d11-453d-a403-e96b0029c9fe";
+
         private readonly AuthorizationManagementClient _authorizationManagementClient;
         private readonly string _subscriptionId;
 
@@ -30,6 +34,13 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             string subscriptionId,
             RestClient restClient
         ) {
+            if (string.IsNullOrEmpty(subscriptionId)) {
+                throw new ArgumentNullException(nameof(subscriptionId));
+            }
+            if (restClient is null) {
+                throw new ArgumentNullException(nameof(restClient));
+            }
+
             _authorizationManagementClient = new AuthorizationManagementClient(restClient) {
                 SubscriptionId = subscriptionId
             };
@@ -47,11 +58,25 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             return networkContributorRoleDefinitionId;
         }
 
+        /// <summary>
+        /// Assign built-in "Network Contributor" role for specified resource.
+        /// </summary>
+        /// <param name="servicePrincipal"></param>
+        /// <param name="resourceId"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<RoleAssignmentInner> AssignNetworkContributorRoleForResourceAsync(
             ServicePrincipal servicePrincipal,
             string resourceId,
             CancellationToken cancellationToken = default
         ) {
+            if (servicePrincipal is null) {
+                throw new ArgumentNullException(nameof(servicePrincipal));
+            }
+            if (string.IsNullOrEmpty(resourceId)) {
+                throw new ArgumentNullException(nameof(resourceId));
+            }
+
             var networkContributorRoleDefinitionId = GetRoleDefinitionId(
                 NETWORK_CONTRIBUTOR_ROLE_ID
             );
@@ -72,10 +97,20 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             );
         }
 
+        /// <summary>
+        /// Assign built-in "Network Contributor" role for the whole subscription.
+        /// </summary>
+        /// <param name="servicePrincipal"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task<RoleAssignmentInner> AssignNetworkContributorRoleForSubscriptionAsync(
             ServicePrincipal servicePrincipal,
             CancellationToken cancellationToken = default
         ) {
+            if (servicePrincipal is null) {
+                throw new ArgumentNullException(nameof(servicePrincipal));
+            }
+
             var networkContributorRoleDefinitionId = GetRoleDefinitionId(
                 NETWORK_CONTRIBUTOR_ROLE_ID
             );
@@ -96,6 +131,49 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             );
         }
 
+        /// <summary>
+        /// Assign built-in "Storage Blob Data Contributor" role for the whole subscription.
+        /// </summary>
+        /// <param name="servicePrincipal"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task<RoleAssignmentInner> AssignStorageBlobDataContributorRoleForSubscriptionAsync(
+            ServicePrincipal servicePrincipal,
+            CancellationToken cancellationToken = default
+        ) {
+            if (servicePrincipal is null) {
+                throw new ArgumentNullException(nameof(servicePrincipal));
+            }
+
+            var storageBlobDataContributorRoleDefinitionId = GetRoleDefinitionId(
+                STORAGE_BLOB_DATA_CONTRIBUTOR_ROLE_ID
+            );
+
+            var roleAssignmentDefinition = new RoleAssignmentCreateParameters {
+                PrincipalId = servicePrincipal.Id,
+                RoleDefinitionId = storageBlobDataContributorRoleDefinitionId
+            };
+
+            var scope = $"/subscriptions/{_subscriptionId}/";
+
+            return await CreateRoleAssignmentWithRetryAsync(
+                servicePrincipal,
+                scope,
+                roleAssignmentDefinition,
+                "StorageBlobDataContributor",
+                cancellationToken
+            );
+        }
+
+        /// <summary>
+        /// Create role assignment, retry for 240 seconds if Service Principal does not exist yet.
+        /// </summary>
+        /// <param name="servicePrincipal"></param>
+        /// <param name="scope"></param>
+        /// <param name="roleAssignmentDefinition"></param>
+        /// <param name="roleDescription"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         protected async Task<RoleAssignmentInner> CreateRoleAssignmentWithRetryAsync(
             ServicePrincipal servicePrincipal,
             string scope,

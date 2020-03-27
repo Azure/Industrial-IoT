@@ -259,7 +259,7 @@ namespace Opc.Ua.Encoders {
         }
 
         [Theory]
-        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
+        // [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
         [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
         [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]

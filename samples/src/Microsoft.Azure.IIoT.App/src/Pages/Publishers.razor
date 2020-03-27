@@ -87,7 +87,7 @@
     public void PagerPageChanged(int page)
     {
         _pagedPublisherList = _publisherList.GetPaged(page, CommonHelper.PageLength, null);
-        NavigationManager.NavigateTo("/publishers/" + page);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "publishers/" + page);
     }
 
     /// <summary>

@@ -226,7 +226,7 @@
     public void PagerPageChanged(int page)
     {
         pagedDiscovererList = discovererList.GetPaged(page, CommonHelper.PageLength, null);
-        NavigationManager.NavigateTo("/discoverers/" + page);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "discoverers/" + page);
     }
 
     /// <summary>
@@ -309,6 +309,7 @@
     {
         Status = await RegistryHelper.UpdateDiscovererAsync(discoverer);
         CloseDrawer();
+        await this.OnAfterRenderAsync(true);
     }
 
     /// <summary>

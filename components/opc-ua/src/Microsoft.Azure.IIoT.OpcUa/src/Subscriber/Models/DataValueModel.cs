@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         /// </summary>
         [DataMember(Name = "typeId",
             EmitDefaultValue = false)]
-        public Type TypeId { get; set; }
+        public string TypeId { get; set; }
 
         /// <summary>
         /// Status of the value (Quality)
@@ -36,10 +36,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         public string Status { get; set; }
 
         /// <summary>
-        /// Sent time stamp
+        /// Source Timesamp
         /// </summary>
-        [DataMember(Name = "timestamp",
+        [DataMember(Name = "sourceTimestamp",
             EmitDefaultValue = false)]
-        public DateTime? Timestamp { get; set; }
+        public DateTime? SourceTimestamp { get; set; }
+
+        /// <summary>
+        /// Server Timestamp
+        /// </summary>
+        [DataMember(Name = "serverTimestamp",
+            EmitDefaultValue = false)]
+        public DateTime? ServerTimestamp { get; set; }
     }
 }

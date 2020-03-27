@@ -15,11 +15,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
     public class MonitoredItemMessageApiModel {
 
         /// <summary>
-        /// Subscription id
+        /// Publisher Id
         /// </summary>
-        [DataMember(Name = "subscriptionId",
+        [DataMember(Name = "publisherId",
             EmitDefaultValue = false)]
-        public string SubscriptionId { get; set; }
+        public string PublisherId { get; set; }
+
+        /// <summary>
+        /// DataSetWriterId
+        /// </summary>
+        [DataMember(Name = "dataSetWriterId",
+            EmitDefaultValue = false)]
+        public string DataSetWriterId { get; set; }
 
         /// <summary>
         /// Endpoint
@@ -27,13 +34,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "endpointId",
             EmitDefaultValue = false)]
         public string EndpointId { get; set; }
-
-        /// <summary>
-        /// Dataset id
-        /// </summary>
-        [DataMember(Name = "dataSetId",
-            EmitDefaultValue = false)]
-        public string DataSetId { get; set; }
 
         /// <summary>
         /// Node id
