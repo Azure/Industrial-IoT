@@ -53,7 +53,8 @@
         @foreach (var endpoint in _pagedendpointList.Results)
         {
             <tr>
-                @if (endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Ready)
+                @if (endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Ready ||
+                     endpoint.EndpointModel.EndpointState == EndpointConnectivityState.Unauthorized)
                 {
                     <td>
                         @{ discover = DiscovererId == null ? RegistryHelper.PathAll : DiscovererId; }
