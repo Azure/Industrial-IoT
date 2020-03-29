@@ -110,6 +110,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol {
                 case StatusCodes.BadCertificateUntrusted:
                     return new CertificateUntrustedException(sre.SymbolicId, sre);
                 case StatusCodes.BadUserAccessDenied:
+                case StatusCodes.BadUserSignatureInvalid:
                 case StatusCodes.BadIdentityTokenInvalid:
                 case StatusCodes.BadIdentityTokenRejected:
                 case StatusCodes.BadRequestNotAllowed:
