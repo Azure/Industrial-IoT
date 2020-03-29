@@ -310,6 +310,7 @@
     {
         Status = await RegistryHelper.UpdateDiscovererAsync(discoverer);
         CloseDrawer();
+        await this.OnAfterRenderAsync(true);
     }
 
     /// <summary>
