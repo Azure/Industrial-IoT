@@ -1127,6 +1127,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             var iiotK8SClient = new IIoTK8SClient(aksKubeConfig);
 
+            // enable scraping of Prometheus metrics
+            iiotK8SClient.EnablePrometheusMetricsScrapingAsync(cancellationToken).Wait();
+
             // industrial-iot namespace
             iiotK8SClient.CreateIIoTNamespaceAsync(cancellationToken).Wait();
             iiotK8SClient.SetupIIoTServiceAccountAsync(cancellationToken).Wait();

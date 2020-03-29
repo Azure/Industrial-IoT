@@ -58,7 +58,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         [JsonProperty(PropertyName = "requestedConfig",
             NullValueHandling = NullValueHandling.Ignore)]
         [DefaultValue(null)]
-        public DiscoveryConfigApiModel RequestedConfig { get; set; }
+        public DiscoveryConfigApiModel RequestedConfig { get; set; } = new DiscoveryConfigApiModel();
 
         /// <summary>
         /// Current log level
