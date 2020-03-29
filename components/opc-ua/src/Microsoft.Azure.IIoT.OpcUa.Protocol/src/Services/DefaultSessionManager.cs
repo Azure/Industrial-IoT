@@ -73,9 +73,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             userIdentity, null);
 
                         _logger.Information($"Session '{sessionName}' created.");
-
                         _logger.Information("Loading Complex Type System....");
-
                         try {
                             var complexTypeSystem = new ComplexTypeSystem(session);
                             await complexTypeSystem.Load();
@@ -88,6 +86,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         if (_clientConfig.KeepAliveInterval > 0) {
                             session.KeepAliveInterval = _clientConfig.KeepAliveInterval;
                             session.KeepAlive += Session_KeepAlive;
+                            session.Notification += Session_Notification;
                         }
                         wrapper = new SessionWrapper {
                             MissedKeepAlives = 0,
@@ -126,13 +125,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                     Try.Op(() => session.RemoveSubscriptions(session.Subscriptions));
                 }
-                
-                
                 Try.Op(session.Close);
                 Try.Op(session.Dispose);
             }
             finally {
                 _lock.Release();
+            }
+        }
+
+        private void Session_Notification(Session session, NotificationEventArgs e) {
+            _logger.Information("Notification for session: {Session}, subscription {Subscription} -sequence# {Sequence}.",
+                session.SessionName, e.Subscription.DisplayName, e.NotificationMessage.SequenceNumber);
+            if (e.NotificationMessage.IsEmpty || e.NotificationMessage.NotificationData.Count() == 0) {
+                e.Subscription.FastDataChangeCallback.Invoke(e.Subscription, null, e.StringTable);
             }
         }
 
@@ -142,14 +147,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="session"></param>
         /// <param name="e"></param>
         private void Session_KeepAlive(Session session, KeepAliveEventArgs e) {
-            _logger.Debug($"Keep Alive received from session {session.SessionName}, state: {e.CurrentState}.");
-            if (ServiceResult.IsGood(e.Status)) {
-                return;
-            }
+            _logger.Information("Keep Alive received from session {name}, state: {state}.",
+                session.SessionName, e.CurrentState);
             _lock.Wait();
             try {
                 var entry = _sessions.SingleOrDefault(s => s.Value.Session.SessionName == session.SessionName);
                 if (entry.Key == null) {
+                    _logger.Error("Session entry '{name}' not found in the sessions collection...",
+                        session.SessionName);
+                    return;
+                }
+                if (ServiceResult.IsGood(e.Status)) {
+                    entry.Value.MissedKeepAlives = 0;
                     return;
                 }
                 entry.Value.MissedKeepAlives++;

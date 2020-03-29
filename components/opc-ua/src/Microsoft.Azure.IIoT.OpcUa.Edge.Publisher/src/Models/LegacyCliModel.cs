@@ -84,7 +84,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         /// <summary>
         /// The messaging mode for outgoing messages.
         /// </summary>
-        public MessagingMode MessagingMode { get; set; } = MessagingMode.Samples;
+        public MessagingMode MessagingMode { get; set; }
 
         /// <summary>
         /// Flag to demand full featured message creation from publisher

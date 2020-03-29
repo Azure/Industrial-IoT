@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Models {
             SamplingInterval = model.SamplingInterval;
             MonitoringMode = model.MonitoringMode;
             SubstituteValue = model.SubstituteValue?.DeepClone();
-            TriggerId = model.TriggerId;
+            HeartbeatInterval = model.HeartbeatInterval;
         }
 
         /// <summary>
@@ -67,8 +67,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Models {
                 MetaDataProperties = MetaDataProperties?.ToList(),
                 QueueSize = QueueSize,
                 SamplingInterval = SamplingInterval,
-                TriggerId = TriggerId,
-                SubstituteValue = SubstituteValue?.DeepClone()
+                SubstituteValue = SubstituteValue?.DeepClone(),
+                HeartbeatInterval = HeartbeatInterval
             };
         }
 
@@ -183,8 +183,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Models {
         /// Node in dataset writer that triggers reporting
         /// (Publisher extension)
         /// </summary>
-        [JsonProperty(PropertyName = "triggerId",
+        [JsonProperty(PropertyName = "heartbeatInterval",
             NullValueHandling = NullValueHandling.Ignore)]
-        public string TriggerId { get; set; }
+        public TimeSpan? HeartbeatInterval { get; set; }
     }
 }

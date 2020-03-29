@@ -352,24 +352,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 }
 
-                var map = nowMonitored.ToDictionary(
-                    k => k.Template.Id ?? k.Template.StartNodeId, v => v);
-                foreach (var item in nowMonitored.ToList()) {
-                    if (item.Template.TriggerId != null &&
-                        map.TryGetValue(item.Template.TriggerId, out var trigger)) {
-                        trigger.AddTriggerLink(item.ServerId);
-                    }
-                }
-
-                // Set up any new trigger configuration if needed
-                foreach (var item in nowMonitored.ToList()) {
-                    if (item.GetTriggeringLinks(out var added, out var removed)) {
-                        var response = await rawSubscription.Session.SetTriggeringAsync(
-                            null, rawSubscription.Id, item.ServerId ?? 0,
-                            new UInt32Collection(added), new UInt32Collection(removed));
-                    }
-                }
-
                 // Change monitoring mode of all items if necessary
                 foreach (var change in nowMonitored.GroupBy(i => i.GetMonitoringModeChange())) {
                     if (change.Key == null) {
@@ -421,6 +403,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         _subscription.Configuration = configuration.Clone();
                     }
 
+                    // calculate the KeepAliveCount
+                    var revisedKeepAliveCount = _subscription.Configuration.LifetimeCount ?? session.DefaultSubscription.LifetimeCount;
+                    
+                    _subscription.MonitoredItems.ForEach(m => {
+                        if (m.HeartbeatInterval != null && m.HeartbeatInterval > TimeSpan.Zero) {
+                            var localKeepAliveCount = (uint)(m.HeartbeatInterval.Value.TotalMilliseconds
+                                / _subscription.Configuration.PublishingInterval.Value.TotalMilliseconds);
+                            revisedKeepAliveCount = revisedKeepAliveCount > localKeepAliveCount ? localKeepAliveCount :
+                                revisedKeepAliveCount;
+                        }
+                    });
+
                     subscription = new Subscription(session.DefaultSubscription) {
                         Handle = this,
                         PublishingInterval = (int)
@@ -428,13 +422,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         DisplayName = Id,
                         MaxNotificationsPerPublish = _subscription.Configuration.MaxNotificationsPerPublish ?? 0,
                         PublishingEnabled = true,
-                        KeepAliveCount = _subscription.Configuration.KeepAliveCount ?? session.DefaultSubscription.KeepAliveCount,
+                        KeepAliveCount = revisedKeepAliveCount,
                         LifetimeCount = _subscription.Configuration.LifetimeCount ?? session.DefaultSubscription.LifetimeCount,
                         Priority = _subscription.Configuration.Priority ?? session.DefaultSubscription.Priority,
-                        TimestampsToReturn = TimestampsToReturn.Both,
+                        TimestampsToReturn = session.DefaultSubscription.TimestampsToReturn,
                         FastDataChangeCallback = OnSubscriptionDataChanged
-
-                        // MaxMessageCount = 10,
                     };
 
                     session.AddSubscription(subscription);
@@ -462,15 +454,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     if (OnSubscriptionChange == null) {
                         return;
                     }
+
                     var message = new SubscriptionNotificationModel {
                         ServiceMessageContext = subscription.Session.MessageContext,
                         ApplicationUri = subscription.Session.Endpoint.Server.ApplicationUri,
                         EndpointUrl = subscription.Session.Endpoint.EndpointUrl,
                         SubscriptionId = Id,
-                        Notifications = notification
-                            .ToMonitoredItemNotifications(subscription.MonitoredItems)
-                            .ToList()
+                        Notifications = (notification != null)
+                            ? notification.ToMonitoredItemNotifications(
+                                subscription.MonitoredItems).ToList()
+                            : new List<MonitoredItemNotificationModel>()
                     };
+                    message.IsKeyMessage = true;
+                    // add the heartbeat for monitored items without a datachange
+                    foreach (var item in _currentlyMonitored) {
+                        if (notification == null ||
+                            !notification.MonitoredItems.Exists
+                                (m => m.ClientHandle == item.Item.ClientHandle)) {
+                            if (item.IsHartbeatNeeded()) { 
+                                message.Notifications.Add(item.Item.LastValue.ToMonitoredItemNotification(item.Item));
+                                item.LastPublished = DateTime.UtcNow;
+                            }
+                            else {
+                                message.IsKeyMessage = false;
+                            }
+                        }
+                        else {
+                            item.LastPublished = DateTime.UtcNow;
+                        }
+                    }
                     OnSubscriptionChange?.Invoke(this, message);
                 }
                 catch (Exception ex) {
@@ -542,6 +554,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// Monitored item created from template
             /// </summary>
             public MonitoredItem Item { get; private set; }
+
+            /// <summary>
+            /// Last published time
+            /// </summary>
+            public DateTime LastPublished { get; internal set;}
+
+            /// <summary>
+            /// validates if a heartbeat is required
+            /// </summary>
+            /// <returns></returns>
+            public bool IsHartbeatNeeded() {
+                if (Template.HeartbeatInterval == null || 
+                    Template.HeartbeatInterval.GetValueOrDefault() == TimeSpan.Zero) {
+                    return false;
+                }
+                if (DateTime.UtcNow <= LastPublished + Template.HeartbeatInterval) {
+                    return false;
+                }
+                return true;
+            }
 
             /// <summary>
             /// Create wrapper
@@ -630,17 +662,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             .ToStackModel(session.MessageContext))
                 };
             }
-
-            /// <summary>
-            /// Add the monitored item identifier of the triggering item.
-            /// </summary>
-            /// <param name="id"></param>
-            internal void AddTriggerLink(uint? id) {
-                if (id != null) {
-                    _newTriggers.Add(id.Value);
-                }
-            }
-
             /// <summary>
             /// Merge with desired state
             /// </summary>
@@ -696,29 +717,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 // monitoredItem.Filter = monitoredItemInfo.Filter?.ToStackType();
                 return changes;
             }
-
-            /// <summary>
-            /// Get triggering configuration changes for this item
-            /// </summary>
-            /// <param name="addLinks"></param>
-            /// <param name="removeLinks"></param>
-            /// <returns></returns>
-            internal bool GetTriggeringLinks(out IEnumerable<uint> addLinks,
-                out IEnumerable<uint> removeLinks) {
-                var remove = _triggers.Except(_newTriggers).ToList();
-                var add = _newTriggers.Except(_triggers).ToList();
-                _triggers = _newTriggers;
-                _newTriggers = new HashSet<uint>();
-                addLinks = add;
-                removeLinks = remove;
-                if (add.Count > 0 || remove.Count > 0) {
-                    _logger.Debug("{item}: Adding {add} links and removing {remove} links.",
-                        this, add.Count, remove.Count);
-                    return true;
-                }
-                return false;
-            }
-
             /// <summary>
             /// Get any changes in the monitoring mode
             /// </summary>
@@ -729,8 +727,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return Item.MonitoringMode == change ? null : change;
             }
 
-            private HashSet<uint> _newTriggers = new HashSet<uint>();
-            private HashSet<uint> _triggers = new HashSet<uint>();
             private Publisher.Models.MonitoringMode? _modeChange;
             private readonly ILogger _logger;
         }

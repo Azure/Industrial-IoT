@@ -38,7 +38,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2.Models {
             SelectedFields = model.SelectedFields?
                 .Select(f => new SimpleAttributeOperandApiModel(f))
                 .ToList();
-            TriggerId = model.TriggerId;
             MonitoringMode = model.MonitoringMode;
         }
 
@@ -54,7 +53,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2.Models {
                 Filter = Filter?.ToServiceModel(),
                 QueueSize = QueueSize,
                 MonitoringMode = MonitoringMode,
-                TriggerId = TriggerId,
                 SelectedFields = SelectedFields?
                     .Select(f => f.ToServiceModel())
                     .ToList()
@@ -113,13 +111,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2.Models {
         [JsonProperty(PropertyName = "monitoringMode",
             NullValueHandling = NullValueHandling.Ignore)]
         public MonitoringMode? MonitoringMode { get; set; }
-
-        /// <summary>
-        /// Node in dataset writer that triggers reporting
-        /// (Publisher extension)
-        /// </summary>
-        [JsonProperty(PropertyName = "triggerId",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public string TriggerId { get; set; }
     }
 }
