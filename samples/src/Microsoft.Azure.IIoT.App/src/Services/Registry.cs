@@ -122,7 +122,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 if (applications != null) {
                     foreach (var app in applications) {
                         var application = app; // (await _registryService.GetApplicationAsync(app.ApplicationId)).Application;
-                        pageResult.Results.Add(application);
+                        pageResult.Results.Add(app);
                     }
                 }
             }
