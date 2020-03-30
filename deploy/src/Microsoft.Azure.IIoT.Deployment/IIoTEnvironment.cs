@@ -298,7 +298,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             ASPNETCORE_FORWARDEDHEADERS_FORWARDLIMIT = $"{1}";
 
             // OpenAPI
-            PCS_OPENAPI_SERVER_HOST = null;
+            PCS_OPENAPI_SERVER_HOST = "";
 
             ////////////////////----------2.5.2----------////////////////////
             _HUB_CS = iotHubOwnerConnectionString;

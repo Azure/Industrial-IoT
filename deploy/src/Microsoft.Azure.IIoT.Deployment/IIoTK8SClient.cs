@@ -300,28 +300,6 @@ namespace Microsoft.Azure.IIoT.Deployment {
             }
         }
 
-        /// <summary>
-        /// Create configuration secret for Azure Industrial IoT components.
-        /// </summary>
-        /// <param name="env"></param>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public async Task<V1Secret> CreateIIoTEnvSecretAsync(
-            IDictionary<string, string> env,
-            CancellationToken cancellationToken = default
-        ) {
-            if (env is null) {
-                throw new ArgumentNullException(nameof(env));
-            }
-
-            return await CreateV1SecretAsync(
-                Resources.IIoTK8SResources._10_industrial_iot_env_secret,
-                _iiotNamespace,
-                env,
-                cancellationToken
-            );
-        }
-
         private async Task<V1Deployment> CreateV1DeploymentAsync(
             string v1DeploymentContent,
             string namespaceParameter = null,
@@ -398,13 +376,27 @@ namespace Microsoft.Azure.IIoT.Deployment {
         /// <summary>
         /// Deploy Azure Industrial IoT components.
         /// </summary>
+        /// <param name="env"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public async Task DeployIIoTServicesAsync(
+            IDictionary<string, string> env,
             CancellationToken cancellationToken = default
         ) {
+            if (env is null) {
+                throw new ArgumentNullException(nameof(env));
+            }
+
             try {
                 Log.Information("Deploying Industrial IoT services to Azure AKS cluster ...");
+
+                // Create configuration secret for Azure Industrial IoT components.
+                var aiiotEnvSecret = await CreateV1SecretAsync(
+                    Resources.IIoTK8SResources._10_industrial_iot_env_secret,
+                    _iiotNamespace,
+                    env,
+                    cancellationToken
+                );
 
                 // Deploy registry service
                 await CreateV1DeploymentAsync(

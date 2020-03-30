@@ -1164,8 +1164,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             // industrial-iot namespace
             iiotK8SClient.CreateIIoTNamespaceAsync(cancellationToken).Wait();
             iiotK8SClient.SetupIIoTServiceAccountAsync(cancellationToken).Wait();
-            iiotK8SClient.CreateIIoTEnvSecretAsync(iiotEnvironment.Dict, cancellationToken).Wait();
-            iiotK8SClient.DeployIIoTServicesAsync(cancellationToken).Wait();
+            iiotK8SClient.DeployIIoTServicesAsync(iiotEnvironment.Dict, cancellationToken).Wait();
 
             // We will add default SSL certificate for Ingress
             // NGINX controler to industrial-iot namespace
