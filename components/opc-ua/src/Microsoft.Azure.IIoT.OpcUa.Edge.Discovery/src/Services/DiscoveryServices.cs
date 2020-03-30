@@ -34,14 +34,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
     public class DiscoveryServices : IDiscoveryServices, IScannerServices, IDisposable {
 
         /// <inheritdoc/>
-        public DiscoveryMode Mode {
-            get => _request.Mode;
-        }
+        public DiscoveryMode Mode => _request.Mode;
 
         /// <inheritdoc/>
-        public DiscoveryConfigModel Configuration {
-            get => _request.Configuration;
-        }
+        public DiscoveryConfigModel Configuration => _request.Configuration;
 
         /// <summary>
         /// Create services
@@ -314,6 +310,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                     netscanner.ScanCount, request.TotalAddresses, addresses.Count);
             }
             request.Token.ThrowIfCancellationRequested();
+
+            await AddLoopbackAddressesAsync(addresses);
             if (addresses.Count == 0) {
                 return new List<ApplicationRegistrationModel>();
             }
@@ -486,7 +484,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                             (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")?
                                 .EqualsIgnoreCase("true") ?? false)) {
                             // Also resolve docker internal since we are in a container
-                            host = "host.docker.internal";
+                            host = kDockerHostName;
                             continue;
                         }
                         break;
@@ -498,6 +496,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                 }
                 return list;
             });
+        }
+
+        /// <summary>
+        /// Add localhost ip to list if not already in it.
+        /// </summary>
+        /// <param name="addresses"></param>
+        /// <returns></returns>
+        private async Task AddLoopbackAddressesAsync(List<IPAddress> addresses) {
+            // Check local host
+            try {
+                if (Environment.GetEnvironmentVariable("DOTNET_RUNNING_IN_CONTAINER")?
+                    .EqualsIgnoreCase("true") ?? false) {
+                    // Resolve docker host since we are running in a container
+                    var entry = await Dns.GetHostEntryAsync(kDockerHostName);
+                    foreach (var address in entry.AddressList
+                                .Where(a => a.AddressFamily == AddressFamily.InterNetwork)
+                                .Where(a => !addresses.Any(b => a.Equals(b)))) {
+                        _logger.Information("Including host address {address}", address);
+                        addresses.Add(address);
+                    }
+                }
+                else {
+                    // Add loopback address
+                    addresses.Add(IPAddress.Loopback);
+                }
+            }
+            catch (Exception e) {
+                _logger.Warning(e, "Failed to add local host address.");
+            }
         }
 
         /// <summary>
@@ -613,6 +640,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
 
         /// <summary> Progress reporting every 3 seconds </summary>
         private static readonly TimeSpan kProgressInterval = TimeSpan.FromSeconds(3);
+        private const string kDockerHostName = "host.docker.internal";
 
         private readonly ILogger _logger;
         private readonly IEventEmitter _events;
