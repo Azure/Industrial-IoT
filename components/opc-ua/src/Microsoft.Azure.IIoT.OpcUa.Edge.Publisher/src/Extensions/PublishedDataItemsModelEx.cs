@@ -24,6 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             if (dataItems?.PublishedData == null) {
                 return Enumerable.Empty<MonitoredItemModel>();
             }
+
             var map = new Dictionary<string, MonitoredItemModel>();
             foreach (var item in dataItems.PublishedData) {
                 if (item == null) {
@@ -31,6 +32,32 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 }
                 var monitoredItem = item.ToMonitoredItem();
                 map.Add(monitoredItem.Id ?? Guid.NewGuid().ToString(), monitoredItem);
+                if (item.HeartbeatInterval == null) {
+                    continue;
+                }
+
+                /*  TODO for now we skip the triggered itme logic for heartbeat
+                //
+                // We add a timer as heartbeat trigger that samples
+                // server time, but we configure it so it will not be
+                // part of the notifications (Sampling only).
+                //
+                var originalTrigger = item.TriggerId;
+                item.TriggerId = ((originalTrigger ?? "heartbeat") +
+                    item.HeartbeatInterval.Value.Ticks).ToSha1Hash();
+                if (map.ContainsKey(item.TriggerId)) {
+                    continue;
+                }
+
+                map.Add(item.TriggerId,
+                    new MonitoredItemModel {
+                        MonitoringMode = MonitoringMode.Sampling,
+                        StartNodeId = "i=2258",
+                        SamplingInterval = item.HeartbeatInterval,
+                        Id = item.TriggerId,
+                        TriggerId = originalTrigger
+                    });
+*/
             }
             return map.Values;
         }

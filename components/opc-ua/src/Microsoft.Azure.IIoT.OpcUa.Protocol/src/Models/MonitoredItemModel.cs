@@ -64,6 +64,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         public MonitoringMode? MonitoringMode { get; set; }
 
         /// <summary>
+        /// Monitored item that triggers reporting of this item
+        /// </summary>
+        public string TriggerId { get; set; }
+
+        /// <summary>
         /// Data change filter
         /// </summary>
         public DataChangeFilterModel DataChangeFilter { get; set; }

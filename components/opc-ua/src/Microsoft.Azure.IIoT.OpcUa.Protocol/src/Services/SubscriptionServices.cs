@@ -352,6 +352,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
 
                 }
 
+                var map = nowMonitored.ToDictionary(
+                    k => k.Template.Id ?? k.Template.StartNodeId, v => v);
+                foreach (var item in nowMonitored.ToList()) {
+                    if (item.Template.TriggerId != null &&
+                        map.TryGetValue(item.Template.TriggerId, out var trigger)) {
+                        trigger.AddTriggerLink(item.ServerId);
+                    }
+                }
+
+                // Set up any new trigger configuration if needed
+                foreach (var item in nowMonitored.ToList()) {
+                    if (item.GetTriggeringLinks(out var added, out var removed)) {
+                        var response = await rawSubscription.Session.SetTriggeringAsync(
+                            null, rawSubscription.Id, item.ServerId ?? 0,
+                            new UInt32Collection(added), new UInt32Collection(removed));
+                    }
+                }
+
                 // Change monitoring mode of all items if necessary
                 foreach (var change in nowMonitored.GroupBy(i => i.GetMonitoringModeChange())) {
                     if (change.Key == null) {
@@ -662,6 +680,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             .ToStackModel(session.MessageContext))
                 };
             }
+
+            /// <summary>
+            /// Add the monitored item identifier of the triggering item.
+            /// </summary>
+            /// <param name="id"></param>
+            internal void AddTriggerLink(uint? id) {
+                if (id != null) {
+                    _newTriggers.Add(id.Value);
+                }
+            }
+
             /// <summary>
             /// Merge with desired state
             /// </summary>
@@ -717,6 +746,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 // monitoredItem.Filter = monitoredItemInfo.Filter?.ToStackType();
                 return changes;
             }
+
+            /// <summary>
+            /// Get triggering configuration changes for this item
+            /// </summary>
+            /// <param name="addLinks"></param>
+            /// <param name="removeLinks"></param>
+            /// <returns></returns>
+            internal bool GetTriggeringLinks(out IEnumerable<uint> addLinks,
+                out IEnumerable<uint> removeLinks) {
+                var remove = _triggers.Except(_newTriggers).ToList();
+                var add = _newTriggers.Except(_triggers).ToList();
+                _triggers = _newTriggers;
+                _newTriggers = new HashSet<uint>();
+                addLinks = add;
+                removeLinks = remove;
+                if (add.Count > 0 || remove.Count > 0) {
+                    _logger.Debug("{item}: Adding {add} links and removing {remove} links.",
+                        this, add.Count, remove.Count);
+                    return true;
+                }
+                return false;
+            }
+
             /// <summary>
             /// Get any changes in the monitoring mode
             /// </summary>
@@ -727,6 +779,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 return Item.MonitoringMode == change ? null : change;
             }
 
+            private HashSet<uint> _newTriggers = new HashSet<uint>();
+            private HashSet<uint> _triggers = new HashSet<uint>();
             private Publisher.Models.MonitoringMode? _modeChange;
             private readonly ILogger _logger;
         }

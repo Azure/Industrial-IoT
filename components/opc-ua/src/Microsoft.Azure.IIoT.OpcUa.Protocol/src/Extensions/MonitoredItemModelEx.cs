@@ -23,6 +23,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             }
             return new MonitoredItemModel {
                 Id = model.Id,
+                TriggerId = model.TriggerId,
                 StartNodeId = model.StartNodeId,
                 SamplingInterval = model.SamplingInterval,
                 QueueSize = model.QueueSize,
@@ -50,6 +51,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 return true;
             }
             if (model == null || other == null) {
+                return false;
+            }
+            if (model.TriggerId != other.TriggerId) {
                 return false;
             }
             if (model.StartNodeId != other.StartNodeId) {
@@ -86,6 +90,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 return false;
             }
             if (!model.RelativePath.SequenceEqualsSafe(other.RelativePath)) {
+                return false;
+            }
+            if (model.HeartbeatInterval != other.HeartbeatInterval) {
                 return false;
             }
             return true;

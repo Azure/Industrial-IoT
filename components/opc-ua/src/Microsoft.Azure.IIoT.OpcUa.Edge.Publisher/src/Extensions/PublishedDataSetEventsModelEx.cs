@@ -37,6 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 AggregateFilter = null,
                 DiscardNew = publishedEvents.DiscardNew,
                 QueueSize = publishedEvents.QueueSize,
+                TriggerId = publishedEvents.TriggerId,
                 MonitoringMode = publishedEvents.MonitoringMode,
                 StartNodeId = publishedEvents.EventNotifier,
                 RelativePath = publishedEvents.BrowsePath,

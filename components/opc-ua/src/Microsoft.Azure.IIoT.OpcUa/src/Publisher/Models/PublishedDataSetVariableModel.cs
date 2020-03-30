@@ -92,7 +92,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         public bool? DiscardNew { get; set; }
 
         /// <summary>
-        /// HeartbeatInterval (Publisher extension)
+        /// Node in dataset writer that triggers reporting
+        /// (Publisher extension)
+        /// </summary>
+        public string TriggerId { get; set; }
+
+        /// <summary>
+        /// Hidden trigger that triggers reporting this variable on
+        /// at a minimum interval.  Mutually exclusive with TriggerId.
+        /// (Publisher extension)
         /// </summary>
         public TimeSpan? HeartbeatInterval { get; set; }
     }

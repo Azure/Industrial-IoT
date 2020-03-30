@@ -24,6 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             return new PublishedDataSetEventsModel {
                 Id = model.Id,
                 MonitoringMode = model.MonitoringMode,
+                TriggerId = model.TriggerId,
                 DiscardNew = model.DiscardNew,
                 EventNotifier = model.EventNotifier,
                 Filter = model.Filter.Clone(),
