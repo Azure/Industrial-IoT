@@ -11,6 +11,8 @@ namespace Opc.Ua.Encoders {
     using Microsoft.Azure.IIoT;
     using System.Text;
     using Xunit.Abstractions;
+    using System.Linq;
+    using Opc.Ua.Extensions;
 
     public class TypeSerializerTests {
 
@@ -32,6 +34,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteInt32Array("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadInt32Array("test"));
 
             Assert.Equal(expected, result);
@@ -51,6 +54,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteInt32Array("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadInt32Array("test"));
 
             Assert.Equal(expected, result);
@@ -70,6 +74,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteDateTime("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadDateTime("test"));
 
             Assert.Equal(expected, result);
@@ -86,16 +91,17 @@ namespace Opc.Ua.Encoders {
         [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteDateTimeArray(string encoderType, string decoderType) {
             var expected = new[] {
-                DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow,
-                DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow,
-                DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow,
-                DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow, DateTime.UtcNow
+                DateTime.UtcNow, DateTime.Now, DateTime.UtcNow, DateTime.MinValue, new DateTime(2001, 1, 1, 12, 0, 0, 0, DateTimeKind.Unspecified),
+                DateTime.UtcNow, DateTime.Now, DateTime.UtcNow, DateTime.MaxValue, new DateTime(2001, 1, 1, 12, 0, 0, 0, DateTimeKind.Local),
+                DateTime.UtcNow, DateTime.Now, DateTime.UtcNow, DateTime.MinValue, new DateTime(2001, 1, 1, 12, 0, 0, 0, DateTimeKind.Utc),
+                DateTime.UtcNow, DateTime.Now, DateTime.UtcNow, DateTime.MaxValue, new DateTime(2001, 1, 1, 12, 0, 0, 0),
             };
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteDateTimeArray("test", expected));
+            expected = expected.Select(d => d.ToOpcUaUniversalTime()).ToArray();
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadDateTimeArray("test"));
-
             Assert.Equal(expected, result);
         }
 
@@ -113,6 +119,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteQualifiedName("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadQualifiedName("test"));
 
             Assert.Equal(expected, result);
@@ -137,6 +144,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteQualifiedNameArray("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadQualifiedNameArray("test"));
 
             Assert.Equal(expected, result);
@@ -156,6 +164,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteDataValue("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadDataValue("test"));
 
             Assert.Equal(expected, result);
@@ -175,6 +184,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteLocalizedText("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadLocalizedText("test"));
 
             Assert.Equal(expected, result);
@@ -184,6 +194,7 @@ namespace Opc.Ua.Encoders {
         [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
         [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
@@ -193,9 +204,13 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteLocalizedText("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadLocalizedText("test"));
 
-            Assert.Equal(expected, result);
+            // The NR encoding ignores the Locale, skip the type validation
+            if (!IsNonReversibleEncoding(encoderType)) {
+                Assert.Equal(expected, result);
+            }
         }
 
         [Theory]
@@ -217,6 +232,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteLocalizedTextArray("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadLocalizedTextArray("test"));
 
             Assert.Equal(expected, result);
@@ -226,6 +242,7 @@ namespace Opc.Ua.Encoders {
         [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
         [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
@@ -240,9 +257,13 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteLocalizedTextArray("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadLocalizedTextArray("test"));
 
-            Assert.Equal(expected, result);
+            // The NR encoding ignores the Locale, skip the type validation
+            if (!IsNonReversibleEncoding(encoderType)) {
+                Assert.Equal(expected, result);
+            }
         }
 
         [Theory]
@@ -259,6 +280,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteStatusCode("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadStatusCode("test"));
 
             Assert.Equal(expected, result);
@@ -282,6 +304,7 @@ namespace Opc.Ua.Encoders {
 
             // read back
             var buffer = encoder.Encode(encoderType, e => e.WriteEncodeable("test", expected, typeof(Argument)));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadEncodeable("test", typeof(Argument)));
 
             Assert.True(result.IsEqual(expected));
@@ -310,7 +333,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteEncodeableArray("test", expected, typeof(Argument)));
-            var test = System.Text.Encoding.UTF8.GetString(buffer);
+            OutputJsonBuffer(encoderType, buffer);
             var result = (ArgumentCollection)decoder.Decode(decoderType, buffer, d => d.ReadEncodeableArray("test", typeof(Argument)));
 
             for (var i = 0; i < result.Count; i++) {
@@ -332,6 +355,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteStringArray("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadStringArray("test"));
 
             Assert.Equal(expected, result);
@@ -351,6 +375,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteStringArray("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadStringArray("test"));
 
             Assert.Equal(expected, result);
@@ -370,6 +395,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteVariant("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadVariant("test"));
 
             Assert.Equal(expected, result);
@@ -386,17 +412,17 @@ namespace Opc.Ua.Encoders {
         [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteStringMatrixVariant(string encoderType, string decoderType) {
             var expected = new Variant(new[, ,] {
-                { { "1", "1", "1" }, { "1", "2", "2" }, { "1", "3", "3" } },
-                { { "1", "1", "1" }, { "2", "2", "2" }, { "3", "3", "3" } },
-                { { "1", "1", "1" }, { "2", "2", "2" }, { "3", "3", "3" } },
-                { { "1", "1", "1" }, { "2", "2", "2" }, { "3", "3", "3" } },
-                { { "1", "1", "1" }, { "2", "2", "2" }, { "3", "3", "3" } },
-                { { "1", "1", "1" }, { "2", "2", "2" }, { "3", "3", "3" } },
-                { { "1", "1", "1" }, { "2", "2", "2" }, { "3", "3", "3" } }
+                { { "1", "1", "1" }, { "2", "2", "1" }, { "3", "3", "1" } },
+                { { "1", "1", "2" }, { "2", "2", "2" }, { "3", "3", "2" } },
+                { { "1", "1", "3" }, { "2", "2", "3" }, { "3", "3", "3" } },
+                { { "1", "1", "4" }, { "2", "2", "4" }, { "3", "3", "4" } },
+                { { "1", "1", "5" }, { "2", "2", "5" }, { "3", "3", "5" } },
+                { { "1", "1", "6" }, { "2", "2", "6" }, { "3", "3", "6" } },
+                { { "1", "1", "7" }, { "2", "2", "7" }, { "3", "3", "7" } }
             });
             CreateSerializers(out var encoder, out var decoder);
             var buffer = encoder.Encode(encoderType, e => e.WriteVariant("test", expected));
-            OutputBuffer(buffer);
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadVariant("test"));
             Assert.True(expected.Value is Matrix);
             Assert.True(result.Value is Matrix);
@@ -407,7 +433,7 @@ namespace Opc.Ua.Encoders {
         [Theory]
         //[InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
         //[InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
-        //[InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
         //[InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
@@ -425,6 +451,7 @@ namespace Opc.Ua.Encoders {
             });
             CreateSerializers(out var encoder, out var decoder);
             var buffer = encoder.Encode(encoderType, e => e.WriteVariant("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadVariant("test"));
             Assert.True(expected.Value is Matrix);
             Assert.True(result.Value is Matrix);
@@ -435,7 +462,7 @@ namespace Opc.Ua.Encoders {
         [Theory]
         //[InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
         //[InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
-        //[InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
         //[InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
@@ -453,6 +480,7 @@ namespace Opc.Ua.Encoders {
             });
             CreateSerializers(out var encoder, out var decoder);
             var buffer = encoder.Encode(encoderType, e => e.WriteVariant("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadVariant("test"));
             Assert.True(expected.Value is Matrix);
             Assert.True(result.Value is Matrix);
@@ -474,6 +502,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteVariant("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadVariant("test"));
 
             Assert.Equal(expected, result);
@@ -491,16 +520,17 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteVariant("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadVariant("test"));
 
             Assert.Equal(expected, result);
         }
 
         [Theory]
-        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
         [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
-        // Note: ulong is encoded with surrounding "", but UInt16 expects a number
+        // ulong is encoded with surrounding "", but UInt16 expects a number 
         //[InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        //[InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
         [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
@@ -511,6 +541,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteUInt64("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadUInt16("test"));
 
             Assert.Equal(expected, result);
@@ -530,6 +561,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteUInt64("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadUInt64("test"));
 
             Assert.Equal(expected, result);
@@ -549,6 +581,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteInt64("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadInt64("test"));
 
             Assert.Equal(expected, result);
@@ -570,6 +603,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteString("test", "123456789123456789"));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadUInt64("test"));
 
             Assert.Equal(expected, result);
@@ -589,6 +623,7 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteVariant("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadVariant("test"));
 
             Assert.Equal(expected, result);
@@ -598,9 +633,7 @@ namespace Opc.Ua.Encoders {
         [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
         [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
-        // Note: For NR tests long and string array is indistinguishable because
-        // string and long (Int64) are encoded with surrounding "".
-        //[InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
@@ -615,9 +648,12 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteVariantArray("test", expected));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadVariantArray("test"));
-
-            Assert.Equal(expected, result);
+            // The NR encoding cannot distinguish between the long[] and string[], skip the type validation
+            if (!IsNonReversibleEncoding(encoderType)) {
+                Assert.Equal(expected, result);
+            }
         }
 
         /// <summary>
@@ -627,7 +663,9 @@ namespace Opc.Ua.Encoders {
         [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
         [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
-        //[InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
+        // TODO: JsonWriterException in JsonEncoderEx
+        // [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
         [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
@@ -637,26 +675,30 @@ namespace Opc.Ua.Encoders {
             expected.SetAttribute(Attributes.NodeClass, NodeClass.Variable);
             expected.SetAttribute(Attributes.BrowseName, new QualifiedName("Somename"));
             expected.SetAttribute(Attributes.NodeId, new NodeId(Guid.NewGuid()));
-            expected.SetAttribute(Attributes.DisplayName, new LocalizedText("hello world"));
+            expected.SetAttribute(Attributes.DisplayName, new LocalizedText("en-us", "hello world"));
             expected.SetAttribute(Attributes.Value, 1235);
             expected.SetAttribute(Attributes.Description, new LocalizedText("test"));
             expected.SetAttribute(Attributes.DataType, new NodeId(Guid.NewGuid()));
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteEncodeable("test", expected, expected.GetType()));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadEncodeable("test", typeof(NodeAttributeSet)));
 
-            Assert.True(expected.IsEqual(result));
+            // The NR encoding ignores the Locale, skip the validation
+            if (!IsNonReversibleEncoding(encoderType)) {
+                Assert.True(expected.IsEqual(result));
+            }
         }
 
         [Theory]
-        //[InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJsonReference)]
         [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJson)]
-        //[InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
-        //[InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
+        [InlineData(ContentMimeType.UaJsonReference, ContentMimeType.UaJsonReference)]
+        [InlineData(ContentMimeType.UaNonReversibleJsonReference, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaNonReversibleJson, ContentMimeType.UaJson)]
         [InlineData(ContentMimeType.UaJson, ContentMimeType.UaJson)]
-        // TODO [InlineData(ContentEncodings.MimeTypeUaBinary, ContentEncodings.MimeTypeUaBinary)]
+        // TODO [InlineData(ContentMimeType.UaBinary, ContentMimeType.UaBinary)]
         [InlineData(ContentMimeType.UaXml, ContentMimeType.UaXml)]
         public void ReadWriteProgramDiagnostic2DataType(string encoderType, string decoderType) {
 
@@ -708,10 +750,17 @@ namespace Opc.Ua.Encoders {
             CreateSerializers(out var encoder, out var decoder);
 
             var buffer = encoder.Encode(encoderType, e => e.WriteEncodeable("test", expected, typeof(ProgramDiagnostic2DataType)));
+            OutputJsonBuffer(encoderType, buffer);
             var result = decoder.Decode(decoderType, buffer, d => d.ReadEncodeable("test", typeof(ProgramDiagnostic2DataType)));
-            Assert.True(result.IsEqual(expected));
+            // The NR encoding cannot distinguish between the long[] and string[], skip the type validation
+            if (!IsNonReversibleEncoding(encoderType)) {
+                Assert.True(result.IsEqual(expected));
+            }
         }
 
+        /// <summary>
+        /// Create the encoder/decoder pair for tests.
+        /// </summary>
         private static ServiceMessageContext CreateSerializers(
             out ITypeSerializer encoder, out ITypeSerializer decoder) {
             var context = new ServiceMessageContext();
@@ -720,9 +769,31 @@ namespace Opc.Ua.Encoders {
             return context;
         }
 
-        private void OutputBuffer(byte[] buffer) {
-            var formattedBuffer = Encoding.UTF8.GetString(buffer);
-            output.WriteLine(formattedBuffer);
+        /// <summary>
+        /// Return true if encoder produces non reversible output.
+        /// </summary>
+        private bool IsNonReversibleEncoding(string encoderType) {
+            return
+                encoderType.Equals(ContentMimeType.UaNonReversibleJsonReference) ||
+                encoderType.Equals(ContentMimeType.UaNonReversibleJson);
+        }
+
+        /// <summary>
+        /// Output a JSON or Xml buffer to the log, skip otherwise.
+        /// </summary>
+        private void OutputJsonBuffer(string encoderType, byte[] buffer) {
+            switch (encoderType) {
+                case ContentMimeType.UaJson:
+                case ContentMimeType.UaJsonReference:
+                case ContentMimeType.UaNonReversibleJsonReference:
+                case ContentMimeType.UaNonReversibleJson:
+                case ContentMimeType.UaXml:
+                    var formattedBuffer = Encoding.UTF8.GetString(buffer);
+                    output.WriteLine(formattedBuffer);
+                    break;
+                default:
+                    break;
+            }
         }
 
         private readonly ITestOutputHelper output;

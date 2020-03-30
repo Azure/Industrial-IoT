@@ -232,14 +232,24 @@ namespace Opc.Ua.Encoders {
         /// <inheritdoc/>
         public void WriteInt64(string property, long value) {
             if (PreWriteValue(property, value)) {
-                _writer.WriteValue(value);
+                if (UseAdvancedEncoding) {
+                    _writer.WriteValue(value);
+                }
+                else {
+                    _writer.WriteValue(value.ToString());
+                }
             }
         }
 
         /// <inheritdoc/>
         public void WriteUInt64(string property, ulong value) {
             if (PreWriteValue(property, value)) {
-                _writer.WriteValue(value);
+                if (UseAdvancedEncoding) {
+                    _writer.WriteValue(value);
+                }
+                else {
+                    _writer.WriteValue(value.ToString());
+                }
             }
         }
 
@@ -294,8 +304,7 @@ namespace Opc.Ua.Encoders {
                 if (!string.IsNullOrEmpty(property)) {
                     _writer.WritePropertyName(property);
                 }
-                _writer.WriteValue(XmlConvert.ToString(value,
-                    XmlDateTimeSerializationMode.RoundtripKind));
+                _writer.WriteValue(value.ToOpcUaJsonEncodedTime());
             }
         }
 
@@ -459,7 +468,7 @@ namespace Opc.Ua.Encoders {
                         WriteUInt16("Namespace", value.NamespaceIndex);
                         break;
                     default:
-                        var namespaceUri = UseReversibleEncoding ? 
+                        var namespaceUri = UseReversibleEncoding ?
                             null : Context.NamespaceUris.GetString(value.NamespaceIndex);
                         if (namespaceUri != null) {
                             WriteString("Namespace", namespaceUri);
@@ -568,7 +577,7 @@ namespace Opc.Ua.Encoders {
             if (LocalizedText.IsNullOrEmpty(value)) {
                 WriteNull(property);
             }
-            else if (UseReversibleEncoding || value.Locale != null) {
+            else if (UseReversibleEncoding) {
                 PushObject(property);
                 WriteString("Text", value.Text);
                 if (!string.IsNullOrEmpty(value.Locale)) {
@@ -1210,6 +1219,11 @@ namespace Opc.Ua.Encoders {
                     WriteNull(null);
                     return;
                 }
+
+                // TODO: JSON array encoding only for 
+                // non reversible encoding, otherwise 
+                // flatten array and add Dimension.
+                // if (!UseReversibleEncoding) {
                 if (value is Matrix matrix) {
                     var index = 0;
                     WriteMatrix(matrix, 0, ref index, builtInType);
@@ -1388,7 +1402,7 @@ namespace Opc.Ua.Encoders {
         /// <param name="values"></param>
         /// <param name="writer"></param>
         private void WriteDictionary<T>(string property, IDictionary<string, T> values,
-            Action<string,T> writer) {
+            Action<string, T> writer) {
             if (values == null) {
                 WriteNull(property);
             }

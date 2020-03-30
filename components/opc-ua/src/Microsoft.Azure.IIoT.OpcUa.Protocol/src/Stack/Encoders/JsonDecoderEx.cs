@@ -210,11 +210,11 @@ namespace Opc.Ua.Encoders {
             }
             if (token.Type == JTokenType.String) {
                 return XmlConvert.ToDateTime((string)token,
-                    XmlDateTimeSerializationMode.Utc);
+                    XmlDateTimeSerializationMode.Utc).ToOpcUaUniversalTime();
             }
             var value = token.ToObject<DateTime?>();
             if (value != null) {
-                return value.Value;
+                return value.Value.ToOpcUaUniversalTime();
             }
             return DateTime.MinValue;
         }

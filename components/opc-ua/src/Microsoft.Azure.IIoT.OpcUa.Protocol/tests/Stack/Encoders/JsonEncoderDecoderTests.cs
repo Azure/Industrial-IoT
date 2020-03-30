@@ -8,6 +8,7 @@ namespace Opc.Ua.Encoders {
     using Xunit;
     using System.IO;
     using System.Collections.Generic;
+    using Opc.Ua.Extensions;
 
     public class JsonEncoderDecoderTests {
 
@@ -151,7 +152,7 @@ namespace Opc.Ua.Encoders {
                 ["abcd"] = new DataValue(new Variant(1234), StatusCodes.Good, DateTime.Now, DateTime.UtcNow),
                 ["http://microsoft.com"] = new DataValue(new Variant(-222222222), StatusCodes.Bad, DateTime.MinValue, DateTime.Now),
                 ["1111111111111111111111111"] = new DataValue(new Variant(false), StatusCodes.Bad, DateTime.UtcNow, DateTime.MinValue),
-                ["@#$%^&*()_+~!@#$%^*(){}"] = new DataValue(new Variant(new byte[] { 0, 2, 4, 6}), StatusCodes.Good),
+                ["@#$%^&*()_+~!@#$%^*(){}"] = new DataValue(new Variant(new byte[] { 0, 2, 4, 6 }), StatusCodes.Good),
                 ["1245"] = new DataValue(new Variant("hello"), StatusCodes.Bad, DateTime.Now, DateTime.MinValue),
                 ["..."] = new DataValue(new Variant(new Variant("imbricated"))),
             };
@@ -168,11 +169,16 @@ namespace Opc.Ua.Encoders {
                 }
                 buffer = stream.ToArray();
             }
+            // convert DataValue timestamps to OpcUa Utc 
+            var expectedResult = new Dictionary<string, DataValue>();
+            foreach (var entry in expected) {
+                expectedResult[entry.Key] = new DataValue(entry.Value).ToOpcUaUniversalTime();
+            }
             using (var stream = new MemoryStream(buffer)) {
                 using (var decoder = new JsonDecoderEx(stream, context)) {
                     for (var i = 0; i < count; i++) {
                         var result = decoder.ReadDataValueDictionary(null);
-                        Assert.Equal(expected, result);
+                        Assert.Equal(expectedResult, result);
                     }
                     var eof = decoder.ReadDataValue(null);
                     Assert.Null(eof);
