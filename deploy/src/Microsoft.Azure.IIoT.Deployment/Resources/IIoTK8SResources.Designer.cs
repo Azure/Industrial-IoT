@@ -677,9 +677,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  tls.key: null
         ///.
         /// </summary>
-        internal static string _25_default_ssl_certificate_secret {
+        internal static string _45_default_ssl_certificate_secret {
             get {
-                return ResourceManager.GetString("_25_default_ssl_certificate_secret", resourceCulture);
+                return ResourceManager.GetString("_45_default_ssl_certificate_secret", resourceCulture);
             }
         }
         
@@ -704,9 +704,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///      - path: /registry/(.*)
         ///        backend [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string _30_industrial_iot_ingress {
+        internal static string _50_industrial_iot_ingress {
             get {
-                return ResourceManager.GetString("_30_industrial_iot_ingress", resourceCulture);
+                return ResourceManager.GetString("_50_industrial_iot_ingress", resourceCulture);
             }
         }
         

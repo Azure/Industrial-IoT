@@ -184,11 +184,11 @@
   <data name="_21_twinwebui_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>aks\21_twinwebui_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="_25_default_ssl_certificate_secret" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\25_default_ssl_certificate_secret.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="_45_default_ssl_certificate_secret" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\45_default_ssl_certificate_secret.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="_30_industrial_iot_ingress" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\30_industrial_iot_ingress.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  <data name="_50_industrial_iot_ingress" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\50_industrial_iot_ingress.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
   <data name="_70_ingress_nginx_namespace" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>aks\70_ingress_nginx_namespace.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>

@@ -510,7 +510,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             CancellationToken cancellationToken = default
         ) {
             return await CreateExtensionsv1beta1IngressAsync(
-                Resources.IIoTK8SResources._30_industrial_iot_ingress,
+                Resources.IIoTK8SResources._50_industrial_iot_ingress,
                 _iiotNamespace,
                 cancellationToken
             );
@@ -608,7 +608,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             const string tlsKey = "tls.key";
 
             var defaultSslCertificateSecret = await CreateV1SecretAsync(
-                Resources.IIoTK8SResources._25_default_ssl_certificate_secret,
+                Resources.IIoTK8SResources._45_default_ssl_certificate_secret,
                 _iiotNamespace,
                 new Dictionary<string, string> {
                     { tlsCrt, certPem },
