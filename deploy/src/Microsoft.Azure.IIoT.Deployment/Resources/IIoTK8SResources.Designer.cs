@@ -633,34 +633,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to apiVersion: apps/v1
-        ///kind: Deployment
-        ///metadata:
-        ///  name: twin-webui-deployment
-        ///  namespace: industrial-iot
-        ///  labels:
-        ///    app.kubernetes.io/name: twin-webui-service
-        ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
-        ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
-        ///spec:
-        ///  replicas: 1
-        ///  selector:
-        ///    matchLabels:
-        ///      app.kubernetes.io/name: twin-webui-service
-        ///      app.kubernetes.io/part-of: industrial-iot
-        ///  template:
-        ///    metadata:
-        ///      labels:
-        ///        app.kub [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string _30_twinwebui_deployment {
-            get {
-                return ResourceManager.GetString("_30_twinwebui_deployment", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to apiVersion: v1
         ///kind: Secret
         ///metadata:
