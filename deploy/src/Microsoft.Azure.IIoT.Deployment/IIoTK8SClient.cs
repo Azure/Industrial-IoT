@@ -103,7 +103,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             CancellationToken cancellationToken = default
         ) {
             return await CreateV1NamespaceAsync(
-                Resources.IIoTK8SResources._40_ingress_nginx_namespace,
+                Resources.IIoTK8SResources._70_ingress_nginx_namespace,
                 cancellationToken
             );
         }
@@ -181,30 +181,30 @@ namespace Microsoft.Azure.IIoT.Deployment {
                 // Create ServiceAccount, Role, ClusterRole, RoleBinding and
                 // ClusterRoleBinding for NGINX Ingress controller.
                 var v1ServiceAccount = await CreateV1ServiceAccountAsync(
-                    Resources.IIoTK8SResources._41_nginx_ingress_serviceaccount,
+                    Resources.IIoTK8SResources._71_nginx_ingress_serviceaccount,
                     _nginxNamespace,
                     cancellationToken
                 );
 
                 await CreateV1ClusterRoleAsync(
-                    Resources.IIoTK8SResources._42_nginx_ingress_clusterrole,
+                    Resources.IIoTK8SResources._72_nginx_ingress_clusterrole,
                     cancellationToken
                 );
 
                 await CreateV1RoleAsync(
-                    Resources.IIoTK8SResources._43_nginx_ingress_role,
+                    Resources.IIoTK8SResources._73_nginx_ingress_role,
                     _nginxNamespace,
                     cancellationToken
                 );
 
                 await CreateV1RoleBindingAsync(
-                    Resources.IIoTK8SResources._44_nginx_ingress_role_nisa_binding,
+                    Resources.IIoTK8SResources._74_nginx_ingress_role_nisa_binding,
                     _nginxNamespace,
                     cancellationToken
                 );
 
                 await CreateV1ClusterRoleBindingAsync(
-                    Resources.IIoTK8SResources._45_nginx_ingress_clusterrole_nisa_binding,
+                    Resources.IIoTK8SResources._75_nginx_ingress_clusterrole_nisa_binding,
                     cancellationToken
                 );
 
@@ -630,19 +630,19 @@ namespace Microsoft.Azure.IIoT.Deployment {
         ) {
             try {
                 await CreateV1ConfigMapAsync(
-                    Resources.IIoTK8SResources._50_nginx_ingress_configuration_configmap,
+                    Resources.IIoTK8SResources._80_nginx_ingress_configuration_configmap,
                     _nginxNamespace,
                     cancellationToken: cancellationToken
                 );
 
                 await CreateV1DeploymentAsync(
-                    Resources.IIoTK8SResources._51_nginx_ingress_controller_deployment,
+                    Resources.IIoTK8SResources._81_nginx_ingress_controller_deployment,
                     _nginxNamespace,
                     cancellationToken
                 );
 
                 await CreateV1ServiceAsync(
-                    Resources.IIoTK8SResources._52_ingress_nginx_service,
+                    Resources.IIoTK8SResources._82_ingress_nginx_service,
                     _nginxNamespace,
                     cancellationToken
                 );

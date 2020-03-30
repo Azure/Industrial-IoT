@@ -191,12 +191,12 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///type: Opaque
         ///data:
-        ///  _HUB_CS: null
+        ///  ####################----------2.6.104----------####################
+        ///  # IoT Hub
         ///  PCS_IOTHUB_CONNSTRING: null
-        ///  PCS_STORAGEADAPTER_DOCUMENTDB_CONNSTRING: null
-        ///  PCS_TELEMETRY_DOCUMENTDB_CONNSTRING: null
-        ///  PCS_TELEMETRYAGENT_DOCUMENTDB_CONNSTRING: null
-        ///  PCS_IOTH [rest of string was truncated]&quot;;.
+        ///  PCS_IOTHUB_EVENTHUBENDPOINT: null
+        ///  PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS: null
+        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _10_industrial_iot_env_secret {
             get {
@@ -720,9 +720,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///    app.kubernetes.io/part-of: ingress-nginx
         ///.
         /// </summary>
-        internal static string _40_ingress_nginx_namespace {
+        internal static string _70_ingress_nginx_namespace {
             get {
-                return ResourceManager.GetString("_40_ingress_nginx_namespace", resourceCulture);
+                return ResourceManager.GetString("_70_ingress_nginx_namespace", resourceCulture);
             }
         }
         
@@ -737,9 +737,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///    app.kubernetes.io/part-of: ingress-nginx
         ///.
         /// </summary>
-        internal static string _41_nginx_ingress_serviceaccount {
+        internal static string _71_nginx_ingress_serviceaccount {
             get {
-                return ResourceManager.GetString("_41_nginx_ingress_serviceaccount", resourceCulture);
+                return ResourceManager.GetString("_71_nginx_ingress_serviceaccount", resourceCulture);
             }
         }
         
@@ -770,9 +770,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///      - &quot;&quot;
         ///    resou [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string _42_nginx_ingress_clusterrole {
+        internal static string _72_nginx_ingress_clusterrole {
             get {
-                return ResourceManager.GetString("_42_nginx_ingress_clusterrole", resourceCulture);
+                return ResourceManager.GetString("_72_nginx_ingress_clusterrole", resourceCulture);
             }
         }
         
@@ -803,9 +803,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///      # Defaults to &quot;&lt;election-id&gt;-&lt;ingress-class&gt;&quot;
         ///      # Here: &quot;&lt;ingress-contro [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string _43_nginx_ingress_role {
+        internal static string _73_nginx_ingress_role {
             get {
-                return ResourceManager.GetString("_43_nginx_ingress_role", resourceCulture);
+                return ResourceManager.GetString("_73_nginx_ingress_role", resourceCulture);
             }
         }
         
@@ -828,9 +828,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///    namespace: ingress-nginx
         ///.
         /// </summary>
-        internal static string _44_nginx_ingress_role_nisa_binding {
+        internal static string _74_nginx_ingress_role_nisa_binding {
             get {
-                return ResourceManager.GetString("_44_nginx_ingress_role_nisa_binding", resourceCulture);
+                return ResourceManager.GetString("_74_nginx_ingress_role_nisa_binding", resourceCulture);
             }
         }
         
@@ -852,9 +852,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///    namespace: ingress-nginx
         ///.
         /// </summary>
-        internal static string _45_nginx_ingress_clusterrole_nisa_binding {
+        internal static string _75_nginx_ingress_clusterrole_nisa_binding {
             get {
-                return ResourceManager.GetString("_45_nginx_ingress_clusterrole_nisa_binding", resourceCulture);
+                return ResourceManager.GetString("_75_nginx_ingress_clusterrole_nisa_binding", resourceCulture);
             }
         }
         
@@ -871,9 +871,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  client-header-buffer-size: &quot;32k&quot;
         ///.
         /// </summary>
-        internal static string _50_nginx_ingress_configuration_configmap {
+        internal static string _80_nginx_ingress_configuration_configmap {
             get {
-                return ResourceManager.GetString("_50_nginx_ingress_configuration_configmap", resourceCulture);
+                return ResourceManager.GetString("_80_nginx_ingress_configuration_configmap", resourceCulture);
             }
         }
         
@@ -900,9 +900,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///      annotations:
         ///        promet [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string _51_nginx_ingress_controller_deployment {
+        internal static string _81_nginx_ingress_controller_deployment {
             get {
-                return ResourceManager.GetString("_51_nginx_ingress_controller_deployment", resourceCulture);
+                return ResourceManager.GetString("_81_nginx_ingress_controller_deployment", resourceCulture);
             }
         }
         
@@ -930,9 +930,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///      targetPort: https
         ///.
         /// </summary>
-        internal static string _52_ingress_nginx_service {
+        internal static string _82_ingress_nginx_service {
             get {
-                return ResourceManager.GetString("_52_ingress_nginx_service", resourceCulture);
+                return ResourceManager.GetString("_82_ingress_nginx_service", resourceCulture);
             }
         }
     }
