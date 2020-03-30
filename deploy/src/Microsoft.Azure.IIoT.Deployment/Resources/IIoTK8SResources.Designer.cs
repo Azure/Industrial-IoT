@@ -226,9 +226,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///      labels:
         ///        app.kubernete [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string _11_registry_deployment {
+        internal static string _20_registry_deployment {
             get {
-                return ResourceManager.GetString("_11_registry_deployment", resourceCulture);
+                return ResourceManager.GetString("_20_registry_deployment", resourceCulture);
             }
         }
         
@@ -255,9 +255,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  - port: 9042
         ///    protocol: TCP [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string _11_registry_service {
+        internal static string _20_registry_service {
             get {
-                return ResourceManager.GetString("_11_registry_service", resourceCulture);
+                return ResourceManager.GetString("_20_registry_service", resourceCulture);
             }
         }
         
@@ -283,9 +283,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///      labels:
         ///        app.kubernetes.io/name: t [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string _12_twin_deployment {
+        internal static string _21_twin_deployment {
             get {
-                return ResourceManager.GetString("_12_twin_deployment", resourceCulture);
+                return ResourceManager.GetString("_21_twin_deployment", resourceCulture);
             }
         }
         
@@ -313,9 +313,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///    protocol: TCP
         ///    name: r [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string _12_twin_service {
+        internal static string _21_twin_service {
             get {
-                return ResourceManager.GetString("_12_twin_service", resourceCulture);
+                return ResourceManager.GetString("_21_twin_service", resourceCulture);
             }
         }
         
@@ -341,9 +341,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///      labels:
         ///        app.kubernetes.i [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string _13_history_deployment {
+        internal static string _22_history_deployment {
             get {
-                return ResourceManager.GetString("_13_history_deployment", resourceCulture);
+                return ResourceManager.GetString("_22_history_deployment", resourceCulture);
             }
         }
         
@@ -371,9 +371,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///    protocol: TCP
         ///   [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string _13_history_service {
+        internal static string _22_history_service {
             get {
-                return ResourceManager.GetString("_13_history_service", resourceCulture);
+                return ResourceManager.GetString("_22_history_service", resourceCulture);
             }
         }
         
@@ -399,9 +399,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///      labels:
         ///        app.kubernetes.i [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string _14_gateway_deployment {
+        internal static string _23_gateway_deployment {
             get {
-                return ResourceManager.GetString("_14_gateway_deployment", resourceCulture);
+                return ResourceManager.GetString("_23_gateway_deployment", resourceCulture);
             }
         }
         
@@ -429,9 +429,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///    protocol: TCP
         ///   [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string _14_gateway_service {
+        internal static string _23_gateway_service {
             get {
-                return ResourceManager.GetString("_14_gateway_service", resourceCulture);
+                return ResourceManager.GetString("_23_gateway_service", resourceCulture);
             }
         }
         
@@ -457,9 +457,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///      labels:
         ///        app.kubernetes.io/name [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string _15_vault_deployment {
+        internal static string _24_vault_deployment {
             get {
-                return ResourceManager.GetString("_15_vault_deployment", resourceCulture);
+                return ResourceManager.GetString("_24_vault_deployment", resourceCulture);
             }
         }
         
@@ -487,9 +487,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///    protocol: TCP
         ///    name [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string _15_vault_service {
+        internal static string _24_vault_service {
             get {
-                return ResourceManager.GetString("_15_vault_service", resourceCulture);
+                return ResourceManager.GetString("_24_vault_service", resourceCulture);
             }
         }
         
@@ -515,9 +515,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///      labels:
         ///        app.kubernete [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string _16_alerting_deployment {
+        internal static string _25_alerting_deployment {
             get {
-                return ResourceManager.GetString("_16_alerting_deployment", resourceCulture);
+                return ResourceManager.GetString("_25_alerting_deployment", resourceCulture);
             }
         }
         
@@ -543,9 +543,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///      labels:
         ///        app.kub [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string _17_onboarding_deployment {
+        internal static string _26_onboarding_deployment {
             get {
-                return ResourceManager.GetString("_17_onboarding_deployment", resourceCulture);
+                return ResourceManager.GetString("_26_onboarding_deployment", resourceCulture);
             }
         }
         
@@ -571,9 +571,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///      labels:
         ///        app.kubernetes.io/name: j [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string _18_jobs_deployment {
+        internal static string _27_jobs_deployment {
             get {
-                return ResourceManager.GetString("_18_jobs_deployment", resourceCulture);
+                return ResourceManager.GetString("_27_jobs_deployment", resourceCulture);
             }
         }
         
@@ -599,9 +599,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///      labels:
         /// [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string _19_modelprocessor_deployment {
+        internal static string _28_modelprocessor_deployment {
             get {
-                return ResourceManager.GetString("_19_modelprocessor_deployment", resourceCulture);
+                return ResourceManager.GetString("_28_modelprocessor_deployment", resourceCulture);
             }
         }
         
@@ -626,9 +626,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///    metadata:
         ///      la [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string _20_blobnotification_deployment {
+        internal static string _29_blobnotification_deployment {
             get {
-                return ResourceManager.GetString("_20_blobnotification_deployment", resourceCulture);
+                return ResourceManager.GetString("_29_blobnotification_deployment", resourceCulture);
             }
         }
         
@@ -654,9 +654,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///      labels:
         ///        app.kub [rest of string was truncated]&quot;;.
         /// </summary>
-        internal static string _21_twinwebui_deployment {
+        internal static string _30_twinwebui_deployment {
             get {
-                return ResourceManager.GetString("_21_twinwebui_deployment", resourceCulture);
+                return ResourceManager.GetString("_30_twinwebui_deployment", resourceCulture);
             }
         }
         

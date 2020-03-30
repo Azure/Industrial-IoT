@@ -400,95 +400,95 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
                 // Deploy registry service
                 await CreateV1DeploymentAsync(
-                    Resources.IIoTK8SResources._11_registry_deployment,
+                    Resources.IIoTK8SResources._20_registry_deployment,
                     _iiotNamespace,
                     cancellationToken
                 );
                 await CreateV1ServiceAsync(
-                    Resources.IIoTK8SResources._11_registry_service,
+                    Resources.IIoTK8SResources._20_registry_service,
                     _iiotNamespace,
                     cancellationToken
                 );
 
                 // Deploy twin service
                 await CreateV1DeploymentAsync(
-                    Resources.IIoTK8SResources._12_twin_deployment,
+                    Resources.IIoTK8SResources._21_twin_deployment,
                     _iiotNamespace,
                     cancellationToken
                 );
                 await CreateV1ServiceAsync(
-                    Resources.IIoTK8SResources._12_twin_service,
+                    Resources.IIoTK8SResources._21_twin_service,
                     _iiotNamespace,
                     cancellationToken
                 );
 
                 // Deploy history service
                 await CreateV1DeploymentAsync(
-                    Resources.IIoTK8SResources._13_history_deployment,
+                    Resources.IIoTK8SResources._22_history_deployment,
                     _iiotNamespace,
                     cancellationToken
                 );
                 await CreateV1ServiceAsync(
-                    Resources.IIoTK8SResources._13_history_service,
+                    Resources.IIoTK8SResources._22_history_service,
                     _iiotNamespace,
                     cancellationToken
                 );
 
                 // Deploy gateway service
                 await CreateV1DeploymentAsync(
-                    Resources.IIoTK8SResources._14_gateway_deployment,
+                    Resources.IIoTK8SResources._23_gateway_deployment,
                     _iiotNamespace,
                     cancellationToken
                 );
                 await CreateV1ServiceAsync(
-                    Resources.IIoTK8SResources._14_gateway_service,
+                    Resources.IIoTK8SResources._23_gateway_service,
                     _iiotNamespace,
                     cancellationToken
                 );
 
                 // Deploy vault service
                 await CreateV1DeploymentAsync(
-                    Resources.IIoTK8SResources._15_vault_deployment,
+                    Resources.IIoTK8SResources._24_vault_deployment,
                     _iiotNamespace,
                     cancellationToken
                 );
                 await CreateV1ServiceAsync(
-                    Resources.IIoTK8SResources._15_vault_service,
+                    Resources.IIoTK8SResources._24_vault_service,
                     _iiotNamespace,
                     cancellationToken
                 );
 
                 // Deploy alerting service
                 await CreateV1DeploymentAsync(
-                    Resources.IIoTK8SResources._16_alerting_deployment,
+                    Resources.IIoTK8SResources._25_alerting_deployment,
                     _iiotNamespace,
                     cancellationToken
                 );
 
                 // Deploy onboarding service
                 await CreateV1DeploymentAsync(
-                    Resources.IIoTK8SResources._17_onboarding_deployment,
+                    Resources.IIoTK8SResources._26_onboarding_deployment,
                     _iiotNamespace,
                     cancellationToken
                 );
 
                 // Deploy jobs service
                 await CreateV1DeploymentAsync(
-                    Resources.IIoTK8SResources._18_jobs_deployment,
+                    Resources.IIoTK8SResources._27_jobs_deployment,
                     _iiotNamespace,
                     cancellationToken
                 );
 
                 // Deploy modelprocessor service
                 await CreateV1DeploymentAsync(
-                    Resources.IIoTK8SResources._19_modelprocessor_deployment,
+                    Resources.IIoTK8SResources._28_modelprocessor_deployment,
                     _iiotNamespace,
                     cancellationToken
                 );
 
                 // Deploy blobnotification service
                 await CreateV1DeploymentAsync(
-                    Resources.IIoTK8SResources._20_blobnotification_deployment,
+                    Resources.IIoTK8SResources._29_blobnotification_deployment,
                     _iiotNamespace,
                     cancellationToken
                 );

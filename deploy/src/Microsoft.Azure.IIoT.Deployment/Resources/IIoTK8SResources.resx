@@ -136,53 +136,53 @@
   <data name="_10_industrial_iot_env_secret" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>aks\10_industrial_iot_env_secret.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="_11_registry_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\11_registry_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  <data name="_20_registry_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\20_registry_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
-  <data name="_11_registry_service" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\11_registry_service.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  <data name="_20_registry_service" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\20_registry_service.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
-  <data name="_12_twin_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\12_twin_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="_21_twin_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\21_twin_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="_12_twin_service" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\12_twin_service.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="_21_twin_service" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\21_twin_service.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="_13_history_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\13_history_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="_22_history_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\22_history_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="_13_history_service" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\13_history_service.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="_22_history_service" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\22_history_service.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="_14_gateway_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\14_gateway_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="_23_gateway_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\23_gateway_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="_14_gateway_service" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\14_gateway_service.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="_23_gateway_service" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\23_gateway_service.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="_15_vault_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\15_vault_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="_24_vault_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\24_vault_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="_15_vault_service" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\15_vault_service.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="_24_vault_service" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\24_vault_service.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="_16_alerting_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\16_alerting_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="_25_alerting_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\25_alerting_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="_17_onboarding_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\17_onboarding_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="_26_onboarding_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\26_onboarding_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="_18_jobs_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\18_jobs_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="_27_jobs_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\27_jobs_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="_19_modelprocessor_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\19_modelprocessor_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="_28_modelprocessor_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\28_modelprocessor_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="_20_blobnotification_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\20_blobnotification_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="_29_blobnotification_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\29_blobnotification_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
-  <data name="_21_twinwebui_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>aks\21_twinwebui_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  <data name="_30_twinwebui_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\30_twinwebui_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
   <data name="_45_default_ssl_certificate_secret" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>aks\45_default_ssl_certificate_secret.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
