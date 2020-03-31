@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: industrial-iot
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///.
         /// </summary>
@@ -87,7 +87,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: industrial-iot
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///.
         /// </summary>
@@ -106,7 +106,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: industrial-iot
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///rules:
         ///  - apiGroups:
@@ -135,7 +135,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: industrial-iot
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///roleRef:
         ///  apiGroup: rbac.authorization.k8s.io
@@ -144,7 +144,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///subjects:
         ///  - kind: ServiceAccount
         ///    name: industrial-iot-serviceaccount
-        ///    namespace: [rest of string was truncated]&quot;;.
+        ///    namespac [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _03_industrial_iot_role_binding {
             get {
@@ -187,7 +187,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: industrial-iot
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///type: Opaque
         ///data:
@@ -195,8 +195,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  # IoT Hub
         ///  PCS_IOTHUB_CONNSTRING: null
         ///  PCS_IOTHUB_EVENTHUBENDPOINT: null
-        ///  PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS: null
-        /// [rest of string was truncated]&quot;;.
+        ///  PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS: nul [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _10_industrial_iot_env_secret {
             get {
@@ -213,18 +212,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: registry-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: opc-registry
         ///spec:
         ///  replicas: 1
         ///  selector:
         ///    matchLabels:
         ///      app.kubernetes.io/name: registry-service
         ///      app.kubernetes.io/part-of: industrial-iot
-        ///  template:
-        ///    metadata:
-        ///      labels:
-        ///        app.kubernete [rest of string was truncated]&quot;;.
+        ///      app.kub [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _20_registry_deployment {
             get {
@@ -241,19 +238,15 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: registry-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: opc-registry
         ///spec:
         ///  type: ClusterIP
         ///  selector:
         ///    app.kubernetes.io/name: registry-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///  ports:
-        ///  - port: 443
-        ///    protocol: TCP
-        ///    name: https
-        ///  - port: 9042
-        ///    protocol: TCP [rest of string was truncated]&quot;;.
+        ///    app.kubernetes.io/component: opc-regi [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _20_registry_service {
             get {
@@ -270,18 +263,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: twin-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: opc-twin
         ///spec:
         ///  replicas: 1
         ///  selector:
         ///    matchLabels:
         ///      app.kubernetes.io/name: twin-service
         ///      app.kubernetes.io/part-of: industrial-iot
-        ///  template:
-        ///    metadata:
-        ///      labels:
-        ///        app.kubernetes.io/name: t [rest of string was truncated]&quot;;.
+        ///      app.kubernetes.io/compo [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _21_twin_deployment {
             get {
@@ -298,20 +289,17 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: twin-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: opc-twin
         ///spec:
         ///  type: ClusterIP
         ///  selector:
         ///    app.kubernetes.io/name: twin-service
         ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/component: opc-twin
         ///  ports:
-        ///  - port: 443
-        ///    protocol: TCP
-        ///    name: https
-        ///  - port: 9041
-        ///    protocol: TCP
-        ///    name: r [rest of string was truncated]&quot;;.
+        ///  - po [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _21_twin_service {
             get {
@@ -328,18 +316,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: history-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: opc-history
         ///spec:
         ///  replicas: 1
         ///  selector:
         ///    matchLabels:
         ///      app.kubernetes.io/name: history-service
         ///      app.kubernetes.io/part-of: industrial-iot
-        ///  template:
-        ///    metadata:
-        ///      labels:
-        ///        app.kubernetes.i [rest of string was truncated]&quot;;.
+        ///      app.kuberne [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _22_history_deployment {
             get {
@@ -356,20 +342,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: history-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: opc-history
         ///spec:
         ///  type: ClusterIP
         ///  selector:
         ///    app.kubernetes.io/name: history-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///  ports:
-        ///  - port: 443
-        ///    protocol: TCP
-        ///    name: https
-        ///  - port: 9043
-        ///    protocol: TCP
-        ///   [rest of string was truncated]&quot;;.
+        ///    app.kubernetes.io/component: opc-history
+        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _22_history_service {
             get {
@@ -386,18 +368,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: gateway-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: opc-gateway
         ///spec:
         ///  replicas: 1
         ///  selector:
         ///    matchLabels:
         ///      app.kubernetes.io/name: gateway-service
         ///      app.kubernetes.io/part-of: industrial-iot
-        ///  template:
-        ///    metadata:
-        ///      labels:
-        ///        app.kubernetes.i [rest of string was truncated]&quot;;.
+        ///      app.kuberne [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _23_gateway_deployment {
             get {
@@ -414,20 +394,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: gateway-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: opc-gateway
         ///spec:
         ///  type: ClusterIP
         ///  selector:
         ///    app.kubernetes.io/name: gateway-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///  ports:
-        ///  - port: 443
-        ///    protocol: TCP
-        ///    name: https
-        ///  - port: 9040
-        ///    protocol: TCP
-        ///   [rest of string was truncated]&quot;;.
+        ///    app.kubernetes.io/component: opc-gateway
+        /// [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _23_gateway_service {
             get {
@@ -444,18 +420,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: vault-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: opc-vault
         ///spec:
         ///  replicas: 1
         ///  selector:
         ///    matchLabels:
         ///      app.kubernetes.io/name: vault-service
         ///      app.kubernetes.io/part-of: industrial-iot
-        ///  template:
-        ///    metadata:
-        ///      labels:
-        ///        app.kubernetes.io/name [rest of string was truncated]&quot;;.
+        ///      app.kubernetes.io/c [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _24_vault_deployment {
             get {
@@ -472,20 +446,17 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: vault-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: opc-vault
         ///spec:
         ///  type: ClusterIP
         ///  selector:
         ///    app.kubernetes.io/name: vault-service
         ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/component: opc-vault
         ///  ports:
-        ///  - port: 443
-        ///    protocol: TCP
-        ///    name: https
-        ///  - port: 9044
-        ///    protocol: TCP
-        ///    name [rest of string was truncated]&quot;;.
+        ///  [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _24_vault_service {
             get {
@@ -502,18 +473,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: alerting-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: opc-alerting
         ///spec:
         ///  replicas: 1
         ///  selector:
         ///    matchLabels:
         ///      app.kubernetes.io/name: alerting-service
         ///      app.kubernetes.io/part-of: industrial-iot
-        ///  template:
-        ///    metadata:
-        ///      labels:
-        ///        app.kubernete [rest of string was truncated]&quot;;.
+        ///      app.kub [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _25_alerting_deployment {
             get {
@@ -530,22 +499,44 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: onboarding-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: opc-onboarding-service
         ///spec:
         ///  replicas: 1
         ///  selector:
         ///    matchLabels:
         ///      app.kubernetes.io/name: onboarding-service
-        ///      app.kubernetes.io/part-of: industrial-iot
-        ///  template:
-        ///    metadata:
-        ///      labels:
-        ///        app.kub [rest of string was truncated]&quot;;.
+        ///      app.kubernetes.io/part-of: industrial-i [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _26_onboarding_deployment {
             get {
                 return ResourceManager.GetString("_26_onboarding_deployment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to apiVersion: v1
+        ///kind: Service
+        ///metadata:
+        ///  name: onboarding-service
+        ///  namespace: industrial-iot
+        ///  labels:
+        ///    app.kubernetes.io/name: onboarding-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: opc-onboarding-service
+        ///spec:
+        ///  type: ClusterIP
+        ///  selector:
+        ///    app.kubernetes.io/name: onboarding-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/com [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string _26_onboarding_svc {
+            get {
+                return ResourceManager.GetString("_26_onboarding_svc", resourceCulture);
             }
         }
         
@@ -558,18 +549,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: jobs-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: opc-jobs
         ///spec:
         ///  replicas: 1
         ///  selector:
         ///    matchLabels:
         ///      app.kubernetes.io/name: jobs-service
         ///      app.kubernetes.io/part-of: industrial-iot
-        ///  template:
-        ///    metadata:
-        ///      labels:
-        ///        app.kubernetes.io/name: j [rest of string was truncated]&quot;;.
+        ///      app.kubernetes.io/compo [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _27_jobs_deployment {
             get {
@@ -586,18 +575,15 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: model-processor-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: opc-processor
         ///spec:
         ///  replicas: 1
         ///  selector:
         ///    matchLabels:
         ///      app.kubernetes.io/name: model-processor-service
-        ///      app.kubernetes.io/part-of: industrial-iot
-        ///  template:
-        ///    metadata:
-        ///      labels:
-        /// [rest of string was truncated]&quot;;.
+        ///      app.kubernetes.io/part-of: indust [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _28_modelprocessor_deployment {
             get {
@@ -614,21 +600,466 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: blob-notification-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: blob-notification
         ///spec:
         ///  replicas: 1
         ///  selector:
         ///    matchLabels:
         ///      app.kubernetes.io/name: blob-notification-service
-        ///      app.kubernetes.io/part-of: industrial-iot
-        ///  template:
-        ///    metadata:
-        ///      la [rest of string was truncated]&quot;;.
+        ///      app.kubernetes.io/part- [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _29_blobnotification_deployment {
             get {
                 return ResourceManager.GetString("_29_blobnotification_deployment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to apiVersion: apps/v1
+        ///kind: Deployment
+        ///metadata:
+        ///  name: publisher-deployment
+        ///  namespace: industrial-iot
+        ///  labels:
+        ///    app.kubernetes.io/name: publisher-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: opc-publisher-service
+        ///spec:
+        ///  replicas: 1
+        ///  selector:
+        ///    matchLabels:
+        ///      app.kubernetes.io/name: publisher-service
+        ///      app.kubernetes.io/part-of: industrial-iot
+        ///  [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string _30_publisher_deployment {
+            get {
+                return ResourceManager.GetString("_30_publisher_deployment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to apiVersion: v1
+        ///kind: Service
+        ///metadata:
+        ///  name: publisher-service
+        ///  namespace: industrial-iot
+        ///  labels:
+        ///    app.kubernetes.io/name: publisher-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: opc-publisher-service
+        ///spec:
+        ///  type: ClusterIP
+        ///  selector:
+        ///    app.kubernetes.io/name: publisher-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/compone [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string _30_publisher_svc {
+            get {
+                return ResourceManager.GetString("_30_publisher_svc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to apiVersion: apps/v1
+        ///kind: Deployment
+        ///metadata:
+        ///  name: configuration-deployment
+        ///  namespace: industrial-iot
+        ///  labels:
+        ///    app.kubernetes.io/name: configuration-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: industrial-iot-configuration-service
+        ///spec:
+        ///  replicas: 1
+        ///  selector:
+        ///    matchLabels:
+        ///      app.kubernetes.io/name: configuration-service
+        ///      app.kubernetes.i [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string _31_configuration_deployment {
+            get {
+                return ResourceManager.GetString("_31_configuration_deployment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to apiVersion: v1
+        ///kind: Service
+        ///metadata:
+        ///  name: configuration-service
+        ///  namespace: industrial-iot
+        ///  labels:
+        ///    app.kubernetes.io/name: configuration-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: industrial-iot-configuration-service
+        ///spec:
+        ///  type: ClusterIP
+        ///  selector:
+        ///    app.kubernetes.io/name: configuration-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///   [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string _31_configuration_svc {
+            get {
+                return ResourceManager.GetString("_31_configuration_svc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to apiVersion: apps/v1
+        ///kind: Deployment
+        ///metadata:
+        ///  name: edge-manager-deployment
+        ///  namespace: industrial-iot
+        ///  labels:
+        ///    app.kubernetes.io/name: edge-manager-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: industrial-iot-edge-manager-service
+        ///spec:
+        ///  replicas: 1
+        ///  selector:
+        ///    matchLabels:
+        ///      app.kubernetes.io/name: edge-manager-service
+        ///      app.kubernetes.io/pa [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string _32_edge_manager_deployment {
+            get {
+                return ResourceManager.GetString("_32_edge_manager_deployment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to apiVersion: v1
+        ///kind: Service
+        ///metadata:
+        ///  name: edge-manager-service
+        ///  namespace: industrial-iot
+        ///  labels:
+        ///    app.kubernetes.io/name: edge-manager-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: industrial-iot-edge-manager-service
+        ///spec:
+        ///  type: ClusterIP
+        ///  selector:
+        ///    app.kubernetes.io/name: edge-manager-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    ap [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string _32_edge_manager_svc {
+            get {
+                return ResourceManager.GetString("_32_edge_manager_svc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to apiVersion: apps/v1
+        ///kind: Deployment
+        ///metadata:
+        ///  name: events-processor-deployment
+        ///  namespace: industrial-iot
+        ///  labels:
+        ///    app.kubernetes.io/name: events-processor-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: industrial-iot-events-processor
+        ///spec:
+        ///  replicas: 1
+        ///  selector:
+        ///    matchLabels:
+        ///      app.kubernetes.io/name: events-processor-service
+        ///      app.kubernet [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string _33_events_processor_deployment {
+            get {
+                return ResourceManager.GetString("_33_events_processor_deployment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to apiVersion: apps/v1
+        ///kind: Deployment
+        ///metadata:
+        ///  name: engineering-tool-deployment
+        ///  namespace: industrial-iot
+        ///  labels:
+        ///    app.kubernetes.io/name: engineering-tool-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: industrial-iot-engineering-tool
+        ///spec:
+        ///  replicas: 1
+        ///  selector:
+        ///    matchLabels:
+        ///      app.kubernetes.io/name: engineering-tool-service
+        ///      app.kubernet [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string _34_frontend_deployment {
+            get {
+                return ResourceManager.GetString("_34_frontend_deployment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to apiVersion: v1
+        ///kind: Service
+        ///metadata:
+        ///  name: engineering-tool-service
+        ///  namespace: industrial-iot
+        ///  labels:
+        ///    app.kubernetes.io/name: engineering-tool-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: industrial-iot-engineering-tool
+        ///spec:
+        ///  type: ClusterIP
+        ///  selector:
+        ///    app.kubernetes.io/name: engineering-tool-service
+        ///    app.kubernetes.io/part-of: industrial-io [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string _34_frontend_svc {
+            get {
+                return ResourceManager.GetString("_34_frontend_svc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to apiVersion: apps/v1
+        ///kind: Deployment
+        ///metadata:
+        ///  name: identity-deployment
+        ///  namespace: industrial-iot
+        ///  labels:
+        ///    app.kubernetes.io/name: identity-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: industrial-iot-identity-service
+        ///spec:
+        ///  replicas: 1
+        ///  selector:
+        ///    matchLabels:
+        ///      app.kubernetes.io/name: identity-service
+        ///      app.kubernetes.io/part-of: industria [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string _35_identity_deployment {
+            get {
+                return ResourceManager.GetString("_35_identity_deployment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to apiVersion: apps/v1
+        ///kind: Deployment
+        ///metadata:
+        ///  name: edge-jobs-deployment
+        ///  namespace: industrial-iot
+        ///  labels:
+        ///    app.kubernetes.io/name: edge-jobs-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: industrial-iot-jobs-orchestrator-service
+        ///spec:
+        ///  replicas: 1
+        ///  selector:
+        ///    matchLabels:
+        ///      app.kubernetes.io/name: edge-jobs-service
+        ///      app.kubernetes.io/part-o [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string _36_edge_jobs_deployment {
+            get {
+                return ResourceManager.GetString("_36_edge_jobs_deployment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to apiVersion: v1
+        ///kind: Service
+        ///metadata:
+        ///  name: edge-jobs-service
+        ///  namespace: industrial-iot
+        ///  labels:
+        ///    app.kubernetes.io/name: edge-jobs-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: industrial-iot-jobs-orchestrator-service
+        ///spec:
+        ///  type: ClusterIP
+        ///  selector:
+        ///    app.kubernetes.io/name: edge-jobs-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.ku [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string _36_edge_jobs_svc {
+            get {
+                return ResourceManager.GetString("_36_edge_jobs_svc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to apiVersion: apps/v1
+        ///kind: Deployment
+        ///metadata:
+        ///  name: publisher-jobs-deployment
+        ///  namespace: industrial-iot
+        ///  labels:
+        ///    app.kubernetes.io/name: publisher-jobs-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: industrial-iot-jobs-service
+        ///spec:
+        ///  replicas: 1
+        ///  selector:
+        ///    matchLabels:
+        ///      app.kubernetes.io/name: publisher-jobs-service
+        ///      app.kubernetes.io/part [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string _37_publisher_jobs_deployment {
+            get {
+                return ResourceManager.GetString("_37_publisher_jobs_deployment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to apiVersion: v1
+        ///kind: Service
+        ///metadata:
+        ///  name: publisher-jobs-service
+        ///  namespace: industrial-iot
+        ///  labels:
+        ///    app.kubernetes.io/name: publisher-jobs-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: industrial-iot-jobs-service
+        ///spec:
+        ///  type: ClusterIP
+        ///  selector:
+        ///    app.kubernetes.io/name: publisher-jobs-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app. [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string _37_publisher_jobs_svc {
+            get {
+                return ResourceManager.GetString("_37_publisher_jobs_svc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to apiVersion: apps/v1
+        ///kind: Deployment
+        ///metadata:
+        ///  name: telemetry-cdm-processor-deployment
+        ///  namespace: industrial-iot
+        ///  labels:
+        ///    app.kubernetes.io/name: telemetry-cdm-processor-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: industrial-iot-telemetry-cdm-processor
+        ///spec:
+        ///  replicas: 1
+        ///  selector:
+        ///    matchLabels:
+        ///      app.kubernetes.io/name: telemetry-cdm-processo [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string _38_telemetry_cdm_processor_deployment {
+            get {
+                return ResourceManager.GetString("_38_telemetry_cdm_processor_deployment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to apiVersion: apps/v1
+        ///kind: Deployment
+        ///metadata:
+        ///  name: telemetry-processor-deployment
+        ///  namespace: industrial-iot
+        ///  labels:
+        ///    app.kubernetes.io/name: telemetry-processor-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: industrial-iot-telemetry-processor
+        ///spec:
+        ///  replicas: 1
+        ///  selector:
+        ///    matchLabels:
+        ///      app.kubernetes.io/name: telemetry-processor-service
+        ///       [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string _39_telemetry_processor_deployment {
+            get {
+                return ResourceManager.GetString("_39_telemetry_processor_deployment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to apiVersion: apps/v1
+        ///kind: Deployment
+        ///metadata:
+        ///  name: telemetry-ux-processor-deployment
+        ///  namespace: industrial-iot
+        ///  labels:
+        ///    app.kubernetes.io/name: telemetry-ux-processor-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: industrial-iot-telemetry-ux-processor
+        ///spec:
+        ///  replicas: 1
+        ///  selector:
+        ///    matchLabels:
+        ///      app.kubernetes.io/name: telemetry-ux-processor-se [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string _40_telemetry_ux_processor_deployment {
+            get {
+                return ResourceManager.GetString("_40_telemetry_ux_processor_deployment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to apiVersion: apps/v1
+        ///kind: Deployment
+        ///metadata:
+        ///  name: registry-events-forwarder-deployment
+        ///  namespace: industrial-iot
+        ///  labels:
+        ///    app.kubernetes.io/name: registry-events-forwarder-service
+        ///    app.kubernetes.io/part-of: industrial-iot
+        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+        ///    app.kubernetes.io/component: opc-registry-events-forwarder
+        ///spec:
+        ///  replicas: 1
+        ///  selector:
+        ///    matchLabels:
+        ///      app.kubernetes.io/name: registry-events-forwarder-s [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string _41_opc_registry_events_forwarder_deployment {
+            get {
+                return ResourceManager.GetString("_41_opc_registry_events_forwarder_deployment", resourceCulture);
             }
         }
         
@@ -641,7 +1072,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: industrial-iot
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///type: kubernetes.io/tls
         ///data:
@@ -656,25 +1087,21 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to apiVersion: extensions/v1beta1
+        ///   Looks up a localized string similar to apiVersion: networking.k8s.io/v1beta1
         ///kind: Ingress
         ///metadata:
         ///  name: industrial-iot-ingress
         ///  namespace: industrial-iot
-        ///  annotations:
-        ///    kubernetes.io/ingress.class: nginx
-        ///    nginx.ingress.kubernetes.io/rewrite-target: /$1
         ///  labels:
         ///    app.kubernetes.io/name: industrial-iot-ingress
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.5.2
+        ///    app.kubernetes.io/version: 2.6.104
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
-        ///spec:
-        ///  rules:
-        ///  - http:
-        ///      paths:
-        ///      - path: /registry/(.*)
-        ///        backend [rest of string was truncated]&quot;;.
+        ///  annotations:
+        ///    kubernetes.io/ingress.class: nginx
+        ///    nginx.ingress.kubernetes.io/affinity: cookie
+        ///    nginx.ingress.kubernetes.io/proxy-read-timeout: &quot;3600&quot;
+        ///    nginx.ingress [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string _50_industrial_iot_ingress {
             get {

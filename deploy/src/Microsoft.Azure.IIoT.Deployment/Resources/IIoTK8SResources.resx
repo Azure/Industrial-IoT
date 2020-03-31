@@ -172,6 +172,9 @@
   <data name="_26_onboarding_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>aks\26_onboarding_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
+  <data name="_26_onboarding_svc" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\26_onboarding_svc.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
   <data name="_27_jobs_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>aks\27_jobs_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
   </data>
@@ -180,6 +183,60 @@
   </data>
   <data name="_29_blobnotification_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>aks\29_blobnotification_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="_30_publisher_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\30_publisher_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="_30_publisher_svc" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\30_publisher_svc.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="_31_configuration_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\31_configuration_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="_31_configuration_svc" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\31_configuration_svc.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="_32_edge_manager_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\32_edge_manager_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="_32_edge_manager_svc" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\32_edge_manager_svc.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="_33_events_processor_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\33_events_processor_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
+  <data name="_34_frontend_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\34_frontend_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="_34_frontend_svc" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\34_frontend_svc.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="_35_identity_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\35_identity_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="_36_edge_jobs_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\36_edge_jobs_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="_36_edge_jobs_svc" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\36_edge_jobs_svc.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="_37_publisher_jobs_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\37_publisher_jobs_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="_37_publisher_jobs_svc" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\37_publisher_jobs_svc.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="_38_telemetry_cdm_processor_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\38_telemetry_cdm_processor_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="_39_telemetry_processor_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\39_telemetry_processor_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="_40_telemetry_ux_processor_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\40_telemetry_ux_processor_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="_41_opc_registry_events_forwarder_deployment" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>aks\41_opc_registry_events_forwarder_deployment.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
   <data name="_45_default_ssl_certificate_secret" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>aks\45_default_ssl_certificate_secret.yaml;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>

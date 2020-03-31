@@ -36,6 +36,8 @@ spec:
           limits:
             memory: "384Mi"
             cpu: "150m"
+        ports:
+        - containerPort: 9060
         envFrom:
         - secretRef:
             name: industrial-iot-env
