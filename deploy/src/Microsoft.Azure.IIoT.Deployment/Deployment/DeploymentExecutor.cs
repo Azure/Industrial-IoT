@@ -1079,13 +1079,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-            var storageAccountGen1Key = await _storageManagementClient
-                .GetStorageAccountKeyAsync(
-                    _resourceGroup,
-                    storageAccountGen1,
-                    cancellationToken
-                );
-
             var signalR = signalRCreationTask.Result;
             var signalRConnectionString = await _signalRManagementClient
                 .GetConnectionStringAsync(
@@ -1109,8 +1102,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 // Cosmos DB
                 cosmosDBAccountConnectionString,
                 // Storage Account
-                storageAccountGen1,
-                storageAccountGen1Key,
                 storageAccountGen1ConectionString,
                 StorageMgmtClient.STORAGE_ACCOUNT_DATAPROTECTION_CONTAINER_NAME,
                 // ADLS Gen2 Storage Account
@@ -1129,8 +1120,6 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 // Key Vault
                 keyVault,
                 IIoTKeyVaultClient.DATAPROTECTION_KEY_NAME,
-                // Operational Insights Workspace
-                operationalInsightsWorkspace,
                 // Application Insights
                 applicationInsightsComponent,
                 webSite,
