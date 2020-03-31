@@ -248,16 +248,16 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
             var iiotNamespace = "industrial-iot";
 
-            PCS_TWIN_REGISTRY_URL = $"http://{iiotNamespace}.{"registry"}:{9042}";
-            PCS_TWIN_SERVICE_URL = $"http://{iiotNamespace}.{"twin"}:{9041}";
-            PCS_HISTORY_SERVICE_URL = $"http://{iiotNamespace}.{"history"}:{9043}";
-            PCS_VAULT_SERVICE_URL = $"http://{iiotNamespace}.{"vault"}:{9044}";
-            PCS_ONBOARDING_SERVICE_URL = $"http://{iiotNamespace}.{"onboarding"}:{9060}";
-            PCS_PUBLISHER_SERVICE_URL = $"http://{iiotNamespace}.{"publisher"}:{9045}";
-            PCS_JOBS_SERVICE_URL = $"http://{iiotNamespace}.{"publisher-jobs"}:{9046}";
+            PCS_TWIN_REGISTRY_URL = $"http://{"registry-service"}.{iiotNamespace}:{9042}";
+            PCS_TWIN_SERVICE_URL = $"http://{"twin-service"}.{iiotNamespace}:{9041}";
+            PCS_HISTORY_SERVICE_URL = $"http://{"history-service"}.{iiotNamespace}:{9043}";
+            PCS_VAULT_SERVICE_URL = $"http://{"vault-service"}.{iiotNamespace}:{9044}";
+            PCS_ONBOARDING_SERVICE_URL = $"http://{"onboarding-service"}.{iiotNamespace}:{9060}";
+            PCS_PUBLISHER_SERVICE_URL = $"http://{"publisher-service"}.{iiotNamespace}:{9045}";
+            PCS_JOBS_SERVICE_URL = $"http://{"publisher-jobs-service"}.{iiotNamespace}:{9046}";
             // NOTE: PCS_JOB_ORCHESTRATOR_SERVICE_URL should be externally accessible URL.
             PCS_JOB_ORCHESTRATOR_SERVICE_URL = $"https://{webSite.HostNames[0]}/edge/jobs";
-            PCS_CONFIGURATION_SERVICE_URL = $"http://{iiotNamespace}.{"configuration"}:{9050}";
+            PCS_CONFIGURATION_SERVICE_URL = $"http://{"configuration-service"}.{iiotNamespace}:{9050}";
 
             // SignalR
             PCS_SIGNALR_CONNSTRING = signalRConnectionString;
