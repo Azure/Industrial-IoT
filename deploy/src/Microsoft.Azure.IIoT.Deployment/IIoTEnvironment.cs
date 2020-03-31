@@ -14,9 +14,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
     using Microsoft.Azure.Management.EventHub.Fluent.Models;
     using Microsoft.Azure.Management.IotHub.Models;
     using Microsoft.Azure.Management.KeyVault.Fluent.Models;
-    using Microsoft.Azure.Management.OperationalInsights.Models;
     using Microsoft.Azure.Management.ResourceManager.Fluent;
-    using Microsoft.Azure.Management.Storage.Fluent.Models;
 
     using Microsoft.Graph;
     using Serilog;

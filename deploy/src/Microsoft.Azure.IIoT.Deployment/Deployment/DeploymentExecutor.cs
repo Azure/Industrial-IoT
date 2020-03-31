@@ -779,7 +779,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-                _webAppX509Certificate = await iiotKeyVaultClient.GetSecretAsync(
+                var webAppX509CertificateGetTask = iiotKeyVaultClient.GetSecretAsync(
                     IIoTKeyVaultClient.WEB_APP_CERT_NAME,
                     cancellationToken
                 );
@@ -791,7 +791,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     cancellationToken
                 );
 
-                _aksClusterX509Certificate = await iiotKeyVaultClient.GetCertificateAsync(
+                var aksClusterX509CertificateGetTask = iiotKeyVaultClient.GetCertificateAsync(
                     IIoTKeyVaultClient.AKS_CLUSTER_CERT_NAME,
                     cancellationToken
                 );
@@ -802,6 +802,9 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     _defaultTagsDict,
                     cancellationToken
                 );
+
+                _webAppX509Certificate = webAppX509CertificateGetTask.Result;
+                _aksClusterX509Certificate = aksClusterX509CertificateGetTask.Result;
             }
 
             // Create Operational Insights workspace.
