@@ -349,7 +349,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
 
                     _logger.Information("Now monitoring {count} nodes in subscription {subscriptionId} (Session: {sessionId}).", rawSubscription.MonitoredItems.Count(m => m.Status.Error == null), rawSubscription.Id, rawSubscription.Session.SessionName);
-
                 }
 
                 var map = nowMonitored.ToDictionary(
@@ -357,7 +356,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 foreach (var item in nowMonitored.ToList()) {
                     if (item.Template.TriggerId != null &&
                         map.TryGetValue(item.Template.TriggerId, out var trigger)) {
-                        trigger.AddTriggerLink(item.ServerId);
+                        trigger?.AddTriggerLink(item.ServerId.GetValueOrDefault());
                     }
                 }
 
@@ -365,7 +364,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 foreach (var item in nowMonitored.ToList()) {
                     if (item.GetTriggeringLinks(out var added, out var removed)) {
                         var response = await rawSubscription.Session.SetTriggeringAsync(
-                            null, rawSubscription.Id, item.ServerId ?? 0,
+                            null, rawSubscription.Id, item.ServerId.GetValueOrDefault(),
                             new UInt32Collection(added), new UInt32Collection(removed));
                     }
                 }
@@ -405,6 +404,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                 }
             }
 
+            private static uint GreatCommonDivisor(uint a, uint b) {
+                return b == 0 ? a : GreatCommonDivisor(b, a % b);
+            }
+
             /// <summary>
             /// Retrieve a raw subscription with all settings applied (no lock)
             /// </summary>
@@ -422,14 +425,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
 
                     // calculate the KeepAliveCount
-                    var revisedKeepAliveCount = _subscription.Configuration.LifetimeCount ?? session.DefaultSubscription.LifetimeCount;
-                    
+                    var revisedKeepAliveCount = _subscription.Configuration.KeepAliveCount ??
+                        session.DefaultSubscription.KeepAliveCount;
                     _subscription.MonitoredItems.ForEach(m => {
-                        if (m.HeartbeatInterval != null && m.HeartbeatInterval > TimeSpan.Zero) {
-                            var localKeepAliveCount = (uint)(m.HeartbeatInterval.Value.TotalMilliseconds
-                                / _subscription.Configuration.PublishingInterval.Value.TotalMilliseconds);
-                            revisedKeepAliveCount = revisedKeepAliveCount > localKeepAliveCount ? localKeepAliveCount :
-                                revisedKeepAliveCount;
+                        if (m.HeartbeatInterval != null && m.HeartbeatInterval != TimeSpan.Zero) {
+                            var itemKeepAliveCount = (uint)m.HeartbeatInterval.Value.TotalMilliseconds /
+                                (uint)_subscription.Configuration.PublishingInterval.Value.TotalMilliseconds;
+                            revisedKeepAliveCount = GreatCommonDivisor(revisedKeepAliveCount, itemKeepAliveCount);
                         }
                     });
 
@@ -472,33 +474,53 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     if (OnSubscriptionChange == null) {
                         return;
                     }
+                    if (notification == null) {
+                        _logger.Warning("DataChange for subscription: {Subscription} having empty notification",
+                            subscription.DisplayName);
+                        return;
+                    }
+
+                    // check if notification is a keep alive
+                    var isKeepAlive = notification?.MonitoredItems?.Count == 1 &&
+                                      notification?.MonitoredItems?.First().ClientHandle == 0 &&
+                                      notification?.MonitoredItems?.First().Message?.NotificationData?.Count == 0;
+                    var sequenceNumber = notification?.MonitoredItems?.First().Message?.SequenceNumber;
+                    var publishTime = (notification?.MonitoredItems?.First().Message?.PublishTime).
+                        GetValueOrDefault(DateTime.MinValue);
+
+                    _logger.Debug("DataChange for subscription: {Subscription}, sequence#: {Sequence} isKeepAlive{KeepAlive}, publishTime: {PublishTime}",
+                        subscription.DisplayName, sequenceNumber, isKeepAlive, publishTime);
 
                     var message = new SubscriptionNotificationModel {
                         ServiceMessageContext = subscription.Session.MessageContext,
                         ApplicationUri = subscription.Session.Endpoint.Server.ApplicationUri,
                         EndpointUrl = subscription.Session.Endpoint.EndpointUrl,
                         SubscriptionId = Id,
-                        Notifications = (notification != null)
+                        Notifications = (!isKeepAlive)
                             ? notification.ToMonitoredItemNotifications(
                                 subscription.MonitoredItems).ToList()
                             : new List<MonitoredItemNotificationModel>()
                     };
                     message.IsKeyMessage = true;
-                    // add the heartbeat for monitored items without a datachange
+
+                    // add the heartbeat for monitored items that did not receive a
+                    // a datachange notification
                     foreach (var item in _currentlyMonitored) {
-                        if (notification == null ||
-                            !notification.MonitoredItems.Exists
-                                (m => m.ClientHandle == item.Item.ClientHandle)) {
-                            if (item.IsHartbeatNeeded()) { 
-                                message.Notifications.Add(item.Item.LastValue.ToMonitoredItemNotification(item.Item));
-                                item.LastPublished = DateTime.UtcNow;
+                        if (isKeepAlive ||
+                            !notification.MonitoredItems.Exists(m => m.ClientHandle == item.Item.ClientHandle)) {
+                            if (item.TriggerHeartbeat(publishTime)) {
+                                var heartbeatValue = item.Item.LastValue.ToMonitoredItemNotification(item.Item);
+                                heartbeatValue.SequenceNumber = sequenceNumber;
+                                heartbeatValue.PublishTime = publishTime;
+                                message.Notifications.Add(heartbeatValue);
                             }
                             else {
                                 message.IsKeyMessage = false;
                             }
                         }
                         else {
-                            item.LastPublished = DateTime.UtcNow;
+                            // just reset the heartbeat for the items already processed
+                            item.TriggerHeartbeat(publishTime);
                         }
                     }
                     OnSubscriptionChange?.Invoke(this, message);
@@ -576,20 +598,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <summary>
             /// Last published time
             /// </summary>
-            public DateTime LastPublished { get; internal set;}
+            public DateTime NextHeartbeat {get; private set; }
 
             /// <summary>
             /// validates if a heartbeat is required
             /// </summary>
             /// <returns></returns>
-            public bool IsHartbeatNeeded() {
-                if (Template.HeartbeatInterval == null || 
-                    Template.HeartbeatInterval.GetValueOrDefault() == TimeSpan.Zero) {
+            public bool TriggerHeartbeat(DateTime currentPublish) {
+                if (TimeSpan.Zero == 
+                    Template?.HeartbeatInterval.GetValueOrDefault(TimeSpan.Zero)) {
                     return false;
                 }
-                if (DateTime.UtcNow <= LastPublished + Template.HeartbeatInterval) {
+                if (NextHeartbeat > currentPublish + TimeSpan.FromMilliseconds(50)) {
                     return false;
                 }
+                NextHeartbeat = currentPublish + Template.HeartbeatInterval.GetValueOrDefault();
                 return true;
             }
 
