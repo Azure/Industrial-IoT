@@ -68,8 +68,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
         // Resource names
         private string _keyVaultName;
-        private string _storageAccountGen1Name;
         private string _storageAccountGen2Name;
+        private string _storageAccountGen2HNSName;
         private string _iotHubName;
         private string _cosmosDBAccountName;
         private string _serviceBusNamespaceName;
@@ -584,22 +584,22 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
             // Storage Account names
             try {
-                _storageAccountGen1Name = await _storageManagementClient
-                    .GenerateAvailableNameAsync(cancellationToken);
-            }
-            catch (Microsoft.Rest.Azure.CloudException) {
-                Log.Warning(notAvailableApiFormat, "Storage Account");
-                _storageAccountGen1Name = StorageMgmtClient.GenerateStorageAccountName();
-            }
-
-            // Storage Account Gen2 name
-            try {
                 _storageAccountGen2Name = await _storageManagementClient
                     .GenerateAvailableNameAsync(cancellationToken);
             }
             catch (Microsoft.Rest.Azure.CloudException) {
                 Log.Warning(notAvailableApiFormat, "Storage Account");
                 _storageAccountGen2Name = StorageMgmtClient.GenerateStorageAccountName();
+            }
+
+            // Storage Account Gen2 name
+            try {
+                _storageAccountGen2HNSName = await _storageManagementClient
+                    .GenerateAvailableNameAsync(cancellationToken);
+            }
+            catch (Microsoft.Rest.Azure.CloudException) {
+                Log.Warning(notAvailableApiFormat, "Storage Account");
+                _storageAccountGen2HNSName = StorageMgmtClient.GenerateStorageAccountName();
             }
 
             // IoT hub names
@@ -845,57 +845,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 );
 
             // Create Storage Account
-            StorageAccountInner storageAccountGen1;
-            string storageAccountGen1ConectionString;
-            BlobContainerInner iotHubBlobContainer;
-            BlobContainerInner dataprotectionBlobContainer;
-
-            storageAccountGen1 = await _storageManagementClient
-                .CreateStorageAccountGen1Async(
-                    _resourceGroup,
-                    _storageAccountGen1Name,
-                    _defaultTagsDict,
-                    cancellationToken
-                );
-
-            storageAccountGen1ConectionString = await _storageManagementClient
-                .GetStorageAccountConectionStringAsync(
-                    _resourceGroup,
-                    storageAccountGen1,
-                    cancellationToken
-                );
-
-            // Create Blob container for IoT Hub storage.
-            iotHubBlobContainer= await _storageManagementClient
-                .CreateBlobContainerAsync(
-                    _resourceGroup,
-                    storageAccountGen1,
-                    StorageMgmtClient.STORAGE_ACCOUNT_IOT_HUB_CONTAINER_NAME,
-                    PublicAccess.None,
-                    _defaultTagsDict,
-                    cancellationToken
-                );
-
-            // Create Blob container for dataprotection feature.
-            dataprotectionBlobContainer = await _storageManagementClient
-                .CreateBlobContainerAsync(
-                    _resourceGroup,
-                    storageAccountGen1,
-                    StorageMgmtClient.STORAGE_ACCOUNT_DATAPROTECTION_CONTAINER_NAME,
-                    PublicAccess.None,
-                    _defaultTagsDict,
-                    cancellationToken
-                );
-
-            // Create Storage Account Gen2
             StorageAccountInner storageAccountGen2;
             string storageAccountGen2ConectionString;
-            BlobContainerInner powerbiContainer;
+            BlobContainerInner iotHubBlobContainer;
+            BlobContainerInner dataprotectionBlobContainer;
 
             storageAccountGen2 = await _storageManagementClient
                 .CreateStorageAccountGen2Async(
                     _resourceGroup,
                     _storageAccountGen2Name,
+                    false,
                     _defaultTagsDict,
                     cancellationToken
                 );
@@ -908,10 +867,53 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 );
 
             // Create Blob container for IoT Hub storage.
-            powerbiContainer = await _storageManagementClient
+            iotHubBlobContainer= await _storageManagementClient
                 .CreateBlobContainerAsync(
                     _resourceGroup,
                     storageAccountGen2,
+                    StorageMgmtClient.STORAGE_ACCOUNT_IOT_HUB_CONTAINER_NAME,
+                    PublicAccess.None,
+                    _defaultTagsDict,
+                    cancellationToken
+                );
+
+            // Create Blob container for dataprotection feature.
+            dataprotectionBlobContainer = await _storageManagementClient
+                .CreateBlobContainerAsync(
+                    _resourceGroup,
+                    storageAccountGen2,
+                    StorageMgmtClient.STORAGE_ACCOUNT_DATAPROTECTION_CONTAINER_NAME,
+                    PublicAccess.None,
+                    _defaultTagsDict,
+                    cancellationToken
+                );
+
+            // Create Storage Account Gen2 with hierarchical namespace enabled.
+            StorageAccountInner storageAccountGen2HNS;
+            string storageAccountGen2HNSConectionString;
+            BlobContainerInner powerbiContainer;
+
+            storageAccountGen2HNS = await _storageManagementClient
+                .CreateStorageAccountGen2Async(
+                    _resourceGroup,
+                    _storageAccountGen2HNSName,
+                    true,
+                    _defaultTagsDict,
+                    cancellationToken
+                );
+
+            storageAccountGen2HNSConectionString = await _storageManagementClient
+                .GetStorageAccountConectionStringAsync(
+                    _resourceGroup,
+                    storageAccountGen2HNS,
+                    cancellationToken
+                );
+
+            // Create Blob container for IoT Hub storage.
+            powerbiContainer = await _storageManagementClient
+                .CreateBlobContainerAsync(
+                    _resourceGroup,
+                    storageAccountGen2HNS,
                     StorageMgmtClient.STORAGE_ACCOUNT_POWERBI_CONTAINER_NAME,
                     PublicAccess.None,
                     _defaultTagsDict,
@@ -926,8 +928,8 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                     _resourceGroup,
                     _iotHubName,
                     IotHubMgmtClient.IOT_HUB_EVENT_HUB_PARTITIONS_COUNT,
-                    storageAccountGen1ConectionString,
-                    StorageMgmtClient.STORAGE_ACCOUNT_IOT_HUB_CONTAINER_NAME,
+                    storageAccountGen2ConectionString,
+                    iotHubBlobContainer.Name,
                     _defaultTagsDict,
                     cancellationToken
                 );
@@ -1102,11 +1104,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
                 // Cosmos DB
                 cosmosDBAccountConnectionString,
                 // Storage Account
-                storageAccountGen1ConectionString,
-                StorageMgmtClient.STORAGE_ACCOUNT_DATAPROTECTION_CONTAINER_NAME,
-                // ADLS Gen2 Storage Account
                 storageAccountGen2ConectionString,
-                StorageMgmtClient.STORAGE_ACCOUNT_POWERBI_CONTAINER_NAME,
+                dataprotectionBlobContainer.Name,
+                // ADLS Gen2 Storage Account with enabled HNS
+                storageAccountGen2HNSConectionString,
+                powerbiContainer.Name,
                 StorageMgmtClient.POWERBI_ROOT_FOLDER,
                 // Event Hub Namespace
                 eventHub,
