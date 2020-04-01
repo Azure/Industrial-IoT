@@ -173,7 +173,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
                 await SetupApplicationsAsync(cancellationToken);
                 await UpdateClientApplicationRedirectUrisAsync(cancellationToken);
-                OutputApplicationRegistrationDefinition();
+                OutputApplicationRegistrationDefinitionSettings();
 
                 Log.Information("Done.");
             }
@@ -541,22 +541,19 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             await _applicationsManager.DeleteApplicationsAsync(cancellationToken);
         }
 
-        protected void OutputApplicationRegistrationDefinition() {
-            var appRegDef = new ApplicationRegistrationDefinitionSettings(
-                new ApplicationSettings(_applicationsManager.GetServiceApplication()),
-                new ServicePrincipalSettings(_applicationsManager.GetServiceApplicationSP()),
-                _applicationsManager.GetServiceApplicationSecret(),
-                new ApplicationSettings(_applicationsManager.GetClientApplication()),
-                new ServicePrincipalSettings(_applicationsManager.GetClientApplicationSP()),
-                _applicationsManager.GetClientApplicationSecret(),
-                new ApplicationSettings(_applicationsManager.GetAKSApplication()),
-                new ServicePrincipalSettings(_applicationsManager.GetAKSApplicationSP()),
-                _applicationsManager.GetAKSApplicationSecret()
-            );
+        /// <summary>
+        /// Output application registration definitions as
+        /// ApplicationRegistrationDefinitionSettings to console.
+        /// </summary>
+        protected void OutputApplicationRegistrationDefinitionSettings() {
+            var appRegDef = _applicationsManager
+                .ToApplicationRegistrationDefinition();
+            var appRegDefSettings = ApplicationRegistrationDefinitionSettings
+                .FromApplicationRegistrationDefinition(appRegDef);
 
             var jsonString = JsonConvert
                 .SerializeObject(
-                    appRegDef,
+                    appRegDefSettings,
                     Formatting.Indented,
                     new JsonConverter[] { new StringEnumConverter() }
                 );

@@ -71,6 +71,33 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
         }
 
         /// <summary>
+        /// Create ApplicationRegistrationDefinitionSettings from ApplicationRegistrationDefinition.
+        /// </summary>
+        /// <param name="applicationRegistrationDefinition"></param>
+        /// <returns></returns>
+        public static ApplicationRegistrationDefinitionSettings FromApplicationRegistrationDefinition(
+            ApplicationRegistrationDefinition applicationRegistrationDefinition
+        ) {
+            if (applicationRegistrationDefinition is null) {
+                throw new ArgumentNullException(nameof(applicationRegistrationDefinition));
+            }
+
+            var appRegDefSettings = new ApplicationRegistrationDefinitionSettings(
+                new ApplicationSettings(applicationRegistrationDefinition.ServiceApplication),
+                new ServicePrincipalSettings(applicationRegistrationDefinition.ServiceApplicationSP),
+                applicationRegistrationDefinition.ServiceApplicationSecret,
+                new ApplicationSettings(applicationRegistrationDefinition.ClientApplication),
+                new ServicePrincipalSettings(applicationRegistrationDefinition.ClientApplicationSP),
+                applicationRegistrationDefinition.ClientApplicationSecret,
+                new ApplicationSettings(applicationRegistrationDefinition.AksApplication),
+                new ServicePrincipalSettings(applicationRegistrationDefinition.AksApplicationSP),
+                applicationRegistrationDefinition.AksApplicationSecret
+            );
+
+            return appRegDefSettings;
+        }
+
+        /// <summary>
         /// Validate that all configuration properties are set.
         /// </summary>
         public void Validate(string parentProperty) {

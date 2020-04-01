@@ -274,6 +274,34 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
             _aksApplicationSecret = applicationRegistrationDefinition.AksApplicationSecret;
         }
 
+        /// <summary>
+        /// Dump application registration details as ApplicationRegistrationDefinition object.
+        /// </summary>
+        /// <returns></returns>
+        public ApplicationRegistrationDefinition ToApplicationRegistrationDefinition() {
+            var definition = new ApplicationRegistrationDefinition(
+                // Details of service application
+                _serviceApplication,
+                _serviceApplicationSP,
+                _serviceApplicationSecret,
+                // Details of client application
+                _clientApplication,
+                _clientApplicationSP,
+                _clientApplicationSecret,
+                // Details of aks application
+                _aksApplication,
+                _aksApplicationSP,
+                _aksApplicationSecret
+            );
+
+            return definition;
+        }
+
+        /// <summary>
+        /// Try to delete all application registrations and their service principals.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         public async Task DeleteApplicationsAsync(
             CancellationToken cancellationToken = default
         ) {
