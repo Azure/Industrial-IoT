@@ -189,7 +189,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 }
                 catch (Exception ex) {
                     _logger.Error(ex, "Exception during worker execution.  Continue...");
-                    throw;
                 }
             }
             _logger.Information("Worker stopping...");
