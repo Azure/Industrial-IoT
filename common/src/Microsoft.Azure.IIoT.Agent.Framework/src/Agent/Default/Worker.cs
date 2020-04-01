@@ -175,12 +175,11 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     ct.ThrowIfCancellationRequested();
                     if (jobProcessInstruction?.Job?.JobConfiguration == null ||
                         jobProcessInstruction?.ProcessMode == null) {
-                        _logger.Information("No job received, wait {delay} ...",
-                            _jobCheckerInterval);
+                        _logger.Information("Worker: {Id}, no job received, wait {delay} ...",
+                            WorkerId, _jobCheckerInterval);
                         await Task.Delay(_jobCheckerInterval, ct);
                         continue;
                     }
-
                     // Process until cancelled
                     await ProcessAsync(jobProcessInstruction, ct);
                 }
@@ -188,7 +187,10 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                     _logger.Information("Worker cancelled...");
                 }
                 catch (Exception ex) {
-                    _logger.Error(ex, "Exception during worker execution.  Continue...");
+                    // TODO: we should notify the exception 
+                    _logger.Error(ex, "Worker: {Id}, exception during worker processing, wait {delay}...",
+                        WorkerId, _jobCheckerInterval);
+                    await Task.Delay(_jobCheckerInterval, ct);
                 }
             }
             _logger.Information("Worker stopping...");
@@ -204,7 +206,9 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 // Stop worker heartbeat to start the job heartbeat process
                 _heartbeatTimer.Change(-1, -1); // Stop worker heartbeat
 
-                _logger.Information("Starting to process new job...");
+                _logger.Information("Worker: {WorkerId}, start processing new job: {JobId}, mode: {ProcessMode}",
+                    WorkerId, jobProcessInstruction.Job.Id, jobProcessInstruction.ProcessMode);
+
                 // Execute processor
                 while (true) {
                     _jobProcess = null;
@@ -231,7 +235,8 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Agent {
                 }
             }
             finally {
-                _logger.Information("Job processing completed...");
+                _logger.Information("Worker: {WorkerId}, Job: {JobId} processing completed ... ",
+                    WorkerId, jobProcessInstruction.Job.Id);
                 if (!ct.IsCancellationRequested) {
                     _heartbeatTimer.Change(0, -1); // restart worker heartbeat
                 }
