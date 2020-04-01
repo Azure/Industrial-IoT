@@ -12,12 +12,16 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
         public static Region ToRegion(this RegionType region) {
             return region switch
             {
+                RegionType.USEast => Region.USEast,
                 RegionType.USEast2 => Region.USEast2,
+                RegionType.USWest => Region.USWest,
                 RegionType.USWest2 => Region.USWest2,
+                RegionType.USCentral => Region.USCentral,
                 RegionType.EuropeNorth => Region.EuropeNorth,
                 RegionType.EuropeWest => Region.EuropeWest,
                 RegionType.AsiaSouthEast => Region.AsiaSouthEast,
-                _ => throw new Exception($"Unrecognized RegionType: {region.ToString()}")
+                RegionType.AustraliaEast => Region.AustraliaEast,
+                _ => throw new Exception($"Unrecognized RegionType: {region}")
             };
         }
     }
