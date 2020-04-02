@@ -185,9 +185,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             var retryCount = 0;
 
             // Save identity and certificate to update session if there are changes.
-            var identity = _curOperation?.Identity ??
-                new UserIdentity(_connection.User.ToUserIdentityToken());
-
+            var defaultIdentity = new UserIdentity(_connection.User.ToUserIdentityToken());
             try {
                 while (!_cts.Token.IsCancellationRequested) {
 
@@ -197,11 +195,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         recreate = false;
                         reconnect = false;
                         try {
-                            _logger.Debug("Creating new session via {endpoint}...",
-                                _endpointUrl);
-                            _session = await CreateSessionAsync(identity);
-                            _logger.Debug("Session via {endpoint} created.",
-                                _endpointUrl);
+                            try {
+                                if (_curOperation == null && _queue.TryDequeue(out var next)) {
+                                    _curOperation = next.Item2;
+                                }
+                                var identity = _curOperation?.Identity ?? defaultIdentity;
+                                _logger.Debug("Creating new session via {endpoint} using {identity}...",
+                                    _endpointUrl, identity.DisplayName);
+                                _session = await CreateSessionAsync(identity);
+                                _logger.Debug("Session via {endpoint} created.", _endpointUrl);
+                            }
+                            catch (ServiceResultException sre) {
+                                var ce = sre.ToTypedException();
+                                if (ce is UnauthorizedAccessException uae && _curOperation != null) {
+                                    // the operation identity is not working to establish connection
+                                    _curOperation.Fail(uae);
+                                    _curOperation = null;
+                                    _lastActivity = DateTime.UtcNow;
+                                }
+                                throw;
+                            }
                         }
                         catch (Exception e) {
                             _logger.Information(
@@ -340,35 +353,38 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         _curOperation = null; // Already completed because timeout or cancellation, get next
                         continue;
                     }
-                    if (_curOperation is KeepAlive) {
-                        _logger.Verbose("Sending keep alive message...");
-                    }
                     try {
-                        // Check if the desired user identity is the same as the current one
-                        if (!Utils.IsEqual((_curOperation.Identity ?? identity).GetIdentityToken(),
-                                _session.Identity.GetIdentityToken())) {
-                            // Try Elevate or de-elevate session
-                            try {
-                                _logger.Verbose("Updating session user identity...");
-                                await Task.Run(() => _session.UpdateSession(_curOperation.Identity,
-                                    _session.PreferredLocales));
-                                _logger.Debug("Updated session user identity.");
-                            }
-                            catch (ServiceResultException sre) {
-                                if (StatusCodeEx.IsSecurityError(sre.StatusCode)) {
-                                    _logger.Debug(sre, "Failed updating session identity");
-                                    await NotifyConnectivityStateChangeAsync(ToConnectivityState(sre));
-                                    _curOperation.Fail(sre.ToTypedException());
-                                    _curOperation = null;
-                                    continue;
+                        if (_curOperation is KeepAlive) {
+                            _logger.Verbose("Sending keep alive message...");
+                        }
+                        else {
+                            // Check if the desired user identity is the same as the current one
+                            if (!Utils.IsEqual((_curOperation.Identity ?? defaultIdentity).GetIdentityToken(),
+                                    _session.Identity.GetIdentityToken())) {
+                                // Try Elevate or de-elevate session
+                                try {
+                                    _logger.Verbose("Updating session user identity...");
+                                    await Task.Run(() => _session.UpdateSession(_curOperation.Identity,
+                                        _session.PreferredLocales));
+                                    _logger.Debug("Updated session user identity.");
                                 }
-                                throw;
+                                catch (ServiceResultException sre) {
+                                    if (StatusCodeEx.IsSecurityError(sre.StatusCode)) {
+                                        _logger.Debug(sre, "Failed updating session identity");
+                                        await NotifyConnectivityStateChangeAsync(ToConnectivityState(sre));
+                                        _curOperation.Fail(sre.ToTypedException());
+                                        _curOperation = null;
+                                        continue;
+                                    }
+                                    throw;
+                                }
                             }
                         }
-
                         await Task.Run(() => _curOperation.Complete(_session), _cts.Token);
                         _lastActivity = DateTime.UtcNow;
-                        await NotifyConnectivityStateChangeAsync(EndpointConnectivityState.Ready);
+                        if (!(_curOperation is KeepAlive) || _lastState != EndpointConnectivityState.Unauthorized) {
+                            await NotifyConnectivityStateChangeAsync(EndpointConnectivityState.Ready);
+                        }
                         _logger.Verbose("Session operation completed.");
                         _curOperation = null;
                     }
