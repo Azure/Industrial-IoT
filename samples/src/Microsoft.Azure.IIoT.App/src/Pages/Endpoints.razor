@@ -1,7 +1,5 @@
 ﻿@page "/endpoints"
-@page "/endpoints/{page}"
 @page "/endpoints/{discovererId}/{applicationId}/{supervisorId}/{applicationUri}"
-@page "/endpoints/{discovererId}/{applicationId}/{supervisorId}/{applicationUri}/{page}"
 
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Services
@@ -94,11 +92,12 @@
         }
     </tbody>
 </table>
-<div class="loader-pos @CommonHelper.Spinner"></div>
 
 <ErrorMessage PageError="@_pagedendpointList.Error" Status="@Status"></ErrorMessage>
 
-<Pager Result=@_endpointList PageChanged=@((Page) => PagerPageChanged(Page)) />
+<Pager Result=@_endpointList PageChanged=@(async(Page) => await PagerPageChanged(Page)) />
+
+<div class="loader-pos @CommonHelper.Spinner"></div>
 
 @code {
 
@@ -129,10 +128,17 @@
     /// Notify page change
     /// </summary>
     /// <param name="page"></param>
-    public void PagerPageChanged(int page)
+    public async Task PagerPageChanged(int page)
     {
+        CommonHelper.Spinner = "loader-big";
+        StateHasChanged();
+        if (!string.IsNullOrEmpty(_endpointList.ContinuationToken) && page > _pagedendpointList.PageCount)
+        {
+            _endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId, SupervisorId, _endpointList);
+        }
         _pagedendpointList = _endpointList.GetPaged(page, CommonHelper.PageLength, null);
-        NavigationManager.NavigateTo(NavigationManager.BaseUri + "endpoints/" + page);
+        CommonHelper.Spinner = string.Empty;
+        StateHasChanged();
     }
 
     /// <summary>

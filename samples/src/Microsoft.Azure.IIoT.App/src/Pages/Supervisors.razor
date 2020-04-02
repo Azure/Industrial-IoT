@@ -61,7 +61,6 @@
         }
     </tbody>
 </table>
-<div class="loader-pos @CommonHelper.Spinner"></div>
 
 <Drawer HeaderText="Twin Module Status" ObjectData="@SupervisorId" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
     <_DrawerSupervisorContent SupervisorId="@SupervisorId"></_DrawerSupervisorContent>
@@ -70,6 +69,8 @@
 <ErrorMessage PageError="@_pagedsupervisorList.Error" Status="@null"></ErrorMessage>
 
 <Pager Result=@_supervisorList PageChanged=@((Page) => PagerPageChanged(Page)) />
+
+<div class="loader-pos @CommonHelper.Spinner"></div>
 
 @code {
 
@@ -92,8 +93,11 @@
     /// <param name="page"></param>
     public void PagerPageChanged(int page)
     {
-        _pagedsupervisorList = _supervisorList.GetPaged(page, CommonHelper.PageLength, null);
-        NavigationManager.NavigateTo(NavigationManager.BaseUri + "supervisors/" + page);
+        CommonHelper.Spinner = "loader-big";
+        StateHasChanged();
+        _supervisorList = CommonHelper.UpdatePage(RegistryHelper.GetSupervisorListAsync, page, _supervisorList, ref _pagedsupervisorList);
+        CommonHelper.Spinner = string.Empty;
+        StateHasChanged();
     }
 
     /// <summary>
