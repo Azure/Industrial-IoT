@@ -58,6 +58,30 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
         // Service URLs
         public readonly string PCS_SERVICE_URL;
+
+        // AKS internal service URLs
+        public readonly string PCS_TWIN_REGISTRY_URL_INTERNAL;
+        public readonly string PCS_TWIN_SERVICE_URL_INTERNAL;
+        public readonly string PCS_HISTORY_SERVICE_URL_INTERNAL;
+        public readonly string PCS_VAULT_SERVICE_URL_INTERNAL;
+        public readonly string PCS_ONBOARDING_SERVICE_URL_INTERNAL;
+        public readonly string PCS_PUBLISHER_SERVICE_URL_INTERNAL;
+        public readonly string PCS_JOBS_SERVICE_URL_INTERNAL;
+        public readonly string PCS_JOB_ORCHESTRATOR_SERVICE_URL_INTERNAL;
+        public readonly string PCS_CONFIGURATION_SERVICE_URL_INTERNAL;
+
+        // Externally accessible service URLs
+        public readonly string PCS_TWIN_REGISTRY_URL_EXTERNAL;
+        public readonly string PCS_TWIN_SERVICE_URL_EXTERNAL;
+        public readonly string PCS_HISTORY_SERVICE_URL_EXTERNAL;
+        public readonly string PCS_VAULT_SERVICE_URL_EXTERNAL;
+        public readonly string PCS_ONBOARDING_SERVICE_URL_EXTERNAL;
+        public readonly string PCS_PUBLISHER_SERVICE_URL_EXTERNAL;
+        public readonly string PCS_JOBS_SERVICE_URL_EXTERNAL;
+        public readonly string PCS_JOB_ORCHESTRATOR_SERVICE_URL_EXTERNAL;
+        public readonly string PCS_CONFIGURATION_SERVICE_URL_EXTERNAL;
+
+        // Service URLs that will be consumed by microservices.
         public readonly string PCS_TWIN_REGISTRY_URL;
         public readonly string PCS_TWIN_SERVICE_URL;
         public readonly string PCS_HISTORY_SERVICE_URL;
@@ -189,16 +213,39 @@ namespace Microsoft.Azure.IIoT.Deployment {
 
             var iiotNamespace = "industrial-iot";
 
-            PCS_TWIN_REGISTRY_URL = $"http://{"registry-service"}.{iiotNamespace}:{9042}";
-            PCS_TWIN_SERVICE_URL = $"http://{"twin-service"}.{iiotNamespace}:{9041}";
-            PCS_HISTORY_SERVICE_URL = $"http://{"history-service"}.{iiotNamespace}:{9043}";
-            PCS_VAULT_SERVICE_URL = $"http://{"vault-service"}.{iiotNamespace}:{9044}";
-            PCS_ONBOARDING_SERVICE_URL = $"http://{"onboarding-service"}.{iiotNamespace}:{9060}";
-            PCS_PUBLISHER_SERVICE_URL = $"http://{"publisher-service"}.{iiotNamespace}:{9045}";
-            PCS_JOBS_SERVICE_URL = $"http://{"publisher-jobs-service"}.{iiotNamespace}:{9046}";
+            // AKS internal service URLs
+            PCS_TWIN_REGISTRY_URL_INTERNAL = $"http://{"registry-service"}.{iiotNamespace}:{9042}";
+            PCS_TWIN_SERVICE_URL_INTERNAL = $"http://{"twin-service"}.{iiotNamespace}:{9041}";
+            PCS_HISTORY_SERVICE_URL_INTERNAL = $"http://{"history-service"}.{iiotNamespace}:{9043}";
+            PCS_VAULT_SERVICE_URL_INTERNAL = $"http://{"vault-service"}.{iiotNamespace}:{9044}";
+            PCS_ONBOARDING_SERVICE_URL_INTERNAL = $"http://{"onboarding-service"}.{iiotNamespace}:{9060}";
+            PCS_PUBLISHER_SERVICE_URL_INTERNAL = $"http://{"publisher-service"}.{iiotNamespace}:{9045}";
+            PCS_JOBS_SERVICE_URL_INTERNAL = $"http://{"publisher-jobs-service"}.{iiotNamespace}:{9046}";
+            PCS_JOB_ORCHESTRATOR_SERVICE_URL_INTERNAL = $"http://{"edge-jobs-service"}.{iiotNamespace}:{9051}";
+            PCS_CONFIGURATION_SERVICE_URL_INTERNAL = $"http://{"configuration-service"}.{iiotNamespace}:{9050}";
+
+            // Externally accessible service URLs
+            PCS_TWIN_REGISTRY_URL_EXTERNAL = $"https://{webSite.HostNames[0]}/registry/";
+            PCS_TWIN_SERVICE_URL_EXTERNAL = $"https://{webSite.HostNames[0]}/twin/";
+            PCS_HISTORY_SERVICE_URL_EXTERNAL = $"https://{webSite.HostNames[0]}/history/";
+            PCS_VAULT_SERVICE_URL_EXTERNAL = $"https://{webSite.HostNames[0]}/vault/";
+            PCS_ONBOARDING_SERVICE_URL_EXTERNAL = $"https://{webSite.HostNames[0]}/onboarding/";
+            PCS_PUBLISHER_SERVICE_URL_EXTERNAL = $"https://{webSite.HostNames[0]}/publisher/";
+            PCS_JOBS_SERVICE_URL_EXTERNAL = $"https://{webSite.HostNames[0]}/jobs/";
+            PCS_JOB_ORCHESTRATOR_SERVICE_URL_EXTERNAL = $"https://{webSite.HostNames[0]}/edge/jobs/";
+            PCS_CONFIGURATION_SERVICE_URL_EXTERNAL = $"https://{webSite.HostNames[0]}/configuration/";
+
+            // Service URLs that will be consumed by microservices.
+            PCS_TWIN_REGISTRY_URL = PCS_TWIN_REGISTRY_URL_INTERNAL;
+            PCS_TWIN_SERVICE_URL = PCS_TWIN_SERVICE_URL_INTERNAL;
+            PCS_HISTORY_SERVICE_URL = PCS_HISTORY_SERVICE_URL_INTERNAL;
+            PCS_VAULT_SERVICE_URL = PCS_VAULT_SERVICE_URL_INTERNAL;
+            PCS_ONBOARDING_SERVICE_URL = PCS_ONBOARDING_SERVICE_URL_INTERNAL;
+            PCS_PUBLISHER_SERVICE_URL = PCS_PUBLISHER_SERVICE_URL_INTERNAL;
+            PCS_JOBS_SERVICE_URL = PCS_JOBS_SERVICE_URL_INTERNAL;
             // NOTE: PCS_JOB_ORCHESTRATOR_SERVICE_URL should be externally accessible URL.
-            PCS_JOB_ORCHESTRATOR_SERVICE_URL = $"https://{webSite.HostNames[0]}/edge/jobs";
-            PCS_CONFIGURATION_SERVICE_URL = $"http://{"configuration-service"}.{iiotNamespace}:{9050}";
+            PCS_JOB_ORCHESTRATOR_SERVICE_URL = PCS_JOB_ORCHESTRATOR_SERVICE_URL_EXTERNAL;
+            PCS_CONFIGURATION_SERVICE_URL = PCS_CONFIGURATION_SERVICE_URL_INTERNAL;
 
             // SignalR
             PCS_SIGNALR_CONNSTRING = signalRConnectionString;
@@ -331,9 +378,33 @@ namespace Microsoft.Azure.IIoT.Deployment {
             };
         }
 
+        /// <summary>
+        /// Write environment variables into a file. Service URL variables for microservices
+        /// will point to externally accessible URLs.
+        /// </summary>
+        /// <param name="path"></param>
         public void WriteToFile(string path) {
             try {
-                var iiotEnvVarLines = Dict
+                // We will create a new dictionary where service URLs would be externally
+                // accessible ones. That is required so that client applications consuming
+                // the file can run outside of AKS cluster.
+                var extDict = Dict
+                    .ToDictionary(
+                        entry => entry.Key.Clone(),
+                        entry => entry.Value.Clone()
+                     );
+
+                extDict[nameof(PCS_TWIN_REGISTRY_URL)] = PCS_TWIN_REGISTRY_URL_EXTERNAL;
+                extDict[nameof(PCS_TWIN_SERVICE_URL)] = PCS_TWIN_SERVICE_URL_EXTERNAL;
+                extDict[nameof(PCS_HISTORY_SERVICE_URL)] = PCS_HISTORY_SERVICE_URL_EXTERNAL;
+                extDict[nameof(PCS_VAULT_SERVICE_URL)] = PCS_VAULT_SERVICE_URL_EXTERNAL;
+                extDict[nameof(PCS_ONBOARDING_SERVICE_URL)] = PCS_ONBOARDING_SERVICE_URL_EXTERNAL;
+                extDict[nameof(PCS_PUBLISHER_SERVICE_URL)] = PCS_PUBLISHER_SERVICE_URL_EXTERNAL;
+                extDict[nameof(PCS_JOBS_SERVICE_URL)] = PCS_JOBS_SERVICE_URL_EXTERNAL;
+                extDict[nameof(PCS_JOB_ORCHESTRATOR_SERVICE_URL)] = PCS_JOB_ORCHESTRATOR_SERVICE_URL_EXTERNAL;
+                extDict[nameof(PCS_CONFIGURATION_SERVICE_URL)] = PCS_CONFIGURATION_SERVICE_URL_EXTERNAL;
+
+                var iiotEnvVarLines = extDict
                     .Select(kvp => $"{kvp.Key}={kvp.Value}")
                     .ToList();
 
