@@ -29,7 +29,7 @@ The main difference compared to the [script based deployment](howto-deploy-all-i
 from an infrastructure perspective `Microsoft.Azure.IIoT.Deployment` deploys microservices to an Azure
 Kubernetes Service (AKS) cluster, while `deploy.ps1` runs the entire platform as a web application.
 
-`Microsoft.Azure.IIoT.Deployment` deploys `2.6.104` version of Industrial IoT microservices.
+`Microsoft.Azure.IIoT.Deployment` deploys `2.6.146` version of Industrial IoT microservices.
 
 ## Running Microsoft.Azure.IIoT.Deployment
 
@@ -574,7 +574,7 @@ To see YAML files of all Kubernetes resources that are created by the applicatio
 [deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/](../../deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/)
 directory.
 
-`Microsoft.Azure.IIoT.Deployment` deploys `2.6.104` version of Industrial IoT microservices.
+`Microsoft.Azure.IIoT.Deployment` deploys `2.6.146` version of Industrial IoT microservices.
 
 #### Kubernetes Dashboard
 

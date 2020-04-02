@@ -6,7 +6,7 @@ metadata:
   labels:
     app.kubernetes.io/name: identity-service
     app.kubernetes.io/part-of: industrial-iot
-    app.kubernetes.io/version: 2.6.104
+    app.kubernetes.io/version: 2.6.146
     app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
     app.kubernetes.io/component: industrial-iot-identity-service
 spec:
@@ -21,14 +21,14 @@ spec:
       labels:
         app.kubernetes.io/name: identity-service
         app.kubernetes.io/part-of: industrial-iot
-        app.kubernetes.io/version: 2.6.104
+        app.kubernetes.io/version: 2.6.146
         app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         app.kubernetes.io/component: industrial-iot-identity-service
     spec:
       serviceAccountName: industrial-iot-serviceaccount
       containers:
       - name: identity-service-container
-        image: mcr.microsoft.com/iot/industrial-iot-identity-service:2.6.104
+        image: mcr.microsoft.com/iot/industrial-iot-identity-service:2.6.146
         resources:
           requests:
             memory: "64Mi"

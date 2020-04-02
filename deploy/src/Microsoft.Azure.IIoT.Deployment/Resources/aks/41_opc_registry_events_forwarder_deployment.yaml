@@ -6,7 +6,7 @@ metadata:
   labels:
     app.kubernetes.io/name: registry-events-forwarder-service
     app.kubernetes.io/part-of: industrial-iot
-    app.kubernetes.io/version: 2.6.104
+    app.kubernetes.io/version: 2.6.146
     app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
     app.kubernetes.io/component: opc-registry-events-forwarder
 spec:
@@ -21,14 +21,14 @@ spec:
       labels:
         app.kubernetes.io/name: registry-events-forwarder-service
         app.kubernetes.io/part-of: industrial-iot
-        app.kubernetes.io/version: 2.6.104
+        app.kubernetes.io/version: 2.6.146
         app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         app.kubernetes.io/component: opc-registry-events-forwarder
     spec:
       serviceAccountName: industrial-iot-serviceaccount
       containers:
       - name: registry-events-forwarder-service-container
-        image: mcr.microsoft.com/iot/opc-registry-events-forwarder:2.6.104
+        image: mcr.microsoft.com/iot/opc-registry-events-forwarder:2.6.146
         resources:
           requests:
             memory: "64Mi"

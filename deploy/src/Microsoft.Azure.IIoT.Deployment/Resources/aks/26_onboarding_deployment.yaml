@@ -6,7 +6,7 @@ metadata:
   labels:
     app.kubernetes.io/name: onboarding-service
     app.kubernetes.io/part-of: industrial-iot
-    app.kubernetes.io/version: 2.6.104
+    app.kubernetes.io/version: 2.6.146
     app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
     app.kubernetes.io/component: opc-onboarding-service
 spec:
@@ -21,14 +21,14 @@ spec:
       labels:
         app.kubernetes.io/name: onboarding-service
         app.kubernetes.io/part-of: industrial-iot
-        app.kubernetes.io/version: 2.6.104
+        app.kubernetes.io/version: 2.6.146
         app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         app.kubernetes.io/component: opc-onboarding-service
     spec:
       serviceAccountName: industrial-iot-serviceaccount
       containers:
       - name: onboarding-service-container
-        image: mcr.microsoft.com/iot/opc-onboarding-service:2.6.104
+        image: mcr.microsoft.com/iot/opc-onboarding-service:2.6.146
         resources:
           requests:
             memory: "64Mi"

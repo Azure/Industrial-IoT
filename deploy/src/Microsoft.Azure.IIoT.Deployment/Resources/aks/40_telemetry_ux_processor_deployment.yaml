@@ -6,7 +6,7 @@ metadata:
   labels:
     app.kubernetes.io/name: telemetry-ux-processor-service
     app.kubernetes.io/part-of: industrial-iot
-    app.kubernetes.io/version: 2.6.104
+    app.kubernetes.io/version: 2.6.146
     app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
     app.kubernetes.io/component: industrial-iot-telemetry-ux-processor
 spec:
@@ -21,14 +21,14 @@ spec:
       labels:
         app.kubernetes.io/name: telemetry-ux-processor-service
         app.kubernetes.io/part-of: industrial-iot
-        app.kubernetes.io/version: 2.6.104
+        app.kubernetes.io/version: 2.6.146
         app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         app.kubernetes.io/component: industrial-iot-telemetry-ux-processor
     spec:
       serviceAccountName: industrial-iot-serviceaccount
       containers:
       - name: telemetry-ux-processor-service-container
-        image: mcr.microsoft.com/iot/industrial-iot-telemetry-ux-processor:2.6.104
+        image: mcr.microsoft.com/iot/industrial-iot-telemetry-ux-processor:2.6.146
         resources:
           requests:
             memory: "64Mi"

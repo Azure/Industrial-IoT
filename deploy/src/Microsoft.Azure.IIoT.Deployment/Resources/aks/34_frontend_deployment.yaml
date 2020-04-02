@@ -6,7 +6,7 @@ metadata:
   labels:
     app.kubernetes.io/name: engineering-tool-service
     app.kubernetes.io/part-of: industrial-iot
-    app.kubernetes.io/version: 2.6.104
+    app.kubernetes.io/version: 2.6.146
     app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
     app.kubernetes.io/component: industrial-iot-engineering-tool
 spec:
@@ -21,7 +21,7 @@ spec:
       labels:
         app.kubernetes.io/name: engineering-tool-service
         app.kubernetes.io/part-of: industrial-iot
-        app.kubernetes.io/version: 2.6.104
+        app.kubernetes.io/version: 2.6.146
         app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         app.kubernetes.io/component: industrial-iot-engineering-tool
       # annotations:
@@ -31,7 +31,7 @@ spec:
       serviceAccountName: industrial-iot-serviceaccount
       containers:
       - name: engineering-tool-service-container
-        image: mcr.microsoft.com/iot/industrial-iot-frontend:2.6.104
+        image: mcr.microsoft.com/iot/industrial-iot-frontend:2.6.146
         resources:
           requests:
             memory: "64Mi"

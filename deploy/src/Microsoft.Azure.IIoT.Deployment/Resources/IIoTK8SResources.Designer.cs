@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: industrial-iot
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///.
         /// </summary>
@@ -87,7 +87,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: industrial-iot
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///.
         /// </summary>
@@ -106,7 +106,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: industrial-iot
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///rules:
         ///  - apiGroups:
@@ -135,7 +135,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: industrial-iot
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///roleRef:
         ///  apiGroup: rbac.authorization.k8s.io
@@ -187,11 +187,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: industrial-iot
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///type: Opaque
         ///data:
-        ///  ####################----------2.6.104----------####################
+        ///  ####################----------2.6.146----------####################
         ///  # IoT Hub
         ///  PCS_IOTHUB_CONNSTRING: null
         ///  PCS_IOTHUB_EVENTHUBENDPOINT: null
@@ -212,7 +212,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: registry-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: opc-registry
         ///spec:
@@ -238,7 +238,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: registry-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: opc-registry
         ///spec:
@@ -263,7 +263,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: twin-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: opc-twin
         ///spec:
@@ -289,7 +289,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: twin-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: opc-twin
         ///spec:
@@ -316,7 +316,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: history-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: opc-history
         ///spec:
@@ -342,7 +342,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: history-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: opc-history
         ///spec:
@@ -368,7 +368,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: gateway-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: opc-gateway
         ///spec:
@@ -394,7 +394,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: gateway-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: opc-gateway
         ///spec:
@@ -420,7 +420,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: vault-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: opc-vault
         ///spec:
@@ -446,7 +446,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: vault-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: opc-vault
         ///spec:
@@ -473,7 +473,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: alerting-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: opc-alerting
         ///spec:
@@ -499,7 +499,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: onboarding-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: opc-onboarding-service
         ///spec:
@@ -524,7 +524,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: onboarding-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: opc-onboarding-service
         ///spec:
@@ -549,7 +549,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: jobs-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: opc-jobs
         ///spec:
@@ -575,7 +575,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: model-processor-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: opc-processor
         ///spec:
@@ -600,7 +600,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: blob-notification-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: blob-notification
         ///spec:
@@ -625,7 +625,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: publisher-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: opc-publisher-service
         ///spec:
@@ -651,7 +651,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: publisher-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: opc-publisher-service
         ///spec:
@@ -676,7 +676,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: configuration-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: industrial-iot-configuration-service
         ///spec:
@@ -701,7 +701,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: configuration-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: industrial-iot-configuration-service
         ///spec:
@@ -726,7 +726,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: edge-manager-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: industrial-iot-edge-manager-service
         ///spec:
@@ -751,7 +751,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: edge-manager-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: industrial-iot-edge-manager-service
         ///spec:
@@ -776,7 +776,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: events-processor-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: industrial-iot-events-processor
         ///spec:
@@ -801,7 +801,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: engineering-tool-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: industrial-iot-engineering-tool
         ///spec:
@@ -826,7 +826,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: engineering-tool-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: industrial-iot-engineering-tool
         ///spec:
@@ -850,7 +850,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: identity-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: industrial-iot-identity-service
         ///spec:
@@ -875,7 +875,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: edge-jobs-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: industrial-iot-jobs-orchestrator-service
         ///spec:
@@ -900,7 +900,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: edge-jobs-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: industrial-iot-jobs-orchestrator-service
         ///spec:
@@ -925,7 +925,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: publisher-jobs-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: industrial-iot-jobs-service
         ///spec:
@@ -950,7 +950,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: publisher-jobs-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: industrial-iot-jobs-service
         ///spec:
@@ -975,7 +975,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: telemetry-cdm-processor-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: industrial-iot-telemetry-cdm-processor
         ///spec:
@@ -999,7 +999,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: telemetry-processor-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: industrial-iot-telemetry-processor
         ///spec:
@@ -1024,7 +1024,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: telemetry-ux-processor-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: industrial-iot-telemetry-ux-processor
         ///spec:
@@ -1048,7 +1048,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: registry-events-forwarder-service
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///    app.kubernetes.io/component: opc-registry-events-forwarder
         ///spec:
@@ -1072,7 +1072,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: industrial-iot
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///type: kubernetes.io/tls
         ///data:
@@ -1095,7 +1095,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Resources {
         ///  labels:
         ///    app.kubernetes.io/name: industrial-iot-ingress
         ///    app.kubernetes.io/part-of: industrial-iot
-        ///    app.kubernetes.io/version: 2.6.104
+        ///    app.kubernetes.io/version: 2.6.146
         ///    app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
         ///  annotations:
         ///    kubernetes.io/ingress.class: nginx
