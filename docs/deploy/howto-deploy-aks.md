@@ -14,6 +14,7 @@
   * [Environment Variables Configuration Provider](#environment-variables-configuration-provider)
   * [Command-line Configuration Provider](#command-line-configuration-provider)
   * [Parameters](#parameters)
+  * [Special Notes](#special-notes)
 * [Deployed Resources](#deployed-resources)
   * [AKS](#aks)
 * [Missing And Planned Features](#missing-and-planned-features)
@@ -27,6 +28,8 @@ It takes care of deploying Azure infrastructure resources and microservices of I
 The main difference compared to the [script based deployment](howto-deploy-all-in-one.md) option is that
 from an infrastructure perspective `Microsoft.Azure.IIoT.Deployment` deploys microservices to an Azure
 Kubernetes Service (AKS) cluster, while `deploy.ps1` runs the entire platform as a web application.
+
+`Microsoft.Azure.IIoT.Deployment` deploys `2.6.104` version of Industrial IoT microservices.
 
 ## Running Microsoft.Azure.IIoT.Deployment
 
@@ -420,22 +423,59 @@ Command line argument key-value pairs can be specified with:
 
 ### Parameters
 
-| Key                       | Value details                                                                                   | Description                                                                                                                                                        |
-|---------------------------|-------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| RunMode                   | Valid value are: `Full`, `ApplicationRegistration`, `ResourceDeployment`                        | Determines which steps of Industrial IoT solution deployment will be executed.                                                                                     |
-| Auth:AzureEnvironment     | Valid value are: `AzureGlobalCloud`, `AzureChinaCloud`, `AzureUSGovernment`, `AzureGermanCloud` | Defines which Azure cloud to use.                                                                                                                                  |
-| Auth:TenantId             | Should be Guid.                                                                                 | Id of the tenant to be used.                                                                                                                                       |
-| Auth:ClientId             | Should be Guid.                                                                                 | ClientId of Service Principal.                                                                                                                                     |
-| Auth:ClientSecret         | String                                                                                          | ClientSecret of Service Principal.                                                                                                                                 |
-| SubscriptionId            | Should be Guid.                                                                                 | Id of Azure Subscription within tenant.                                                                                                                            |
-| ApplicationName           | Should be globally unique name.                                                                 | Name of the application deployment.                                                                                                                                |
-| ApplicationURL            | Used only in `ApplicationRegistration` run mode.                                                | Base URL that will be used for generating RedirectUris for client application. This is required for enabling client authentication to use externally exposed APIs. |
-| ResourceGroup:Name        |                                                                                                 | Name of the Resource Group where Azure resources will be created.                                                                                                  |
-| ResourceGroup:UseExisting | `true` or `false`                                                                               | Determines whether an existing Resource Group should be used or a new one should be created.                                                                       |
-| ResourceGroup:Region      | Supported regions are: `USEast2`, `USWest2`, `EuropeNorth`, `EuropeWest`, `AsiaSouthEast`       | Region where new Resource Group should be created.                                                                                                                 |
-| ApplicationRegistration   | Object, see [Special Notes](#special-notes) bellow.                                             | Provides definitions of existing Applications and Service Principals to be used.                                                                                   |
+| Key                       | Value details                                                         | Description                                                                                                                                                        |
+|---------------------------|-----------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| RunMode                   | Default is `Full`, check bellow for list of valid values.             | Determines which steps of Industrial IoT solution deployment will be executed.                                                                                     |
+| Auth:AzureEnvironment     | Default is `AzureGlobalCloud`, check bellow for list of valid values. | Defines which Azure cloud to use.                                                                                                                                  |
+| Auth:TenantId             | Should be Guid.                                                       | Id of the tenant to be used.                                                                                                                                       |
+| Auth:ClientId             | Should be Guid.                                                       | ClientId of Service Principal.                                                                                                                                     |
+| Auth:ClientSecret         | String                                                                | ClientSecret of Service Principal.                                                                                                                                 |
+| SubscriptionId            | Should be Guid.                                                       | Id of Azure Subscription within tenant.                                                                                                                            |
+| ApplicationName           | Should be globally unique name.                                       | Name of the application deployment.                                                                                                                                |
+| ApplicationURL            | Used only in `ApplicationRegistration` run mode.                      | Base URL that will be used for generating RedirectUris for client application. This is required for enabling client authentication to use externally exposed APIs. |
+| ResourceGroup:Name        |                                                                       | Name of the Resource Group where Azure resources will be created.                                                                                                  |
+| ResourceGroup:UseExisting | `true` or `false`                                                     | Determines whether an existing Resource Group should be used or a new one should be created.                                                                       |
+| ResourceGroup:Region      | Check bellow for list of supported Azure regions.                     | Region where new Resource Group should be created.                                                                                                                 |
+| ApplicationRegistration   | Object, see [Special Notes](#special-notes) bellow.                   | Provides definitions of existing Applications and Service Principals to be used.                                                                                   |
 
-#### Special Notes
+#### RunMode
+
+Valid values for `RunMode` are listed bellow, default is `Full`. Please check [Run Modes](#run-modes) for more details:
+
+| Valid Values              |
+|---------------------------|
+| **`Full`**                |
+| `ApplicationRegistration` |
+| `ResourceDeployment`      |
+
+#### Auth:AzureEnvironment
+
+Valid values for `Auth:AzureEnvironment` are listed bellow, default is `AzureGlobalCloud`.
+
+| Valid Values           |
+|------------------------|
+| **`AzureGlobalCloud`** |
+| `AzureChinaCloud`      |
+| `AzureUSGovernment`    |
+| `AzureGermanCloud`     |
+
+#### ResourceGroup:Region
+
+The following Azure regions are supported by `Microsoft.Azure.IIoT.Deployment` for `ResourceGroup:Region`:
+
+| Valid Values    |
+|-----------------|
+| `USEast`        |
+| `USEast2`       |
+| `USWest`        |
+| `USWest2`       |
+| `USCentral`     |
+| `EuropeNorth`   |
+| `EuropeWest`    |
+| `AsiaSouthEast` |
+| `AustraliaEast` |
+
+### Special Notes
 
 1. **ApplicationName**
 
@@ -489,22 +529,29 @@ Command line argument key-value pairs can be specified with:
     }
     ```
 
+    ApplicationSecret is client secret (password) of a given Application.
+
     ApplicationRegistration object should have the keys as below. Note that:
     * Values of `ServiceApplication`, `ClientApplication` and `AksApplication` keys should be Application
       objects as described above.
     * Values of `ServiceApplicationSP`, `ClientApplicationSP` and `AksApplicationSP` keys should be Service
       Principal objects as described above.
-    * `AksApplicationRbacSecret` is client secret (password) of AksApplication.
+    * Values of `ServiceApplicationSecret`, `ClientApplicationSecret` and `AksApplicationSecret` keys should
+      be strings corresponding to client secrets (passwords) of each Application.
 
     ``` json
     "ApplicationRegistration": {
-      "ServiceApplication": "<Application object>",
-      "ServiceApplicationSP": "<Service Principal object>",
-      "ClientApplication": "<Application object>",
-      "ClientApplicationSP": "<Service Principal object>",
-      "AksApplication": "<Application object>",
-      "AksApplicationSP": "<Service Principal object>",
-      "AksApplicationRbacSecret": "<string>"
+      "ServiceApplication": { "<Application object>" },
+      "ServiceApplicationSP": { "<Service Principal object>" },
+      "ServiceApplicationSecret": "<string>",
+
+      "ClientApplication": { "<Application object>" },
+      "ClientApplicationSP": { "<Service Principal object>" },
+      "ClientApplicationSecret": "<string>",
+
+      "AksApplication": { "<Application object>" },
+      "AksApplicationSP": { "<Service Principal object>" },
+      "AksApplicationSecret": "<string>"
     },
     ```
 
@@ -523,6 +570,8 @@ details for all Azure resources created by `Microsoft.Azure.IIoT.Deployment`, we
 To see YAML files of all Kubernetes resources that are created by the application, please check
 [deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/](../../deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/)
 directory.
+
+`Microsoft.Azure.IIoT.Deployment` deploys `2.6.104` version of Industrial IoT microservices.
 
 #### Kubernetes Dashboard
 
@@ -577,15 +626,24 @@ the URL. It should look something like the link bellow, where `kktest00100` is t
 
 * `https://kktest00100.azurewebsites.net/registry/`
 
+Along with APIs, our microservices also provide Swagger interfaces for trying out those APIs. Swagger UI
+can be found on `/<component>/swagger/index.html` endpoint for each component.
+
 The following microservice endpoints are exposed:
 
-| URL Suffix  | Service Name                                   |
-|-------------|------------------------------------------------|
-| `registry/` | [OPC Registry](../services/registry.md)        |
-| `twin/`     | [OPC Twin](../services/twin.md)                |
-| `history/`  | [OPC Historian Access](../services/history.md) |
-| `ua/`       | [OPC Gateway](../services/gateway.md)          |
-| `vault/`    | [OPC Vault](../services/vault.md)              |
+| Component       | API URL Suffix    | Default Swagger UI Path             | Service Name                                                  |
+|-----------------|-------------------|-------------------------------------|---------------------------------------------------------------|
+| `registry`      | `/registry/`      | `/registry/swagger/index.html`      | [Registry Microservice](../services/registry.md)              |
+| `twin`          | `/twin/`          | `/twin/swagger/index.html`          | [OPC Twin Microservice](../services/twin.md)                  |
+| `history`       | `/history/`       | `/history/swagger/index.html`       | [OPC Historian Access Microservice](../services/history.md)   |
+| `gateway`       | `/ua/`            | N/A                                 | [OPC Gateway Microservice](../services/gateway.md)            |
+| `vault`         | `/vault/`         | `/vault/swagger/index.html`         | [OPC Vault Microservice](../services/vault.md)                |
+| `onboarding`    | `/onboarding/`    | `/onboarding/swagger/index.html`    | [Registry Onboarding Microservice](../services/onboarding.md) |
+| `publisher`     | `/publisher/`     | `/publisher/swagger/index.html`     | [OPC Publisher Service](../services/publisher.md)             |
+| `configuration` | `/configuration/` | `/configuration/swagger/index.html` | [Configuration Service](../services/configuration.md)         |
+| `edgeManager`   | `/edge/manage/`   | `/edge/manage/swagger/index.html`   | [Edge Management Service](../services/edgemanager.md)         |
+| `edgeJobs`      | `/edge/jobs/`     | `/edge/jobs/swagger/index.html`     | [Jobs Service and Edge endpoint](../services/jobs.md)         |
+| `publisherJobs` | `/jobs/`          | `/jobs/swagger/index.html`          |                                                               |
 
 ## Missing And Planned Features
 
