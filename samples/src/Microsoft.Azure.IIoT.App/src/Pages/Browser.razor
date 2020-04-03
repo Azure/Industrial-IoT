@@ -1,6 +1,6 @@
 @page "/browser/{applicationId}/{endpointId}/{applicationUri}"
 @page "/browser/{discovererId}/{applicationId}/{supervisorId}/{endpointId}/{applicationUri}"
-@page "/browser/{discovererId}/{applicationId}/{supervisorId}/{endpointId}/{applicationUri}/{page}"
+@*@page "/browser/{discovererId}/{applicationId}/{supervisorId}/{endpointId}/{applicationUri}/{page}"*@
 
 
 @using Microsoft.Azure.IIoT.App.Services
@@ -160,7 +160,6 @@
         }
     </tbody>
 </table>
-<div class="loader-pos @CommonHelper.Spinner"></div>
 
 <ErrorMessage PageError="@PagedNodeList.Error" Status="@null"></ErrorMessage>
 
@@ -168,7 +167,9 @@
     <_DrawerActionContent NodeData="@NodeData" EndpointId="@EndpointId" PagedNodeList="@PagedNodeList" Credential="@Credential"></_DrawerActionContent>
 </Drawer>
 
-<Pager Result=@NodeList PageChanged=@(async(Page) => PagerPageChanged(Page)) />
+<Pager Result=@NodeList PageChanged=@(async(Page) => await PagerPageChanged(Page)) />
+
+<div class="loader-pos @CommonHelper.Spinner"></div>
 
 
 @code {
@@ -198,24 +199,32 @@
     public ListNode NodeData { get; set; }
     private IAsyncDisposable _publishEvent { get; set; }
     private string _tableView { get; set; } = "visible";
+    private List<string> _parentId { get; set; }
 
 
     /// <summary>
     /// Notify page change
     /// </summary>
     /// <param name="page"></param>
-    public async void PagerPageChanged(int page)
+    public async Task PagerPageChanged(int page)
     {
+        CommonHelper.Spinner = "loader-big";
+        StateHasChanged();
+        if (!string.IsNullOrEmpty(NodeList.ContinuationToken) && page > PagedNodeList.PageCount )
+        {
+            await BrowseTreeAsync(BrowseDirection.Forward, 0, false);
+        }
         PagedNodeList = NodeList.GetPaged(page, CommonHelper.PageLength, null);
         foreach (var node in PagedNodeList.Results)
         {
-            // fetch the actual value
+            //fetch the actual value
             if (node.NodeClass == NodeClass.Variable)
             {
                 node.Value = await BrowseManager.ReadValueAsync(EndpointId, node.Id, Credential);
             }
         }
-        NavigationManager.NavigateTo(NavigationManager.BaseUri + "browser/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId + "/" + ApplicationUri + "/" + page);
+        CommonHelper.Spinner = string.Empty;
+        StateHasChanged();
     }
 
     /// <summary>
@@ -235,7 +244,7 @@
         if (firstRender)
         {
             Credential = await GetSecureItemAsync<CredentialModel>(CommonHelper.CredentialKey);
-            await BrowseTreeAsync(string.Empty, new List<string>(), BrowseDirection.Forward, 0);
+            await BrowseTreeAsync(BrowseDirection.Forward, 0, true, string.Empty, new List<string>());
             CommonHelper.Spinner = string.Empty;
             if (PagedNodeList.Error != null)
             {
@@ -253,7 +262,7 @@
     /// <param name="parentId"></param>
     private async Task GetTreeAsync(string id, List<string> parentId)
     {
-        await BrowseTreeAsync(id, parentId, BrowseDirection.Forward, 0);
+        await BrowseTreeAsync(BrowseDirection.Forward, 0, true, id, parentId);
     }
 
     /// <summary>
@@ -263,7 +272,7 @@
     /// <param name="parentId"></param>
     private async Task GetTreeBackAsync(string id, List<string> parentId, int index)
     {
-        await BrowseTreeAsync(id, parentId, BrowseDirection.Backward, index);
+        await BrowseTreeAsync(BrowseDirection.Backward, index, true, id, parentId);
         NavigationManager.NavigateTo(NavigationManager.BaseUri + "browser/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId + "/" + ApplicationUri);
     }
 
@@ -273,10 +282,30 @@
     /// <param name="id"></param>
     /// <param name="parentId"></param>
     /// <param name="direction"></param>
-    private async Task BrowseTreeAsync(String id, List<string> parentId, BrowseDirection direction, int index)
+    private async Task BrowseTreeAsync(BrowseDirection direction, int index, bool firstPage, String id = null, List<string> parentId = null)
     {
         CommonHelper.Spinner = "loader-big";
-        NodeList = await BrowseManager.GetTreeAsync(EndpointId, id, parentId, DiscovererId, direction, index, Credential);
+
+        if (firstPage)
+        {
+            _parentId = parentId;
+            NodeList = await BrowseManager.GetTreeAsync(EndpointId,
+                                        id,
+                                        parentId,
+                                        DiscovererId,
+                                        direction,
+                                        index,
+                                        Credential);
+        }
+        else
+        {
+            NodeList = await BrowseManager.GetTreeNextAsync(EndpointId,
+                                            _parentId,
+                                            DiscovererId,
+                                            Credential,
+                                            NodeList);
+        }
+
         var publishedNodes = await Publisher.PublishedAsync(EndpointId);
 
         foreach (var node in NodeList.Results)

@@ -1,5 +1,4 @@
 ﻿@page "/publishers"
-@page "/publishers/{page}"
 
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Services
@@ -64,11 +63,12 @@
         }
     </tbody>
 </table>
-<div class="loader-pos @CommonHelper.Spinner"></div>
 
 <ErrorMessage PageError="@_pagedPublisherList.Error" Status="@null"></ErrorMessage>
 
 <Pager Result=@_publisherList PageChanged=@((Page) => PagerPageChanged(Page)) />
+
+<div class="loader-pos @CommonHelper.Spinner"></div>
 
 @code {
 
@@ -86,8 +86,11 @@
     /// <param name="page"></param>
     public void PagerPageChanged(int page)
     {
-        _pagedPublisherList = _publisherList.GetPaged(page, CommonHelper.PageLength, null);
-        NavigationManager.NavigateTo(NavigationManager.BaseUri + "publishers/" + page);
+        CommonHelper.Spinner = "loader-big";
+        StateHasChanged();
+        _publisherList = CommonHelper.UpdatePage(RegistryHelper.GetPublisherListAsync, page, _publisherList, ref _pagedPublisherList);
+        CommonHelper.Spinner = string.Empty;
+        StateHasChanged();
     }
 
     /// <summary>
