@@ -35,7 +35,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 IndexRange = model.IndexRange,
                 MonitoringMode = model.MonitoringMode,
                 DisplayName = model.DisplayName,
-                RelativePath = model.RelativePath
+                RelativePath = model.RelativePath,
+                HeartbeatInterval = model.HeartbeatInterval
             };
         }
 
@@ -89,6 +90,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 return false;
             }
             if (!model.RelativePath.SequenceEqualsSafe(other.RelativePath)) {
+                return false;
+            }
+            if (model.HeartbeatInterval != other.HeartbeatInterval) {
                 return false;
             }
             return true;
