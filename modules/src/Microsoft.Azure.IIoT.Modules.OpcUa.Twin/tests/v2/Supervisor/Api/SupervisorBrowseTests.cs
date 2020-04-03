@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.Api {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
@@ -25,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.Api {
         }
 
         private BrowseServicesTests<EndpointApiModel> GetTests() {
-            return new BrowseServicesTests<EndpointApiModel>(new NewtonSoftJsonSerializer(),
+            return new BrowseServicesTests<EndpointApiModel>(
                 () => _module.HubContainer.Resolve<IBrowseServices<EndpointApiModel>>(),
                 new EndpointApiModel {
                     Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",

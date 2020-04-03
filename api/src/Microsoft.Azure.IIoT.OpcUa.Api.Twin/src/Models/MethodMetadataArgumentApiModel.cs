@@ -17,40 +17,40 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// Argument name
         /// </summary>
-        [DataMember(Name = "name")]
+        [DataMember(Name = "name", Order = 0)]
         public string Name { get; set; }
 
         /// <summary>
         /// Optional description
         /// </summary>
-        [DataMember(Name = "description",
+        [DataMember(Name = "description", Order = 1,
             EmitDefaultValue = false)]
         public string Description { get; set; }
 
         /// <summary>
         /// Data type node of the argument
         /// </summary>
-        [DataMember(Name = "type")]
+        [DataMember(Name = "type", Order = 2)]
         public NodeApiModel Type { get; set; }
 
         /// <summary>
         /// Default value
         /// </summary>
-        [DataMember(Name = "defaultValue",
+        [DataMember(Name = "defaultValue", Order = 3,
             EmitDefaultValue = false)]
         public VariantValue DefaultValue { get; set; }
 
         /// <summary>
         /// Optional, scalar if not set
         /// </summary>
-        [DataMember(Name = "valueRank",
+        [DataMember(Name = "valueRank", Order = 4,
             EmitDefaultValue = false)]
         public NodeValueRank? ValueRank { get; set; }
 
         /// <summary>
         /// Optional, array dimension
         /// </summary>
-        [DataMember(Name = "arrayDimensions",
+        [DataMember(Name = "arrayDimensions", Order = 5,
             EmitDefaultValue = false)]
         public uint[] ArrayDimensions { get; set; }
     }

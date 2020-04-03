@@ -16,14 +16,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// <summary>
         /// Start time
         /// </summary>
-        [DataMember(Name = "startTime",
+        [DataMember(Name = "startTime", Order = 0,
             EmitDefaultValue = false)]
         public DateTime? StartTime { get; set; }
 
         /// <summary>
         /// End time to delete until
         /// </summary>
-        [DataMember(Name = "endTime",
+        [DataMember(Name = "endTime", Order = 1,
             EmitDefaultValue = false)]
         public DateTime? EndTime { get; set; }
     }

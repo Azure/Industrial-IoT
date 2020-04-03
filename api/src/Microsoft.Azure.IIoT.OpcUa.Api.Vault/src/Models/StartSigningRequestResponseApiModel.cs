@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
         /// <summary>
         /// Request id
         /// </summary>
-        [DataMember(Name = "requestId")]
+        [DataMember(Name = "requestId", Order = 0)]
         public string RequestId { get; set; }
     }
 }

@@ -17,42 +17,42 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Controller {
         /// <summary>
         /// Agent identifier
         /// </summary>
-        [DataMember(Name = "agentId",
+        [DataMember(Name = "agentId", Order = 0,
             EmitDefaultValue = false)]
         public string AgentId { get; set; }
 
         /// <summary>
         /// Capabilities
         /// </summary>
-        [DataMember(Name = "capabilities",
+        [DataMember(Name = "capabilities", Order = 1,
             EmitDefaultValue = false)]
         public Dictionary<string, string> Capabilities { get; set; }
 
         /// <summary>
         /// Interval to check job
         /// </summary>
-        [DataMember(Name = "jobCheckInterval",
+        [DataMember(Name = "jobCheckInterval", Order = 2,
             EmitDefaultValue = false)]
         public TimeSpan? JobCheckInterval { get; set; }
 
         /// <summary>
         /// Heartbeat interval
         /// </summary>
-        [DataMember(Name = "heartBeatInterval",
+        [DataMember(Name = "heartBeatInterval", Order = 3,
             EmitDefaultValue = false)]
         public TimeSpan? HeartbeatInterval { get; set; }
 
         /// <summary>
         /// Parellel jobs
         /// </summary>
-        [DataMember(Name = "parellelJobs",
+        [DataMember(Name = "parellelJobs", Order = 4,
             EmitDefaultValue = false)]
         public int? ParallelJobs { get; set; }
 
         /// <summary>
         /// Job service endpoint url
         /// </summary>
-        [DataMember(Name = "jobServiceUrl",
+        [DataMember(Name = "jobServiceUrl", Order = 5,
             EmitDefaultValue = false)]
         public string JobOrchestratorUrl { get; set; }
     }

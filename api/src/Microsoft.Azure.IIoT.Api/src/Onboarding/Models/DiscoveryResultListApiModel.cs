@@ -16,13 +16,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
         /// <summary>
         /// Result
         /// </summary>
-        [DataMember(Name = "result")]
+        [DataMember(Name = "result", Order = 0)]
         public DiscoveryResultApiModel Result { get; set; }
 
         /// <summary>
         /// Events
         /// </summary>
-        [DataMember(Name = "events")]
+        [DataMember(Name = "events", Order = 1)]
         public List<DiscoveryEventApiModel> Events { get; set; }
     }
 }

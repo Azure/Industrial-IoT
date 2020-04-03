@@ -105,7 +105,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge {
                     "DeviceTokenAuth", null);
 
             // Add controllers as services so they'll be resolved.
-            services.AddControllers().AddJsonSerializer().AddMessagePackSerializer();
+            services.AddControllers().AddSerializers();
             services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 

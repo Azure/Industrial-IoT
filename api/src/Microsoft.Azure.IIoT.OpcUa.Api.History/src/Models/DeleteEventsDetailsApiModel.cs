@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// <summary>
         /// Events to delete
         /// </summary>
-        [DataMember(Name = "eventIds")]
+        [DataMember(Name = "eventIds", Order = 0)]
         [Required]
         public List<byte[]> EventIds { get; set; }
     }

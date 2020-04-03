@@ -16,14 +16,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
         /// <summary>
         /// Request
         /// </summary>
-        [DataMember(Name = "request",
+        [DataMember(Name = "request", Order = 0,
             EmitDefaultValue = false)]
         public CertificateRequestRecordApiModel Request { get; set; }
 
         /// <summary>
         /// Signed certificate
         /// </summary>
-        [DataMember(Name = "certificate",
+        [DataMember(Name = "certificate", Order = 1,
             EmitDefaultValue = false)]
         public X509CertificateApiModel Certificate { get; set; }
     }

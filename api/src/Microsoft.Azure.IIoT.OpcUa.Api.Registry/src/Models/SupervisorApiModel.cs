@@ -16,21 +16,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Supervisor id
         /// </summary>
-        [DataMember(Name = "id")]
+        [DataMember(Name = "id", Order = 0)]
         [Required]
         public string Id { get; set; }
 
         /// <summary>
         /// Site of the supervisor
         /// </summary>
-        [DataMember(Name = "siteId",
+        [DataMember(Name = "siteId", Order = 1,
             EmitDefaultValue = false)]
         public string SiteId { get; set; }
 
         /// <summary>
         /// Current log level
         /// </summary>
-        [DataMember(Name = "logLevel",
+        [DataMember(Name = "logLevel", Order = 2,
             EmitDefaultValue = false)]
         public TraceLogLevel? LogLevel { get; set; }
 
@@ -38,14 +38,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// Whether the registration is out of sync between
         /// client (module) and server (service) (default: false).
         /// </summary>
-        [DataMember(Name = "outOfSync",
+        [DataMember(Name = "outOfSync", Order = 3,
             EmitDefaultValue = false)]
         public bool? OutOfSync { get; set; }
 
         /// <summary>
         /// Whether supervisor is connected on this registration
         /// </summary>
-        [DataMember(Name = "connected",
+        [DataMember(Name = "connected", Order = 4,
             EmitDefaultValue = false)]
         public bool? Connected { get; set; }
     }

@@ -62,6 +62,7 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
                 }
             }
             resolvers.Add(StandardResolver.Instance);
+            resolvers.Add(DynamicContractlessObjectResolver.Instance);
             Resolvers = resolvers;
 
 #if MessagePack2
@@ -100,7 +101,8 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
 #if MessagePack2
                 MsgPack.Serialize(buffer, o, Options);
 #else
-                buffer.Write(MsgPack.Serialize(o?.GetType() ?? typeof(object), o, Options));
+                var b = MsgPack.Serialize(o?.GetType() ?? typeof(object), o, Options);
+                buffer.Write(b);
 #endif
             }
             catch (MessagePackSerializationException ex) {
@@ -212,11 +214,22 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
                     return u.ToString();
                 }
                 if (_value is object[] o && o.Length == 2 && o[0] is DateTime dt) {
-                    var offset = Convert.ToInt64(o[1]);
-                    if (offset == 0) {
-                        return dt;
+                    // Datetime offset encoding convention
+                    switch (o[1]) {
+                        case uint _:
+                        case int _:
+                        case ulong _:
+                        case long _:
+                        case ushort _:
+                        case short _:
+                        case byte _:
+                        case sbyte _:
+                            var offset = Convert.ToInt64(o[1]);
+                            if (offset == 0) {
+                                return dt;
+                            }
+                            return new DateTimeOffset(dt, TimeSpan.FromTicks(offset));
                     }
-                    return new DateTimeOffset(dt, TimeSpan.FromTicks(offset));
                 }
                 return _value;
             }
@@ -461,6 +474,9 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
                     if (value is MessagePackVariantValue packed) {
                         MsgPack.Serialize(ref writer, packed._value, options);
                     }
+                    else if (value is null) {
+                            writer.WriteNil();
+                    }
                     else if (value is VariantValue variant) {
                         if (variant.IsNull()) {
                             writer.WriteNil();
@@ -493,8 +509,11 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
                         return MsgPack.Serialize(packed._value?.GetType() ?? typeof(object),
                             ref bytes, offset, packed._value, options);
                     }
+                    else if (value is null) {
+                        return MsgPackWriter.WriteNil(ref bytes, offset);
+                    }
                     else if (value is VariantValue variant) {
-                        if (variant.IsNull()) {
+                        if (VariantValueEx.IsNull(variant)) {
                             return MsgPackWriter.WriteNil(ref bytes, offset);
                         }
                         else if (variant.IsListOfValues) {
@@ -540,6 +559,9 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
                 public T Deserialize(byte[] bytes, int offset, MessagePackSerializerOptions options,
                     out int readSize) {
                     var o = MsgPack.Deserialize(typeof(object), bytes, offset, options, out readSize);
+                    if (o == null) {
+                        return default;
+                    }
                     return new MessagePackVariantValue(o, options, false) as T;
                 }
 #endif

@@ -16,14 +16,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Identifier of the endoint
         /// </summary>
-        [DataMember(Name = "id")]
+        [DataMember(Name = "id", Order = 0)]
         [Required]
         public string Id { get; set; }
 
         /// <summary>
         /// Activation state
         /// </summary>
-        [DataMember(Name = "activationState",
+        [DataMember(Name = "activationState", Order = 1,
             EmitDefaultValue = false)]
         public EndpointActivationState? ActivationState { get; set; }
     }

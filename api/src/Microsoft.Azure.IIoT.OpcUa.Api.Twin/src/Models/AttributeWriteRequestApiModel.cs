@@ -18,21 +18,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// Node to write to (mandatory)
         /// </summary>
-        [DataMember(Name = "nodeId")]
+        [DataMember(Name = "nodeId", Order = 0)]
         [Required]
         public string NodeId { get; set; }
 
         /// <summary>
         /// Attribute to write (mandatory)
         /// </summary>
-        [DataMember(Name = "attribute")]
+        [DataMember(Name = "attribute", Order = 1)]
         [Required]
         public NodeAttribute Attribute { get; set; }
 
         /// <summary>
         /// Value to write (mandatory)
         /// </summary>
-        [DataMember(Name = "value")]
+        [DataMember(Name = "value", Order = 2)]
         [Required]
         public VariantValue Value { get; set; }
     }

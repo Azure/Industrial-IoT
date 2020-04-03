@@ -16,13 +16,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
         /// <summary>
         /// Group registrations
         /// </summary>
-        [DataMember(Name = "registrations")]
+        [DataMember(Name = "registrations", Order = 0)]
         public List<TrustGroupRegistrationApiModel> Registrations { get; set; }
 
         /// <summary>
         /// Next link
         /// </summary>
-        [DataMember(Name = "nextPageLink",
+        [DataMember(Name = "nextPageLink", Order = 1,
             EmitDefaultValue = false)]
         public string NextPageLink { get; set; }
     }

@@ -396,7 +396,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             // If there are changes, update what should be reported back.
             foreach (var property in processed) {
                 var exists = twin.Properties.Reported.Contains(property.Key);
-                if (property.Value == null) {
+                if (VariantValueEx.IsNull(property.Value)) {
                     if (exists) {
                         // If exists as reported, remove
                         reported.AddOrUpdate(property.Key, null);
@@ -406,13 +406,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 else {
                     if (exists) {
                         // If exists and same as property value, continue
-                        var r = (VariantValue)_serializer.FromObject(
+                        var r = (VariantValue)this._serializer.FromObject(
                             twin.Properties.Reported[property.Key]);
                         if (r == property.Value) {
                             continue;
                         }
                     }
-                    else if (property.Value == null) {
+                    else if (VariantValueEx.IsNull(property.Value)) {
                         continue;
                     }
 

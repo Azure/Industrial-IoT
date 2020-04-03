@@ -139,12 +139,24 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
         [MemberData(nameof(GetScalars))]
         [MemberData(nameof(GetEmptyArrays))]
         [MemberData(nameof(GetFilledArrays))]
-        public void SerializerArrayVariant(object o, Type type) {
+        public void SerializerArrayVariant3(object o, Type type) {
             var expected = type.MakeArrayType();
             var result = Serializer.FromArray(o, o, o);
             Assert.NotNull(result);
             Assert.True(result.IsListOfValues);
             Assert.True(result.Count == 3);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetScalars))]
+        [MemberData(nameof(GetEmptyArrays))]
+        [MemberData(nameof(GetFilledArrays))]
+        public void SerializerArrayVariant2(object o, Type type) {
+            var expected = type.MakeArrayType();
+            var result = Serializer.FromArray(o, o);
+            Assert.NotNull(result);
+            Assert.True(result.IsListOfValues);
+            Assert.True(result.Count == 2);
         }
 
         [Theory]
@@ -230,19 +242,69 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
         }
 
         [Fact]
-        public void TestDataContract() {
-            var str = Serializer.SerializeToBytes(new DataContractModel());
+        public void TestDataContract1() {
+            var str = Serializer.SerializeToBytes(new DataContractModel1());
             Assert.True(str.SequenceEqual(new byte[] { 130, 161, 97, 8, 161, 98, 192 }));
         }
 
         [DataContract]
-        public class DataContractModel {
+        public class DataContractModel1 {
 
             [DataMember(Name = "a", EmitDefaultValue = false)]
             public int Test1 { get; set; } = 8;
 
             [DataMember(Name = "b", EmitDefaultValue = false)]
             public string Test2 { get; set; } = null;
+        }
+
+        [Fact]
+        public void TestDataContract2() {
+            var str = Serializer.SerializeToBytes(new DataContractModel2());
+            Assert.True(str.SequenceEqual(new byte[] { 146, 8, 192 }));
+        }
+
+        [DataContract]
+        public class DataContractModel2 {
+
+            [DataMember(Name = "a", Order = 0, EmitDefaultValue = false)]
+            public int Test1 { get; set; } = 8;
+
+            [DataMember(Name = "b", Order = 1, EmitDefaultValue = false)]
+            public string Test2 { get; set; } = null;
+        }
+
+        [Fact]
+        public void TestDataContractDefaultValuesAndVariantValueAsNull() {
+            var str = Serializer.SerializeToBytes(new DataContractModelWithVariantNullValue {
+                Test1 = 5,
+                Test3 = DataContractEnum.All,
+                Test4 = 8,
+                TestStr = "T"
+            });
+            var result = Serializer.Deserialize<DataContractModelWithVariantNullValue>(str.ToArray());
+            Assert.Equal(5, result.Test1);
+            Assert.Equal(4, result.Test4);
+            Assert.Equal("T", result.TestStr);
+            Assert.Equal(DataContractEnum.All, result.Test3);
+            Assert.True(str.SequenceEqual(new byte[] { 148, 5, 192, 161, 84, 7 }));
+        }
+
+        [DataContract]
+        public class DataContractModelWithVariantNullValue {
+
+            [DataMember(EmitDefaultValue = false, Order = 0)]
+            public int Test1 { get; set; } = 4;
+
+            [DataMember(EmitDefaultValue = false, Order = 1)]
+            public VariantValue Test2 { get; set; }
+
+            [DataMember(EmitDefaultValue = false, Order = 2)]
+            public string TestStr { get; set; } = "Test1";
+
+            [DataMember(EmitDefaultValue = false, Order = 3)]
+            public DataContractEnum? Test3 { get; set; } = DataContractEnum.Test1;
+
+            public int Test4 { get; set; } = 4;
         }
 
         [Fact]
@@ -489,13 +551,13 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
             Assert.Equal(4, value);
 
             value = o.GetByPath("path1.Test", StringComparison.InvariantCulture);
-            Assert.True(value.IsNull);
+            Assert.True(value.IsNull());
             value = o.GetByPath("Path1.path2.Test", StringComparison.InvariantCulture);
-            Assert.True(value.IsNull);
+            Assert.True(value.IsNull());
             value = o.GetByPath("Path1.PAth2.PaTh3.TEST", StringComparison.InvariantCulture);
-            Assert.True(value.IsNull);
+            Assert.True(value.IsNull());
             value = o.GetByPath("Path1.Path2.Path3.Path4.test", StringComparison.InvariantCulture);
-            Assert.True(value.IsNull);
+            Assert.True(value.IsNull());
         }
 
         [Fact]
@@ -536,13 +598,13 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
             Assert.Equal(4, value);
 
             value = o.GetByPath("Path1.A[0]", StringComparison.InvariantCulture);
-            Assert.True(value.IsNull);
+            Assert.True(value.IsNull());
             value = o.GetByPath("Path1.path2.a[1]", StringComparison.InvariantCulture);
-            Assert.True(value.IsNull);
+            Assert.True(value.IsNull());
             value = o.GetByPath("Path1.PAth2.PaTh3.a[2]", StringComparison.InvariantCulture);
-            Assert.True(value.IsNull);
+            Assert.True(value.IsNull());
             value = o.GetByPath("Path1.Path2.Path3.PATH4.a[3]", StringComparison.InvariantCulture);
-            Assert.True(value.IsNull);
+            Assert.True(value.IsNull());
         }
 
         [Fact]
@@ -600,9 +662,9 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
             Assert.Equal(3, value);
 
             value = o.GetByPath("Path1.a[4]");
-            Assert.True(value.IsNull);
+            Assert.True(value.IsNull());
             value = o.GetByPath("Path1.a[4].Test");
-            Assert.True(value.IsNull);
+            Assert.True(value.IsNull());
         }
 
         [Fact]

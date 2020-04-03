@@ -18,10 +18,9 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Implementation of twin and job services using service sdk.
+    /// Implementation of twin services using service sdk.
     /// </summary>
-    public sealed class IoTHubServiceClient : IIoTHubTwinServices,
-        IIoTHubConfigurationServices {
+    public sealed class IoTHubServiceClient : IIoTHubTwinServices {
 
         /// <summary>
         /// The host name the client is talking to
@@ -44,9 +43,8 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _client = ServiceClient.CreateFromConnectionString(config.IoTHubConnString);
             _registry = RegistryManager.CreateFromConnectionString(config.IoTHubConnString);
-            _jobs = JobClient.CreateFromConnectionString(config.IoTHubConnString);
 
-            Task.WaitAll(_client.OpenAsync(), _registry.OpenAsync(), _jobs.OpenAsync());
+            Task.WaitAll(_client.OpenAsync(), _registry.OpenAsync());
 
             HostName = ConnectionString.Parse(config.IoTHubConnString).HostName;
         }
@@ -145,19 +143,6 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         }
 
         /// <inheritdoc/>
-        public async Task ApplyConfigurationAsync(string deviceId,
-            ConfigurationContentModel configuration, CancellationToken ct) {
-            try {
-                await _registry.ApplyConfigurationContentOnDeviceAsync(deviceId,
-                    configuration.ToContent(), ct);
-            }
-            catch (Exception e) {
-                _logger.Verbose(e, "Apply configuration failed ");
-                throw e.Rethrow();
-            }
-        }
-
-        /// <inheritdoc/>
         public async Task<DeviceTwinModel> GetAsync(string deviceId, string moduleId,
             CancellationToken ct) {
             try {
@@ -229,93 +214,9 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             }
         }
 
-        /// <inheritdoc/>
-        public async Task<ConfigurationModel> CreateOrUpdateConfigurationAsync(
-            ConfigurationModel configuration, bool forceUpdate, CancellationToken ct) {
-
-            try {
-                if (string.IsNullOrEmpty(configuration.Etag)) {
-                    // First try create configuration
-                    try {
-                        var added = await _registry.AddConfigurationAsync(
-                            configuration.ToConfiguration(), ct);
-                        return added.ToModel();
-                    }
-                    catch (DeviceAlreadyExistsException) when (forceUpdate) {
-                        //
-                        // Technically update below should now work but for
-                        // some reason it does not.
-                        // Remove and re-add in case we are forcing updates.
-                        //
-                        await _registry.RemoveConfigurationAsync(configuration.Id, ct);
-                        var added = await _registry.AddConfigurationAsync(
-                            configuration.ToConfiguration(), ct);
-                        return added.ToModel();
-                    }
-                }
-
-                // Try update existing configuration
-                var result = await _registry.UpdateConfigurationAsync(
-                    configuration.ToConfiguration(), forceUpdate, ct);
-                return result.ToModel();
-            }
-            catch (Exception e) {
-                _logger.Verbose(e,
-                    "Update configuration failed in CreateOrUpdate");
-                throw e.Rethrow();
-            }
-        }
-
-        /// <inheritdoc/>
-        public async Task<ConfigurationModel> GetConfigurationAsync(
-            string configurationId, CancellationToken ct) {
-            try {
-                var configuration = await _registry.GetConfigurationAsync(
-                    configurationId, ct);
-                return configuration.ToModel();
-            }
-            catch (Exception e) {
-                _logger.Verbose(e, "Get configuration failed");
-                throw e.Rethrow();
-            }
-        }
-
-        /// <inheritdoc/>
-        public async Task<IEnumerable<ConfigurationModel>> ListConfigurationsAsync(
-            int? maxCount, CancellationToken ct) {
-            try {
-                var configurations = await _registry.GetConfigurationsAsync(
-                    maxCount ?? int.MaxValue, ct);
-                return configurations.Select(c => c.ToModel());
-            }
-            catch (Exception e) {
-                _logger.Verbose(e, "List configurations failed");
-                throw e.Rethrow();
-            }
-        }
-
-        /// <inheritdoc/>
-        public async Task DeleteConfigurationAsync(string configurationId,
-            string etag, CancellationToken ct) {
-            try {
-                if (string.IsNullOrEmpty(etag)) {
-                    await _registry.RemoveConfigurationAsync(configurationId, ct);
-                }
-                else {
-                    await _registry.RemoveConfigurationAsync(
-                        new Configuration(configurationId) { ETag = etag }, ct);
-                }
-            }
-            catch (Exception e) {
-                _logger.Verbose(e, "Delete configuration failed");
-                throw e.Rethrow();
-            }
-        }
-
         private readonly ServiceClient _client;
         private readonly RegistryManager _registry;
         private readonly IJsonSerializer _serializer;
-        private readonly JobClient _jobs;
         private readonly ILogger _logger;
     }
 }

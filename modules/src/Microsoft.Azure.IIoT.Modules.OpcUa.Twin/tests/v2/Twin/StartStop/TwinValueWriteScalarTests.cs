@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
     using System.Net;
     using System.Threading.Tasks;
@@ -31,13 +30,17 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
         };
 
         private WriteScalarValueTests<string> GetTests(EndpointRegistrationModel endpoint, IContainer services) {
-            return new WriteScalarValueTests<string>(new NewtonSoftJsonSerializer(),
+            return new WriteScalarValueTests<string>(
                 () => services.Resolve<INodeServices<string>>(), endpoint.Id,
                 (ep, n) => _server.Client.ReadValueAsync(endpoint.Endpoint, n));
         }
 
         private readonly TestServerFixture _server;
+#if DEBUG
+        private readonly bool _runAll = true;
+#else
         private readonly bool _runAll = Environment.GetEnvironmentVariable("TEST_ALL") != null;
+#endif
 
         [SkippableFact]
         public async Task NodeWriteStaticScalarBooleanValueVariableTestAsync() {

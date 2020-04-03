@@ -16,21 +16,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// <summary>
         /// The start time to read from
         /// </summary>
-        [DataMember(Name = "startTime",
+        [DataMember(Name = "startTime", Order = 0,
             EmitDefaultValue = false)]
         public DateTime? StartTime { get; set; }
 
         /// <summary>
         /// The end time to read to
         /// </summary>
-        [DataMember(Name = "endTime",
+        [DataMember(Name = "endTime", Order = 1,
             EmitDefaultValue = false)]
         public DateTime? EndTime { get; set; }
 
         /// <summary>
         /// The number of values to read
         /// </summary>
-        [DataMember(Name = "numValues",
+        [DataMember(Name = "numValues", Order = 2,
             EmitDefaultValue = false)]
         public uint? NumValues { get; set; }
     }

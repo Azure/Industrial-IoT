@@ -15,13 +15,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
         /// <summary>
         /// The registered id of the trust group
         /// </summary>
-        [DataMember(Name = "id")]
+        [DataMember(Name = "id", Order = 0)]
         public string Id { get; set; }
 
         /// <summary>
         /// Trust group
         /// </summary>
-        [DataMember(Name = "group")]
+        [DataMember(Name = "group", Order = 1)]
         public TrustGroupApiModel Group { get; set; }
     }
 }

@@ -16,21 +16,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// <summary>
         /// Optional User elevation
         /// </summary>
-        [DataMember(Name = "elevation",
+        [DataMember(Name = "elevation", Order = 0,
             EmitDefaultValue = false)]
         public CredentialApiModel Elevation { get; set; }
 
         /// <summary>
         /// Optional list of locales in preference order.
         /// </summary>
-        [DataMember(Name = "locales",
+        [DataMember(Name = "locales", Order = 1,
             EmitDefaultValue = false)]
         public List<string> Locales { get; set; }
 
         /// <summary>
         /// Optional diagnostics configuration
         /// </summary>
-        [DataMember(Name = "diagnostics",
+        [DataMember(Name = "diagnostics", Order = 2,
             EmitDefaultValue = false)]
         public DiagnosticsApiModel Diagnostics { get; set; }
     }

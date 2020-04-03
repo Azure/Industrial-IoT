@@ -17,35 +17,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// <summary>
         /// Start time to read from.
         /// </summary>
-        [DataMember(Name = "startTime",
+        [DataMember(Name = "startTime", Order = 0,
             EmitDefaultValue = false)]
         public DateTime? StartTime { get; set; }
 
         /// <summary>
         /// End time to read until
         /// </summary>
-        [DataMember(Name = "endTime",
+        [DataMember(Name = "endTime", Order = 1,
             EmitDefaultValue = false)]
         public DateTime? EndTime { get; set; }
 
         /// <summary>
         /// Interval to process
         /// </summary>
-        [DataMember(Name = "processingInterval",
+        [DataMember(Name = "processingInterval", Order = 2,
             EmitDefaultValue = false)]
         public double? ProcessingInterval { get; set; }
 
         /// <summary>
         /// The aggregate type node ids
         /// </summary>
-        [DataMember(Name = "aggregateTypeId",
+        [DataMember(Name = "aggregateTypeId", Order = 3,
             EmitDefaultValue = false)]
         public string AggregateTypeId { get; set; }
 
         /// <summary>
         /// A configuration for the aggregate
         /// </summary>
-        [DataMember(Name = "aggregateConfiguration",
+        [DataMember(Name = "aggregateConfiguration", Order = 4,
             EmitDefaultValue = false)]
         public AggregateConfigurationApiModel AggregateConfiguration { get; set; }
     }

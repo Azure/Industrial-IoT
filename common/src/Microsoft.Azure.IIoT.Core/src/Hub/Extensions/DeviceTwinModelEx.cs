@@ -90,8 +90,8 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
             // Merge with reported
             foreach (var prop in reported) {
                 if (properties.TryGetValue(prop.Key, out var existing)) {
-                    if (existing == null || prop.Value == null) {
-                        if (existing == prop.Value) {
+                    if (VariantValueEx.IsNull(existing) || VariantValueEx.IsNull(prop.Value)) {
+                        if (VariantValueEx.IsNull(existing) && VariantValueEx.IsNull(prop.Value)) {
                             continue;
                         }
                     }

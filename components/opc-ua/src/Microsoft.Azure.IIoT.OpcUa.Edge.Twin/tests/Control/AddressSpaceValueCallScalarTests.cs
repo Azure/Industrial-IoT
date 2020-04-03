@@ -9,7 +9,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System.Net;
     using System.Threading.Tasks;
     using Xunit;
@@ -18,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
     public class AddressSpaceValueCallScalarTests {
 
         private CallScalarMethodTests<EndpointModel> GetTests() {
-            return new CallScalarMethodTests<EndpointModel>(new NewtonSoftJsonSerializer(),
+            return new CallScalarMethodTests<EndpointModel>(
                 () => new AddressSpaceServices(_server.Client,
                     new VariantEncoderFactory(), _server.Logger),
                 new EndpointModel {

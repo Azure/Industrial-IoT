@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
         /// </summary>
         /// <param name="args"></param>
         public static void Main(string[] args) {
-#if DEBUG
+#if DEBUGX
             Log.Logger = Diagnostics.ConsoleLogger.Create();
             Diagnostics.LogControl.Level.MinimumLevel = Serilog.Events.LogEventLevel.Debug;
 #endif

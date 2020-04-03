@@ -277,6 +277,27 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
         }
 
         [Fact]
+        public void TestDataContractDefaultValuesAndVariantValueAsNull() {
+            var str = Serializer.SerializeToString(new DataContractModelWithDefaultValues2());
+            Assert.Equal("{}", str);
+        }
+
+        [DataContract]
+        public class DataContractModelWithDefaultValues2 {
+
+            [DataMember(EmitDefaultValue = false)]
+            public int Test1 { get; set; } = 0;
+
+            [DataMember(EmitDefaultValue = false)]
+            public VariantValue Test2 { get; set; }
+
+            [DataMember(EmitDefaultValue = false)]
+            public DataContractEnum? Test3 { get; set; }
+
+            public int Test4 { get; set; } = 4;
+        }
+
+        [Fact]
         public void TestDataContract() {
             var str = Serializer.SerializeToString(new DataContractModel());
             Assert.Equal("{\"a\":8}", str);
@@ -507,13 +528,13 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
             Assert.Equal(4, value);
 
             value = o.GetByPath("path1.Test", StringComparison.InvariantCulture);
-            Assert.True(value.IsNull);
+            Assert.True(value.IsNull());
             value = o.GetByPath("Path1.path2.Test", StringComparison.InvariantCulture);
-            Assert.True(value.IsNull);
+            Assert.True(value.IsNull());
             value = o.GetByPath("Path1.PAth2.PaTh3.TEST", StringComparison.InvariantCulture);
-            Assert.True(value.IsNull);
+            Assert.True(value.IsNull());
             value = o.GetByPath("Path1.Path2.Path3.Path4.test", StringComparison.InvariantCulture);
-            Assert.True(value.IsNull);
+            Assert.True(value.IsNull());
         }
 
         [Fact]
@@ -554,13 +575,13 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
             Assert.Equal(4, value);
 
             value = o.GetByPath("Path1.A[0]", StringComparison.InvariantCulture);
-            Assert.True(value.IsNull);
+            Assert.True(value.IsNull());
             value = o.GetByPath("Path1.path2.a[1]", StringComparison.InvariantCulture);
-            Assert.True(value.IsNull);
+            Assert.True(value.IsNull());
             value = o.GetByPath("Path1.PAth2.PaTh3.a[2]", StringComparison.InvariantCulture);
-            Assert.True(value.IsNull);
+            Assert.True(value.IsNull());
             value = o.GetByPath("Path1.Path2.Path3.PATH4.a[3]", StringComparison.InvariantCulture);
-            Assert.True(value.IsNull);
+            Assert.True(value.IsNull());
         }
 
         [Fact]
@@ -618,9 +639,9 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
             Assert.Equal(3, value);
 
             value = o.GetByPath("Path1.a[4]");
-            Assert.True(value.IsNull);
+            Assert.True(value.IsNull());
             value = o.GetByPath("Path1.a[4].Test");
-            Assert.True(value.IsNull);
+            Assert.True(value.IsNull());
         }
 
         [Fact]

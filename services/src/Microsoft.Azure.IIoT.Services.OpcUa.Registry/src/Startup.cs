@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Migration;
+    using Microsoft.Azure.IIoT.OpcUa.Registry.Deploy;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
@@ -20,6 +21,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Hub.Services;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Messaging.Default;
@@ -120,7 +122,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
             // services.AddHttpClient();
 
             // Add controllers as services so they'll be resolved.
-            services.AddControllers().AddJsonSerializer().AddMessagePackSerializer();
+            services.AddControllers().AddSerializers();
             services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 
@@ -222,11 +224,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
             builder.RegisterType<ServiceBusEventBus>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // ... and auto start
-            builder.RegisterType<HostAutoStart>()
-                .AutoActivate()
-                .AsImplementedInterfaces().SingleInstance();
-
             // Cosmos db collection as storage
             builder.RegisterType<ItemContainerFactory>()
                 .AsImplementedInterfaces();
@@ -259,6 +256,19 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry {
             builder.RegisterType<TwinModuleDiagnosticsClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<OnboardingClient>()
+                .AsImplementedInterfaces().SingleInstance();
+
+
+            builder.RegisterType<IoTHubConfigurationClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<IoTHubEdgeBaseDeployment>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<IoTHubDiscovererDeployment>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // ... and auto start
+            builder.RegisterType<HostAutoStart>()
+                .AutoActivate()
                 .AsImplementedInterfaces().SingleInstance();
         }
     }

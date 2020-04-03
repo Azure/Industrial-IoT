@@ -17,35 +17,35 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
         /// <summary>
         /// Job id
         /// </summary>
-        [DataMember(Name = "jobId")]
+        [DataMember(Name = "jobId", Order = 0)]
         [Required]
         public string JobId { get; set; }
 
         /// <summary>
         /// Hash
         /// </summary>
-        [DataMember(Name = "jobHash",
+        [DataMember(Name = "jobHash", Order = 1,
             EmitDefaultValue = false)]
         public string JobHash { get; set; }
 
         /// <summary>
         /// Status
         /// </summary>
-        [DataMember(Name = "status",
+        [DataMember(Name = "status", Order = 2,
             EmitDefaultValue = false)]
         public JobStatus Status { get; set; }
 
         /// <summary>
         /// Process mode
         /// </summary>
-        [DataMember(Name = "processMode",
+        [DataMember(Name = "processMode", Order = 3,
             EmitDefaultValue = false)]
         public ProcessMode ProcessMode { get; set; }
 
         /// <summary>
         /// Job state
         /// </summary>
-        [DataMember(Name = "state",
+        [DataMember(Name = "state", Order = 4,
             EmitDefaultValue = false)]
         public VariantValue State { get; set; }
     }

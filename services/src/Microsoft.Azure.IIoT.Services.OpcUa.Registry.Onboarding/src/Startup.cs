@@ -112,7 +112,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding {
             });
 
             // Add controllers as services so they'll be resolved.
-            services.AddControllers().AddJsonSerializer().AddMessagePackSerializer();
+            services.AddControllers().AddSerializers();
             services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 

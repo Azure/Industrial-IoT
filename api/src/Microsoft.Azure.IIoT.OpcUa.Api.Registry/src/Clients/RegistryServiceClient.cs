@@ -90,6 +90,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (pageSize != null) {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return _serializer.DeserializeResponse<DiscovererListApiModel>(response);
@@ -118,6 +119,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             }
             var uri = new UriBuilder($"{_serviceUri}/v2/discovery/{discovererId}");
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return _serializer.DeserializeResponse<DiscovererApiModel>(response);
@@ -146,6 +148,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             }
             var uri = new UriBuilder($"{_serviceUri}/v2/supervisors/{supervisorId}/status");
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return _serializer.DeserializeResponse<SupervisorStatusApiModel>(response);
@@ -192,6 +195,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (pageSize != null) {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return _serializer.DeserializeResponse<SupervisorListApiModel>(response);
@@ -226,6 +230,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 uri.Query = "onlyServerState=true";
             }
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return _serializer.DeserializeResponse<SupervisorApiModel>(response);
@@ -335,6 +340,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/applications/{applicationId}",
                 _resourceId);
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return _serializer.DeserializeResponse<ApplicationRegistrationApiModel>(response);
@@ -365,6 +371,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (pageSize != null) {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return _serializer.DeserializeResponse<ApplicationInfoListApiModel>(response);
@@ -381,6 +388,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (pageSize != null) {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return _serializer.DeserializeResponse<ApplicationSiteListApiModel>(response);
@@ -420,6 +428,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (pageSize != null) {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return _serializer.DeserializeResponse<EndpointInfoListApiModel>(response);
@@ -454,6 +463,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 uri.Query = "onlyServerState=true";
             }
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return _serializer.DeserializeResponse<EndpointInfoApiModel>(response);
@@ -467,6 +477,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             }
             var uri = new UriBuilder($"{_serviceUri}/v2/endpoints/{endpointId}/certificate");
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return _serializer.DeserializeResponse<X509CertificateChainApiModel>(response);
@@ -508,6 +519,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (pageSize != null) {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return _serializer.DeserializeResponse<PublisherListApiModel>(response);
@@ -558,6 +570,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
                 uri.Query = "onlyServerState=true";
             }
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return _serializer.DeserializeResponse<PublisherApiModel>(response);
@@ -574,6 +587,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             if (pageSize != null) {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return _serializer.DeserializeResponse<GatewayListApiModel>(response);
@@ -617,6 +631,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients {
             }
             var uri = new UriBuilder($"{_serviceUri}/v2/gateways/{gatewayId}");
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return _serializer.DeserializeResponse<GatewayInfoApiModel>(response);

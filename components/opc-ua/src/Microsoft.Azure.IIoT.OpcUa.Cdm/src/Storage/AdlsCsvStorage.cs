@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
 
     /// <inheritdoc/>
     public class AdlsCsvStorage : IAdlsStorage {
-        
+
         /// <summary>
         /// CDM Azure Data lake storage handler
         /// </summary>
@@ -133,17 +133,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
                 if (content != string.Empty) {
                     request = _httpClient.NewRequest(
                         $"{partitionUrl}?action=append&position={contentPosition}", kResource);
-                    byte[] contentBuffer = Encoding.UTF8.GetBytes(content);
+                    var contentBuffer = Encoding.UTF8.GetBytes(content);
                     request.SetByteArrayContent(contentBuffer,
-                        new System.Net.Http.Headers.MediaTypeHeaderValue(ContentMimeType.Binary));
+                        ContentMimeType.Binary);
                     response = await _httpClient.PatchAsync(request);
                     if (response.IsError()) {
                         return false;
                     }
                     contentPosition += contentBuffer.Length;
-                    request = _httpClient.NewRequest
-                        ($"{partitionUrl}?action=flush&position={contentPosition}",
-                        kResource);
+                    request = _httpClient.NewRequest(
+                        $"{partitionUrl}?action=flush&position={contentPosition}", kResource);
                     response = await _httpClient.PatchAsync(request);
                     if (response.IsError()) {
                         return false;

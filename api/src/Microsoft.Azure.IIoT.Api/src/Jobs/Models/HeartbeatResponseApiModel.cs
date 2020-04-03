@@ -16,20 +16,20 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
         /// <summary>
         /// Instructions
         /// </summary>
-        [DataMember(Name = "heartbeatInstruction")]
+        [DataMember(Name = "heartbeatInstruction", Order = 0)]
         public HeartbeatInstruction HeartbeatInstruction { get; set; }
 
         /// <summary>
         /// Last active
         /// </summary>
-        [DataMember(Name = "lastActiveHeartbeat",
+        [DataMember(Name = "lastActiveHeartbeat", Order = 1,
             EmitDefaultValue = false)]
         public DateTime? LastActiveHeartbeat { get; set; }
 
         /// <summary>
         /// Job continuation in case of updates
         /// </summary>
-        [DataMember(Name = "updatedJob",
+        [DataMember(Name = "updatedJob", Order = 2,
             EmitDefaultValue = false)]
         public JobProcessingInstructionApiModel UpdatedJob { get; set; }
     }

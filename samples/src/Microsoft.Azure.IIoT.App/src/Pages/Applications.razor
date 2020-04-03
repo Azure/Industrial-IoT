@@ -165,6 +165,7 @@
     private Task ApplicationEvent(ApplicationEventApiModel ev)
     {
         _applicationList.Results.Update(ev);
+        _pagedapplicationList = _applicationList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _applicationList.Error);
         StateHasChanged();
         return Task.CompletedTask;
     }

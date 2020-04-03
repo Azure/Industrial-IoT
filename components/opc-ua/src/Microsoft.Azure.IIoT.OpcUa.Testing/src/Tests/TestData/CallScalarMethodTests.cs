@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Opc.Ua.Extensions;
     using System;
     using System.Collections.Generic;
@@ -22,11 +23,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         /// <summary>
         /// Create node services tests
         /// </summary>
-        public CallScalarMethodTests(IJsonSerializer serializer,
-            Func<INodeServices<T>> services, T endpoint) {
+        public CallScalarMethodTests(Func<INodeServices<T>> services, T endpoint) {
             _services = services;
             _endpoint = endpoint;
-            _serializer = serializer;
+            _serializer = new NewtonSoftJsonSerializer();
         }
 
         public async Task NodeMethodMetadataStaticScalarMethod1TestAsync() {
@@ -52,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Boolean", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Boolean", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("SByteIn", arg.Name);
@@ -62,7 +62,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("SByte", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("SByte", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("ByteIn", arg.Name);
@@ -72,7 +72,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Byte", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Byte", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("Int16In", arg.Name);
@@ -82,7 +82,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Int16", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Int16", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("UInt16In", arg.Name);
@@ -92,7 +92,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("UInt16", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("UInt16", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("Int32In", arg.Name);
@@ -102,7 +102,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Int32", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Int32", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("UInt32In", arg.Name);
@@ -112,7 +112,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("UInt32", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("UInt32", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("Int64In", arg.Name);
@@ -122,7 +122,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Int64", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Int64", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("UInt64In", arg.Name);
@@ -132,7 +132,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("UInt64", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("UInt64", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("FloatIn", arg.Name);
@@ -142,7 +142,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Float", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Float", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("DoubleIn", arg.Name);
@@ -152,7 +152,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Double", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Double", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 });
             Assert.Collection(result.OutputArguments,
                 arg => {
@@ -163,7 +163,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Boolean", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Boolean", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("SByteOut", arg.Name);
@@ -173,7 +173,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("SByte", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("SByte", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("ByteOut", arg.Name);
@@ -183,7 +183,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Byte", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Byte", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("Int16Out", arg.Name);
@@ -193,7 +193,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Int16", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Int16", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("UInt16Out", arg.Name);
@@ -203,7 +203,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("UInt16", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("UInt16", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("Int32Out", arg.Name);
@@ -213,7 +213,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Int32", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Int32", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("UInt32Out", arg.Name);
@@ -223,7 +223,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("UInt32", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("UInt32", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("Int64Out", arg.Name);
@@ -233,7 +233,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Int64", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Int64", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("UInt64Out", arg.Name);
@@ -243,7 +243,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("UInt64", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("UInt64", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("FloatOut", arg.Name);
@@ -253,7 +253,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Float", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Float", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("DoubleOut", arg.Name);
@@ -263,7 +263,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Double", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Double", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 });
         }
 
@@ -291,7 +291,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("String", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("String", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("DateTimeIn", arg.Name);
@@ -301,7 +301,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("DateTime", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("DateTime", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("GuidIn", arg.Name);
@@ -311,7 +311,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Guid", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Guid", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("ByteStringIn", arg.Name);
@@ -321,7 +321,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("ByteString", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("ByteString", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("XmlElementIn", arg.Name);
@@ -331,7 +331,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("XmlElement", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("XmlElement", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("NodeIdIn", arg.Name);
@@ -341,7 +341,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("NodeId", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("NodeId", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("ExpandedNodeIdIn", arg.Name);
@@ -351,7 +351,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("ExpandedNodeId", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("ExpandedNodeId", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("QualifiedNameIn", arg.Name);
@@ -361,7 +361,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("QualifiedName", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("QualifiedName", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("LocalizedTextIn", arg.Name);
@@ -371,7 +371,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("LocalizedText", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("LocalizedText", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("StatusCodeIn", arg.Name);
@@ -381,7 +381,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("StatusCode", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("StatusCode", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 });
             Assert.Collection(result.OutputArguments,
                 arg => {
@@ -392,7 +392,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("String", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("String", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("DateTimeOut", arg.Name);
@@ -402,7 +402,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("DateTime", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("DateTime", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("GuidOut", arg.Name);
@@ -412,7 +412,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Guid", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Guid", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("ByteStringOut", arg.Name);
@@ -422,7 +422,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("ByteString", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("ByteString", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("XmlElementOut", arg.Name);
@@ -432,7 +432,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("XmlElement", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("XmlElement", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("NodeIdOut", arg.Name);
@@ -442,7 +442,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("NodeId", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("NodeId", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("ExpandedNodeIdOut", arg.Name);
@@ -452,7 +452,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("ExpandedNodeId", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("ExpandedNodeId", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("QualifiedNameOut", arg.Name);
@@ -462,7 +462,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("QualifiedName", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("QualifiedName", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("LocalizedTextOut", arg.Name);
@@ -472,7 +472,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("LocalizedText", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("LocalizedText", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("StatusCodeOut", arg.Name);
@@ -482,7 +482,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("StatusCode", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("StatusCode", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 });
         }
 
@@ -510,7 +510,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Variant", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("BaseDataType", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("EnumerationIn", arg.Name);
@@ -520,7 +520,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Enumeration", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Enumeration", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("StructureIn", arg.Name);
@@ -530,7 +530,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("ExtensionObject", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Structure", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 });
             Assert.Collection(result.OutputArguments,
                 arg => {
@@ -541,7 +541,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Variant", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("BaseDataType", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("EnumerationOut", arg.Name);
@@ -551,7 +551,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Enumeration", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Enumeration", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("StructureOut", arg.Name);
@@ -561,7 +561,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("ExtensionObject", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Structure", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 });
         }
 
@@ -592,7 +592,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Variant", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("BaseDataType", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("EnumerationIn", arg.Name);
@@ -602,7 +602,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Enumeration", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Enumeration", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("StructureIn", arg.Name);
@@ -612,7 +612,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("ExtensionObject", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Structure", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 });
             Assert.Collection(result.OutputArguments,
                 arg => {
@@ -623,7 +623,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Variant", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("BaseDataType", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("EnumerationOut", arg.Name);
@@ -633,7 +633,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Enumeration", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Enumeration", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("StructureOut", arg.Name);
@@ -643,7 +643,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("ExtensionObject", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Structure", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 });
         }
 
@@ -676,7 +676,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Variant", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("BaseDataType", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("EnumerationIn", arg.Name);
@@ -686,7 +686,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Enumeration", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Enumeration", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("StructureIn", arg.Name);
@@ -696,7 +696,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("ExtensionObject", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Structure", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 });
             Assert.Collection(result.OutputArguments,
                 arg => {
@@ -707,7 +707,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Variant", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("BaseDataType", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("EnumerationOut", arg.Name);
@@ -717,7 +717,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("Enumeration", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Enumeration", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 },
                 arg => {
                     Assert.Equal("StructureOut", arg.Name);
@@ -727,7 +727,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                     Assert.Equal("ExtensionObject", arg.Type.NodeId);
                     Assert.Null(arg.Type.DataType);
                     Assert.Equal("Structure", arg.Type.DisplayName);
-                    Assert.Null(arg.DefaultValue);
+                    Assert.True(arg.DefaultValue.IsNull());
                 });
         }
 
@@ -1210,43 +1210,43 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             // Assert
             Assert.Collection(result.Results,
                  arg => {
-                     Assert.True(arg.Value.IsNull);
+                     Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[0], arg.DataType);
                  },
                  arg => {
-                     Assert.True(arg.Value.IsNull);
+                     Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[1], arg.DataType);
                  },
                  arg => {
-                     Assert.True(arg.Value.IsNull);
+                     Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[2], arg.DataType);
                  },
                  arg => {
-                     Assert.True(arg.Value.IsNull);
+                     Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[3], arg.DataType);
                  },
                  arg => {
-                     Assert.True(arg.Value.IsNull);
+                     Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[4], arg.DataType);
                  },
                  arg => {
-                     Assert.True(arg.Value.IsNull);
+                     Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[5], arg.DataType);
                  },
                  arg => {
-                     Assert.True(arg.Value.IsNull);
+                     Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[6], arg.DataType);
                  },
                  arg => {
-                     Assert.True(arg.Value.IsNull);
+                     Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[7], arg.DataType);
                  },
                  arg => {
-                     Assert.True(arg.Value.IsNull);
+                     Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[8], arg.DataType);
                  },
                  arg => {
-                     Assert.True(arg.Value.IsNull);
+                     Assert.True(arg.Value.IsNull());
                      Assert.Equal(types[9], arg.DataType);
                  });
         }

@@ -83,7 +83,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Deploy {
             {
                 ""$edgeAgent"": {
                     " + registryCredentials + @"
-                    ""properties.desired.modules.twin"": {
+                    ""properties.desired.modules.opctwin"": {
                         ""settings"": {
                             ""image"": """ + image + @"""
                         },

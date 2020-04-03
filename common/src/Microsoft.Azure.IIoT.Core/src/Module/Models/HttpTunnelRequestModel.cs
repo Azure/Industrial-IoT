@@ -22,33 +22,33 @@ namespace Microsoft.Azure.IIoT.Module.Models {
         /// <summary>
         /// Method
         /// </summary>
-        [DataMember(Name = "method")]
+        [DataMember(Name = "method", Order = 0)]
         public string Method { get; set; }
 
         /// <summary>
         /// Resource id
         /// </summary>
-        [DataMember(Name = "resourceId",
+        [DataMember(Name = "resourceId", Order = 1,
             EmitDefaultValue = false)]
         public string ResourceId { get; internal set; }
 
         /// <summary>
         /// Uri to call
         /// </summary>
-        [DataMember(Name = "uri")]
+        [DataMember(Name = "uri", Order = 2)]
         public string Uri { get; internal set; }
 
         /// <summary>
         /// Headers
         /// </summary>
-        [DataMember(Name = "requestHeaders",
+        [DataMember(Name = "requestHeaders", Order = 3,
             EmitDefaultValue = false)]
         public Dictionary<string, List<string>> RequestHeaders { get; set; }
 
         /// <summary>
         /// Headers
         /// </summary>
-        [DataMember(Name = "contentHeaders",
+        [DataMember(Name = "contentHeaders", Order = 4,
             EmitDefaultValue = false)]
         public Dictionary<string, List<string>> ContentHeaders { get; set; }
     }

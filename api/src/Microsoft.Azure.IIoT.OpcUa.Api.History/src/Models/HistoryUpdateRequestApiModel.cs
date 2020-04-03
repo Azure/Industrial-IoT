@@ -17,14 +17,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// <summary>
         /// Node to update
         /// </summary>
-        [DataMember(Name = "nodeId")]
+        [DataMember(Name = "nodeId", Order = 0)]
         public string NodeId { get; set; }
 
         /// <summary>
         /// An optional path from NodeId instance to
         /// the actual node.
         /// </summary>
-        [DataMember(Name = "browsePath",
+        [DataMember(Name = "browsePath", Order = 1,
             EmitDefaultValue = false)]
         public string[] BrowsePath { get; set; }
 
@@ -34,14 +34,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// update request for the Historian server. The value
         /// is updated at edge using above node address.
         /// </summary>
-        [DataMember(Name = "details")]
+        [DataMember(Name = "details", Order = 2)]
         [Required]
         public T Details { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
-        [DataMember(Name = "header",
+        [DataMember(Name = "header", Order = 3,
             EmitDefaultValue = false)]
         public RequestHeaderApiModel Header { get; set; }
     }

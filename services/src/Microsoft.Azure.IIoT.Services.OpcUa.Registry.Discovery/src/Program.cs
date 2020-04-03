@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Client;
@@ -30,7 +31,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
     using System.IO;
     using System.Runtime.Loader;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
 
     /// <summary>
     /// Sync service handles jobs out of process for other services.
@@ -147,17 +147,24 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
             builder.RegisterType<DiscovererModuleClient>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // Token updater
+            // Identity token updater
             builder.RegisterType<PasswordGenerator>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<TwinIdentityTokenUpdater>()
                 .AsImplementedInterfaces().SingleInstance();
-            // Job orchestrator sync
+
+            // and service endpoint sync
             builder.RegisterType<JobOrchestratorEndpointSync>()
                 .AsImplementedInterfaces().SingleInstance();
 
             // Activation sync
             builder.RegisterType<TwinModuleActivationClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<TwinModuleCertificateClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<TwinModuleDiagnosticsClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<ActivationSyncHost>()
                 .AsImplementedInterfaces().SingleInstance();
 
             return builder;

@@ -17,14 +17,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Server information
         /// </summary>
-        [DataMember(Name = "application")]
+        [DataMember(Name = "application", Order = 0)]
         [Required]
         public ApplicationInfoApiModel Application { get; set; }
 
         /// <summary>
         /// List of endpoint twins
         /// </summary>
-        [DataMember(Name = "endpoints",
+        [DataMember(Name = "endpoints", Order = 1,
             EmitDefaultValue = false)]
         public List<EndpointRegistrationApiModel> Endpoints { get; set; }
     }

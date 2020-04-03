@@ -111,7 +111,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                                     Id = node.Id,
                                     PublishedVariableNodeId = node.Id,
                                     PublishedVariableDisplayName = node.DisplayName,
-                                    SamplingInterval = node.OpcSamplingIntervalTimespan ?? legacyCliModel.DefaultSamplingInterval ?? (TimeSpan?)null
+                                    SamplingInterval = node.OpcSamplingIntervalTimespan ?? legacyCliModel.DefaultSamplingInterval ?? null
                                     // TODO: Link all to server time sampled at heartbeat interval
                                     // HeartbeatInterval = opcNode.HeartbeatInterval == null ? (TimeSpan?)null :
                                     //    TimeSpan.FromMilliseconds(opcNode.HeartbeatInterval.Value),
@@ -122,7 +122,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     }))
                 .SelectMany(dataSetSourceBatches => dataSetSourceBatches
                     .Select(dataSetSource => new WriterGroupJobModel {
-                        
+
                         MessagingMode = legacyCliModel.MessagingMode,
                         Engine = _config == null ? null : new EngineConfigurationModel {
                             BatchSize = _config.BatchSize,

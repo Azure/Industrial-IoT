@@ -18,14 +18,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// Node to browse.
         /// (defaults to root folder).
         /// </summary>
-        [DataMember(Name = "nodeId")]
+        [DataMember(Name = "nodeId", Order = 0)]
         public string NodeId { get; set; }
 
         /// <summary>
         /// Direction to browse in
         /// (default: forward)
         /// </summary>
-        [DataMember(Name = "direction",
+        [DataMember(Name = "direction", Order = 1,
             EmitDefaultValue = false)]
         public BrowseDirection? Direction { get; set; }
 
@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// View to browse
         /// (default: null = new view = All nodes).
         /// </summary>
-        [DataMember(Name = "view",
+        [DataMember(Name = "view", Order = 2,
             EmitDefaultValue = false)]
         public BrowseViewApiModel View { get; set; }
 
@@ -41,7 +41,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// Reference types to browse.
         /// (default: hierarchical).
         /// </summary>
-        [DataMember(Name = "referenceTypeId",
+        [DataMember(Name = "referenceTypeId", Order = 3,
             EmitDefaultValue = false)]
         public string ReferenceTypeId { get; set; }
 
@@ -49,7 +49,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// Whether to include subtypes of the reference type.
         /// (default is false)
         /// </summary>
-        [DataMember(Name = "noSubtypes",
+        [DataMember(Name = "noSubtypes", Order = 4,
             EmitDefaultValue = false)]
         public bool? NoSubtypes { get; set; }
 
@@ -60,7 +60,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// or target nodes.
         /// (default is decided by client e.g. 60)
         /// </summary>
-        [DataMember(Name = "maxReferencesToReturn",
+        [DataMember(Name = "maxReferencesToReturn", Order = 5,
             EmitDefaultValue = false)]
         public uint? MaxReferencesToReturn { get; set; }
 
@@ -70,7 +70,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// information.
         /// (default is false)
         /// </summary>
-        [DataMember(Name = "targetNodesOnly",
+        [DataMember(Name = "targetNodesOnly", Order = 6,
            EmitDefaultValue = false)]
         public bool? TargetNodesOnly { get; set; }
 
@@ -78,7 +78,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// Whether to read variable values on target nodes.
         /// (default is false)
         /// </summary>
-        [DataMember(Name = "readVariableValues",
+        [DataMember(Name = "readVariableValues", Order = 7,
             EmitDefaultValue = false)]
         public bool? ReadVariableValues { get; set; }
 
@@ -87,14 +87,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// nodes that have classes defined in this array.
         /// (default: null - all targets are returned)
         /// </summary>
-        [DataMember(Name = "nodeClassFilter",
+        [DataMember(Name = "nodeClassFilter", Order = 8,
             EmitDefaultValue = false)]
         public List<NodeClass> NodeClassFilter { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
-        [DataMember(Name = "header",
+        [DataMember(Name = "header", Order = 9,
             EmitDefaultValue = false)]
         public RequestHeaderApiModel Header { get; set; }
     }

@@ -62,6 +62,23 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
 
         /// <summary>
+        /// Set accept headers
+        /// </summary>
+        /// <param name="serializer"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public static void SetAcceptHeaders(this ISerializer serializer,
+            IHttpRequest request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            request.AddHeader("Accept", serializer.MimeType);
+            if (serializer.ContentEncoding != null) {
+                request.AddHeader("Accept-Charset", serializer.ContentEncoding.WebName);
+            }
+        }
+
+        /// <summary>
         /// Serialize to request
         /// </summary>
         /// <param name="serializer"></param>
@@ -73,7 +90,9 @@ namespace Microsoft.Azure.IIoT.Serializers {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            request.SetStringContent(serializer.SerializeToString(o));
+            serializer.SetAcceptHeaders(request);
+            request.SetByteArrayContent(serializer.SerializeToBytes(o).ToArray(),
+                 serializer.MimeType, serializer.ContentEncoding);
         }
 
         /// <summary>
@@ -207,20 +226,6 @@ namespace Microsoft.Azure.IIoT.Serializers {
         public static VariantValue ParseResponse(this ISerializer serializer,
             IHttpResponse response) {
             return serializer.Parse(response.Content);
-        }
-
-        /// <summary>
-        /// Convert from to
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="serializer"></param>
-        /// <param name="model"></param>
-        /// <returns></returns>
-        public static T Map<T>(this ISerializer serializer, object model) {
-            if (model == null) {
-                return default;
-            }
-            return serializer.Deserialize<T>(serializer.SerializeToString(model));
         }
     }
 }

@@ -16,49 +16,49 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// <summary>
         /// Subject
         /// </summary>
-        [DataMember(Name = "subject",
+        [DataMember(Name = "subject", Order = 0,
             EmitDefaultValue = false)]
         public string Subject { get; set; }
 
         /// <summary>
         /// Thumbprint
         /// </summary>
-        [DataMember(Name = "thumbprint",
+        [DataMember(Name = "thumbprint", Order = 1,
             EmitDefaultValue = false)]
         public string Thumbprint { get; set; }
 
         /// <summary>
         /// Serial number
         /// </summary>
-        [DataMember(Name = "serialNumber",
+        [DataMember(Name = "serialNumber", Order = 2,
             EmitDefaultValue = false)]
         public string SerialNumber { get; set; }
 
         /// <summary>
         /// Not before validity
         /// </summary>
-        [DataMember(Name = "notBeforeUtc",
+        [DataMember(Name = "notBeforeUtc", Order = 3,
             EmitDefaultValue = false)]
         public DateTime? NotBeforeUtc { get; set; }
 
         /// <summary>
         /// Not after validity
         /// </summary>
-        [DataMember(Name = "notAfterUtc",
+        [DataMember(Name = "notAfterUtc", Order = 4,
             EmitDefaultValue = false)]
         public DateTime? NotAfterUtc { get; set; }
 
         /// <summary>
         /// Self signed
         /// </summary>
-        [DataMember(Name = "selfSigned",
+        [DataMember(Name = "selfSigned", Order = 5,
             EmitDefaultValue = false)]
         public bool? SelfSigned { get; set; }
 
         /// <summary>
         /// Raw data
         /// </summary>
-        [DataMember(Name = "certificate")]
+        [DataMember(Name = "certificate", Order = 6)]
         public byte[] Certificate { get; set; }
     }
 }

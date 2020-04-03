@@ -114,7 +114,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
             });
 
             // Add controllers as services so they'll be resolved.
-            services.AddControllers().AddJsonSerializer().AddMessagePackSerializer();
+            services.AddControllers().AddSerializers();
 
             // Add signalr and optionally configure signalr service
             services.AddSignalR()

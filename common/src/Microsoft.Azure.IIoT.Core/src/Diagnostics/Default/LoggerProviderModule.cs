@@ -4,9 +4,14 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Diagnostics {
-    using Autofac;
-    using AutofacSerilogIntegration;
+    using Serilog;
     using System;
+    using System.Linq;
+    using Autofac;
+    using Autofac.Core;
+    using Autofac.Core.Activators.Reflection;
+    using Autofac.Core.Registration;
+    using Module = Autofac.Module;
 
     /// <summary>
     /// Logger provider module
@@ -36,15 +41,51 @@ namespace Microsoft.Azure.IIoT.Diagnostics {
             }
         }
 
-        /// <summary>
-        /// Override
-        /// </summary>
-        /// <param name="builder"></param>
+        /// <inheritdoc/>
         protected override void Load(ContainerBuilder builder) {
-            builder.RegisterLogger(_provider.Logger);
-            base.Load(builder);
+            builder.Register((c, p) => {
+                var targetType = p.OfType<NamedParameter>()
+                    .FirstOrDefault(np =>
+                        np.Name == kTargetTypeParameterName && np.Value is Type);
+                if (targetType != null) {
+                    return _provider.Logger.ForContext((Type)targetType.Value);
+                }
+                return _provider.Logger;
+            }).As<ILogger>().ExternallyOwned();
         }
 
+        /// <inheritdoc/>
+        protected override void AttachToComponentRegistration(IComponentRegistryBuilder registry,
+            IComponentRegistration registration) {
+            // Ignore components that provide loggers (and thus avoid a circular dependency below)
+            if (registration.Services
+                .OfType<TypedService>()
+                .Any(ts => ts.ServiceType == typeof(ILogger) ||
+                           ts.ServiceType == typeof(ILoggerProvider))) {
+                return;
+            }
+            if (registration.Activator is ReflectionActivator ra) {
+                try {
+                    var ctors = ra.ConstructorFinder.FindConstructors(ra.LimitType);
+                    var usesLogger = ctors
+                        .SelectMany(ctor => ctor.GetParameters())
+                        .Any(pi => pi.ParameterType == typeof(ILogger));
+                    // Ignore components known to be without logger dependencies
+                    if (!usesLogger) {
+                        return;
+                    }
+                }
+                catch (NoConstructorsFoundException) {
+                    return; // No need
+                }
+            }
+            registration.Preparing += (sender, args) => {
+                var log = args.Context.Resolve<ILogger>().ForContext(registration.Activator.LimitType);
+                args.Parameters = new[] { TypedParameter.From(log) }.Concat(args.Parameters);
+            };
+        }
+
+        private const string kTargetTypeParameterName = "Autofac.AutowiringPropertyInjector.InstanceType";
         private static readonly object kSingleton = new object();
         private static ILoggerProvider _instance;
         private readonly ILoggerProvider _provider;

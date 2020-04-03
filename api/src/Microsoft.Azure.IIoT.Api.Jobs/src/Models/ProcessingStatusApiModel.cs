@@ -17,21 +17,21 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
         /// <summary>
         /// Last known heartbeat
         /// </summary>
-        [DataMember(Name = "lastKnownHeartbeat",
+        [DataMember(Name = "lastKnownHeartbeat", Order = 0,
             EmitDefaultValue = false)]
         public DateTime? LastKnownHeartbeat { get; set; }
 
         /// <summary>
         /// Last known state
         /// </summary>
-        [DataMember(Name = "lastKnownState",
+        [DataMember(Name = "lastKnownState", Order = 1,
             EmitDefaultValue = false)]
         public VariantValue LastKnownState { get; set; }
 
         /// <summary>
         /// Processing mode
         /// </summary>
-        [DataMember(Name = "processMode",
+        [DataMember(Name = "processMode", Order = 2,
             EmitDefaultValue = false)]
         public ProcessMode? ProcessMode { get; set; }
     }

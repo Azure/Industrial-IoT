@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Continuation token or null to start
         /// </summary>
-        [DataMember(Name = "continuationToken",
+        [DataMember(Name = "continuationToken", Order = 0,
             EmitDefaultValue = false)]
         public string ContinuationToken { get; set; }
     }

@@ -17,14 +17,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
         /// <summary>
         /// The query result.
         /// </summary>
-        [DataMember(Name = "requests",
+        [DataMember(Name = "requests", Order = 0,
             EmitDefaultValue = false)]
         public List<CertificateRequestRecordApiModel> Requests { get; set; }
 
         /// <summary>
         /// Link to the next page of results.
         /// </summary>
-        [DataMember(Name = "nextPageLink",
+        [DataMember(Name = "nextPageLink", Order = 1,
             EmitDefaultValue = false)]
         public string NextPageLink { get; set; }
     }

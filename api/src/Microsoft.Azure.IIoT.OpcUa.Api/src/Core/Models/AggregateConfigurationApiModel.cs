@@ -15,35 +15,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// <summary>
         /// Whether to use the default server caps
         /// </summary>
-        [DataMember(Name = "useServerCapabilitiesDefaults",
+        [DataMember(Name = "useServerCapabilitiesDefaults", Order = 0,
             EmitDefaultValue = false)]
         public bool? UseServerCapabilitiesDefaults { get; set; }
 
         /// <summary>
         /// Whether to treat uncertain as bad
         /// </summary>
-        [DataMember(Name = "treatUncertainAsBad",
+        [DataMember(Name = "treatUncertainAsBad", Order = 1,
             EmitDefaultValue = false)]
         public bool? TreatUncertainAsBad { get; set; }
 
         /// <summary>
         /// Percent of data that is bad
         /// </summary>
-        [DataMember(Name = "percentDataBad",
+        [DataMember(Name = "percentDataBad", Order = 2,
             EmitDefaultValue = false)]
         public byte? PercentDataBad { get; set; }
 
         /// <summary>
         /// Percent of data that is good
         /// </summary>
-        [DataMember(Name = "percentDataGood",
+        [DataMember(Name = "percentDataGood", Order = 3,
             EmitDefaultValue = false)]
         public byte? PercentDataGood { get; set; }
 
         /// <summary>
         /// Whether to use sloped extrapolation.
         /// </summary>
-        [DataMember(Name = "useSlopedExtrapolation",
+        [DataMember(Name = "useSlopedExtrapolation", Order = 4,
             EmitDefaultValue = false)]
         public bool? UseSlopedExtrapolation { get; set; }
     }

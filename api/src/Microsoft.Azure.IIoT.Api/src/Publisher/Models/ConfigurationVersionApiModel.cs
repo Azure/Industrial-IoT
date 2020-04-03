@@ -15,13 +15,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Major version
         /// </summary>
-        [DataMember(Name = "majorVersion")]
+        [DataMember(Name = "majorVersion", Order = 0)]
         public uint MajorVersion { get; set; }
 
         /// <summary>
         /// Minor version
         /// </summary>
-        [DataMember(Name = "minorVersion")]
+        [DataMember(Name = "minorVersion", Order = 1)]
         public uint MinorVersion { get; set; }
     }
 }

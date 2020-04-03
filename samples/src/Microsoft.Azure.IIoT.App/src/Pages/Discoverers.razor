@@ -420,6 +420,7 @@
     private Task DiscovererEvent(DiscovererEventApiModel ev)
     {
         discovererList.Results.Update(ev);
+        pagedDiscovererList = discovererList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, discovererList.Error);
         StateHasChanged();
         return Task.CompletedTask;
     }

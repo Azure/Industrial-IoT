@@ -17,7 +17,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -79,9 +78,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                             Status = (message?.Value?.StatusCode.Code == StatusCodes.Good)
                                 ? null : StatusCode.LookupSymbolicId(message.Value.StatusCode.Code),
                             SourceTimestamp = (message?.Value?.SourceTimestamp == DateTime.MinValue)
-                                ? null : (DateTime?)message?.Value?.SourceTimestamp,
+                                ? null : message?.Value?.SourceTimestamp,
                             ServerTimestamp = (message?.Value?.ServerTimestamp == DateTime.MinValue)
-                                ? null : (DateTime?)message?.Value?.ServerTimestamp
+                                ? null : message?.Value?.ServerTimestamp
                         }
                     }
                 };

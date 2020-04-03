@@ -17,90 +17,90 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Publisher Id
         /// </summary>
-        [DataMember(Name = "publisherId",
+        [DataMember(Name = "publisherId", Order = 0,
             EmitDefaultValue = false)]
         public string PublisherId { get; set; }
 
         /// <summary>
         /// DataSetWriterId
         /// </summary>
-        [DataMember(Name = "dataSetWriterId",
+        [DataMember(Name = "dataSetWriterId", Order = 1,
             EmitDefaultValue = false)]
         public string DataSetWriterId { get; set; }
 
         /// <summary>
         /// Endpoint
         /// </summary>
-        [DataMember(Name = "endpointId",
+        [DataMember(Name = "endpointId", Order = 2,
             EmitDefaultValue = false)]
         public string EndpointId { get; set; }
 
         /// <summary>
         /// Node id
         /// </summary>
-        [DataMember(Name = "nodeId")]
+        [DataMember(Name = "nodeId", Order = 3)]
         public string NodeId { get; set; }
 
         /// <summary>
         /// Node's display name
         /// </summary>
-        [DataMember(Name = "displayName",
+        [DataMember(Name = "displayName", Order = 4,
             EmitDefaultValue = false)]
         public string DisplayName { get; set; }
 
         /// <summary>
         /// Value
         /// </summary>
-        [DataMember(Name = "value",
+        [DataMember(Name = "value", Order = 5,
             EmitDefaultValue = false)]
         public VariantValue Value { get; set; }
 
         /// <summary>
         /// Type id
         /// </summary>
-        [DataMember(Name = "typeId",
+        [DataMember(Name = "typeId", Order = 6,
             EmitDefaultValue = false)]
         public string TypeId { get; set; }
 
         /// <summary>
         /// Status of the value (Quality)
         /// </summary>
-        [DataMember(Name = "status",
+        [DataMember(Name = "status", Order = 7,
             EmitDefaultValue = false)]
         public string Status { get; set; }
 
         /// <summary>
         /// Sent time stamp
         /// </summary>
-        [DataMember(Name = "timestamp",
+        [DataMember(Name = "timestamp", Order = 8,
             EmitDefaultValue = false)]
         public DateTime? Timestamp { get; set; }
 
         /// <summary>
         /// Source time stamp
         /// </summary>
-        [DataMember(Name = "sourceTimestamp",
+        [DataMember(Name = "sourceTimestamp", Order = 10,
             EmitDefaultValue = false)]
         public DateTime? SourceTimestamp { get; set; }
 
         /// <summary>
         /// Source pico
         /// </summary>
-        [DataMember(Name = "sourcePicoseconds",
+        [DataMember(Name = "sourcePicoseconds", Order = 11,
             EmitDefaultValue = false)]
         public ushort? SourcePicoseconds { get; set; }
 
         /// <summary>
         /// Server time stamp
         /// </summary>
-        [DataMember(Name = "serverTimestamp",
+        [DataMember(Name = "serverTimestamp", Order = 12,
             EmitDefaultValue = false)]
         public DateTime? ServerTimestamp { get; set; }
 
         /// <summary>
         /// Server pico
         /// </summary>
-        [DataMember(Name = "serverPicoseconds",
+        [DataMember(Name = "serverPicoseconds", Order = 13,
             EmitDefaultValue = false)]
         public ushort? ServerPicoseconds { get; set; }
     }

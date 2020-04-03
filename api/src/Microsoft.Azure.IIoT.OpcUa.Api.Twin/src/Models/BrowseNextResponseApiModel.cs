@@ -17,21 +17,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// References, if included, otherwise null.
         /// </summary>
-        [DataMember(Name = "references",
+        [DataMember(Name = "references", Order = 0,
             EmitDefaultValue = false)]
         public List<NodeReferenceApiModel> References { get; set; }
 
         /// <summary>
         /// Continuation token if more results pending.
         /// </summary>
-        [DataMember(Name = "continuationToken",
+        [DataMember(Name = "continuationToken", Order = 1,
             EmitDefaultValue = false)]
         public string ContinuationToken { get; set; }
 
         /// <summary>
         /// Service result in case of error
         /// </summary>
-        [DataMember(Name = "errorInfo",
+        [DataMember(Name = "errorInfo", Order = 2,
             EmitDefaultValue = false)]
         public ServiceResultApiModel ErrorInfo { get; set; }
     }

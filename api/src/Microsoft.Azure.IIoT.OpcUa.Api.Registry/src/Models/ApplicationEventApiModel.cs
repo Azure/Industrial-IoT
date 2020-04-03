@@ -15,20 +15,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Event type
         /// </summary>
-        [DataMember(Name = "eventType")]
+        [DataMember(Name = "eventType", Order = 0)]
         public ApplicationEventType EventType { get; set; }
 
         /// <summary>
         /// Application id
         /// </summary>
-        [DataMember(Name = "id",
+        [DataMember(Name = "id", Order = 1,
             EmitDefaultValue = false)]
         public string Id { get; set; }
 
         /// <summary>
         /// Application
         /// </summary>
-        [DataMember(Name = "application",
+        [DataMember(Name = "application", Order = 2,
             EmitDefaultValue = false)]
         public ApplicationInfoApiModel Application { get; set; }
     }

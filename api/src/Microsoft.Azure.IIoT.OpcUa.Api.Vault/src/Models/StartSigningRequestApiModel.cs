@@ -16,19 +16,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
         /// <summary>
         /// Id of entity to sign a certificate for
         /// </summary>
-        [DataMember(Name = "entityId")]
+        [DataMember(Name = "entityId", Order = 0)]
         public string EntityId { get; set; }
 
         /// <summary>
         /// Certificate group id
         /// </summary>
-        [DataMember(Name = "groupId")]
+        [DataMember(Name = "groupId", Order = 1)]
         public string GroupId { get; set; }
 
         /// <summary>
         /// Request
         /// </summary>
-        [DataMember(Name = "certificateRequest")]
+        [DataMember(Name = "certificateRequest", Order = 2)]
         public VariantValue CertificateRequest { get; set; }
     }
 }

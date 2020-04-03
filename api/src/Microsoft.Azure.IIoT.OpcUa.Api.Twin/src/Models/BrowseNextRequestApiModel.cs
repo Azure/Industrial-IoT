@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// Continuation token from previews browse request.
         /// (mandatory)
         /// </summary>
-        [DataMember(Name = "continuationToken")]
+        [DataMember(Name = "continuationToken", Order = 0)]
         [Required]
         public string ContinuationToken { get; set; }
 
@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// Whether to abort browse and release.
         /// (default: false)
         /// </summary>
-        [DataMember(Name = "abort",
+        [DataMember(Name = "abort", Order = 1,
             EmitDefaultValue = false)]
         public bool? Abort { get; set; }
 
@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// information.
         /// (default is false)
         /// </summary>
-        [DataMember(Name = "targetNodesOnly",
+        [DataMember(Name = "targetNodesOnly", Order = 2,
             EmitDefaultValue = false)]
         public bool? TargetNodesOnly { get; set; }
 
@@ -44,14 +44,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// Whether to read variable values on target nodes.
         /// (default is false)
         /// </summary>
-        [DataMember(Name = "readVariableValues",
+        [DataMember(Name = "readVariableValues", Order = 3,
             EmitDefaultValue = false)]
         public bool? ReadVariableValues { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
-        [DataMember(Name = "header",
+        [DataMember(Name = "header", Order = 4,
             EmitDefaultValue = false)]
         public RequestHeaderApiModel Header { get; set; }
     }

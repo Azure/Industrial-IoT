@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.Endpoint {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System.Net;
     using System.Threading.Tasks;
     using Xunit;
@@ -26,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.Endpoint {
         }
 
         private ReadArrayValueTests<EndpointRegistrationModel> GetTests() {
-            return new ReadArrayValueTests<EndpointRegistrationModel>(new NewtonSoftJsonSerializer(),
+            return new ReadArrayValueTests<EndpointRegistrationModel>(
                 () => _module.HubContainer.Resolve<INodeServices<EndpointRegistrationModel>>(),
                 new EndpointRegistrationModel {
                     Endpoint = new EndpointModel {

@@ -16,49 +16,49 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Discoverer id
         /// </summary>
-        [DataMember(Name = "id")]
+        [DataMember(Name = "id", Order = 0)]
         [Required]
         public string Id { get; set; }
 
         /// <summary>
         /// Site of the discoverer
         /// </summary>
-        [DataMember(Name = "siteId",
+        [DataMember(Name = "siteId", Order = 1,
             EmitDefaultValue = false)]
         public string SiteId { get; set; }
 
         /// <summary>
         /// Whether the discoverer is in discovery mode
         /// </summary>
-        [DataMember(Name = "discovery",
+        [DataMember(Name = "discovery", Order = 2,
             EmitDefaultValue = false)]
         public DiscoveryMode? Discovery { get; set; }
 
         /// <summary>
         /// Discoverer configuration
         /// </summary>
-        [DataMember(Name = "discoveryConfig",
+        [DataMember(Name = "discoveryConfig", Order = 3,
             EmitDefaultValue = false)]
         public DiscoveryConfigApiModel DiscoveryConfig { get; set; }
 
         /// <summary>
         /// Requested discovery mode
         /// </summary>
-        [DataMember(Name = "requestedMode",
+        [DataMember(Name = "requestedMode", Order = 4,
             EmitDefaultValue = false)]
         public DiscoveryMode? RequestedMode { get; set; }
 
         /// <summary>
         /// Requested discoverer configuration
         /// </summary>
-        [DataMember(Name = "requestedConfig",
+        [DataMember(Name = "requestedConfig", Order = 5,
             EmitDefaultValue = false)]
         public DiscoveryConfigApiModel RequestedConfig { get; set; }
 
         /// <summary>
         /// Current log level
         /// </summary>
-        [DataMember(Name = "logLevel",
+        [DataMember(Name = "logLevel", Order = 6,
             EmitDefaultValue = false)]
         public TraceLogLevel? LogLevel { get; set; }
 
@@ -66,14 +66,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// Whether the registration is out of sync between
         /// client (module) and server (service) (default: false).
         /// </summary>
-        [DataMember(Name = "outOfSync",
+        [DataMember(Name = "outOfSync", Order = 7,
             EmitDefaultValue = false)]
         public bool? OutOfSync { get; set; }
 
         /// <summary>
         /// Whether discoverer is connected on this registration
         /// </summary>
-        [DataMember(Name = "connected",
+        [DataMember(Name = "connected", Order = 8,
             EmitDefaultValue = false)]
         public bool? Connected { get; set; }
     }

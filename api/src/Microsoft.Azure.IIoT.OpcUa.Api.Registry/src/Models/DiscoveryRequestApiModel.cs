@@ -15,21 +15,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Id of discovery request
         /// </summary>
-        [DataMember(Name = "id",
+        [DataMember(Name = "id", Order = 0,
             EmitDefaultValue = false)]
         public string Id { get; set; }
 
         /// <summary>
         /// Discovery mode to use
         /// </summary>
-        [DataMember(Name = "discovery",
+        [DataMember(Name = "discovery", Order = 1,
             EmitDefaultValue = false)]
         public DiscoveryMode? Discovery { get; set; }
 
         /// <summary>
         /// Scan configuration to use
         /// </summary>
-        [DataMember(Name = "configuration",
+        [DataMember(Name = "configuration", Order = 2,
             EmitDefaultValue = false)]
         public DiscoveryConfigApiModel Configuration { get; set; }
     }

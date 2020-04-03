@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using System.Reflection;
     using System.Threading.Tasks;
     using System.Threading;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Provides set/get routing to controllers

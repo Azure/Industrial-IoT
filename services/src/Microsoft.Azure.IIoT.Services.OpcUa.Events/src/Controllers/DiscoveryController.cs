@@ -17,7 +17,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Controllers {
     [ApiVersion("2")]
     [Route("v{version:apiVersion}/discovery")]
     [ExceptionsFilter]
-    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanWrite)]
     [ApiController]
     public class DiscoveryController : ControllerBase {

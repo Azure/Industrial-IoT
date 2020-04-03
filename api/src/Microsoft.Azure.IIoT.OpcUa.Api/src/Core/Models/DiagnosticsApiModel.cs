@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// Requested level of response diagnostics.
         /// (default: None)
         /// </summary>
-        [DataMember(Name = "level",
+        [DataMember(Name = "level", Order = 0,
             EmitDefaultValue = false)]
         public DiagnosticsLevel? Level { get; set; }
 
@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// Client audit log entry.
         /// (default: client generated)
         /// </summary>
-        [DataMember(Name = "auditId",
+        [DataMember(Name = "auditId", Order = 1,
             EmitDefaultValue = false)]
         public string AuditId { get; set; }
 
@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// Timestamp of request.
         /// (default: client generated)
         /// </summary>
-        [DataMember(Name = "timeStamp",
+        [DataMember(Name = "timeStamp", Order = 2,
             EmitDefaultValue = false)]
         public DateTime? TimeStamp { get; set; }
     }

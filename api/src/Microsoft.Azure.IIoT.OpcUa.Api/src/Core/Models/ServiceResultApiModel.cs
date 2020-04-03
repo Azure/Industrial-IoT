@@ -16,21 +16,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// <summary>
         /// Error code - if null operation succeeded.
         /// </summary>
-        [DataMember(Name = "statusCode",
+        [DataMember(Name = "statusCode", Order = 0,
             EmitDefaultValue = false)]
         public uint? StatusCode { get; set; }
 
         /// <summary>
         /// Error message in case of error or null.
         /// </summary>
-        [DataMember(Name = "errorMessage",
+        [DataMember(Name = "errorMessage", Order = 1,
             EmitDefaultValue = false)]
         public string ErrorMessage { get; set; }
 
         /// <summary>
         /// Additional diagnostics information
         /// </summary>
-        [DataMember(Name = "diagnostics",
+        [DataMember(Name = "diagnostics", Order = 2,
             EmitDefaultValue = false)]
         public VariantValue Diagnostics { get; set; }
     }

@@ -17,49 +17,49 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// <summary>,
         /// The value of data value.
         /// </summary>
-        [DataMember(Name = "value",
+        [DataMember(Name = "value", Order = 0,
            EmitDefaultValue = false)]
         public VariantValue Value { get; set; }
 
         /// <summary>
         /// The status code associated with the value.
         /// </summary>
-        [DataMember(Name = "statusCode",
+        [DataMember(Name = "statusCode", Order = 1,
             EmitDefaultValue = false)]
         public uint? StatusCode { get; set; }
 
         /// <summary>
         /// The source timestamp associated with the value.
         /// </summary>
-        [DataMember(Name = "sourceTimestamp",
+        [DataMember(Name = "sourceTimestamp", Order = 2,
             EmitDefaultValue = false)]
         public DateTime? SourceTimestamp { get; set; }
 
         /// <summary>
         /// Additional resolution for the source timestamp.
         /// </summary>
-        [DataMember(Name = "sourcePicoseconds",
+        [DataMember(Name = "sourcePicoseconds", Order = 3,
             EmitDefaultValue = false)]
         public ushort? SourcePicoseconds { get; set; }
 
         /// <summary>
         /// The server timestamp associated with the value.
         /// </summary>
-        [DataMember(Name = "serverTimestamp",
+        [DataMember(Name = "serverTimestamp", Order = 4,
             EmitDefaultValue = false)]
         public DateTime? ServerTimestamp { get; set; }
 
         /// <summary>
         /// Additional resolution for the server timestamp.
         /// </summary>
-        [DataMember(Name = "serverPicoseconds",
+        [DataMember(Name = "serverPicoseconds", Order = 5,
             EmitDefaultValue = false)]
         public ushort? ServerPicoseconds { get; set; }
 
         /// <summary>
         /// modification information when reading modifications.
         /// </summary>
-        [DataMember(Name = "modificationInfo",
+        [DataMember(Name = "modificationInfo", Order = 6,
             EmitDefaultValue = false)]
         public ModificationInfoApiModel ModificationInfo { get; set; }
     }

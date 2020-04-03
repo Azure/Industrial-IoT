@@ -18,27 +18,27 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
         /// Status
         /// </summary>
 
-        [DataMember(Name = "status",
+        [DataMember(Name = "status", Order = 0,
             EmitDefaultValue = false)]
         public JobStatus Status { get; set; }
 
         /// <summary>
         /// Processing status
         /// </summary>
-        [DataMember(Name = "processingStatus",
+        [DataMember(Name = "processingStatus", Order = 1,
             EmitDefaultValue = false)]
         public Dictionary<string, ProcessingStatusApiModel> ProcessingStatus { get; set; }
 
         /// <summary>
         /// Updated at
         /// </summary>
-        [DataMember(Name = "updated")]
+        [DataMember(Name = "updated", Order = 2)]
         public DateTime Updated { get; set; }
 
         /// <summary>
         /// Created at
         /// </summary>
-        [DataMember(Name = "created")]
+        [DataMember(Name = "created", Order = 3)]
         public DateTime Created { get; set; }
     }
 }

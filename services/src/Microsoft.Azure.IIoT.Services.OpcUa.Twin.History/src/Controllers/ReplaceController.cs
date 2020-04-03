@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Filters;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
@@ -20,7 +19,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Controllers {
     /// </summary>
     [ApiVersion("2")][Route("v{version:apiVersion}/replace")]
     [ExceptionsFilter]
-    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanUpdate)]
     [ApiController]
     public class ReplaceController : ControllerBase {

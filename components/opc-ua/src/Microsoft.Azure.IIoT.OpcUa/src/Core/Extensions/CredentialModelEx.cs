@@ -29,10 +29,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
                     (model.Type ?? CredentialType.None)) {
                 return false;
             }
-            if (that.Value == model.Value) {
-                return true;
-            }
-            if (that.Value == null || model.Value == null) {
+            if (VariantValueEx.IsNull(that.Value) || VariantValueEx.IsNull(model.Value)) {
+                if (VariantValueEx.IsNull(that.Value) && VariantValueEx.IsNull(model.Value)) {
+                    return true;
+                }
                 return false;
             }
             if (!VariantValue.DeepEquals(that.Value, model.Value)) {

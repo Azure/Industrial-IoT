@@ -176,6 +176,7 @@
     private Task EndpointEvent(EndpointEventApiModel ev)
     {
         _endpointList.Results.Update(ev);
+        _pagedendpointList = _endpointList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _endpointList.Error);
         StateHasChanged();
         return Task.CompletedTask;
     }

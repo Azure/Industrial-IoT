@@ -16,13 +16,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// <summary>
         /// Select statements
         /// </summary>
-        [DataMember(Name = "selectClauses")]
+        [DataMember(Name = "selectClauses", Order = 0)]
         public List<SimpleAttributeOperandApiModel> SelectClauses { get; set; }
 
         /// <summary>
         /// Where clause
         /// </summary>
-        [DataMember(Name = "whereClause")]
+        [DataMember(Name = "whereClause", Order = 1)]
         public ContentFilterApiModel WhereClause { get; set; }
     }
 }

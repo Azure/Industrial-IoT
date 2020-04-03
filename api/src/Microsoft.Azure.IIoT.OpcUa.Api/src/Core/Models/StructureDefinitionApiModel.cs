@@ -16,20 +16,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// <summary>
         /// Base data type of the structure
         /// </summary>
-        [DataMember(Name = "baseDataTypeId",
+        [DataMember(Name = "baseDataTypeId", Order = 0,
             EmitDefaultValue = false)]
         public string BaseDataTypeId { get; set; }
 
         /// <summary>
         /// Type of structure
         /// </summary>
-        [DataMember(Name = "structureType")]
+        [DataMember(Name = "structureType", Order = 1)]
         public StructureType StructureType { get; set; }
 
         /// <summary>
         /// Fields in the structure or union
         /// </summary>
-        [DataMember(Name = "fields")]
+        [DataMember(Name = "fields", Order = 2)]
         public List<StructureFieldApiModel> Fields { get; set; }
     }
 }

@@ -16,27 +16,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
         /// <summary>
         /// Method id
         /// </summary>
-        [DataMember(Name = "id")]
+        [DataMember(Name = "id", Order = 0)]
         public string Id { get; set; }
 
         /// <summary>
         /// Type of credential
         /// </summary>
-        [DataMember(Name = "credentialType",
+        [DataMember(Name = "credentialType", Order = 1,
             EmitDefaultValue = false)]
         public CredentialType? CredentialType { get; set; }
 
         /// <summary>
         /// Security policy to use when passing credential.
         /// </summary>
-        [DataMember(Name = "securityPolicy",
+        [DataMember(Name = "securityPolicy", Order = 2,
             EmitDefaultValue = false)]
         public string SecurityPolicy { get; set; }
 
         /// <summary>
         /// Method specific configuration
         /// </summary>
-        [DataMember(Name = "configuration",
+        [DataMember(Name = "configuration", Order = 3,
             EmitDefaultValue = false)]
         public VariantValue Configuration { get; set; }
     }

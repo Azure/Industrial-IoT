@@ -16,14 +16,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
         /// <summary>
         /// Type of credential
         /// </summary>
-        [DataMember(Name = "type",
+        [DataMember(Name = "type", Order = 0,
             EmitDefaultValue = false)]
         public CredentialType? Type { get; set; }
 
         /// <summary>
         /// Value to pass to server
         /// </summary>
-        [DataMember(Name = "value",
+        [DataMember(Name = "value", Order = 1,
             EmitDefaultValue = false)]
         public VariantValue Value { get; set; }
     }

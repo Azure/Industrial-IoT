@@ -17,14 +17,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// <summary>
         /// Requested datums
         /// </summary>
-        [DataMember(Name = "reqTimes")]
+        [DataMember(Name = "reqTimes", Order = 0)]
         [Required]
         public DateTime[] ReqTimes { get; set; }
 
         /// <summary>
         /// Whether to use simple bounds
         /// </summary>
-        [DataMember(Name = "useSimpleBounds",
+        [DataMember(Name = "useSimpleBounds", Order = 1,
             EmitDefaultValue = false)]
         public bool? UseSimpleBounds { get; set; }
     }

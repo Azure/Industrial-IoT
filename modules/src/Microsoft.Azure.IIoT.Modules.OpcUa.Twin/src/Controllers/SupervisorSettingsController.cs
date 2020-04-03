@@ -59,7 +59,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Controllers {
         /// <returns></returns>
         public VariantValue this[string endpointId] {
             set {
-                if (value == null || value.IsNull()) {
+                if (value.IsNull()) {
                     _endpoints.AddOrUpdate(endpointId, null);
                     return;
                 }

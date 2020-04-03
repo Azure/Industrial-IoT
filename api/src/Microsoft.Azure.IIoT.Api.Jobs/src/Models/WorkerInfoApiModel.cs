@@ -16,28 +16,28 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
         /// <summary>
         /// Identifier of the worker instance
         /// </summary>
-        [DataMember(Name = "workerId",
+        [DataMember(Name = "workerId", Order = 0,
             EmitDefaultValue = false)]
         public string WorkerId { get; set; }
 
         /// <summary>
         /// Identifier of the agent
         /// </summary>
-        [DataMember(Name = "agentId",
+        [DataMember(Name = "agentId", Order = 1,
             EmitDefaultValue = false)]
         public string AgentId { get; set; }
 
         /// <summary>
         /// Worker status
         /// </summary>
-        [DataMember(Name = "status",
+        [DataMember(Name = "status", Order = 2,
             EmitDefaultValue = false)]
         public WorkerStatus Status { get; set; }
 
         /// <summary>
         /// Last seen
         /// </summary>
-        [DataMember(Name = "lastSeen",
+        [DataMember(Name = "lastSeen", Order = 3,
             EmitDefaultValue = false)]
         public DateTime LastSeen { get; set; }
     }

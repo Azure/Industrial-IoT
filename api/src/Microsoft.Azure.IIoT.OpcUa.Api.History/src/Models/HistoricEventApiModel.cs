@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// <summary>
         /// The selected fields of the event
         /// </summary>
-        [DataMember(Name = "eventFields",
+        [DataMember(Name = "eventFields", Order = 0,
             EmitDefaultValue = false)]
         public List<VariantValue> EventFields { get; set; }
     }

@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// Node to browse from.
         /// (defaults to root folder).
         /// </summary>
-        [DataMember(Name = "nodeId",
+        [DataMember(Name = "nodeId", Order = 0,
             EmitDefaultValue = false)]
         public string NodeId { get; set; }
 
@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// The paths to browse from node.
         /// (mandatory)
         /// </summary>
-        [DataMember(Name = "browsePaths")]
+        [DataMember(Name = "browsePaths", Order = 1)]
         [Required]
         public List<string[]> BrowsePaths { get; set; }
 
@@ -35,14 +35,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// Whether to read variable values on target nodes.
         /// (default is false)
         /// </summary>
-        [DataMember(Name = "readVariableValues",
+        [DataMember(Name = "readVariableValues", Order = 2,
             EmitDefaultValue = false)]
         public bool? ReadVariableValues { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
-        [DataMember(Name = "header",
+        [DataMember(Name = "header", Order = 3,
             EmitDefaultValue = false)]
         public RequestHeaderApiModel Header { get; set; }
     }

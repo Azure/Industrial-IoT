@@ -12,7 +12,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Utils;
     using Autofac;
-    using AutofacSerilogIntegration;
     using System;
     using System.Collections.Generic;
     using System.Text;
@@ -115,7 +114,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// <returns></returns>
         private IContainer CreateHubContainer() {
             var builder = new ContainerBuilder();
-            builder.RegisterLogger();
+            builder.AddDiagnostics();
             builder.RegisterModule<IoTHubMockService>();
             builder.RegisterType<TestIoTHubConfig>()
                 .AsImplementedInterfaces();
@@ -132,7 +131,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         private IContainer CreateModuleContainer(IIoTHubTwinServices hub, DeviceModel device,
             IEnumerable<object> controllers) {
             var builder = new ContainerBuilder();
-            builder.RegisterLogger();
+            builder.AddDiagnostics();
             builder.RegisterInstance(hub)
                 .AsImplementedInterfaces().ExternallyOwned();
             builder.RegisterInstance(new TestModuleConfig(device))

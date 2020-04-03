@@ -21,37 +21,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
         /// Create adapter
         /// </summary>
         /// <param name="client"></param>
-        /// <param name="serializer"></param>
-        public HistoryRawSupervisorAdapter(IHistoryModuleApi client, ISerializer serializer) {
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+        public HistoryRawSupervisorAdapter(IHistoryModuleApi client) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
         /// <inheritdoc/>
         public async Task<HistoryReadResultModel<VariantValue>> HistoryReadAsync(
             EndpointApiModel endpoint, HistoryReadRequestModel<VariantValue> request) {
-            var result = await _client.HistoryReadRawAsync(endpoint,
-                _serializer.Map<HistoryReadRequestApiModel<VariantValue>>(request));
-            return _serializer.Map<HistoryReadResultModel<VariantValue>>(result);
+            var result = await _client.HistoryReadRawAsync(endpoint, request.ToApiModel());
+            return result.ToServiceModel();
         }
 
         /// <inheritdoc/>
         public async Task<HistoryReadNextResultModel<VariantValue>> HistoryReadNextAsync(
             EndpointApiModel endpoint, HistoryReadNextRequestModel request) {
-            var result = await _client.HistoryReadRawNextAsync(endpoint,
-                _serializer.Map<HistoryReadNextRequestApiModel>(request));
-            return _serializer.Map<HistoryReadNextResultModel<VariantValue>>(result);
+            var result = await _client.HistoryReadRawNextAsync(endpoint, request.ToApiModel());
+            return result.ToServiceModel();
         }
 
         /// <inheritdoc/>
         public async Task<HistoryUpdateResultModel> HistoryUpdateAsync(
             EndpointApiModel endpoint, HistoryUpdateRequestModel<VariantValue> request) {
-            var result = await _client.HistoryUpdateRawAsync(endpoint,
-                _serializer.Map<HistoryUpdateRequestApiModel<VariantValue>>(request));
-            return _serializer.Map<HistoryUpdateResultModel>(result);
+            var result = await _client.HistoryUpdateRawAsync(endpoint, request.ToApiModel());
+            return result.ToServiceModel();
         }
 
-        private readonly ISerializer _serializer;
         private readonly IHistoryModuleApi _client;
     }
 }

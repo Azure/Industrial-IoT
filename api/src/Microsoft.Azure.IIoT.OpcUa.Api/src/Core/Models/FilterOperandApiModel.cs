@@ -17,14 +17,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// Element reference in the outer list if
         /// operand is an element operand
         /// </summary>
-        [DataMember(Name = "index",
+        [DataMember(Name = "index", Order = 0,
             EmitDefaultValue = false)]
         public uint? Index { get; set; }
 
         /// <summary>
         /// Variant value if operand is a literal
         /// </summary>
-        [DataMember(Name = "value",
+        [DataMember(Name = "value", Order = 1,
             EmitDefaultValue = false)]
         public VariantValue Value { get; set; }
 
@@ -32,28 +32,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// Type definition node id if operand is
         /// simple or full attribute operand.
         /// </summary>
-        [DataMember(Name = "nodeId",
+        [DataMember(Name = "nodeId", Order = 2,
             EmitDefaultValue = false)]
         public string NodeId { get; set; }
 
         /// <summary>
         /// Browse path of attribute operand
         /// </summary>
-        [DataMember(Name = "browsePath",
+        [DataMember(Name = "browsePath", Order = 3,
             EmitDefaultValue = false)]
         public string[] BrowsePath { get; set; }
 
         /// <summary>
         /// Attribute id
         /// </summary>
-        [DataMember(Name = "attributeId",
+        [DataMember(Name = "attributeId", Order = 4,
             EmitDefaultValue = false)]
         public NodeAttribute? AttributeId { get; set; }
 
         /// <summary>
         /// Index range of attribute operand
         /// </summary>
-        [DataMember(Name = "indexRange",
+        [DataMember(Name = "indexRange", Order = 5,
             EmitDefaultValue = false)]
         public string IndexRange { get; set; }
 
@@ -61,7 +61,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// Optional alias to refer to it makeing it a
         /// full blown attribute operand
         /// </summary>
-        [DataMember(Name = "alias",
+        [DataMember(Name = "alias", Order = 6,
             EmitDefaultValue = false)]
         public string Alias { get; set; }
     }

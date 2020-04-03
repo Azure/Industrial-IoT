@@ -15,14 +15,14 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
         /// <summary>
         /// Worker heartbeat
         /// </summary>
-        [DataMember(Name = "worker",
+        [DataMember(Name = "worker", Order = 0,
             EmitDefaultValue = false)]
         public WorkerHeartbeatApiModel Worker { get; set; }
 
         /// <summary>
         /// Job heartbeat
         /// </summary>
-        [DataMember(Name = "job",
+        [DataMember(Name = "job", Order = 1,
             EmitDefaultValue = false)]
         public JobHeartbeatApiModel Job { get; set; }
     }

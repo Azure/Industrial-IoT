@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// <summary>
         /// Values to replace
         /// </summary>
-        [DataMember(Name = "values")]
+        [DataMember(Name = "values", Order = 0)]
         [Required]
         public List<HistoricValueApiModel> Values { get; set; }
     }

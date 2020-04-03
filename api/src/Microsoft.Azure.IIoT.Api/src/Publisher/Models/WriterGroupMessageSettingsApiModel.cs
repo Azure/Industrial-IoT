@@ -16,35 +16,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Network message content
         /// </summary>
-        [DataMember(Name = "networkMessageContentMask",
+        [DataMember(Name = "networkMessageContentMask", Order = 0,
             EmitDefaultValue = false)]
         public NetworkMessageContentMask? NetworkMessageContentMask { get; set; }
 
         /// <summary>
         /// Group version
         /// </summary>
-        [DataMember(Name = "groupVersion",
+        [DataMember(Name = "groupVersion", Order = 1,
             EmitDefaultValue = false)]
         public uint? GroupVersion { get; set; }
 
         /// <summary>
         /// Uadp dataset ordering
         /// </summary>
-        [DataMember(Name = "dataSetOrdering",
+        [DataMember(Name = "dataSetOrdering", Order = 2,
             EmitDefaultValue = false)]
         public DataSetOrderingType? DataSetOrdering { get; set; }
 
         /// <summary>
         /// Uadp Sampling offset
         /// </summary>
-        [DataMember(Name = "samplingOffset",
+        [DataMember(Name = "samplingOffset", Order = 3,
             EmitDefaultValue = false)]
         public double? SamplingOffset { get; set; }
 
         /// <summary>
         /// Publishing offset for uadp messages
         /// </summary>
-        [DataMember(Name = "publishingOffset",
+        [DataMember(Name = "publishingOffset", Order = 4,
             EmitDefaultValue = false)]
         public List<double> PublishingOffset { get; set; }
     }

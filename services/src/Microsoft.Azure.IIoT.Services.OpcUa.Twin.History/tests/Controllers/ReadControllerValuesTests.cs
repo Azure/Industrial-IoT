@@ -35,8 +35,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Controllers {
             return new HistoryReadValuesTests<string>(() => // Create an adapter over the api
                 new HistoricAccessAdapter<string>(
                     new HistoryRawAdapter(
-                        new HistoryServiceClient(new HttpClient(_factory, log), 
-                            new TestConfig(client.BaseAddress), serializer), serializer),
+                        new HistoryServiceClient(new HttpClient(_factory, log),
+                            new TestConfig(client.BaseAddress), serializer)),
                     new VariantEncoderFactory()), "fakeid");
         }
 

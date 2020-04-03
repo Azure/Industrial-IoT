@@ -16,21 +16,21 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
         /// <summary>
         /// Key
         /// </summary>
-        [DataMember(Name = "key")]
+        [DataMember(Name = "key", Order = 0)]
         [Required]
         public string Key { get; set; }
 
         /// <summary>
         /// Match operator (defaults to equals)
         /// </summary>
-        [DataMember(Name = "operator",
+        [DataMember(Name = "operator", Order = 1,
             EmitDefaultValue = false)]
         public DemandOperators? Operator { get; set; }
 
         /// <summary>
         /// Value
         /// </summary>
-        [DataMember(Name = "value",
+        [DataMember(Name = "value", Order = 2,
             EmitDefaultValue = false)]
         public string Value { get; set; }
     }

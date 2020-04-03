@@ -27,7 +27,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Extensions.Configuration;
     using Serilog;
     using Microsoft.Azure.IIoT.Module;
-    using Microsoft.Azure.IIoT.Module.Default;
 
     /// <summary>
     /// Publisher module

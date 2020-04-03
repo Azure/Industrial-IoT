@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery": {
+    "Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync": {
       "commandName": "Project"
     }
   }

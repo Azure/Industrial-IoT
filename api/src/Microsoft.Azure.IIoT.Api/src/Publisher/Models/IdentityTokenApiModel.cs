@@ -16,19 +16,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Identity
         /// </summary>
-        [DataMember(Name = "identity")]
+        [DataMember(Name = "identity", Order = 0)]
         public string Identity { get; set; }
 
         /// <summary>
         /// Key
         /// </summary>
-        [DataMember(Name = "key")]
+        [DataMember(Name = "key", Order = 1)]
         public string Key { get; set; }
 
         /// <summary>
         /// Expiration
         /// </summary>
-        [DataMember(Name = "expires")]
+        [DataMember(Name = "expires", Order = 2)]
         public DateTime Expires { get; set; }
     }
 }

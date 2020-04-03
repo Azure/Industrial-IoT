@@ -15,26 +15,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// <summary>
         /// Data type id
         /// </summary>
-        [DataMember(Name = "dataTypeId")]
+        [DataMember(Name = "dataTypeId", Order = 0)]
         public string DataTypeId { get; set; }
 
         /// <summary>
         /// The qualified name of the enum
         /// </summary>
-        [DataMember(Name = "name",
+        [DataMember(Name = "name", Order = 1,
             EmitDefaultValue = false)]
         public string Name { get; set; }
 
         /// <summary>
         /// Enum definition
         /// </summary>
-        [DataMember(Name = "enumDefinition")]
+        [DataMember(Name = "enumDefinition", Order = 2)]
         public EnumDefinitionApiModel EnumDefinition { get; set; }
 
         /// <summary>
         /// The built in type of the enum
         /// </summary>
-        [DataMember(Name = "builtInType",
+        [DataMember(Name = "builtInType", Order = 3,
             EmitDefaultValue = false)]
         public string BuiltInType { get; set; }
     }

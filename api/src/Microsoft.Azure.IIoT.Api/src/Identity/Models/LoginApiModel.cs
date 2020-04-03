@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Api.Identity.Models {
         /// Login provider for example Local,
         /// Facebook, Google, etc
         /// </summary>
-        [DataMember(Name = "loginProvider")]
+        [DataMember(Name = "loginProvider", Order = 0)]
         public string LoginProvider { get; set; }
 
         /// <summary>
@@ -24,14 +24,14 @@ namespace Microsoft.Azure.IIoT.Api.Identity.Models {
         /// for the user identity user provided
         /// by the login provider.
         /// </summary>
-        [DataMember(Name = "providerKey")]
+        [DataMember(Name = "providerKey", Order = 1)]
         public string ProviderKey { get; set; }
 
         /// <summary>
         /// Gets or sets the display name for
         /// the provider.
         /// </summary>
-        [DataMember(Name = "providerDisplayName")]
+        [DataMember(Name = "providerDisplayName", Order = 2)]
         public string ProviderDisplayName { get; set; }
     }
 }

@@ -16,19 +16,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// The target browse path
         /// </summary>
-        [DataMember(Name = "browsePath")]
+        [DataMember(Name = "browsePath", Order = 0)]
         public string[] BrowsePath { get; set; }
 
         /// <summary>
         /// Target node
         /// </summary>
-        [DataMember(Name = "target")]
+        [DataMember(Name = "target", Order = 1)]
         public NodeApiModel Target { get; set; }
 
         /// <summary>
         /// Remaining index in path
         /// </summary>
-        [DataMember(Name = "remainingPathIndex",
+        [DataMember(Name = "remainingPathIndex", Order = 2,
             EmitDefaultValue = false)]
         public int? RemainingPathIndex { get; set; }
     }

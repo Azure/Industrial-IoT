@@ -16,14 +16,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// <summary>
         /// Chain
         /// </summary>
-        [DataMember(Name = "chain",
+        [DataMember(Name = "chain", Order = 0,
             EmitDefaultValue = false)]
         public List<X509CertificateApiModel> Chain { get; set; }
 
         /// <summary>
         /// Chain validation status if validated
         /// </summary>
-        [DataMember(Name = "status",
+        [DataMember(Name = "status", Order = 1,
             EmitDefaultValue = false)]
         public List<X509ChainStatus> Status { get; set; }
     }

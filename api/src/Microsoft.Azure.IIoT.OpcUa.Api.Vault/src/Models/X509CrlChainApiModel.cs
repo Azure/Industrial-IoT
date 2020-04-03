@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
         /// <summary>
         /// Chain
         /// </summary>
-        [DataMember(Name = "chain",
+        [DataMember(Name = "chain", Order = 0,
             EmitDefaultValue = false)]
         public List<X509CrlApiModel> Chain { get; set; }
     }

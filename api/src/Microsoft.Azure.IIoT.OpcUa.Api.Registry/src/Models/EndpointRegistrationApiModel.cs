@@ -18,49 +18,48 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Registered identifier of the endpoint
         /// </summary>
-        [DataMember(Name = "id")]
+        [DataMember(Name = "id", Order = 0)]
         [Required]
         public string Id { get; set; }
 
         /// <summary>
         /// Original endpoint url of the endpoint
         /// </summary>
-        [DataMember(Name = "endpointUrl",
+        [DataMember(Name = "endpointUrl", Order = 1,
             EmitDefaultValue = false)]
         public string EndpointUrl { get; set; }
 
         /// <summary>
         /// Registered site of the endpoint
         /// </summary>
-        [DataMember(Name = "siteId",
+        [DataMember(Name = "siteId", Order = 2,
             EmitDefaultValue = false)]
         public string SiteId { get; set; }
 
         /// <summary>
-        /// Supervisor that manages the endpoint.
+        /// Supervisor that can manage the endpoint.
         /// </summary>
-        [DataMember(Name = "supervisorId",
+        [DataMember(Name = "supervisorId", Order = 3,
             EmitDefaultValue = false)]
         public string SupervisorId { get; set; }
 
         /// <summary>
         /// Discoverer that registered the endpoint
         /// </summary>
-        [DataMember(Name = "discovererId",
+        [DataMember(Name = "discovererId", Order = 4,
             EmitDefaultValue = false)]
         public string DiscovererId { get; set; }
 
         /// <summary>
         /// Endpoint information of the registration
         /// </summary>
-        [DataMember(Name = "endpoint")]
-        [Required]
+        [DataMember(Name = "endpoint", Order = 5)]
         public EndpointApiModel Endpoint { get; set; }
 
         /// <summary>
         /// Security level of the endpoint
         /// </summary>
-        [DataMember(Name = "securityLevel",
+        [DataMember(Name = "securityLevel", Order = 6,
             EmitDefaultValue = false)]
         public int? SecurityLevel { get; set; }
 
@@ -68,7 +67,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// Supported authentication methods that can be selected to
         /// obtain a credential and used to interact with the endpoint.
         /// </summary>
-        [DataMember(Name = "authenticationMethods",
+        [DataMember(Name = "authenticationMethods", Order = 7,
             EmitDefaultValue = false)]
         public List<AuthenticationMethodApiModel> AuthenticationMethods { get; set; }
     }
