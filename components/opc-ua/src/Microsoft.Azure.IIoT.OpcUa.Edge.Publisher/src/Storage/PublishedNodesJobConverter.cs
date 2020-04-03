@@ -111,11 +111,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                                     Id = node.Id,
                                     PublishedVariableNodeId = node.Id,
                                     PublishedVariableDisplayName = node.DisplayName,
-                                    SamplingInterval = node.OpcSamplingIntervalTimespan ?? legacyCliModel.DefaultSamplingInterval ?? (TimeSpan?)null
-                                    // TODO: Link all to server time sampled at heartbeat interval
-                                    // HeartbeatInterval = opcNode.HeartbeatInterval == null ? (TimeSpan?)null :
-                                    //    TimeSpan.FromMilliseconds(opcNode.HeartbeatInterval.Value),
+                                    SamplingInterval = node.OpcSamplingIntervalTimespan ??
+                                        legacyCliModel.DefaultSamplingInterval ?? (TimeSpan?)null,
+                                    HeartbeatInterval = node.HeartbeatInterval == null ? (TimeSpan?)null :
+                                        TimeSpan.FromSeconds(node.HeartbeatInterval.Value)
+                                    // TODO: skip first? 
                                     // SkipFirst = opcNode.SkipFirst,
+
                                 })
                                 .ToList()
                         }

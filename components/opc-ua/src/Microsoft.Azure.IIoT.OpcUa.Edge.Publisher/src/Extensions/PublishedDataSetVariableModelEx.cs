@@ -38,7 +38,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 IndexRange = publishedVariable.IndexRange,
                 TriggerId = publishedVariable.TriggerId,
                 MonitoringMode = publishedVariable.MonitoringMode,
-                SamplingInterval = publishedVariable.SamplingInterval
+                SamplingInterval = publishedVariable.SamplingInterval,
+                HeartbeatInterval = publishedVariable.HeartbeatInterval
             };
         }
 
