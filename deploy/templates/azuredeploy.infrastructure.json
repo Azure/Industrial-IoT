@@ -1033,10 +1033,6 @@
                                 "value": "[listkeys(variables('serviceBusKeyResourceId'), '2017-04-01').primaryConnectionString]"
                             },
                             {
-                                "key": "PCS_WORKSPACE_NAME",
-                                "value": "[parameters('workspaceName')]"
-                            },
-                            {
                                 "key": "PCS_APPINSIGHTS_INSTRUMENTATIONKEY",
                                 "value": "[reference(variables('appinsightsResourceId'), '2015-05-01').InstrumentationKey]"
                             },
