@@ -281,6 +281,9 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
             if (response.Headers.TryGetValues(HttpHeader.ContinuationToken, out var values)) {
                 continuation = values.First();
             }
+            else {
+                continuation = null;
+            }
             return new QueryResultModel {
                 ContinuationToken = continuation,
                 Result = JArray.Parse(response.GetContentAsString())

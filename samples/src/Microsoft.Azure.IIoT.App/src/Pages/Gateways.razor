@@ -1,5 +1,4 @@
 ﻿@page "/gateways"
-@page "/gateways/{page}"
 
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Services
@@ -36,11 +35,12 @@
         }
     </tbody>
 </table>
-<div class="loader-pos @CommonHelper.Spinner"></div>
 
 <ErrorMessage PageError="@_pagedGatewayList.Error" Status="@null"></ErrorMessage>
 
 <Pager Result=@_gatewayList PageChanged=@((Page) => PagerPageChanged(Page)) />
+
+<div class="loader-pos @CommonHelper.Spinner"></div>
 
 @code {
 
@@ -57,8 +57,11 @@
     /// <param name="page"></param>
     public void PagerPageChanged(int page)
     {
-        _pagedGatewayList = _gatewayList.GetPaged(page, CommonHelper.PageLength, null);
-        NavigationManager.NavigateTo(NavigationManager.BaseUri + "gateways/" + page);
+        CommonHelper.Spinner = "loader-big";
+        StateHasChanged();
+        _gatewayList = CommonHelper.UpdatePage(RegistryHelper.GetGatewayListAsync, page, _gatewayList, ref _pagedGatewayList);
+        CommonHelper.Spinner = string.Empty;
+        StateHasChanged();
     }
 
     /// <summary>

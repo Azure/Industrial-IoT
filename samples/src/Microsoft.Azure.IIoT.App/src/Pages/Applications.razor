@@ -1,5 +1,4 @@
 ﻿@page "/applications"
-@page "/applications/{page}"
 
 @using Microsoft.AspNetCore.Components
 @using Microsoft.Azure.IIoT.App.Services
@@ -52,7 +51,6 @@
         }
     </tbody>
 </table>
-<div class="loader-pos @CommonHelper.Spinner"></div>
 
 <Drawer HeaderText="Asset Info" ObjectData="@ApplicationData" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
     <_DrawerAssetContent ApplicationData="@ApplicationData"></_DrawerAssetContent>
@@ -61,6 +59,8 @@
 <ErrorMessage PageError="@_pagedapplicationList.Error" Status="@null"></ErrorMessage>
 
 <Pager Result=@_applicationList PageChanged=@((Page) => PagerPageChanged(Page)) />
+
+<div class="loader-pos @CommonHelper.Spinner"></div>
 
 @code {
 
@@ -83,8 +83,11 @@
     /// <param name="page"></param>
     public void PagerPageChanged(int page)
     {
-        _pagedapplicationList = _applicationList.GetPaged(page, CommonHelper.PageLength, null);
-        NavigationManager.NavigateTo(NavigationManager.BaseUri + "applications/" + page);
+        CommonHelper.Spinner = "loader-big";
+        StateHasChanged();
+        _applicationList = CommonHelper.UpdatePage(RegistryHelper.GetApplicationListAsync, page, _applicationList, ref _pagedapplicationList);
+        CommonHelper.Spinner = string.Empty;
+        StateHasChanged();
     }
 
     /// <summary>
@@ -182,7 +185,7 @@
         _applicationList = await RegistryHelper.GetApplicationListAsync();
         Page = "1";
         _pagedapplicationList = _applicationList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _applicationList.Error);
-        CommonHelper.Spinner = "";
+        CommonHelper.Spinner = string.Empty;
     }
 
     /// <summary>

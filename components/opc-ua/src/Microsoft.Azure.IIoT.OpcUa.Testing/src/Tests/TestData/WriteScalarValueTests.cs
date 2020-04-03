@@ -653,7 +653,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         ""StringValue"": ""黄色) 黄色] 桃子{ 黑色 狗[ 紫色 桃子] 狗 红色 葡萄% 桃子? 猫 猴子 绵羊"",
         ""DateTimeValue"": ""2027-02-05T11:29:29.9135123Z"",
         ""GuidValue"": ""64a055c1-1e60-67a1-e801-f996fece3eec"",
-        ""ByteStringValue"": [ 94, 98, 26, 57, 204, 214, 25, 234, 221, 189, 62, 62, 99, 80, 78, 185 ],
+        ""ByteStringValue"": ""XmIaOczWGerdvT4+Y1BOuQ=="",
         ""XmlElementValue"": {
             ""n0:Mango"": {
                 ""@Monkey"": ""Monkey"",
