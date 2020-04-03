@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.App.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
+    using Microsoft.Azure.IIoT.App.Common;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
@@ -20,63 +21,105 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// </summary>
         /// <param name="registryService"></param>
         /// <param name="logger"></param>
-        public Registry(IRegistryServiceApi registryService, ILogger logger) {
+        /// <param name="commonHelper"></param>
+        public Registry(IRegistryServiceApi registryService, ILogger logger, UICommon commonHelper) {
             _registryService = registryService ?? throw new ArgumentNullException(nameof(registryService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _commonHelper = commonHelper ?? throw new ArgumentNullException(nameof(commonHelper));
         }
 
         /// <summary>
         /// GetEndpointListAsync
         /// </summary>
         /// <param name="discovererId"></param>
+        /// <param name="previousPage"></param>
         /// <returns>EndpointInfoApiModel</returns>
         public async Task<PagedResult<EndpointInfo>> GetEndpointListAsync(
-            string discovererId, string applicationId, string supervisorId) {
+            string discovererId, string applicationId, string supervisorId, PagedResult<EndpointInfo> previousPage = null) {
 
             var pageResult = new PagedResult<EndpointInfo>();
 
             try {
+                var endpoints = new EndpointInfoListApiModel();
                 var model = new EndpointRegistrationQueryApiModel();
                 model.DiscovererId = discovererId == PathAll ? null : discovererId;
                 model.ApplicationId = applicationId == PathAll ? null : applicationId;
                 model.SupervisorId = supervisorId == PathAll ? null : supervisorId;
+                
+                if (string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
+                    endpoints = await _registryService.QueryEndpointsAsync(model, null, _commonHelper.PageLength);
+                    if (!string.IsNullOrEmpty(endpoints.ContinuationToken)) {
+                        pageResult.PageCount = 2;
+                    }
+                }
+                else {
+                    endpoints = await _registryService.ListEndpointsAsync(previousPage.ContinuationToken, null, _commonHelper.PageLength);
 
-                var endpoints = await _registryService.QueryAllEndpointsAsync(model);
-                foreach (var ep in endpoints) {
+                    if (string.IsNullOrEmpty(endpoints.ContinuationToken)) {
+                        pageResult.PageCount = previousPage.PageCount;
+                    }
+                    else {
+                        pageResult.PageCount = previousPage.PageCount + 1;
+                    }
+                }
+
+                foreach (var ep in endpoints.Items) {
                     // Get non cached version of endpoint
                     var endpoint = ep; // await _registryService.GetEndpointAsync(ep.Registration.Id);
                     pageResult.Results.Add(new EndpointInfo {
                         EndpointModel = endpoint
                     });
                 }
+                if (previousPage != null) {
+                    previousPage.Results.AddRange(pageResult.Results);
+                    pageResult.Results = previousPage.Results;
+                }
+
+                pageResult.ContinuationToken = endpoints.ContinuationToken;
+                pageResult.PageSize = _commonHelper.PageLength;
+                pageResult.RowCount = pageResult.Results.Count;
             }
             catch (Exception e) {
                 _logger.Warning("Can not get endpoint list");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 _logger.Warning(errorMessage);
                 pageResult.Error = e.Message;
-            }
-
-            pageResult.PageSize = 10;
-            pageResult.RowCount = pageResult.Results.Count;
-            pageResult.PageCount = (int)Math.Ceiling((decimal)pageResult.RowCount / 10);
+            }         
             return pageResult;
         }
 
         /// <summary>
         /// GetDiscovererListAsync
         /// </summary>
+        /// <param name="previousPage"></param>
         /// <returns>DiscovererInfo</returns>
-        public async Task<PagedResult<DiscovererInfo>> GetDiscovererListAsync() {
+        public async Task<PagedResult<DiscovererInfo>> GetDiscovererListAsync(PagedResult<DiscovererInfo> previousPage =  null) {
             var pageResult = new PagedResult<DiscovererInfo>();
 
             try {
                 var discovererModel = new DiscovererQueryApiModel();
                 var applicationModel = new ApplicationRegistrationQueryApiModel();
-                var discoverers = await _registryService.QueryAllDiscoverersAsync(discovererModel);
+                var discoverers = new DiscovererListApiModel();
 
-                if (discoverers != null && discoverers.Any()) {
-                    foreach (var disc in discoverers) {
+                if (string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
+                    discoverers = await _registryService.QueryDiscoverersAsync(discovererModel, _commonHelper.PageLengthSmall);
+                    if (!string.IsNullOrEmpty(discoverers.ContinuationToken)) {
+                        pageResult.PageCount = 2;
+                    }
+                }
+                else {
+                    discoverers = await _registryService.ListDiscoverersAsync(previousPage.ContinuationToken, _commonHelper.PageLengthSmall);
+
+                    if (string.IsNullOrEmpty(discoverers.ContinuationToken)) {
+                        pageResult.PageCount = previousPage.PageCount;
+                    }
+                    else {
+                        pageResult.PageCount = previousPage.PageCount + 1;
+                    }
+                }
+                
+                if (discoverers != null && discoverers.Items.Any()) {
+                    foreach (var disc in discoverers.Items) {
                         var discoverer = disc; //  await _registryService.GetDiscovererAsync(disc.Id);
                         var info = new DiscovererInfo {
                             DiscovererModel = discoverer,
@@ -84,12 +127,20 @@ namespace Microsoft.Azure.IIoT.App.Services {
                             ScanStatus = (discoverer.Discovery == DiscoveryMode.Off) || (discoverer.Discovery == null) ? false : true
                         };
                         applicationModel.DiscovererId = discoverer.Id;
-                        var applications = await _registryService.QueryApplicationsAsync(applicationModel);
+                        var applications = await _registryService.QueryApplicationsAsync(applicationModel, 1);
                         if (applications != null) {
                             info.HasApplication = true;
                         }
                         pageResult.Results.Add(info);
                     }
+                    if (previousPage != null) {
+                        previousPage.Results.AddRange(pageResult.Results);
+                        pageResult.Results = previousPage.Results;
+                    }
+
+                    pageResult.ContinuationToken = discoverers.ContinuationToken;
+                    pageResult.PageSize = _commonHelper.PageLengthSmall;
+                    pageResult.RowCount = pageResult.Results.Count;
                 }
                 else {
                     pageResult.Error = "No Discoveres Found";
@@ -101,30 +152,53 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 _logger.Warning(errorMessage);
                 pageResult.Error = e.Message;
             }
-
-            pageResult.PageSize = 10;
-            pageResult.RowCount = pageResult.Results.Count;
-            pageResult.PageCount = (int)Math.Ceiling((decimal)pageResult.RowCount / 10);
             return pageResult;
         }
 
         /// <summary>
         /// GetApplicationListAsync
         /// </summary>
+        /// <param name="previousPage"></param>
         /// <returns>ApplicationInfoApiModel</returns>
-        public async Task<PagedResult<ApplicationInfoApiModel>> GetApplicationListAsync() {
+        public async Task<PagedResult<ApplicationInfoApiModel>> GetApplicationListAsync(PagedResult<ApplicationInfoApiModel> previousPage = null) {
             var pageResult = new PagedResult<ApplicationInfoApiModel>();
 
             try {
                 var applicationModel = new ApplicationRegistrationQueryApiModel();
-                var applications = await _registryService.QueryAllApplicationsAsync(applicationModel);
+                var applications = new ApplicationInfoListApiModel();
 
-                if (applications != null) {
-                    foreach (var app in applications) {
-                        var application = app; // (await _registryService.GetApplicationAsync(app.ApplicationId)).Application;
-                        pageResult.Results.Add(app);
+                if (string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
+                    applications = await _registryService.QueryApplicationsAsync(applicationModel, _commonHelper.PageLength);
+                    if (!string.IsNullOrEmpty(applications.ContinuationToken)) {
+                        pageResult.PageCount = 2;
                     }
                 }
+                else 
+                {
+                    applications = await _registryService.ListApplicationsAsync(previousPage.ContinuationToken, _commonHelper.PageLength);
+
+                    if (string.IsNullOrEmpty(applications.ContinuationToken)) {
+                        pageResult.PageCount = previousPage.PageCount;
+                    }
+                    else {
+                        pageResult.PageCount = previousPage.PageCount + 1;
+                    }
+                }
+
+                if (applications != null) {
+                    foreach (var app in applications.Items) {
+                        var application = app; // (await _registryService.GetApplicationAsync(app.ApplicationId)).Application;
+                        pageResult.Results.Add(application);
+                    }
+                }
+                if (previousPage != null) {
+                    previousPage.Results.AddRange(pageResult.Results);
+                    pageResult.Results = previousPage.Results;
+                }
+
+                pageResult.ContinuationToken = applications.ContinuationToken;
+                pageResult.PageSize = _commonHelper.PageLength;
+                pageResult.RowCount = pageResult.Results.Count;
             }
             catch (Exception e) {
                 _logger.Warning("Can not get applications list");
@@ -132,10 +206,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 _logger.Warning(errorMessage);
                 pageResult.Error = e.Message;
             }
-
-            pageResult.PageSize = 10;
-            pageResult.RowCount = pageResult.Results.Count;
-            pageResult.PageCount = (int)Math.Ceiling((decimal)pageResult.RowCount / 10);
             return pageResult;
         }
 
@@ -184,20 +254,46 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <summary>
         /// GetGatewayListAsync
         /// </summary>
+        /// <param name="previousPage"></param>
         /// <returns>GatewayApiModel</returns>
-        public async Task<PagedResult<GatewayApiModel>> GetGatewayListAsync() {
+        public async Task<PagedResult<GatewayApiModel>> GetGatewayListAsync(PagedResult<GatewayApiModel> previousPage = null) {
             var pageResult = new PagedResult<GatewayApiModel>();
 
             try {
                 var gatewayModel = new GatewayQueryApiModel();
-                var gateways = await _registryService.QueryAllGatewaysAsync(gatewayModel);
+                var gateways = new GatewayListApiModel();
+
+                if (string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
+                    gateways = await _registryService.QueryGatewaysAsync(gatewayModel, _commonHelper.PageLength);
+                    if (!string.IsNullOrEmpty(gateways.ContinuationToken)) {
+                        pageResult.PageCount = 2;
+                    }
+                }
+                else {
+                    gateways = await _registryService.ListGatewaysAsync(previousPage.ContinuationToken, _commonHelper.PageLength);
+
+                    if (string.IsNullOrEmpty(gateways.ContinuationToken)) {
+                        pageResult.PageCount = previousPage.PageCount;
+                    }
+                    else {
+                        pageResult.PageCount = previousPage.PageCount + 1;
+                    }
+                }
 
                 if (gateways != null) {
-                    foreach (var gw in gateways) {
+                    foreach (var gw in gateways.Items) {
                         var gateway = gw; // (await _registryService.GetGatewayAsync(gw.Id)).Gateway;
                         pageResult.Results.Add(gateway);
                     }
                 }
+                if (previousPage != null) {
+                    previousPage.Results.AddRange(pageResult.Results);
+                    pageResult.Results = previousPage.Results;
+                }
+
+                pageResult.ContinuationToken = gateways.ContinuationToken;
+                pageResult.PageSize = _commonHelper.PageLength;
+                pageResult.RowCount = pageResult.Results.Count;
             }
             catch (Exception e) {
                 _logger.Warning("Can not get gateways list");
@@ -205,30 +301,52 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 _logger.Warning(errorMessage);
                 pageResult.Error = e.Message;
             }
-
-            pageResult.PageSize = 10;
-            pageResult.RowCount = pageResult.Results.Count;
-            pageResult.PageCount = (int)Math.Ceiling((decimal)pageResult.RowCount / 10);
             return pageResult;
         }
 
         /// <summary>
         /// GetPublisherListAsync
         /// </summary>
+        /// <param name="previousPage"></param>
         /// <returns>PublisherApiModel</returns>
-        public async Task<PagedResult<PublisherApiModel>> GetPublisherListAsync() {
+        public async Task<PagedResult<PublisherApiModel>> GetPublisherListAsync(PagedResult<PublisherApiModel> previousPage = null) {
             var pageResult = new PagedResult<PublisherApiModel>();
 
             try {
                 var publisherModel = new PublisherQueryApiModel();
-                var publishers = await _registryService.QueryAllPublishersAsync(publisherModel);
+                var publishers = new PublisherListApiModel();
+
+                if (string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
+                    publishers = await _registryService.QueryPublishersAsync(publisherModel, null, _commonHelper.PageLengthSmall);
+                    if (!string.IsNullOrEmpty(publishers.ContinuationToken)) {
+                        pageResult.PageCount = 2;
+                    }
+                }
+                else {
+                    publishers = await _registryService.ListPublishersAsync(previousPage.ContinuationToken, null, _commonHelper.PageLengthSmall);
+
+                    if (string.IsNullOrEmpty(publishers.ContinuationToken)) {
+                        pageResult.PageCount = previousPage.PageCount;
+                    }
+                    else {
+                        pageResult.PageCount = previousPage.PageCount + 1;
+                    }
+                }
 
                 if (publishers != null) {
-                    foreach (var pub in publishers) {
+                    foreach (var pub in publishers.Items) {
                         var publisher = pub; // await _registryService.GetPublisherAsync(pub.Id);
                         pageResult.Results.Add(publisher);
                     }
                 }
+                if (previousPage != null) {
+                    previousPage.Results.AddRange(pageResult.Results);
+                    pageResult.Results = previousPage.Results;
+                }
+
+                pageResult.ContinuationToken = publishers.ContinuationToken;
+                pageResult.PageSize = _commonHelper.PageLengthSmall;
+                pageResult.RowCount = pageResult.Results.Count;
             }
             catch (Exception e) {
                 _logger.Warning("Can not get publisher list");
@@ -236,10 +354,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 _logger.Warning(errorMessage);
                 pageResult.Error = e.Message;
             }
-
-            pageResult.PageSize = 10;
-            pageResult.RowCount = pageResult.Results.Count;
-            pageResult.PageCount = (int)Math.Ceiling((decimal)pageResult.RowCount / 10);
             return pageResult;
         }
 
@@ -264,21 +378,47 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <summary>
         /// GetSupervisorListAsync
         /// </summary>
+        /// <param name="previousPage"></param>
         /// <returns>SupervisorApiModel</returns>
-        public async Task<PagedResult<SupervisorApiModel>> GetSupervisorListAsync() {
+        public async Task<PagedResult<SupervisorApiModel>> GetSupervisorListAsync(PagedResult<SupervisorApiModel> previousPage = null) {
 
             var pageResult = new PagedResult<SupervisorApiModel>();
 
             try {
                 var model = new SupervisorQueryApiModel();
+                var supervisors = new SupervisorListApiModel();
 
-                var supervisors = await _registryService.QueryAllSupervisorsAsync(model);
+                if (string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
+                    supervisors = await _registryService.QuerySupervisorsAsync(model, null, _commonHelper.PageLength);
+                    if (!string.IsNullOrEmpty(supervisors.ContinuationToken)) {
+                        pageResult.PageCount = 2;
+                    }
+                }
+                else {
+                    supervisors = await _registryService.ListSupervisorsAsync(previousPage.ContinuationToken, null, _commonHelper.PageLengthSmall);
+
+                    if (string.IsNullOrEmpty(supervisors.ContinuationToken)) {
+                        pageResult.PageCount = previousPage.PageCount;
+                    }
+                    else {
+                        pageResult.PageCount = previousPage.PageCount + 1;
+                    }
+                }
+
                 if (supervisors != null) {
-                    foreach (var sup in supervisors) {
+                    foreach (var sup in supervisors.Items) {
                         var supervisor = sup; // await _registryService.GetSupervisorAsync(sup.Id);
                         pageResult.Results.Add(supervisor);
                     }
                 }
+                if (previousPage != null) {
+                    previousPage.Results.AddRange(pageResult.Results);
+                    pageResult.Results = previousPage.Results;
+                }
+
+                pageResult.ContinuationToken = supervisors.ContinuationToken;
+                pageResult.PageSize = _commonHelper.PageLength;
+                pageResult.RowCount = pageResult.Results.Count;
             }
             catch (Exception e) {
                 _logger.Warning("Can not get supervisor list");
@@ -286,10 +426,6 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 _logger.Warning(errorMessage);
                 pageResult.Error = e.Message;
             }
-
-            pageResult.PageSize = 10;
-            pageResult.RowCount = pageResult.Results.Count;
-            pageResult.PageCount = (int)Math.Ceiling((decimal)pageResult.RowCount / 10);
             return pageResult;
         }
 
@@ -333,6 +469,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
 
         private readonly IRegistryServiceApi _registryService;
         private readonly ILogger _logger;
+        private readonly UICommon _commonHelper;
         public string PathAll = "All";
     }
 }
