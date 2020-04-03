@@ -65,6 +65,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Storage.Tests {
             Assert.Equal("opc.tcp://localhost:50000", jobs
                 .Single().WriterGroup.DataSetWriters
                 .Single().DataSet.DataSetSource.Connection.Endpoint.Url);
+            Assert.Equal(2, jobs.Single()
+                .WriterGroup.DataSetWriters.Single()
+                .DataSet.DataSetSource.PublishedVariables.PublishedData.Single()
+                .HeartbeatInterval.Value.TotalSeconds);
         }
 
         [Fact]

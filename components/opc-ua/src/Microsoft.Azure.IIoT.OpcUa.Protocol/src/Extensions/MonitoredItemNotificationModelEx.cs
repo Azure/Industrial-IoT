@@ -35,10 +35,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                 if (message == null) {
                     continue;
                 }
-                if (message.DiagnosticInfo == null && notification.DiagnosticInfos != null &&
-                    i < notification.DiagnosticInfos.Count) {
-                    message.DiagnosticInfo = notification.DiagnosticInfos[i];
-                }
                 yield return message;
             }
         }
@@ -62,6 +58,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
             if (notification is EventFieldList e) {
                 return e.ToMonitoredItemNotification(monitoredItem);
             }
+
             return defaultValue?.Invoke();
         }
 
@@ -132,6 +129,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
                     eventFieldList.Message.StringTable
             };
         }
+
 
         /// <summary>
         /// Convert to Datavalue

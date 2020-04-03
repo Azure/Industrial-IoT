@@ -73,9 +73,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                             userIdentity, null);
 
                         _logger.Information($"Session '{sessionName}' created.");
-
                         _logger.Information("Loading Complex Type System....");
-
                         try {
                             var complexTypeSystem = new ComplexTypeSystem(session);
                             await complexTypeSystem.Load();
@@ -88,6 +86,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                         if (_clientConfig.KeepAliveInterval > 0) {
                             session.KeepAliveInterval = _clientConfig.KeepAliveInterval;
                             session.KeepAlive += Session_KeepAlive;
+                            session.Notification += Session_Notification;
                         }
                         wrapper = new SessionWrapper {
                             MissedKeepAlives = 0,
@@ -126,13 +125,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     }
                     Try.Op(() => session.RemoveSubscriptions(session.Subscriptions));
                 }
-                
-                
                 Try.Op(session.Close);
                 Try.Op(session.Dispose);
             }
             finally {
                 _lock.Release();
+            }
+        }
+
+        private void Session_Notification(Session session, NotificationEventArgs e) {
+            _logger.Debug("Notification for session: {Session}, subscription {Subscription} -sequence# {Sequence}-{PublishTime}",
+                session.SessionName, e.Subscription?.DisplayName, e.NotificationMessage?.SequenceNumber,
+                e.NotificationMessage.PublishTime);
+            if (e.NotificationMessage.IsEmpty || e.NotificationMessage.NotificationData.Count() == 0) {
+                var keepAlive = new DataChangeNotification() {
+                    MonitoredItems = new MonitoredItemNotificationCollection() {
+                        new MonitoredItemNotification() {
+                            ClientHandle = 0,
+                            Value = null,
+                            Message = e.NotificationMessage
+                        }
+                    }
+                };
+                e.Subscription.FastDataChangeCallback.Invoke(e.Subscription, keepAlive, e.StringTable);
             }
         }
 
@@ -142,14 +157,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="session"></param>
         /// <param name="e"></param>
         private void Session_KeepAlive(Session session, KeepAliveEventArgs e) {
-            _logger.Debug($"Keep Alive received from session {session.SessionName}, state: {e.CurrentState}.");
+            _logger.Debug("Keep Alive received from session {name}, state: {state}.",
+                session.SessionName, e.CurrentState);
             if (ServiceResult.IsGood(e.Status)) {
                 return;
             }
             _lock.Wait();
             try {
+                
                 var entry = _sessions.SingleOrDefault(s => s.Value.Session.SessionName == session.SessionName);
                 if (entry.Key == null) {
+                    _logger.Error("Session entry '{name}' not found in the sessions collection...",
+                        session.SessionName);
                     return;
                 }
                 entry.Value.MissedKeepAlives++;
@@ -157,6 +176,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     _logger.Warning("Session '{name}' exceeded max keep alive count. Disconnecting and removing session...",
                         session.SessionName);
                     _sessions.Remove(entry.Key);
+                    // Remove subscriptions
+                    if (session.SubscriptionCount > 0) {
+                        foreach (var subscription in session.Subscriptions) {
+                            Try.Op(() => subscription.RemoveItems(subscription.MonitoredItems));
+                            Try.Op(() => subscription.DeleteItems());
+                        }
+                        Try.Op(() => session.RemoveSubscriptions(session.Subscriptions));
+                    }
                     Try.Op(session.Close);
                     Try.Op(session.Dispose);
                 }

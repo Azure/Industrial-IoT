@@ -292,7 +292,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Clients.v2 {
             variables.Add(new PublishedDataSetVariableModel {
                 SamplingInterval = publishedItem.SamplingInterval,
                 PublishedVariableNodeId = publishedItem.NodeId,
-                PublishedVariableDisplayName = publishedItem.DisplayName
+                PublishedVariableDisplayName = publishedItem.DisplayName,
+                HeartbeatInterval = publishedItem.HeartbeatInterval
             });
         }
 
