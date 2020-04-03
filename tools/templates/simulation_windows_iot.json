@@ -173,7 +173,7 @@
             "name": "[parameters('storageName')]",
             "apiVersion": "[variables('storageApiVersion')]",
             "location": "[variables('location')]",
-            "kind": "Storage",
+            "kind": "StorageV2",
             "sku": {
                 "name": "[parameters('storageSkuName')]"
             },
