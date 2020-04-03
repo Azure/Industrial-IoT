@@ -9,6 +9,7 @@ namespace Opc.Ua.PubSub.Tests {
     using System.Collections.Generic;
     using Opc.Ua.Encoders;
     using Xunit;
+    using Opc.Ua.Extensions;
 
     public class PubSubJsonEncoderDecoder {
 
@@ -60,6 +61,8 @@ namespace Opc.Ua.PubSub.Tests {
                 }
                 buffer = stream.ToArray();
             }
+
+            ConvertToOpcUaUniversalTime(networkMessage);
 
             using (var stream = new MemoryStream(buffer)) {
                 using (var decoder = new JsonDecoderEx(stream, context)) {
@@ -127,6 +130,8 @@ namespace Opc.Ua.PubSub.Tests {
                 buffer = stream.ToArray();
             }
 
+            ConvertToOpcUaUniversalTime(networkMessage);
+
             using (var stream = new MemoryStream(buffer)) {
                 using (var decoder = new JsonDecoderEx(stream, context)) {
                     var result = decoder.ReadEncodeable(null, typeof(NetworkMessage)) as NetworkMessage;
@@ -135,5 +140,20 @@ namespace Opc.Ua.PubSub.Tests {
             }
         }
 
+        /// <summary>
+        /// Convert timestamps of payload to OpcUa Utc.
+        /// </summary>
+        private void ConvertToOpcUaUniversalTime(NetworkMessage networkMessage) {
+            // convert DataSet Payload DataValue timestamps to OpcUa Utc 
+            foreach (var dataSetMessage in networkMessage.Messages) {
+                var expectedPayload = new Dictionary<string, DataValue>();
+                foreach (var entry in dataSetMessage.Payload) {
+                    expectedPayload[entry.Key] = new DataValue(entry.Value).ToOpcUaUniversalTime();
+                }
+                dataSetMessage.Payload = new DataSet(expectedPayload, (uint)(
+                    DataSetFieldContentMask.StatusCode |
+                    DataSetFieldContentMask.SourceTimestamp));
+            }
+        }
     }
 }

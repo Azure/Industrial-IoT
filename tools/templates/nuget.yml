@@ -7,7 +7,7 @@ jobs:
 - job: nuget
   displayName: Pack Nugets
   pool:
-    name: Hosted Windows 2019 with VS2019
+    vmImage: 'windows-2019'
   steps:
   - task: UseDotNet@2
     displayName: 'Install .NET Core SDK for signing'
@@ -141,7 +141,7 @@ jobs:
     displayName: 'Publish Artifact'
     inputs:
       path: $(Build.ArtifactStagingDirectory)
-      artifact: 'release_nugets'
+      artifact: 'release__$(NBGV_NugetPackageVersion)'
   - task: NuGetCommand@2
     displayName: Push
     inputs:
