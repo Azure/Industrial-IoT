@@ -7,7 +7,19 @@ The IoT Edge Runtime and the Industrial IoT Edge Modules are automatically insta
 
 ## Run the Industrial IoT Gateway Installer
 
-From your edge gateway, run the Industrial IoT Gateway Installer for Windows directly from the Web from [here](https://github.com/Azure/Industrial-IoT-Gateway-Installer/raw/master/Releases/Windows/setup.exe) and for Linux download and run it from [here](https://github.com/Azure/Industrial-IoT-Gateway-Installer/raw/master/Releases/Linux.zip).
+From your edge gateway, run the Industrial IoT Gateway Installer for Windows directly from the Web from [here](https://github.com/Azure/Industrial-IoT-Gateway-Installer/raw/master/Releases/Windows/setup.exe)
+
+For Linux download following folder in your gateway device from [here](https://github.com/Azure/Industrial-IoT-Gateway-Installer/raw/master/Releases/Linux.zip) and unzip it. Then go to the extracted folder and make the console application file executable e.g.:
+
+   ```bash
+   chmod 777 ./IoTEdgeInstallerConsoleApp
+   ```
+
+Then run the application to start the gateway installation and provide the required parameters
+
+   ```bash
+   sudo ./IoTEdgeInstallerConsoleApp
+   ```
 
 The Industrial IoT Gateway Installer will make sure all prerequisits are met.
 
