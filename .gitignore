@@ -31,3 +31,6 @@
 *.crt
 *.key
 *.user
+CodeCoverage
+coverage.cobertura.xml
+
