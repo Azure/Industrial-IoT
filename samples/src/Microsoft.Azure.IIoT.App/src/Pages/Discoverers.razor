@@ -1,6 +1,5 @@
 ﻿@page "/"
 @page "/discoverers"
-@page "/discoverers/{page}"
 
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.Azure.IIoT.App.Components.Pager
@@ -35,7 +34,7 @@
     </thead>
     <tbody>
         @{string connectStatus = "Disconnected"; }
-        @foreach (var discoverer in pagedDiscovererList.Results)
+        @foreach (var discoverer in _pagedDiscovererList.Results)
         {
             <tr>
                 @if (discoverer.HasApplication == true)
@@ -118,7 +117,6 @@
         }
     </tbody>
 </table>
-<div class="loader-pos @CommonHelper.Spinner"></div>
 <div class="results @_scanResult">
     Scan Results:
     <div class="events">
@@ -126,7 +124,7 @@
     </div>
 </div>
 
-<ErrorMessage PageError="@pagedDiscovererList.Error" Status="@Status"></ErrorMessage>
+<ErrorMessage PageError="@_pagedDiscovererList.Error" Status="@Status"></ErrorMessage>
 
 <Drawer HeaderText="Discovery Scan Config" ObjectData="@DiscovererData" IsOpened="@IsOpened" CloseDrawer="@(() => CloseDrawer())">
     <div class="drawer-content list-group">
@@ -196,7 +194,9 @@
     </div>
 </Drawer>
 
-<Pager Result=@discovererList PageChanged=@((Page) => PagerPageChanged(Page)) />
+<Pager Result=@_discovererList PageChanged=@((Page) => PagerPageChanged(Page)) />
+
+<div class="loader-pos @CommonHelper.Spinner"></div>
 
 
 @code {
@@ -207,10 +207,10 @@
     public bool IsSearching { get; set; } = false;
     public bool IsOpened { get; set; } = false;
     public DiscovererInfo DiscovererData { get; set; }
-    public PagedResult<DiscovererInfo> discovererList = new PagedResult<DiscovererInfo>();
-    public PagedResult<DiscovererInfo> pagedDiscovererList = new PagedResult<DiscovererInfo>();
     public string Status { get; set; }
 
+    private PagedResult<DiscovererInfo> _discovererList = new PagedResult<DiscovererInfo>();
+    private PagedResult<DiscovererInfo> _pagedDiscovererList = new PagedResult<DiscovererInfo>();
     private string _eventResult { get; set; }
     private string _scanResult { get; set; } = "hidden";
     private string _tableView { get; set; } = "visible";
@@ -227,8 +227,11 @@
     /// <returns></returns>
     public void PagerPageChanged(int page)
     {
-        pagedDiscovererList = discovererList.GetPaged(page, CommonHelper.PageLength, null);
-        NavigationManager.NavigateTo(NavigationManager.BaseUri + "discoverers/" + page);
+        CommonHelper.Spinner = "loader-big";
+        StateHasChanged();
+        _discovererList = CommonHelper.UpdatePage(RegistryHelper.GetDiscovererListAsync, page, _discovererList, ref _pagedDiscovererList);
+        CommonHelper.Spinner = string.Empty;
+        StateHasChanged();
     }
 
     /// <summary>
@@ -252,12 +255,12 @@
     {
         if (firstRender)
         {
-            discovererList = await RegistryHelper.GetDiscovererListAsync();
+            _discovererList = await RegistryHelper.GetDiscovererListAsync();
             Page = "1";
-            pagedDiscovererList = discovererList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, discovererList.Error);
+            _pagedDiscovererList = _discovererList.GetPaged(Int32.Parse(Page), CommonHelper.PageLengthSmall, _discovererList.Error);
             CommonHelper.Spinner = string.Empty;
 
-            if (pagedDiscovererList.Error != null)
+            if (_pagedDiscovererList.Error != null)
             {
                 _tableView = "hidden";
             }
