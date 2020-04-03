@@ -16,17 +16,17 @@ namespace Opc.Ua.Extensions {
         /// <summary>
         /// Constant for OpcUa JSON encoded DateTime.MinValue.
         /// </summary>
-        public static string OpcUaDateTimeMinValue => "0001-01-01T00:00:00Z";
+        public static string OpcUaDateTimeMinValue = "0001-01-01T00:00:00Z";
 
         /// <summary>
         /// Constant for OpcUa JSON encoded DateTime.MaxValue.
         /// </summary>
-        public static string OpcUaDateTimeMaxValue => "9999-12-31T23:59:59Z";
+        public static string OpcUaDateTimeMaxValue = "9999-12-31T23:59:59Z";
 
         /// <summary>
         /// DateTime value of: “9999-12-31T23:59:59Z”
         /// </summary>
-        private static readonly DateTime kDateTimeMaxJsonValue = new DateTime(3155378975990000000);
+        private static readonly DateTime kDateTimeMaxJsonValue = new DateTime((long)3155378975990000000);
 
         /// <summary>
         /// Convert to OpcUa JSON Encoded Utc string.
