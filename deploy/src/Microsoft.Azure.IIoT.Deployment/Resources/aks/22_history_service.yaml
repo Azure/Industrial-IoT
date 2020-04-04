@@ -1,22 +1,24 @@
-﻿apiVersion: v1
+apiVersion: v1
 kind: Service
 metadata:
-  name: twin-service
+  name: history-service
   namespace: industrial-iot
   labels:
-    app.kubernetes.io/name: twin-service
+    app.kubernetes.io/name: history-service
     app.kubernetes.io/part-of: industrial-iot
-    app.kubernetes.io/version: 2.5.2
+    app.kubernetes.io/version: 2.6.146
     app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+    app.kubernetes.io/component: opc-history
 spec:
   type: ClusterIP
   selector:
-    app.kubernetes.io/name: twin-service
+    app.kubernetes.io/name: history-service
     app.kubernetes.io/part-of: industrial-iot
+    app.kubernetes.io/component: opc-history
   ports:
   - port: 443
     protocol: TCP
     name: https
-  - port: 9041
+  - port: 9043
     protocol: TCP
     name: rest

@@ -31,6 +31,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         public string PublishedVariableNodeId { get; set; }
 
         /// <summary>
+        /// Display name of the published node id
+        /// </summary>
+        [DataMember(Name = "publishedVariableDisplayName",
+            EmitDefaultValue = false)]
+        public string PublishedVariableDisplayName { get; set; }
+
+        /// <summary>
         /// An optional component path from the node identified by
         /// PublishedVariableNodeId to the actual node to publish
         /// (Publisher extension).
@@ -123,5 +130,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         [DataMember(Name = "triggerId",
             EmitDefaultValue = false)]
         public string TriggerId { get; set; }
+
+        /// <summary>
+        /// Heartbeat Interval (Publisher extension)
+        /// </summary>
+        [DataMember(Name = "heartbeatInterval",
+            EmitDefaultValue = false)]
+        public TimeSpan? HeartbeatInterval { get; set; }
     }
 }

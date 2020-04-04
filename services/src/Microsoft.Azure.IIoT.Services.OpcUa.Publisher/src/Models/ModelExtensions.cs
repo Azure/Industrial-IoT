@@ -59,7 +59,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Models {
                 NodeId = model.NodeId,
                 DisplayName = model.DisplayName,
                 SamplingInterval = model.SamplingInterval,
-                PublishingInterval = model.PublishingInterval
+                PublishingInterval = model.PublishingInterval,
+                HeartbeatInterval = model.HeartbeatInterval
             };
         }
 
@@ -75,7 +76,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Models {
                 NodeId = model.NodeId,
                 DisplayName = model.DisplayName,
                 SamplingInterval = model.SamplingInterval,
-                PublishingInterval = model.PublishingInterval
+                PublishingInterval = model.PublishingInterval,
+                HeartbeatInterval = model.HeartbeatInterval
             };
         }
 

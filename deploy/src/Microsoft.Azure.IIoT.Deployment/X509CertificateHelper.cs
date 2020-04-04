@@ -133,7 +133,7 @@ namespace Microsoft.Azure.IIoT.Deployment {
             var rsaPublicKey = cert.GetRSAPublicKey();
 
             if (null == rsaPublicKey) {
-                throw new ArgumentException("Certificate does not contain RSA Public key.", "cert");
+                throw new ArgumentException("Certificate does not contain RSA Public key.", nameof(cert));
             }
 
             var rsaParameters = rsaPublicKey.ExportParameters(false);
