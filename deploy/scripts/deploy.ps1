@@ -134,7 +134,7 @@ Function Select-Context() {
             if (!$script:interactive) {
                 throw "Provide a subscription to use using -subscriptionId or -subscriptionName"
             }
-            Write-Host "Please choose a subscription from list list (using its Index):"
+            Write-Host "Please choose a subscription from this list (using its Index):"
             $script:index = 0
             $subscriptions | Format-Table -AutoSize -Property `
                  @{Name="Index"; Expression = {($script:index++)}},`
@@ -842,6 +842,11 @@ Function New-Deployment() {
                     $replyUrls.Add($serviceUri + "/history/swagger/oauth2-redirect.html")
                     $replyUrls.Add($serviceUri + "/vault/swagger/oauth2-redirect.html")
                     $replyUrls.Add($serviceUri + "/publisher/swagger/oauth2-redirect.html")
+                    $replyUrls.Add($serviceUri + "/onboarding/swagger/oauth2-redirect.html")
+                    $replyUrls.Add($serviceUri + "/configuration/swagger/oauth2-redirect.html")
+                    $replyUrls.Add($serviceUri + "/edge/manage/swagger/oauth2-redirect.html")
+                    $replyUrls.Add($serviceUri + "/edge/jobs/swagger/oauth2-redirect.html")
+                    $replyUrls.Add($serviceUri + "/jobs/swagger/oauth2-redirect.html")
                 }
 
                 $replyUrls.Add("http://localhost:9080/twin/swagger/oauth2-redirect.html")
@@ -849,6 +854,11 @@ Function New-Deployment() {
                 $replyUrls.Add("http://localhost:9080/history/swagger/oauth2-redirect.html")
                 $replyUrls.Add("http://localhost:9080/vault/swagger/oauth2-redirect.html")
                 $replyUrls.Add("http://localhost:9080/publisher/swagger/oauth2-redirect.html")
+                $replyUrls.Add("http://localhost:9080/onboarding/swagger/oauth2-redirect.html")
+                $replyUrls.Add("http://localhost:9080/configuration/swagger/oauth2-redirect.html")
+                $replyUrls.Add("http://localhost:9080/edge/manage/swagger/oauth2-redirect.html")
+                $replyUrls.Add("http://localhost:9080/edge/jobs/swagger/oauth2-redirect.html")
+                $replyUrls.Add("http://localhost:9080/jobs/swagger/oauth2-redirect.html")
 
                 $replyUrls.Add("http://localhost:5000/signin-oidc")
                 $replyUrls.Add("https://localhost:5001/signin-oidc")

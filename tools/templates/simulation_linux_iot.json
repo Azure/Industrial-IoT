@@ -76,7 +76,7 @@
     "variables": {
         "tenantId": "[subscription().tenantId]",
         "location": "[resourceGroup().location]",
-        "iotHubApiVersion": "2018-04-01",
+        "iotHubApiVersion": "2019-03-22",
         "iotHubResourceId": "[resourceId('Microsoft.Devices/Iothubs', parameters('iotHubName'))]",
         "iotHubKeyName": "iothubowner",
         "iotHubContainerName": "[parameters('iotHubName')]",
@@ -104,10 +104,6 @@
                     "events": {
                         "retentionTimeInDays": 1,
                         "partitionCount": "[parameters('iotHubPartitionCount')]"
-                    },
-                    "operationsMonitoringEvents": {
-                        "retentionTimeInDays": 1,
-                        "partitionCount": 4
                     }
                 },
                 "routing": {
@@ -173,7 +169,7 @@
             "name": "[parameters('storageName')]",
             "apiVersion": "[variables('storageApiVersion')]",
             "location": "[variables('location')]",
-            "kind": "Storage",
+            "kind": "StorageV2",
             "sku": {
                 "name": "[parameters('storageSkuName')]"
             },

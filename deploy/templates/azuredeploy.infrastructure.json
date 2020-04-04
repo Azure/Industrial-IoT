@@ -543,8 +543,7 @@
             },
             "properties": {
                 "location": "[resourceGroup().location]",
-                "ipFilterRules": [
-                ],
+                "ipFilterRules": [],
                 "eventHubEndpoints": {
                     "events": {
                         "retentionTimeInDays": 1,
@@ -553,14 +552,10 @@
                 },
                 "routing": {
                     "endpoints": {
-                        "serviceBusQueues": [
-                        ],
-                        "serviceBusTopics": [
-                        ],
-                        "eventHubs": [
-                        ],
-                        "storageContainers": [
-                        ]
+                        "serviceBusQueues": [],
+                        "serviceBusTopics": [],
+                        "eventHubs": [],
+                        "storageContainers": []
                     },
                     "routes": [
                         {
@@ -669,17 +664,15 @@
             "name": "[parameters('storageName')]",
             "apiVersion": "2019-04-01",
             "location": "[resourceGroup().location]",
-            "kind": "Storage",
+            "kind": "StorageV2",
             "sku": {
                 "name": "[parameters('storageSkuName')]"
             },
             "properties": {
                 "networkAcls": {
                     "bypass": "AzureServices",
-                    "virtualNetworkRules": [
-                    ],
-                    "ipRules": [
-                    ],
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
                     "defaultAction": "Allow"
                 },
                 "supportsHttpsTrafficOnly": true,
@@ -712,10 +705,8 @@
                 "isHnsEnabled": true,
                 "networkAcls": {
                     "bypass": "AzureServices",
-                    "virtualNetworkRules": [
-                    ],
-                    "ipRules": [
-                    ],
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
                     "defaultAction": "Allow"
                 },
                 "supportsHttpsTrafficOnly": true,
@@ -1040,10 +1031,6 @@
                             {
                                 "key": "PCS_SERVICEBUS_CONNSTRING",
                                 "value": "[listkeys(variables('serviceBusKeyResourceId'), '2017-04-01').primaryConnectionString]"
-                            },
-                            {
-                                "key": "PCS_WORKSPACE_NAME",
-                                "value": "[parameters('workspaceName')]"
                             },
                             {
                                 "key": "PCS_APPINSIGHTS_INSTRUMENTATIONKEY",
