@@ -9,6 +9,7 @@
 /**/*.log
 /**/*.err
 /**/*.sdf
+/**/*.rsa
 /**/*.opendb
 /**/*.opensdf
 /**/*.vc.db

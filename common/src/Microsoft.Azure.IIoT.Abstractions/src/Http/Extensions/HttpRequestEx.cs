@@ -36,6 +36,41 @@ namespace Microsoft.Azure.IIoT.Http {
         /// </summary>
         /// <param name="request"></param>
         /// <param name="content"></param>
+        /// <param name="mediaType"></param>
+        /// <param name="encoding"></param>
+        /// <returns>this</returns>
+        public static IHttpRequest SetStringContent(this IHttpRequest request, string content,
+            string mediaType = null, Encoding encoding = null) {
+            return request.SetByteArrayContent((encoding ?? kDefaultEncoding).GetBytes(content),
+                string.IsNullOrEmpty(mediaType) ? ContentMimeType.Json : mediaType, encoding);
+        }
+
+        /// <summary>
+        /// Set content
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="content"></param>
+        /// <param name="mediaType"></param>
+        /// <param name="encoding"></param>
+        /// <returns>this</returns>
+        public static IHttpRequest SetByteArrayContent(this IHttpRequest request, byte[] content,
+            string mediaType = null, Encoding encoding = null) {
+
+            var headerValue = new MediaTypeHeaderValue(
+                string.IsNullOrEmpty(mediaType) ? ContentMimeType.Binary : mediaType);
+            if (encoding != null) {
+                headerValue.CharSet = encoding.WebName;
+            }
+            request.Content = new ByteArrayContent(content);
+            request.Content.Headers.ContentType = headerValue;
+            return request;
+        }
+
+        /// <summary>
+        /// Set content
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="content"></param>
         /// <param name="encoding"></param>
         /// <param name="mediaType"></param>
         /// <returns>this</returns>

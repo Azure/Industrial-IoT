@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT {
         /// Message pack encoding
         /// </summary>
         public const string MsgPack =
-            "application/binary-msgpack";
+            "application/x-msgpack";
 
         /// <summary>
         /// OPC UA json encoding as per OPC UA part 6

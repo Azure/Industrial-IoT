@@ -76,7 +76,6 @@ namespace Newtonsoft.Json {
         /// <returns></returns>
         public static JsonSerializerSettings GetSettings(bool permissive = false) {
             var defaultSettings = GetDefaultSettings();
-            defaultSettings.Converters.Add(new ExceptionConverter(permissive));
             defaultSettings.Converters.Add(new IsoDateTimeConverter());
             defaultSettings.Converters.Add(new PhysicalAddressConverter());
             defaultSettings.Converters.Add(new IPAddressConverter());
