@@ -45,8 +45,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Sampling interval to use
         /// </summary>
-        [JsonProperty(PropertyName = "heartbeatInterval",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "heartbeatInterval", Order = 4,
+            EmitDefaultValue = false)]
         public TimeSpan? HeartbeatInterval { get; set; }
     }
 }
