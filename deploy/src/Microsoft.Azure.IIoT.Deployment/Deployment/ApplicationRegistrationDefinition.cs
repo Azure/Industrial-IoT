@@ -9,30 +9,46 @@ namespace Microsoft.Azure.IIoT.Deployment.Deployment {
 
     class ApplicationRegistrationDefinition {
 
+        // Details of service application
         public Application ServiceApplication { get; }
         public ServicePrincipal ServiceApplicationSP { get; }
+        public string ServiceApplicationSecret { get; }
+
+        // Details of client application
         public Application ClientApplication { get; }
         public ServicePrincipal ClientApplicationSP { get; }
+        public string ClientApplicationSecret { get; }
+
+        // Details of aks application
         public Application AksApplication { get; }
         public ServicePrincipal AksApplicationSP { get; }
-        public string AksApplicationRbacSecret { get; }
+        public string AksApplicationSecret { get; }
 
         public ApplicationRegistrationDefinition(
             Application serviceApplication,
             ServicePrincipal serviceApplicationSP,
+            string serviceApplicationSecret,
             Application clientApplication,
             ServicePrincipal clientApplicationSP,
+            string clientApplicationSecret,
             Application aksApplication,
             ServicePrincipal aksApplicationSP,
-            string aksApplicationRbacSecret
+            string aksApplicationSecret
         ) {
+            // Details of service application
             ServiceApplication = serviceApplication;
             ServiceApplicationSP = serviceApplicationSP;
+            ServiceApplicationSecret = serviceApplicationSecret;
+
+            // Details of client application
             ClientApplication = clientApplication;
             ClientApplicationSP = clientApplicationSP;
+            ClientApplicationSecret = clientApplicationSecret;
+
+            // Details of aks application
             AksApplication = aksApplication;
             AksApplicationSP = aksApplicationSP;
-            AksApplicationRbacSecret = aksApplicationRbacSecret;
+            AksApplicationSecret = aksApplicationSecret;
         }
     }
 }

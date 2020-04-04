@@ -13,6 +13,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Configuration {
     using Microsoft.Azure.Management.ResourceManager.Fluent;
     using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
     using Serilog;
+    using Microsoft.Azure.IIoT.Deployment.Configuration.Extension;
 
     class ConsoleConfigurationProvider : ConfigurationProviderWithSettings {
 

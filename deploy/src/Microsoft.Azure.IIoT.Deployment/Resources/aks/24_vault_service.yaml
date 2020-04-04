@@ -6,13 +6,15 @@ metadata:
   labels:
     app.kubernetes.io/name: vault-service
     app.kubernetes.io/part-of: industrial-iot
-    app.kubernetes.io/version: 2.5.2
+    app.kubernetes.io/version: 2.6.146
     app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
+    app.kubernetes.io/component: opc-vault
 spec:
   type: ClusterIP
   selector:
     app.kubernetes.io/name: vault-service
     app.kubernetes.io/part-of: industrial-iot
+    app.kubernetes.io/component: opc-vault
   ports:
   - port: 443
     protocol: TCP
