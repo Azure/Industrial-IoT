@@ -25,6 +25,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Autofac;
     using Microsoft.Extensions.Configuration;
     using Serilog;
+    using Prometheus;
 
     /// <summary>
     /// Publisher module
@@ -82,9 +83,15 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     var module = hostScope.Resolve<IModuleHost>();
                     var workerSupervisor = hostScope.Resolve<IWorkerSupervisor>();
                     var logger = hostScope.Resolve<ILogger>();
+                    var port = 9702;
+                    logger.Information("Initiating prometheus at port {0}/metrics", port);
+                    var server = new MetricServer(port: port);
                     try {
+                        server.Start();
+                        logger.Information("Started prometheus server");
                         var product = "OpcPublisher_" +
                             GetType().Assembly.GetReleaseVersion().ToString();
+                        _publisherModuleStart.Inc();
                         // Start module
                         await module.StartAsync(IdentityType.Publisher, SiteId,
                             product, this);
@@ -186,5 +193,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         private readonly TaskCompletionSource<bool> _exit;
         private int _exitCode;
         private TaskCompletionSource<bool> _reset;
+        private static readonly Counter _publisherModuleStart = Metrics.CreateCounter("iiot_edge_publisher_publisherModuleStart", "publisher module started");
     }
 }

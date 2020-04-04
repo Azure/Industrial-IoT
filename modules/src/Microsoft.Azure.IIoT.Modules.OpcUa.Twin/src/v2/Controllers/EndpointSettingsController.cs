@@ -14,6 +14,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
     using System.Collections.Generic;
     using System.Linq;
     using Newtonsoft.Json.Linq;
+    using Prometheus;
 
     /// <summary>
     /// Endpoint settings controller
@@ -83,6 +84,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
         /// </summary>
         /// <returns></returns>
         public Task ApplyAsync() {
+            _applyAsync.Inc();
             return _twin.SetEndpointAsync(
                 new EndpointModel {
                     SecurityMode = _securityMode,
@@ -101,5 +103,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor {
         private Dictionary<string, string> _alternativeUrls;
 #pragma warning restore IDE0032 // Use auto property
         private readonly ITwinServices _twin;
+        private static readonly String _PREFIX = "iiot_edge_twin_";
+        private static readonly Counter _applyAsync = Metrics.CreateCounter(_PREFIX + "apply_async", "call to applyAsync");
     }
 }

@@ -25,6 +25,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
     using System.Diagnostics;
     using System.Threading;
     using Serilog;
+    using Prometheus;
+    using System.Net;
 
     /// <summary>
     /// Module Process
@@ -85,10 +87,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                     _reset = new TaskCompletionSource<bool>();
                     var module = hostScope.Resolve<IModuleHost>();
                     var logger = hostScope.Resolve<ILogger>();
+                    var port = 9701;
+                    logger.Information("Initiating prometheus at port {0}/metrics", port);
+                    var server = new MetricServer(port: port);
                     try {
+                        server.Start();
+                        logger.Information("Started prometheus server");
                         // Start module
                         var product = "OpcTwin_" +
                             GetType().Assembly.GetReleaseVersion().ToString();
+                        _twinModuleStart.Inc();
                         await module.StartAsync(IdentityType.Supervisor, SiteId,
                             product, this);
                         OnRunning?.Invoke(this, true);
@@ -237,5 +245,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
         private readonly TaskCompletionSource<bool> _exit;
         private TaskCompletionSource<bool> _reset;
         private int _exitCode;
+        private static readonly Counter _twinModuleStart = Metrics.CreateCounter("iiot_edge_twin_twinModuleStart", "twin module started");
     }
 }

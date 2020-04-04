@@ -81,10 +81,8 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                     _reset = new TaskCompletionSource<bool>();
                     var module = hostScope.Resolve<IModuleHost>();
                     var logger = hostScope.Resolve<ILogger>();
-                    //var hostname = Bash("hostname -i");
-                    var port = 9604;
+                    var port = 9700;
                     logger.Information("Initiating prometheus at port {0}/metrics", port);
-                    //var server = new MetricServer(hostname: hostname, port: port);
                     var server = new MetricServer(port: port);
                     try {
                         server.Start();
@@ -167,7 +165,6 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
         private readonly TaskCompletionSource<bool> _exit;
         private TaskCompletionSource<bool> _reset;
         private int _exitCode;
-        private static readonly Counter _discoveryModuleStart = Metrics
-    .CreateCounter("iiot_edge_discovery_discoveryModuleStart", "discovery module started");
+        private static readonly Counter _discoveryModuleStart = Metrics.CreateCounter("iiot_edge_discovery_discoveryModuleStart", "discovery module started");
     }
 }

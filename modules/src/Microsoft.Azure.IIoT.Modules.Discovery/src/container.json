@@ -1,5 +1,5 @@
 {
     "name": "iotedge/discovery",
     "buildAlways": true,
-    "exposes": [ 9604 ]
+    "exposes": [ 9700 ]
 }
