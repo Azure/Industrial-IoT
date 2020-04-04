@@ -113,7 +113,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Deploy {
             var version = _config.ImagesTag ?? "latest";
             var image = $"{server}/{ns}iotedge/discovery:{version}";
 
-            _logger.Information("Updating discovery module deployment with image {image}", image);
+            _logger.Information("Updating discovery module deployment with image {image} for {os}",
+                image, isLinux ? "Linux" : "Windows");
 
             // Return deployment modules object
             var content = @"

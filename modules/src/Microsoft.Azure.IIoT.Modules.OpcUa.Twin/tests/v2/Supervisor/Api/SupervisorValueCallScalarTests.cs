@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.Api {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System.Net;
     using System.Threading.Tasks;
     using Xunit;
@@ -25,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.Api {
         }
 
         private CallScalarMethodTests<EndpointApiModel> GetTests() {
-            return new CallScalarMethodTests<EndpointApiModel>(new NewtonSoftJsonSerializer(),
+            return new CallScalarMethodTests<EndpointApiModel>(
                 () => _module.HubContainer.Resolve<INodeServices<EndpointApiModel>>(),
                 new EndpointApiModel {
                     Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",

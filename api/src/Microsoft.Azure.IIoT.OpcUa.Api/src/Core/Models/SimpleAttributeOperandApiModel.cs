@@ -16,27 +16,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// Type definition node id if operand is
         /// simple or full attribute operand.
         /// </summary>
-        [DataMember(Name = "nodeId")]
+        [DataMember(Name = "nodeId", Order = 0)]
         public string NodeId { get; set; }
 
         /// <summary>
         /// Browse path of attribute operand
         /// </summary>
-        [DataMember(Name = "browsePath",
+        [DataMember(Name = "browsePath", Order = 1,
             EmitDefaultValue = false)]
         public string[] BrowsePath { get; set; }
 
         /// <summary>
         /// Attribute id
         /// </summary>
-        [DataMember(Name = "attributeId",
+        [DataMember(Name = "attributeId", Order = 2,
             EmitDefaultValue = false)]
         public NodeAttribute? AttributeId { get; set; }
 
         /// <summary>
         /// Index range of attribute operand
         /// </summary>
-        [DataMember(Name = "indexRange",
+        [DataMember(Name = "indexRange", Order = 3,
             EmitDefaultValue = false)]
         public string IndexRange { get; set; }
     }

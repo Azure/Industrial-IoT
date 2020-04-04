@@ -26,7 +26,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users {
     [ApiVersion("2")]
     [Route("v{version:apiVersion}/users")]
     [ExceptionsFilter]
-    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanManage)]
     [ApiController]
     [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]

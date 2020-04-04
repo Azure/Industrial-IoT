@@ -30,5 +30,5 @@ goto :main
 echo AzureAD installed.
 set test=
 pushd %current-path%\deploy\scripts
-%PWSH% -ExecutionPolicy Unrestricted ./deploy.ps1 %*
+%PWSH% -ExecutionPolicy Unrestricted ./deploy.ps1 %* -version preview
 popd

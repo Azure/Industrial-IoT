@@ -67,9 +67,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                                     Status = (datapoint.Value?.StatusCode.Code == StatusCodes.Good)
                                         ? null : StatusCode.LookupSymbolicId(datapoint.Value.StatusCode.Code),
                                     SourceTimestamp = (datapoint.Value?.SourceTimestamp == DateTime.MinValue)
-                                        ? null : (DateTime?)datapoint.Value?.SourceTimestamp,
+                                        ? null : datapoint.Value?.SourceTimestamp,
                                     ServerTimestamp = (datapoint.Value?.ServerTimestamp == DateTime.MinValue)
-                                        ? null : (DateTime?)datapoint.Value?.ServerTimestamp
+                                        ? null : datapoint.Value?.ServerTimestamp
                                 };
                             }
                             await Task.WhenAll(_handlers.Select(h => h.HandleMessageAsync(dataset)));

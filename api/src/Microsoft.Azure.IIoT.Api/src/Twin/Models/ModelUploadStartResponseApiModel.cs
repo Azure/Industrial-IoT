@@ -16,21 +16,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// Blob File name
         /// </summary>
-        [DataMember(Name = "blobName",
+        [DataMember(Name = "blobName", Order = 0,
             EmitDefaultValue = false)]
         public string BlobName { get; set; }
 
         /// <summary>
         /// Content encoding
         /// </summary>
-        [DataMember(Name = "contentEncoding",
+        [DataMember(Name = "contentEncoding", Order = 1,
             EmitDefaultValue = false)]
         public string ContentEncoding { get; set; }
 
         /// <summary>
         /// Timestamp
         /// </summary>
-        [DataMember(Name = "timeStamp",
+        [DataMember(Name = "timeStamp", Order = 2,
             EmitDefaultValue = false)]
         public DateTime? TimeStamp { get; set; }
     }

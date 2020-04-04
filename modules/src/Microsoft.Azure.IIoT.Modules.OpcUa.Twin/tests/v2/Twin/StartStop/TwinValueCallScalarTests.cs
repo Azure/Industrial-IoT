@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
     using System.Net;
     using System.Threading.Tasks;
@@ -30,12 +29,16 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
         };
 
         private CallScalarMethodTests<string> GetTests(EndpointRegistrationModel endpoint, IContainer services) {
-            return new CallScalarMethodTests<string>(new NewtonSoftJsonSerializer(),
+            return new CallScalarMethodTests<string>(
                 () => services.Resolve<INodeServices<string>>(), endpoint.Id);
         }
 
         private readonly TestServerFixture _server;
+#if DEBUG
+        private readonly bool _runAll = true;
+#else
         private readonly bool _runAll = Environment.GetEnvironmentVariable("TEST_ALL") != null;
+#endif
 
         [SkippableFact]
         public async Task NodeMethodMetadataStaticScalarMethod1TestAsync() {
@@ -229,7 +232,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
 
         [SkippableFact]
         public async Task NodeMethodCallBoiler2ResetTestAsync() {
-            Skip.IfNot(_runAll);
+            // Skip.IfNot(_runAll);
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(Endpoint, async (endpoint, services) => {
                     await GetTests(endpoint, services).NodeMethodCallBoiler2ResetTestAsync();

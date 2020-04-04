@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
         /// <summary>
         /// Capabilities to match
         /// </summary>
-        [DataMember(Name = "capabilities",
+        [DataMember(Name = "capabilities", Order = 0,
             EmitDefaultValue = false)]
         public Dictionary<string, string> Capabilities { get; set; }
     }

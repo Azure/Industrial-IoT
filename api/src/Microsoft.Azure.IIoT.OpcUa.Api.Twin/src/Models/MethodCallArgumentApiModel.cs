@@ -16,13 +16,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// Initial value or value to use
         /// </summary>
-        [DataMember(Name = "value")]
+        [DataMember(Name = "value", Order = 0)]
         public VariantValue Value { get; set; }
 
         /// <summary>
         /// Data type Id of the value (from meta data)
         /// </summary>
-        [DataMember(Name = "dataType")]
+        [DataMember(Name = "dataType", Order = 1)]
         public string DataType { get; set; }
     }
 }

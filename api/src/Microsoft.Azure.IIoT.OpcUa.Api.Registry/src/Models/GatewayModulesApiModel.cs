@@ -15,21 +15,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Supervisor identity if deployed
         /// </summary>
-        [DataMember(Name = "supervisor",
+        [DataMember(Name = "supervisor", Order = 0,
             EmitDefaultValue = false)]
         public SupervisorApiModel Supervisor { get; set; }
 
         /// <summary>
         /// Publisher identity if deployed
         /// </summary>
-        [DataMember(Name = "publisher",
+        [DataMember(Name = "publisher", Order = 1,
             EmitDefaultValue = false)]
         public PublisherApiModel Publisher { get; set; }
 
         /// <summary>
         /// Discoverer identity if deployed
         /// </summary>
-        [DataMember(Name = "discoverer",
+        [DataMember(Name = "discoverer", Order = 2,
             EmitDefaultValue = false)]
         public DiscovererApiModel Discoverer { get; set; }
     }

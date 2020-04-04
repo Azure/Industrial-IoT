@@ -101,7 +101,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (request.Value == null) {
+            if (request.Value is null) {
                 throw new ArgumentNullException(nameof(request.Value));
             }
             var result = await CallServiceOnTwinAsync<ValueWriteRequestModel, ValueWriteResultModel>(

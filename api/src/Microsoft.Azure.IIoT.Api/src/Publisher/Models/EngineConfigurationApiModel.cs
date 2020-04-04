@@ -16,14 +16,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Buffer size
         /// </summary>
-        [DataMember(Name = "batchSize",
+        [DataMember(Name = "batchSize", Order = 0,
             EmitDefaultValue = false)]
         public int? BatchSize { get; set; }
 
         /// <summary>
         /// Interval for diagnostic messages
         /// </summary>
-        [DataMember(Name = "diagnosticsInterval",
+        [DataMember(Name = "diagnosticsInterval", Order = 1,
             EmitDefaultValue = false)]
         public TimeSpan? DiagnosticsInterval { get; set; }
     }

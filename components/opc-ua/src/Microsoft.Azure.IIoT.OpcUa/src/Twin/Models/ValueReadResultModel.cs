@@ -14,11 +14,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Twin.Models {
     public class ValueReadResultModel {
 
         /// <summary>
-        /// Node id
-        /// </summary>
-        public string NodeId { get; set; }
-
-        /// <summary>
         /// Value read
         /// </summary>
         public VariantValue Value { get; set; }

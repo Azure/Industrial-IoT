@@ -19,7 +19,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
         /// trusted.  If empty list, no certificates are
         /// trusted which is equal to no filter.
         /// </summary>
-        [DataMember(Name = "trustLists",
+        [DataMember(Name = "trustLists", Order = 0,
             EmitDefaultValue = false)]
         public List<string> TrustLists { get; set; }
 
@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
         /// Endpoint security policies to filter against.
         /// If set to null, all policies are in scope.
         /// </summary>
-        [DataMember(Name = "securityPolicies",
+        [DataMember(Name = "securityPolicies", Order = 1,
            EmitDefaultValue = false)]
         public List<string> SecurityPolicies { get; set; }
 
@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
         /// Security mode level to activate. If null,
         /// then <see cref="SecurityMode.Best"/> is assumed.
         /// </summary>
-        [DataMember(Name = "securityMode",
+        [DataMember(Name = "securityMode", Order = 2,
             EmitDefaultValue = false)]
         public SecurityMode? SecurityMode { get; set; }
     }

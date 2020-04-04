@@ -16,27 +16,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Either published data variables
         /// </summary>
-        [DataMember(Name = "publishedVariables",
+        [DataMember(Name = "publishedVariables", Order = 0,
             EmitDefaultValue = false)]
         public PublishedDataItemsApiModel PublishedVariables { get; set; }
 
         /// <summary>
         /// Or published events data
         /// </summary>
-        [DataMember(Name = "publishedEvents",
+        [DataMember(Name = "publishedEvents", Order = 1,
             EmitDefaultValue = false)]
         public PublishedDataSetEventsApiModel PublishedEvents { get; set; }
 
         /// <summary>
         /// Connection information (publisher extension)
         /// </summary>
-        [DataMember(Name = "connection")]
+        [DataMember(Name = "connection", Order = 2)]
         public ConnectionApiModel Connection { get; set; }
 
         /// <summary>
         /// Subscription settings (publisher extension)
         /// </summary>
-        [DataMember(Name = "subscriptionSettings",
+        [DataMember(Name = "subscriptionSettings", Order = 3,
             EmitDefaultValue = false)]
         public PublishedDataSetSettingsApiModel SubscriptionSettings { get; set; }
     }

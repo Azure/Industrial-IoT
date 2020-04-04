@@ -19,7 +19,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.History\src\Microsoft.Azure.IIoT.OpcUa.History.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Twin\src\Microsoft.Azure.IIoT.OpcUa.Twin.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Testing\src\Microsoft.Azure.IIoT.OpcUa.Testing.csproj" />
     <ProjectReference Include="..\src\Microsoft.Azure.IIoT.OpcUa.Edge.Twin.csproj" />
   </ItemGroup>

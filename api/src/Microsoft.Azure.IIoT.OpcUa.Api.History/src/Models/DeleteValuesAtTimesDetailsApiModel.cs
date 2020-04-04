@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// <summary>
         /// The timestamps to delete
         /// </summary>
-        [DataMember(Name = "reqTimes")]
+        [DataMember(Name = "reqTimes", Order = 0)]
         [Required]
         public DateTime[] ReqTimes { get; set; }
     }

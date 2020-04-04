@@ -181,7 +181,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients {
             if (content == null) {
                 throw new ArgumentNullException(nameof(content));
             }
-            if (content.Value == null) {
+            if (content.Value is null) {
                 throw new ArgumentNullException(nameof(content.Value));
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/write/{endpointId}",

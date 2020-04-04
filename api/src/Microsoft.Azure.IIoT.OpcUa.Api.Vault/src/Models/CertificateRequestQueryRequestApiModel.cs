@@ -15,14 +15,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
         /// <summary>
         /// The entity id to filter with
         /// </summary>
-        [DataMember(Name = "entityId",
+        [DataMember(Name = "entityId", Order = 0,
             EmitDefaultValue = false)]
         public string EntityId { get; set; }
 
         /// <summary>
         /// The certificate request state
         /// </summary>
-        [DataMember(Name = "state",
+        [DataMember(Name = "state", Order = 1,
             EmitDefaultValue = false)]
         public CertificateRequestState? State { get; set; }
     }

@@ -16,14 +16,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Gateway identity
         /// </summary>
-        [DataMember(Name = "gateway")]
+        [DataMember(Name = "gateway", Order = 0)]
         [Required]
         public GatewayApiModel Gateway { get; set; }
 
         /// <summary>
         /// Gateway modules
         /// </summary>
-        [DataMember(Name = "modules",
+        [DataMember(Name = "modules", Order = 1,
             EmitDefaultValue = false)]
         public GatewayModulesApiModel Modules { get; set; }
     }

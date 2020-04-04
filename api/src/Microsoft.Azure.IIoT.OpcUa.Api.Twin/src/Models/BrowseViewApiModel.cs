@@ -17,21 +17,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// Node of the view to browse
         /// </summary>
-        [DataMember(Name = "viewId")]
+        [DataMember(Name = "viewId", Order = 0)]
         [Required]
         public string ViewId { get; set; }
 
         /// <summary>
         /// Browses specific version of the view.
         /// </summary>
-        [DataMember(Name = "version",
+        [DataMember(Name = "version", Order = 1,
             EmitDefaultValue = false)]
         public uint? Version { get; set; }
 
         /// <summary>
         /// Browses at or before this timestamp.
         /// </summary>
-        [DataMember(Name = "timestamp",
+        [DataMember(Name = "timestamp", Order = 2,
             EmitDefaultValue = false)]
         public DateTime? Timestamp { get; set; }
     }

@@ -22,13 +22,13 @@ namespace Microsoft.Azure.IIoT.Module.Models {
         /// <summary>
         /// Request id
         /// </summary>
-        [DataMember(Name = "requestId")]
+        [DataMember(Name = "requestId", Order = 0)]
         public string RequestId { get; set; }
 
         /// <summary>
         /// Headers
         /// </summary>
-        [DataMember(Name = "headers",
+        [DataMember(Name = "headers", Order = 1,
             EmitDefaultValue = false)]
         public Dictionary<string, List<string>> Headers { get; set; }
 
@@ -36,14 +36,14 @@ namespace Microsoft.Azure.IIoT.Module.Models {
         /// Payload chunk or null for upload responses and
         /// response continuation requests.
         /// </summary>
-        [DataMember(Name = "payload",
+        [DataMember(Name = "payload", Order = 2,
             EmitDefaultValue = false)]
         public byte[] Payload { get; set; }
 
         /// <summary>
         /// Status code of call - in first response chunk.
         /// </summary>
-        [DataMember(Name = "status",
+        [DataMember(Name = "status", Order = 3,
             EmitDefaultValue = false)]
         public int Status { get; set; }
     }

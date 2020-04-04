@@ -24,8 +24,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<EndpointRegistry>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<EndpointActivation>()
-                .AsImplementedInterfaces().SingleInstance();
 
             builder.RegisterType<ApplicationEventBroker>()
                 .AsImplementedInterfaces().SingleInstance();

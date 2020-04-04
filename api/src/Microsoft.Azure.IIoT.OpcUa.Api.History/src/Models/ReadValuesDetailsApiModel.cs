@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// Beginning of period to read. Set to null
         /// if no specific start time is specified.
         /// </summary>
-        [DataMember(Name = "startTime",
+        [DataMember(Name = "startTime", Order = 0,
             EmitDefaultValue = false)]
         public DateTime? StartTime { get; set; }
 
@@ -25,7 +25,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// End of period to read. Set to null if no
         /// specific end time is specified.
         /// </summary>
-        [DataMember(Name = "endTime",
+        [DataMember(Name = "endTime", Order = 1,
             EmitDefaultValue = false)]
         public DateTime? EndTime { get; set; }
 
@@ -36,14 +36,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// of values. 0 or null indicates that there is no
         /// maximum.
         /// </summary>
-        [DataMember(Name = "numValues",
+        [DataMember(Name = "numValues", Order = 2,
             EmitDefaultValue = false)]
         public uint? NumValues { get; set; }
 
         /// <summary>
         /// Whether to return the bounding values or not.
         /// </summary>
-        [DataMember(Name = "returnBounds",
+        [DataMember(Name = "returnBounds", Order = 3,
             EmitDefaultValue = false)]
         public bool? ReturnBounds { get; set; }
     }

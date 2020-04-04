@@ -17,28 +17,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Node to monitor
         /// </summary>
-        [DataMember(Name = "nodeId")]
+        [DataMember(Name = "nodeId", Order = 0)]
         [Required]
         public string NodeId { get; set; }
 
         /// <summary>
         /// Display name of the node to monitor
         /// </summary>
-        [DataMember(Name = "displayName",
+        [DataMember(Name = "displayName", Order = 1,
             EmitDefaultValue = false)]
         public string DisplayName { get; set; }
 
         /// <summary>
         /// Publishing interval to use
         /// </summary>
-        [DataMember(Name = "publishingInterval",
+        [DataMember(Name = "publishingInterval", Order = 2,
             EmitDefaultValue = false)]
         public TimeSpan? PublishingInterval { get; set; }
 
         /// <summary>
         /// Sampling interval to use
         /// </summary>
-        [DataMember(Name = "samplingInterval",
+        [DataMember(Name = "samplingInterval", Order = 3,
             EmitDefaultValue = false)]
         public TimeSpan? SamplingInterval { get; set; }
 

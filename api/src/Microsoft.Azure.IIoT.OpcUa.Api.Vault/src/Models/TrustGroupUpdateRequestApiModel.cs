@@ -16,28 +16,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
         /// <summary>
         /// The name of the trust group
         /// </summary>
-        [DataMember(Name = "name",
+        [DataMember(Name = "name", Order = 0,
             EmitDefaultValue = false)]
         public string Name { get; set; }
 
         /// <summary>
         /// The issued certificate lifetime.
         /// </summary>
-        [DataMember(Name = "issuedLifetime",
+        [DataMember(Name = "issuedLifetime", Order = 1,
             EmitDefaultValue = false)]
         public TimeSpan? IssuedLifetime { get; set; }
 
         /// <summary>
         /// The issued certificate key size in bits.
         /// </summary>
-        [DataMember(Name = "issuedKeySize",
+        [DataMember(Name = "issuedKeySize", Order = 2,
             EmitDefaultValue = false)]
         public ushort? IssuedKeySize { get; set; }
 
         /// <summary>
         /// The issued certificate key size in bits.
         /// </summary>
-        [DataMember(Name = "issuedSignatureAlgorithm",
+        [DataMember(Name = "issuedSignatureAlgorithm", Order = 3,
             EmitDefaultValue = false)]
         public SignatureAlgorithm? IssuedSignatureAlgorithm { get; set; }
     }

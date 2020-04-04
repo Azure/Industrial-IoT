@@ -472,14 +472,14 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
 
                 foreach (var item in source) {
                     if (target.ContainsKey(item.Key)) {
-                        if (item.Value == null || item.Value.IsNull()) {
+                        if (VariantValueEx.IsNull(item.Value) || VariantValueEx.IsNull(item.Value)) {
                             target.Remove(item.Key);
                         }
                         else {
                             target[item.Key] = item.Value;
                         }
                     }
-                    else if (item.Value != null && !item.Value.IsNull()) {
+                    else if (!VariantValueEx.IsNull(item.Value)) {
                         target.Add(item.Key, item.Value);
                     }
                 }

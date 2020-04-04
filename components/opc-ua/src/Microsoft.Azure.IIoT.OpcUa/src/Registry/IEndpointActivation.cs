@@ -25,6 +25,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry {
             CancellationToken ct = default);
 
         /// <summary>
+        /// Performs synchronization of activated
+        /// endpoints with available supervisors.
+        /// </summary>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task SynchronizeActivationAsync(
+            CancellationToken ct = default);
+
+        /// <summary>
         /// Set the endpoint state to deactivated
         /// </summary>
         /// <param name="endpointId"></param>

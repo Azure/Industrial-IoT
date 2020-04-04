@@ -17,28 +17,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Edge device id
         /// </summary>
-        [DataMember(Name = "deviceId")]
+        [DataMember(Name = "deviceId", Order = 0)]
         [Required]
         public string DeviceId { get; set; }
 
         /// <summary>
         /// Module id
         /// </summary>
-        [DataMember(Name = "moduleId",
+        [DataMember(Name = "moduleId", Order = 1,
             EmitDefaultValue = false)]
         public string ModuleId { get; set; }
 
         /// <summary>
         /// Site id
         /// </summary>
-        [DataMember(Name = "siteId",
+        [DataMember(Name = "siteId", Order = 2,
             EmitDefaultValue = false)]
         public string SiteId { get; set; }
 
         /// <summary>
         /// Endpoint activation status
         /// </summary>
-        [DataMember(Name = "endpoints",
+        [DataMember(Name = "endpoints", Order = 3,
             EmitDefaultValue = false)]
         public List<EndpointActivationStatusApiModel> Endpoints { get; set; }
     }

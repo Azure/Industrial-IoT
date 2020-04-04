@@ -16,14 +16,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// <summary>
         /// Identifier of the role object.
         /// </summary>
-        [DataMember(Name = "roleId")]
+        [DataMember(Name = "roleId", Order = 0)]
         [Required]
         public string RoleId { get; set; }
 
         /// <summary>
         /// Permissions assigned for the role.
         /// </summary>
-        [DataMember(Name = "permissions",
+        [DataMember(Name = "permissions", Order = 1,
             EmitDefaultValue = false)]
         public RolePermissions? Permissions { get; set; }
     }

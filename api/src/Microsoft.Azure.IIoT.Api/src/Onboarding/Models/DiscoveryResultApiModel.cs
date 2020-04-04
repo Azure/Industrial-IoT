@@ -16,14 +16,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
         /// <summary>
         /// Id of discovery request
         /// </summary>
-        [DataMember(Name = "id",
+        [DataMember(Name = "id", Order = 0,
             EmitDefaultValue = false)]
         public string Id { get; set; }
 
         /// <summary>
         /// Configuration used during discovery
         /// </summary>
-        [DataMember(Name = "discoveryConfig",
+        [DataMember(Name = "discoveryConfig", Order = 1,
             EmitDefaultValue = false)]
         public DiscoveryConfigApiModel DiscoveryConfig { get; set; }
 
@@ -31,21 +31,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
         /// If true, only register, do not unregister based
         /// on these events.
         /// </summary>
-        [DataMember(Name = "registerOnly",
+        [DataMember(Name = "registerOnly", Order = 2,
             EmitDefaultValue = false)]
         public bool? RegisterOnly { get; set; }
 
         /// <summary>
         /// If discovery failed, result information
         /// </summary>
-        [DataMember(Name = "diagnostics",
+        [DataMember(Name = "diagnostics", Order = 3,
             EmitDefaultValue = false)]
         public VariantValue Diagnostics { get; set; }
 
         /// <summary>
         /// Operation audit context
         /// </summary>
-        [DataMember(Name = "context",
+        [DataMember(Name = "context", Order = 4,
             EmitDefaultValue = false)]
         public RegistryOperationApiModel Context { get; set; }
     }

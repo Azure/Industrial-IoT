@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.Module.Models {
         /// and last response, assigned by server for the
         /// duration of the invocation.
         /// </summary>
-        [DataMember(Name = "handle",
+        [DataMember(Name = "handle", Order = 0,
             EmitDefaultValue = false)]
         public string Handle { get; set; }
 
@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Module.Models {
         /// Real method name to call - only needed on
         /// first request
         /// </summary>
-        [DataMember(Name = "method",
+        [DataMember(Name = "method", Order = 1,
             EmitDefaultValue = false)]
         public string MethodName { get; set; }
 
@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Module.Models {
         /// other than application/json.  Only send in
         /// first request and first response.
         /// </summary>
-        [DataMember(Name = "contentType",
+        [DataMember(Name = "contentType", Order = 2,
             EmitDefaultValue = false)]
         public string ContentType { get; set; }
 
@@ -43,7 +43,7 @@ namespace Microsoft.Azure.IIoT.Module.Models {
         /// Total Content length to be sent.  Sent in
         /// first request and first response.
         /// </summary>
-        [DataMember(Name = "length",
+        [DataMember(Name = "length", Order = 3,
             EmitDefaultValue = false)]
         public int? ContentLength { get; set; }
 
@@ -51,14 +51,14 @@ namespace Microsoft.Azure.IIoT.Module.Models {
         /// Payload chunk or null for upload responses and
         /// response continuation requests.
         /// </summary>
-        [DataMember(Name = "payload",
+        [DataMember(Name = "payload", Order = 4,
             EmitDefaultValue = false)]
         public byte[] Payload { get; set; }
 
         /// <summary>
         /// Status code of call - in first response chunk.
         /// </summary>
-        [DataMember(Name = "status",
+        [DataMember(Name = "status", Order = 5,
             EmitDefaultValue = false)]
         public int? Status { get; set; }
 
@@ -66,7 +66,7 @@ namespace Microsoft.Azure.IIoT.Module.Models {
         /// Timeout of the operation on the server sent in
         /// first request.
         /// </summary>
-        [DataMember(Name = "timeout",
+        [DataMember(Name = "timeout", Order = 6,
             EmitDefaultValue = false)]
         public TimeSpan? Timeout { get; set; }
 
@@ -74,7 +74,7 @@ namespace Microsoft.Azure.IIoT.Module.Models {
         /// Client accepted max chunk length sent in first
         /// request by client.
         /// </summary>
-        [DataMember(Name = "acceptedSize",
+        [DataMember(Name = "acceptedSize", Order = 7,
             EmitDefaultValue = false)]
         public int? MaxChunkLength { get; set; }
     }

@@ -15,6 +15,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime {
     using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth.Clients;
+    using Microsoft.Azure.IIoT.Deploy;
+    using Microsoft.Azure.IIoT.Deploy.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
     using System;
@@ -23,7 +25,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime {
     /// Common web service configuration aggregation
     /// </summary>
     public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig,
-        ICorsConfig, IClientConfig, IOpenApiConfig, IForwardedHeadersConfig {
+        ICorsConfig, IClientConfig, IOpenApiConfig, IForwardedHeadersConfig,
+        IContainerRegistryConfig {
 
         /// <inheritdoc/>
         public string IoTHubConnString => _hub.IoTHubConnString;
@@ -74,6 +77,17 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime {
         /// <inheritdoc/>
         public string OpenApiServerHost => _openApi.OpenApiServerHost;
 
+        /// <inheritdoc/>
+        public string DockerServer => _cr.DockerServer;
+        /// <inheritdoc/>
+        public string DockerUser => _cr.DockerUser;
+        /// <inheritdoc/>
+        public string DockerPassword => _cr.DockerPassword;
+        /// <inheritdoc/>
+        public string ImagesNamespace => _cr.ImagesNamespace;
+        /// <inheritdoc/>
+        public string ImagesTag => _cr.ImagesTag;
+
         /// <summary>
         /// Whether to use role based access
         /// </summary>
@@ -99,8 +113,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime {
             _hub = new IoTHubConfig(configuration);
             _cors = new CorsConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
+            _cr = new ContainerRegistryConfig(configuration);
         }
 
+        private readonly ContainerRegistryConfig _cr;
         private readonly OpenApiConfig _openApi;
         private readonly AuthConfig _auth;
         private readonly HostConfig _host;

@@ -15,6 +15,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Clients;
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
@@ -117,7 +118,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
             // services.AddHttpClient();
 
             // Add controllers as services so they'll be resolved.
-            services.AddControllers().AddJsonSerializer().AddMessagePackSerializer();
+            services.AddControllers().AddSerializers();
             services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 
@@ -201,11 +202,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
             builder.RegisterType<PassThroughTokenProvider>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // ... and auto start
-            builder.RegisterType<HostAutoStart>()
-                .AutoActivate()
-                .AsImplementedInterfaces().SingleInstance();
-
             // Twin services for browsing and tag selection ...
             builder.RegisterType<TwinServicesApiAdapter>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -237,6 +233,16 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher {
             builder.RegisterType<IoTHubJobConfigurationHandler>()
                 .AsImplementedInterfaces();
             builder.RegisterType<IoTHubServiceHttpClient>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            builder.RegisterType<IoTHubConfigurationClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<IoTHubPublisherDeployment>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // ... and auto start
+            builder.RegisterType<HostAutoStart>()
+                .AutoActivate()
                 .AsImplementedInterfaces().SingleInstance();
         }
     }

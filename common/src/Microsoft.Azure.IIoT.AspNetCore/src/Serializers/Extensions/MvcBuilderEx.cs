@@ -5,13 +5,14 @@
 
 namespace Microsoft.Extensions.DependencyInjection {
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Microsoft.Azure.IIoT.AspNetCore.Serializers;
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Options;
     using System.Collections.Generic;
     using System;
     using System.Linq;
     using Newtonsoft.Json;
-    using MessagePack.AspNetCoreMvcFormatter;
 
     /// <summary>
     /// Mvc setup extensions
@@ -19,11 +20,45 @@ namespace Microsoft.Extensions.DependencyInjection {
     public static class MvcBuilderEx {
 
         /// <summary>
+        /// Add MessagePack serializer
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        public static IMvcBuilder AddSerializers(this IMvcBuilder builder) {
+            if (builder == null) {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            // Add newtonsoft json serializer to the front (default)
+            builder = builder.AddJsonSerializer();
+
+            // Add all other serializers
+            builder.Services.AddTransient<IConfigureOptions<MvcOptions>>(services =>
+                new ConfigureNamedOptions<MvcOptions>(Options.DefaultName, option => {
+                    var serializers = services.GetService<IEnumerable<ISerializer>>();
+                    if (serializers == null) {
+                        return;
+                    }
+                    option.OutputFormatters.RemoveType<SerializerOutputFormatter>();
+                    option.InputFormatters.RemoveType<SerializerInputFormatter>();
+                    foreach (var serializer in serializers) {
+                        if (serializer is NewtonSoftJsonSerializer) {
+                            continue;  // skip
+                        }
+                        option.OutputFormatters.Add(new SerializerOutputFormatter(serializer));
+                        option.InputFormatters.Add(new SerializerInputFormatter(serializer));
+                    }
+                }));
+            return builder;
+        }
+
+
+        /// <summary>
         /// Add json serializer
         /// </summary>
         /// <param name="builder"></param>
         /// <returns></returns>
-        public static IMvcBuilder AddJsonSerializer(this IMvcBuilder builder) {
+        internal static IMvcBuilder AddJsonSerializer(this IMvcBuilder builder) {
             if (builder == null) {
                 throw new ArgumentNullException(nameof(builder));
             }
@@ -52,28 +87,6 @@ namespace Microsoft.Extensions.DependencyInjection {
                         options.SerializerSettings.Converters =
                             set.MergeWith(settings.Converters).ToList();
                     }
-                }));
-            return builder;
-        }
-
-        /// <summary>
-        /// Add MessagePack serializer
-        /// </summary>
-        /// <param name="builder"></param>
-        /// <returns></returns>
-        public static IMvcBuilder AddMessagePackSerializer(this IMvcBuilder builder) {
-            if (builder == null) {
-                throw new ArgumentNullException(nameof(builder));
-            }
-            builder.Services.AddTransient<IConfigureOptions<MvcOptions>>(services =>
-                new ConfigureNamedOptions<MvcOptions>(Options.DefaultName, option => {
-                    var provider = services.GetService<IMessagePackSerializerOptionsProvider>();
-                    if (provider?.Options == null) {
-                        return;
-                    }
-
-                    option.OutputFormatters.Add(new MessagePackOutputFormatter(provider.Options));
-                    option.InputFormatters.Add(new MessagePackInputFormatter(provider.Options));
                 }));
             return builder;
         }

@@ -6,7 +6,10 @@
     Deploys the Industrial IoT services dependencies and optionally micro services and UI to Azure.
 
  .PARAMETER type
-    The type of deployment (local, services, app, all)
+    The type of deployment (minimum, local, services, app, all)
+
+ .PARAMETER version
+    Set to "preview" or another mcr image tag to deploy - if not set deploys last released images ("latest").
 
  .PARAMETER resourceGroupName
     Can be the name of an existing or a new resource group
@@ -43,11 +46,11 @@
 
  .PARAMETER environmentName
     The cloud environment to use (defaults to Azure Cloud).
-
 #>
 
 param(
-    [ValidateSet("local", "services", "app", "all")] [string] $type = "all",
+    [ValidateSet("minimum", "local", "services", "app", "all")] [string] $type = "all",
+    [string] $version,
     [string] $applicationName,
     [string] $resourceGroupName,
     [string] $resourceGroupLocation,
@@ -73,8 +76,16 @@ Function Select-Context() {
         [Microsoft.Azure.Commands.Profile.Models.Core.PSAzureContext] $context
     )
 
-    $contextFile = Join-Path $script:ScriptDir ".user"
+    $rootDir = Get-RootFolder $script:ScriptDir
+    $contextFile = Join-Path $rootDir ".user"
     if (!$context) {
+        # Migrate .user file into root (next to .env)
+        if (!(Test-Path $contextFile)) {
+            $oldFile = Join-Path $script:ScriptDir ".user"
+            if (Test-Path $oldFile) {
+                Move-Item -Path $oldFile -Destination $contextFile
+            }
+        }
         if (Test-Path $contextFile) {
             $profile = Import-AzContext -Path $contextFile
             if (($null -ne $profile) `
@@ -517,7 +528,7 @@ Function Write-EnvironmentVariables() {
         $deployment
     )
 
-    # find the top most folder with docker-compose.yml in it
+    # find the top most folder
     $rootDir = Get-RootFolder $script:ScriptDir
 
     $writeFile = $false
@@ -617,10 +628,13 @@ Function New-Deployment() {
     $templateParameters.Add("branchName", $script:branchName)
     $templateParameters.Add("repoUrl", $script:repo)
 
-    if ($script:type -eq "local") {
+    if (($script:type -eq "local") -or ($script:type -eq "minimum")) {
         if ([string]::IsNullOrEmpty($script:applicationName) `
                 -or ($script:applicationName -notmatch "^[a-z0-9-]*$")) {
             $script:applicationName = $script:resourceGroupName
+        }
+        if ($script:type -eq "minimum") {
+            $templateParameters.Add("deploymentLevel", "Minimum")
         }
     }
     else {
@@ -647,6 +661,10 @@ Function New-Deployment() {
             }
         }
 
+        if ([string]::IsNullOrEmpty($script:version)) {
+            $script:version = "latest"
+        }
+        $templateParameters.Add("imagesTag", $script:version)
         $creds = Select-RegistryCredentials
         if ($creds) {
             $templateParameters.Add("dockerServer", $creds.dockerServer)
@@ -663,13 +681,11 @@ Function New-Deployment() {
             }
             $namespace = $namespace.Replace("_", "/").Substring(0, [Math]::Min($namespace.Length, 24))
             $templateParameters.Add("imagesNamespace", $namespace)
-            $templateParameters.Add("imagesTag", "latest")
-            Write-Host "Using latest $($namespace) images from $($creds.dockerServer)."
+            Write-Host "Using $($script:version) $($namespace) images from $($creds.dockerServer)."
         }
         else {
             $templateParameters.Add("dockerServer", "mcr.microsoft.com")
-            $templateParameters.Add("imagesTag", "preview")
-            Write-Host "Using preview images from mcr.microsoft.com."
+            Write-Host "Using $($script:version) images from mcr.microsoft.com."
         }
 
         if ($script:type -eq "all") {

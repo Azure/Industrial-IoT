@@ -15,21 +15,21 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
         /// <summary>
         /// Name
         /// </summary>
-        [DataMember(Name = "name",
+        [DataMember(Name = "name", Order = 0,
             EmitDefaultValue = false)]
         public string Name { get; set; }
 
         /// <summary>
         /// Configuration type
         /// </summary>
-        [DataMember(Name = "jobConfigurationType",
+        [DataMember(Name = "jobConfigurationType", Order = 1,
            EmitDefaultValue = false)]
         public string JobConfigurationType { get; set; }
 
         /// <summary>
         /// Job status
         /// </summary>
-        [DataMember(Name = "status",
+        [DataMember(Name = "status", Order = 2,
             EmitDefaultValue = false)]
         public JobStatus? Status { get; set; }
     }

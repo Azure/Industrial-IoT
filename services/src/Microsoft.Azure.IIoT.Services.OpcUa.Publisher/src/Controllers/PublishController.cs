@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.Http;
@@ -23,7 +22,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     /// </summary>
     [ApiVersion("2")][Route("v{version:apiVersion}/publish")]
     [ExceptionsFilter]
-    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanBrowse)]
     [ApiController]
     public class PublishController : ControllerBase {

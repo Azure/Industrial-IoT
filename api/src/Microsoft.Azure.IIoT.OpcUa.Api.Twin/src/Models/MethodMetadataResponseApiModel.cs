@@ -17,28 +17,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// Id of object that the method is a component of
         /// </summary>
-        [DataMember(Name = "objectId",
+        [DataMember(Name = "objectId", Order = 0,
             EmitDefaultValue = false)]
         public string ObjectId { get; set; }
 
         /// <summary>
         /// Input argument meta data
         /// </summary>
-        [DataMember(Name = "inputArguments",
+        [DataMember(Name = "inputArguments", Order = 1,
             EmitDefaultValue = false)]
         public List<MethodMetadataArgumentApiModel> InputArguments { get; set; }
 
         /// <summary>
         /// output argument meta data
         /// </summary>
-        [DataMember(Name = "outputArguments",
+        [DataMember(Name = "outputArguments", Order = 2,
             EmitDefaultValue = false)]
         public List<MethodMetadataArgumentApiModel> OutputArguments { get; set; }
 
         /// <summary>
         /// Service result in case of error
         /// </summary>
-        [DataMember(Name = "errorInfo",
+        [DataMember(Name = "errorInfo", Order = 3,
             EmitDefaultValue = false)]
         public ServiceResultApiModel ErrorInfo { get; set; }
     }

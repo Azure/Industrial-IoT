@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// All results of attribute reads
         /// </summary>
-        [DataMember(Name = "results")]
+        [DataMember(Name = "results", Order = 0)]
         public List<AttributeReadResponseApiModel> Results { set; get; }
     }
 }

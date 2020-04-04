@@ -17,7 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// information and not read the target node.
         /// (default is false)
         /// </summary>
-        [DataMember(Name = "NodeIdsOnly",
+        [DataMember(Name = "NodeIdsOnly", Order = 10,
             EmitDefaultValue = false)]
         public bool? NodeIdsOnly { get; set; }
     }

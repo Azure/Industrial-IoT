@@ -16,14 +16,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// User
         /// </summary>
-        [DataMember(Name = "AuthorityId",
+        [DataMember(Name = "AuthorityId", Order = 0,
             EmitDefaultValue = false)]
         public string AuthorityId { get; set; }
 
         /// <summary>
         /// Operation time
         /// </summary>
-        [DataMember(Name = "Time",
+        [DataMember(Name = "Time", Order = 1,
             EmitDefaultValue = false)]
         public DateTime Time { get; set; }
     }

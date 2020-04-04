@@ -18,14 +18,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// Attributes to read
         /// </summary>
-        [DataMember(Name = "attributes")]
+        [DataMember(Name = "attributes", Order = 0)]
         [Required]
         public List<AttributeReadRequestApiModel> Attributes { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
-        [DataMember(Name = "header",
+        [DataMember(Name = "header", Order = 1,
             EmitDefaultValue = false)]
         public RequestHeaderApiModel Header { get; set; }
     }

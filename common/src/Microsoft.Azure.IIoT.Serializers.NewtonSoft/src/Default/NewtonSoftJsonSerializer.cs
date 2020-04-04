@@ -440,7 +440,7 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
                         json.Token.WriteTo(writer, serializer.Converters.ToArray());
                         break;
                     case VariantValue variant:
-                        if (variant.IsNull()) {
+                        if (VariantValueEx.IsNull(variant)) {
                             writer.WriteNull();
                         }
                         else if (variant.IsListOfValues) {
@@ -454,7 +454,7 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
                             writer.WriteStartObject();
                             foreach (var key in variant.PropertyNames) {
                                 var item = variant[key];
-                                if (item.IsNull()) {
+                                if (VariantValueEx.IsNull(item)) {
                                     if (serializer.NullValueHandling != NullValueHandling.Include ||
                                         serializer.DefaultValueHandling != DefaultValueHandling.Include) {
                                         break;
@@ -483,7 +483,11 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
             public override object ReadJson(JsonReader reader, Type objectType,
                 object existingValue, JsonSerializer serializer) {
                 // Read variant from json
-                return new JsonVariantValue(JToken.Load(reader), _serializer);
+                var token = JToken.Load(reader);
+                if (token.Type == JTokenType.Null) {
+                    return null;
+                }
+                return new JsonVariantValue(token, _serializer);
             }
 
             /// <inheritdoc/>

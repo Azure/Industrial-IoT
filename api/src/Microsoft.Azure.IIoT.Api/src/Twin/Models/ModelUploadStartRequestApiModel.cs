@@ -16,14 +16,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// Desired content encoding
         /// </summary>
-        [DataMember(Name = "contentEncoding",
+        [DataMember(Name = "contentEncoding", Order = 0,
             EmitDefaultValue = false)]
         public string ContentEncoding { get; set; }
 
         /// <summary>
         /// Optional diagnostics configuration
         /// </summary>
-        [DataMember(Name = "diagnostics",
+        [DataMember(Name = "diagnostics", Order = 1,
             EmitDefaultValue = false)]
         public DiagnosticsApiModel Diagnostics { get; set; }
     }

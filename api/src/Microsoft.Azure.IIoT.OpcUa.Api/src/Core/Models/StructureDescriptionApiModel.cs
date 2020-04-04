@@ -15,19 +15,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// <summary>
         /// Data type id
         /// </summary>
-        [DataMember(Name = "dataTypeId")]
+        [DataMember(Name = "dataTypeId", Order = 0)]
         public string DataTypeId { get; set; }
 
         /// <summary>
         /// The qualified name of the data type.
         /// </summary>
-        [DataMember(Name = "name")]
+        [DataMember(Name = "name", Order = 1)]
         public string Name { get; set; }
 
         /// <summary>
         /// Structure definition
         /// </summary>
-        [DataMember(Name = "structureDefinition")]
+        [DataMember(Name = "structureDefinition", Order = 2)]
         public StructureDefinitionApiModel StructureDefinition { get; set; }
     }
 }

@@ -62,7 +62,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.v2.Supervisor {
         /// <returns></returns>
         public VariantValue this[string key] {
             set {
-                if (value == null || value.IsNull()) {
+                if (value == null || VariantValueEx.IsNull(value)) {
                     _tempState.AddOrUpdate(key, null);
                     return;
                 }
@@ -91,7 +91,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic.v2.Supervisor {
         /// <returns></returns>
         public Task ApplyAsync() {
             foreach (var item in _tempState.ToList()) {
-                if (item.Value == null) {
+                if (VariantValueEx.IsNull(item.Value)) {
                     _logger.Information("Removed {Key}", item.Key);
                 }
                 else {

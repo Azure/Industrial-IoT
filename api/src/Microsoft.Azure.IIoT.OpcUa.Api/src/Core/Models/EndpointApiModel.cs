@@ -16,14 +16,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// <summary>
         /// Endpoint url to use to connect with
         /// </summary>
-        [DataMember(Name = "url")]
+        [DataMember(Name = "url", Order = 0)]
         public string Url { get; set; }
 
         /// <summary>
         /// Alternative endpoint urls that can be used for
         /// accessing and validating the server
         /// </summary>
-        [DataMember(Name = "alternativeUrls",
+        [DataMember(Name = "alternativeUrls", Order = 1,
             EmitDefaultValue = false)]
         public HashSet<string> AlternativeUrls { get; set; }
 
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// Security Mode to use for communication.
         /// default to best.
         /// </summary>
-        [DataMember(Name = "securityMode",
+        [DataMember(Name = "securityMode", Order = 2,
             EmitDefaultValue = false)]
         public SecurityMode? SecurityMode { get; set; }
 
@@ -39,14 +39,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// Security policy uri to use for communication.
         /// default to best.
         /// </summary>
-        [DataMember(Name = "securityPolicy",
+        [DataMember(Name = "securityPolicy", Order = 3,
             EmitDefaultValue = false)]
         public string SecurityPolicy { get; set; }
 
         /// <summary>
         /// Endpoint certificate thumbprint
         /// </summary>
-        [DataMember(Name = "certificate",
+        [DataMember(Name = "certificate", Order = 4,
             EmitDefaultValue = false)]
         public string Certificate { get; set; }
     }

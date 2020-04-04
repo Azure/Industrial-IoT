@@ -19,14 +19,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// <summary>
         /// Type of node
         /// </summary>
-        [DataMember(Name = "nodeClass",
+        [DataMember(Name = "nodeClass", Order = 0,
             EmitDefaultValue = false)]
         public NodeClass? NodeClass { get; set; }
 
         /// <summary>
         /// Display name
         /// </summary>
-        [DataMember(Name = "displayName",
+        [DataMember(Name = "displayName", Order = 1,
             EmitDefaultValue = false)]
         public string DisplayName { get; set; }
 
@@ -34,21 +34,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// Id of node.
         /// (Mandatory).
         /// </summary>
-        [DataMember(Name = "nodeId")]
+        [DataMember(Name = "nodeId", Order = 2)]
         [Required]
         public string NodeId { get; set; }
 
         /// <summary>
         /// Description if any
         /// </summary>
-        [DataMember(Name = "description",
+        [DataMember(Name = "description", Order = 3,
             EmitDefaultValue = false)]
         public string Description { get; set; }
 
         /// <summary>
         /// Browse name
         /// </summary>
-        [DataMember(Name = "browseName",
+        [DataMember(Name = "browseName", Order = 4,
             EmitDefaultValue = false)]
         public string BrowseName { get; set; }
 
@@ -57,42 +57,42 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// subtyped variable in case node is a variable
         /// type, otherwise null.
         /// </summary>
-        [DataMember(Name = "value",
+        [DataMember(Name = "value", Order = 5,
             EmitDefaultValue = false)]
         public VariantValue Value { get; set; }
 
         /// <summary>
         /// Pico seconds part of when value was read at source.
         /// </summary>
-        [DataMember(Name = "sourcePicoseconds",
+        [DataMember(Name = "sourcePicoseconds", Order = 6,
             EmitDefaultValue = false)]
         public ushort? SourcePicoseconds { get; set; }
 
         /// <summary>
         /// Timestamp of when value was read at source.
         /// </summary>
-        [DataMember(Name = "sourceTimestamp",
+        [DataMember(Name = "sourceTimestamp", Order = 7,
             EmitDefaultValue = false)]
         public DateTime? SourceTimestamp { get; set; }
 
         /// <summary>
         /// Pico seconds part of when value was read at server.
         /// </summary>
-        [DataMember(Name = "serverPicoseconds",
+        [DataMember(Name = "serverPicoseconds", Order = 8,
             EmitDefaultValue = false)]
         public ushort? ServerPicoseconds { get; set; }
 
         /// <summary>
         /// Timestamp of when value was read at server.
         /// </summary>
-        [DataMember(Name = "serverTimestamp",
+        [DataMember(Name = "serverTimestamp", Order = 9,
             EmitDefaultValue = false)]
         public DateTime? ServerTimestamp { get; set; }
 
         /// <summary>
         /// Service result in case of error reading the value
         /// </summary>
-        [DataMember(Name = "errorInfo",
+        [DataMember(Name = "errorInfo", Order = 10,
             EmitDefaultValue = false)]
         public ServiceResultApiModel ErrorInfo { get; set; }
 
@@ -100,7 +100,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// Node access restrictions if any.
         /// (default: none)
         /// </summary>
-        [DataMember(Name = "accessRestrictions",
+        [DataMember(Name = "accessRestrictions", Order = 11,
             EmitDefaultValue = false)]
         public NodeAccessRestrictions? AccessRestrictions { get; set; }
 
@@ -108,7 +108,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// Default write mask for the node
         /// (default: 0)
         /// </summary>
-        [DataMember(Name = "writeMask",
+        [DataMember(Name = "writeMask", Order = 12,
             EmitDefaultValue = false)]
         public uint? WriteMask { get; set; }
 
@@ -116,7 +116,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// User write mask for the node
         /// (default: 0)
         /// </summary>
-        [DataMember(Name = "userWriteMask",
+        [DataMember(Name = "userWriteMask", Order = 13,
             EmitDefaultValue = false)]
         public uint? UserWriteMask { get; set; }
 
@@ -125,7 +125,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// be abstract.  Null if not type node.
         /// (default: false)
         /// </summary>
-        [DataMember(Name = "isAbstract",
+        [DataMember(Name = "isAbstract", Order = 14,
             EmitDefaultValue = false)]
         public bool? IsAbstract { get; set; }
 
@@ -133,7 +133,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// Whether a view contains loops. Null if
         /// not a view.
         /// </summary>
-        [DataMember(Name = "containsNoLoops",
+        [DataMember(Name = "containsNoLoops", Order = 15,
             EmitDefaultValue = false)]
         public bool? ContainsNoLoops { get; set; }
 
@@ -142,7 +142,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// to subscribe to.
         /// (default: no events supported)
         /// </summary>
-        [DataMember(Name = "eventNotifier",
+        [DataMember(Name = "eventNotifier", Order = 16,
             EmitDefaultValue = false)]
         public NodeEventNotifier? EventNotifier { get; set; }
 
@@ -150,7 +150,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// If method node class, whether method can
         /// be called.
         /// </summary>
-        [DataMember(Name = "executable",
+        [DataMember(Name = "executable", Order = 17,
             EmitDefaultValue = false)]
         public bool? Executable { get; set; }
 
@@ -159,7 +159,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// be called by current user.
         /// (default: false if not executable)
         /// </summary>
-        [DataMember(Name = "userExecutable",
+        [DataMember(Name = "userExecutable", Order = 18,
             EmitDefaultValue = false)]
         public bool? UserExecutable { get; set; }
 
@@ -168,7 +168,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// data type node and definition is available,
         /// otherwise null.
         /// </summary>
-        [DataMember(Name = "dataTypeDefinition",
+        [DataMember(Name = "dataTypeDefinition", Order = 19,
             EmitDefaultValue = false)]
         public VariantValue DataTypeDefinition { get; set; }
 
@@ -176,7 +176,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// Default access level for variable node.
         /// (default: 0)
         /// </summary>
-        [DataMember(Name = "accessLevel",
+        [DataMember(Name = "accessLevel", Order = 20,
             EmitDefaultValue = false)]
         public NodeAccessLevel? AccessLevel { get; set; }
 
@@ -184,7 +184,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// User access level for variable node or null.
         /// (default: 0)
         /// </summary>
-        [DataMember(Name = "userAccessLevel",
+        [DataMember(Name = "userAccessLevel", Order = 21,
             EmitDefaultValue = false)]
         public NodeAccessLevel? UserAccessLevel { get; set; }
 
@@ -192,7 +192,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// If variable the datatype of the variable.
         /// (default: null)
         /// </summary>
-        [DataMember(Name = "dataType",
+        [DataMember(Name = "dataType", Order = 22,
             EmitDefaultValue = false)]
         public string DataType { get; set; }
 
@@ -201,7 +201,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// or variable type, otherwise null.
         /// (default: scalar = -1)
         /// </summary>
-        [DataMember(Name = "valueRank",
+        [DataMember(Name = "valueRank", Order = 23,
             EmitDefaultValue = false)]
         public NodeValueRank? ValueRank { get; set; }
 
@@ -209,7 +209,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// Array dimensions of variable or variable type.
         /// (default: empty array)
         /// </summary>
-        [DataMember(Name = "arrayDimensions",
+        [DataMember(Name = "arrayDimensions", Order = 24,
             EmitDefaultValue = false)]
         public uint[] ArrayDimensions { get; set; }
 
@@ -217,7 +217,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// Whether the value of a variable is historizing.
         /// (default: false)
         /// </summary>
-        [DataMember(Name = "historizing",
+        [DataMember(Name = "historizing", Order = 25,
             EmitDefaultValue = false)]
         public bool? Historizing { get; set; }
 
@@ -226,7 +226,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// value, otherwise null if not a variable node.
         /// (default: null)
         /// </summary>
-        [DataMember(Name = "minimumSamplingInterval",
+        [DataMember(Name = "minimumSamplingInterval", Order = 26,
             EmitDefaultValue = false)]
         public double? MinimumSamplingInterval { get; set; }
 
@@ -234,7 +234,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// Inverse name of the reference if the node is
         /// a reference type, otherwise null.
         /// </summary>
-        [DataMember(Name = "inverseName",
+        [DataMember(Name = "inverseName", Order = 27,
             EmitDefaultValue = false)]
         public string InverseName { get; set; }
 
@@ -243,28 +243,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// the node is a reference type, otherwise
         /// null.
         /// </summary>
-        [DataMember(Name = "symmetric",
+        [DataMember(Name = "symmetric", Order = 28,
             EmitDefaultValue = false)]
         public bool? Symmetric { get; set; }
 
         /// <summary>
         /// Role permissions
         /// </summary>
-        [DataMember(Name = "rolePermissions",
+        [DataMember(Name = "rolePermissions", Order = 29,
             EmitDefaultValue = false)]
         public List<RolePermissionApiModel> RolePermissions { get; set; }
 
         /// <summary>
         /// User Role permissions
         /// </summary>
-        [DataMember(Name = "userRolePermissions",
+        [DataMember(Name = "userRolePermissions", Order = 30,
             EmitDefaultValue = false)]
         public List<RolePermissionApiModel> UserRolePermissions { get; set; }
 
         /// <summary>
         /// Optional type definition of the node
         /// </summary>
-        [DataMember(Name = "typeDefinitionId",
+        [DataMember(Name = "typeDefinitionId", Order = 31,
             EmitDefaultValue = false)]
         public string TypeDefinitionId { get; set; }
 
@@ -273,7 +273,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// any forward hierarchical references.
         /// (default: unknown)
         /// </summary>
-        [DataMember(Name = "children",
+        [DataMember(Name = "children", Order = 32,
             EmitDefaultValue = false)]
         public bool? Children { get; set; }
 

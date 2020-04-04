@@ -15,20 +15,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Event type
         /// </summary>
-        [DataMember(Name = "eventType")]
+        [DataMember(Name = "eventType", Order = 0)]
         public GatewayEventType EventType { get; set; }
 
         /// <summary>
         /// Gateway id
         /// </summary>
-        [DataMember(Name = "id",
+        [DataMember(Name = "id", Order = 1,
             EmitDefaultValue = false)]
         public string Id { get; set; }
 
         /// <summary>
         /// Gateway
         /// </summary>
-        [DataMember(Name = "gateway",
+        [DataMember(Name = "gateway", Order = 2,
             EmitDefaultValue = false)]
         public GatewayApiModel Gateway { get; set; }
     }

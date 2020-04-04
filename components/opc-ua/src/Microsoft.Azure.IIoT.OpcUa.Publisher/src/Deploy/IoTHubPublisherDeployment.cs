@@ -93,7 +93,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
             {
                 ""$edgeAgent"": {
                     " + registryCredentials + @"
-                    ""properties.desired.modules.publisher"": {
+                    ""properties.desired.modules.opcpublisher"": {
                         ""settings"": {
                             ""image"": """ + image + @""",
                             ""createOptions"": """ + createOptions + @"""

@@ -17,14 +17,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Item to publish
         /// </summary>
-        [DataMember(Name = "item")]
+        [DataMember(Name = "item", Order = 0)]
         [Required]
         public PublishedItemApiModel Item { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
-        [DataMember(Name = "header",
+        [DataMember(Name = "header", Order = 1,
             EmitDefaultValue = false)]
         public RequestHeaderApiModel Header { get; set; }
     }

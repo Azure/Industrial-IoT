@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Operation audit context
         /// </summary>
-        [DataMember(Name = "context",
+        [DataMember(Name = "context", Order = 10,
             EmitDefaultValue = false)]
         public RegistryOperationContextApiModel Context { get; set; }
     }

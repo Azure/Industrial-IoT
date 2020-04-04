@@ -30,7 +30,8 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -97,17 +98,17 @@
       }
     },
     "DiscoveryConfigApiModel": {
-      "description": "Discovery configuration",
+      "description": "Discovery configuration api model",
       "type": "object",
       "properties": {
         "addressRangesToScan": {
           "description": "Address ranges to scan (null == all wired nics)",
           "type": "string"
         },
-        "networkProbeTimeoutMs": {
-          "format": "int32",
+        "networkProbeTimeout": {
+          "format": "date-span",
           "description": "Network probe timeout",
-          "type": "integer"
+          "type": "string"
         },
         "maxNetworkProbes": {
           "format": "int32",
@@ -118,10 +119,10 @@
           "description": "Port ranges to scan (null == all unassigned)",
           "type": "string"
         },
-        "portProbeTimeoutMs": {
-          "format": "int32",
+        "portProbeTimeout": {
+          "format": "date-span",
           "description": "Port probe timeout",
-          "type": "integer"
+          "type": "string"
         },
         "maxPortProbes": {
           "format": "int32",
@@ -133,10 +134,10 @@
           "description": "Probes that must always be there as percent of max.",
           "type": "integer"
         },
-        "idleTimeBetweenScansSec": {
-          "format": "int32",
-          "description": "Delay time between discovery sweeps in seconds",
-          "type": "integer"
+        "idleTimeBetweenScans": {
+          "format": "date-span",
+          "description": "Delay time between discovery sweeps",
+          "type": "string"
         },
         "discoveryUrls": {
           "description": "List of preset discovery urls to use",

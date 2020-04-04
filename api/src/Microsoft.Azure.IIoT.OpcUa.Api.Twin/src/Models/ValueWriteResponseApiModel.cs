@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// Service result in case of error
         /// </summary>
-        [DataMember(Name = "errorInfo",
+        [DataMember(Name = "errorInfo", Order = 0,
             EmitDefaultValue = false)]
         public ServiceResultApiModel ErrorInfo { get; set; }
     }

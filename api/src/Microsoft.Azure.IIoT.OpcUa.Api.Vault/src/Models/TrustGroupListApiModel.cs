@@ -16,14 +16,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
         /// <summary>
         /// Groups
         /// </summary>
-        [DataMember(Name = "groups",
+        [DataMember(Name = "groups", Order = 0,
             EmitDefaultValue = false)]
         public List<string> Groups { get; set; }
 
         /// <summary>
         /// Next link
         /// </summary>
-        [DataMember(Name = "nextPageLink",
+        [DataMember(Name = "nextPageLink", Order = 1,
             EmitDefaultValue = false)]
         public string NextPageLink { get; set; }
     }

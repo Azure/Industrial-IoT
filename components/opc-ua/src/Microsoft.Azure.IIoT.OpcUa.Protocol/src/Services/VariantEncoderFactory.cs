@@ -79,7 +79,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <inheritdoc/>
             public Variant Decode(VariantValue value, BuiltInType builtinType) {
 
-                if (value.IsNull()) {
+                if (VariantValueEx.IsNull(value)) {
                     return Variant.Null;
                 }
 
@@ -130,7 +130,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             /// <param name="isString"></param>
             /// <returns></returns>
             internal VariantValue Sanitize(VariantValue value, bool isString) {
-                if (value == null || value.IsNull()) {
+                if (VariantValueEx.IsNull(value)) {
                     return value;
                 }
 
@@ -156,7 +156,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
                     asString = asString.Replace("\\\"", "\"");
                 }
                 var token = Try.Op(() => Serializer.Parse(asString));
-                if (token != null) {
+                if (!(token is null)) {
                     value = token;
                 }
 

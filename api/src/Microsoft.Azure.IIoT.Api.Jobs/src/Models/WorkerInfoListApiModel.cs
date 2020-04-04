@@ -16,14 +16,14 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
         /// <summary>
         /// Continuation token
         /// </summary>
-        [DataMember(Name = "continuationToken",
+        [DataMember(Name = "continuationToken", Order = 0,
             EmitDefaultValue = false)]
         public string ContinuationToken { get; set; }
 
         /// <summary>
         /// Workers
         /// </summary>
-        [DataMember(Name = "workers")]
+        [DataMember(Name = "workers", Order = 1)]
         public List<WorkerInfoApiModel> Workers { get; set; }
     }
 }

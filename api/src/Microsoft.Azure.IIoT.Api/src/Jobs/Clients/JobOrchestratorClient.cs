@@ -51,15 +51,14 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
                 var request = _httpClient.NewRequest($"{uri}/v2/workers/{workerId}");
                 request.Headers.Authorization = new AuthenticationHeaderValue("Basic",
                     _tokenProvider.IdentityToken.ToAuthorizationValue());
-                _serializer.SerializeToRequest(request,
-                    _serializer.Map<JobRequestApiModel>(jobRequest));
+                _serializer.SerializeToRequest(request, jobRequest.ToApiModel());
                 var response = await _httpClient.PostAsync(request, ct)
                     .ConfigureAwait(false);
                 try {
                     response.Validate();
                     var result = _serializer.DeserializeResponse<JobProcessingInstructionApiModel>(
                         response);
-                    return _serializer.Map<JobProcessingInstructionModel>(result);
+                    return result.ToServiceModel();
                 }
                 catch (UnauthorizedAccessException) {
                     await _tokenProvider.ForceUpdate();
@@ -81,14 +80,14 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
                 var request = _httpClient.NewRequest($"{uri}/v2/heartbeat");
                 request.Headers.Authorization = new AuthenticationHeaderValue("Basic",
                     _tokenProvider.IdentityToken.ToAuthorizationValue());
-                _serializer.SerializeToRequest(request, _serializer.Map<HeartbeatApiModel>(heartbeat));
+                _serializer.SerializeToRequest(request, heartbeat.ToApiModel());
                 var response = await _httpClient.PostAsync(request, ct)
                     .ConfigureAwait(false);
                 try {
                     response.Validate();
                     var result = _serializer.DeserializeResponse<HeartbeatResponseApiModel>(
                         response);
-                    return _serializer.Map<HeartbeatResultModel>(result);
+                    return result.ToServiceModel();
                 }
                 catch (UnauthorizedAccessException) {
                     await _tokenProvider.ForceUpdate();

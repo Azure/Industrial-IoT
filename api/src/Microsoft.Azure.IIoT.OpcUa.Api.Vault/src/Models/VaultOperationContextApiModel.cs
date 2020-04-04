@@ -17,13 +17,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
         /// <summary>
         /// User
         /// </summary>
-        [DataMember(Name = "authorityId")]
+        [DataMember(Name = "authorityId", Order = 0)]
         public string AuthorityId { get; set; }
 
         /// <summary>
         /// Operation time
         /// </summary>
-        [DataMember(Name = "time")]
+        [DataMember(Name = "time", Order = 1)]
         public DateTime Time { get; set; }
     }
 }

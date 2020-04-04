@@ -16,13 +16,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Registrations
         /// </summary>
-        [DataMember(Name = "items")]
+        [DataMember(Name = "items", Order = 0)]
         public List<PublisherApiModel> Items { get; set; }
 
         /// <summary>
         /// Continuation or null if final
         /// </summary>
-        [DataMember(Name = "continuationToken",
+        [DataMember(Name = "continuationToken", Order = 1,
             EmitDefaultValue = false)]
         public string ContinuationToken { get; set; }
     }

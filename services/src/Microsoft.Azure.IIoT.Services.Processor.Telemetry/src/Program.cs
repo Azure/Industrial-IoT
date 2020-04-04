@@ -143,7 +143,7 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry {
             builder.RegisterType<EventHubClientConfig>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // ... forward unknown samples to the tsi eventhub
+            // ... forward unknown samples to the secondary eventhub
             builder.RegisterType<UnknownTelemetryForwarder>()
                 .AsImplementedInterfaces().SingleInstance();
 

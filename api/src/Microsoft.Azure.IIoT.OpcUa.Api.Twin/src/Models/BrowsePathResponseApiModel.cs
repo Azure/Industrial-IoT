@@ -17,14 +17,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// Targets
         /// </summary>
-        [DataMember(Name = "targets",
+        [DataMember(Name = "targets", Order = 0,
             EmitDefaultValue = false)]
         public List<NodePathTargetApiModel> Targets { get; set; }
 
         /// <summary>
         /// Service result in case of error
         /// </summary>
-        [DataMember(Name = "errorInfo",
+        [DataMember(Name = "errorInfo", Order = 1,
             EmitDefaultValue = false)]
         public ServiceResultApiModel ErrorInfo { get; set; }
     }

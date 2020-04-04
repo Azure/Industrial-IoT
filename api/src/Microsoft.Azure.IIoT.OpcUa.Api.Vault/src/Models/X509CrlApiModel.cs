@@ -16,14 +16,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
         /// <summary>
         /// The Issuer name of the revocation list.
         /// </summary>
-        [DataMember(Name = "issuer",
+        [DataMember(Name = "issuer", Order = 0,
             EmitDefaultValue = false)]
         public string Issuer { get; set; }
 
         /// <summary>
         /// The certificate revocation list.
         /// </summary>
-        [DataMember(Name = "crl")]
+        [DataMember(Name = "crl", Order = 1)]
         public VariantValue Crl { get; set; }
     }
 }

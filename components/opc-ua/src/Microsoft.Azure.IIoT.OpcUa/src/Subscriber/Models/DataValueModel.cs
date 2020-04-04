@@ -17,35 +17,35 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         /// <summary>
         /// Value
         /// </summary>
-        [DataMember(Name = "value",
+        [DataMember(Name = "value", Order = 0,
             EmitDefaultValue = false)]
         public VariantValue Value {get; set; }
 
         /// <summary>
         /// Type id
         /// </summary>
-        [DataMember(Name = "typeId",
+        [DataMember(Name = "typeId", Order = 1,
             EmitDefaultValue = false)]
         public string TypeId { get; set; }
 
         /// <summary>
         /// Status of the value (Quality)
         /// </summary>
-        [DataMember(Name = "status",
+        [DataMember(Name = "status", Order = 2,
             EmitDefaultValue = false)]
         public string Status { get; set; }
 
         /// <summary>
         /// Source Timesamp
         /// </summary>
-        [DataMember(Name = "sourceTimestamp",
+        [DataMember(Name = "sourceTimestamp", Order = 3,
             EmitDefaultValue = false)]
         public DateTime? SourceTimestamp { get; set; }
 
         /// <summary>
         /// Server Timestamp
         /// </summary>
-        [DataMember(Name = "serverTimestamp",
+        [DataMember(Name = "serverTimestamp", Order = 4,
             EmitDefaultValue = false)]
         public DateTime? ServerTimestamp { get; set; }
     }

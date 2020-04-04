@@ -59,6 +59,8 @@ namespace Microsoft.Azure.IIoT.Serializers.MessagePack {
             yield return (1UL, 1UL);
             yield return (0UL, 0UL);
             yield return (ulong.MaxValue, ulong.MaxValue);
+            yield return (11790719998462990154, 11790719998462990154);
+            yield return (10042278942021613161, 10042278942021613161);
             yield return ((ulong?)null, (ulong?)null);
             yield return (1u, 1u);
             yield return (0u, 0u);

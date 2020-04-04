@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Default iot hub device event handler implementation
+    /// Default edge base deployment configuration
     /// </summary>
     public sealed class IoTHubEdgeBaseDeployment : IHostProcess {
 

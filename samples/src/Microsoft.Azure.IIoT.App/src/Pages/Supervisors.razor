@@ -167,6 +167,7 @@
     private Task SupervisorEvent(SupervisorEventApiModel ev)
     {
         _supervisorList.Results.Update(ev);
+        _pagedsupervisorList = _supervisorList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _supervisorList.Error);
         StateHasChanged();
         return Task.CompletedTask;
     }

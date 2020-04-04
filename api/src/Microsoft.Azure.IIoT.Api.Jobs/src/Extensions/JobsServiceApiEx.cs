@@ -20,8 +20,8 @@ namespace Microsoft.Azure.IIoT.Api.Jobs {
         /// <param name="service"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task<IEnumerable<JobInfoApiModel>> ListAllJobsAsync(this IJobsServiceApi service,
-            CancellationToken ct = default) {
+        public static async Task<IEnumerable<JobInfoApiModel>> ListAllJobsAsync(
+            this IJobsServiceApi service, CancellationToken ct = default) {
             string continuationToken = null;
             var jobs = new List<JobInfoApiModel>();
             do {
@@ -42,8 +42,8 @@ namespace Microsoft.Azure.IIoT.Api.Jobs {
         /// <param name="query"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task<IEnumerable<JobInfoApiModel>> QueryAllJobsAsync(this IJobsServiceApi service,
-            JobInfoQueryApiModel query, CancellationToken ct = default) {
+        public static async Task<IEnumerable<JobInfoApiModel>> QueryAllJobsAsync(
+            this IJobsServiceApi service, JobInfoQueryApiModel query, CancellationToken ct = default) {
             var jobs = new List<JobInfoApiModel>();
             var result = await service.QueryJobsAsync(query, null, ct);
             if (result.Jobs != null) {
@@ -64,8 +64,8 @@ namespace Microsoft.Azure.IIoT.Api.Jobs {
         /// <param name="service"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static async Task<IEnumerable<WorkerInfoApiModel>> ListAllAgentsAsync(this IJobsServiceApi service,
-            CancellationToken ct = default) {
+        public static async Task<IEnumerable<WorkerInfoApiModel>> ListAllAgentsAsync(
+            this IJobsServiceApi service, CancellationToken ct = default) {
             string continuationToken = null;
             var agents = new List<WorkerInfoApiModel>();
             do {

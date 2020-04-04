@@ -57,7 +57,7 @@ namespace Microsoft.Azure.IIoT.Auth.IoTHub {
         public Task StopAsync() {
             if (_cts != null) {
                 _cts.Cancel();
-                _updateTimer.Change(0, Timeout.Infinite);
+                _updateTimer.Change(Timeout.Infinite, Timeout.Infinite);
             }
             return Task.CompletedTask;
         }

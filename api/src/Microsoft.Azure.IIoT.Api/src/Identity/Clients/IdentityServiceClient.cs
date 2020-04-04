@@ -13,9 +13,9 @@ namespace Microsoft.Azure.IIoT.Api.Identity.Clients {
     using System.Collections.Generic;
 
     /// <summary>
-    /// Implementation of onboarding service api.
+    /// Implementation of identity service api.
     /// </summary>
-    public sealed class OnboardingServiceClient : IIdentityServiceApi {
+    public sealed class IdentityServiceClient : IIdentityServiceApi {
 
         /// <summary>
         /// Create service client
@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Api.Identity.Clients {
         /// <param name="httpClient"></param>
         /// <param name="config"></param>
         /// <param name="serializer"></param>
-        public OnboardingServiceClient(IHttpClient httpClient, IIdentityConfig config,
+        public IdentityServiceClient(IHttpClient httpClient, IIdentityConfig config,
             ISerializer serializer) : this(httpClient, config.IdentityServiceUrl,
                 config.IdentityServiceResourceId, serializer) {
         }
@@ -35,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Api.Identity.Clients {
         /// <param name="serviceUri"></param>
         /// <param name="resourceId"></param>
         /// <param name="serializer"></param>
-        public OnboardingServiceClient(IHttpClient httpClient, string serviceUri,
+        public IdentityServiceClient(IHttpClient httpClient, string serviceUri,
             string resourceId, ISerializer serializer) {
             if (string.IsNullOrEmpty(serviceUri)) {
                 throw new ArgumentNullException(nameof(serviceUri),
@@ -51,6 +51,7 @@ namespace Microsoft.Azure.IIoT.Api.Identity.Clients {
         public async Task<string> GetServiceStatusAsync(CancellationToken ct) {
             var request = _httpClient.NewRequest($"{_serviceUri}/healthz",
                 _resourceId);
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return _serializer.DeserializeResponse<string>(response);
@@ -78,6 +79,7 @@ namespace Microsoft.Azure.IIoT.Api.Identity.Clients {
                 Query = $"name={name}"
             };
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return _serializer.DeserializeResponse<UserApiModel>(response);
@@ -93,6 +95,7 @@ namespace Microsoft.Azure.IIoT.Api.Identity.Clients {
                 Query = $"email={email}"
             };
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return _serializer.DeserializeResponse<UserApiModel>(response);
@@ -106,6 +109,7 @@ namespace Microsoft.Azure.IIoT.Api.Identity.Clients {
             }
             var uri = new UriBuilder($"{_serviceUri}/v2/users/{userId}");
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return _serializer.DeserializeResponse<UserApiModel>(response);
@@ -177,6 +181,7 @@ namespace Microsoft.Azure.IIoT.Api.Identity.Clients {
             }
             var uri = new UriBuilder($"{_serviceUri}/v2/users/roles/{role}");
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return _serializer.DeserializeResponse<IEnumerable<UserApiModel>>(response);
@@ -217,6 +222,7 @@ namespace Microsoft.Azure.IIoT.Api.Identity.Clients {
             }
             var uri = new UriBuilder($"{_serviceUri}/v2/roles/{roleId}");
             var request = _httpClient.NewRequest(uri.Uri, _resourceId);
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
             return _serializer.DeserializeResponse<RoleApiModel>(response);

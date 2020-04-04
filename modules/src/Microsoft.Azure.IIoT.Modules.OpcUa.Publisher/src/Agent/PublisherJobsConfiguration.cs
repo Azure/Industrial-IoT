@@ -4,7 +4,6 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent {
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;

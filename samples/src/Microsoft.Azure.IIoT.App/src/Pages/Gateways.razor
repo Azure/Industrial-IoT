@@ -100,6 +100,7 @@
     private Task GatewayEvent(GatewayEventApiModel ev)
     {
         _gatewayList.Results.Update(ev);
+        _pagedGatewayList = _gatewayList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _gatewayList.Error);
         StateHasChanged();
         return Task.CompletedTask;
     }

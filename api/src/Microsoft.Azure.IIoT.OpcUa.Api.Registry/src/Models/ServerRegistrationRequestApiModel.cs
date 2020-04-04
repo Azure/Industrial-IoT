@@ -17,21 +17,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Discovery url to use for registration
         /// </summary>
-        [DataMember(Name = "discoveryUrl")]
+        [DataMember(Name = "discoveryUrl", Order = 0)]
         [Required]
         public string DiscoveryUrl { get; set; }
 
         /// <summary>
         /// Registration id
         /// </summary>
-        [DataMember(Name = "id",
+        [DataMember(Name = "id", Order = 1,
             EmitDefaultValue = false)]
         public string Id { get; set; }
 
         /// <summary>
         /// Upon discovery, activate all endpoints with this filter.
         /// </summary>
-        [DataMember(Name = "activationFilter",
+        [DataMember(Name = "activationFilter", Order = 2,
            EmitDefaultValue = false)]
         public EndpointActivationFilterApiModel ActivationFilter { get; set; }
     }

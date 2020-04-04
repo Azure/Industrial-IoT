@@ -7,7 +7,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.Extensions.Hosting;
     using Autofac.Extensions.Hosting;
-    using Serilog;
 
     /// <summary>
     /// Main entry point

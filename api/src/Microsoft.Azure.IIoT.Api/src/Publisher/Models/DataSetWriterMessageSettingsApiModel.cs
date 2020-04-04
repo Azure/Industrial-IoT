@@ -15,28 +15,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Dataset message content
         /// </summary>
-        [DataMember(Name = "dataSetMessageContentMask",
+        [DataMember(Name = "dataSetMessageContentMask", Order = 0,
             EmitDefaultValue = false)]
         public DataSetContentMask? DataSetMessageContentMask { get; set; }
 
         /// <summary>
         /// Configured size of network message
         /// </summary>
-        [DataMember(Name = "configuredSize",
+        [DataMember(Name = "configuredSize", Order = 1,
             EmitDefaultValue = false)]
         public ushort? ConfiguredSize { get; set; }
 
         /// <summary>
         /// Uadp metwork message number
         /// </summary>
-        [DataMember(Name = "networkMessageNumber",
+        [DataMember(Name = "networkMessageNumber", Order = 2,
             EmitDefaultValue = false)]
         public ushort? NetworkMessageNumber { get; set; }
 
         /// <summary>
         /// Uadp dataset offset
         /// </summary>
-        [DataMember(Name = "dataSetOffset",
+        [DataMember(Name = "dataSetOffset", Order = 3,
             EmitDefaultValue = false)]
         public ushort? DataSetOffset { get; set; }
     }

@@ -113,7 +113,7 @@ namespace Microsoft.Azure.IIoT.Serializers {
         /// <summary>
         /// Value is a null type
         /// </summary>
-        public bool IsNull =>
+        internal bool IsNull =>
             GetValueType() == VariantValueType.Null;
 
         /// <summary>
@@ -190,7 +190,7 @@ namespace Microsoft.Azure.IIoT.Serializers {
 
         /// <inheritdoc/>
         public virtual TypeCode GetTypeCode() {
-            if (this.IsNull()) {
+            if (VariantValueEx.IsNull(this)) {
                 return TypeCode.Empty;
             }
             if (TryGetBoolean(out _, true)) {
@@ -201,6 +201,9 @@ namespace Microsoft.Azure.IIoT.Serializers {
             }
             if (TryGetDouble(out _, true)) {
                 return TypeCode.Double;
+            }
+            if (TryGetBytes(out _, true)) {
+                return TypeCode.String;
             }
             if (TryGetDecimal(out _, false)) {
                 return TypeCode.Decimal;
@@ -220,11 +223,11 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
         /// <inheritdoc/>
         public static explicit operator bool(VariantValue value) =>
-            value.IsNull() ? throw new NullReferenceException() :
+            VariantValueEx.IsNull(value) ? throw new NullReferenceException() :
                 value.ToBoolean(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static explicit operator bool?(VariantValue value) =>
-            value.IsNull() ? (bool?)null :
+            VariantValueEx.IsNull(value) ? (bool?)null :
                 value.ToBoolean(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static implicit operator VariantValue(bool value) =>
@@ -242,11 +245,11 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
         /// <inheritdoc/>
         public static explicit operator byte(VariantValue value) =>
-            value.IsNull() ? throw new NullReferenceException() :
+            VariantValueEx.IsNull(value) ? throw new NullReferenceException() :
                 value.ToByte(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static explicit operator byte?(VariantValue value) =>
-            value.IsNull() ? (byte?)null :
+            VariantValueEx.IsNull(value) ? (byte?)null :
                 value.ToByte(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static implicit operator VariantValue(byte value) =>
@@ -264,11 +267,11 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
         /// <inheritdoc/>
         public static explicit operator char(VariantValue value) =>
-            value.IsNull() ? throw new NullReferenceException() :
+            VariantValueEx.IsNull(value) ? throw new NullReferenceException() :
                 value.ToChar(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static explicit operator char?(VariantValue value) =>
-            value.IsNull() ? (char?)null :
+            VariantValueEx.IsNull(value) ? (char?)null :
                 value.ToChar(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static implicit operator VariantValue(char value) =>
@@ -286,11 +289,11 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
         /// <inheritdoc/>
         public static explicit operator DateTime(VariantValue value) =>
-            value.IsNull() ? throw new NullReferenceException() :
+            VariantValueEx.IsNull(value) ? throw new NullReferenceException() :
                 value.ToDateTime(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static explicit operator DateTime?(VariantValue value) =>
-            value.IsNull() ? (DateTime?)null :
+            VariantValueEx.IsNull(value) ? (DateTime?)null :
                 value.ToDateTime(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static implicit operator VariantValue(DateTime value) =>
@@ -308,11 +311,11 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
         /// <inheritdoc/>
         public static explicit operator DateTimeOffset(VariantValue value) =>
-            value.IsNull() ? throw new NullReferenceException() :
+            VariantValueEx.IsNull(value) ? throw new NullReferenceException() :
                 value.ToDateTimeOffset(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static explicit operator DateTimeOffset?(VariantValue value) =>
-            value.IsNull() ? (DateTimeOffset?)null :
+            VariantValueEx.IsNull(value) ? (DateTimeOffset?)null :
                 value.ToDateTimeOffset(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static implicit operator VariantValue(DateTimeOffset value) =>
@@ -330,11 +333,11 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
         /// <inheritdoc/>
         public static explicit operator decimal(VariantValue value) =>
-            value.IsNull() ? throw new NullReferenceException() :
+            VariantValueEx.IsNull(value) ? throw new NullReferenceException() :
                 value.ToDecimal(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static explicit operator decimal?(VariantValue value) =>
-            value.IsNull() ? (decimal?)null :
+            VariantValueEx.IsNull(value) ? (decimal?)null :
                 value.ToDecimal(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static implicit operator VariantValue(decimal value) =>
@@ -352,11 +355,11 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
         /// <inheritdoc/>
         public static explicit operator double(VariantValue value) =>
-            value.IsNull() ? throw new NullReferenceException() :
+            VariantValueEx.IsNull(value) ? throw new NullReferenceException() :
                 value.ToDouble(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static explicit operator double?(VariantValue value) =>
-            value.IsNull() ? (double?)null :
+            VariantValueEx.IsNull(value) ? (double?)null :
                 value.ToDouble(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static implicit operator VariantValue(double value) =>
@@ -374,11 +377,11 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
         /// <inheritdoc/>
         public static explicit operator short(VariantValue value) =>
-            value.IsNull() ? throw new NullReferenceException() :
+            VariantValueEx.IsNull(value) ? throw new NullReferenceException() :
                 value.ToInt16(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static explicit operator short?(VariantValue value) =>
-            value.IsNull() ? (short?)null :
+            VariantValueEx.IsNull(value) ? (short?)null :
                 value.ToInt16(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static implicit operator VariantValue(short value) =>
@@ -396,11 +399,11 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
         /// <inheritdoc/>
         public static explicit operator int(VariantValue value) =>
-            value.IsNull() ? throw new NullReferenceException() :
+            VariantValueEx.IsNull(value) ? throw new NullReferenceException() :
                 value.ToInt32(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static explicit operator int?(VariantValue value) =>
-            value.IsNull() ? (int?)null :
+            VariantValueEx.IsNull(value) ? (int?)null :
                 value.ToInt32(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static implicit operator VariantValue(int value) =>
@@ -418,11 +421,11 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
         /// <inheritdoc/>
         public static explicit operator long(VariantValue value) =>
-            value.IsNull() ? throw new NullReferenceException() :
+            VariantValueEx.IsNull(value) ? throw new NullReferenceException() :
                 value.ToInt64(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static explicit operator long?(VariantValue value) =>
-            value.IsNull() ? (long?)null :
+            VariantValueEx.IsNull(value) ? (long?)null :
                 value.ToInt64(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static implicit operator VariantValue(long value) =>
@@ -440,11 +443,11 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
         /// <inheritdoc/>
         public static explicit operator ushort(VariantValue value) =>
-            value.IsNull() ? throw new NullReferenceException() :
+            VariantValueEx.IsNull(value) ? throw new NullReferenceException() :
                 value.ToUInt16(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static explicit operator ushort?(VariantValue value) =>
-            value.IsNull() ? (ushort?)null :
+            VariantValueEx.IsNull(value) ? (ushort?)null :
                 value.ToUInt16(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static implicit operator VariantValue(ushort value) =>
@@ -462,11 +465,11 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
         /// <inheritdoc/>
         public static explicit operator uint(VariantValue value) =>
-            value.IsNull() ? throw new NullReferenceException() :
+            VariantValueEx.IsNull(value) ? throw new NullReferenceException() :
                 value.ToUInt32(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static explicit operator uint?(VariantValue value) =>
-            value.IsNull() ? (uint?)null :
+            VariantValueEx.IsNull(value) ? (uint?)null :
                 value.ToUInt32(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static implicit operator VariantValue(uint value) =>
@@ -484,11 +487,11 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
         /// <inheritdoc/>
         public static explicit operator ulong(VariantValue value) =>
-            value.IsNull() ? throw new NullReferenceException() :
+            VariantValueEx.IsNull(value) ? throw new NullReferenceException() :
                 value.ToUInt64(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static explicit operator ulong?(VariantValue value) =>
-            value.IsNull() ? (ulong?)null :
+            VariantValueEx.IsNull(value) ? (ulong?)null :
                 value.ToUInt64(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static implicit operator VariantValue(ulong value) =>
@@ -506,11 +509,11 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
         /// <inheritdoc/>
         public static explicit operator sbyte(VariantValue value) =>
-            value.IsNull() ? throw new NullReferenceException() :
+            VariantValueEx.IsNull(value) ? throw new NullReferenceException() :
                 value.ToSByte(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static explicit operator sbyte?(VariantValue value) =>
-            value.IsNull() ? (sbyte?)null :
+            VariantValueEx.IsNull(value) ? (sbyte?)null :
                 value.ToSByte(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static implicit operator VariantValue(sbyte value) =>
@@ -528,11 +531,11 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
         /// <inheritdoc/>
         public static explicit operator float(VariantValue value) =>
-            value.IsNull() ? throw new NullReferenceException() :
+            VariantValueEx.IsNull(value) ? throw new NullReferenceException() :
                 value.ToSingle(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static explicit operator float?(VariantValue value) =>
-            value.IsNull() ? (float?)null :
+            VariantValueEx.IsNull(value) ? (float?)null :
                 value.ToSingle(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static implicit operator VariantValue(float value) =>
@@ -550,7 +553,7 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
         /// <inheritdoc/>
         public static explicit operator string(VariantValue value) =>
-            value.IsNull() ? null :
+            VariantValueEx.IsNull(value) ? null :
                 value.ToString(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static implicit operator VariantValue(string value) =>
@@ -565,7 +568,7 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
         /// <inheritdoc/>
         public static explicit operator byte[](VariantValue value) =>
-            value.IsNull() ? null :
+            VariantValueEx.IsNull(value) ? null :
                 value.ToBytes(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static implicit operator VariantValue(byte[] value) =>
@@ -580,11 +583,11 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
         /// <inheritdoc/>
         public static explicit operator Guid(VariantValue value) =>
-            value.IsNull() ? throw new NullReferenceException() :
+            VariantValueEx.IsNull(value) ? throw new NullReferenceException() :
                 value.ToGuid(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static explicit operator Guid?(VariantValue value) =>
-            value.IsNull() ? (Guid?)null :
+            VariantValueEx.IsNull(value) ? (Guid?)null :
                 value.ToGuid(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static implicit operator VariantValue(Guid value) =>
@@ -602,11 +605,11 @@ namespace Microsoft.Azure.IIoT.Serializers {
         }
         /// <inheritdoc/>
         public static explicit operator TimeSpan(VariantValue value) =>
-            value.IsNull() ? throw new NullReferenceException() :
+            VariantValueEx.IsNull(value) ? throw new NullReferenceException() :
                 value.ToTimeSpan(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static explicit operator TimeSpan?(VariantValue value) =>
-            value.IsNull() ? (TimeSpan?)null :
+            VariantValueEx.IsNull(value) ? (TimeSpan?)null :
                 value.ToTimeSpan(CultureInfo.InvariantCulture);
         /// <inheritdoc/>
         public static implicit operator VariantValue(TimeSpan value) =>
@@ -1218,6 +1221,18 @@ namespace Microsoft.Azure.IIoT.Serializers {
                     catch {
                         return false;
                     }
+                case byte[] buf:
+                    if (strict) {
+                        return false;
+                    }
+                    try {
+                        var b = new BigInteger(buf);
+                        o = (decimal)b;
+                        return true;
+                    }
+                    catch {
+                        return false;
+                    }
                 case BigInteger b:
                     if (strict) {
                         return false;
@@ -1320,6 +1335,17 @@ namespace Microsoft.Azure.IIoT.Serializers {
                     catch {
                         return false;
                     }
+                case byte[] buf:
+                    if (strict) {
+                        return false;
+                    }
+                    try {
+                        o = (long)new BigInteger(buf);
+                        return true;
+                    }
+                    catch {
+                        return false;
+                    }
                 case BigInteger b:
                     try {
                         o = (long)b;
@@ -1393,6 +1419,17 @@ namespace Microsoft.Azure.IIoT.Serializers {
                     try {
                         o = Convert.ToUInt64(raw, provider);
                         return o.Equals(raw);
+                    }
+                    catch {
+                        return false;
+                    }
+                case byte[] buf:
+                    if (strict) {
+                        return false;
+                    }
+                    try {
+                        o = (ulong)new BigInteger(buf);
+                        return true;
                     }
                     catch {
                         return false;
@@ -1597,6 +1634,12 @@ namespace Microsoft.Azure.IIoT.Serializers {
                     return true;
                 case BigInteger b:
                     o = b;
+                    return true;
+                case byte[] buf:
+                    if (strict) {
+                        return false;
+                    }
+                    o = new BigInteger(buf);
                     return true;
                 case decimal dec:
                     if (strict) {
@@ -1999,8 +2042,7 @@ namespace Microsoft.Azure.IIoT.Serializers {
                     if (xt == VariantValueType.Primitive || yt == VariantValueType.Primitive) {
                         if (xt == VariantValueType.Values || yt == VariantValueType.Values) {
                             // Compare as bytes
-                            if (x.TryGetBytes(out var bufx) &&
-                                y.TryGetBytes(out var bufy) &&
+                            if (x.TryGetBytes(out var bufx) && y.TryGetBytes(out var bufy) &&
                                 bufx.AsSpan().SequenceEqual(bufy)) {
                                 return true;
                             }
@@ -2024,16 +2066,16 @@ namespace Microsoft.Azure.IIoT.Serializers {
 
                 // Perform structural comparison
                 if (xt == VariantValueType.Values) {
-                    if (y.GetArrayElements().SequenceEqual(x.GetArrayElements(), Comparer)) {
+                    if (x.GetArrayElements().SequenceEqual(y.GetArrayElements(), Comparer)) {
                         return true;
                     }
                     return false;
                 }
 
                 if (xt == VariantValueType.Object) {
-                    var p1 = x.PropertyNames.OrderBy(k => k).Select(k => x[k]);
-                    var p2 = y.PropertyNames.OrderBy(k => k).Select(k => y[k]);
-                    if (p1.SequenceEqual(p2, Comparer)) {
+                    var px = x.PropertyNames.OrderBy(k => k).Select(k => x[k]);
+                    var py = y.PropertyNames.OrderBy(k => k).Select(k => y[k]);
+                    if (px.SequenceEqual(py, Comparer)) {
                         return true;
                     }
                     return false;
@@ -2042,7 +2084,10 @@ namespace Microsoft.Azure.IIoT.Serializers {
                 // Allow implementation to perform comparison first
                 if (x.TryEqualsVariant(y, out var result) ||
                     y.TryEqualsVariant(x, out result)) {
-                    return result;
+                    if (result) {
+                        return true;
+                    }
+                    return false;
                 }
 
                 // Compare floating point values
@@ -2231,7 +2276,10 @@ namespace Microsoft.Azure.IIoT.Serializers {
                     try {
                         var compare = co1.ToType(y.GetType(),
                             CultureInfo.InvariantCulture);
-                        return compare.Equals(y);
+                        if (!compare.Equals(y)) {
+                            return false;
+                        }
+                        return true;
                     }
                     catch {
                     }
@@ -2240,7 +2288,10 @@ namespace Microsoft.Azure.IIoT.Serializers {
                     try {
                         var compare = co2.ToType(x.GetType(),
                             CultureInfo.InvariantCulture);
-                        return compare.Equals(x);
+                        if (!compare.Equals(x)) {
+                            return false;
+                        }
+                        return true;
                     }
                     catch {
                     }

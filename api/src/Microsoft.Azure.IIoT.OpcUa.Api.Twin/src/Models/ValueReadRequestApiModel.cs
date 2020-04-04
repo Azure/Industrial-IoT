@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// Node to read from (mandatory)
         /// </summary>
-        [DataMember(Name = "nodeId",
+        [DataMember(Name = "nodeId", Order = 0,
             EmitDefaultValue = false)]
         public string NodeId { get; set; }
 
@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// An optional path from NodeId instance to
         /// the actual node.
         /// </summary>
-        [DataMember(Name = "browsePath",
+        [DataMember(Name = "browsePath", Order = 1,
             EmitDefaultValue = false)]
         public string[] BrowsePath { get; set; }
 
@@ -34,14 +34,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// an array, string or bytestring.
         /// See 7.22 of part 4: NumericRange.
         /// </summary>
-        [DataMember(Name = "indexRange",
+        [DataMember(Name = "indexRange", Order = 2,
             EmitDefaultValue = false)]
         public string IndexRange { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
-        [DataMember(Name = "header",
+        [DataMember(Name = "header", Order = 3,
             EmitDefaultValue = false)]
         public RequestHeaderApiModel Header { get; set; }
     }

@@ -29,7 +29,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Autofac;
-    using AutofacSerilogIntegration;
     using System;
     using System.Linq;
     using System.Text;
@@ -271,7 +270,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Tests {
 
             builder.RegisterModule<NewtonSoftJsonModule>();
             builder.RegisterInstance(this).AsImplementedInterfaces();
-            builder.RegisterLogger(TraceLogger.Create());
+            builder.AddDiagnostics();
             builder.RegisterModule<IoTHubMockService>();
             builder.RegisterType<TestIoTHubConfig>()
                 .AsImplementedInterfaces();

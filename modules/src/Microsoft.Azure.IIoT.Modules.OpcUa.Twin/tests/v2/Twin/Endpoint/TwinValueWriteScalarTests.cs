@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.Endpoint {
     using Microsoft.Azure.IIoT.OpcUa.Testing.Fixtures;
     using Microsoft.Azure.IIoT.OpcUa.Testing.Tests;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
-    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System.Net;
     using System.Threading.Tasks;
     using Xunit;
@@ -36,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.Endpoint {
                   _module.DeviceId, _module.ModuleId)
             };
             endpoint = _module.RegisterAndActivateTwinId(endpoint);
-            return new WriteScalarValueTests<string>(new NewtonSoftJsonSerializer(),
+            return new WriteScalarValueTests<string>(
                 () => _module.HubContainer.Resolve<INodeServices<string>>(),
                 endpoint.Id, (ep, n) => _server.Client.ReadValueAsync(endpoint.Endpoint, n));
         }

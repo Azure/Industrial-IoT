@@ -6,8 +6,9 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
-    using MemoryBuffer;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using MemoryBuffer;
     using System;
     using System.Threading.Tasks;
     using System.Xml;
@@ -18,13 +19,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         /// <summary>
         /// Create node services tests
         /// </summary>
-        public WriteScalarValueTests(IJsonSerializer serializer,
-            Func<INodeServices<T>> services, T endpoint,
+        public WriteScalarValueTests(Func<INodeServices<T>> services, T endpoint,
             Func<T, string, Task<VariantValue>> readExpected) {
             _services = services;
             _endpoint = endpoint;
             _readExpected = readExpected;
-            _serializer = serializer;
+            _serializer = new NewtonSoftJsonSerializer();
         }
 
         public async Task NodeWriteStaticScalarBooleanValueVariableTestAsync() {

@@ -36,14 +36,13 @@ namespace Microsoft.Azure.IIoT.Http {
         /// </summary>
         /// <param name="request"></param>
         /// <param name="content"></param>
-        /// <param name="encoding"></param>
         /// <param name="mediaType"></param>
+        /// <param name="encoding"></param>
         /// <returns>this</returns>
         public static IHttpRequest SetStringContent(this IHttpRequest request, string content,
-            Encoding encoding = null, MediaTypeHeaderValue mediaType = null) {
-            request.Content = new StringContent(content, encoding ?? kDefaultEncoding,
-                mediaType?.MediaType ?? kDefaultMediaType.MediaType);
-            return request;
+            string mediaType = null, Encoding encoding = null) {
+            return request.SetByteArrayContent((encoding ?? kDefaultEncoding).GetBytes(content),
+                string.IsNullOrEmpty(mediaType) ? ContentMimeType.Json : mediaType, encoding);
         }
 
         /// <summary>
@@ -51,17 +50,22 @@ namespace Microsoft.Azure.IIoT.Http {
         /// </summary>
         /// <param name="request"></param>
         /// <param name="content"></param>
-        /// <param name="type"></param>
+        /// <param name="mediaType"></param>
+        /// <param name="encoding"></param>
         /// <returns>this</returns>
         public static IHttpRequest SetByteArrayContent(this IHttpRequest request, byte[] content,
-            MediaTypeHeaderValue type) {
+            string mediaType = null, Encoding encoding = null) {
+
+            var headerValue = new MediaTypeHeaderValue(
+                string.IsNullOrEmpty(mediaType) ? ContentMimeType.Binary : mediaType);
+            if (encoding != null) {
+                headerValue.CharSet = encoding.WebName;
+            }
             request.Content = new ByteArrayContent(content);
-            request.Content.Headers.ContentType = type;
+            request.Content.Headers.ContentType = headerValue;
             return request;
         }
 
-        private static readonly MediaTypeHeaderValue kDefaultMediaType =
-            new MediaTypeHeaderValue(ContentMimeType.Json);
         private static readonly Encoding kDefaultEncoding = new UTF8Encoding();
     }
 }

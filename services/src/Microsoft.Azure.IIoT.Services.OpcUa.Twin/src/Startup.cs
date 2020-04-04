@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Twin.Deploy;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
@@ -14,6 +15,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
@@ -107,7 +109,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
             // services.AddHttpClient();
 
             // Add controllers as services so they'll be resolved.
-            services.AddControllers().AddJsonSerializer().AddMessagePackSerializer();
+            services.AddControllers().AddSerializers();
             services.AddSwagger(Config, ServiceInfo.Name, ServiceInfo.Description);
         }
 
@@ -197,6 +199,17 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
             builder.RegisterType<TwinModuleControlClient>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<TwinModuleSupervisorClient>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // Edge deployment
+            builder.RegisterType<IoTHubConfigurationClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<IoTHubSupervisorDeployment>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // ... and auto start
+            builder.RegisterType<HostAutoStart>()
+                .AutoActivate()
                 .AsImplementedInterfaces().SingleInstance();
         }
     }

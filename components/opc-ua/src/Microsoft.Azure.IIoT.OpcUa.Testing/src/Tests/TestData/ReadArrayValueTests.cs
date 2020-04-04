@@ -21,11 +21,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         /// <param name="services"></param>
         /// <param name="endpoint"></param>
         /// <param name="readExpected"></param>
-        public ReadArrayValueTests(IJsonSerializer serializer,
-            Func<INodeServices<T>> services, T endpoint,
+        public ReadArrayValueTests(Func<INodeServices<T>> services, T endpoint,
             Func<T, string, Task<VariantValue>> readExpected) {
             _services = services;
-            _serializer = serializer;
             _endpoint = endpoint;
             _readExpected = readExpected;
         }
@@ -240,7 +238,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            if (result.Value.IsNull()) {
+            if (VariantValueEx.IsNull(result.Value)) {
                 return;
             }
 
@@ -594,7 +592,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             Assert.NotNull(result.ServerTimestamp);
             AssertEqualValue(expected, result.Value);
 
-            if (result.Value.IsNull()) {
+            if (VariantValueEx.IsNull(result.Value)) {
                 return;
             }
             Assert.True(result.Value.IsListOfValues);
@@ -964,6 +962,5 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         private readonly T _endpoint;
         private readonly Func<T, string, Task<VariantValue>> _readExpected;
         private readonly Func<INodeServices<T>> _services;
-        private readonly IJsonSerializer _serializer;
     }
 }

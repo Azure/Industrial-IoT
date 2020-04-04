@@ -240,7 +240,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                             false, false, false, diagnostics, false);
                         var arg = new MethodMetadataArgumentModel {
                             Name = argument.Name,
-                            DefaultValue = argument.Value == null ? null :
+                            DefaultValue = argument.Value == null ? VariantValue.Null :
                                 codec.Encode(new Variant(argument.Value), out var type),
                             ValueRank = argument.ValueRank == ValueRanks.Scalar ?
                                 (NodeValueRank?)null : (NodeValueRank)argument.ValueRank,
@@ -360,7 +360,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                     new CallMethodRequest {
                         ObjectId = objectId,
                         MethodId = methodId,
-                        InputArguments = inputs == null ? null :
+                        InputArguments = inputs == null ? new VariantCollection() :
                             new VariantCollection(inputs
                                 .Select(arg => arg.Item1.CreateVariant(arg.Item2)))
                     }
@@ -488,7 +488,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
             if (request == null) {
                 throw new ArgumentNullException(nameof(request));
             }
-            if (request.Value == null) {
+            if (request.Value is null) {
                 throw new ArgumentNullException(nameof(request.Value));
             }
             if (string.IsNullOrEmpty(request.NodeId) &&

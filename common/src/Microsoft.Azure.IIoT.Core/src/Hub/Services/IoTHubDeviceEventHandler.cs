@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
     using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Collections.Generic;
+    using System.Collections.Concurrent;
     using System.Linq;
     using System.Threading.Tasks;
 
@@ -26,7 +27,8 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
             if (handlers == null) {
                 throw new ArgumentNullException(nameof(handlers));
             }
-            _handlers = handlers.ToDictionary(h => h.MessageSchema.ToLowerInvariant(), h => h);
+            _handlers = new ConcurrentDictionary<string, IDeviceTelemetryHandler>(
+                handlers.Select(h => KeyValuePair.Create(h.MessageSchema.ToLowerInvariant(), h)));
             _unknown = unknown;
         }
 
@@ -55,7 +57,7 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
                 if (_handlers.TryGetValue(schemaType.ToLowerInvariant(), out var handler)) {
                     await handler.HandleAsync(deviceId, moduleId?.ToString(), eventData,
                         properties, checkpoint);
-                    _used.Add(handler);
+                    _used.Enqueue(handler);
                 }
 
                 // Handled...
@@ -71,15 +73,14 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
 
         /// <inheritdoc/>
         public async Task OnBatchCompleteAsync() {
-            foreach (var handler in _used.ToList()) {
+            while (_used.TryDequeue(out var handler)) {
                 await Try.Async(handler.OnBatchCompleteAsync);
             }
-            _used.Clear();
         }
 
-        private readonly HashSet<IDeviceTelemetryHandler> _used =
-            new HashSet<IDeviceTelemetryHandler>();
-        private readonly Dictionary<string, IDeviceTelemetryHandler> _handlers;
+        private readonly ConcurrentQueue<IDeviceTelemetryHandler> _used =
+            new ConcurrentQueue<IDeviceTelemetryHandler>();
+        private readonly ConcurrentDictionary<string, IDeviceTelemetryHandler> _handlers;
         private readonly IUnknownEventProcessor _unknown;
     }
 }

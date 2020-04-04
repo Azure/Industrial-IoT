@@ -18,68 +18,68 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Name of the field
         /// </summary>
-        [DataMember(Name = "name")]
+        [DataMember(Name = "name", Order = 0)]
         public string Name { get; set; }
 
         /// <summary>
         /// Description for the field
         /// </summary>
-        [DataMember(Name = "description",
+        [DataMember(Name = "description", Order = 1,
             EmitDefaultValue = false)]
         public LocalizedTextApiModel Description { get; set; }
 
         /// <summary>
         /// Field Flags.
         /// </summary>
-        [DataMember(Name = "fieldFlags",
+        [DataMember(Name = "fieldFlags", Order = 2,
             EmitDefaultValue = false)]
         public ushort? FieldFlags { get; set; }
 
         /// <summary>
         /// Built in type
         /// </summary>
-        [DataMember(Name = "builtInType",
+        [DataMember(Name = "builtInType", Order = 3,
             EmitDefaultValue = false)]
         public string BuiltInType { get; set; }
 
         /// <summary>
         /// The Datatype Id
         /// </summary>
-        [DataMember(Name = "dataTypeId")]
+        [DataMember(Name = "dataTypeId", Order = 4)]
         public string DataTypeId { get; set; }
 
         /// <summary>
         /// ValueRank.
         /// </summary>
-        [DataMember(Name = "valueRank",
+        [DataMember(Name = "valueRank", Order = 5,
             EmitDefaultValue = false)]
         public int? ValueRank { get; set; }
 
         /// <summary>
         /// Array dimensions
         /// </summary>
-        [DataMember(Name = "arrayDimensions",
+        [DataMember(Name = "arrayDimensions", Order = 6,
             EmitDefaultValue = false)]
         public List<uint> ArrayDimensions { get; set; }
 
         /// <summary>
         /// Max String Length constraint.
         /// </summary>
-        [DataMember(Name = "maxStringLength",
+        [DataMember(Name = "maxStringLength", Order = 7,
             EmitDefaultValue = false)]
         public uint? MaxStringLength { get; set; }
 
         /// <summary>
         /// The unique guid of the field in the dataset.
         /// </summary>
-        [DataMember(Name = "dataSetFieldId",
+        [DataMember(Name = "dataSetFieldId", Order = 8,
             EmitDefaultValue = false)]
         public Guid? DataSetFieldId { get; set; }
 
         /// <summary>
         /// Additional properties
         /// </summary>
-        [DataMember(Name = "properties",
+        [DataMember(Name = "properties", Order = 9,
             EmitDefaultValue = false)]
         public Dictionary<string, string> Properties { get; set; }
     }

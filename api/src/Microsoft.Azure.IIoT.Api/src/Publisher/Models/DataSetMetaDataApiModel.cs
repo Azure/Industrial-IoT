@@ -18,63 +18,63 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Name of the dataset
         /// </summary>
-        [DataMember(Name = "name",
+        [DataMember(Name = "name", Order = 0,
             EmitDefaultValue = false)]
         public string Name { get; set; }
 
         /// <summary>
         /// Description of the dataset
         /// </summary>
-        [DataMember(Name = "description",
+        [DataMember(Name = "description", Order = 1,
             EmitDefaultValue = false)]
         public LocalizedTextApiModel Description { get; set; }
 
         /// <summary>
         /// Metadata for the data set fiels
         /// </summary>
-        [DataMember(Name = "fields",
+        [DataMember(Name = "fields", Order = 2,
             EmitDefaultValue = false)]
         public List<FieldMetaDataApiModel> Fields { get; set; }
 
         /// <summary>
         /// Dataset class id
         /// </summary>
-        [DataMember(Name = "dataSetClassId",
+        [DataMember(Name = "dataSetClassId", Order = 3,
             EmitDefaultValue = false)]
         public Guid DataSetClassId { get; set; }
 
         /// <summary>
         /// Dataset version
         /// </summary>
-        [DataMember(Name = "configurationVersion",
+        [DataMember(Name = "configurationVersion", Order = 4,
             EmitDefaultValue = false)]
         public ConfigurationVersionApiModel ConfigurationVersion { get; set; }
 
         /// <summary>
         /// Namespaces in the metadata description
         /// </summary>
-        [DataMember(Name = "namespaces",
+        [DataMember(Name = "namespaces", Order = 5,
             EmitDefaultValue = false)]
         public List<string> Namespaces { get; set; }
 
         /// <summary>
         /// Structure data types
         /// </summary>
-        [DataMember(Name = "structureDataTypes",
+        [DataMember(Name = "structureDataTypes", Order = 6,
             EmitDefaultValue = false)]
         public List<StructureDescriptionApiModel> StructureDataTypes { get; set; }
 
         /// <summary>
         /// Enum data types
         /// </summary>
-        [DataMember(Name = "enumDataTypes",
+        [DataMember(Name = "enumDataTypes", Order = 7,
             EmitDefaultValue = false)]
         public List<EnumDescriptionApiModel> EnumDataTypes { get; set; }
 
         /// <summary>
         /// Simple data type.
         /// </summary>
-        [DataMember(Name = "simpleDataTypes",
+        [DataMember(Name = "simpleDataTypes", Order = 8,
             EmitDefaultValue = false)]
         public List<SimpleTypeDescriptionApiModel> SimpleDataTypes { get; set; }
     }

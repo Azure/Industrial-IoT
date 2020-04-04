@@ -15,14 +15,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Site the supervisor is part of
         /// </summary>
-        [DataMember(Name = "siteId",
+        [DataMember(Name = "siteId", Order = 0,
             EmitDefaultValue = false)]
         public string SiteId { get; set; }
 
         /// <summary>
         /// Current log level
         /// </summary>
-        [DataMember(Name = "logLevel",
+        [DataMember(Name = "logLevel", Order = 1,
             EmitDefaultValue = false)]
         public TraceLogLevel? LogLevel { get; set; }
     }

@@ -17,63 +17,63 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         /// <summary>
         /// messageId - from the network message
         /// </summary>
-        [DataMember(Name = "messageId",
+        [DataMember(Name = "messageId", Order = 0,
             EmitDefaultValue = false)]
         public string MessageId { get; set; }
 
         /// <summary>
         /// Publisher Id - from network message
         /// </summary>
-        [DataMember(Name = "publisherId",
+        [DataMember(Name = "publisherId", Order = 1,
             EmitDefaultValue = false)]
         public string PublisherId { get; set; }
 
         /// <summary>
         /// Dataset Class ID - from network message
         /// </summary>
-        [DataMember(Name = "dataSetClassId",
+        [DataMember(Name = "dataSetClassId", Order = 2,
             EmitDefaultValue = false)]
         public string DataSetClassId { get; set; }
 
         /// <summary>
         /// Subscription id
         /// </summary>
-        [DataMember(Name = "dataSetWriterId",
+        [DataMember(Name = "dataSetWriterId", Order = 3,
             EmitDefaultValue = false)]
         public string DataSetWriterId { get; set; }
 
         /// <summary>
         /// Endpoint
         /// </summary>
-        [DataMember(Name = "sequenceNumber",
+        [DataMember(Name = "sequenceNumber", Order = 4,
             EmitDefaultValue = false)]
         public uint SequenceNumber { get; set; }
 
         /// <summary>
         /// Endpoint
         /// </summary>
-        [DataMember(Name = "metaDataVersion",
+        [DataMember(Name = "metaDataVersion", Order = 5,
             EmitDefaultValue = false)]
         public string MetaDataVersion { get; set; }
 
         /// <summary>
         /// Status of the payload (Quality)
         /// </summary>
-        [DataMember(Name = "status",
+        [DataMember(Name = "status", Order = 6,
             EmitDefaultValue = false)]
         public string Status { get; set; }
 
         /// <summary>
         /// Time stamp of the dataset
         /// </summary>
-        [DataMember(Name = "timestamp",
+        [DataMember(Name = "timestamp", Order = 7,
             EmitDefaultValue = false)]
         public DateTime? Timestamp { get; set; }
 
         /// <summary>
         /// Dataset's payload dictionary
         /// </summary>
-        [DataMember(Name = "payload",
+        [DataMember(Name = "payload", Order = 8,
             EmitDefaultValue = false)]
         public Dictionary<string, DataValueModel> Payload { get; set; }
     }

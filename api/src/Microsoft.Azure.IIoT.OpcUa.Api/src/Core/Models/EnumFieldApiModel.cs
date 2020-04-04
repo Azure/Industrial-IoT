@@ -15,26 +15,26 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// <summary>
         /// Name of the field
         /// </summary>
-        [DataMember(Name = "name")]
+        [DataMember(Name = "name", Order = 0)]
         public string Name { get; set; }
 
         /// <summary>
         /// The value of the field.
         /// </summary>
-        [DataMember(Name = "value")]
+        [DataMember(Name = "value", Order = 1)]
         public long Value { get; set; }
 
         /// <summary>
         /// Human readable name for the value.
         /// </summary>
-        [DataMember(Name = "displayName",
+        [DataMember(Name = "displayName", Order = 2,
             EmitDefaultValue = false)]
         public LocalizedTextApiModel DisplayName { get; set; }
 
         /// <summary>
         /// A description of the value.
         /// </summary>
-        [DataMember(Name = "description",
+        [DataMember(Name = "description", Order = 3,
             EmitDefaultValue = false)]
         public LocalizedTextApiModel Description { get; set; }
     }

@@ -18,14 +18,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// <summary>
         /// The filter to use to select the events
         /// </summary>
-        [DataMember(Name = "filter",
+        [DataMember(Name = "filter", Order = 0,
             EmitDefaultValue = false)]
         public EventFilterApiModel Filter { get; set; }
 
         /// <summary>
         /// The events to replace
         /// </summary>
-        [DataMember(Name = "events")]
+        [DataMember(Name = "events", Order = 1)]
         [Required]
         public List<HistoricEventApiModel> Events { get; set; }
     }

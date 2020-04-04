@@ -15,14 +15,14 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
         /// <summary>
         /// Processing mode
         /// </summary>
-        [DataMember(Name = "processMode",
+        [DataMember(Name = "processMode", Order = 0,
             EmitDefaultValue = false)]
         public ProcessMode? ProcessMode { get; set; }
 
         /// <summary>
         /// Job to process
         /// </summary>
-        [DataMember(Name = "job",
+        [DataMember(Name = "job", Order = 1,
             EmitDefaultValue = false)]
         public JobInfoApiModel Job { get; set; }
     }

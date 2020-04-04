@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Opc.Ua;
     using System;
     using System.Linq;
@@ -20,12 +21,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         /// <summary>
         /// Create node services tests
         /// </summary>
-        public WriteArrayValueTests(IJsonSerializer serializer,
-            Func<INodeServices<T>> services, T endpoint,
+        public WriteArrayValueTests(Func<INodeServices<T>> services, T endpoint,
             Func<T, string, Task<VariantValue>> readExpected) {
             _services = services;
             _endpoint = endpoint;
-            _serializer = serializer;
+            _serializer = new NewtonSoftJsonSerializer();
             _readExpected = readExpected;
         }
 
@@ -818,15 +818,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""StructureValue"": { ""TypeId"": null },
             ""Number"": {
                 ""Type"": ""Double"",
-                ""Body"": 0.0
+                ""Body"": 1.0
             },
             ""Integer"": {
                 ""Type"": ""Int64"",
-                ""Body"": 0
+                ""Body"": 1
             },
             ""UInteger"": {
                 ""Type"": ""UInt64"",
-                ""Body"": 0
+                ""Body"": 1
             }
         }
     },
@@ -842,7 +842,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""Int32Value"": 1002303007,
             ""UInt32Value"": 2322690949,
             ""Int64Value"": -8682057831558849682,
-            ""UInt64Value"": 10042278942021613161,
+            ""UInt64Value"": 1004227894202161316,
             ""FloatValue"": 4.1843192E-05,
             ""DoubleValue"": 32635254472704.0,
             ""StringValue"": ""Голубика> Дракон@"",
@@ -880,15 +880,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""StructureValue"": { ""TypeId"": null },
             ""Number"": {
                 ""Type"": ""Double"",
-                ""Body"": 0.0
+                ""Body"": 1.0
             },
             ""Integer"": {
                 ""Type"": ""Int64"",
-                ""Body"": 0
+                ""Body"": 1
             },
             ""UInteger"": {
                 ""Type"": ""UInt64"",
-                ""Body"": 0
+                ""Body"": 1
             }
         }
     },
@@ -939,19 +939,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 ""Type"": ""Int64"",
                 ""Body"": 3678050018011977630
             },
-            ""EnumerationValue"": 0,
+            ""EnumerationValue"": 1,
             ""StructureValue"": { ""TypeId"": null },
             ""Number"": {
                 ""Type"": ""Double"",
-                ""Body"": 0.0
+                ""Body"": 1.0
             },
             ""Integer"": {
                 ""Type"": ""Int64"",
-                ""Body"": 0
+                ""Body"": 1
             },
             ""UInteger"": {
                 ""Type"": ""UInt64"",
-                ""Body"": 0
+                ""Body"": 1
             }
         }
     },
@@ -967,7 +967,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""Int32Value"": 1970614820,
             ""UInt32Value"": 4087763535,
             ""Int64Value"": 3156392098576755738,
-            ""UInt64Value"": 11790719998462990154,
+            ""UInt64Value"": 1179071999846299015,
             ""FloatValue"": -1.2796896E-06,
             ""DoubleValue"": -2.4084619380135754E-35,
             ""StringValue"": ""ヘビ~ 猫* 緑) マンゴ< レモン ブタ\"" 石灰 石灰{ 黒! ブタ 猿 馬 ブタ@ 牛 ヘビ' 犬 犬\"" 牛$"",
@@ -1002,11 +1002,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 ""Type"": ""SByte"",
                 ""Body"": -114
             },
-            ""EnumerationValue"": 0,
+            ""EnumerationValue"": 1,
             ""StructureValue"": { ""TypeId"": null },
             ""Number"": {
                 ""Type"": ""Double"",
-                ""Body"": 0.0
+                ""Body"": 1.0
             },
             ""Integer"": {
                 ""Type"": ""Int64"",
@@ -1014,7 +1014,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             },
             ""UInteger"": {
                 ""Type"": ""UInt64"",
-                ""Body"": 0
+                ""Body"": 1
             }
         }
     },
@@ -1030,7 +1030,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""Int32Value"": 150448275,
             ""UInt32Value"": 2074081332,
             ""Int64Value"": -1011618571483371166,
-            ""UInt64Value"": 8946747598058890327,
+            ""UInt64Value"": 3946747598058890327,
             ""FloatValue"": 7.858336E+35,
             ""DoubleValue"": 10017916.0,
             ""StringValue"": ""яблоко Ананас~ Овцы Корова Пурпурово_ Банан Крыса Собака Кот Бело( Корова'"",
@@ -1067,15 +1067,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 ""Type"": ""ExpandedNodeId"",
                 ""Body"": ""http://opcfoundation.org/UA/Boiler//Instance#b=4Ncr5uADYkU88S45mg%3d%3d""
             },
-            ""EnumerationValue"": 0,
+            ""EnumerationValue"": 1,
             ""StructureValue"": { ""TypeId"": null },
             ""Number"": {
                 ""Type"": ""Double"",
-                ""Body"": 0.0
+                ""Body"": 1.0
             },
             ""Integer"": {
                 ""Type"": ""Int64"",
-                ""Body"": 0
+                ""Body"": 1
             },
             ""UInteger"": {
                 ""Type"": ""UInt64"",
@@ -1095,7 +1095,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""Int32Value"": [ 1147924132, 937096171, 293419963, 1355723363, 1682226035, 921241048, 946417831, 483648971, 1150550410 ],
             ""UInt32Value"": [ 405022290, 3763626854, 2219565007, 635093313, 1150728258 ],
             ""Int64Value"": [ -1689618757610414770, -1598013270992443575, -6068487195887049228, 3886489167998855712 ],
-            ""UInt64Value"": [ 14348387007481775183, 579235881671951863, 10801679293459156539, 13309432137704145439 ],
+            ""UInt64Value"": [ 1434838700748177518, 579235881671951863, 1080167929345915653, 1330943213770414543 ],
             ""FloatValue"": [ 4.311362E-33, 6.620173E-35, -8.877828E-29, -1.2760576E+29, -1.646687E-22, 1.802464E-21 ],
             ""DoubleValue"": [ -6011373486080.0, 108132739055616.0, 8.3547184787473483E-36, 5.2422583022226784E+27, 1.0392232580248937E-32, 1.0094077198242765E+33, -8.35414627813762E-39 ],
             ""StringValue"": [ ""녹색 들쭉 들쭉 돼지 녹색% 녹색 암소 원숭이 딸기+ 들쭉 암소~ 망고 망고 딸기 녹색 녹색 돼지 들쭉) 석회 개} 검정 쥐~ 쥐 코끼리= 들쭉"", ""Обезьяна Красно Зеленыйцвет Крыса"", ""Красно, Желтыйцвет Манго= Ананас Бело&"", ""Голубика Желтыйцвет"", ""蓝莓 大象~ 绵羊 柠檬 母牛 母牛 红色"", ""狗\"" 马 紫色` 葡萄@ 柠檬 芒果 猪 菠萝 龙^ 黑色* 马 绿色 绵羊 大象 红色) 蓝莓 蛇# 狗 香蕉 草莓 黑色@ 红色 鼠~ 蓝色 香蕉 猫 红色% 黑色"", ""Чернота- Собака Пурпурово# Голубика Чернота Голубо: Дракон яблоко Бело Зеленыйцвет"" ],
@@ -1204,7 +1204,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""Int32Value"": 535350820,
             ""UInt32Value"": 3693060540,
             ""Int64Value"": -2577172637598593213,
-            ""UInt64Value"": 11187487780701632783,
+            ""UInt64Value"": 1118748778070163278,
             ""FloatValue"": 1.931257E+17,
             ""DoubleValue"": -0.00033564501791261137,
             ""StringValue"": ""ラット} 馬` いちご 青い 白い 象 レモン. パイナップル"",
@@ -1237,7 +1237,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 ""Type"": ""ExpandedNodeId"",
                 ""Body"": ""http://samples.org/UA/memorybuffer#i=1429871234""
             },
-            ""EnumerationValue"": 0,
+            ""EnumerationValue"": 1,
             ""StructureValue"": { ""TypeId"": null },
             ""Number"": {
                 ""Type"": ""Double"",
@@ -1249,7 +1249,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             },
             ""UInteger"": {
                 ""Type"": ""UInt64"",
-                ""Body"": 0
+                ""Body"": 1
             }
         }
     }

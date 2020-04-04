@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// Configure Dependency injection
         /// </summary>
         public static IContainer ConfigureContainer(
-            IConfiguration configuration) {
+            IConfiguration configuration, bool useMsgPack) {
             var builder = new ContainerBuilder();
 
             var config = new ApiConfig(configuration);
@@ -62,6 +62,9 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             // Register logger
             builder.AddDiagnostics(config, addConsole: false);
             builder.RegisterModule<NewtonSoftJsonModule>();
+            if (useMsgPack) {
+                builder.RegisterModule<MessagePackModule>();
+            }
 
             // Register http client module ...
             builder.RegisterModule<HttpClientModule>();
@@ -112,7 +115,8 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
                 .AddFromKeyVault()
                 .Build();
 
-            using (var scope = new Program(config)) {
+            using (var scope = new Program(config,
+                args.Any(arg => arg.EqualsIgnoreCase("--useMsgPack")))) {
                 scope.RunAsync(args).Wait();
             }
         }
@@ -121,8 +125,8 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         /// <summary>
         /// Configure Dependency injection
         /// </summary>
-        public Program(IConfiguration configuration) {
-            var container = ConfigureContainer(configuration);
+        public Program(IConfiguration configuration, bool useMsgPack) {
+            var container = ConfigureContainer(configuration, useMsgPack);
             _scope = container.BeginLifetimeScope();
             _twin = _scope.Resolve<ITwinServiceApi>();
             _registry = _scope.Resolve<IRegistryServiceApi>();
@@ -1501,6 +1505,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
         private async Task QuerySupervisorsAsync(CliOptions options) {
             var query = new SupervisorQueryApiModel {
                 Connected = options.IsProvidedOrNull("-c", "--connected"),
+                EndpointId = options.GetValueOrDefault<string>("-e", "--endpoint", null),
                 SiteId = options.GetValueOrDefault<string>("-s", "--siteId", null)
             };
             if (options.IsSet("-A", "--all")) {
@@ -3216,6 +3221,7 @@ Commands and Options
         -S, --server    Return only server state (default:false)
         -c, --connected Only return connected or disconnected.
         -s, --siteId    Site of the supervisors.
+        -e, --endpoint  Manages Endpoint twin with given id.
         -P, --page-size Size of page
         -A, --all       Return all supervisors (unpaged)
         -F, --format    Json format for result

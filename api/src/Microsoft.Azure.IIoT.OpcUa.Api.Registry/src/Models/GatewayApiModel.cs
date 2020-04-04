@@ -16,21 +16,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Gateway id
         /// </summary>
-        [DataMember(Name = "id")]
+        [DataMember(Name = "id", Order = 0)]
         [Required]
         public string Id { get; set; }
 
         /// <summary>
         /// Site of the Gateway
         /// </summary>
-        [DataMember(Name = "siteId",
+        [DataMember(Name = "siteId", Order = 1,
             EmitDefaultValue = false)]
         public string SiteId { get; set; }
 
         /// <summary>
         /// Whether Gateway is connected on this registration
         /// </summary>
-        [DataMember(Name = "connected",
+        [DataMember(Name = "connected", Order = 2,
             EmitDefaultValue = false)]
         public bool? Connected { get; set; }
     }

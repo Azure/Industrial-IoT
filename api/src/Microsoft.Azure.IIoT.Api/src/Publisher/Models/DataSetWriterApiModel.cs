@@ -16,48 +16,48 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Dataset writer id
         /// </summary>
-        [DataMember(Name = "dataSetWriterId")]
+        [DataMember(Name = "dataSetWriterId", Order = 0)]
         public string DataSetWriterId { get; set; }
 
         /// <summary>
         /// Published dataset inline definition
         /// </summary>
-        [DataMember(Name = "dataSet",
+        [DataMember(Name = "dataSet", Order = 1,
             EmitDefaultValue = false)]
         public PublishedDataSetApiModel DataSet { get; set; }
 
         /// <summary>
         /// Dataset field content mask
         /// </summary>
-        [DataMember(Name = "dataSetFieldContentMask",
+        [DataMember(Name = "dataSetFieldContentMask", Order = 2,
             EmitDefaultValue = false)]
         public DataSetFieldContentMask? DataSetFieldContentMask { get; set; }
 
         /// <summary>
         /// Data set message settings
         /// </summary>
-        [DataMember(Name = "messageSettings",
+        [DataMember(Name = "messageSettings", Order = 3,
             EmitDefaultValue = false)]
         public DataSetWriterMessageSettingsApiModel MessageSettings { get; set; }
 
         /// <summary>
         /// Keyframe count
         /// </summary>
-        [DataMember(Name = "keyFrameCount",
+        [DataMember(Name = "keyFrameCount", Order = 4,
             EmitDefaultValue = false)]
         public uint? KeyFrameCount { get; set; }
 
         /// <summary>
         /// Or keyframe timer interval (publisher extension)
         /// </summary>
-        [DataMember(Name = "keyFrameInterval",
+        [DataMember(Name = "keyFrameInterval", Order = 5,
             EmitDefaultValue = false)]
         public TimeSpan? KeyFrameInterval { get; set; }
 
         /// <summary>
         /// Metadata message sending interval (publisher extension)
         /// </summary>
-        [DataMember(Name = "dataSetMetaDataSendInterval",
+        [DataMember(Name = "dataSetMetaDataSendInterval", Order = 6,
             EmitDefaultValue = false)]
         public TimeSpan? DataSetMetaDataSendInterval { get; set; }
     }

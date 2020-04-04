@@ -17,14 +17,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// Node to read from or write to (mandatory)
         /// </summary>
-        [DataMember(Name = "nodeId")]
+        [DataMember(Name = "nodeId", Order = 0)]
         [Required]
         public string NodeId { get; set; }
 
         /// <summary>
         /// Attribute to read or write
         /// </summary>
-        [DataMember(Name = "attribute")]
+        [DataMember(Name = "attribute", Order = 1)]
         [Required]
         public NodeAttribute Attribute { get; set; }
     }

@@ -47,7 +47,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
             try {
                 using (var stream = new MemoryStream(payload)) {
                     using (var decoder = new BinaryDecoder(stream, context)) {
-                        var result = decoder.ReadEncodeable(null, 
+                        var result = decoder.ReadEncodeable(null,
                             typeof(MonitoredItemMessage)) as MonitoredItemMessage;
                         message = result;
                     }
@@ -78,9 +78,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                             Status = (message?.Value?.StatusCode.Code == StatusCodes.Good)
                                 ? null : StatusCode.LookupSymbolicId(message.Value.StatusCode.Code),
                             SourceTimestamp = (message?.Value?.SourceTimestamp == DateTime.MinValue)
-                                ? null : (DateTime?)message?.Value?.SourceTimestamp,
+                                ? null : message?.Value?.SourceTimestamp,
                             ServerTimestamp = (message?.Value?.ServerTimestamp == DateTime.MinValue)
-                                ? null : (DateTime?)message?.Value?.ServerTimestamp
+                                ? null : message?.Value?.ServerTimestamp
                         }
                     }
                 };

@@ -16,31 +16,31 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
         /// <summary>
         /// Entity id
         /// </summary>
-        [DataMember(Name = "entityId")]
+        [DataMember(Name = "entityId", Order = 0)]
         public string EntityId { get; set; }
 
         /// <summary>
         /// Certificate group
         /// </summary>
-        [DataMember(Name = "groupId")]
+        [DataMember(Name = "groupId", Order = 1)]
         public string GroupId { get; set; }
 
         /// <summary>
         /// Type
         /// </summary>
-        [DataMember(Name = "certificateType")]
+        [DataMember(Name = "certificateType", Order = 2)]
         public TrustGroupType CertificateType { get; set; }
 
         /// <summary>
         /// Subject name
         /// </summary>
-        [DataMember(Name = "subjectName")]
+        [DataMember(Name = "subjectName", Order = 3)]
         public string SubjectName { get; set; }
 
         /// <summary>
         /// Domain names
         /// </summary>
-        [DataMember(Name = "domainNames")]
+        [DataMember(Name = "domainNames", Order = 4)]
         public List<string> DomainNames { get; set; }
     }
 }

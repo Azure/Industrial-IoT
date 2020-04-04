@@ -16,21 +16,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// <summary>
         /// Modification time
         /// </summary>
-        [DataMember(Name = "modificationTime",
+        [DataMember(Name = "modificationTime", Order = 0,
             EmitDefaultValue = false)]
         public DateTime? ModificationTime { get; set; }
 
         /// <summary>
         /// Operation
         /// </summary>
-        [DataMember(Name = "updateType",
+        [DataMember(Name = "updateType", Order = 1,
             EmitDefaultValue = false)]
         public HistoryUpdateOperation? UpdateType { get; set; }
 
         /// <summary>
         /// User who made the change
         /// </summary>
-        [DataMember(Name = "userName",
+        [DataMember(Name = "userName", Order = 2,
             EmitDefaultValue = false)]
         public string UserName { get; set; }
     }

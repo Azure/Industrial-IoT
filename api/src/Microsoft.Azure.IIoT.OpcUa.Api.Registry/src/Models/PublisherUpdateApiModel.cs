@@ -15,21 +15,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Site of the publisher
         /// </summary>
-        [DataMember(Name = "siteId",
+        [DataMember(Name = "siteId", Order = 0,
             EmitDefaultValue = false)]
         public string SiteId { get; set; }
 
         /// <summary>
         /// Publisher discovery configuration
         /// </summary>
-        [DataMember(Name = "configuration",
+        [DataMember(Name = "configuration", Order = 1,
             EmitDefaultValue = false)]
         public PublisherConfigApiModel Configuration { get; set; }
 
         /// <summary>
         /// Current log level
         /// </summary>
-        [DataMember(Name = "logLevel",
+        [DataMember(Name = "logLevel", Order = 2,
             EmitDefaultValue = false)]
         public TraceLogLevel? LogLevel { get; set; }
     }

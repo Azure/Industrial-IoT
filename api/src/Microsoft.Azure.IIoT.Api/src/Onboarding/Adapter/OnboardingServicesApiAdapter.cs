@@ -7,8 +7,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding {
     using Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
-    using Microsoft.Azure.IIoT.Serializers;
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
     using System.Collections.Generic;
 
@@ -21,9 +21,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding {
         /// Create service
         /// </summary>
         /// <param name="client"></param>
-        /// <param name="serializer"></param>
-        public OnboardingServicesApiAdapter(IOnboardingServiceApi client, ISerializer serializer) {
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+        public OnboardingServicesApiAdapter(IOnboardingServiceApi client) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
@@ -32,12 +30,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding {
             DiscoveryResultModel result, IEnumerable<DiscoveryEventModel> events) {
             await _client.ProcessDiscoveryResultsAsync(discovererId,
                 new DiscoveryResultListApiModel {
-                    Result = _serializer.Map<DiscoveryResultApiModel>(result),
-                    Events = _serializer.Map<List<DiscoveryEventApiModel>>(events)
+                    Result = result.ToApiModel(),
+                    Events = events?.Select(e => e.ToApiModel()).ToList()
                 });
         }
 
-        private readonly ISerializer _serializer;
         private readonly IOnboardingServiceApi _client;
     }
 }

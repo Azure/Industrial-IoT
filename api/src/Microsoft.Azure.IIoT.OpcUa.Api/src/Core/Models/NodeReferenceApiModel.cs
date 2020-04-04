@@ -17,21 +17,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// <summary>
         /// Reference Type id
         /// </summary>
-        [DataMember(Name = "referenceTypeId",
+        [DataMember(Name = "referenceTypeId", Order = 0,
             EmitDefaultValue = false)]
         public string ReferenceTypeId { get; set; }
 
         /// <summary>
         /// Browse direction of reference
         /// </summary>
-        [DataMember(Name = "direction",
+        [DataMember(Name = "direction", Order = 1,
             EmitDefaultValue = false)]
         public BrowseDirection? Direction { get; set; }
 
         /// <summary>
         /// Target node
         /// </summary>
-        [DataMember(Name = "target")]
+        [DataMember(Name = "target", Order = 2)]
         [Required]
         public NodeApiModel Target { get; set; }
 

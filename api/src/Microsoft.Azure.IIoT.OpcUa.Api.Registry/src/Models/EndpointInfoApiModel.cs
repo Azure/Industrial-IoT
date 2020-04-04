@@ -17,42 +17,42 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Endpoint registration
         /// </summary>
-        [DataMember(Name = "registration")]
+        [DataMember(Name = "registration", Order = 0)]
         [Required]
         public EndpointRegistrationApiModel Registration { get; set; }
 
         /// <summary>
         /// Application id endpoint is registered under.
         /// </summary>
-        [DataMember(Name = "applicationId")]
+        [DataMember(Name = "applicationId", Order = 1)]
         [Required]
         public string ApplicationId { get; set; }
 
         /// <summary>
         /// Activation state of endpoint
         /// </summary>
-        [DataMember(Name = "activationState",
+        [DataMember(Name = "activationState", Order = 2,
             EmitDefaultValue = false)]
         public EndpointActivationState? ActivationState { get; set; }
 
         /// <summary>
         /// Last state of the activated endpoint
         /// </summary>
-        [DataMember(Name = "endpointState",
+        [DataMember(Name = "endpointState", Order = 3,
             EmitDefaultValue = false)]
         public EndpointConnectivityState? EndpointState { get; set; }
 
         /// <summary>
         /// Whether the registration is out of sync
         /// </summary>
-        [DataMember(Name = "outOfSync",
+        [DataMember(Name = "outOfSync", Order = 4,
             EmitDefaultValue = false)]
         public bool? OutOfSync { get; set; }
 
         /// <summary>
         /// Last time endpoint was seen
         /// </summary>
-        [DataMember(Name = "notSeenSince",
+        [DataMember(Name = "notSeenSince", Order = 5,
             EmitDefaultValue = false)]
         public DateTime? NotSeenSince { get; set; }
 

@@ -10,11 +10,13 @@ namespace Microsoft.Azure.IIoT.Services.All.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Extensions.Configuration;
+    using System;
 
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
-    public class Config : DiagnosticsConfig, IHostConfig, IForwardedHeadersConfig {
+    public class Config : DiagnosticsConfig, IHostConfig,
+        IForwardedHeadersConfig {
 
         /// <inheritdoc/>
         public int HttpsRedirectPort => _host.HttpsRedirectPort;
@@ -27,6 +29,11 @@ namespace Microsoft.Azure.IIoT.Services.All.Runtime {
         /// <inheritdoc/>
         public int AspNetCoreForwardedHeadersForwardLimit =>
             _fh.AspNetCoreForwardedHeadersForwardLimit;
+
+        /// <inheritdoc/>
+        public bool IsMinimumDeployment =>
+            GetStringOrDefault(PcsVariable.PCS_DEPLOYMENT_LEVEL)
+                .EqualsIgnoreCase("Minimum");
 
         /// <summary>
         /// Configuration constructor

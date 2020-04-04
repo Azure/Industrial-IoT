@@ -58,6 +58,8 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
             yield return ((long?)null, (long?)null);
             yield return (1UL, 1UL);
             yield return (0UL, 0UL);
+            yield return (11790719998462990154, 11790719998462990154);
+            yield return (10042278942021613161, 10042278942021613161);
             yield return (ulong.MaxValue, ulong.MaxValue);
             yield return ((ulong?)null, (ulong?)null);
             yield return (1u, 1u);
@@ -132,12 +134,26 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
             Assert.Equal(expected, result);
         }
 
+        [Theory]
+        [MemberData(nameof(GetScalars))]
+        [MemberData(nameof(GetEmptyArrays))]
+        [MemberData(nameof(GetFilledArrays))]
+        public void SerializerArrayVariant2(object o, Type type) {
+            var t = type.MakeArrayType();
+            var expected = Json.FromArray(o, o);
+            var result = MsgPack.Parse(MsgPack.SerializeToString(expected));
+            Assert.True(result.IsArray);
+            Assert.True(result.Count == 2);
+            Assert.Equal(expected.GetTypeCode(), result.GetTypeCode());
+            Assert.Equal(expected.Count, result.Count);
+            Assert.Equal(expected, result);
+        }
 
         [Theory]
         [MemberData(nameof(GetScalars))]
         [MemberData(nameof(GetEmptyArrays))]
         [MemberData(nameof(GetFilledArrays))]
-        public void SerializerArrayVariant(object o, Type type) {
+        public void SerializerArrayVariant3(object o, Type type) {
             var t = type.MakeArrayType();
             var expected = Json.FromArray(o, o, o);
             var result = MsgPack.Parse(MsgPack.SerializeToString(expected));
@@ -255,6 +271,49 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
         }
 
         [Fact]
+        public void SerializeFromObjectsWithSameContent3Converted() {
+            var utc = DateTime.UtcNow;
+            var expected = Json.FromObject(new {
+                Test = 1,
+                LoCale = "de",
+                Inner = new {
+                    TimeStamp = utc,
+                    Test = 1
+                }
+            });
+            var actual = MsgPack.FromObject(expected);
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void SerializeFromObjectsWithSameContent4() {
+            var utc = DateTime.UtcNow;
+            var expected = Json.FromObject(new {
+                Test = 11790719998462990154UL,
+                LoCale = 10042278942021613161UL,
+                TimeStamp = utc
+            });
+            var actual = MsgPack.FromObject(new {
+                TimeStamp = utc,
+                Locale = 10042278942021613161UL,
+                TeSt = 11790719998462990154UL
+            });
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void SerializeFromObjectsWithSameContentConverted() {
+            var utc = DateTime.UtcNow;
+            var expected = Json.FromObject(new {
+                Test = 11790719998462990154UL,
+                LoCale = 10042278942021613161UL,
+                TimeStamp = utc
+            });
+            var actual = MsgPack.FromObject(expected);
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
         public void SerializerFromObjectContainerToContainerWithObject() {
             var expected = new TestContainer {
                 Value = Json.FromObject(new {
@@ -264,6 +323,63 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
             };
             var tmp = MsgPack.FromObject(expected);
             var actual = tmp.ConvertTo<TestContainer>();
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void SerializerFromJsonToObject() {
+            var expected = Json.Parse(@"
+    {
+        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""Encoding"": ""Json"",
+        ""Body"": {
+            ""BooleanValue"": false,
+            ""SByteValue"": -113,
+            ""ByteValue"": 42,
+            ""Int16Value"": -14982,
+            ""UInt16Value"": 59442,
+            ""Int32Value"": 85049805,
+            ""UInt32Value"": 2602718263,
+            ""Int64Value"": 3649290182186472621,
+            ""UInt64Value"": 10042278942021613161
+        }
+    }
+");
+            var actual = MsgPack.FromObject(expected);
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void SerializerFromJsonToArray() {
+            var expected = Json.Parse(@"
+[
+    {
+        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""Body"": {
+            ""UInt64Value"": 10042278942021613161
+        }
+    },
+    {
+        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""Body"": {
+            ""UInt64Value"": 11790719998462990154
+        }
+    },
+    {
+        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""Body"": {
+            ""UInt64Value"": 9999999999999999999999
+        }
+    },
+    {
+        ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
+        ""Body"": {
+            ""UInt64Value"": 11790719998462990154
+        }
+    }
+]
+");
+            var actual = MsgPack.FromObject(expected);
             Assert.Equal(expected, actual);
         }
 

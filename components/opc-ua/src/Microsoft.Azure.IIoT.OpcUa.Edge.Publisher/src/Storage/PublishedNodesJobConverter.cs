@@ -124,7 +124,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
                     }))
                 .SelectMany(dataSetSourceBatches => dataSetSourceBatches
                     .Select(dataSetSource => new WriterGroupJobModel {
-                        
+
                         MessagingMode = legacyCliModel.MessagingMode,
                         Engine = _config == null ? null : new EngineConfigurationModel {
                             BatchSize = _config.BatchSize,

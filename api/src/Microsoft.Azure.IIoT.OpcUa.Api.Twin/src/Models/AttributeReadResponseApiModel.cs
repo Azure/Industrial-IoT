@@ -17,13 +17,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// Attribute value
         /// </summary>
-        [DataMember(Name = "value")]
+        [DataMember(Name = "value", Order = 0)]
         public VariantValue Value { get; set; }
 
         /// <summary>
         /// Service result in case of error
         /// </summary>
-        [DataMember(Name = "errorInfo",
+        [DataMember(Name = "errorInfo", Order = 1,
             EmitDefaultValue = false)]
         public ServiceResultApiModel ErrorInfo { get; set; }
     }

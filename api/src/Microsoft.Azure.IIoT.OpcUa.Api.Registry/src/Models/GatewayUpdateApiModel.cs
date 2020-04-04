@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
         /// <summary>
         /// Site of the Gateway
         /// </summary>
-        [DataMember(Name = "siteId",
+        [DataMember(Name = "siteId", Order = 1,
             EmitDefaultValue = false)]
         public string SiteId { get; set; }
     }

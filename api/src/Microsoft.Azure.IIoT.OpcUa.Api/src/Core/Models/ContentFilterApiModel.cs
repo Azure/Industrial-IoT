@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// <summary>
         /// The flat list of elements in the filter AST
         /// </summary>
-        [DataMember(Name = "elements")]
+        [DataMember(Name = "elements", Order = 0)]
         public List<ContentFilterElementApiModel> Elements { get; set; }
     }
 }

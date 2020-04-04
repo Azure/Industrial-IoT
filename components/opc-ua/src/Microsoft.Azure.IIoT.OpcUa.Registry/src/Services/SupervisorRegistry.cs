@@ -138,7 +138,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 // If site id provided, include it in search
                 query += $"AND (properties.reported.{TwinProperty.SiteId} = " +
                     $"'{model.SiteId}' OR properties.desired.{TwinProperty.SiteId} = " +
-                    $"'{model.SiteId}')";
+                    $"'{model.SiteId}' OR deviceId = '{model.SiteId}') ";
+            }
+
+            if (EndpointInfoModelEx.IsEndpointId(model?.EndpointId)) {
+                // If endpoint id provided include in search
+                query += $"AND IS_DEFINED(properties.desired.{model.EndpointId}) ";
             }
 
             if (model?.Connected != null) {

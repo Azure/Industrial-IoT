@@ -10,7 +10,6 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
     using Microsoft.Azure.IIoT.Auth.Models;
     using Microsoft.Extensions.Logging;
     using Microsoft.Extensions.Options;
-    using Serilog;
     using System;
     using System.Security.Claims;
     using System.Text.Encodings.Web;

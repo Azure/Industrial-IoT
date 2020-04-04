@@ -31,7 +31,7 @@ namespace Microsoft.Azure.IIoT.App.Data {
                 case EndpointEventType.Enabled:
                     if (endpoint == null) {
                         // Add if not already in list
-                        results.Add(new EndpointInfo {
+                        results.Insert(0, new EndpointInfo {
                             EndpointModel = ev.Endpoint
                         });
                     }

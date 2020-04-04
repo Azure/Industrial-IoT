@@ -81,18 +81,6 @@ namespace Microsoft.Azure.IIoT.Hub {
             CancellationToken ct = default);
 
         /// <summary>
-        /// Call device method on twin
-        /// </summary>
-        /// <param name="deviceId"></param>
-        /// <param name="moduleId"></param>
-        /// <param name="parameters"></param>
-        /// <param name="ct"></param>
-        /// <returns></returns>
-        Task<MethodResultModel> CallMethodAsync(string deviceId,
-            string moduleId, MethodParameterModel parameters,
-            CancellationToken ct = default);
-
-        /// <summary>
         /// Update device properties through twin
         /// </summary>
         /// <param name="deviceId"></param>
@@ -115,5 +103,17 @@ namespace Microsoft.Azure.IIoT.Hub {
         /// <returns></returns>
         Task DeleteAsync(string deviceId, string moduleId = null,
             string etag = null, CancellationToken ct = default);
+
+        /// <summary>
+        /// Call device method on twin
+        /// </summary>
+        /// <param name="deviceId"></param>
+        /// <param name="moduleId"></param>
+        /// <param name="parameters"></param>
+        /// <param name="ct"></param>
+        /// <returns></returns>
+        Task<MethodResultModel> CallMethodAsync(string deviceId,
+            string moduleId, MethodParameterModel parameters,
+            CancellationToken ct = default);
     }
 }

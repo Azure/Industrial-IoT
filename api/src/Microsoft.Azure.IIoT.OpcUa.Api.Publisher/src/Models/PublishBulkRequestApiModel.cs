@@ -16,21 +16,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Node to add
         /// </summary>
-        [DataMember(Name = "nodesToAdd",
+        [DataMember(Name = "nodesToAdd", Order = 0,
             EmitDefaultValue = false)]
         public List<PublishedItemApiModel> NodesToAdd { get; set; }
 
         /// <summary>
         /// Node to remove
         /// </summary>
-        [DataMember(Name = "nodesToRemove",
+        [DataMember(Name = "nodesToRemove", Order = 1,
             EmitDefaultValue = false)]
         public List<string> NodesToRemove { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
-        [DataMember(Name = "header",
+        [DataMember(Name = "header", Order = 2,
             EmitDefaultValue = false)]
         public RequestHeaderApiModel Header { get; set; }
     }

@@ -16,14 +16,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// <summary>
         /// Node to read from (mandatory)
         /// </summary>
-        [DataMember(Name = "nodeId")]
+        [DataMember(Name = "nodeId", Order = 0)]
         public string NodeId { get; set; }
 
         /// <summary>
         /// An optional path from NodeId instance to
         /// the actual node.
         /// </summary>
-        [DataMember(Name = "browsePath",
+        [DataMember(Name = "browsePath", Order = 1,
             EmitDefaultValue = false)]
         public string[] BrowsePath { get; set; }
 
@@ -32,7 +32,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// encoded in json and containing the tunneled
         /// Historian reader request.
         /// </summary>
-        [DataMember(Name = "details")]
+        [DataMember(Name = "details", Order = 2)]
         public T Details { get; set; }
 
         /// <summary>
@@ -41,14 +41,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// an array, string or bytestring.
         /// See 7.22 of part 4: NumericRange.
         /// </summary>
-        [DataMember(Name = "indexRange",
+        [DataMember(Name = "indexRange", Order = 3,
             EmitDefaultValue = false)]
         public string IndexRange { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
-        [DataMember(Name = "header",
+        [DataMember(Name = "header", Order = 4,
             EmitDefaultValue = false)]
         public RequestHeaderApiModel Header { get; set; }
     }

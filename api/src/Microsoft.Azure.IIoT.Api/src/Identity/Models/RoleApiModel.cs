@@ -15,13 +15,13 @@ namespace Microsoft.Azure.IIoT.Api.Identity.Models {
         /// <summary>
         /// Role id
         /// </summary>
-        [DataMember(Name = "id")]
+        [DataMember(Name = "id", Order = 0)]
         public string Id { get; set; }
 
         /// <summary>
         /// Name
         /// </summary>
-        [DataMember(Name = "id")]
+        [DataMember(Name = "name", Order = 1)]
         public string Name { get; set; }
     }
 }

@@ -15,14 +15,14 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
         /// <summary>
         /// Number of desired active agents
         /// </summary>
-        [DataMember(Name = "desiredActiveAgents",
+        [DataMember(Name = "desiredActiveAgents", Order = 0,
             EmitDefaultValue = false)]
         public int DesiredActiveAgents { get; set; }
 
         /// <summary>
         /// Number of passive agents
         /// </summary>
-        [DataMember(Name = "desiredPassiveAgents",
+        [DataMember(Name = "desiredPassiveAgents", Order = 1,
             EmitDefaultValue = false)]
         public int DesiredPassiveAgents { get; set; }
     }

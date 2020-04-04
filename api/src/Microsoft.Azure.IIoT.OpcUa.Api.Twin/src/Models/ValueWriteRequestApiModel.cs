@@ -18,7 +18,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// <summary>
         /// Node id to to write value to.
         /// </summary>
-        [DataMember(Name = "nodeId",
+        [DataMember(Name = "nodeId", Order = 0,
             EmitDefaultValue = false)]
         public string NodeId { get; set; }
 
@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// An optional path from NodeId instance to
         /// the actual node.
         /// </summary>
-        [DataMember(Name = "browsePath",
+        [DataMember(Name = "browsePath", Order = 1,
             EmitDefaultValue = false)]
         public string[] BrowsePath { get; set; }
 
@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// e.g. convert comma seperated value strings
         /// into arrays.  (Mandatory)
         /// </summary>
-        [DataMember(Name = "value")]
+        [DataMember(Name = "value", Order = 2)]
         [Required]
         public VariantValue Value { get; set; }
 
@@ -46,21 +46,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
         /// type.
         /// (default: best effort)
         /// </summary>
-        [DataMember(Name = "dataType",
+        [DataMember(Name = "dataType", Order = 3,
             EmitDefaultValue = false)]
         public string DataType { get; set; }
 
         /// <summary>
         /// Index range to write
         /// </summary>
-        [DataMember(Name = "indexRange",
+        [DataMember(Name = "indexRange", Order = 4,
             EmitDefaultValue = false)]
         public string IndexRange { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
-        [DataMember(Name = "header",
+        [DataMember(Name = "header", Order = 5,
             EmitDefaultValue = false)]
         public RequestHeaderApiModel Header { get; set; }
     }

@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Controllers {
     using Microsoft.Azure.IIoT.Services.Common.Jobs.Auth;
-    using Microsoft.Azure.IIoT.Services.Common.Jobs.Models;
     using Microsoft.Azure.IIoT.Services.Common.Jobs.Filters;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Http;
@@ -22,7 +21,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Controllers {
     /// </summary>
     [ApiVersion("2")][Route("v{version:apiVersion}/jobs")]
     [ExceptionsFilter]
-    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
     public class JobsController : ControllerBase {

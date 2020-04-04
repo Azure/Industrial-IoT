@@ -15,14 +15,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Core.Models {
         /// <summary>
         /// Locale or null for default locale
         /// </summary>
-        [DataMember(Name = "locale",
+        [DataMember(Name = "locale", Order = 0,
             EmitDefaultValue = false)]
         public string Locale { get; set; }
 
         /// <summary>
         /// Text
         /// </summary>
-        [DataMember(Name = "text")]
+        [DataMember(Name = "text", Order = 1)]
         public string Text { get; set; }
     }
 }
