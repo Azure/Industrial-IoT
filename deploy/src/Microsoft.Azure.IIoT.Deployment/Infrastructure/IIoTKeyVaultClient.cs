@@ -25,10 +25,22 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         private readonly KeyVaultClient _keyVaultClient;
         private readonly VaultInner _keyVault;
 
+        /// <summary>
+        /// Constructor of IIoT-specific KeyVault client.
+        /// </summary>
+        /// <param name="authenticationCallback"></param>
+        /// <param name="keyVault"></param>
         public IIoTKeyVaultClient(
             AuthenticationCallback authenticationCallback,
             VaultInner keyVault
         ) {
+            if (authenticationCallback is null) {
+                throw new ArgumentNullException(nameof(authenticationCallback));
+            }
+            if (keyVault is null) {
+                throw new ArgumentNullException(nameof(keyVault));
+            }
+
             var kvAuthenticationCallback = new KeyVaultClient.AuthenticationCallback(
                 async (authority, resource, scope) => {
                     return await authenticationCallback(authority, resource, scope);
@@ -39,22 +51,32 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             _keyVault = keyVault;
         }
 
+        /// <summary>
+        /// Wait for certificate to be created.
+        /// </summary>
+        /// <param name="certificateName"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         private async Task WaitForCertificateCreationAsync(
             string certificateName,
             CancellationToken cancellationToken = default
         ) {
-            var webAppCertificateOperation = await _keyVaultClient
+            if (string.IsNullOrEmpty(certificateName)) {
+                throw new ArgumentNullException(nameof(certificateName));
+            }
+
+            var certificateOperation = await _keyVaultClient
                 .GetCertificateOperationAsync(
                     _keyVault.Properties.VaultUri,
                     certificateName,
                     cancellationToken
                 );
 
-            while (webAppCertificateOperation.Status.ToLower().Equals("inprogress")) {
+            while (certificateOperation.Status.ToLower().Equals("inprogress")) {
                 cancellationToken.ThrowIfCancellationRequested();
                 await Task.Delay(1000, cancellationToken);
 
-                webAppCertificateOperation = await _keyVaultClient
+                certificateOperation = await _keyVaultClient
                     .GetCertificateOperationAsync(
                         _keyVault.Properties.VaultUri,
                         certificateName,
@@ -67,6 +89,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             string certificateName,
             CancellationToken cancellationToken = default
         ) {
+            if (string.IsNullOrEmpty(certificateName)) {
+                throw new ArgumentNullException(nameof(certificateName));
+            }
+
+            // We first have to wait for certificate to be created.
             await WaitForCertificateCreationAsync(certificateName, cancellationToken);
 
             var certificateBundle = await _keyVaultClient
@@ -85,6 +112,11 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             string certificateName,
             CancellationToken cancellationToken = default
         ) {
+            if (string.IsNullOrEmpty(certificateName)) {
+                throw new ArgumentNullException(nameof(certificateName));
+            }
+
+            // We first have to wait for certificate to be created.
             await WaitForCertificateCreationAsync(certificateName, cancellationToken);
 
             var secretBundle = await _keyVaultClient
@@ -117,6 +149,13 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             IDictionary<string, string> tags = null,
             CancellationToken cancellationToken = default
         ) {
+            if (string.IsNullOrEmpty(certificateName)) {
+                throw new ArgumentNullException(nameof(certificateName));
+            }
+            if (string.IsNullOrEmpty(certificateCN)) {
+                throw new ArgumentNullException(nameof(certificateCN));
+            }
+
             try {
                 tags ??= new Dictionary<string, string>();
 
@@ -181,6 +220,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             string keyName,
             CancellationToken cancellationToken = default
         ) {
+            if (string.IsNullOrEmpty(keyName)) {
+                throw new ArgumentNullException(nameof(keyName));
+            }
+
             var keyBundle = await _keyVaultClient
                 .GetKeyAsync(
                     _keyVault.Properties.VaultUri,
@@ -203,6 +246,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             NewKeyParameters keyParameters,
             CancellationToken cancellationToken = default
         ) {
+            if (string.IsNullOrEmpty(keyName)) {
+                throw new ArgumentNullException(nameof(keyName));
+            }
+
             var keyBundle = await _keyVaultClient
                 .CreateKeyAsync(
                     _keyVault.Properties.VaultUri,
@@ -226,6 +273,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
             IDictionary<string, string> tags = null,
             CancellationToken cancellationToken = default
         ) {
+            if (string.IsNullOrEmpty(keyName)) {
+                throw new ArgumentNullException(nameof(keyName));
+            }
+
             tags ??= new Dictionary<string, string>();
             var keyParameters = new NewKeyParameters {
                 KeySize = 2048,

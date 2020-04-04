@@ -125,6 +125,10 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 cancellationToken
              );
 
+            if (string.IsNullOrEmpty(passwordCredential?.SecretText)) {
+                throw new Exception($"Failed to get password credentials for application: {application.DisplayName}");
+            }
+
             return passwordCredential;
         }
 
