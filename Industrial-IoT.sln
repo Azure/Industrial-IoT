@@ -250,6 +250,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Servic
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.OpcUa.Cdm", "components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Cdm\src\Microsoft.Azure.IIoT.OpcUa.Cdm.csproj", "{B32532AB-1D40-4C72-898A-96BA65DF3D9B}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Serializers.NewtonSoft", "common\src\Microsoft.Azure.IIoT.Serializers.NewtonSoft\src\Microsoft.Azure.IIoT.Serializers.NewtonSoft.csproj", "{3E8DCA50-F1BC-45F4-A9E5-67F6BB55DA33}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Serializers.NewtonSoft.Tests", "common\src\Microsoft.Azure.IIoT.Serializers.NewtonSoft\tests\Microsoft.Azure.IIoT.Serializers.NewtonSoft.Tests.csproj", "{AF42650B-25D9-4083-8BA7-AF200EC0173D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Serializers.MessagePack", "common\src\Microsoft.Azure.IIoT.Serializers.MessagePack\src\Microsoft.Azure.IIoT.Serializers.MessagePack.csproj", "{9149229F-437C-42BD-AF2E-0BF73DCB5992}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Serializers.MessagePack.Tests", "common\src\Microsoft.Azure.IIoT.Serializers.MessagePack\tests\Microsoft.Azure.IIoT.Serializers.MessagePack.Tests.csproj", "{01A2DD25-32E4-424C-82E8-9C7111C64AAE}"
+EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.Azure.IIoT.Test.Scenarios", "api\src\Microsoft.Azure.IIoT.Api\tests\Microsoft.Azure.IIoT.Test.Scenarios.csproj", "{5B81D952-2E41-4704-8D22-2D817D5F94E6}"
 EndProject
 Global
@@ -658,6 +666,22 @@ Global
 		{B32532AB-1D40-4C72-898A-96BA65DF3D9B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B32532AB-1D40-4C72-898A-96BA65DF3D9B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B32532AB-1D40-4C72-898A-96BA65DF3D9B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3E8DCA50-F1BC-45F4-A9E5-67F6BB55DA33}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3E8DCA50-F1BC-45F4-A9E5-67F6BB55DA33}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3E8DCA50-F1BC-45F4-A9E5-67F6BB55DA33}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3E8DCA50-F1BC-45F4-A9E5-67F6BB55DA33}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF42650B-25D9-4083-8BA7-AF200EC0173D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF42650B-25D9-4083-8BA7-AF200EC0173D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF42650B-25D9-4083-8BA7-AF200EC0173D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF42650B-25D9-4083-8BA7-AF200EC0173D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9149229F-437C-42BD-AF2E-0BF73DCB5992}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9149229F-437C-42BD-AF2E-0BF73DCB5992}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9149229F-437C-42BD-AF2E-0BF73DCB5992}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9149229F-437C-42BD-AF2E-0BF73DCB5992}.Release|Any CPU.Build.0 = Release|Any CPU
+		{01A2DD25-32E4-424C-82E8-9C7111C64AAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{01A2DD25-32E4-424C-82E8-9C7111C64AAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{01A2DD25-32E4-424C-82E8-9C7111C64AAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{01A2DD25-32E4-424C-82E8-9C7111C64AAE}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5B81D952-2E41-4704-8D22-2D817D5F94E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5B81D952-2E41-4704-8D22-2D817D5F94E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5B81D952-2E41-4704-8D22-2D817D5F94E6}.Release|Any CPU.ActiveCfg = Release|Any CPU

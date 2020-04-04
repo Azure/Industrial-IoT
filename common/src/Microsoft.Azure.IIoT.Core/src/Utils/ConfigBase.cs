@@ -5,9 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.Utils {
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Extensions.Configuration;
     using System;
     using System.Collections.Generic;
-    using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Configuration base helper class

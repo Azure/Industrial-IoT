@@ -45,7 +45,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 model.DiscovererId = discovererId == PathAll ? null : discovererId;
                 model.ApplicationId = applicationId == PathAll ? null : applicationId;
                 model.SupervisorId = supervisorId == PathAll ? null : supervisorId;
-                
+
                 if (string.IsNullOrEmpty(previousPage?.ContinuationToken)) {
                     endpoints = await _registryService.QueryEndpointsAsync(model, null, _commonHelper.PageLength);
                     if (!string.IsNullOrEmpty(endpoints.ContinuationToken)) {
@@ -84,7 +84,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
                 _logger.Warning(errorMessage);
                 pageResult.Error = e.Message;
-            }         
+            }
             return pageResult;
         }
 
@@ -117,7 +117,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                         pageResult.PageCount = previousPage.PageCount + 1;
                     }
                 }
-                
+
                 if (discoverers != null && discoverers.Items.Any()) {
                     foreach (var disc in discoverers.Items) {
                         var discoverer = disc; //  await _registryService.GetDiscovererAsync(disc.Id);
@@ -173,7 +173,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                         pageResult.PageCount = 2;
                     }
                 }
-                else 
+                else
                 {
                     applications = await _registryService.ListApplicationsAsync(previousPage.ContinuationToken, _commonHelper.PageLength);
 
