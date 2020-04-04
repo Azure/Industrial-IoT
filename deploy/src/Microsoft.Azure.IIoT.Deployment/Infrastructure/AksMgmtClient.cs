@@ -61,7 +61,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         public ManagedClusterInner GetClusterDefinition(
             IResourceGroup resourceGroup,
             Application aksApplication,
-            string aksApplicationRbacSecret,
+            string aksApplicationSecret,
             string aksClusterName,
             X509Certificate2 sshCertificate,
             SubnetInner virtualNetworkSubnet,
@@ -105,7 +105,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                 },
                 ServicePrincipalProfile = new ManagedClusterServicePrincipalProfile {
                     ClientId = aksApplication.AppId,
-                    Secret = aksApplicationRbacSecret
+                    Secret = aksApplicationSecret
                 },
                 AddonProfiles = new Dictionary<string, ManagedClusterAddonProfile> {
                     { "omsagent", new ManagedClusterAddonProfile {

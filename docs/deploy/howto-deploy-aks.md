@@ -14,6 +14,7 @@
   * [Environment Variables Configuration Provider](#environment-variables-configuration-provider)
   * [Command-line Configuration Provider](#command-line-configuration-provider)
   * [Parameters](#parameters)
+  * [Special Notes](#special-notes)
 * [Deployed Resources](#deployed-resources)
   * [AKS](#aks)
 * [Missing And Planned Features](#missing-and-planned-features)
@@ -27,6 +28,8 @@ It takes care of deploying Azure infrastructure resources and microservices of I
 The main difference compared to the [script based deployment](howto-deploy-all-in-one.md) option is that
 from an infrastructure perspective `Microsoft.Azure.IIoT.Deployment` deploys microservices to an Azure
 Kubernetes Service (AKS) cluster, while `deploy.ps1` runs the entire platform as a web application.
+
+`Microsoft.Azure.IIoT.Deployment` deploys `2.6.146` version of Industrial IoT microservices.
 
 ## Running Microsoft.Azure.IIoT.Deployment
 
@@ -132,7 +135,7 @@ Sample run of `Full` deployment without any configuration parameters is describe
 provided through configuration. And if no authentication configuration is provided, then authentication flow
 with user credentials will be used.
 
-> **Note:** **5**th step below describes the error that you might get if you are lacking admin consent
+> **Note:** **4**th step below describes the error that you might get if you are lacking admin consent
 and [Granting Admin Consent](#granting-admin-consent) walks you through steps to mitigate that problem.
 You will still need to run the application once before granting the consent and that first run will fail.
 
@@ -149,24 +152,7 @@ You will still need to run the application once before granting the consent and 
     chmod +x Microsoft.Azure.IIoT.Deployment
     ```
 
-2. The application will ask you to choose your Azure environment, please select one. Those are either Azure
-    Global Cloud or government-specific independent deployments of Microsoft Azure.
-
-    ``` bash
-    [13:57:12 INF] Application RunMode is not configured, default will be used: Full
-    [13:57:25 INF] Starting full deployment of Industrial IoT solution.
-    Please select Azure environment to use:
-
-    Available Azure environments:
-    0: AzureGlobalCloud
-    1: AzureChinaCloud
-    2: AzureUSGovernment
-    3: AzureGermanCloud
-    Select Azure environment:
-    0
-    ```
-
-3. The application will ask you to provide your Tenant Id. This is the same as Directory Id. To find out your
+2. The application will ask you to provide your Tenant Id. This is the same as Directory Id. To find out your
     Directory Id:
 
     * Go to Azure Portal
@@ -177,11 +163,18 @@ You will still need to run the application once before granting the consent and 
     Then provide Tenant Id to the application:
 
     ``` bash
+    [10:14:36 INF] Starting full deployment of Industrial IoT solution.
+    [10:14:36 INF] Configured Azure environment will be used: AzureGlobalCloud
     Please provide your TenantId:
     XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX
     ```
 
-4. Now the application will ask you to login to Azure. During the first run, login flow will also ask your
+    Please note that at this point application would already take default Azure environment that is
+    specified in embedded `appsettings.json` as `AzureGlobalCloud`. If you want to use different Azure
+    environment do that through `Auth:AzureEnvironment` configuration parameter. Check
+    [Configuration](#configuration) for more details on how to do that.
+
+3. Now the application will ask you to login to Azure. During the first run, login flow will also ask your
     consent to provide permissions to `AzureIndustrialIoTDeployment` application if you are an admin in
     Azure AD. If you are not an admin, you would be asked to request consent from your admin.
 
@@ -196,7 +189,7 @@ You will still need to run the application once before granting the consent and 
         To sign in, use a web browser to open the page https://microsoft.com/devicelogin and enter the code XXXXXXXXX to authenticate.
         ```
 
-5. At this point you might receive an error indicating that your administrator has not consented to use of
+4. At this point you might receive an error indicating that your administrator has not consented to use of
     `AzureIndustrialIoTDeployment` Enterprise Application, it will look like this:
 
     ``` bash
@@ -211,7 +204,7 @@ You will still need to run the application once before granting the consent and 
     If you encounter this go to [Granting Admin Consent](#granting-admin-consent) to resolve this issue and
     then try to run the application again.
 
-6. Select a Subscription within your Azure Account that will be used for creating Azure resources. If just
+5. Select a Subscription within your Azure Account that will be used for creating Azure resources. If just
     one Subscription exists in your Account, then it will be listed and application will proceed further,
     otherwise you have to select Subscription from the list of available Subscriptions:
 
@@ -220,7 +213,7 @@ You will still need to run the application once before granting the consent and 
     DisplayName: 'Visual Studio Enterprise', SubscriptionId: 'XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX'
     ```
 
-7. Provide a name for the AAD applications that will be registered. You will be asked for one name, but 3
+6. Provide a name for the AAD applications that will be registered. You will be asked for one name, but 3
     applications will be registered:
 
     * one with `-services` suffix added to provided name
@@ -228,11 +221,11 @@ You will still need to run the application once before granting the consent and 
     * one with `-aks` suffix added to provided name
 
     ``` bash
-    Please provide a name for the AAD application to register:
-    kkTest00100
+    Please provide a name for the AAD application to register. Use only alphanumeric characters and '-':
+    aiiotDeployment26104
     ```
 
-8. Select Resource Group. You would be presented with options of either using an existing Resource Group or
+7. Select Resource Group. You would be presented with options of either using an existing Resource Group or
     creating a new one. If you choose to use an existing one, you will be presented with a list of all Resource
     Groups within the Subscription to choose from. Otherwise, you would be asked to select a Region for the new
     Resource Group and provide a name for it. Output for the latter case is below.
@@ -250,92 +243,104 @@ You will still need to run the application once before granting the consent and 
     Please select region where resource group will be created.
 
     Available regions:
-    0: eastus2
-    1: westus2
-    2: northeurope
-    3: westeurope
-    4: southeastasia
+    0: eastus
+    1: eastus2
+    2: westus
+    3: westus2
+    4: centralus
+    5: northeurope
+    6: westeurope
+    7: southeastasia
+    8: australiaeast
     Select a region:
     2
-    Select resource group name, press Enter to use 'kkTest00100':
+    Select resource group name, press Enter to use 'aiiotDeployment26104':
 
-    [13:58:58 INF] Creating Resource Group: kkTest00100 ...
-    [13:58:59 INF] Created Resource Group: kkTest00100
+    [10:16:20 INF] Creating Resource Group: aiiotDeployment26104 ...
+    [10:16:25 INF] Created Resource Group: aiiotDeployment26104
     ```
 
-9. Now the application will perform application registration, Azure resource deployment and deployment of
+8. Now the application will perform application registration, Azure resource deployment and deployment of
     microservices to AKS cluster. This will take around 15 to 20 minutes depending on Azure Region. Along
     the way, it will log what Azure resources are created. Sample log looks like this:
 
     ``` bash
-    [13:58:59 INF] Registering resource providers ...
-    [13:59:04 INF] Registered resource providers
-    [13:59:17 INF] Creating service application registration ...
-    [13:59:24 INF] Created service application registration.
-    [13:59:25 INF] Creating client application registration ...
-    [13:59:28 INF] Created client application registration.
-    [13:59:33 INF] Creating AKS application registration ...
-    [13:59:36 INF] Created AKS application registration.
-    [13:59:37 DBG] Assigning NetworkContributor role to Service Principal: kkTest00100-aks ...
-    [13:59:38 DBG] ServicePrincipal creation has not propagated correctly. Waiting for 5 seconds before retry.
-    [13:59:46 DBG] Assigned NetworkContributor role to Service Principal: kkTest00100-aks
-    [13:59:52 INF] Creating Azure Network Security Group: iiotservices-nsg ...
-    [13:59:57 INF] Created Azure Network Security Group: iiotservices-nsg
-    [13:59:57 INF] Creating Azure Virtual Network: iiotservices-vnet ...
-    [14:00:02 INF] Created Azure Virtual Network: iiotservices-vnet
-    [14:00:02 INF] Creating Azure KeyVault: keyvault-16598 ...
-    [14:00:34 INF] Created Azure KeyVault: keyvault-16598
-    [14:00:34 INF] Adding certificate to Azure KeyVault: webAppCert ...
-    [14:00:35 INF] Added certificate to Azure KeyVault: webAppCert
-    [14:00:50 INF] Adding certificate to Azure KeyVault: aksClusterCert ...
-    [14:00:51 INF] Added certificate to Azure KeyVault: aksClusterCert
-    [14:01:06 INF] Creating Azure Operational Insights Workspace: workspace-81485 ...
-    [14:01:06 INF] Creating Azure Application Insights Component: appinsights-14867 ...
-    [14:01:13 INF] Created Azure Application Insights Component: appinsights-14867
-    [14:01:42 INF] Created Azure Operational Insights Workspace: workspace-81485
-    [14:01:42 INF] Creating Azure AKS cluster: akscluster-85960 ...
-    [14:01:42 INF] Creating Azure Storage Account: storage91176 ...
-    [14:02:02 INF] Created Azure Storage Account: storage91176
-    [14:02:02 INF] Creating Blob Container: iothub-default ...
-    [14:02:03 INF] Created Blob Container: iothub-default
-    [14:02:03 INF] Creating Azure IoT Hub: iothub-32072 ...
-    [14:04:10 INF] Created Azure IoT Hub: iothub-32072
-    [14:04:13 INF] Creating Azure CosmosDB Account: cosmosdb-55238 ...
-    [14:04:13 INF] Creating Azure Service Bus Namespace: sb-86372 ...
-    [14:04:13 INF] Creating Azure Event Hub Namespace: eventhubnamespace-13716 ...
-    [14:05:17 INF] Created Azure Service Bus Namespace: sb-86372
-    [14:05:17 INF] Created Azure Event Hub Namespace: eventhubnamespace-13716
-    [14:05:17 INF] Creating Azure Event Hub: eventhub-95041 ...
-    [14:05:23 INF] Created Azure Event Hub: eventhub-95041
-    [14:05:23 INF] Creating Azure AppService Plan: kktest00100-60509 ...
-    [14:05:30 INF] Created Azure AppService Plan: kktest00100-60509
-    [14:05:30 INF] Creating Azure AppService: kkTest00100 ...
-    [14:05:30 INF] Creating SignalR Service: signalr-78951 ...
-    [14:05:50 INF] Created Azure AppService: kkTest00100
-    [14:07:05 INF] Created SignalR Service: signalr-78951
-    [14:07:52 INF] Created Azure AKS cluster: akscluster-85960
-    [14:08:22 INF] Created Azure CosmosDB Account: cosmosdb-55238
-    [14:08:31 INF] Deploying Industrial IoT services to Azure AKS cluster ...
-    [14:08:33 INF] Deployed Industrial IoT services to Azure AKS cluster
-    [14:11:06 INF] Deploying proxy service to AppService: kkTest00100 ...
-    [14:15:16 INF] Deployed proxy service to AppService: kkTest00100
+    [10:16:25 INF] Registering resource providers ...
+    [10:16:30 INF] Registered resource providers
+    [10:16:30 INF] Creating service application registration ...
+    [10:16:33 INF] Created service application registration.
+    [10:16:33 INF] Creating client application registration ...
+    [10:16:35 INF] Created client application registration.
+    [10:16:36 INF] Creating AKS application registration ...
+    [10:16:38 INF] Created AKS application registration.
+    [10:16:38 DBG] Assigning NetworkContributor role to Service Principal: aiiotDeployment26104-aks ...
+    [10:16:39 DBG] ServicePrincipal creation has not propagated correctly. Waiting for 5 seconds before retry.
+    [10:16:47 DBG] Assigned NetworkContributor role to Service Principal: aiiotDeployment26104-aks
+    [10:16:47 DBG] Assigning StorageBlobDataContributor role to Service Principal: aiiotDeployment26104-service ...
+    [10:17:08 DBG] Assigned StorageBlobDataContributor role to Service Principal: aiiotDeployment26104-service
+    [10:17:13 INF] Creating Azure Network Security Group: iiotservices-nsg ...
+    [10:17:24 INF] Created Azure Network Security Group: iiotservices-nsg
+    [10:17:24 INF] Creating Azure Virtual Network: iiotservices-vnet ...
+    [10:17:50 INF] Created Azure Virtual Network: iiotservices-vnet
+    [10:17:50 INF] Creating Azure KeyVault: keyvault-08184 ...
+    [10:18:25 INF] Created Azure KeyVault: keyvault-08184
+    [10:18:25 INF] Adding certificate to Azure KeyVault: webAppCert ...
+    [10:18:27 INF] Added certificate to Azure KeyVault: webAppCert
+    [10:18:27 INF] Adding certificate to Azure KeyVault: aksClusterCert ...
+    [10:18:29 INF] Added certificate to Azure KeyVault: aksClusterCert
+    [10:19:16 INF] Creating Azure Operational Insights Workspace: workspace-10249 ...
+    [10:19:17 INF] Creating Azure Application Insights Component: appinsights-56825 ...
+    [10:19:54 INF] Created Azure Operational Insights Workspace: workspace-10249
+    [10:19:55 INF] Creating Azure AKS cluster: akscluster-22188 ...
+    [10:19:55 INF] Creating Azure Storage Account Gen2: storage52246 ...
+    [10:20:00 INF] Created Azure Application Insights Component: appinsights-56825
+    [10:20:18 INF] Created Azure Storage Account Gen2: storage52246
+    [10:20:18 INF] Creating Blob Container: iothub-default ...
+    [10:20:18 INF] Created Blob Container: iothub-default
+    [10:20:18 INF] Creating Blob Container: dataprotection ...
+    [10:20:19 INF] Created Blob Container: dataprotection
+    [10:20:19 INF] Creating Azure Storage Account Gen2: storage03454 ...
+    [10:20:45 INF] Created Azure Storage Account Gen2: storage03454
+    [10:20:46 INF] Creating Blob Container: powerbi ...
+    [10:20:46 INF] Created Blob Container: powerbi
+    [10:20:46 INF] Creating Azure IoT Hub: iothub-58737 ...
+    [10:22:26 INF] Created Azure IoT Hub: iothub-58737
+    [10:22:30 INF] Creating Azure CosmosDB Account: cosmosdb-00648 ...
+    [10:22:30 INF] Creating Azure Service Bus Namespace: sb-57572 ...
+    [10:22:30 INF] Creating Azure Event Hub Namespace: eventhubnamespace-78526 ...
+    [10:23:37 INF] Created Azure Event Hub Namespace: eventhubnamespace-78526
+    [10:23:37 INF] Creating Azure Event Hub: eventhub-39690 ...
+    [10:23:38 INF] Created Azure Service Bus Namespace: sb-57572
+    [10:23:42 INF] Created Azure Event Hub: eventhub-39690
+    [10:23:53 INF] Creating Azure AppService Plan: aiiotdeployment26104-48411 ...
+    [10:24:04 INF] Created Azure AppService Plan: aiiotdeployment26104-48411
+    [10:24:04 INF] Creating Azure AppService: aiiotDeployment26104 ...
+    [10:24:04 INF] Creating SignalR Service: signalr-57550 ...
+    [10:24:25 INF] Created Azure AppService: aiiotDeployment26104
+    [10:25:17 INF] Created Azure AKS cluster: akscluster-22188
+    [10:26:19 INF] Created SignalR Service: signalr-57550
+    [10:32:48 INF] Created Azure CosmosDB Account: cosmosdb-00648
+    [10:32:56 INF] Deploying Industrial IoT services to Azure AKS cluster ...
+    [10:33:04 INF] Deployed Industrial IoT services to Azure AKS cluster
+    [10:38:03 INF] Deploying proxy service to AppService: aiiotDeployment26104 ...
+    [10:40:09 INF] Deployed proxy service to AppService: aiiotDeployment26104
     ```
 
-10. After that you would be provided with an option to save connection details of deployed resources to
+9. After that you would be provided with an option to save connection details of deployed resources to
     '.env' file. If you choose to do so, please store the file is a secure location afterwards since it
     contains sensitive data such as connection string to the resources and some secrets.
 
     ``` bash
     Do you want to save connection details of deployed resources to '.env' file ? Please select Y[yes] or N[no]
     y
-    [14:30:45 INF] Writing environment to file: '.env' ...
+    [10:46:13 INF] Writing environment to file: '.env' ...
     ```
 
-11. At this point the application should have successfully deployed Industrial IoT solution.
+10. At this point the application should have successfully deployed Industrial IoT solution.
 
     ``` bash
-    [14:36:27 INF] Updating RedirectUris of client application to point to 'https://kktest00100.azurewebsites.net/'
-    [14:36:30 INF] Done.
+    [10:46:13 INF] Updating RedirectUris of client application to point to 'https://aiiotdeployment26104.azurewebsites.net/'
+    [10:46:15 INF] Done.
     ```
 
 ### Granting Admin Consent
@@ -366,13 +371,13 @@ Cleanup prompt looks like this:
 ```bash
 Do you want to delete registered Applications and the Resource Group ? Please select Y[yes] or N[no]
 y
-[11:24:48 INF] Initiated deletion of Resource Group: IAIDeployment
-[11:24:48 INF] Deleting application: IAIDeployment-services ...
-[11:24:57 INF] Deleted application: IAIDeployment-services
-[11:24:58 INF] Deleting application: IAIDeployment-clients ...
-[11:25:03 INF] Deleted application: IAIDeployment-clients
-[11:25:03 INF] Deleting application: IAIDeployment-aks ...
-[11:25:04 INF] Deleted application: IAIDeployment-aks
+[11:24:48 INF] Initiated deletion of Resource Group: aiiotDeployment26104
+[11:24:48 INF] Deleting application: aiiotDeployment26104-services ...
+[11:24:57 INF] Deleted application: aiiotDeployment26104-services
+[11:24:58 INF] Deleting application: aiiotDeployment26104-clients ...
+[11:25:03 INF] Deleted application: aiiotDeployment26104-clients
+[11:25:03 INF] Deleting application: aiiotDeployment26104-aks ...
+[11:25:04 INF] Deleted application: aiiotDeployment26104-aks
 ```
 
 ## Configuration
@@ -420,27 +425,65 @@ Command line argument key-value pairs can be specified with:
 
 ### Parameters
 
-| Key                       | Value details                                                                                   | Description                                                                                                                                                        |
-|---------------------------|-------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| RunMode                   | Valid value are: `Full`, `ApplicationRegistration`, `ResourceDeployment`                        | Determines which steps of Industrial IoT solution deployment will be executed.                                                                                     |
-| Auth:AzureEnvironment     | Valid value are: `AzureGlobalCloud`, `AzureChinaCloud`, `AzureUSGovernment`, `AzureGermanCloud` | Defines which Azure cloud to use.                                                                                                                                  |
-| Auth:TenantId             | Should be Guid.                                                                                 | Id of the tenant to be used.                                                                                                                                       |
-| Auth:ClientId             | Should be Guid.                                                                                 | ClientId of Service Principal.                                                                                                                                     |
-| Auth:ClientSecret         | String                                                                                          | ClientSecret of Service Principal.                                                                                                                                 |
-| SubscriptionId            | Should be Guid.                                                                                 | Id of Azure Subscription within tenant.                                                                                                                            |
-| ApplicationName           | Should be globally unique name.                                                                 | Name of the application deployment.                                                                                                                                |
-| ApplicationURL            | Used only in `ApplicationRegistration` run mode.                                                | Base URL that will be used for generating RedirectUris for client application. This is required for enabling client authentication to use externally exposed APIs. |
-| ResourceGroup:Name        |                                                                                                 | Name of the Resource Group where Azure resources will be created.                                                                                                  |
-| ResourceGroup:UseExisting | `true` or `false`                                                                               | Determines whether an existing Resource Group should be used or a new one should be created.                                                                       |
-| ResourceGroup:Region      | Supported regions are: `USEast2`, `USWest2`, `EuropeNorth`, `EuropeWest`, `AsiaSouthEast`       | Region where new Resource Group should be created.                                                                                                                 |
-| ApplicationRegistration   | Object, see [Special Notes](#special-notes) bellow.                                             | Provides definitions of existing Applications and Service Principals to be used.                                                                                   |
+| Key                       | Value details                                                         | Description                                                                                                                                                        |
+|---------------------------|-----------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| RunMode                   | Default is `Full`, check bellow for list of valid values.             | Determines which steps of Industrial IoT solution deployment will be executed.                                                                                     |
+| Auth:AzureEnvironment     | Default is `AzureGlobalCloud`, check bellow for list of valid values. | Defines which Azure cloud to use.                                                                                                                                  |
+| Auth:TenantId             | Should be Guid.                                                       | Id of the tenant to be used.                                                                                                                                       |
+| Auth:ClientId             | Should be Guid.                                                       | ClientId of Service Principal.                                                                                                                                     |
+| Auth:ClientSecret         | String                                                                | ClientSecret of Service Principal.                                                                                                                                 |
+| SubscriptionId            | Should be Guid.                                                       | Id of Azure Subscription within tenant.                                                                                                                            |
+| ApplicationName           | Should be globally unique name.                                       | Name of the application deployment.                                                                                                                                |
+| ApplicationURL            | Used only in `ApplicationRegistration` run mode.                      | Base URL that will be used for generating RedirectUris for client application. This is required for enabling client authentication to use externally exposed APIs. |
+| ResourceGroup:Name        |                                                                       | Name of the Resource Group where Azure resources will be created.                                                                                                  |
+| ResourceGroup:UseExisting | `true` or `false`                                                     | Determines whether an existing Resource Group should be used or a new one should be created.                                                                       |
+| ResourceGroup:Region      | Check bellow for list of supported Azure regions.                     | Region where new Resource Group should be created.                                                                                                                 |
+| ApplicationRegistration   | Object, see [Special Notes](#special-notes) bellow.                   | Provides definitions of existing Applications and Service Principals to be used.                                                                                   |
 
-#### Special Notes
+#### RunMode
+
+Valid values for `RunMode` are listed bellow, default is `Full`. Please check [Run Modes](#run-modes) for more details:
+
+| Valid Values              |
+|---------------------------|
+| **`Full`**                |
+| `ApplicationRegistration` |
+| `ResourceDeployment`      |
+
+#### Auth:AzureEnvironment
+
+Valid values for `Auth:AzureEnvironment` are listed bellow, default is `AzureGlobalCloud`.
+
+| Valid Values           |
+|------------------------|
+| **`AzureGlobalCloud`** |
+| `AzureChinaCloud`      |
+| `AzureUSGovernment`    |
+| `AzureGermanCloud`     |
+
+#### ResourceGroup:Region
+
+The following Azure regions are supported by `Microsoft.Azure.IIoT.Deployment` for `ResourceGroup:Region`:
+
+| Valid Values    |
+|-----------------|
+| `USEast`        |
+| `USEast2`       |
+| `USWest`        |
+| `USWest2`       |
+| `USCentral`     |
+| `EuropeNorth`   |
+| `EuropeWest`    |
+| `AsiaSouthEast` |
+| `AustraliaEast` |
+
+### Special Notes
 
 1. **ApplicationName**
 
     This name will be used as name of App Service resource, thus determining its URL as
     `<ApplicationName>.azurewebsites.net`. As a result, it should be a globally unique name.
+    It should only contain alphanumeric characters and `-` characters.
 
 2. **ApplicationURL**
 
@@ -489,22 +532,29 @@ Command line argument key-value pairs can be specified with:
     }
     ```
 
+    ApplicationSecret is client secret (password) of a given Application.
+
     ApplicationRegistration object should have the keys as below. Note that:
     * Values of `ServiceApplication`, `ClientApplication` and `AksApplication` keys should be Application
       objects as described above.
     * Values of `ServiceApplicationSP`, `ClientApplicationSP` and `AksApplicationSP` keys should be Service
       Principal objects as described above.
-    * `AksApplicationRbacSecret` is client secret (password) of AksApplication.
+    * Values of `ServiceApplicationSecret`, `ClientApplicationSecret` and `AksApplicationSecret` keys should
+      be strings corresponding to client secrets (passwords) of each Application.
 
     ``` json
     "ApplicationRegistration": {
-      "ServiceApplication": "<Application object>",
-      "ServiceApplicationSP": "<Service Principal object>",
-      "ClientApplication": "<Application object>",
-      "ClientApplicationSP": "<Service Principal object>",
-      "AksApplication": "<Application object>",
-      "AksApplicationSP": "<Service Principal object>",
-      "AksApplicationRbacSecret": "<string>"
+      "ServiceApplication": { "<Application object>" },
+      "ServiceApplicationSP": { "<Service Principal object>" },
+      "ServiceApplicationSecret": "<string>",
+
+      "ClientApplication": { "<Application object>" },
+      "ClientApplicationSP": { "<Service Principal object>" },
+      "ClientApplicationSecret": "<string>",
+
+      "AksApplication": { "<Application object>" },
+      "AksApplicationSP": { "<Service Principal object>" },
+      "AksApplicationSecret": "<string>"
     },
     ```
 
@@ -523,6 +573,8 @@ details for all Azure resources created by `Microsoft.Azure.IIoT.Deployment`, we
 To see YAML files of all Kubernetes resources that are created by the application, please check
 [deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/](../../deploy/src/Microsoft.Azure.IIoT.Deployment/Resources/aks/)
 directory.
+
+`Microsoft.Azure.IIoT.Deployment` deploys `2.6.146` version of Industrial IoT microservices.
 
 #### Kubernetes Dashboard
 
@@ -573,19 +625,28 @@ Alternatively, you can run the following commands:
 
 You should also be able to access APIs of microservices through URL of App Service. The URL is available
 in overview of App Service. For example, you can access OPC Registry Service by appending `/registry/` to
-the URL. It should look something like the link bellow, where `kktest00100` is the name of App Service.
+the URL. It should look something like the link bellow, where `aiiotdeployment26104` is the name of App Service.
 
-* `https://kktest00100.azurewebsites.net/registry/`
+* `https://aiiotdeployment26104.azurewebsites.net/registry/`
+
+Along with APIs, our microservices also provide Swagger interfaces for trying out those APIs. Swagger UI
+can be found on `/<component>/swagger/index.html` endpoint for each component.
 
 The following microservice endpoints are exposed:
 
-| URL Suffix  | Service Name                                   |
-|-------------|------------------------------------------------|
-| `registry/` | [OPC Registry](../services/registry.md)        |
-| `twin/`     | [OPC Twin](../services/twin.md)                |
-| `history/`  | [OPC Historian Access](../services/history.md) |
-| `ua/`       | [OPC Gateway](../services/gateway.md)          |
-| `vault/`    | [OPC Vault](../services/vault.md)              |
+| Component       | API URL Suffix    | Swagger UI Path                     | Service Name                                                  |
+|-----------------|-------------------|-------------------------------------|---------------------------------------------------------------|
+| `registry`      | `/registry/`      | `/registry/swagger/index.html`      | [Registry Microservice](../services/registry.md)              |
+| `twin`          | `/twin/`          | `/twin/swagger/index.html`          | [OPC Twin Microservice](../services/twin.md)                  |
+| `history`       | `/history/`       | `/history/swagger/index.html`       | [OPC Historian Access Microservice](../services/history.md)   |
+| `gateway`       | `/ua/`            | N/A                                 | [OPC Gateway Microservice](../services/gateway.md)            |
+| `vault`         | `/vault/`         | `/vault/swagger/index.html`         | [OPC Vault Microservice](../services/vault.md)                |
+| `onboarding`    | `/onboarding/`    | `/onboarding/swagger/index.html`    | [Registry Onboarding Microservice](../services/onboarding.md) |
+| `publisher`     | `/publisher/`     | `/publisher/swagger/index.html`     | [OPC Publisher Service](../services/publisher.md)             |
+| `configuration` | `/configuration/` | `/configuration/swagger/index.html` | [Configuration Service](../services/configuration.md)         |
+| `edgeManager`   | `/edge/manage/`   | `/edge/manage/swagger/index.html`   | [Edge Management Service](../services/edgemanager.md)         |
+| `edgeJobs`      | `/edge/jobs/`     | `/edge/jobs/swagger/index.html`     | [Jobs Service and Edge endpoint](../services/jobs.md)         |
+| `publisherJobs` | `/jobs/`          | `/jobs/swagger/index.html`          |                                                               |
 
 ## Missing And Planned Features
 
