@@ -83,7 +83,7 @@ namespace System.IO {
             try {
                 while (true) {
                     var read = stream.Read(body, offset, body.Length - offset);
-                    if (read == 0) {
+                    if (read <= 0) {
                         break;
                     }
 
@@ -98,6 +98,37 @@ namespace System.IO {
             }
             catch (IOException) { }
             return new ArraySegment<byte>(body, 0, offset);
+        }
+
+        /// <summary>
+        /// Helper extension to convert an entire stream into readonly memory async.
+        /// </summary>
+        /// <param name="stream"></param>
+        /// <param name="bufferSize"></param>
+        /// <returns></returns>
+        public static async Task<ReadOnlyMemory<byte>> ReadAsMemoryAsync(this Stream stream,
+            int bufferSize = 1024) {
+            // Try to read as much as possible
+            var body = new byte[bufferSize];
+            var offset = 0;
+            try {
+                while (true) {
+                    var read = await stream.ReadAsync(body, offset, body.Length - offset);
+                    if (read <= 0) {
+                        break;
+                    }
+
+                    offset += read;
+                    if (offset == body.Length) {
+                        // Grow
+                        var newbuf = new byte[body.Length * 2];
+                        Buffer.BlockCopy(body, 0, newbuf, 0, body.Length);
+                        body = newbuf;
+                    }
+                }
+            }
+            catch (IOException) { }
+            return body;
         }
 
         /// <summary>

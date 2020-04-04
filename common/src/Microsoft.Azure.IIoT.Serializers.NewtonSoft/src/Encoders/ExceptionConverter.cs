@@ -4,8 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Newtonsoft.Json {
-    using Microsoft.Azure.IIoT.Utils;
     using Newtonsoft.Json.Linq;
+    using Newtonsoft.Json.Serialization;
+    using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Collections.Generic;
     using System.Linq;
@@ -21,11 +22,17 @@ namespace Newtonsoft.Json {
         /// <param name="includeStackTrace"></param>
         public ExceptionConverter(bool includeStackTrace = false) {
             _includeStackTrace = includeStackTrace;
-            var settings = JsonConvertEx.GetDefaultSettings();
-            settings.NullValueHandling = NullValueHandling.Ignore;
-            settings.MissingMemberHandling = MissingMemberHandling.Ignore;
-            settings.DefaultValueHandling = DefaultValueHandling.Ignore;
-            _exceptionSerializer = JsonSerializer.Create(settings);
+            _exceptionSerializer = JsonSerializer.Create(
+                new JsonSerializerSettings {
+                    ContractResolver = new DefaultContractResolver(),
+                    Converters = new List<JsonConverter>(),
+                    TypeNameHandling = TypeNameHandling.None,
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+                    NullValueHandling = NullValueHandling.Ignore,
+                    MissingMemberHandling = MissingMemberHandling.Ignore,
+                    DefaultValueHandling = DefaultValueHandling.Ignore,
+                    MaxDepth = 20
+                });
         }
 
         /// <summary>
