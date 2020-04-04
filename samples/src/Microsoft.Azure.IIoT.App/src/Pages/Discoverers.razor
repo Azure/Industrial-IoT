@@ -419,8 +419,8 @@
     /// <param name="ev"></param>
     private Task DiscovererEvent(DiscovererEventApiModel ev)
     {
-        discovererList.Results.Update(ev);
-        pagedDiscovererList = discovererList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, discovererList.Error);
+        _discovererList.Results.Update(ev);
+        _pagedDiscovererList = _discovererList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _discovererList.Error);
         StateHasChanged();
         return Task.CompletedTask;
     }

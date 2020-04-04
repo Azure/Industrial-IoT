@@ -875,6 +875,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 QueueSize = model.QueueSize,
                 SamplingInterval = model.SamplingInterval,
                 TriggerId = model.TriggerId,
+                HeartbeatInterval = model.HeartbeatInterval,
+                PublishedVariableDisplayName = model.PublishedVariableDisplayName,
                 SubstituteValue = model.SubstituteValue?.Copy()
             };
         }
@@ -903,6 +905,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 QueueSize = model.QueueSize,
                 SamplingInterval = model.SamplingInterval,
                 TriggerId = model.TriggerId,
+                HeartbeatInterval = model.HeartbeatInterval,
+                PublishedVariableDisplayName = model.PublishedVariableDisplayName,
                 SubstituteValue = model.SubstituteValue?.Copy()
             };
         }
@@ -1258,6 +1262,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             return new PublishedItemApiModel {
                 NodeId = model.NodeId,
                 DisplayName = model.DisplayName,
+                HeartbeatInterval = model.HeartbeatInterval,
                 SamplingInterval = model.SamplingInterval,
                 PublishingInterval = model.PublishingInterval
             };
@@ -1274,6 +1279,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
             return new PublishedItemModel {
                 NodeId = model.NodeId,
                 DisplayName = model.DisplayName,
+                HeartbeatInterval = model.HeartbeatInterval,
                 SamplingInterval = model.SamplingInterval,
                 PublishingInterval = model.PublishingInterval
             };
