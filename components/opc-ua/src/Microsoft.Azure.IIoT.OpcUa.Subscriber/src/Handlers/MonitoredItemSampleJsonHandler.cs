@@ -58,6 +58,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                 return;
             }
             try {
+                var type = BuiltInType.Null;
                 var codec = _encoder.Create(context);
                 var dataset = new DataSetMessageModel {
                     PublisherId = (message.ExtensionFields != null &&
@@ -73,14 +74,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                     MetaDataVersion = "1.0",
                     Timestamp = message.Timestamp,
                     Payload = new Dictionary<string, DataValueModel>() {
-                        [message.NodeId.AsString(null)] = new DataValueModel() {
-                            Value = message?.Value == null ? null : codec.Encode(message.Value),
+                        [message.NodeId.AsString(context)] = new DataValueModel {
+                            Value = message?.Value == null
+                                ? null : codec.Encode(message.Value.WrappedValue, out type),
+                            DataType = type == BuiltInType.Null
+                                ? null : type.ToString(),
                             Status = (message?.Value?.StatusCode.Code == StatusCodes.Good)
                                 ? null : StatusCode.LookupSymbolicId(message.Value.StatusCode.Code),
                             SourceTimestamp = (message?.Value?.SourceTimestamp == DateTime.MinValue)
                                 ? null : message?.Value?.SourceTimestamp,
+                            SourcePicoseconds = (message?.Value?.SourcePicoseconds == 0)
+                                ? null : message?.Value?.SourcePicoseconds,
                             ServerTimestamp = (message?.Value?.ServerTimestamp == DateTime.MinValue)
-                                ? null : message?.Value?.ServerTimestamp
+                                ? null : message?.Value?.ServerTimestamp,
+                            ServerPicoseconds = (message?.Value?.ServerPicoseconds == 0)
+                                ? null : message?.Value?.ServerPicoseconds
                         }
                     }
                 };

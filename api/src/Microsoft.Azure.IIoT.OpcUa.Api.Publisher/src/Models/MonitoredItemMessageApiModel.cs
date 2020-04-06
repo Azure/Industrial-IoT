@@ -58,9 +58,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
         /// <summary>
         /// Type id
         /// </summary>
-        [DataMember(Name = "typeId", Order = 6,
+        [DataMember(Name = "dataType", Order = 6,
             EmitDefaultValue = false)]
-        public string TypeId { get; set; }
+        public string DataType { get; set; }
 
         /// <summary>
         /// Status of the value (Quality)

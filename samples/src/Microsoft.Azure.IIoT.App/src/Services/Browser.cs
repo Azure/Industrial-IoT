@@ -108,7 +108,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                             AccessLevel = nodeReference.Target.AccessLevel ?? 0,
                             ParentName = _displayName,
                             DataType = nodeReference.Target.DataType,
-                            Value = nodeReference.Target.Value?.ToJson(),
+                            Value = nodeReference.Target.Value?.ToJson()?.TrimQuotes(),
                             Publishing = false,
                             PublishedItem = null
                         });
@@ -174,7 +174,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                             AccessLevel = nodeReference.Target.AccessLevel ?? 0,
                             ParentName = _displayName,
                             DataType = nodeReference.Target.DataType,
-                            Value = nodeReference.Target.Value?.ToJson(),
+                            Value = nodeReference.Target.Value?.ToJson()?.TrimQuotes(),
                             Publishing = false,
                             PublishedItem = null
                         });
@@ -215,7 +215,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var value = await _twinService.NodeValueReadAsync(endpointId, model);
 
                 if (value.ErrorInfo == null) {
-                    return value.Value?.ToJson();
+                    return value.Value?.ToJson()?.TrimQuotes();
                 }
                 else {
                     return value.ErrorInfo.ToString();

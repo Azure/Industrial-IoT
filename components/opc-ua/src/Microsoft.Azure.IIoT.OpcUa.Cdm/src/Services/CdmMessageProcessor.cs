@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
     using Microsoft.Azure.IIoT.Cdm;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.CommonDataModel.ObjectModel.Cdm;
     using Microsoft.CommonDataModel.ObjectModel.Enums;
@@ -47,20 +48,22 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             _dataSetsCache = new Dictionary<string, List<DataSetMessageModel>>();
 
             _cdmCorpus = new CdmCorpusDefinition();
+
+            var cdmLogger = _logger.ForContext(typeof(CdmStatusLevel));
             _cdmCorpus.SetEventCallback(new EventCallback {
                 Invoke = (level, msg) => {
                     switch (level) {
                         case CdmStatusLevel.Error:
-                            _logger.Error("CDM message: {0}", msg);
+                            cdmLogger.Error("CDM message: {0}", msg);
                             break;
                         case CdmStatusLevel.Warning:
-                            _logger.Warning("CDM message: {0}", msg);
+                            cdmLogger.Warning("CDM message: {0}", msg);
                             break;
                         case CdmStatusLevel.Progress:
-                            _logger.Verbose("CDM message: {0}", msg);
+                            cdmLogger.Verbose("CDM message: {0}", msg);
                             break;
                         case CdmStatusLevel.Info:
-                            _logger.Debug("CDM message: {0}", msg);
+                            cdmLogger.Debug("CDM message: {0}", msg);
                             break;
                     }
                 }
@@ -132,9 +135,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         /// </summary>
         /// <returns></returns>
         public async Task CloseAsync() {
-            _logger.Information($"Closing CDM Processor ...");
+            _logger.Information("Closing CDM Processor ...");
             Try.Op(() => _cacheUploadTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan));
-            await PerformWriteCache();
+            await PerformWriteCacheAsync();
             Manifest = null;
         }
 
@@ -146,7 +149,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         }
 
         /// <inheritdoc/>
-        private async Task PerformWriteCache() {
+        private async Task PerformWriteCacheAsync() {
             var sw = Stopwatch.StartNew();
             var performSave = false;
             _logger.Information("Sending processed CDM data ...");
@@ -164,7 +167,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                         _logger.Error("Samples list is empty ...");
                         continue;
                     }
-                    performSave |= await WriteRecordToPartition<MonitoredItemMessageModel>(
+                    performSave |= await WriteRecordToPartitionAsync(
                         record.Key, record.Value);
                 }
                 foreach (var record in _dataSetsCache) {
@@ -172,7 +175,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                         _logger.Error("DataSet list is empty ...");
                         continue;
                     }
-                    performSave |= await WriteRecordToPartition<DataSetMessageModel>(
+                    performSave |= await WriteRecordToPartitionAsync(
                         record.Key, record.Value);
                 }
                 if (performSave) {
@@ -200,7 +203,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         }
 
         /// <inheritdoc/>
-        private async Task<bool> WriteRecordToPartition<T>(string partitionKey, IList<T> record) {
+        private async Task<bool> WriteRecordToPartitionAsync<T>(string partitionKey, IList<T> record) {
             var retry = false;
             var result = true;
             bool persist;
@@ -268,7 +271,37 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                 .Replace('"', '_').Replace('\'', '_');
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Get cdm type from variant value
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private static CdmDataFormat VariantValueTypeToCdmDataFormat(VariantValue value) {
+            if (value != null && value.TryGetValue(out var raw)) {
+                return DataTypeToCdmDataFormat(raw.GetType());
+            }
+            var typeCode = value?.GetTypeCode() ?? TypeCode.Empty;
+            switch (typeCode) {
+                case TypeCode.Single:
+                    return CdmDataFormat.Float;
+                case TypeCode.Double:
+                    return CdmDataFormat.Double;
+                case TypeCode.String:
+                    return CdmDataFormat.String;
+                case TypeCode.Decimal:
+                    return CdmDataFormat.Decimal;
+                case TypeCode.Boolean:
+                    return CdmDataFormat.Boolean;
+                default:
+                    return CdmDataFormat.String;
+            }
+        }
+
+        /// <summary>
+        /// Get cdm type from type
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         private static CdmDataFormat DataTypeToCdmDataFormat(Type type) {
             var typeCode = Type.GetTypeCode(type);
             if (typeCode == TypeCode.Object) {
@@ -309,7 +342,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             }
         }
 
-        /// <inheritdoc/>
+        /// <summary>
+        /// Data type to cdm data string
+        /// </summary>
+        /// <param name="dataType"></param>
+        /// <returns></returns>
         private static string DataTypeToCdmDataString(CdmDataFormat? dataType) {
             switch (dataType) {
                 case CdmDataFormat.Byte:
@@ -371,7 +408,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                         CdmObjectType.PurposeRef, "hasA", true);
                     //  if we handle a value, lookup it's type property
                     if (property.Name == "Value") {
-                        attribute.DataFormat = DataTypeToCdmDataFormat(sample.Value.GetType());
+                        attribute.DataFormat = VariantValueTypeToCdmDataFormat(sample.Value);
                     }
                     else {
                         attribute.DataFormat = DataTypeToCdmDataFormat(property.PropertyType);
@@ -453,7 +490,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
                                 CdmObjectType.TypeAttributeDef, $"{node.Key}_value", false);
                             valueAttribute.Purpose = _cdmCorpus.MakeRef<CdmPurposeReference>(
                                 CdmObjectType.PurposeRef, "hasA", true);
-                            valueAttribute.DataFormat = DataTypeToCdmDataFormat(node.Value.Value.GetType());
+                            valueAttribute.DataFormat = VariantValueTypeToCdmDataFormat(node.Value.Value);
                             newDataSetEntity.Attributes.Add(valueAttribute);
 
                             var statusAttribute = _cdmCorpus.MakeObject<CdmTypeAttributeDefinition>(
@@ -526,7 +563,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
             try {
                 await _lock.WaitAsync();
                 _cacheUploadTriggered = true;
-                await PerformWriteCache();
+                await PerformWriteCacheAsync();
             }
             finally {
                 Try.Op(() => _cacheUploadTimer.Change(_cacheUploadInterval, Timeout.InfiniteTimeSpan));

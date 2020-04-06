@@ -39,18 +39,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
             foreach (var datapoint in message.Payload) {
                 var arguments = new object[] {
                      new MonitoredItemMessageApiModel {
-                        Value = datapoint.Value.Value,
-                        Status = datapoint.Value.Status,
                         Timestamp = message.Timestamp,
                         DataSetWriterId = message.DataSetWriterId,
                         PublisherId = message.PublisherId,
                         NodeId = datapoint.Key,
                         DisplayName = datapoint.Key,
-                        SourceTimestamp = datapoint.Value.SourceTimestamp,
-                        SourcePicoseconds = null,
-                        ServerTimestamp = datapoint.Value.ServerTimestamp,
-                        ServerPicoseconds = null,
-                        TypeId = null,
+                        Value = datapoint.Value?.Value?.Copy(),
+                        Status = datapoint.Value?.Status,
+                        SourceTimestamp = datapoint.Value?.SourceTimestamp,
+                        SourcePicoseconds = datapoint.Value?.SourcePicoseconds,
+                        ServerTimestamp = datapoint.Value?.ServerTimestamp,
+                        ServerPicoseconds = datapoint.Value?.ServerPicoseconds,
+                        DataType = datapoint.Value?.DataType,
                         EndpointId = null // TODO Remove
                     }
                 };

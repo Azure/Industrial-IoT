@@ -43,12 +43,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         public VariantValue Value { get; set; }
 
         /// <summary>
-        /// Type id
+        /// Data type
         /// </summary>
-        public string TypeId { get; set; }
+        public string DataType { get; set; }
 
         /// <summary>
-        /// Value's Status code string representation 
+        /// Value's Status code string representation
         /// </summary>
         public string Status { get; set; }
 
@@ -63,8 +63,18 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         public DateTime? SourceTimestamp { get; set; }
 
         /// <summary>
+        /// Source pico
+        /// </summary>
+        public ushort? SourcePicoseconds { get; set; }
+
+        /// <summary>
         /// Server time stamp
         /// </summary>
         public DateTime? ServerTimestamp { get; set; }
+
+        /// <summary>
+        /// Server pico
+        /// </summary>
+        public ushort? ServerPicoseconds { get; set; }
     }
 }

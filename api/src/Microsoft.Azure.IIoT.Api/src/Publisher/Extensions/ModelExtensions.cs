@@ -35,10 +35,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
                 NodeId = model.NodeId,
                 DisplayName = model.DisplayName,
                 ServerTimestamp = model.ServerTimestamp,
+                ServerPicoseconds = model.ServerPicoseconds,
                 SourceTimestamp = model.SourceTimestamp,
+                SourcePicoseconds = model.SourcePicoseconds,
                 Timestamp = model.Timestamp,
                 Value = model.Value?.Copy(),
-                TypeId = model.TypeId,
+                DataType = model.DataType,
                 Status = model.Status
             };
         }

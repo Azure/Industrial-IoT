@@ -55,21 +55,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                                 DataSetWriterId = dataSetMessage.DataSetWriterId,
                                 SequenceNumber = dataSetMessage.SequenceNumber,
                                 Status = StatusCode.LookupSymbolicId(dataSetMessage.Status.Code),
-                                MetaDataVersion = $"{dataSetMessage.MetaDataVersion.MajorVersion}" + 
+                                MetaDataVersion = $"{dataSetMessage.MetaDataVersion.MajorVersion}" +
                                     $".{dataSetMessage.MetaDataVersion.MinorVersion}",
                                 Timestamp = dataSetMessage.Timestamp,
                                 Payload = new Dictionary<string, DataValueModel>()
                             };
                             foreach (var datapoint in dataSetMessage.Payload) {
                                 var codec = _encoder.Create(context);
-                                dataset.Payload[datapoint.Key] = new DataValueModel() {
-                                    Value = codec.Encode(datapoint.Value),
+                                var type = BuiltInType.Null;
+                                dataset.Payload[datapoint.Key] = new DataValueModel {
+                                    Value = datapoint.Value == null
+                                        ? null : codec.Encode(datapoint.Value.WrappedValue, out type),
+                                    DataType = type == BuiltInType.Null
+                                        ? null : type.ToString(),
                                     Status = (datapoint.Value?.StatusCode.Code == StatusCodes.Good)
                                         ? null : StatusCode.LookupSymbolicId(datapoint.Value.StatusCode.Code),
                                     SourceTimestamp = (datapoint.Value?.SourceTimestamp == DateTime.MinValue)
                                         ? null : datapoint.Value?.SourceTimestamp,
+                                    SourcePicoseconds = (datapoint.Value?.SourcePicoseconds == 0)
+                                        ? null : datapoint.Value?.SourcePicoseconds,
                                     ServerTimestamp = (datapoint.Value?.ServerTimestamp == DateTime.MinValue)
-                                        ? null : datapoint.Value?.ServerTimestamp
+                                        ? null : datapoint.Value?.ServerTimestamp,
+                                    ServerPicoseconds = (datapoint.Value?.ServerPicoseconds == 0)
+                                        ? null : datapoint.Value?.ServerPicoseconds
                                 };
                             }
                             await Task.WhenAll(_handlers.Select(h => h.HandleMessageAsync(dataset)));

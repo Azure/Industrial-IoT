@@ -174,32 +174,28 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             }
             _lock.Wait();
             try {
-                
-                var entry = _sessions.SingleOrDefault(s => s.Value.Session.SessionName == session.SessionName);
-                if (entry.Key == null) {
-                    _logger.Error("Session entry '{name}' not found in the sessions collection...",
-                        session.SessionName);
-                    return;
-                }
-                entry.Value.MissedKeepAlives++;
-                if (entry.Value.MissedKeepAlives >= entry.Value.MaxKeepAlives) {
-                    _logger.Warning("Session '{name}' exceeded max keep alive count. " +
-                        "Disconnecting and removing session...", session.SessionName);
-                    _sessions.Remove(entry.Key);
-                    // Remove subscriptions
-                    if (session.SubscriptionCount > 0) {
-                        foreach (var subscription in session.Subscriptions) {
-                            Try.Op(() => subscription.RemoveItems(subscription.MonitoredItems));
-                            Try.Op(() => subscription.DeleteItems());
+                foreach (var entry in _sessions
+                    .Where(s => s.Value.Session.SessionName == session.SessionName).ToList()) {
+                    entry.Value.MissedKeepAlives++;
+                    if (entry.Value.MissedKeepAlives >= entry.Value.MaxKeepAlives) {
+                        _logger.Warning("Session '{name}' exceeded max keep alive count. " +
+                            "Disconnecting and removing session...", session.SessionName);
+                        _sessions.Remove(entry.Key);
+                        // Remove subscriptions
+                        if (session.SubscriptionCount > 0) {
+                            foreach (var subscription in session.Subscriptions) {
+                                Try.Op(() => subscription.RemoveItems(subscription.MonitoredItems));
+                                Try.Op(() => subscription.DeleteItems());
+                            }
+                            Try.Op(() => session.RemoveSubscriptions(session.Subscriptions));
                         }
-                        Try.Op(() => session.RemoveSubscriptions(session.Subscriptions));
+                        Try.Op(session.Close);
+                        Try.Op(session.Dispose);
                     }
-                    Try.Op(session.Close);
-                    Try.Op(session.Dispose);
+                    _logger.Warning("{missedKeepAlives}/{_maxKeepAlives} missed keep " +
+                        "alives from session '{name}'...",
+                        entry.Value.MissedKeepAlives, entry.Value.MaxKeepAlives, session.SessionName);
                 }
-                _logger.Warning("{missedKeepAlives}/{_maxKeepAlives} missed keep " +
-                    "alives from session '{name}'...",
-                    entry.Value.MissedKeepAlives, entry.Value.MaxKeepAlives, session.SessionName);
             }
             finally {
                 _lock.Release();
@@ -210,17 +206,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
             if (!securityMode.HasValue) {
                 return null;
             }
-
             switch (securityMode.Value) {
-                case SecurityMode.Best: 
+                case SecurityMode.Best:
                     throw new NotSupportedException("The security mode 'best' is not supported.");
-                case SecurityMode.None: 
+                case SecurityMode.None:
                     return MessageSecurityMode.None;
-                case SecurityMode.Sign: 
+                case SecurityMode.Sign:
                     return MessageSecurityMode.Sign;
-                case SecurityMode.SignAndEncrypt: 
+                case SecurityMode.SignAndEncrypt:
                     return MessageSecurityMode.SignAndEncrypt;
-                default: 
+                default:
                     throw new NotSupportedException($"The security mode '{securityMode}' is not implemented.");
             }
         }
@@ -260,7 +255,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         /// <param name="securityPolicyUri">The requested securityPolicyUrl.</param>
         /// <param name="operationTimeout">Operation timeout</param>
         /// <returns>Endpoint with the selected security settings or null of none available.</returns>
-        private static EndpointDescription SelectEndpoint(string discoveryUrl, 
+        private static EndpointDescription SelectEndpoint(string discoveryUrl,
             MessageSecurityMode? messageSecurityMode, string securityPolicyUri, int operationTimeout = -1) {
             if (messageSecurityMode == MessageSecurityMode.None || securityPolicyUri == SecurityPolicies.None) {
                 return CoreClientUtils.SelectEndpoint(discoveryUrl, false, operationTimeout);

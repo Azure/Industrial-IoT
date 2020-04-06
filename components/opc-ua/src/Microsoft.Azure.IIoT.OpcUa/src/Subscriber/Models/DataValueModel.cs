@@ -9,7 +9,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
     using System.Runtime.Serialization;
 
     /// <summary>
-    /// Publisher monitored item sample model
+    /// Data value model
     /// </summary>
     [DataContract]
     public class DataValueModel{
@@ -22,11 +22,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         public VariantValue Value {get; set; }
 
         /// <summary>
-        /// Type id
+        /// Data type of value
         /// </summary>
-        [DataMember(Name = "typeId", Order = 1,
+        [DataMember(Name = "dataType", Order = 1,
             EmitDefaultValue = false)]
-        public string TypeId { get; set; }
+        public string DataType { get; set; }
 
         /// <summary>
         /// Status of the value (Quality)
@@ -43,10 +43,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Models {
         public DateTime? SourceTimestamp { get; set; }
 
         /// <summary>
+        /// Source pico
+        /// </summary>
+        [DataMember(Name = "sourcePicoseconds", Order = 4,
+            EmitDefaultValue = false)]
+        public ushort? SourcePicoseconds { get; set; }
+
+        /// <summary>
         /// Server Timestamp
         /// </summary>
-        [DataMember(Name = "serverTimestamp", Order = 4,
+        [DataMember(Name = "serverTimestamp", Order = 5,
             EmitDefaultValue = false)]
         public DateTime? ServerTimestamp { get; set; }
+
+        /// <summary>
+        /// Server pico
+        /// </summary>
+        [DataMember(Name = "serverPicoseconds", Order = 6,
+            EmitDefaultValue = false)]
+        public ushort? ServerPicoseconds { get; set; }
     }
 }
