@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Microsoft.Azure.IIoT.Services.Processor.Tunnel": {
+    "Microsoft.Azure.IIoT.Test.Scenarios": {
       "commandName": "Project"
     }
   }
