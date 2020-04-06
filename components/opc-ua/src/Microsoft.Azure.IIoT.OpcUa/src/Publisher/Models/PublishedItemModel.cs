@@ -30,5 +30,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Sampling interval to use
         /// </summary>
         public TimeSpan? SamplingInterval { get; set; }
+
+        /// <summary>
+        /// Heartbeat interval to use
+        /// </summary>
+        public TimeSpan? HeartbeatInterval { get; set; }
     }
 }

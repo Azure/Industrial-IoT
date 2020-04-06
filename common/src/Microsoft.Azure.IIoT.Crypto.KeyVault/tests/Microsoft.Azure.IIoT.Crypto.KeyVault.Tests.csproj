@@ -19,6 +19,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Xunit.SkippableFact" Version="1.3.12" />
+    <PackageReference Include="coverlet.msbuild" Version="2.8.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\src\Microsoft.Azure.IIoT.Crypto.KeyVault.csproj" />

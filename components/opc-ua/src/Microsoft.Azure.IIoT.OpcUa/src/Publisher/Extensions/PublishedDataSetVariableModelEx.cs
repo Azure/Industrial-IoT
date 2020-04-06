@@ -32,7 +32,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                 PublishedVariableDisplayName = model.PublishedVariableDisplayName,
                 SamplingInterval = model.SamplingInterval,
                 SubstituteValue = model.SubstituteValue?.DeepClone(),
-                QueueSize = model.QueueSize
+                QueueSize = model.QueueSize,
+                HeartbeatInterval = model.HeartbeatInterval
             };
         }
     }

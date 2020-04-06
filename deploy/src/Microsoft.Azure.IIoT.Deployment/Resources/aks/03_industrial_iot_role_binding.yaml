@@ -6,7 +6,7 @@ metadata:
   labels:
     app.kubernetes.io/name: industrial-iot
     app.kubernetes.io/part-of: industrial-iot
-    app.kubernetes.io/version: 2.5.2
+    app.kubernetes.io/version: 2.6.146
     app.kubernetes.io/managed-by: Microsoft.Azure.IIoT.Deployment
 roleRef:
   apiGroup: rbac.authorization.k8s.io

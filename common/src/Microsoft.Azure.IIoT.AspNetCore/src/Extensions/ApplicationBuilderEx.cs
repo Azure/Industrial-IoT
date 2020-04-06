@@ -17,6 +17,7 @@ namespace Microsoft.AspNetCore.Hosting {
     using System.Threading;
     using System.Threading.Tasks;
     using Autofac.Extensions.DependencyInjection;
+    using System;
 
     /// <summary>
     /// Application builder extensions
@@ -51,6 +52,7 @@ namespace Microsoft.AspNetCore.Hosting {
             var serviceProvider = host.Services;
 
             var startup = serviceProvider.GetRequiredService<IStartup>();
+            var startupFilters = serviceProvider.GetRequiredService<IEnumerable<IStartupFilter>>();
             var appBuilderFactory = serviceProvider.GetRequiredService<IApplicationBuilderFactory>();
             var branchBuilder = appBuilderFactory.CreateBuilder(host.ServerFeatures);
             var factory = serviceProvider.GetRequiredService<IServiceScopeFactory>();
@@ -71,7 +73,13 @@ namespace Microsoft.AspNetCore.Hosting {
             });
 
             // Do remaining application configuration
-            startup.Configure(branchBuilder);
+            Action<IApplicationBuilder> configure = startup.Configure;
+            if (startupFilters != null) {
+                foreach (var filter in startupFilters.Reverse()) {
+                    configure = filter.Configure(configure);
+                }
+            }
+            configure(branchBuilder);
             var branch = branchBuilder.Build();
 
             // Map the route to the branch

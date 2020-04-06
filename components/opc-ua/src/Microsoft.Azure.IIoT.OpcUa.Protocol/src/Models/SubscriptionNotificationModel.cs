@@ -36,5 +36,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Models {
         /// Appplication url
         /// </summary>
         public string ApplicationUri { get; internal set; }
+
+        /// <summary>
+        /// set if message contains data changes for every monitored item
+        /// </summary>
+        public bool IsKeyMessage { get; internal set; }
     }
 }
