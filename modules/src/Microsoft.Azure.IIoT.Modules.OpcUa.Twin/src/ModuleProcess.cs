@@ -113,6 +113,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
                     }
                     finally {
                         await module.StopAsync();
+                        _twinModuleStart.Set(0);
+                        server.Stop();
                         OnRunning?.Invoke(this, false);
                     }
                 }
@@ -245,6 +247,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin {
         private readonly TaskCompletionSource<bool> _exit;
         private TaskCompletionSource<bool> _reset;
         private int _exitCode;
-        private static readonly Counter _twinModuleStart = Metrics.CreateCounter("iiot_edge_twin_twinModuleStart", "twin module started");
+        private static readonly Gauge _twinModuleStart = Metrics.CreateGauge("iiot_edge_twin_twin_module_start", "twin module started");
     }
 }

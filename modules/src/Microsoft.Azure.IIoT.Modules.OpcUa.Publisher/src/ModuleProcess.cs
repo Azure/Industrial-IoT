@@ -112,6 +112,8 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                     finally {
                         await workerSupervisor.StopAsync();
                         await module.StopAsync();
+                        _publisherModuleStart.Set(0);
+                        server.Stop();
                         OnRunning?.Invoke(this, false);
                     }
                 }
@@ -193,6 +195,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
         private readonly TaskCompletionSource<bool> _exit;
         private int _exitCode;
         private TaskCompletionSource<bool> _reset;
-        private static readonly Counter _publisherModuleStart = Metrics.CreateCounter("iiot_edge_publisher_publisherModuleStart", "publisher module started");
+        private static readonly Gauge _publisherModuleStart = Metrics.CreateGauge("iiot_edge_publisher_publisher_module_start", "publisher module started");
     }
 }

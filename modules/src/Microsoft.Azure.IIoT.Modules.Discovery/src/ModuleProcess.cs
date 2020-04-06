@@ -106,8 +106,9 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
                         logger.Error(ex, "Error during module execution - restarting!");
                     }
                     finally {
-                        server.Stop();
                         await module.StopAsync();
+                        _discoveryModuleStart.Set(0);
+                        server.Stop();
                         OnRunning?.Invoke(this, false);
                     }
                 }
@@ -165,6 +166,6 @@ namespace Microsoft.Azure.IIoT.Modules.Discovery {
         private readonly TaskCompletionSource<bool> _exit;
         private TaskCompletionSource<bool> _reset;
         private int _exitCode;
-        private static readonly Counter _discoveryModuleStart = Metrics.CreateCounter("iiot_edge_discovery_discoveryModuleStart", "discovery module started");
+        private static readonly Gauge _discoveryModuleStart = Metrics.CreateGauge("iiot_edge_discovery_discovery_module_start", "discovery module started");
     }
 }

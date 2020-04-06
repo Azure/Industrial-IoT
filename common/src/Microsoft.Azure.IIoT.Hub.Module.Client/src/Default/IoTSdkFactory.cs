@@ -20,6 +20,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
     using System.Threading.Tasks;
     using System.Threading;
     using System.Diagnostics.Tracing;
+    using Prometheus;
 
     /// <summary>
     /// Injectable factory that creates clients from device sdk
@@ -351,9 +352,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
                 if (status == ConnectionStatus.Connected) {
                     logger.Information("{counter}: Module {deviceId}_{moduleId} reconnected " +
                         "due to {reason}.", _reconnectCounter, deviceId, moduleId, reason);
+                    _reconnectionStatus.WithLabels(moduleId).Inc();
                     _reconnectCounter++;
                     return;
                 }
+                _disconnectionStatus.WithLabels(moduleId).Inc();
                 logger.Information("{counter}: Module {deviceId}_{moduleId} disconnected " +
                     "due to {reason} - now {status}...", _reconnectCounter, deviceId, moduleId,
                         reason, status);
@@ -392,6 +395,15 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Client {
 
             private readonly ModuleClient _client;
             private int _reconnectCounter;
+            private static readonly Counter _reconnectionStatus = Metrics.CreateCounter("iiot_edge_reconnected", "reconnected count",
+                    new CounterConfiguration {
+                    LabelNames = new[] { "opctwin", "opcpublisher", "discovery" }
+                });
+            private static readonly Counter _disconnectionStatus = Metrics.CreateCounter("iiot_edge_disconnected", "reconnected count",
+                new CounterConfiguration {
+                    LabelNames = new[] { "opctwin", "opcpublisher", "discovery" }
+                });
+
         }
 
         /// <summary>
