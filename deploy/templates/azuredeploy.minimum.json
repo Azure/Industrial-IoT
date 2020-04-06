@@ -294,7 +294,7 @@
                 ],
                 "eventHubEndpoints": {
                     "events": {
-                        "retentionTimeInDays": 1,
+                        "retentionTimeInDays": 2,
                         "partitionCount": "[parameters('iotHubPartitionCount')]"
                     }
                 },
@@ -402,17 +402,15 @@
             "name": "[parameters('storageName')]",
             "apiVersion": "2019-04-01",
             "location": "[resourceGroup().location]",
-            "kind": "Storage",
+            "kind": "StorageV2",
             "sku": {
                 "name": "[parameters('storageSkuName')]"
             },
             "properties": {
                 "networkAcls": {
                     "bypass": "AzureServices",
-                    "virtualNetworkRules": [
-                    ],
-                    "ipRules": [
-                    ],
+                    "virtualNetworkRules": [],
+                    "ipRules": [],
                     "defaultAction": "Allow"
                 },
                 "supportsHttpsTrafficOnly": true,
