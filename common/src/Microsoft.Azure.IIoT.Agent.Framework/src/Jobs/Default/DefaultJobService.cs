@@ -56,7 +56,6 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
             var job = await _jobRepository.AddOrUpdateAsync(jobId, async model => {
                 if (model == null) {
                     created = true;
-
                     // Create new job
                     model = new JobInfoModel {
                         Id = jobId
@@ -84,7 +83,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
                 return updated;
             });
 
-            if (created) {
+            if (created && job != null) {
                 foreach (var jreh in _jobRepositoryEventHandlers) {
                     await jreh.OnJobCreatedAsync(this, job);
                 }

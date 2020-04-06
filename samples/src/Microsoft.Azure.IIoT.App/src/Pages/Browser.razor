@@ -394,7 +394,7 @@
         {
             if (node.Id == samples.NodeId)
             {
-                node.Value = samples.Value?.ToString();
+                node.Value = samples.Value?.ToJson();
                 node.Status = string.IsNullOrEmpty(samples.Status) ? "Good" : samples.Status;
                 node.Timestamp = samples.Timestamp.Value.ToLocalTime().ToString();
                 this.StateHasChanged();

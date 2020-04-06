@@ -303,28 +303,36 @@ Arguments:
         }
 
         /// <summary>
-        /// Add or get supervisor identity
+        /// Add or get module identity
         /// </summary>
         private static async Task<ConnectionString> AddOrGetAsync(IIoTHubConfig config,
             string deviceId, string moduleId, ILogger logger) {
-            var level = LogControl.Level.MinimumLevel;
-            LogControl.Level.MinimumLevel = LogEventLevel.Error;
-            var registry = CreateClient(config, logger);
-            await registry.CreateAsync(new DeviceTwinModel {
-                Id = deviceId,
-                Tags = new Dictionary<string, VariantValue> {
-                    [TwinProperty.Type] = IdentityType.Gateway
-                },
-                Capabilities = new DeviceCapabilitiesModel {
-                    IotEdge = true
-                }
-            }, true, CancellationToken.None);
-            await registry.CreateAsync(new DeviceTwinModel {
-                Id = deviceId,
-                ModuleId = moduleId
-            }, true, CancellationToken.None);
+            var registry = new IoTHubServiceHttpClient(new HttpClient(logger),
+                config, new NewtonSoftJsonSerializer(), logger);
+            try {
+                await registry.CreateAsync(new DeviceTwinModel {
+                    Id = deviceId,
+                    Tags = new Dictionary<string, VariantValue> {
+                        [TwinProperty.Type] = IdentityType.Gateway
+                    },
+                    Capabilities = new DeviceCapabilitiesModel {
+                        IotEdge = true
+                    }
+                }, false, CancellationToken.None);
+            }
+            catch (ConflictingResourceException) {
+                logger.Information("Gateway {deviceId} exists.", deviceId);
+            }
+            try {
+                await registry.CreateAsync(new DeviceTwinModel {
+                    Id = deviceId,
+                    ModuleId = moduleId
+                }, false, CancellationToken.None);
+            }
+            catch (ConflictingResourceException) {
+                logger.Information("Module {moduleId} exists...", moduleId);
+            }
             var cs = await registry.GetConnectionStringAsync(deviceId, moduleId);
-            LogControl.Level.MinimumLevel = level;
             return cs;
         }
 

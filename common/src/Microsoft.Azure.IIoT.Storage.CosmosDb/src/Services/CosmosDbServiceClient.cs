@@ -11,6 +11,7 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
     using Serilog;
     using System;
     using System.Threading.Tasks;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Provides document db and graph functionality for storage interfaces.
@@ -39,6 +40,10 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
                 databaseId = "default";
             }
             var cs = ConnectionString.Parse(_config.DbConnectionString);
+            if (_jsonConfig?.Settings != null) {
+                // Workaround https://github.com/Azure/azure-cosmos-dotnet-v2/issues/351
+                JsonConvert.DefaultSettings = () => _jsonConfig?.Settings;
+            }
             var client = new DocumentClient(new Uri(cs.Endpoint), cs.SharedAccessKey,
                 _jsonConfig?.Settings, null, options?.Consistency.ToConsistencyLevel());
             await client.CreateDatabaseIfNotExistsAsync(new Database {

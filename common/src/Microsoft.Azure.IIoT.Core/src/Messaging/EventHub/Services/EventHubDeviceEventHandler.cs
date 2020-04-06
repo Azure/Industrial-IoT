@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
     using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Collections.Generic;
+    using System.Collections.Concurrent;
     using System.Linq;
     using System.Threading.Tasks;
 
@@ -27,7 +28,8 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
             if (handlers == null) {
                 throw new ArgumentNullException(nameof(handlers));
             }
-            _handlers = handlers.ToDictionary(h => h.MessageSchema.ToLowerInvariant(), h => h);
+            _handlers = new ConcurrentDictionary<string, IDeviceTelemetryHandler>(
+                handlers.Select(h => KeyValuePair.Create(h.MessageSchema.ToLowerInvariant(), h)));
             _unknown = unknown;
         }
 
@@ -42,7 +44,7 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
                 properties.TryGetValue(CommonProperties.ModuleId, out var moduleId);
 
                 if (_handlers.TryGetValue(schemaType, out var handler)) {
-                    _used.Add(handler);
+                    _used.Enqueue(handler);
                     await handler.HandleAsync(deviceId, moduleId, eventData, properties, checkpoint);
                     handled = true;
                 }
@@ -59,21 +61,14 @@ namespace Microsoft.Azure.IIoT.Core.Messaging.EventHub {
 
         /// <inheritdoc/>
         public async Task OnBatchCompleteAsync() {
-            try {
-                foreach (var handler in _used.ToList()) {
-                    await handler.OnBatchCompleteAsync();
-                }
-            }
-            catch {
-                throw;
-            }
-            finally { 
-                _used.Clear();
+            while (_used.TryDequeue(out var handler)) {
+                await Try.Async(handler.OnBatchCompleteAsync);
             }
         }
 
-        private readonly HashSet<IDeviceTelemetryHandler> _used = new HashSet<IDeviceTelemetryHandler>();
-        private readonly Dictionary<string, IDeviceTelemetryHandler> _handlers;
+        private readonly ConcurrentQueue<IDeviceTelemetryHandler> _used =
+            new ConcurrentQueue<IDeviceTelemetryHandler>();
+        private readonly ConcurrentDictionary<string, IDeviceTelemetryHandler> _handlers;
         private readonly IUnknownEventProcessor _unknown;
     }
 }

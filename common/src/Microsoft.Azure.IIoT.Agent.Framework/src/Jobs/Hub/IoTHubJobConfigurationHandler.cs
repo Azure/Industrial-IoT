@@ -34,20 +34,21 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Jobs {
 
         /// <inheritdoc/>
         public async Task OnJobCreatingAsync(IJobService manager, JobInfoModel job) {
-            var jobDeviceId = GetJobDeviceId(job);
+            if (job.JobConfiguration?.IsObject != true) {
+                return;
+            }
             try {
-                var deviceTwin = await _ioTHubTwinServices.GetAsync(jobDeviceId);
+                var jobDeviceId = GetJobDeviceId(job);
+                var deviceTwin = await _ioTHubTwinServices.FindAsync(jobDeviceId);
                 if (deviceTwin == null) {
                     deviceTwin = new DeviceTwinModel {
                         Id = jobDeviceId
                     };
-                    await _ioTHubTwinServices.CreateAsync(deviceTwin);
+                    await _ioTHubTwinServices.CreateAsync(deviceTwin, true);
                 }
                 var cs = await _ioTHubTwinServices.GetConnectionStringAsync(deviceTwin.Id);
-                if (job.JobConfiguration?.IsObject == true) {
-                    job.JobConfiguration[TwinProperties.ConnectionString].AssignValue(cs.ToString());
-                    _logger.Debug("Added connection string to job {id}", jobDeviceId);
-                }
+                job.JobConfiguration[TwinProperties.ConnectionString].AssignValue(cs.ToString());
+                _logger.Debug("Added connection string to job {id}", jobDeviceId);
             }
             catch (Exception ex) {
                 _logger.Error(ex, "Error while creating IoT Device.");

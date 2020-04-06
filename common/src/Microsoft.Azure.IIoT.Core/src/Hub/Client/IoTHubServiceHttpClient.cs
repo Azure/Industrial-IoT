@@ -80,10 +80,6 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                     when (!string.IsNullOrEmpty(twin.ModuleId) || force) {
                     // Continue onward
                 }
-                catch (Exception e) {
-                    _logger.Debug(e, "Create device failed in CreateOrUpdate");
-                    throw;
-                }
                 if (!string.IsNullOrEmpty(twin.ModuleId)) {
                     // Try create module
                     try {
@@ -98,9 +94,6 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                     }
                     catch (ConflictingResourceException)
                         when (force) {
-                    }
-                    catch (Exception e) {
-                        _logger.Debug(e, "Create module failed in CreateOrUpdate");
                     }
                 }
                 return await PatchAsync(twin, true, ct);  // Force update of twin

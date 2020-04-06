@@ -317,6 +317,10 @@ namespace Microsoft.Azure.IIoT.Serializers.NewtonSoft {
                             }
                         }
                         throw new ArgumentOutOfRangeException("No parent found");
+                    case JProperty p:
+                        Token = FromObject(value);
+                        p.Value = Token;
+                        break;
                     default:
                         throw new NotSupportedException("Not an object or array");
                 }

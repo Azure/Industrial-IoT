@@ -407,10 +407,10 @@ namespace Opc.Ua.Encoders {
                 }
                 switch (value.NamespaceIndex) {
                     case 0:
-                        // default namespace - nothing to do 
+                        // default namespace - nothing to do
                         break;
                     case 1:
-                        // always as integer 
+                        // always as integer
                         WriteUInt16("Namespace", value.NamespaceIndex);
                         break;
                     default:
@@ -461,7 +461,7 @@ namespace Opc.Ua.Encoders {
                 }
                 switch (value.NamespaceIndex) {
                     case 0:
-                        // default namespace - nothing to do 
+                        // default namespace - nothing to do
                         break;
                     case 1:
                         // namespace 1 always as integer
@@ -802,7 +802,7 @@ namespace Opc.Ua.Encoders {
                     }
                 }
                 else {
-                    _writer.WriteValue($"{value}_{numeric}");
+                    WriteString(property, $"{value}_{numeric}");
                 }
             }
         }
@@ -1220,8 +1220,8 @@ namespace Opc.Ua.Encoders {
                     return;
                 }
 
-                // TODO: JSON array encoding only for 
-                // non reversible encoding, otherwise 
+                // TODO: JSON array encoding only for
+                // non reversible encoding, otherwise
                 // flatten array and add Dimension.
                 // if (!UseReversibleEncoding) {
                 if (value is Matrix matrix) {

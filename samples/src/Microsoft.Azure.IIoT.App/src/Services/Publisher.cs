@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         public async Task<PagedResult<PublishedItemApiModel>> PublishedAsync(string endpointId) {
             var pageResult = new PagedResult<PublishedItemApiModel>();
             try {
-                string continuationToken = string.Empty;
+                var continuationToken = string.Empty;
                 do {
                     var result = await _publisherService.NodePublishListAsync(endpointId, continuationToken);
                     continuationToken = result.ContinuationToken;
@@ -50,6 +50,9 @@ namespace Microsoft.Azure.IIoT.App.Services {
                         }
                     }
                 } while (!string.IsNullOrEmpty(continuationToken));
+            }
+            catch (UnauthorizedAccessException) {
+                pageResult.Error = "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception e) {
                 // skip this node
@@ -90,7 +93,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var resultApiModel = await _publisherService.NodePublishStartAsync(endpointId, requestApiModel);
                 return resultApiModel.ErrorInfo == null;
             }
-            catch(Exception e) {
+            catch (Exception e) {
                 _logger.Error(e, "Cannot publish node {nodeId} on endpointId '{endpointId}'", nodeId, endpointId);
             }
             return false;
@@ -105,7 +108,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
         public async Task<bool> StopPublishingAsync(string endpointId, string nodeId, CredentialModel credential = null) {
             try {
                 var requestApiModel = new PublishStopRequestApiModel() {
-                        NodeId = nodeId,
+                    NodeId = nodeId,
                 };
                 requestApiModel.Header = Elevate(new RequestHeaderApiModel(), credential);
 
