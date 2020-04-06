@@ -13,11 +13,13 @@ namespace Microsoft.Azure.IIoT.Auth.IdentityServer4.Storage {
     using global::IdentityServer4.Models;
     using global::IdentityServer4.Stores;
     using global::IdentityServer4.Services;
+    using System.Threading;
+    using Microsoft.Azure.IIoT.Exceptions;
 
     /// <summary>
     /// Client store
     /// </summary>
-    public class ClientDatabase : IClientStore, ICorsPolicyService {
+    public class ClientDatabase : IClientStore, ICorsPolicyService, IClientRepository {
 
         /// <summary>
         /// Create client store
@@ -31,12 +33,49 @@ namespace Microsoft.Azure.IIoT.Auth.IdentityServer4.Storage {
         }
 
         /// <inheritdoc/>
+        public async Task CreateAsync(Client client, CancellationToken ct) {
+            if (client == null) {
+                throw new ArgumentNullException(nameof(client));
+            }
+            var document = client.ToDocumentModel();
+            await _documents.AddAsync(document, ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task UpdateAsync(Client client, string etag, CancellationToken ct) {
+            if (client == null) {
+                throw new ArgumentNullException(nameof(client));
+            }
+            var document = await _documents.GetAsync<ClientDocumentModel>(
+                client.ClientId, ct);
+            if (etag != null && document.Etag != etag) {
+                throw new ResourceOutOfDateException();
+            }
+            await _documents.ReplaceAsync(document, client.ToDocumentModel(), ct);
+        }
+
+        /// <inheritdoc/>
+        public async Task<(Client, string)> GetAsync(string clientId, CancellationToken ct) {
+            if (string.IsNullOrEmpty(clientId)) {
+                throw new ArgumentNullException(nameof(clientId));
+            }
+            var document = await _documents.GetAsync<ClientDocumentModel>(clientId, ct);
+            return (document.Value.ToServiceModel(), document.Etag);
+        }
+
+        /// <inheritdoc/>
+        public async Task DeleteAsync(string clientId, string etag,
+            CancellationToken ct) {
+            await _documents.DeleteAsync(clientId, ct, null, etag);
+        }
+
+        /// <inheritdoc/>
         public async Task<Client> FindClientByIdAsync(string clientId) {
-            var client = await _documents.FindAsync<ClientDocumentModel>(clientId);
-            if (client?.Value == null) {
+            var document = await _documents.FindAsync<ClientDocumentModel>(clientId);
+            if (document?.Value == null) {
                 return null;
             }
-            return client.Value.ToServiceModel();
+            return document.Value.ToServiceModel();
         }
 
         /// <inheritdoc/>

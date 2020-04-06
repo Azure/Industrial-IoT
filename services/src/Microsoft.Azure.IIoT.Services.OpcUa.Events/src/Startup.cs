@@ -264,15 +264,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
             builder.RegisterType<EventHubDeviceEventHandler>()
                 .AsImplementedInterfaces().SingleInstance();
 
-            // ... and auto start
-            builder.RegisterType<HostAutoStart>()
-                .AutoActivate()
-                .AsImplementedInterfaces().SingleInstance();
-
             // Handle opc-ua pub/sub telemetry subscriptions ...
             builder.RegisterType<MonitoredItemSampleModelHandler>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<NetworkMessageModelHandler>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // ... and auto start
+            builder.RegisterType<HostAutoStart>()
+                .AutoActivate()
                 .AsImplementedInterfaces().SingleInstance();
         }
     }

@@ -28,6 +28,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users {
     using System;
     using ILogger = Serilog.ILogger;
     using Prometheus;
+    using Microsoft.Azure.IIoT.Auth.IdentityServer4.Services;
+    using Microsoft.Azure.IIoT.Utils;
 
     /// <summary>
     /// Webservice startup
@@ -196,6 +198,13 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users {
             builder.RegisterType<RoleDatabase>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<UserDatabase>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<UserManagerStorageInit>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // ... and auto start
+            builder.RegisterType<HostAutoStart>()
+                .AutoActivate()
                 .AsImplementedInterfaces().SingleInstance();
         }
     }

@@ -290,8 +290,7 @@
             },
             "properties": {
                 "location": "[resourceGroup().location]",
-                "ipFilterRules": [
-                ],
+                "ipFilterRules": [],
                 "eventHubEndpoints": {
                     "events": {
                         "retentionTimeInDays": 2,
@@ -300,14 +299,10 @@
                 },
                 "routing": {
                     "endpoints": {
-                        "serviceBusQueues": [
-                        ],
-                        "serviceBusTopics": [
-                        ],
-                        "eventHubs": [
-                        ],
-                        "storageContainers": [
-                        ]
+                        "serviceBusQueues": [],
+                        "serviceBusTopics": [],
+                        "eventHubs": [],
+                        "storageContainers": []
                     },
                     "routes": [
                         {

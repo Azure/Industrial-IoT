@@ -7,9 +7,11 @@ namespace Microsoft.Azure.IIoT.Services.Common.Identity {
     using Microsoft.Azure.IIoT.Services.Common.Identity.Runtime;
     using Microsoft.Azure.IIoT.Auth.IdentityServer4.Storage;
     using Microsoft.Azure.IIoT.Auth.IdentityServer4.Models;
+    using Microsoft.Azure.IIoT.Auth.IdentityServer4.Services;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
     using Microsoft.Azure.IIoT.Storage.Default;
     using Microsoft.Azure.IIoT.Http.Default;
+    using Microsoft.Azure.IIoT.Utils;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Identity;
     using Microsoft.AspNetCore.Hosting;
@@ -194,6 +196,13 @@ namespace Microsoft.Azure.IIoT.Services.Common.Identity {
             builder.RegisterType<RoleDatabase>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<UserDatabase>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            builder.RegisterType<IdentityServerStorageInit>()
+                .AsImplementedInterfaces().SingleInstance();
+            // ... and auto start
+            builder.RegisterType<HostAutoStart>()
+                .AutoActivate()
                 .AsImplementedInterfaces().SingleInstance();
         }
     }

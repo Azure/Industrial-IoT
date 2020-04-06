@@ -13,6 +13,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users.Runtime {
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Auth.Runtime;
+    using Microsoft.Azure.IIoT.Auth.IdentityServer4;
+    using Microsoft.Azure.IIoT.Auth.IdentityServer4.Runtime;
     using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Azure.IIoT.Storage.CosmosDb;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
@@ -23,7 +25,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users.Runtime {
     /// Common web service configuration aggregation
     /// </summary>
     public class Config : DiagnosticsConfig, IAuthConfig,
-        ICorsConfig, IOpenApiConfig,
+        ICorsConfig, IOpenApiConfig, IRootUserConfig,
         IItemContainerConfig, ICosmosDbConfig, IForwardedHeadersConfig {
 
         /// <inheritdoc/>
@@ -56,6 +58,11 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users.Runtime {
         public string TrustedIssuer => _auth.TrustedIssuer;
         /// <inheritdoc/>
         public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
+
+        /// <inheritdoc/>
+        public string UserName => _user.UserName;
+        /// <inheritdoc/>
+        public string Password => _user.Password;
 
         /// <inheritdoc/>
         public bool UIEnabled => _openApi.UIEnabled;
@@ -104,6 +111,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users.Runtime {
             _cors = new CorsConfig(configuration);
             _cosmos = new CosmosDbConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
+            _user = new RootUserConfig(configuration);
         }
 
         private readonly OpenApiConfig _openApi;
@@ -112,5 +120,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users.Runtime {
         private readonly CorsConfig _cors;
         private readonly CosmosDbConfig _cosmos;
         private readonly ForwardedHeadersConfig _fh;
+        private readonly RootUserConfig _user;
     }
 }

@@ -10,6 +10,12 @@ namespace Microsoft.Azure.IIoT {
     /// </summary>
     public static class PcsVariable {
 
+        /// <summary> Root user id </summary>
+        public const string PCS_ROOT_USERID =
+            "PCS_ROOT_USERID";
+        /// <summary> Root password </summary>
+        public const string PCS_ROOT_PASSWORD =
+            "PCS_ROOT_PASSWORD";
         /// <summary> Iot hub connection string </summary>
         public const string PCS_IOTHUB_CONNSTRING =
             "PCS_IOTHUB_CONNSTRING";
@@ -160,7 +166,7 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Job orchestrator service endpoint url </summary>
         public const string PCS_JOB_ORCHESTRATOR_SERVICE_URL =
             "PCS_JOB_ORCHESTRATOR_SERVICE_URL";
-        /// <summary> Configuration service endpoint url </summary>
+        /// <summary> Events service endpoint url </summary>
         public const string PCS_EVENTS_SERVICE_URL =
             "PCS_EVENTS_SERVICE_URL";
         /// <summary> CORS whitelist </summary>
@@ -211,18 +217,18 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Service URL path base for job orchestrator service </summary>
         public const string PCS_JOB_ORCHESTRATOR_SERVICE_PATH_BASE =
             "PCS_JOB_ORCHESTRATOR_SERVICE_PATH_BASE";
-        /// <summary> Service URL path base for edge manager service </summary>
-        public const string PCS_EDGE_MANAGER_SERVICE_PATH_BASE =
-            "PCS_EDGE_MANAGER_SERVICE_PATH_BASE";
-        /// <summary> Service URL path base for configuration service </summary>
-        public const string PCS_EVENTS_SERVICE_PATH_BASE =
-            "PCS_EVENTS_SERVICE_PATH_BASE";
-        /// <summary> Service URL path base for user servíce </summary>
-        public const string PCS_USERS_SERVICE_PATH_BASE =
-            "PCS_USERS_SERVICE_PATH_BASE";
         /// <summary> Service URL path base for frontend app </summary>
         public const string PCS_FRONTEND_APP_SERVICE_PATH_BASE =
             "PCS_FRONTEND_APP_SERVICE_PATH_BASE";
+        /// <summary> Service URL path base for events service </summary>
+        public const string PCS_EVENTS_SERVICE_PATH_BASE =
+            "PCS_EVENTS_SERVICE_PATH_BASE";
+        /// <summary> Service URL path base for auth service </summary>
+        public const string PCS_AUTH_SERVICE_PATH_BASE =
+            "PCS_AUTH_SERVICE_PATH_BASE";
+        /// <summary> Service URL path base for user servíce </summary>
+        public const string PCS_USERS_SERVICE_PATH_BASE =
+            "PCS_USERS_SERVICE_PATH_BASE";
         /// <summary> Deployment Level </summary>
         public const string PCS_DEPLOYMENT_LEVEL =
             "PCS_DEPLOYMENT_LEVEL";

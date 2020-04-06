@@ -6,9 +6,11 @@
 namespace Microsoft.Azure.IIoT.Auth.IdentityServer4.Storage {
     using Microsoft.Azure.IIoT.Auth.IdentityServer4.Models;
     using Microsoft.Azure.IIoT.Storage;
+    using Microsoft.Azure.IIoT.Exceptions;
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using global::IdentityServer4.Stores;
     using global::IdentityServer4.Models;
