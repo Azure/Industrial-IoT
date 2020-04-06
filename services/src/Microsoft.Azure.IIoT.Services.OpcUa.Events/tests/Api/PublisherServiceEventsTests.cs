@@ -68,7 +68,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Api {
         [Theory]
         [InlineData(10)]
         [InlineData(4455)]
-        [InlineData(462345)]
+        [InlineData(262345)]
         public async Task TestPublishPublisherEventAndReceiveMultipleAsync(int total) {
 
             var bus = _factory.Resolve<ISubscriberMessageProcessor>();
@@ -183,21 +183,22 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Api {
             yield return ((decimal)-1.0, (decimal)-1.0);
             yield return ((decimal)0.0, (decimal)0.0);
             yield return ((decimal)1234567, (decimal)1234567);
-            var guid = Guid.NewGuid();
-            yield return (guid, guid);
+            yield return (kGuid, kGuid);
             yield return (Guid.Empty, Guid.Empty);
-            var now1 = DateTime.UtcNow;
-            yield return (now1, now1);
+            yield return (kNow1, kNow1);
             yield return (DateTime.MaxValue, DateTime.MaxValue);
             yield return (DateTime.MinValue, DateTime.MinValue);
-            var now2 = DateTimeOffset.UtcNow;
-            yield return (now2, now2);
+            yield return (kNow2, kNow2);
             yield return (TimeSpan.Zero, TimeSpan.Zero);
             yield return (TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(5));
             yield return (TimeSpan.FromDays(5555), TimeSpan.FromDays(5555));
             yield return (TimeSpan.MaxValue, TimeSpan.MaxValue);
             yield return (TimeSpan.MinValue, TimeSpan.MinValue);
         }
+
+        private static readonly Guid kGuid = Guid.NewGuid();
+        private static readonly DateTime kNow1 = DateTime.UtcNow;
+        private static readonly DateTimeOffset kNow2 = DateTimeOffset.UtcNow;
 
         public static IEnumerable<object[]> GetScalarValues() {
             return GetStrings()

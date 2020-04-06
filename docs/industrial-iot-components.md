@@ -33,6 +33,6 @@ An IoT Edge device acts as a local Gateway and is comprised of Edge Runtime and 
 
 ## Learn more
 
-* [Complete code structure](code-structure.md)
-* [Architecture](architecture.md)
-* [Deploy Azure Industrial IoT Platform](deploy/readme.md)
+- [Complete code structure](code-structure.md)
+- [Architecture](architecture.md)
+- [Deploy Azure Industrial IoT Platform](deploy/readme.md)

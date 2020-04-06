@@ -2,6 +2,8 @@
 
 [Home](readme.md)
 
+Namespace: Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding
+
 ## Overview
 
 The Onboarding service is used to process discovery events from the OPC Twin module (supervisor) as a result of a scan.  The service API is called by the event processor host to create IoT Hub Device Twins for each server and server endpoint using the IoT Hub Device Twin Registry.  
