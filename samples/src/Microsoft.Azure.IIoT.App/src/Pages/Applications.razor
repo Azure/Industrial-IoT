@@ -34,7 +34,10 @@
         {
             <tr>
                 <td>
-                    <a href='endpoints/@RegistryHelper.PathAll/@application.ApplicationId/@RegistryHelper.PathAll/@application.ApplicationUri'>
+                    @{
+                        CommonHelper.ApplicationUri.AddOrUpdate(application.ApplicationId, application.ApplicationUri);
+                    }
+                    <a href='endpoints/@RegistryHelper.PathAll/@application.ApplicationId/@RegistryHelper.PathAll'>
                         @application.ApplicationName
                     </a>
                 </td>

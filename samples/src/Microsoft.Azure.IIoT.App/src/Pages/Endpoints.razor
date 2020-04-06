@@ -1,5 +1,5 @@
 ﻿@page "/endpoints"
-@page "/endpoints/{discovererId}/{applicationId}/{supervisorId}/{applicationUri}"
+@page "/endpoints/{discovererId}/{applicationId}/{supervisorId}"
 
 @using Microsoft.AspNetCore.Components;
 @using Microsoft.Azure.IIoT.App.Services
@@ -58,8 +58,7 @@
                         @{ discover = DiscovererId == null ? RegistryHelper.PathAll : DiscovererId; }
                         @{ string application = ApplicationId == null ? RegistryHelper.PathAll : ApplicationId; }
                         @{ string supervisor = SupervisorId == null ? RegistryHelper.PathAll : SupervisorId; }
-                        @{ string applicationUri = ApplicationUri == null ? RegistryHelper.PathAll : ApplicationUri; }
-                        <a href='browser/@discover/@application/@supervisor/@endpoint.EndpointModel.Registration.Id/@applicationUri'>
+                        <a href='browser/@discover/@application/@supervisor/@endpoint.EndpointModel.Registration.Id'>
                             @endpoint.EndpointModel.Registration.Endpoint.Url
                         </a>
                     </td>
@@ -112,9 +111,6 @@
 
     [Parameter]
     public string SupervisorId { get; set; } = string.Empty;
-
-    [Parameter]
-    public string ApplicationUri { get; set; } = string.Empty;
 
     public string Status { get; set; }
     private PagedResult<EndpointInfo> _endpointList =
