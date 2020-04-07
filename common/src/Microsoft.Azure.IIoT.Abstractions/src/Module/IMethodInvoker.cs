@@ -22,7 +22,9 @@ namespace Microsoft.Azure.IIoT.Module {
         /// </summary>
         /// <param name="payload"></param>
         /// <param name="contentType"></param>
+        /// <param name="context"></param>
         /// <returns></returns>
-        Task<byte[]> InvokeAsync(byte[] payload, string contentType);
+        Task<byte[]> InvokeAsync(byte[] payload, string contentType,
+            IMethodHandler context);
     }
 }

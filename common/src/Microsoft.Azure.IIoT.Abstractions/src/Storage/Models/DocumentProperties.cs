@@ -16,11 +16,6 @@ namespace Microsoft.Azure.IIoT.Storage {
         public const string IdKey = "id";
 
         /// <summary>
-        /// Label property
-        /// </summary>
-        public const string LabelKey = "label";
-
-        /// <summary>
         /// Partition key property
         /// </summary>
         public const string PartitionKey = "__pk";

@@ -4,18 +4,19 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Capabilities
     /// </summary>
+    [DataContract]
     public class DeviceCapabilitiesModel {
 
         /// <summary>
         /// iotedge device
         /// </summary>
-        [JsonProperty(PropertyName = "iotEdge",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "iotEdge",
+            EmitDefaultValue = false)]
         public bool? IotEdge { get; set; }
     }
 }

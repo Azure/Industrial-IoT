@@ -214,7 +214,7 @@ namespace Opc.Ua.Types {
         private void ValidateTypeDeclaration(TypeDeclaration declaration) {
             if (declaration.SourceType.IsNullOrEmpty()) {
                 throw new FormatException("The type declaration " +
-                    $"'{declaration.Name}' source type is null.");
+                    $"'{declaration.Name}' source type == null.");
             }
             var type = ResolveType(declaration.SourceType);
             if (type == null) {

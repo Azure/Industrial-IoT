@@ -3,8 +3,6 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Description>Azure Industrial IoT Core Azure Storage Implementations</Description>
-    <VersionSuffix>$(PrereleaseSuffix)</VersionSuffix>
-    <NoWarn>NU1608;NU5125</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="WindowsAzure.Storage" Version="9.3.3" />

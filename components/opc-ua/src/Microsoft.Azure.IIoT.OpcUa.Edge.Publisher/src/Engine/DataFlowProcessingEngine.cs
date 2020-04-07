@@ -9,13 +9,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
     using Microsoft.Azure.IIoT.Exceptions;
+    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using System.Threading.Tasks.Dataflow;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Dataflow engine
@@ -63,8 +63,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <inheritdoc/>
-        public Task<JToken> GetCurrentJobState() {
-            return Task.FromResult<JToken>(null);
+        public Task<VariantValue> GetCurrentJobState() {
+            return Task.FromResult<VariantValue>(null);
         }
 
         /// <inheritdoc/>

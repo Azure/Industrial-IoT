@@ -4,16 +4,18 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Services {
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Utils;
     using System;
     using System.Collections.Generic;
+    using System.Collections.Concurrent;
     using System.Linq;
     using System.Threading.Tasks;
 
     /// <summary>
     /// Default iot hub device event handler implementation
     /// </summary>
-    public sealed class IoTHubDeviceEventHandler : IEventHandler {
+    public sealed class IoTHubDeviceEventHandler : IEventProcessingHandler {
 
         /// <summary>
         /// Create processor factory
@@ -21,11 +23,12 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         /// <param name="handlers"></param>
         /// <param name="unknown"></param>
         public IoTHubDeviceEventHandler(IEnumerable<IDeviceTelemetryHandler> handlers,
-            IUnknownEventHandler unknown = null) {
+            IUnknownEventProcessor unknown = null) {
             if (handlers == null) {
                 throw new ArgumentNullException(nameof(handlers));
             }
-            _handlers = handlers.ToDictionary(h => h.MessageSchema, h => h);
+            _handlers = new ConcurrentDictionary<string, IDeviceTelemetryHandler>(
+                handlers.Select(h => KeyValuePair.Create(h.MessageSchema.ToLowerInvariant(), h)));
             _unknown = unknown;
         }
 
@@ -33,20 +36,28 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
         public async Task HandleAsync(byte[] eventData, IDictionary<string, string> properties,
             Func<Task> checkpoint) {
             if (!properties.TryGetValue(CommonProperties.DeviceId, out var deviceId) &&
-                !properties.TryGetValue(SystemProperties.ConnectionDeviceId, out deviceId)) {
+                !properties.TryGetValue(SystemProperties.ConnectionDeviceId, out deviceId) &&
+                !properties.TryGetValue(SystemProperties.DeviceId, out deviceId)) {
                 // Not from a device
                 return;
             }
-            
+
+            if (!properties.TryGetValue(CommonProperties.ModuleId, out var moduleId) &&
+                !properties.TryGetValue(SystemProperties.ConnectionModuleId, out moduleId) &&
+                !properties.TryGetValue(SystemProperties.ModuleId, out moduleId)) {
+                // Not from a module
+                moduleId = null;
+            }
+
             if (properties.TryGetValue(CommonProperties.EventSchemaType, out var schemaType) ||
                 properties.TryGetValue(SystemProperties.MessageSchema, out schemaType)) {
-                properties.TryGetValue(CommonProperties.ModuleId, out var moduleId);
+
                 //  TODO: when handling third party OPC UA Pub/Sub Messages
                 //  the schemaType might not exist
-                if (_handlers.TryGetValue(schemaType, out var handler)) {
+                if (_handlers.TryGetValue(schemaType.ToLowerInvariant(), out var handler)) {
                     await handler.HandleAsync(deviceId, moduleId?.ToString(), eventData,
                         properties, checkpoint);
-                    _used.Add(handler);
+                    _used.Enqueue(handler);
                 }
 
                 // Handled...
@@ -56,21 +67,22 @@ namespace Microsoft.Azure.IIoT.Hub.Services {
             if (_unknown != null) {
                 // From a device, but does not have any event schema or message schema
                 await _unknown.HandleAsync(eventData, properties);
-                return;
+                if (checkpoint != null) {
+                    await Try.Async(() => checkpoint());
+                }
             }
         }
 
         /// <inheritdoc/>
         public async Task OnBatchCompleteAsync() {
-            foreach (var handler in _used.ToList()) {
+            while (_used.TryDequeue(out var handler)) {
                 await Try.Async(handler.OnBatchCompleteAsync);
             }
-            _used.Clear();
         }
 
-        private readonly HashSet<IDeviceTelemetryHandler> _used =
-            new HashSet<IDeviceTelemetryHandler>();
-        private readonly Dictionary<string, IDeviceTelemetryHandler> _handlers;
-        private readonly IUnknownEventHandler _unknown;
+        private readonly ConcurrentQueue<IDeviceTelemetryHandler> _used =
+            new ConcurrentQueue<IDeviceTelemetryHandler>();
+        private readonly ConcurrentDictionary<string, IDeviceTelemetryHandler> _handlers;
+        private readonly IUnknownEventProcessor _unknown;
     }
 }

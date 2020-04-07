@@ -4,85 +4,77 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
-    using System.ComponentModel;
+    using System.Runtime.Serialization;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Discoverer registration model
     /// </summary>
+    [DataContract]
     public class DiscovererApiModel {
 
         /// <summary>
         /// Discoverer id
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
+        [DataMember(Name = "id", Order = 0)]
         [Required]
         public string Id { get; set; }
 
         /// <summary>
         /// Site of the discoverer
         /// </summary>
-        [JsonProperty(PropertyName = "siteId",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "siteId", Order = 1,
+            EmitDefaultValue = false)]
         public string SiteId { get; set; }
 
         /// <summary>
         /// Whether the discoverer is in discovery mode
         /// </summary>
-        [JsonProperty(PropertyName = "discovery",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(DiscoveryMode.Off)]
+        [DataMember(Name = "discovery", Order = 2,
+            EmitDefaultValue = false)]
         public DiscoveryMode? Discovery { get; set; }
 
         /// <summary>
         /// Discoverer configuration
         /// </summary>
-        [JsonProperty(PropertyName = "discoveryConfig",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "discoveryConfig", Order = 3,
+            EmitDefaultValue = false)]
         public DiscoveryConfigApiModel DiscoveryConfig { get; set; }
 
         /// <summary>
         /// Requested discovery mode
         /// </summary>
-        [JsonProperty(PropertyName = "requestedMode",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(DiscoveryMode.Off)]
+        [DataMember(Name = "requestedMode", Order = 4,
+            EmitDefaultValue = false)]
         public DiscoveryMode? RequestedMode { get; set; }
 
         /// <summary>
         /// Requested discoverer configuration
         /// </summary>
-        [JsonProperty(PropertyName = "requestedConfig",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
-        public DiscoveryConfigApiModel RequestedConfig { get; set; } = new DiscoveryConfigApiModel();
+        [DataMember(Name = "requestedConfig", Order = 5,
+            EmitDefaultValue = false)]
+        public DiscoveryConfigApiModel RequestedConfig { get; set; }
 
         /// <summary>
         /// Current log level
         /// </summary>
-        [JsonProperty(PropertyName = "logLevel",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(TraceLogLevel.Information)]
+        [DataMember(Name = "logLevel", Order = 6,
+            EmitDefaultValue = false)]
         public TraceLogLevel? LogLevel { get; set; }
 
         /// <summary>
         /// Whether the registration is out of sync between
         /// client (module) and server (service) (default: false).
         /// </summary>
-        [JsonProperty(PropertyName = "outOfSync",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "outOfSync", Order = 7,
+            EmitDefaultValue = false)]
         public bool? OutOfSync { get; set; }
 
         /// <summary>
         /// Whether discoverer is connected on this registration
         /// </summary>
-        [JsonProperty(PropertyName = "connected",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "connected", Order = 8,
+            EmitDefaultValue = false)]
         public bool? Connected { get; set; }
     }
 }

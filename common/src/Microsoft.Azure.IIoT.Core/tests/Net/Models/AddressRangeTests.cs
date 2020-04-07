@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Net.Models {
     using System.Net;
     using System;
     using System.Linq;
+    using System.Collections.Generic;
 
     public class AddressRangeTests {
 
@@ -58,6 +59,19 @@ namespace Microsoft.Azure.IIoT.Net.Models {
             Assert.Equal((IPv4Address)expected.Low, (IPv4Address)range.Low);
             Assert.Equal((IPv4Address)expected.High, (IPv4Address)range.High);
             Assert.Equal(expected.Count, range.Count);
+        }
+
+        [Fact]
+        public void TestSingleAddress() {
+            var range = new AddressRange(IPAddress.Loopback, 32, "local");
+
+            var list = new List<uint>();
+            range.FillNextBatch(list, 1000);
+
+            Assert.Single(list);
+            Assert.Equal(IPAddress.Loopback, (IPv4Address)list.Single());
+            Assert.Equal(IPAddress.Loopback, (IPv4Address)range.High);
+            Assert.Equal(IPAddress.Loopback, (IPv4Address)range.Low);
         }
 
         [Fact]

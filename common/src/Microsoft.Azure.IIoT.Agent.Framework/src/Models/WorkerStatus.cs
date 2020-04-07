@@ -4,13 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
     /// <summary>
     /// Worker state
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum WorkerStatus {
 
         /// <summary>

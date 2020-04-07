@@ -439,7 +439,7 @@ namespace TestData {
             get => m_simulationActive;
 
             set {
-                if (!object.ReferenceEquals(m_simulationActive, value)) {
+                if (!ReferenceEquals(m_simulationActive, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -454,7 +454,7 @@ namespace TestData {
             get => m_generateValuesMethod;
 
             set {
-                if (!object.ReferenceEquals(m_generateValuesMethod, value)) {
+                if (!ReferenceEquals(m_generateValuesMethod, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -469,7 +469,7 @@ namespace TestData {
             get => m_cycleComplete;
 
             set {
-                if (!object.ReferenceEquals(m_cycleComplete, value)) {
+                if (!ReferenceEquals(m_cycleComplete, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1238,7 +1238,7 @@ namespace TestData {
             get => m_booleanValue;
 
             set {
-                if (!object.ReferenceEquals(m_booleanValue, value)) {
+                if (!ReferenceEquals(m_booleanValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1253,7 +1253,7 @@ namespace TestData {
             get => m_sByteValue;
 
             set {
-                if (!object.ReferenceEquals(m_sByteValue, value)) {
+                if (!ReferenceEquals(m_sByteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1268,7 +1268,7 @@ namespace TestData {
             get => m_byteValue;
 
             set {
-                if (!object.ReferenceEquals(m_byteValue, value)) {
+                if (!ReferenceEquals(m_byteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1283,7 +1283,7 @@ namespace TestData {
             get => m_int16Value;
 
             set {
-                if (!object.ReferenceEquals(m_int16Value, value)) {
+                if (!ReferenceEquals(m_int16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1298,7 +1298,7 @@ namespace TestData {
             get => m_uInt16Value;
 
             set {
-                if (!object.ReferenceEquals(m_uInt16Value, value)) {
+                if (!ReferenceEquals(m_uInt16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1313,7 +1313,7 @@ namespace TestData {
             get => m_int32Value;
 
             set {
-                if (!object.ReferenceEquals(m_int32Value, value)) {
+                if (!ReferenceEquals(m_int32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1328,7 +1328,7 @@ namespace TestData {
             get => m_uInt32Value;
 
             set {
-                if (!object.ReferenceEquals(m_uInt32Value, value)) {
+                if (!ReferenceEquals(m_uInt32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1343,7 +1343,7 @@ namespace TestData {
             get => m_int64Value;
 
             set {
-                if (!object.ReferenceEquals(m_int64Value, value)) {
+                if (!ReferenceEquals(m_int64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1358,7 +1358,7 @@ namespace TestData {
             get => m_uInt64Value;
 
             set {
-                if (!object.ReferenceEquals(m_uInt64Value, value)) {
+                if (!ReferenceEquals(m_uInt64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1373,7 +1373,7 @@ namespace TestData {
             get => m_floatValue;
 
             set {
-                if (!object.ReferenceEquals(m_floatValue, value)) {
+                if (!ReferenceEquals(m_floatValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1388,7 +1388,7 @@ namespace TestData {
             get => m_doubleValue;
 
             set {
-                if (!object.ReferenceEquals(m_doubleValue, value)) {
+                if (!ReferenceEquals(m_doubleValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1403,7 +1403,7 @@ namespace TestData {
             get => m_stringValue;
 
             set {
-                if (!object.ReferenceEquals(m_stringValue, value)) {
+                if (!ReferenceEquals(m_stringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1418,7 +1418,7 @@ namespace TestData {
             get => m_dateTimeValue;
 
             set {
-                if (!object.ReferenceEquals(m_dateTimeValue, value)) {
+                if (!ReferenceEquals(m_dateTimeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1433,7 +1433,7 @@ namespace TestData {
             get => m_guidValue;
 
             set {
-                if (!object.ReferenceEquals(m_guidValue, value)) {
+                if (!ReferenceEquals(m_guidValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1448,7 +1448,7 @@ namespace TestData {
             get => m_byteStringValue;
 
             set {
-                if (!object.ReferenceEquals(m_byteStringValue, value)) {
+                if (!ReferenceEquals(m_byteStringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1463,7 +1463,7 @@ namespace TestData {
             get => m_xmlElementValue;
 
             set {
-                if (!object.ReferenceEquals(m_xmlElementValue, value)) {
+                if (!ReferenceEquals(m_xmlElementValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1478,7 +1478,7 @@ namespace TestData {
             get => m_nodeIdValue;
 
             set {
-                if (!object.ReferenceEquals(m_nodeIdValue, value)) {
+                if (!ReferenceEquals(m_nodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1493,7 +1493,7 @@ namespace TestData {
             get => m_expandedNodeIdValue;
 
             set {
-                if (!object.ReferenceEquals(m_expandedNodeIdValue, value)) {
+                if (!ReferenceEquals(m_expandedNodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1508,7 +1508,7 @@ namespace TestData {
             get => m_qualifiedNameValue;
 
             set {
-                if (!object.ReferenceEquals(m_qualifiedNameValue, value)) {
+                if (!ReferenceEquals(m_qualifiedNameValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1523,7 +1523,7 @@ namespace TestData {
             get => m_localizedTextValue;
 
             set {
-                if (!object.ReferenceEquals(m_localizedTextValue, value)) {
+                if (!ReferenceEquals(m_localizedTextValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1538,7 +1538,7 @@ namespace TestData {
             get => m_statusCodeValue;
 
             set {
-                if (!object.ReferenceEquals(m_statusCodeValue, value)) {
+                if (!ReferenceEquals(m_statusCodeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1553,7 +1553,7 @@ namespace TestData {
             get => m_variantValue;
 
             set {
-                if (!object.ReferenceEquals(m_variantValue, value)) {
+                if (!ReferenceEquals(m_variantValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1568,7 +1568,7 @@ namespace TestData {
             get => m_enumerationValue;
 
             set {
-                if (!object.ReferenceEquals(m_enumerationValue, value)) {
+                if (!ReferenceEquals(m_enumerationValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1583,7 +1583,7 @@ namespace TestData {
             get => m_structureValue;
 
             set {
-                if (!object.ReferenceEquals(m_structureValue, value)) {
+                if (!ReferenceEquals(m_structureValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1598,7 +1598,7 @@ namespace TestData {
             get => m_numberValue;
 
             set {
-                if (!object.ReferenceEquals(m_numberValue, value)) {
+                if (!ReferenceEquals(m_numberValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1613,7 +1613,7 @@ namespace TestData {
             get => m_integerValue;
 
             set {
-                if (!object.ReferenceEquals(m_integerValue, value)) {
+                if (!ReferenceEquals(m_integerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1628,7 +1628,7 @@ namespace TestData {
             get => m_uIntegerValue;
 
             set {
-                if (!object.ReferenceEquals(m_uIntegerValue, value)) {
+                if (!ReferenceEquals(m_uIntegerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2376,7 +2376,7 @@ namespace TestData {
             get => m_sByteValue;
 
             set {
-                if (!object.ReferenceEquals(m_sByteValue, value)) {
+                if (!ReferenceEquals(m_sByteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2391,7 +2391,7 @@ namespace TestData {
             get => m_byteValue;
 
             set {
-                if (!object.ReferenceEquals(m_byteValue, value)) {
+                if (!ReferenceEquals(m_byteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2406,7 +2406,7 @@ namespace TestData {
             get => m_int16Value;
 
             set {
-                if (!object.ReferenceEquals(m_int16Value, value)) {
+                if (!ReferenceEquals(m_int16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2421,7 +2421,7 @@ namespace TestData {
             get => m_uInt16Value;
 
             set {
-                if (!object.ReferenceEquals(m_uInt16Value, value)) {
+                if (!ReferenceEquals(m_uInt16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2436,7 +2436,7 @@ namespace TestData {
             get => m_int32Value;
 
             set {
-                if (!object.ReferenceEquals(m_int32Value, value)) {
+                if (!ReferenceEquals(m_int32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2451,7 +2451,7 @@ namespace TestData {
             get => m_uInt32Value;
 
             set {
-                if (!object.ReferenceEquals(m_uInt32Value, value)) {
+                if (!ReferenceEquals(m_uInt32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2466,7 +2466,7 @@ namespace TestData {
             get => m_int64Value;
 
             set {
-                if (!object.ReferenceEquals(m_int64Value, value)) {
+                if (!ReferenceEquals(m_int64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2481,7 +2481,7 @@ namespace TestData {
             get => m_uInt64Value;
 
             set {
-                if (!object.ReferenceEquals(m_uInt64Value, value)) {
+                if (!ReferenceEquals(m_uInt64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2496,7 +2496,7 @@ namespace TestData {
             get => m_floatValue;
 
             set {
-                if (!object.ReferenceEquals(m_floatValue, value)) {
+                if (!ReferenceEquals(m_floatValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2511,7 +2511,7 @@ namespace TestData {
             get => m_doubleValue;
 
             set {
-                if (!object.ReferenceEquals(m_doubleValue, value)) {
+                if (!ReferenceEquals(m_doubleValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2526,7 +2526,7 @@ namespace TestData {
             get => m_numberValue;
 
             set {
-                if (!object.ReferenceEquals(m_numberValue, value)) {
+                if (!ReferenceEquals(m_numberValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2541,7 +2541,7 @@ namespace TestData {
             get => m_integerValue;
 
             set {
-                if (!object.ReferenceEquals(m_integerValue, value)) {
+                if (!ReferenceEquals(m_integerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2556,7 +2556,7 @@ namespace TestData {
             get => m_uIntegerValue;
 
             set {
-                if (!object.ReferenceEquals(m_uIntegerValue, value)) {
+                if (!ReferenceEquals(m_uIntegerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3535,7 +3535,7 @@ namespace TestData {
             get => m_booleanValue;
 
             set {
-                if (!object.ReferenceEquals(m_booleanValue, value)) {
+                if (!ReferenceEquals(m_booleanValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3550,7 +3550,7 @@ namespace TestData {
             get => m_sByteValue;
 
             set {
-                if (!object.ReferenceEquals(m_sByteValue, value)) {
+                if (!ReferenceEquals(m_sByteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3565,7 +3565,7 @@ namespace TestData {
             get => m_byteValue;
 
             set {
-                if (!object.ReferenceEquals(m_byteValue, value)) {
+                if (!ReferenceEquals(m_byteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3580,7 +3580,7 @@ namespace TestData {
             get => m_int16Value;
 
             set {
-                if (!object.ReferenceEquals(m_int16Value, value)) {
+                if (!ReferenceEquals(m_int16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3595,7 +3595,7 @@ namespace TestData {
             get => m_uInt16Value;
 
             set {
-                if (!object.ReferenceEquals(m_uInt16Value, value)) {
+                if (!ReferenceEquals(m_uInt16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3610,7 +3610,7 @@ namespace TestData {
             get => m_int32Value;
 
             set {
-                if (!object.ReferenceEquals(m_int32Value, value)) {
+                if (!ReferenceEquals(m_int32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3625,7 +3625,7 @@ namespace TestData {
             get => m_uInt32Value;
 
             set {
-                if (!object.ReferenceEquals(m_uInt32Value, value)) {
+                if (!ReferenceEquals(m_uInt32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3640,7 +3640,7 @@ namespace TestData {
             get => m_int64Value;
 
             set {
-                if (!object.ReferenceEquals(m_int64Value, value)) {
+                if (!ReferenceEquals(m_int64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3655,7 +3655,7 @@ namespace TestData {
             get => m_uInt64Value;
 
             set {
-                if (!object.ReferenceEquals(m_uInt64Value, value)) {
+                if (!ReferenceEquals(m_uInt64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3670,7 +3670,7 @@ namespace TestData {
             get => m_floatValue;
 
             set {
-                if (!object.ReferenceEquals(m_floatValue, value)) {
+                if (!ReferenceEquals(m_floatValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3685,7 +3685,7 @@ namespace TestData {
             get => m_doubleValue;
 
             set {
-                if (!object.ReferenceEquals(m_doubleValue, value)) {
+                if (!ReferenceEquals(m_doubleValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3700,7 +3700,7 @@ namespace TestData {
             get => m_stringValue;
 
             set {
-                if (!object.ReferenceEquals(m_stringValue, value)) {
+                if (!ReferenceEquals(m_stringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3715,7 +3715,7 @@ namespace TestData {
             get => m_dateTimeValue;
 
             set {
-                if (!object.ReferenceEquals(m_dateTimeValue, value)) {
+                if (!ReferenceEquals(m_dateTimeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3730,7 +3730,7 @@ namespace TestData {
             get => m_guidValue;
 
             set {
-                if (!object.ReferenceEquals(m_guidValue, value)) {
+                if (!ReferenceEquals(m_guidValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3745,7 +3745,7 @@ namespace TestData {
             get => m_byteStringValue;
 
             set {
-                if (!object.ReferenceEquals(m_byteStringValue, value)) {
+                if (!ReferenceEquals(m_byteStringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3760,7 +3760,7 @@ namespace TestData {
             get => m_xmlElementValue;
 
             set {
-                if (!object.ReferenceEquals(m_xmlElementValue, value)) {
+                if (!ReferenceEquals(m_xmlElementValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3775,7 +3775,7 @@ namespace TestData {
             get => m_nodeIdValue;
 
             set {
-                if (!object.ReferenceEquals(m_nodeIdValue, value)) {
+                if (!ReferenceEquals(m_nodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3790,7 +3790,7 @@ namespace TestData {
             get => m_expandedNodeIdValue;
 
             set {
-                if (!object.ReferenceEquals(m_expandedNodeIdValue, value)) {
+                if (!ReferenceEquals(m_expandedNodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3805,7 +3805,7 @@ namespace TestData {
             get => m_qualifiedNameValue;
 
             set {
-                if (!object.ReferenceEquals(m_qualifiedNameValue, value)) {
+                if (!ReferenceEquals(m_qualifiedNameValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3820,7 +3820,7 @@ namespace TestData {
             get => m_localizedTextValue;
 
             set {
-                if (!object.ReferenceEquals(m_localizedTextValue, value)) {
+                if (!ReferenceEquals(m_localizedTextValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3835,7 +3835,7 @@ namespace TestData {
             get => m_statusCodeValue;
 
             set {
-                if (!object.ReferenceEquals(m_statusCodeValue, value)) {
+                if (!ReferenceEquals(m_statusCodeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3850,7 +3850,7 @@ namespace TestData {
             get => m_variantValue;
 
             set {
-                if (!object.ReferenceEquals(m_variantValue, value)) {
+                if (!ReferenceEquals(m_variantValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3865,7 +3865,7 @@ namespace TestData {
             get => m_enumerationValue;
 
             set {
-                if (!object.ReferenceEquals(m_enumerationValue, value)) {
+                if (!ReferenceEquals(m_enumerationValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3880,7 +3880,7 @@ namespace TestData {
             get => m_structureValue;
 
             set {
-                if (!object.ReferenceEquals(m_structureValue, value)) {
+                if (!ReferenceEquals(m_structureValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3895,7 +3895,7 @@ namespace TestData {
             get => m_numberValue;
 
             set {
-                if (!object.ReferenceEquals(m_numberValue, value)) {
+                if (!ReferenceEquals(m_numberValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3910,7 +3910,7 @@ namespace TestData {
             get => m_integerValue;
 
             set {
-                if (!object.ReferenceEquals(m_integerValue, value)) {
+                if (!ReferenceEquals(m_integerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -3925,7 +3925,7 @@ namespace TestData {
             get => m_uIntegerValue;
 
             set {
-                if (!object.ReferenceEquals(m_uIntegerValue, value)) {
+                if (!ReferenceEquals(m_uIntegerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4673,7 +4673,7 @@ namespace TestData {
             get => m_sByteValue;
 
             set {
-                if (!object.ReferenceEquals(m_sByteValue, value)) {
+                if (!ReferenceEquals(m_sByteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4688,7 +4688,7 @@ namespace TestData {
             get => m_byteValue;
 
             set {
-                if (!object.ReferenceEquals(m_byteValue, value)) {
+                if (!ReferenceEquals(m_byteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4703,7 +4703,7 @@ namespace TestData {
             get => m_int16Value;
 
             set {
-                if (!object.ReferenceEquals(m_int16Value, value)) {
+                if (!ReferenceEquals(m_int16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4718,7 +4718,7 @@ namespace TestData {
             get => m_uInt16Value;
 
             set {
-                if (!object.ReferenceEquals(m_uInt16Value, value)) {
+                if (!ReferenceEquals(m_uInt16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4733,7 +4733,7 @@ namespace TestData {
             get => m_int32Value;
 
             set {
-                if (!object.ReferenceEquals(m_int32Value, value)) {
+                if (!ReferenceEquals(m_int32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4748,7 +4748,7 @@ namespace TestData {
             get => m_uInt32Value;
 
             set {
-                if (!object.ReferenceEquals(m_uInt32Value, value)) {
+                if (!ReferenceEquals(m_uInt32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4763,7 +4763,7 @@ namespace TestData {
             get => m_int64Value;
 
             set {
-                if (!object.ReferenceEquals(m_int64Value, value)) {
+                if (!ReferenceEquals(m_int64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4778,7 +4778,7 @@ namespace TestData {
             get => m_uInt64Value;
 
             set {
-                if (!object.ReferenceEquals(m_uInt64Value, value)) {
+                if (!ReferenceEquals(m_uInt64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4793,7 +4793,7 @@ namespace TestData {
             get => m_floatValue;
 
             set {
-                if (!object.ReferenceEquals(m_floatValue, value)) {
+                if (!ReferenceEquals(m_floatValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4808,7 +4808,7 @@ namespace TestData {
             get => m_doubleValue;
 
             set {
-                if (!object.ReferenceEquals(m_doubleValue, value)) {
+                if (!ReferenceEquals(m_doubleValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4823,7 +4823,7 @@ namespace TestData {
             get => m_numberValue;
 
             set {
-                if (!object.ReferenceEquals(m_numberValue, value)) {
+                if (!ReferenceEquals(m_numberValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4838,7 +4838,7 @@ namespace TestData {
             get => m_integerValue;
 
             set {
-                if (!object.ReferenceEquals(m_integerValue, value)) {
+                if (!ReferenceEquals(m_integerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -4853,7 +4853,7 @@ namespace TestData {
             get => m_uIntegerValue;
 
             set {
-                if (!object.ReferenceEquals(m_uIntegerValue, value)) {
+                if (!ReferenceEquals(m_uIntegerValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5305,7 +5305,7 @@ namespace TestData {
             get => m_booleanValue;
 
             set {
-                if (!object.ReferenceEquals(m_booleanValue, value)) {
+                if (!ReferenceEquals(m_booleanValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5320,7 +5320,7 @@ namespace TestData {
             get => m_sByteValue;
 
             set {
-                if (!object.ReferenceEquals(m_sByteValue, value)) {
+                if (!ReferenceEquals(m_sByteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5335,7 +5335,7 @@ namespace TestData {
             get => m_byteValue;
 
             set {
-                if (!object.ReferenceEquals(m_byteValue, value)) {
+                if (!ReferenceEquals(m_byteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5350,7 +5350,7 @@ namespace TestData {
             get => m_int16Value;
 
             set {
-                if (!object.ReferenceEquals(m_int16Value, value)) {
+                if (!ReferenceEquals(m_int16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5365,7 +5365,7 @@ namespace TestData {
             get => m_uInt16Value;
 
             set {
-                if (!object.ReferenceEquals(m_uInt16Value, value)) {
+                if (!ReferenceEquals(m_uInt16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5380,7 +5380,7 @@ namespace TestData {
             get => m_int32Value;
 
             set {
-                if (!object.ReferenceEquals(m_int32Value, value)) {
+                if (!ReferenceEquals(m_int32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5395,7 +5395,7 @@ namespace TestData {
             get => m_uInt32Value;
 
             set {
-                if (!object.ReferenceEquals(m_uInt32Value, value)) {
+                if (!ReferenceEquals(m_uInt32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5410,7 +5410,7 @@ namespace TestData {
             get => m_int64Value;
 
             set {
-                if (!object.ReferenceEquals(m_int64Value, value)) {
+                if (!ReferenceEquals(m_int64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5425,7 +5425,7 @@ namespace TestData {
             get => m_uInt64Value;
 
             set {
-                if (!object.ReferenceEquals(m_uInt64Value, value)) {
+                if (!ReferenceEquals(m_uInt64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5440,7 +5440,7 @@ namespace TestData {
             get => m_floatValue;
 
             set {
-                if (!object.ReferenceEquals(m_floatValue, value)) {
+                if (!ReferenceEquals(m_floatValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5455,7 +5455,7 @@ namespace TestData {
             get => m_doubleValue;
 
             set {
-                if (!object.ReferenceEquals(m_doubleValue, value)) {
+                if (!ReferenceEquals(m_doubleValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5470,7 +5470,7 @@ namespace TestData {
             get => m_stringValue;
 
             set {
-                if (!object.ReferenceEquals(m_stringValue, value)) {
+                if (!ReferenceEquals(m_stringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5485,7 +5485,7 @@ namespace TestData {
             get => m_dateTimeValue;
 
             set {
-                if (!object.ReferenceEquals(m_dateTimeValue, value)) {
+                if (!ReferenceEquals(m_dateTimeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5500,7 +5500,7 @@ namespace TestData {
             get => m_guidValue;
 
             set {
-                if (!object.ReferenceEquals(m_guidValue, value)) {
+                if (!ReferenceEquals(m_guidValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5515,7 +5515,7 @@ namespace TestData {
             get => m_byteStringValue;
 
             set {
-                if (!object.ReferenceEquals(m_byteStringValue, value)) {
+                if (!ReferenceEquals(m_byteStringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5530,7 +5530,7 @@ namespace TestData {
             get => m_xmlElementValue;
 
             set {
-                if (!object.ReferenceEquals(m_xmlElementValue, value)) {
+                if (!ReferenceEquals(m_xmlElementValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5545,7 +5545,7 @@ namespace TestData {
             get => m_nodeIdValue;
 
             set {
-                if (!object.ReferenceEquals(m_nodeIdValue, value)) {
+                if (!ReferenceEquals(m_nodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5560,7 +5560,7 @@ namespace TestData {
             get => m_expandedNodeIdValue;
 
             set {
-                if (!object.ReferenceEquals(m_expandedNodeIdValue, value)) {
+                if (!ReferenceEquals(m_expandedNodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5575,7 +5575,7 @@ namespace TestData {
             get => m_qualifiedNameValue;
 
             set {
-                if (!object.ReferenceEquals(m_qualifiedNameValue, value)) {
+                if (!ReferenceEquals(m_qualifiedNameValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5590,7 +5590,7 @@ namespace TestData {
             get => m_localizedTextValue;
 
             set {
-                if (!object.ReferenceEquals(m_localizedTextValue, value)) {
+                if (!ReferenceEquals(m_localizedTextValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5605,7 +5605,7 @@ namespace TestData {
             get => m_statusCodeValue;
 
             set {
-                if (!object.ReferenceEquals(m_statusCodeValue, value)) {
+                if (!ReferenceEquals(m_statusCodeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -5620,7 +5620,7 @@ namespace TestData {
             get => m_variantValue;
 
             set {
-                if (!object.ReferenceEquals(m_variantValue, value)) {
+                if (!ReferenceEquals(m_variantValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6660,7 +6660,7 @@ namespace TestData {
             get => m_booleanValue;
 
             set {
-                if (!object.ReferenceEquals(m_booleanValue, value)) {
+                if (!ReferenceEquals(m_booleanValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6675,7 +6675,7 @@ namespace TestData {
             get => m_sByteValue;
 
             set {
-                if (!object.ReferenceEquals(m_sByteValue, value)) {
+                if (!ReferenceEquals(m_sByteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6690,7 +6690,7 @@ namespace TestData {
             get => m_byteValue;
 
             set {
-                if (!object.ReferenceEquals(m_byteValue, value)) {
+                if (!ReferenceEquals(m_byteValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6705,7 +6705,7 @@ namespace TestData {
             get => m_int16Value;
 
             set {
-                if (!object.ReferenceEquals(m_int16Value, value)) {
+                if (!ReferenceEquals(m_int16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6720,7 +6720,7 @@ namespace TestData {
             get => m_uInt16Value;
 
             set {
-                if (!object.ReferenceEquals(m_uInt16Value, value)) {
+                if (!ReferenceEquals(m_uInt16Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6735,7 +6735,7 @@ namespace TestData {
             get => m_int32Value;
 
             set {
-                if (!object.ReferenceEquals(m_int32Value, value)) {
+                if (!ReferenceEquals(m_int32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6750,7 +6750,7 @@ namespace TestData {
             get => m_uInt32Value;
 
             set {
-                if (!object.ReferenceEquals(m_uInt32Value, value)) {
+                if (!ReferenceEquals(m_uInt32Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6765,7 +6765,7 @@ namespace TestData {
             get => m_int64Value;
 
             set {
-                if (!object.ReferenceEquals(m_int64Value, value)) {
+                if (!ReferenceEquals(m_int64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6780,7 +6780,7 @@ namespace TestData {
             get => m_uInt64Value;
 
             set {
-                if (!object.ReferenceEquals(m_uInt64Value, value)) {
+                if (!ReferenceEquals(m_uInt64Value, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6795,7 +6795,7 @@ namespace TestData {
             get => m_floatValue;
 
             set {
-                if (!object.ReferenceEquals(m_floatValue, value)) {
+                if (!ReferenceEquals(m_floatValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6810,7 +6810,7 @@ namespace TestData {
             get => m_doubleValue;
 
             set {
-                if (!object.ReferenceEquals(m_doubleValue, value)) {
+                if (!ReferenceEquals(m_doubleValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6825,7 +6825,7 @@ namespace TestData {
             get => m_stringValue;
 
             set {
-                if (!object.ReferenceEquals(m_stringValue, value)) {
+                if (!ReferenceEquals(m_stringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6840,7 +6840,7 @@ namespace TestData {
             get => m_dateTimeValue;
 
             set {
-                if (!object.ReferenceEquals(m_dateTimeValue, value)) {
+                if (!ReferenceEquals(m_dateTimeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6855,7 +6855,7 @@ namespace TestData {
             get => m_guidValue;
 
             set {
-                if (!object.ReferenceEquals(m_guidValue, value)) {
+                if (!ReferenceEquals(m_guidValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6870,7 +6870,7 @@ namespace TestData {
             get => m_byteStringValue;
 
             set {
-                if (!object.ReferenceEquals(m_byteStringValue, value)) {
+                if (!ReferenceEquals(m_byteStringValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6885,7 +6885,7 @@ namespace TestData {
             get => m_xmlElementValue;
 
             set {
-                if (!object.ReferenceEquals(m_xmlElementValue, value)) {
+                if (!ReferenceEquals(m_xmlElementValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6900,7 +6900,7 @@ namespace TestData {
             get => m_nodeIdValue;
 
             set {
-                if (!object.ReferenceEquals(m_nodeIdValue, value)) {
+                if (!ReferenceEquals(m_nodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6915,7 +6915,7 @@ namespace TestData {
             get => m_expandedNodeIdValue;
 
             set {
-                if (!object.ReferenceEquals(m_expandedNodeIdValue, value)) {
+                if (!ReferenceEquals(m_expandedNodeIdValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6930,7 +6930,7 @@ namespace TestData {
             get => m_qualifiedNameValue;
 
             set {
-                if (!object.ReferenceEquals(m_qualifiedNameValue, value)) {
+                if (!ReferenceEquals(m_qualifiedNameValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6945,7 +6945,7 @@ namespace TestData {
             get => m_localizedTextValue;
 
             set {
-                if (!object.ReferenceEquals(m_localizedTextValue, value)) {
+                if (!ReferenceEquals(m_localizedTextValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6960,7 +6960,7 @@ namespace TestData {
             get => m_statusCodeValue;
 
             set {
-                if (!object.ReferenceEquals(m_statusCodeValue, value)) {
+                if (!ReferenceEquals(m_statusCodeValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -6975,7 +6975,7 @@ namespace TestData {
             get => m_variantValue;
 
             set {
-                if (!object.ReferenceEquals(m_variantValue, value)) {
+                if (!ReferenceEquals(m_variantValue, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8086,7 +8086,7 @@ namespace TestData {
             get => m_scalarMethod1Method;
 
             set {
-                if (!object.ReferenceEquals(m_scalarMethod1Method, value)) {
+                if (!ReferenceEquals(m_scalarMethod1Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8101,7 +8101,7 @@ namespace TestData {
             get => m_scalarMethod2Method;
 
             set {
-                if (!object.ReferenceEquals(m_scalarMethod2Method, value)) {
+                if (!ReferenceEquals(m_scalarMethod2Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8116,7 +8116,7 @@ namespace TestData {
             get => m_scalarMethod3Method;
 
             set {
-                if (!object.ReferenceEquals(m_scalarMethod3Method, value)) {
+                if (!ReferenceEquals(m_scalarMethod3Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8131,7 +8131,7 @@ namespace TestData {
             get => m_arrayMethod1Method;
 
             set {
-                if (!object.ReferenceEquals(m_arrayMethod1Method, value)) {
+                if (!ReferenceEquals(m_arrayMethod1Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8146,7 +8146,7 @@ namespace TestData {
             get => m_arrayMethod2Method;
 
             set {
-                if (!object.ReferenceEquals(m_arrayMethod2Method, value)) {
+                if (!ReferenceEquals(m_arrayMethod2Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8161,7 +8161,7 @@ namespace TestData {
             get => m_arrayMethod3Method;
 
             set {
-                if (!object.ReferenceEquals(m_arrayMethod3Method, value)) {
+                if (!ReferenceEquals(m_arrayMethod3Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8176,7 +8176,7 @@ namespace TestData {
             get => m_userScalarMethod1Method;
 
             set {
-                if (!object.ReferenceEquals(m_userScalarMethod1Method, value)) {
+                if (!ReferenceEquals(m_userScalarMethod1Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8191,7 +8191,7 @@ namespace TestData {
             get => m_userScalarMethod2Method;
 
             set {
-                if (!object.ReferenceEquals(m_userScalarMethod2Method, value)) {
+                if (!ReferenceEquals(m_userScalarMethod2Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8206,7 +8206,7 @@ namespace TestData {
             get => m_userArrayMethod1Method;
 
             set {
-                if (!object.ReferenceEquals(m_userArrayMethod1Method, value)) {
+                if (!ReferenceEquals(m_userArrayMethod1Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8221,7 +8221,7 @@ namespace TestData {
             get => m_userArrayMethod2Method;
 
             set {
-                if (!object.ReferenceEquals(m_userArrayMethod2Method, value)) {
+                if (!ReferenceEquals(m_userArrayMethod2Method, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -8577,7 +8577,7 @@ namespace TestData {
             get => m_monitoredNodeCount;
 
             set {
-                if (!object.ReferenceEquals(m_monitoredNodeCount, value)) {
+                if (!ReferenceEquals(m_monitoredNodeCount, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 

@@ -8,9 +8,10 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
     using Microsoft.Azure.IIoT.Hub.Processor;
     using Microsoft.Azure.IIoT.Hub.Processor.Runtime;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
+    using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Messaging.EventHub;
-    using Microsoft.Azure.IIoT.Messaging.SignalR;
-    using Microsoft.Azure.IIoT.Messaging.SignalR.Runtime;
+    using Microsoft.Azure.IIoT.Messaging.ServiceBus;
+    using Microsoft.Azure.IIoT.Messaging.ServiceBus.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Api.Onboarding;
     using Microsoft.Azure.IIoT.OpcUa.Api.Runtime;
     using Microsoft.Extensions.Configuration;
@@ -19,11 +20,12 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
     /// <summary>
     /// Telemetry processor service configuration
     /// </summary>
-    public class Config : DiagnosticsConfig, IEventProcessorConfig, IEventHubConsumerConfig,
-        IOnboardingConfig, ISignalRServiceConfig, IEventProcessorHostConfig  {
+    public class Config : DiagnosticsConfig, IEventProcessorConfig,
+        IEventHubConsumerConfig, IOnboardingConfig, IServiceBusConfig,
+        IIoTHubConfig, IEventProcessorHostConfig {
 
-        private const string kEventHubConsumerGroupEventsKey =
-            "EventHubConsumerGroupEvents";
+        /// <inheritdoc/>
+        public string ServiceBusConnString => _sb.ServiceBusConnString;
 
         /// <inheritdoc/>
         public string OpcUaOnboardingServiceUrl => _ia.OpcUaOnboardingServiceUrl;
@@ -35,10 +37,9 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
         /// <inheritdoc/>
         public string EventHubPath => _eh.EventHubPath;
         /// <inheritdoc/>
-        /// <summary> Event hub events consumer group </summary>
-        public string ConsumerGroup => GetStringOrDefault(kEventHubConsumerGroupEventsKey,
-            () => GetStringOrDefault(PcsVariable.PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS,
-                () => "events"));
+        public string ConsumerGroup => GetStringOrDefault(
+            PcsVariable.PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_EVENTS, () => "events");
+
         /// <inheritdoc/>
         public bool UseWebsockets => _eh.UseWebsockets;
 
@@ -56,9 +57,9 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
         public TimeSpan? CheckpointInterval => _ep.CheckpointInterval;
 
         /// <inheritdoc/>
-        public string SignalRHubName => _sr.SignalRHubName;
+        public string IoTHubConnString => _hub.IoTHubConnString;
         /// <inheritdoc/>
-        public string SignalRConnString => _sr.SignalRConnString;
+        public string IoTHubResourceId => _hub.IoTHubResourceId;
 
         /// <summary>
         /// Configuration constructor
@@ -68,12 +69,14 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Events.Runtime {
             _ep = new EventProcessorConfig(configuration);
             _eh = new IoTHubEventConfig(configuration);
             _ia = new InternalApiConfig(configuration);
-            _sr = new SignalRServiceConfig(configuration);
+            _sb = new ServiceBusConfig(configuration);
+            _hub = new IoTHubConfig(configuration);
         }
 
         private readonly EventProcessorConfig _ep;
         private readonly IoTHubEventConfig _eh;
         private readonly InternalApiConfig _ia;
-        private readonly SignalRServiceConfig _sr;
+        private readonly ServiceBusConfig _sb;
+        private readonly IoTHubConfig _hub;
     }
 }

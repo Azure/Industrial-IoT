@@ -4,26 +4,27 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
 
     /// <summary>
     /// Delete raw modified data
     /// </summary>
+    [DataContract]
     public class DeleteModifiedValuesDetailsApiModel {
 
         /// <summary>
         /// Start time
         /// </summary>
-        [JsonProperty(PropertyName = "startTime",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "startTime", Order = 0,
+            EmitDefaultValue = false)]
         public DateTime? StartTime { get; set; }
 
         /// <summary>
         /// End time to delete until
         /// </summary>
-        [JsonProperty(PropertyName = "endTime",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "endTime", Order = 1,
+            EmitDefaultValue = false)]
         public DateTime? EndTime { get; set; }
     }
 }

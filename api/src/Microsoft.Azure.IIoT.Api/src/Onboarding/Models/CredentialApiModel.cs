@@ -4,26 +4,27 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    using System.Runtime.Serialization;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Credential model
     /// </summary>
+    [DataContract]
     public class CredentialApiModel {
 
         /// <summary>
         /// Type of credential
         /// </summary>
-        [JsonProperty(PropertyName = "type",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "type", Order = 0,
+            EmitDefaultValue = false)]
         public CredentialType? Type { get; set; }
 
         /// <summary>
         /// Value to pass to server
         /// </summary>
-        [JsonProperty(PropertyName = "value",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public JToken Value { get; set; }
+        [DataMember(Name = "value", Order = 1,
+            EmitDefaultValue = false)]
+        public VariantValue Value { get; set; }
     }
 }

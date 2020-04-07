@@ -4,20 +4,19 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
-    using System.ComponentModel;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Gateway registration update request
     /// </summary>
+    [DataContract]
     public class GatewayUpdateApiModel {
 
         /// <summary>
         /// Site of the Gateway
         /// </summary>
-        [JsonProperty(PropertyName = "siteId",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "siteId", Order = 1,
+            EmitDefaultValue = false)]
         public string SiteId { get; set; }
     }
 }

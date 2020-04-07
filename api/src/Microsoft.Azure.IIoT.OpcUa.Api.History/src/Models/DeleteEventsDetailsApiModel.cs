@@ -4,19 +4,20 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// The events to delete
     /// </summary>
+    [DataContract]
     public class DeleteEventsDetailsApiModel {
 
         /// <summary>
         /// Events to delete
         /// </summary>
-        [JsonProperty(PropertyName = "eventIds")]
+        [DataMember(Name = "eventIds", Order = 0)]
         [Required]
         public List<byte[]> EventIds { get; set; }
     }

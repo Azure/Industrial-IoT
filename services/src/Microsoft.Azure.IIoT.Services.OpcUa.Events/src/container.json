@@ -1,0 +1,4 @@
+{
+    "name": "iot/industrial-iot-signalr-hub",
+    "exposes": "9050"
+}

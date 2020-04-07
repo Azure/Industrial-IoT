@@ -5,14 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
     using System;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
 
     /// <summary>
     /// Flags that can be set for the EventNotifier attribute.
     /// </summary>
     [Flags]
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum NodeEventNotifier {
 
         /// <summary>

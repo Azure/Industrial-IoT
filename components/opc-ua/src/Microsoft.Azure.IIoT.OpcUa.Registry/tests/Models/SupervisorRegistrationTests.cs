@@ -4,7 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
-    using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Microsoft.Azure.IIoT.Serializers;
     using AutoFixture;
     using System;
     using System.Linq;
@@ -71,7 +72,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         [Fact]
         public void TestEqualIsEqualWithDeviceModel() {
             var r1 = CreateRegistration();
-            var m = r1.ToDeviceTwin();
+            var m = r1.ToDeviceTwin(_serializer);
             var r2 = m.ToEntityRegistration();
 
             Assert.Equal(r1, r2);
@@ -86,9 +87,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
             var r1 = CreateRegistration();
             var r2 = r1.ToServiceModel().ToSupervisorRegistration(true);
-            var m1 = r1.Patch(r2);
+            var m1 = r1.Patch(r2, _serializer);
             var r3 = r2.ToServiceModel().ToSupervisorRegistration(false);
-            var m2 = r2.Patch(r3);
+            var m2 = r2.Patch(r3, _serializer);
 
             Assert.True((bool)m1.Tags[nameof(EntityRegistration.IsDisabled)]);
             Assert.NotNull((DateTime?)m1.Tags[nameof(EntityRegistration.NotSeenSince)]);
@@ -106,12 +107,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             var r = fix.Build<SupervisorRegistration>()
                 .FromFactory(() => new SupervisorRegistration(
                     fix.Create<string>(), fix.Create<string>()))
-                .With(x => x.Certificate, cert.EncodeAsDictionary())
-                .With(x => x.Thumbprint, cert.ToSha1Hash())
                 .Without(x => x.IsDisabled)
                 .Without(x => x.NotSeenSince)
                 .Create();
             return r;
         }
+
+        private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
     }
 }

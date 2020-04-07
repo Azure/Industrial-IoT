@@ -13,14 +13,10 @@ namespace Microsoft.Azure.IIoT.Messaging.SignalR.Runtime {
     public class SignalRServiceConfig : ConfigBase, ISignalRServiceConfig {
 
         private const string kSignalRConnectionString = "SignalR:ConnectionString";
-        private const string kSignalRHubName = "SignalR:HubName";
 
         /// <inheritdoc/>
         public string SignalRConnString => GetStringOrDefault(kSignalRConnectionString,
             () => GetStringOrDefault(PcsVariable.PCS_SIGNALR_CONNSTRING));
-        /// <inheritdoc/>
-        public string SignalRHubName=> GetStringOrDefault(kSignalRHubName,
-            () => GetStringOrDefault(PcsVariable.PCS_SIGNALR_HUBNAME));
 
         /// <summary>
         /// Configuration constructor

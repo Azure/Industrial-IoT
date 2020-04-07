@@ -332,9 +332,11 @@ namespace Opc.Ua.Encoders {
             };
             CreateSerializers(out var encoder, out var decoder);
 
-            var buffer = encoder.Encode(encoderType, e => e.WriteEncodeableArray("test", expected, typeof(Argument)));
+            var buffer = encoder.Encode(encoderType, e => e.WriteEncodeableArray(
+                "test", expected, typeof(Argument)));
             OutputJsonBuffer(encoderType, buffer);
-            var result = (ArgumentCollection)decoder.Decode(decoderType, buffer, d => d.ReadEncodeableArray("test", typeof(Argument)));
+            var result = (ArgumentCollection)decoder.Decode(decoderType, buffer,
+                d => d.ReadEncodeableArray("test", typeof(Argument)));
 
             for (var i = 0; i < result.Count; i++) {
                 Assert.True(result[i].IsEqual(expected[i]));

@@ -39,8 +39,8 @@ public class EndpointSecurityAlerter : IEndpointRegistryListener, IApplicationRe
     }
 
     public Task OnApplicationUpdatedAsync() {
-    	.
-    	.
+        .
+        .
         // Call the required TrackXXX method.
         _metrics.TrackEvent("ApplicationUpdated"); //name is prefixed with "trackEvent-"
         return Task.CompletedTask;
@@ -69,8 +69,8 @@ public class EndpointSecurityAlerter : IEndpointRegistryListener, IApplicationRe
     }
 
     public Task OnApplicationsAddedAsync() {
-    	.
-    	.
+        .
+        .
         // Call the required TrackXXX method.
         _metrics.TrackValue("ApplicationsUpdated", 7); //name is prefixed with "trackValue-"
         return Task.CompletedTask;
@@ -99,11 +99,11 @@ public class EndpointSecurityAlerter : IEndpointRegistryListener, IApplicationRe
     }
 
     public Task OnEndpointAddedAsync() {
-    	using (_metrics.TrackDuration(nameof(OnEndpointAddedAsync))) { 
-    		// name is prefixed with "processingTime-"
-    		// Do your operation here
-    		.
-    		.
+        using (_metrics.TrackDuration(nameof(OnEndpointAddedAsync))) { 
+            // name is prefixed with "processingTime-"
+            // Do your operation here
+            .
+            .
             return CheckEndpointInfoAsync(endpoint);
         }
     }

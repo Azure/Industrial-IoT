@@ -4,27 +4,26 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
-    using System.ComponentModel;
 
     /// <summary>
     /// Worker info list model
     /// </summary>
+    [DataContract]
     public class WorkerInfoListApiModel {
 
         /// <summary>
         /// Continuation token
         /// </summary>
-        [JsonProperty(PropertyName = "continuationToken",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "continuationToken", Order = 0,
+            EmitDefaultValue = false)]
         public string ContinuationToken { get; set; }
 
         /// <summary>
         /// Workers
         /// </summary>
-        [JsonProperty(PropertyName = "workers")]
+        [DataMember(Name = "workers", Order = 1)]
         public List<WorkerInfoApiModel> Workers { get; set; }
     }
 }

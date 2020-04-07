@@ -6,10 +6,12 @@
 @using Microsoft.Azure.IIoT.App.Components.ErrorMessage
 @using Microsoft.Azure.IIoT.App.Data
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
+@using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
 @using Microsoft.Azure.IIoT.App.Common
 
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
+@inject RegistryServiceEvents RegistryServiceEvents
 @inject UICommon CommonHelper
 
 <h1>Gateways</h1>
@@ -49,6 +51,7 @@
 
     private PagedResult<GatewayApiModel> _gatewayList = new PagedResult<GatewayApiModel>();
     private PagedResult<GatewayApiModel> _pagedGatewayList = new PagedResult<GatewayApiModel>();
+    private IAsyncDisposable _gatewayEvent { get; set; }
     private string _tableView { get; set; } = "visible";
 
     /// <summary>
@@ -89,6 +92,24 @@
                 _tableView = "hidden";
             }
             StateHasChanged();
+            _gatewayEvent = await RegistryServiceEvents.SubscribeGatewayEventsAsync(
+                ev => InvokeAsync(() => GatewayEvent(ev)));
+        }
+    }
+
+    private Task GatewayEvent(GatewayEventApiModel ev)
+    {
+        _gatewayList.Results.Update(ev);
+        _pagedGatewayList = _gatewayList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _gatewayList.Error);
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    public async void Dispose()
+    {
+        if (_gatewayEvent != null)
+	{
+            await _gatewayEvent.DisposeAsync();
         }
     }
 }

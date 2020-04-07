@@ -1,8 +1,0 @@
-﻿{
-  "profiles": {
-    "WebService": {
-      "commandName": "Project",
-      "applicationUrl": "http://localhost:9050"
-    }
-  }
-}

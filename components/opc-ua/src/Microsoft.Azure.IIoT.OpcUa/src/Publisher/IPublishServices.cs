@@ -31,6 +31,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher {
             PublishStopRequestModel request);
 
         /// <summary>
+        /// Configure nodes to publish and unpublish in bulk
+        /// </summary>
+        /// <param name="endpoint"></param>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        Task<PublishBulkResultModel> NodePublishBulkAsync(T endpoint,
+            PublishBulkRequestModel request);
+
+        /// <summary>
         /// Get all published nodes for endpoint.
         /// </summary>
         /// <param name="endpoint"></param>

@@ -6,8 +6,8 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Entity registration extensions

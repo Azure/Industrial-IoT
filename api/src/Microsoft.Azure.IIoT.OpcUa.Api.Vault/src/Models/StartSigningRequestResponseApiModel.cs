@@ -4,17 +4,18 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Signing request response
     /// </summary>
+    [DataContract]
     public sealed class StartSigningRequestResponseApiModel {
 
         /// <summary>
         /// Request id
         /// </summary>
-        [JsonProperty(PropertyName = "requestId")]
+        [DataMember(Name = "requestId", Order = 0)]
         public string RequestId { get; set; }
     }
 }

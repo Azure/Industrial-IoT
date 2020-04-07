@@ -14,19 +14,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
     /// <summary>
     /// Monitored item sample message progress  publishing
     /// </summary>
-    public sealed class MonitoredItemMessagePublisher : ISubscriberMessageProcessor,
+    public sealed class MonitoredItemMessagePublisher<THub> : ISubscriberMessageProcessor,
         IDisposable {
 
         /// <summary>
         /// Create publisher
         /// </summary>
         /// <param name="callback"></param>
-        public MonitoredItemMessagePublisher(ICallbackInvoker callback) {
+        public MonitoredItemMessagePublisher(ICallbackInvokerT<THub> callback) {
             _callback = callback ?? throw new ArgumentNullException(nameof(callback));
         }
 
         /// <inheritdoc/>
-        public async Task HandleSampleAsync(MonitoredItemSampleModel sample) {
+        public async Task HandleSampleAsync(MonitoredItemMessageModel sample) {
             var arguments = new object[] { sample.ToApiModel() };
             if (!string.IsNullOrEmpty(sample.EndpointId)) {
                 // Send to endpoint listeners
@@ -38,17 +38,20 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Clients {
         public async Task HandleMessageAsync(DataSetMessageModel message) {
             foreach (var datapoint in message.Payload) {
                 var arguments = new object[] {
-                     new MonitoredItemMessageApiModel() {
-                        Value = datapoint.Value.GetType().IsPrimitive == true
-                            ? datapoint.Value.Value : datapoint.Value.Value?.ToString(),
-                        Status = datapoint.Value.Status,
+                     new MonitoredItemMessageApiModel {
                         Timestamp = message.Timestamp,
                         DataSetWriterId = message.DataSetWriterId,
                         PublisherId = message.PublisherId,
                         NodeId = datapoint.Key,
                         DisplayName = datapoint.Key,
-                        SourceTimestamp = datapoint.Value.SourceTimestamp,
-                        ServerTimestamp = datapoint.Value.ServerTimestamp
+                        Value = datapoint.Value?.Value?.Copy(),
+                        Status = datapoint.Value?.Status,
+                        SourceTimestamp = datapoint.Value?.SourceTimestamp,
+                        SourcePicoseconds = datapoint.Value?.SourcePicoseconds,
+                        ServerTimestamp = datapoint.Value?.ServerTimestamp,
+                        ServerPicoseconds = datapoint.Value?.ServerPicoseconds,
+                        DataType = datapoint.Value?.DataType,
+                        EndpointId = null // TODO Remove
                     }
                 };
                 if (!string.IsNullOrEmpty(message.DataSetWriterId)) {

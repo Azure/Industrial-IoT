@@ -4,7 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
+    using System;
     using System.Collections.Generic;
 
     /// <summary>
@@ -37,6 +38,38 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// Browse name
         /// </summary>
         public string BrowseName { get; set; }
+
+        /// <summary>
+        /// Value of variable or default value of the
+        /// subtyped variable in case node is a variable
+        /// type, otherwise null.
+        /// </summary>
+        public VariantValue Value { get; set; }
+
+        /// <summary>
+        /// Value source time stamp
+        /// </summary>
+        public DateTime? SourceTimestamp { get; set; }
+
+        /// <summary>
+        /// Value Source picoseconds
+        /// </summary>
+        public ushort? SourcePicoseconds { get; set; }
+
+        /// <summary>
+        /// Value server time stamp
+        /// </summary>
+        public DateTime? ServerTimestamp { get; set; }
+
+        /// <summary>
+        /// Value server picoseconds
+        /// </summary>
+        public ushort? ServerPicoseconds { get; set; }
+
+        /// <summary>
+        /// Value read result
+        /// </summary>
+        public ServiceResultModel ErrorInfo { get; set; }
 
         /// <summary>
         /// Node access restrictions if any.
@@ -94,7 +127,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// in case node is a data type node and definition
         /// is available, otherwise null.
         /// </summary>
-        public JToken DataTypeDefinition { get; set; }
+        public VariantValue DataTypeDefinition { get; set; }
 
         /// <summary>
         /// Default access level for value in variable
@@ -140,13 +173,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// (default: null)
         /// </summary>
         public double? MinimumSamplingInterval { get; set; }
-
-        /// <summary>
-        /// Value of variable or default value of the
-        /// subtyped variable in case node is a variable
-        /// type, otherwise null.
-        /// </summary>
-        public JToken Value { get; set; }
 
         /// <summary>
         /// Inverse name of the reference if the node is

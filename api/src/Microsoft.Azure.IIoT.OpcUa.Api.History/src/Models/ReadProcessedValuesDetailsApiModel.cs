@@ -4,47 +4,49 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using System.Runtime.Serialization;
     using System;
 
     /// <summary>
     /// Read processed historic data
     /// </summary>
+    [DataContract]
     public class ReadProcessedValuesDetailsApiModel {
 
         /// <summary>
         /// Start time to read from.
         /// </summary>
-        [JsonProperty(PropertyName = "startTime",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "startTime", Order = 0,
+            EmitDefaultValue = false)]
         public DateTime? StartTime { get; set; }
 
         /// <summary>
         /// End time to read until
         /// </summary>
-        [JsonProperty(PropertyName = "endTime",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "endTime", Order = 1,
+            EmitDefaultValue = false)]
         public DateTime? EndTime { get; set; }
 
         /// <summary>
         /// Interval to process
         /// </summary>
-        [JsonProperty(PropertyName = "processingInterval",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "processingInterval", Order = 2,
+            EmitDefaultValue = false)]
         public double? ProcessingInterval { get; set; }
 
         /// <summary>
         /// The aggregate type node ids
         /// </summary>
-        [JsonProperty(PropertyName = "aggregateTypeId",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "aggregateTypeId", Order = 3,
+            EmitDefaultValue = false)]
         public string AggregateTypeId { get; set; }
 
         /// <summary>
         /// A configuration for the aggregate
         /// </summary>
-        [JsonProperty(PropertyName = "aggregateConfiguration",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "aggregateConfiguration", Order = 4,
+            EmitDefaultValue = false)]
         public AggregateConfigurationApiModel AggregateConfiguration { get; set; }
     }
 }

@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Vault.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// A X509 certificate revocation list.
@@ -19,6 +19,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Models {
         /// <summary>
         /// The X509 certificate revocation list.
         /// </summary>
-        public JToken Crl { get; set; }
+        public VariantValue Crl { get; set; }
     }
 }

@@ -15,8 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
     using Microsoft.Azure.IIoT.Module;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
-    using Microsoft.Azure.IIoT.Hub;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Collections.Concurrent;
@@ -45,11 +44,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         /// <param name="client"></param>
         /// <param name="events"></param>
         /// <param name="logger"></param>
+        /// <param name="serializer"></param>
         /// <param name="progress"></param>
         public DiscoveryServices(IEndpointDiscovery client, IEventEmitter events,
-            ILogger logger, IDiscoveryProgress progress = null) {
+            IJsonSerializer serializer, ILogger logger, IDiscoveryProgress progress = null) {
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _events = events ?? throw new ArgumentNullException(nameof(events));
             _progress = progress ?? new ProgressLogger(logger);
@@ -400,7 +401,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                 var endpoints = 0;
                 foreach (var ep in eps) {
                     discovered.AddOrUpdate(ep.ToServiceModel(item.Key.ToString(),
-                        _events.SiteId, _events.DeviceId, _events.ModuleId));
+                        _events.SiteId, _events.DeviceId, _events.ModuleId, _serializer));
                     endpoints++;
                 }
                 _progress.OnFindEndpointsFinished(request.Request, 1, count, discoveryUrls.Count,
@@ -555,7 +556,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                         Context = request.Request.Context,
                         RegisterOnly = request.Mode == DiscoveryMode.Off,
                         Diagnostics = diagnostics == null ? null :
-                            JToken.FromObject(diagnostics)
+                            _serializer.FromObject(diagnostics)
                     },
                     TimeStamp = timestamp
                 })
@@ -563,8 +564,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
                     discovery.Index = i;
                     return discovery;
                 });
-            await Task.Run(() => _events.SendJsonEventAsync(
-                messages, MessageSchemaTypes.DiscoveryEvents), ct);
+            await Task.Run(() => _events.SendEventAsync(
+                messages.Select(message => _serializer.SerializeToBytes(message).ToArray()),
+                    ContentMimeType.Json, Registry.Models.MessageSchemaTypes.DiscoveryEvents,
+                        "utf-8"), ct);
             _logger.Information("{count} results uploaded.", discovered.Count);
         }
 
@@ -643,6 +646,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Discovery.Services {
         private const string kDockerHostName = "host.docker.internal";
 
         private readonly ILogger _logger;
+        private readonly IJsonSerializer _serializer;
         private readonly IEventEmitter _events;
         private readonly IDiscoveryProgress _progress;
         private readonly IEndpointDiscovery _client;

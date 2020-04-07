@@ -4,48 +4,49 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Discovery result model
     /// </summary>
+    [DataContract]
     public class DiscoveryResultApiModel {
 
         /// <summary>
         /// Id of discovery request
         /// </summary>
-        [JsonProperty(PropertyName = "id",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "id", Order = 0,
+            EmitDefaultValue = false)]
         public string Id { get; set; }
 
         /// <summary>
         /// Configuration used during discovery
         /// </summary>
-        [JsonProperty(PropertyName = "discoveryConfig",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "discoveryConfig", Order = 1,
+            EmitDefaultValue = false)]
         public DiscoveryConfigApiModel DiscoveryConfig { get; set; }
 
         /// <summary>
         /// If true, only register, do not unregister based
         /// on these events.
         /// </summary>
-        [JsonProperty(PropertyName = "registerOnly",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "registerOnly", Order = 2,
+            EmitDefaultValue = false)]
         public bool? RegisterOnly { get; set; }
 
         /// <summary>
         /// If discovery failed, result information
         /// </summary>
-        [JsonProperty(PropertyName = "diagnostics",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public JToken Diagnostics { get; set; }
+        [DataMember(Name = "diagnostics", Order = 3,
+            EmitDefaultValue = false)]
+        public VariantValue Diagnostics { get; set; }
 
         /// <summary>
         /// Operation audit context
         /// </summary>
-        [JsonProperty(PropertyName = "context",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "context", Order = 4,
+            EmitDefaultValue = false)]
         public RegistryOperationApiModel Context { get; set; }
     }
 }

@@ -3,14 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
-using System;
-
 namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using System;
+
     /// <summary>
-    /// Model that represents the command line arguments in the format of the legacy OPC Publisher.
+    /// Model that represents the command line arguments in the format of the
+    /// legacy OPC Publisher.
     /// </summary>
     public class LegacyCliModel {
+
         /// <summary>
         /// The site of the publisher.
         /// </summary>
@@ -27,12 +29,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public TimeSpan? SessionConnectWait { get; set; }
 
         /// <summary>
-        /// The default interval for heartbeats if not set on node level.
+        /// The default interval for heartbeats if not set on
+        /// node level.
         /// </summary>
         public TimeSpan? DefaultHeartbeatInterval { get; set; }
 
         /// <summary>
-        /// The default flag whether to skip the first value if not set on node level.
+        /// The default flag whether to skip the first value if
+        /// not set on node level.
         /// </summary>
         public bool DefaultSkipFirst { get; set; }
 
@@ -47,7 +51,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public TimeSpan? DefaultPublishingInterval { get; set; }
 
         /// <summary>
-        /// Flag wether to grab the display name of nodes form the OPC UA Server.
+        /// Flag wether to grab the display name of nodes form
+        /// the OPC UA Server.
         /// </summary>
         public bool FetchOpcNodeDisplayName { get; set; }
 
@@ -122,27 +127,27 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
         public bool AutoAcceptUntrustedCertificates { get; set; }
 
         /// <summary>
-        /// 
+        /// Certificate store configuration
         /// </summary>
         public string ApplicationCertificateStoreType { get; set; }
 
         /// <summary>
-        /// 
+        /// Certificate store path
         /// </summary>
         public string ApplicationCertificateStorePath { get; set; }
 
         /// <summary>
-        /// 
+        /// Peer cert path
         /// </summary>
         public string TrustedPeerCertificatesPath { get; set; }
 
         /// <summary>
-        /// 
+        /// Rejected cert path
         /// </summary>
         public string RejectedCertificateStorePath { get; set; }
 
         /// <summary>
-        /// 
+        /// Trusted issuer cert path
         /// </summary>
         public string TrustedIssuerCertificatesPath { get; set; }
     }

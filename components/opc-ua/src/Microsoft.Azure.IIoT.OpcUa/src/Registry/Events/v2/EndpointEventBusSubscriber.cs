@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2.Models;
     using Microsoft.Azure.IIoT.Messaging;
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -14,23 +13,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
     /// <summary>
     /// Endpoint registry change listener
     /// </summary>
-    public class EndpointEventBusSubscriber : IEventHandler<EndpointEventModel>, IDisposable {
+    public class EndpointEventBusSubscriber : IEventHandler<EndpointEventModel> {
 
         /// <summary>
         /// Create event subscriber
         /// </summary>
-        /// <param name="bus"></param>
         /// <param name="listeners"></param>
-        public EndpointEventBusSubscriber(IEventBus bus,
-            IEnumerable<IEndpointRegistryListener> listeners) {
-            _bus = bus ?? throw new ArgumentNullException(nameof(bus));
+        public EndpointEventBusSubscriber(IEnumerable<IEndpointRegistryListener> listeners) {
             _listeners = listeners?.ToList() ?? new List<IEndpointRegistryListener>();
-            _token = _bus.RegisterAsync(this).Result;
-        }
-
-        /// <inheritdoc/>
-        public void Dispose() {
-            _bus.UnregisterAsync(_token).Wait();
         }
 
         /// <inheritdoc/>
@@ -75,14 +65,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2 {
                 case EndpointEventType.Deleted:
                     await Task.WhenAll(_listeners
                         .Select(l => l.OnEndpointDeletedAsync(
-                            eventData.Context, eventData.Endpoint)
+                            eventData.Context, eventData.Id, eventData.Endpoint)
                         .ContinueWith(t => Task.CompletedTask)));
                     break;
             }
         }
 
-        private readonly IEventBus _bus;
         private readonly List<IEndpointRegistryListener> _listeners;
-        private readonly string _token;
     }
 }

@@ -6,17 +6,18 @@
 namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Agent;
     using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Runtime;
-    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.v2.Controller;
+    using Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Controller;
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
     using Microsoft.Azure.IIoT.Module.Framework.Hosting;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine;
+    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Api.Jobs.Clients;
     using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Diagnostics;
     using System.Runtime.Loader;
@@ -25,6 +26,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
     using Autofac;
     using Microsoft.Extensions.Configuration;
     using Serilog;
+    using Microsoft.Azure.IIoT.Module;
 
     /// <summary>
     /// Publisher module
@@ -80,6 +82,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
                 using (var hostScope = ConfigureContainer(_config)) {
                     _reset = new TaskCompletionSource<bool>();
                     var module = hostScope.Resolve<IModuleHost>();
+                    var events = hostScope.Resolve<IEventEmitter>();
                     var workerSupervisor = hostScope.Resolve<IWorkerSupervisor>();
                     var logger = hostScope.Resolve<ILogger>();
                     try {
@@ -134,6 +137,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Publisher {
             // Register module and agent framework ...
             builder.RegisterModule<AgentFramework>();
             builder.RegisterModule<ModuleFramework>();
+            builder.RegisterModule<NewtonSoftJsonModule>();
 
             if (legacyCliOptions.RunInLegacyMode) {
                 builder.AddDiagnostics(config,

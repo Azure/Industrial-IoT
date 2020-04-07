@@ -5,26 +5,29 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.Hub;
-    using System;
     using System.Collections.Generic;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Twin supervisor module registration
     /// </summary>
-    [Serializable]
+    [DataContract]
     public sealed class SupervisorRegistration : EntityRegistration {
 
         /// <inheritdoc/>
+        [DataMember]
         public override string DeviceType => IdentityType.Supervisor;
 
         /// <summary>
         /// Device id for registration
         /// </summary>
+        [DataMember]
         public string ModuleId { get; set; }
 
         /// <summary>
         /// Current log level
         /// </summary>
+        [DataMember]
         public TraceLogLevel? LogLevel { get; set; }
 
         /// <summary>
@@ -40,10 +43,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
         /// <inheritdoc/>
         public override bool Equals(object obj) {
-            var registration = obj as SupervisorRegistration;
-            return base.Equals(registration) &&
-                ModuleId == registration.ModuleId &&
-                LogLevel == registration.LogLevel;
+            if (!(obj is SupervisorRegistration registration)) {
+                return false;
+            }
+            if (!base.Equals(registration)) {
+                return false;
+            }
+            if (ModuleId != registration.ModuleId) {
+                return false;
+            }
+            if (LogLevel != registration.LogLevel) {
+                return false;
+            }
+            return true;
         }
 
         /// <inheritdoc/>

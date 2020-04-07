@@ -1,7 +1,5 @@
-@page "/browser/{applicationId}/{endpointId}/{applicationUri}"
-@page "/browser/{discovererId}/{applicationId}/{supervisorId}/{endpointId}/{applicationUri}"
-@*@page "/browser/{discovererId}/{applicationId}/{supervisorId}/{endpointId}/{applicationUri}/{page}"*@
-
+@page "/browser/{applicationId}/{endpointId}"
+@page "/browser/{discovererId}/{applicationId}/{supervisorId}/{endpointId}"
 
 @using Microsoft.Azure.IIoT.App.Services
 @using Microsoft.Azure.IIoT.App.Components.Pager
@@ -10,13 +8,13 @@
 @using Microsoft.Azure.IIoT.App.Data
 @using Microsoft.AspNetCore.Components
 @using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models
+@using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models
 @using System.Collections.Generic
 @using Microsoft.Azure.IIoT.OpcUa.Api.Publisher
 @using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models
 @using Microsoft.Azure.IIoT.App.Common
 @using Microsoft.Azure.IIoT.App.Models
 @using Microsoft.Azure.IIoT.App.Services.SecureData
-
 
 @inject NavigationManager NavigationManager
 @inject Services.Browser BrowseManager
@@ -34,9 +32,9 @@
     {
         <a href="/discoverers/">/ @DiscovererId</a>
     }
-    @if (ApplicationUri != string.Empty && ApplicationUri != RegistryHelper.PathAll)
-    {
-        <a href="/applications/">/ @ApplicationUri</a>
+    @if (ApplicationId != string.Empty && ApplicationId != RegistryHelper.PathAll)
+    {  
+        <a href="/applications/">/ @CommonHelper.ApplicationUri[ApplicationId]</a>
     }
     @if (SupervisorId != string.Empty && SupervisorId != RegistryHelper.PathAll)
     {
@@ -84,7 +82,7 @@
                     {
                         if (PagedNodeList.Results[0].DiscovererId != null)
                         {
-                            <a href='endpoints/@PagedNodeList.Results[0].DiscovererId/@ApplicationId/@SupervisorId/@ApplicationUri'>
+                            <a href='endpoints/@PagedNodeList.Results[0].DiscovererId/@ApplicationId/@SupervisorId'>
                                 <span class="oi oi-arrow-left"></span>
                             </a>
                         }
@@ -120,7 +118,7 @@
                     <td>@node.NodeClass</td>
                 }
                 @if (node.NodeClass == NodeClass.Variable && (((node.AccessLevel & NodeAccessLevel.CurrentRead) == NodeAccessLevel.CurrentRead) ||
-               ((node.AccessLevel & NodeAccessLevel.CurrentWrite) == NodeAccessLevel.CurrentWrite)))
+              ((node.AccessLevel & NodeAccessLevel.CurrentWrite) == NodeAccessLevel.CurrentWrite)))
                 {
                     <td>
                         <div class="td-fixed">
@@ -187,9 +185,6 @@
     public string SupervisorId { get; set; } = string.Empty;
 
     [Parameter]
-    public string ApplicationUri { get; set; } = string.Empty;
-
-    [Parameter]
     public string Page { get; set; } = "1";
 
     public PagedResult<ListNode> NodeList = new PagedResult<ListNode>();
@@ -210,7 +205,7 @@
     {
         CommonHelper.Spinner = "loader-big";
         StateHasChanged();
-        if (!string.IsNullOrEmpty(NodeList.ContinuationToken) && page > PagedNodeList.PageCount )
+        if (!string.IsNullOrEmpty(NodeList.ContinuationToken) && page > PagedNodeList.PageCount)
         {
             await BrowseTreeAsync(BrowseDirection.Forward, 0, false);
         }
@@ -251,7 +246,8 @@
                 _tableView = "hidden";
             }
             StateHasChanged();
-            _publishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId, null, PublishEvent);
+            _publishEvent = await PublisherServiceEvents.NodePublishSubscribeByEndpointAsync(EndpointId,
+                samples => InvokeAsync(() => PublishEvent(samples)));
         }
     }
 
@@ -273,7 +269,7 @@
     private async Task GetTreeBackAsync(string id, List<string> parentId, int index)
     {
         await BrowseTreeAsync(BrowseDirection.Backward, index, true, id, parentId);
-        NavigationManager.NavigateTo(NavigationManager.BaseUri + "browser/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId + "/" + ApplicationUri);
+        NavigationManager.NavigateTo(NavigationManager.BaseUri + "browser/" + DiscovererId + "/" + ApplicationId + "/" + SupervisorId + "/" + EndpointId);
     }
 
     /// <summary>
@@ -394,7 +390,7 @@
         {
             if (node.Id == samples.NodeId)
             {
-                node.Value = samples.Value?.ToString();
+                node.Value = samples.Value?.ToJson()?.TrimQuotes();
                 node.Status = string.IsNullOrEmpty(samples.Status) ? "Good" : samples.Status;
                 node.Timestamp = samples.Timestamp.Value.ToLocalTime().ToString();
                 this.StateHasChanged();

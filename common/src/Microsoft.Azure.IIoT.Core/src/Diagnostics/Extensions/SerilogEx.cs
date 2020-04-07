@@ -22,7 +22,7 @@ namespace Serilog {
         public static LoggerConfiguration Configure(this LoggerConfiguration configuration,
             Func<LoggerConfiguration, string, LoggerConfiguration> configure, bool addConsole = true) {
             configuration = configuration
-                .Enrich.WithProperty("SourceContext", null)
+                .Enrich.WithProperty("SourceContext", "Root")
                 .Enrich.FromLogContext();
             if (addConsole) {
                 configuration.WriteTo.Console(outputTemplate: kDefaultTemplate);
@@ -53,6 +53,6 @@ namespace Serilog {
         }
 
         private const string kDefaultTemplate =
-            "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} ({SourceContext:l}){NewLine}{Exception}";
+            "[{Timestamp:HH:mm:ss} {Level:u3} {SourceContext:lj}] {Message:lj} {NewLine}{Exception}";
     }
 }

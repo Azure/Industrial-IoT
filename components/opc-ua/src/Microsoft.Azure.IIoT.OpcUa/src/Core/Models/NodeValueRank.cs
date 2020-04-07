@@ -5,14 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
     using System;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
 
     /// <summary>
     /// Names defined for the ValueRank attribute.
     /// </summary>
     [Flags]
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum NodeValueRank {
 
         /// <summary>

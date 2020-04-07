@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Filters;
     using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Vault;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.AspNetCore.Authorization;
@@ -21,7 +22,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Controllers {
     [ExceptionsFilter]
     [ApiVersion("2")]
     [Route("v{version:apiVersion}/certificates")]
-    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
     public sealed class CertificatesController : ControllerBase {

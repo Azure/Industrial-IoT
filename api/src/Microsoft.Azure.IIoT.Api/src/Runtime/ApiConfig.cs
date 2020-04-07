@@ -16,16 +16,17 @@ namespace Microsoft.Azure.IIoT.Api.Runtime {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault;
     using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Events.Runtime;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Events;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
-    using Microsoft.Azure.IIoT.Messaging.SignalR.Runtime;
     using Microsoft.Extensions.Configuration;
 
     /// <summary>
     /// Complete api configuration
     /// </summary>
     public class ApiConfig : DiagnosticsConfig, ITwinConfig, IRegistryConfig, IJobsServiceConfig,
-        IVaultConfig, IHistoryConfig, IPublisherConfig, ISignalRClientConfig {
+        IVaultConfig, IHistoryConfig, IPublisherConfig, IEventsConfig, ISignalRClientConfig {
 
         /// <inheritdoc/>
         public string OpcUaTwinServiceUrl => _twin.OpcUaTwinServiceUrl;
@@ -58,11 +59,12 @@ namespace Microsoft.Azure.IIoT.Api.Runtime {
         public string OpcUaPublisherServiceResourceId => _publisher.OpcUaPublisherServiceResourceId;
 
         /// <inheritdoc/>
-        public string SignalREndpointUrl => _signalR.SignalREndpointUrl;
+        public string OpcUaEventsServiceUrl => _events.OpcUaEventsServiceUrl;
         /// <inheritdoc/>
-        public string SignalRHubName => _signalR.SignalRHubName;
+        public string OpcUaEventsServiceResourceId => _events.OpcUaEventsServiceResourceId;
+
         /// <inheritdoc/>
-        public string SignalRUserId => _signalR.SignalRUserId;
+        public bool UseMessagePackProtocol => _events.UseMessagePackProtocol;
 
         /// <inheritdoc/>
         public ApiConfig(IConfiguration configuration) :
@@ -73,7 +75,7 @@ namespace Microsoft.Azure.IIoT.Api.Runtime {
             _vault = new VaultConfig(configuration);
             _history = new HistoryConfig(configuration);
             _publisher = new PublisherConfig(configuration);
-            _signalR = new SignalRClientConfig(configuration);
+            _events = new EventsConfig(configuration);
         }
 
         private readonly TwinConfig _twin;
@@ -82,6 +84,6 @@ namespace Microsoft.Azure.IIoT.Api.Runtime {
         private readonly VaultConfig _vault;
         private readonly HistoryConfig _history;
         private readonly PublisherConfig _publisher;
-        private readonly SignalRClientConfig _signalR;
+        private readonly EventsConfig _events;
     }
 }

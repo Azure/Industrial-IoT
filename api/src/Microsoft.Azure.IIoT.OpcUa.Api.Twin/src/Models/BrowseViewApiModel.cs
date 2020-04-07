@@ -4,37 +4,35 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
-    using System.ComponentModel;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Browse view model
     /// </summary>
+    [DataContract]
     public class BrowseViewApiModel {
 
         /// <summary>
         /// Node of the view to browse
         /// </summary>
-        [JsonProperty(PropertyName = "viewId")]
+        [DataMember(Name = "viewId", Order = 0)]
         [Required]
         public string ViewId { get; set; }
 
         /// <summary>
         /// Browses specific version of the view.
         /// </summary>
-        [JsonProperty(PropertyName = "version",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "version", Order = 1,
+            EmitDefaultValue = false)]
         public uint? Version { get; set; }
 
         /// <summary>
         /// Browses at or before this timestamp.
         /// </summary>
-        [JsonProperty(PropertyName = "timestamp",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "timestamp", Order = 2,
+            EmitDefaultValue = false)]
         public DateTime? Timestamp { get; set; }
     }
 }

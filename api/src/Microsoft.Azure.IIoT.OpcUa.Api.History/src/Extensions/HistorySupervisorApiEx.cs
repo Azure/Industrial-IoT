@@ -5,7 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
     using Microsoft.Azure.IIoT.OpcUa.Api.History.Models;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -22,8 +23,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static Task<HistoryReadResponseApiModel<JToken>> HistoryReadRawAsync(
-            this IHistoryModuleApi api, string endpointUrl, HistoryReadRequestApiModel<JToken> request,
+        public static Task<HistoryReadResponseApiModel<VariantValue>> HistoryReadRawAsync(
+            this IHistoryModuleApi api, string endpointUrl, HistoryReadRequestApiModel<VariantValue> request,
             CancellationToken ct = default) {
             return api.HistoryReadRawAsync(NewEndpoint(endpointUrl), request, ct);
         }
@@ -36,7 +37,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
         /// <param name="request"></param>
         /// <param name="ct"></param>
         /// <returns></returns>
-        public static Task<HistoryReadNextResponseApiModel<JToken>> HistoryReadRawNextAsync(
+        public static Task<HistoryReadNextResponseApiModel<VariantValue>> HistoryReadRawNextAsync(
             this IHistoryModuleApi api, string endpointUrl, HistoryReadNextRequestApiModel request,
             CancellationToken ct = default) {
             return api.HistoryReadRawNextAsync(NewEndpoint(endpointUrl), request, ct);
@@ -51,7 +52,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History {
         /// <param name="ct"></param>
         /// <returns></returns>
         public static Task<HistoryUpdateResponseApiModel> HistoryUpdateRawAsync(
-            this IHistoryModuleApi api, string endpointUrl, HistoryUpdateRequestApiModel<JToken> request,
+            this IHistoryModuleApi api, string endpointUrl, HistoryUpdateRequestApiModel<VariantValue> request,
             CancellationToken ct = default) {
             return api.HistoryUpdateRawAsync(NewEndpoint(endpointUrl), request, ct);
         }

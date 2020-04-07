@@ -11,7 +11,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     public class GatewayQueryModel {
 
         /// <summary>
-        /// Site for the gateways
+        /// Site of the gateways
         /// </summary>
         public string SiteId { get; set; }
 

@@ -5,25 +5,26 @@
 
 namespace Microsoft.Azure.IIoT.Module {
     using Microsoft.Azure.IIoT.Module.Default;
-    using Microsoft.Azure.IIoT.Module.Models;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub;
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Threading.Tasks;
     using System.Threading;
+    using System.Text;
 
     public class TestChunkServer : IJsonMethodClient, IMethodHandler {
 
-        public TestChunkServer(int size,
-            Func<string, byte[], string, byte[]> handler) {
+        public TestChunkServer(IJsonSerializer serializer,
+            int size, Func<string, byte[], string, byte[]> handler) {
             MaxMethodPayloadCharacterCount = size;
             _handler = handler;
-            _server = new ChunkMethodServer(this, TraceLogger.Create());
+            _serializer = serializer;
+            _server = new ChunkMethodServer(_serializer, TraceLogger.Create());
         }
 
         public IMethodClient CreateClient() {
-            return new ChunkMethodClient(this, TraceLogger.Create());
+            return new ChunkMethodClient(this, _serializer, TraceLogger.Create());
         }
 
         public int MaxMethodPayloadCharacterCount { get; }
@@ -31,9 +32,10 @@ namespace Microsoft.Azure.IIoT.Module {
         public async Task<string> CallMethodAsync(string deviceId,
             string moduleId, string method, string json, TimeSpan? timeout,
             CancellationToken ct) {
-            var processed = await _server.ProcessAsync(
-                JsonConvertEx.DeserializeObject<MethodChunkModel>(json));
-            return JsonConvertEx.SerializeObject(processed);
+            var payload = Encoding.UTF8.GetBytes(json);
+            var processed = await _server.InvokeAsync(payload,
+                ContentMimeType.Json, this);
+            return Encoding.UTF8.GetString(processed);
         }
 
         public Task<byte[]> InvokeAsync(string method, byte[] payload, string contentType) {
@@ -41,6 +43,7 @@ namespace Microsoft.Azure.IIoT.Module {
         }
 
         private readonly ChunkMethodServer _server;
+        private readonly IJsonSerializer _serializer;
         private readonly Func<string, byte[], string, byte[]> _handler;
     }
 }

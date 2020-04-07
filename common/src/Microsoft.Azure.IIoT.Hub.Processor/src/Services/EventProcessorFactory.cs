@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
         /// <param name="handler"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public EventProcessorFactory(IEventHandler handler,
+        public EventProcessorFactory(IEventProcessingHandler handler,
             IEventProcessorConfig config, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _handler = handler ?? throw new ArgumentNullException(nameof(handler));
@@ -269,7 +269,7 @@ namespace Microsoft.Azure.IIoT.Hub.Processor.Services {
         }
 
         private readonly ILogger _logger;
-        private readonly IEventHandler _handler;
+        private readonly IEventProcessingHandler _handler;
         private readonly IEventProcessorConfig _config;
     }
 }

@@ -225,12 +225,14 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
         /// </summary>
         /// <param name="resourceGroup"></param>
         /// <param name="storageAccountName"></param>
+        /// <param name="isHnsEnabled"></param>
         /// <param name="tags"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public async Task<StorageAccountInner> CreateStorageAccountGen2Async(
             IResourceGroup resourceGroup,
             string storageAccountName,
+            bool isHnsEnabled = true,
             IDictionary<string, string> tags = null,
             CancellationToken cancellationToken = default
         ) {
@@ -255,7 +257,7 @@ namespace Microsoft.Azure.IIoT.Deployment.Infrastructure {
                         Name = SkuName.StandardLRS
                     },
                     AccessTier = AccessTier.Hot,
-                    IsHnsEnabled = true,
+                    IsHnsEnabled = isHnsEnabled,
                     EnableHttpsTrafficOnly = true,
                     NetworkRuleSet = new NetworkRuleSet {
                         Bypass = Bypass.AzureServices,

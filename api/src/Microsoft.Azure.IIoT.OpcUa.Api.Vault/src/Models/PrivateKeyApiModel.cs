@@ -4,109 +4,110 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Private key
     /// </summary>
+    [DataContract]
     public sealed class PrivateKeyApiModel {
 
         /// <summary>
         /// Key type
         /// </summary>
-        [JsonProperty(PropertyName = "kty",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "kty", Order = 0,
+            EmitDefaultValue = false)]
         public PrivateKeyType Kty { get; set; }
 
         /// <summary>
         /// RSA modulus.
         /// </summary>
-        [JsonProperty(PropertyName = "n",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "n", Order = 1,
+            EmitDefaultValue = false)]
         public byte[] N { get; set; }
 
         /// <summary>
         /// RSA public exponent, in Base64.
         /// </summary>
-        [JsonProperty(PropertyName = "e",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "e", Order = 2,
+            EmitDefaultValue = false)]
         public byte[] E { get; set; }
 
         /// <summary>
         /// RSA Private Key Parameter
         /// </summary>
-        [JsonProperty(PropertyName = "dp",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "dp", Order = 3,
+            EmitDefaultValue = false)]
         public byte[] DP { get; set; }
 
         /// <summary>
         /// RSA Private Key Parameter
         /// </summary>
-        [JsonProperty(PropertyName = "dq",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "dq", Order = 4,
+            EmitDefaultValue = false)]
         public byte[] DQ { get; set; }
 
         /// <summary>
         /// RSA Private Key Parameter
         /// </summary>
-        [JsonProperty(PropertyName = "qi",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "qi", Order = 5,
+            EmitDefaultValue = false)]
         public byte[] QI { get; set; }
 
         /// <summary>
         /// RSA secret prime
         /// </summary>
-        [JsonProperty(PropertyName = "p",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "p", Order = 6,
+            EmitDefaultValue = false)]
         public byte[] P { get; set; }
 
         /// <summary>
         /// RSA secret prime, with p &lt; q
         /// </summary>
-        [JsonProperty(PropertyName = "q",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "q", Order = 7,
+            EmitDefaultValue = false)]
         public byte[] Q { get; set; }
 
         /// <summary>
         /// The curve for ECC algorithms
         /// </summary>
-        [JsonProperty(PropertyName = "crv",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "crv", Order = 8,
+            EmitDefaultValue = false)]
         public string CurveName { get; set; }
 
         /// <summary>
         /// X coordinate for the Elliptic Curve point.
         /// </summary>
-        [JsonProperty(PropertyName = "x",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "x", Order = 9,
+            EmitDefaultValue = false)]
         public byte[] X { get; set; }
 
         /// <summary>
         /// Y coordinate for the Elliptic Curve point.
         /// </summary>
-        [JsonProperty(PropertyName = "y",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "y", Order = 10,
+            EmitDefaultValue = false)]
         public byte[] Y { get; set; }
 
         /// <summary>
         /// RSA private exponent or ECC private key.
         /// </summary>
-        [JsonProperty(PropertyName = "d",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "d", Order = 11,
+            EmitDefaultValue = false)]
         public byte[] D { get; set; }
 
         /// <summary>
         /// Symmetric key
         /// </summary>
-        [JsonProperty(PropertyName = "k",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "k", Order = 12,
+            EmitDefaultValue = false)]
         public byte[] K { get; set; }
 
         /// <summary>
         /// HSM Token, used with "Bring Your Own Key"
         /// </summary>
-        [JsonProperty(PropertyName = "key_hsm",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "key_hsm", Order = 13,
+            EmitDefaultValue = false)]
         public byte[] T { get; set; }
     }
 }

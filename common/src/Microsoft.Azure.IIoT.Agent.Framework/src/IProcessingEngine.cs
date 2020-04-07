@@ -5,10 +5,10 @@
 
 namespace Microsoft.Azure.IIoT.Agent.Framework {
     using Microsoft.Azure.IIoT.Agent.Framework.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Job processing engine
@@ -31,13 +31,14 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// <param name="processMode"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        Task RunAsync(ProcessMode processMode, CancellationToken cancellationToken);
+        Task RunAsync(ProcessMode processMode,
+            CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns the current state of a job
         /// </summary>
         /// <returns></returns>
-        Task<JToken> GetCurrentJobState();
+        Task<VariantValue> GetCurrentJobState();
 
         /// <summary>
         /// Switch processing mode
@@ -45,6 +46,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework {
         /// <param name="processMode"></param>
         /// <param name="timestamp"></param>
         /// <returns></returns>
-        Task SwitchProcessMode(ProcessMode processMode, DateTime? timestamp);
+        Task SwitchProcessMode(ProcessMode processMode,
+            DateTime? timestamp);
     }
 }

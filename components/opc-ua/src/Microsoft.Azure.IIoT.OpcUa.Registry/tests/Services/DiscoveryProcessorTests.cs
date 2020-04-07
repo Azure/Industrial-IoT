@@ -8,7 +8,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Mock;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Autofac.Extras.Moq;
     using AutoFixture;
     using AutoFixture.Kernel;
@@ -16,6 +17,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using System.Collections.Generic;
     using System.Linq;
     using Xunit;
+    using Autofac;
 
     public class DiscoveryProcessorTests {
 
@@ -33,19 +35,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var discoverer = DiscovererModelEx.CreateDiscovererId(gateway, module);
             var Discoverer = (new DiscovererModel {
                 Id = discoverer
-            }.ToDiscovererRegistration().ToDeviceTwin(),
+            }.ToDiscovererRegistration().ToDeviceTwin(_serializer),
                     new DeviceModel { Id = gateway, ModuleId = module });
             module = fix.Create<string>();
             var supervisor = SupervisorModelEx.CreateSupervisorId(gateway, module);
             var Supervisor = (new SupervisorModel {
                 Id = supervisor
-            }.ToSupervisorRegistration().ToDeviceTwin(),
+            }.ToSupervisorRegistration().ToDeviceTwin(_serializer),
                     new DeviceModel { Id = gateway, ModuleId = module });
             module = fix.Create<string>();
             var publisher = PublisherModelEx.CreatePublisherId(gateway, module);
             var Publisher = (new PublisherModel {
                 Id = publisher
-            }.ToPublisherRegistration().ToDeviceTwin(),
+            }.ToPublisherRegistration().ToDeviceTwin(_serializer),
                     new DeviceModel { Id = gateway, ModuleId = module });
 
             var registry = IoTHubServices.Create(Gateway.YieldReturn() // Single device
@@ -53,16 +55,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 .Append(Supervisor)
                 .Append(Publisher));
 
-            using (var mock = AutoMock.GetLoose()) {
+            using (var mock = AutoMock.GetLoose(builder => {
                 // Setup
-                mock.Provide<IIoTHubTwinServices>(registry);
-                mock.Provide<IApplicationRepository, ApplicationTwins>();
-                mock.Provide<IDiscovererRegistry, DiscovererRegistry>();
-                mock.Provide<ISupervisorRegistry, SupervisorRegistry>();
-                mock.Provide<IPublisherRegistry, PublisherRegistry>();
-                mock.Provide<IGatewayRegistry, GatewayRegistry>();
-                mock.Provide<IApplicationBulkProcessor, ApplicationRegistry>();
-                mock.Provide<IEndpointBulkProcessor, EndpointRegistry>();
+                builder.RegisterInstance(registry).As<IIoTHubTwinServices>();
+                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
+                builder.RegisterType<DiscovererRegistry>().As<IDiscovererRegistry>();
+                builder.RegisterType<SupervisorRegistry>().As<ISupervisorRegistry>();
+                builder.RegisterType<PublisherRegistry>().As<IPublisherRegistry>();
+                builder.RegisterType<GatewayRegistry>().As<IGatewayRegistry>();
+                builder.RegisterType<ApplicationRegistry>().As<IApplicationBulkProcessor>();
+                builder.RegisterType<EndpointRegistry>().As<IEndpointBulkProcessor>();
+            })) {
                 var service = mock.Create<DiscoveryProcessor>();
 
                 // Run
@@ -80,16 +83,17 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 out var publisher, out var gateway, out var existing,
                 out var found, out var registry);
 
-            using (var mock = AutoMock.GetLoose()) {
+            using (var mock = AutoMock.GetLoose(builder => {
                 // Setup
-                mock.Provide<IIoTHubTwinServices>(registry);
-                mock.Provide<IApplicationRepository, ApplicationTwins>();
-                mock.Provide<IDiscovererRegistry, DiscovererRegistry>();
-                mock.Provide<ISupervisorRegistry, SupervisorRegistry>();
-                mock.Provide<IPublisherRegistry, PublisherRegistry>();
-                mock.Provide<IGatewayRegistry, GatewayRegistry>();
-                mock.Provide<IApplicationBulkProcessor, ApplicationRegistry>();
-                mock.Provide<IEndpointBulkProcessor, EndpointRegistry>();
+                builder.RegisterInstance(registry).As<IIoTHubTwinServices>();
+                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
+                builder.RegisterType<DiscovererRegistry>().As<IDiscovererRegistry>();
+                builder.RegisterType<SupervisorRegistry>().As<ISupervisorRegistry>();
+                builder.RegisterType<PublisherRegistry>().As<IPublisherRegistry>();
+                builder.RegisterType<GatewayRegistry>().As<IGatewayRegistry>();
+                builder.RegisterType<ApplicationRegistry>().As<IApplicationBulkProcessor>();
+                builder.RegisterType<EndpointRegistry>().As<IEndpointBulkProcessor>();
+            })) {
                 var service = mock.Create<DiscoveryProcessor>();
 
                 // Run
@@ -106,9 +110,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 out var publisher, out var gateway, out var created,
                 out var found, out var registry, 0);
 
-            using (var mock = AutoMock.GetLoose()) {
-                // Setup
-                var service = Setup(mock, registry);
+            using (var mock = Setup(registry, out var service)) {
 
                 // Run
                 service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
@@ -125,9 +127,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 out var found, out var registry);
             found[found.Count / 2].Application.SiteId = "aaaaaaaaaaaa";
 
-            using (var mock = AutoMock.GetLoose()) {
-                // Setup
-                var service = Setup(mock, registry);
+            using (var mock = Setup(registry, out var service)) {
 
                 // Run
                 var t = service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found);
@@ -145,9 +145,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 out var publisher, out var gateway, out var created,
                 out var found, out var registry, 1);
 
-            using (var mock = AutoMock.GetLoose()) {
-                // Setup
-                var service = Setup(mock, registry);
+            using (var mock = Setup(registry, out var service)) {
 
                 // Run
                 service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
@@ -173,9 +171,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             // Assert no changes
 
-            using (var mock = AutoMock.GetLoose()) {
-                // Setup
-                var service = Setup(mock, registry);
+            using (var mock = Setup(registry, out var service)) {
 
                 // Run
                 service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
@@ -203,9 +199,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             found = new List<DiscoveryEventModel> { found.First() };
             // Assert there is still the same content as originally
 
-            using (var mock = AutoMock.GetLoose()) {
-                // Setup
-                var service = Setup(mock, registry);
+            using (var mock = Setup(registry, out var service)) {
 
                 // Run
                 service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
@@ -232,9 +226,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             // Assert disabled items are now enabled
             var count = registry.Devices.Count();
 
-            using (var mock = AutoMock.GetLoose()) {
-                // Setup
-                var service = Setup(mock, registry);
+            using (var mock = Setup(registry, out var service)) {
 
                 // Run
                 service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
@@ -268,9 +260,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var count = registry.Devices.Count();
             // Assert disabled items are now enabled
 
-            using (var mock = AutoMock.GetLoose()) {
-                // Setup
-                var service = Setup(mock, registry);
+            using (var mock = Setup(registry, out var service)) {
 
                 // Run
                 service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
@@ -303,9 +293,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             found = new List<DiscoveryEventModel>();
             // Assert there is still the same content as originally
 
-            using (var mock = AutoMock.GetLoose()) {
-                // Setup
-                var service = Setup(mock, registry);
+            using (var mock = Setup(registry, out var service)) {
 
                 // Run
                 service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
@@ -327,9 +315,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var count = registry.Devices.Count();
             // Assert there is still the same content as originally but now disabled
 
-            using (var mock = AutoMock.GetLoose()) {
-                // Setup
-                var service = Setup(mock, registry);
+            using (var mock = Setup(registry, out var service)) {
 
                 // Run
                 service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
@@ -356,9 +342,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             // All applications, but only one endpoint each is enabled
 
-            using (var mock = AutoMock.GetLoose()) {
-                // Setup
-                var service = Setup(mock, registry);
+            using (var mock = Setup(registry, out var service)) {
 
                 // Run
                 service.ProcessDiscoveryResultsAsync(discoverer, new DiscoveryResultModel(), found).Wait();
@@ -382,16 +366,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// </summary>
         /// <param name="mock"></param>
         /// <param name="registry"></param>
-        private static IDiscoveryResultProcessor Setup(AutoMock mock, IoTHubServices registry) {
-            mock.Provide<IIoTHubTwinServices>(registry);
-            mock.Provide<IApplicationRepository, ApplicationTwins>();
-            mock.Provide<IDiscovererRegistry, DiscovererRegistry>();
-            mock.Provide<ISupervisorRegistry, SupervisorRegistry>();
-            mock.Provide<IPublisherRegistry, PublisherRegistry>();
-            mock.Provide<IGatewayRegistry, GatewayRegistry>();
-            mock.Provide<IEndpointBulkProcessor, EndpointRegistry>();
-            mock.Provide<IApplicationBulkProcessor, ApplicationRegistry>();
-            return mock.Create<DiscoveryProcessor>();
+        private static AutoMock Setup(IoTHubServices registry, out IDiscoveryResultProcessor processor) {
+            var mock = AutoMock.GetLoose(builder => {
+                builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
+                builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
+                builder.RegisterInstance(registry).As<IIoTHubTwinServices>();
+                builder.RegisterType<ApplicationTwins>().As<IApplicationRepository>();
+                builder.RegisterType<DiscovererRegistry>().As<IDiscovererRegistry>();
+                builder.RegisterType<SupervisorRegistry>().As<ISupervisorRegistry>();
+                builder.RegisterType<PublisherRegistry>().As<IPublisherRegistry>();
+                builder.RegisterType<GatewayRegistry>().As<IGatewayRegistry>();
+                builder.RegisterType<EndpointRegistry>().As<IEndpointBulkProcessor>();
+                builder.RegisterType<ApplicationRegistry>().As<IApplicationBulkProcessor>();
+            });
+            processor = mock.Create<DiscoveryProcessor>();
+            return mock;
         }
 
         /// <summary>
@@ -431,7 +420,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// <param name="countDevices"></param>
         /// <param name="fixup"></param>
         /// <param name="disable"></param>
-        private static void CreateFixtures(out string site, out string discoverer,
+        private void CreateFixtures(out string site, out string discoverer,
             out string supervisor, out string publisher, out string gateway,
             out List<ApplicationRegistrationModel> existing, out List<DiscoveryEventModel> found,
             out IoTHubServices registry, int countDevices = -1,
@@ -440,7 +429,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var fix = new Fixture();
 
             // Create template applications and endpoints
-            fix.Customizations.Add(new TypeRelay(typeof(JToken), typeof(JObject)));
+            fix.Customizations.Add(new TypeRelay(typeof(VariantValue), typeof(VariantValue)));
+            fix.Behaviors.OfType<ThrowingRecursionBehavior>().ToList()
+                .ForEach(b => fix.Behaviors.Remove(b));
+            fix.Behaviors.Add(new OmitOnRecursionBehavior());
             var sitex = site = fix.Create<string>();
 
             gateway = fix.Create<string>();
@@ -454,21 +446,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             var Discoverer = (new DiscovererModel {
                 SiteId = site,
                 Id = discovererx
-            }.ToDiscovererRegistration().ToDeviceTwin(),
+            }.ToDiscovererRegistration().ToDeviceTwin(_serializer),
                     new DeviceModel { Id = gateway, ModuleId = module });
             module = fix.Create<string>();
             var supervisorx = supervisor = SupervisorModelEx.CreateSupervisorId(gateway, module);
             var Supervisor = (new SupervisorModel {
                 SiteId = site,
                 Id = supervisorx
-            }.ToSupervisorRegistration().ToDeviceTwin(),
+            }.ToSupervisorRegistration().ToDeviceTwin(_serializer),
                     new DeviceModel { Id = gateway, ModuleId = module });
             module = fix.Create<string>();
             var publisherx = publisher = PublisherModelEx.CreatePublisherId(gateway, module);
             var Publisher = (new PublisherModel {
                 SiteId = site,
                 Id = publisherx
-            }.ToPublisherRegistration().ToDeviceTwin(),
+            }.ToPublisherRegistration().ToDeviceTwin(_serializer),
                     new DeviceModel { Id = gateway, ModuleId = module });
 
             var template = fix
@@ -515,7 +507,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             // and fill registry with them...
             var appdevices = existing
                 .Select(a => a.Application.ToApplicationRegistration(disable))
-                .Select(a => a.ToDeviceTwin())
+                .Select(a => a.ToDeviceTwin(_serializer))
                 .Select(d => (d, new DeviceModel { Id = d.Id }));
             var epdevices = existing
                 .SelectMany(a => a.Endpoints
@@ -523,8 +515,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                         new EndpointInfoModel {
                             ApplicationId = a.Application.ApplicationId,
                             Registration = e
-                        }.ToEndpointRegistration(disable))
-                .Select(e => e.ToDeviceTwin()))
+                        }.ToEndpointRegistration(_serializer, disable))
+                .Select(e => e.ToDeviceTwin(_serializer)))
                 .Select(d => (d, new DeviceModel { Id = d.Id }));
             appdevices = appdevices.Concat(epdevices);
             if (countDevices != -1) {
@@ -536,5 +528,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 .Concat(Supervisor.YieldReturn())
                 .Concat(Publisher.YieldReturn()));
         }
+
+        private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
     }
 }

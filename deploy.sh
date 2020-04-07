@@ -66,5 +66,5 @@ fi
 
 # Call powershell script
 curdir="$( cd "$(dirname "$0")" ; pwd -P )"
-pwsh -File $curdir/deploy/scripts/deploy.ps1 "$@"
+pwsh -File $curdir/deploy/scripts/deploy.ps1 "$@" -version preview
 

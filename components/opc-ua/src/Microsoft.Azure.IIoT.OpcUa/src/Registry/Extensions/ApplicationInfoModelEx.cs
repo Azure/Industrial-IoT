@@ -120,7 +120,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 ApplicationUri = model.ApplicationUri,
                 Capabilities = model.Capabilities
                     .ToHashSetSafe(),
-                Certificate = model.Certificate,
                 DiscoveryProfileUri = model.DiscoveryProfileUri,
                 HostAddresses = model.HostAddresses
                     .ToHashSetSafe(),
@@ -149,7 +148,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 ApplicationType = model.ApplicationType,
                 Capabilities = model.Capabilities,
                 ApplicationUri = model.ApplicationUri,
-                Certificate = model.Certificate,
                 DiscoveryProfileUri = model.DiscoveryProfileUri,
                 DiscoveryUrls = model.DiscoveryUrls,
                 GatewayServerUri = model.GatewayServerUri,
@@ -187,7 +185,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 NotSeenSince = disabled ? DateTime.UtcNow : (DateTime?)null,
                 Created = context,
                 Updated = null,
-                Certificate = null,
                 ApplicationId = null,
                 DiscovererId = null,
                 HostAddresses = null,
@@ -205,7 +202,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             return new ApplicationRegistrationUpdateModel {
                 ApplicationName = model.ApplicationName,
                 Capabilities = model.Capabilities,
-                Certificate = model.Certificate,
                 DiscoveryProfileUri = model.DiscoveryProfileUri,
                 DiscoveryUrls = model.DiscoveryUrls,
                 GatewayServerUri = model.GatewayServerUri,
@@ -229,7 +225,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             application.ApplicationType = model.ApplicationType;
             application.ApplicationUri = model.ApplicationUri;
             application.Capabilities = model.Capabilities;
-            application.Certificate = model.Certificate;
             application.DiscoveryProfileUri = model.DiscoveryProfileUri;
             application.HostAddresses = model.HostAddresses;
             application.DiscoveryUrls = model.DiscoveryUrls;
@@ -266,10 +261,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (request.GatewayServerUri != null) {
                 application.GatewayServerUri = string.IsNullOrEmpty(request.GatewayServerUri) ?
                     null : request.GatewayServerUri;
-            }
-            if (request.Certificate != null) {
-                application.Certificate = request.Certificate.Length == 0 ?
-                    null : request.Certificate;
             }
             if (request.Capabilities != null) {
                 application.Capabilities = request.Capabilities.Count == 0 ?
@@ -323,10 +314,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
             /// <inheritdoc />
             public bool Equals(ApplicationInfoModel x, ApplicationInfoModel y) {
-                return
-                    x.GetSiteOrGatewayId() == y.GetSiteOrGatewayId() &&
-                    x.ApplicationType == y.ApplicationType &&
-                    x.ApplicationUri.EqualsIgnoreCase(y.ApplicationUri);
+                if (x.GetSiteOrGatewayId() != y.GetSiteOrGatewayId()) {
+                    return false;
+                }
+                if (x.ApplicationType != y.ApplicationType) {
+                    return false;
+                }
+                if (!x.ApplicationUri.EqualsIgnoreCase(y.ApplicationUri)) {
+                    return false;
+                }
+                return true;
             }
 
             /// <inheritdoc />

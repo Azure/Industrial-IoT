@@ -3,9 +3,9 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.AspNetCore.Cors {
+namespace Microsoft.Extensions.DependencyInjection {
     using Microsoft.AspNetCore.Builder;
-    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Azure.IIoT.AspNetCore;
 
     /// <summary>
     /// Cors setup extensions

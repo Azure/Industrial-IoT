@@ -24,8 +24,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Supervisor.Services {
     /// <summary>
     /// Supervisor services
     /// </summary>
-    public class SupervisorServices : IActivationServices<string>,
-        ISupervisorServices, IDisposable {
+    public class SupervisorServices : IActivationServices<string>, ISupervisorServices,
+        IDisposable {
 
         /// <summary>
         /// Create supervisor creating and managing twin instances

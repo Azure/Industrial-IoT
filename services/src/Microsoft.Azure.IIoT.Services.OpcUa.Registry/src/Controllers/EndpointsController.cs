@@ -6,10 +6,9 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Filters;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
-    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.AspNetCore.OpenApi;
     using Microsoft.AspNetCore.Authorization;
@@ -24,7 +23,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
     /// </summary>
     [ApiVersion("2")][Route("v{version:apiVersion}/endpoints")]
     [ExceptionsFilter]
-    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanQuery)]
     [ApiController]
     public class EndpointsController : ControllerBase {
@@ -33,11 +31,25 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         /// Create controller for endpoints services
         /// </summary>
         /// <param name="endpoints"></param>
-        /// <param name="events"></param>
-        public EndpointsController(IEndpointRegistry endpoints,
-            IGroupRegistration events) {
+        /// <param name="activation"></param>
+        public EndpointsController(IEndpointRegistry endpoints, IEndpointActivation activation) {
+            _activation = activation;
             _endpoints = endpoints;
-            _events = events;
+        }
+
+        /// <summary>
+        /// Get endpoint certificate chain
+        /// </summary>
+        /// <remarks>
+        /// Gets current certificate of the endpoint.
+        /// </remarks>
+        /// <param name="endpointId">endpoint identifier</param>
+        /// <returns>Endpoint registration</returns>
+        [HttpGet("{endpointId}/certificate")]
+        public async Task<X509CertificateChainApiModel> GetEndpointCertificateAsync(
+            string endpointId) {
+            var result = await _endpoints.GetEndpointCertificateAsync(endpointId);
+            return result.ToApiModel();
         }
 
         /// <summary>
@@ -52,7 +64,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         [HttpPost("{endpointId}/activate")]
         [Authorize(Policy = Policies.CanChange)]
         public async Task ActivateEndpointAsync(string endpointId) {
-            await _endpoints.ActivateEndpointAsync(endpointId);
+            await _activation.ActivateEndpointAsync(endpointId);
         }
 
         /// <summary>
@@ -70,9 +82,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         public async Task<EndpointInfoApiModel> GetEndpointAsync(string endpointId,
             [FromQuery] bool? onlyServerState) {
             var result = await _endpoints.GetEndpointAsync(endpointId, onlyServerState ?? false);
-
-            // TODO: Redact username/token in endpoint based on policy/permission
-
             return result.ToApiModel();
         }
 
@@ -189,38 +198,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Controllers {
         [HttpPost("{endpointId}/deactivate")]
         [Authorize(Policy = Policies.CanChange)]
         public async Task DeactivateEndpointAsync(string endpointId) {
-            await _endpoints.DeactivateEndpointAsync(endpointId);
-        }
-
-        /// <summary>
-        /// Subscribe for endpoint events
-        /// </summary>
-        /// <remarks>
-        /// Register a user to receive endpoint events through SignalR.
-        /// </remarks>
-        /// <param name="userId">The user id that will receive endpoint
-        /// events.</param>
-        /// <returns></returns>
-        [HttpPut("events")]
-        public async Task SubscribeAsync([FromBody]string userId) {
-            await _events.SubscribeAsync("endpoints", userId);
-        }
-
-        /// <summary>
-        /// Unsubscribe from endpoint events
-        /// </summary>
-        /// <remarks>
-        /// Unregister a user and stop it from receiving endpoint events.
-        /// </remarks>
-        /// <param name="userId">The user id that will not receive
-        /// any more endpoint events</param>
-        /// <returns></returns>
-        [HttpDelete("events/{userId}")]
-        public async Task UnsubscribeAsync(string userId) {
-            await _events.UnsubscribeAsync("endpoints", userId);
+            await _activation.DeactivateEndpointAsync(endpointId);
         }
 
         private readonly IEndpointRegistry _endpoints;
-        private readonly IGroupRegistration _events;
+        private readonly IEndpointActivation _activation;
     }
 }

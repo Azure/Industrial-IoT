@@ -6,44 +6,45 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     using Gremlin.Net.CosmosDb.Structure;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Variable node vertex - note that isabstract is always null
     /// </summary>
     [Label(AddressSpaceElementNames.Variable)]
+    [DataContract]
     public class VariableNodeVertexModel : VariableTypeNodeVertexModel {
 
         /// <summary>
         /// Default access level for value in variable
         /// node.
         /// </summary>
-        [JsonProperty(PropertyName = "accessLevel",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "accessLevel",
+            EmitDefaultValue = false)]
         public NodeAccessLevel? AccessLevel { get; set; }
 
         /// <summary>
         /// Default user access level for value in variable
         /// node.
         /// </summary>
-        [JsonProperty(PropertyName = "userAccessLevel",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "userAccessLevel",
+            EmitDefaultValue = false)]
         public NodeAccessLevel? UserAccessLevel { get; set; }
 
         /// <summary>
         /// Whether the value of a variable is historizing.
         /// (default: false)
         /// </summary>
-        [JsonProperty(PropertyName = "historizing",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "historizing",
+            EmitDefaultValue = false)]
         public bool? Historizing { get; set; }
 
         /// <summary>
         /// Minimum sampling interval for the variable
         /// value, otherwise null if not a variable node.
         /// </summary>
-        [JsonProperty(PropertyName = "minimumSamplingInterval",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "minimumSamplingInterval",
+            EmitDefaultValue = false)]
         public double? MinimumSamplingInterval { get; set; }
     }
 }

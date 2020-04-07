@@ -4,24 +4,25 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
 
     /// <summary>
     /// Registry operation log model
     /// </summary>
+    [DataContract]
     public class RegistryOperationApiModel {
 
         /// <summary>
         /// Operation User
         /// </summary>
-        [JsonProperty(PropertyName = "authorityId")]
+        [DataMember(Name = "authorityId", Order = 0)]
         public string AuthorityId { get; set; }
 
         /// <summary>
         /// Operation time
         /// </summary>
-        [JsonProperty(PropertyName = "time")]
+        [DataMember(Name = "time", Order = 1)]
         public DateTime Time { get; set; }
     }
 }

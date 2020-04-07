@@ -4,26 +4,28 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using System.Runtime.Serialization;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Request node history update
     /// </summary>
+    [DataContract]
     public class HistoryUpdateRequestApiModel<T> {
 
         /// <summary>
         /// Node to update
         /// </summary>
-        [JsonProperty(PropertyName = "nodeId")]
+        [DataMember(Name = "nodeId", Order = 0)]
         public string NodeId { get; set; }
 
         /// <summary>
         /// An optional path from NodeId instance to
         /// the actual node.
         /// </summary>
-        [JsonProperty(PropertyName = "browsePath",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "browsePath", Order = 1,
+            EmitDefaultValue = false)]
         public string[] BrowsePath { get; set; }
 
         /// <summary>
@@ -32,15 +34,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
         /// update request for the Historian server. The value
         /// is updated at edge using above node address.
         /// </summary>
-        [JsonProperty(PropertyName = "details")]
+        [DataMember(Name = "details", Order = 2)]
         [Required]
         public T Details { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
-        [JsonProperty(PropertyName = "header",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "header", Order = 3,
+            EmitDefaultValue = false)]
         public RequestHeaderApiModel Header { get; set; }
     }
 }

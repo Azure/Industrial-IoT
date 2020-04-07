@@ -6,6 +6,7 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     using Microsoft.Azure.IIoT.OpcUa.Subscriber;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
     using Microsoft.Azure.IIoT.Hub;
     using Opc.Ua;
     using Opc.Ua.PubSub;
@@ -14,7 +15,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
     using System.IO;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -28,9 +28,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         /// <summary>
         /// Create handler
         /// </summary>
+        /// <param name="encoder"></param>
         /// <param name="handlers"></param>
         /// <param name="logger"></param>
-        public PubSubNetworkMessageBinaryHandler(IEnumerable<ISubscriberMessageProcessor> handlers, ILogger logger) {
+        public PubSubNetworkMessageBinaryHandler(IVariantEncoderFactory encoder,
+            IEnumerable<ISubscriberMessageProcessor> handlers, ILogger logger) {
+            _encoder = encoder ?? throw new ArgumentNullException(nameof(encoder));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _handlers = handlers?.ToList() ?? throw new ArgumentNullException(nameof(handlers));
         }
@@ -38,7 +41,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         /// <inheritdoc/>
         public async Task HandleAsync(string deviceId, string moduleId,
             byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
-            var json = Encoding.UTF8.GetString(payload);
             using (var stream = new MemoryStream(payload)) {
                 var context = new ServiceMessageContext();
                 try {
@@ -58,14 +60,23 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                                 Payload = new Dictionary<string, DataValueModel>()
                             };
                             foreach (var datapoint in dataSetMessage.Payload) {
-                                dataset.Payload[datapoint.Key] = new DataValueModel() {
-                                    Value = datapoint.Value?.Value,
+                                var codec = _encoder.Create(context);
+                                var type = BuiltInType.Null;
+                                dataset.Payload[datapoint.Key] = new DataValueModel {
+                                    Value = datapoint.Value == null
+                                        ? null : codec.Encode(datapoint.Value.WrappedValue, out type),
+                                    DataType = type == BuiltInType.Null
+                                        ? null : type.ToString(),
                                     Status = (datapoint.Value?.StatusCode.Code == StatusCodes.Good)
                                         ? null : StatusCode.LookupSymbolicId(datapoint.Value.StatusCode.Code),
                                     SourceTimestamp = (datapoint.Value?.SourceTimestamp == DateTime.MinValue)
-                                        ? null : (DateTime?)datapoint.Value?.SourceTimestamp,
+                                        ? null : datapoint.Value?.SourceTimestamp,
+                                    SourcePicoseconds = (datapoint.Value?.SourcePicoseconds == 0)
+                                        ? null : datapoint.Value?.SourcePicoseconds,
                                     ServerTimestamp = (datapoint.Value?.ServerTimestamp == DateTime.MinValue)
-                                        ? null : (DateTime?)datapoint.Value?.ServerTimestamp
+                                        ? null : datapoint.Value?.ServerTimestamp,
+                                    ServerPicoseconds = (datapoint.Value?.ServerPicoseconds == 0)
+                                        ? null : datapoint.Value?.ServerPicoseconds
                                 };
                             }
                             await Task.WhenAll(_handlers.Select(h => h.HandleMessageAsync(dataset)));
@@ -83,6 +94,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
             return Task.CompletedTask;
         }
 
+        private readonly IVariantEncoderFactory _encoder;
         private readonly ILogger _logger;
         private readonly List<ISubscriberMessageProcessor> _handlers;
     }

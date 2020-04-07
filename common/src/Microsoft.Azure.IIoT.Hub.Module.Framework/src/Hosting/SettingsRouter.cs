@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Microsoft.Azure.IIoT.Module.Framework.Services;
+    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -13,7 +14,6 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using System.Reflection;
     using System.Threading.Tasks;
     using System.Threading;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// Provides set/get routing to controllers
@@ -35,7 +35,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// Create router
         /// </summary>
         /// <param name="logger"></param>
-        public SettingsRouter(ILogger logger) {
+        /// <param name="serializer"></param>
+        public SettingsRouter(IJsonSerializer serializer, ILogger logger) {
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _calltable = new Dictionary<string, CascadingInvoker>();
             _lock = new SemaphoreSlim(1, 1);
@@ -47,8 +49,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <inheritdoc/>
-        public async Task<IDictionary<string, object>> ProcessSettingsAsync(
-            IDictionary<string, object> settings) {
+        public async Task<IDictionary<string, VariantValue>> ProcessSettingsAsync(
+            IDictionary<string, VariantValue> settings) {
             var controllers = new List<Controller>();
 
             // Set all properties
@@ -71,7 +73,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             }
 
             // Apply settings on all affected controllers and return reported
-            var reported = new Dictionary<string, object>();
+            var reported = new Dictionary<string, VariantValue>();
             if (controllers.Any()) {
                 var sw = Stopwatch.StartNew();
                 await _lock.WaitAsync();
@@ -89,10 +91,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         /// <inheritdoc/>
-        public async Task<IDictionary<string, object>> GetSettingsStateAsync() {
+        public async Task<IDictionary<string, VariantValue>> GetSettingsStateAsync() {
             await _lock.WaitAsync();
             try {
-                var reported = new Dictionary<string, object>();
+                var reported = new Dictionary<string, VariantValue>();
                 CollectSettingsFromControllers(reported, _calltable.Values);
                 return reported;
             }
@@ -117,11 +119,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         /// </summary>
         /// <param name="reported"></param>
         /// <param name="invokers"></param>
-        private void CollectSettingsFromControllers(Dictionary<string, object> reported,
+        private void CollectSettingsFromControllers(Dictionary<string, VariantValue> reported,
             IEnumerable<CascadingInvoker> invokers) {
             foreach (var handler in invokers) {
                 try {
-
                     if (string.IsNullOrEmpty(handler.Name)) {
                         // Get all indexes and retrieve them one by one
                         if (handler.GetIndexed(out var result)) {
@@ -203,7 +204,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                         invoker = new CascadingInvoker(_logger);
                         _calltable.Add(name, invoker);
                     }
-                    invoker.Add(controller, propInfo, indexed, indexer);
+                    invoker.Add(controller, propInfo, _serializer, indexed, indexer);
                     controller.Add(invoker);
                 }
             }
@@ -310,12 +311,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// </summary>
             /// <param name="controller"></param>
             /// <param name="controllerProp"></param>
+            /// <param name="serializer"></param>
             /// <param name="indexed"></param>
             /// <param name="indexer"></param>
             public void Add(Controller controller, PropertyInfo controllerProp,
-                bool indexed, MethodInfo indexer) {
+                IJsonSerializer serializer, bool indexed, MethodInfo indexer) {
                 _invokers.Add(controller.Version, new PropertyInvoker(controller,
-                    controllerProp, indexed, indexer, _logger));
+                    controllerProp, indexed, indexer, serializer, _logger));
             }
 
             /// <summary>
@@ -324,7 +326,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="property"></param>
             /// <param name="value"></param>
             /// <returns></returns>
-            public Controller Set(string property, object value) {
+            public Controller Set(string property, VariantValue value) {
                 Exception e = null;
                 foreach (var invoker in _invokers) {
                     try {
@@ -347,7 +349,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="property"></param>
             /// <param name="value"></param>
             /// <returns></returns>
-            public bool Get(string property, out object value) {
+            public bool Get(string property, out VariantValue value) {
                 Exception e = null;
                 foreach (var invoker in _invokers) {
                     try {
@@ -369,7 +371,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// </summary>
             /// <param name="result"></param>
             /// <returns></returns>
-            public bool GetIndexed(out IEnumerable<KeyValuePair<string, object>> result) {
+            public bool GetIndexed(out IEnumerable<KeyValuePair<string, VariantValue>> result) {
                 Exception e = null;
                 foreach (var invoker in _invokers) {
                     try {
@@ -407,9 +409,11 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="property"></param>
             /// <param name="indexed"></param>
             /// <param name="indexer"></param>
+            /// <param name="serializer"></param>
             /// <param name="logger"></param>
             public PropertyInvoker(Controller controller, PropertyInfo property,
-                bool indexed, MethodInfo indexer, ILogger logger) {
+                bool indexed, MethodInfo indexer, IJsonSerializer serializer, ILogger logger) {
+                _serializer = serializer;
                 _logger = logger;
                 _controller = controller;
                 _indexed = indexed;
@@ -423,9 +427,9 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="property"></param>
             /// <param name="value"></param>
             /// <returns></returns>
-            public Controller Set(string property, object value) {
+            public Controller Set(string property, VariantValue value) {
                 try {
-                    var cast = Cast(value, _property.PropertyType);
+                    var cast = value.ConvertTo(_property.PropertyType);
                     if (_indexed) {
                         _property.SetValue(_controller.Target, cast,
                             new object[] { property });
@@ -449,10 +453,10 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// <param name="property"></param>
             /// <param name="value"></param>
             /// <returns></returns>
-            public bool Get(string property, out object value) {
+            public bool Get(string property, out VariantValue value) {
                 try {
                     if (!_property.CanRead) {
-                        value = null;
+                        value = _serializer.FromObject(null);
                         return false;
                     }
                     object gotten;
@@ -463,7 +467,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     else {
                         gotten = _property.GetValue(_controller.Target);
                     }
-                    value = gotten;
+                    value = _serializer.FromObject(gotten);
                     return true;
                 }
                 catch (Exception e) {
@@ -479,13 +483,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             /// </summary>
             /// <param name="values"></param>
             /// <returns></returns>
-            public bool GetIndexed(out IEnumerable<KeyValuePair<string, object>> values) {
+            public bool GetIndexed(out IEnumerable<KeyValuePair<string, VariantValue>> values) {
                 try {
                     if (_property.CanRead && _indexed && _indexer != null) {
                         // Get property names
                         var indexes = _indexer.Invoke(_controller.Target, new object[0]);
                         if (indexes is IEnumerable<string> properties) {
-                            var results = new Dictionary<string, object>();
+                            var results = new Dictionary<string, VariantValue>();
 
                             foreach (var property in properties) {
                                 if (Get(property, out var value)) {
@@ -507,26 +511,8 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 }
             }
 
-            /// <summary>
-            /// Cast to object of type
-            /// </summary>
-            /// <param name="value"></param>
-            /// <param name="type"></param>
-            /// <returns></returns>
-            public object Cast(object value, Type type) {
-                if (value == null) {
-                    return null;
-                }
-                if (!(value is JToken val)) {
-                    val = JToken.FromObject(value);
-                }
-                if (type == typeof(JToken)) {
-                    return val;
-                }
-                return val.ToObject(type);
-            }
-
             private readonly ILogger _logger;
+            private readonly IJsonSerializer _serializer;
             private readonly Controller _controller;
             private readonly PropertyInfo _property;
             private readonly bool _indexed;
@@ -534,6 +520,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
         }
 
         private const string kDefaultProp = "@default";
+        private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
         private readonly Dictionary<string, CascadingInvoker> _calltable;
         private readonly SemaphoreSlim _lock;

@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Filters;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models;
     using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.Http;
@@ -23,7 +22,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
     /// </summary>
     [ApiVersion("2")][Route("v{version:apiVersion}/publish")]
     [ExceptionsFilter]
-    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanBrowse)]
     [ApiController]
     public class PublishController : ControllerBase {
@@ -54,6 +52,27 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Controllers {
                 throw new ArgumentNullException(nameof(request));
             }
             var result = await _publisher.NodePublishStartAsync(
+                endpointId, request.ToServiceModel());
+            return result.ToApiModel();
+        }
+
+        /// <summary>
+        /// Bulk publish node values
+        /// </summary>
+        /// <remarks>
+        /// Adds or removes in bulk values that should be published from a particular
+        /// endpoint.
+        /// </remarks>
+        /// <param name="endpointId">The identifier of an activated endpoint.</param>
+        /// <param name="request">The bulk publish request</param>
+        /// <returns>The bulk publish response</returns>
+        [HttpPost("{endpointId}/bulk")]
+        public async Task<PublishBulkResponseApiModel> BulkPublishValuesAsync(
+            string endpointId, [FromBody] [Required] PublishBulkRequestApiModel request) {
+            if (request == null) {
+                throw new ArgumentNullException(nameof(request));
+            }
+            var result = await _publisher.NodePublishBulkAsync(
                 endpointId, request.ToServiceModel());
             return result.ToApiModel();
         }

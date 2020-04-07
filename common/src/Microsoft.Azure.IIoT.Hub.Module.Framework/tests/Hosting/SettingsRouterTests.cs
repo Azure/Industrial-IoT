@@ -5,7 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
     using Microsoft.Azure.IIoT.Hub;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
     using System.Linq;
     using System.Threading.Tasks;
@@ -21,16 +22,17 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             var controller = new TestController1();
             await harness.RunTestAsync(controller.YieldReturn(),
                 async (deviceId, moduleId, services) => {
+                    var test = _serializer.FromObject("test4");
                     // Act
                     var hub = services.Resolve<IIoTHubTwinServices>();
                     await hub.UpdatePropertyAsync(deviceId, moduleId,
-                        nameof(TestController1.TestSetting1), "test");
+                        nameof(TestController1.TestSetting1), test);
                     var twin = await hub.GetAsync(deviceId, moduleId);
 
                     // Assert
                     Assert.True(controller._applyCalled);
-                    Assert.Equal("test", controller.TestSetting1);
-                    Assert.Equal("test", twin.Properties.Reported[nameof(TestController1.TestSetting1)]);
+                    Assert.Equal("test4", controller.TestSetting1);
+                    Assert.Equal(test, twin.Properties.Reported[nameof(TestController1.TestSetting1)]);
                     Assert.True((bool)twin.Properties.Reported[TwinProperty.Connected]);
                 });
         }
@@ -42,20 +44,22 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             var controller = new TestController1();
             await harness.RunTestAsync(controller.YieldReturn(),
                 async (deviceId, moduleId, services) => {
+                    var test = _serializer.FromObject("test");
+                    var test2 = _serializer.FromObject("test2");
                     // Act
                     var hub = services.Resolve<IIoTHubTwinServices>();
                     await hub.UpdatePropertyAsync(deviceId, moduleId,
-                        nameof(TestController1.TestSetting1), "test");
+                        nameof(TestController1.TestSetting1), test);
                     await hub.UpdatePropertyAsync(deviceId, moduleId,
-                        nameof(TestController1.TestSetting2), "test2");
+                        nameof(TestController1.TestSetting2), test2);
                     var twin = await hub.GetAsync(deviceId, moduleId);
 
                     // Assert
                     Assert.True(controller._applyCalled);
                     Assert.Equal("test", controller.TestSetting1);
                     Assert.Equal("test2", controller.TestSetting2);
-                    Assert.Equal("test", twin.Properties.Reported[nameof(TestController1.TestSetting1)]);
-                    Assert.Equal("test2", twin.Properties.Reported[nameof(TestController1.TestSetting2)]);
+                    Assert.Equal(test, twin.Properties.Reported[nameof(TestController1.TestSetting1)]);
+                    Assert.Equal(test2, twin.Properties.Reported[nameof(TestController1.TestSetting2)]);
                     Assert.True((bool)twin.Properties.Reported[TwinProperty.Connected]);
                 });
         }
@@ -67,14 +71,18 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
             var controller = new TestController1();
             await harness.RunTestAsync(controller.YieldReturn(),
                 async (deviceId, moduleId, services) => {
+                    var test = _serializer.FromObject("test");
+                    var test2 = _serializer.FromObject("test2");
+                    var test3 = _serializer.FromObject("test3");
+
                     // Act
                     var hub = services.Resolve<IIoTHubTwinServices>();
                     await hub.UpdatePropertyAsync(deviceId, moduleId,
-                        nameof(TestController1.TestSetting1), "test");
+                        nameof(TestController1.TestSetting1), test);
                     await hub.UpdatePropertyAsync(deviceId, moduleId,
-                        nameof(TestController1.TestSetting2), "test2");
+                        nameof(TestController1.TestSetting2), test2);
                     await hub.UpdatePropertyAsync(deviceId, moduleId,
-                        nameof(TestController1.TestSetting3), "test3");
+                        nameof(TestController1.TestSetting3), test3);
                     var twin = await hub.GetAsync(deviceId, moduleId);
 
                     // Assert
@@ -82,37 +90,38 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                     Assert.Equal("test", controller.TestSetting1);
                     Assert.Equal("test2", controller.TestSetting2);
                     Assert.Equal("test3", controller.TestSetting3);
-                    Assert.Equal("test", twin.Properties.Reported[nameof(TestController1.TestSetting1)]);
-                    Assert.Equal("test2", twin.Properties.Reported[nameof(TestController1.TestSetting2)]);
-                    Assert.Equal("test3", twin.Properties.Reported[nameof(TestController1.TestSetting3)]);
+                    Assert.Equal(test, twin.Properties.Reported[nameof(TestController1.TestSetting1)]);
+                    Assert.Equal(test2, twin.Properties.Reported[nameof(TestController1.TestSetting2)]);
+                    Assert.Equal(test3, twin.Properties.Reported[nameof(TestController1.TestSetting3)]);
                     Assert.True((bool)twin.Properties.Reported[TwinProperty.Connected]);
                 });
         }
 
         [Fact]
-        public async Task TestSettingDesiredPropertyAndCheckReported2() {
+        public async Task TestSettingDesiredPropertyAndCheckReported2Async() {
 
             var harness = new ModuleHostHarness();
             var controller = new TestController2();
             await harness.RunTestAsync(controller.YieldReturn(),
                 async (deviceId, moduleId, services) => {
-                    var hub = services.Resolve<IIoTHubTwinServices>();
                     var expected = new Test {
                         Item1 = "test",
                         Item2 = 5454,
-                        Item3 = DateTime.Now
+                        Item3 = DateTime.UtcNow
                     };
+                    var test = _serializer.FromObject(expected);
+
+                    var hub = services.Resolve<IIoTHubTwinServices>();
 
                     // Act
                     await hub.UpdatePropertyAsync(deviceId, moduleId,
-                        nameof(TestController2.TestSetting), JObject.FromObject(expected));
+                        nameof(TestController2.TestSetting), test);
                     var twin = await hub.GetAsync(deviceId, moduleId);
 
                     // Assert
                     Assert.True(controller._applyCalled);
                     Assert.Equal(expected, controller.TestSetting);
-                    Assert.True(JToken.DeepEquals(JObject.FromObject(expected),
-                        twin.Properties.Reported[nameof(TestController2.TestSetting)]));
+                    Assert.Equal(test, twin.Properties.Reported[nameof(TestController2.TestSetting)]);
                     Assert.True((bool)twin.Properties.Reported[TwinProperty.Connected]);
                 });
         }
@@ -208,5 +217,7 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Hosting {
                 return Task.CompletedTask;
             }
         }
+
+        private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
     }
 }

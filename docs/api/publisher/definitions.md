@@ -9,12 +9,14 @@ Credential model
 
 |Name|Description|Schema|
 |---|---|---|
-|**type**  <br>*optional*||[CredentialTypeNullable](definitions.md#credentialtypenullable)|
-|**value**  <br>*optional*|Value to pass to server|object|
+|**type**  <br>*optional*||[CredentialType](definitions.md#credentialtype)|
+|**value**  <br>*optional*|Value to pass to server|string|
 
 
-<a name="credentialtypenullable"></a>
-### CredentialTypeNullable
+<a name="credentialtype"></a>
+### CredentialType
+Type of credentials to use for authentication
+
 *Type* : enum (None, UserName, X509Certificate, JwtToken)
 
 
@@ -26,13 +28,38 @@ Diagnostics configuration
 |Name|Description|Schema|
 |---|---|---|
 |**auditId**  <br>*optional*|Client audit log entry.<br>(default: client generated)|string|
-|**level**  <br>*optional*||[DiagnosticsLevelNullable](definitions.md#diagnosticslevelnullable)|
+|**level**  <br>*optional*||[DiagnosticsLevel](definitions.md#diagnosticslevel)|
 |**timeStamp**  <br>*optional*|Timestamp of request.<br>(default: client generated)|string (date-time)|
 
 
-<a name="diagnosticslevelnullable"></a>
-### DiagnosticsLevelNullable
+<a name="diagnosticslevel"></a>
+### DiagnosticsLevel
+Level of diagnostics requested in responses
+
 *Type* : enum (None, Status, Operations, Diagnostics, Verbose)
+
+
+<a name="publishbulkrequestapimodel"></a>
+### PublishBulkRequestApiModel
+Publish in bulk request
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**Header**  <br>*optional*||[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
+|**NodesToAdd**  <br>*optional*|Node to add|< [PublishedItemApiModel](definitions.md#publisheditemapimodel) > array|
+|**NodesToRemove**  <br>*optional*|Node to remove|< string > array|
+
+
+<a name="publishbulkresponseapimodel"></a>
+### PublishBulkResponseApiModel
+Result of bulk request
+
+
+|Name|Description|Schema|
+|---|---|---|
+|**NodesToAdd**  <br>*optional*|Node to add|< [ServiceResultApiModel](definitions.md#serviceresultapimodel) > array|
+|**NodesToRemove**  <br>*optional*|Node to remove|< [ServiceResultApiModel](definitions.md#serviceresultapimodel) > array|
 
 
 <a name="publishstartrequestapimodel"></a>
@@ -84,6 +111,7 @@ A monitored and published item
 
 |Name|Description|Schema|
 |---|---|---|
+|**displayName**  <br>*optional*|Display name of the node to monitor|string|
 |**nodeId**  <br>*required*|Node to monitor|string|
 |**publishingInterval**  <br>*optional*|Publishing interval to use|string (date-span)|
 |**samplingInterval**  <br>*optional*|Sampling interval to use|string (date-span)|
@@ -129,9 +157,9 @@ Service result
 
 |Name|Description|Schema|
 |---|---|---|
-|**diagnostics**  <br>*optional*|Additional diagnostics information|object|
+|**diagnostics**  <br>*optional*|Additional diagnostics information|string|
 |**errorMessage**  <br>*optional*|Error message in case of error or null.|string|
-|**statusCode**  <br>*optional*|Error code - if null operation succeeded.|integer (int32)|
+|**statusCode**  <br>*optional*|Error code - if null operation succeeded.|integer (int64)|
 
 
 

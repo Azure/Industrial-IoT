@@ -4,37 +4,36 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
-    using Newtonsoft.Json;
-    using System.ComponentModel;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using System.Runtime.Serialization;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Request node history read continuation
     /// </summary>
+    [DataContract]
     public class HistoryReadNextRequestApiModel {
 
         /// <summary>
         /// Continuation token to continue reading more
         /// results.
         /// </summary>
-        [JsonProperty(PropertyName = "continuationToken")]
+        [DataMember(Name = "continuationToken", Order = 0)]
         [Required]
         public string ContinuationToken { get; set; }
 
         /// <summary>
         /// Abort reading after this read
         /// </summary>
-        [JsonProperty(PropertyName = "abort",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(false)]
+        [DataMember(Name = "abort", Order = 1,
+            EmitDefaultValue = false)]
         public bool? Abort { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
-        [JsonProperty(PropertyName = "header",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "header", Order = 2,
+            EmitDefaultValue = false)]
         public RequestHeaderApiModel Header { get; set; }
     }
 }

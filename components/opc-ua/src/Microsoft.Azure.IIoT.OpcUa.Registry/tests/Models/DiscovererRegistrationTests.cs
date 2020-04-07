@@ -5,6 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using AutoFixture;
     using System;
     using System.Linq;
@@ -84,7 +86,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         [Fact]
         public void TestEqualIsNotEqualWithDeviceModel() {
             var r1 = CreateRegistration();
-            var m = r1.ToDeviceTwin();
+            var m = r1.ToDeviceTwin(_serializer);
             m.Properties.Desired["AddressRangesToScan"] = null;
             var r2 = m.ToEntityRegistration();
 
@@ -97,7 +99,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         [Fact]
         public void TestEqualIsEqualWithDeviceModel() {
             var r1 = CreateRegistration();
-            var m = r1.ToDeviceTwin();
+            var m = r1.ToDeviceTwin(_serializer);
             var r2 = m.ToEntityRegistration();
 
             Assert.Equal(r1, r2);
@@ -112,9 +114,9 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
 
             var r1 = CreateRegistration();
             var r2 = r1.ToServiceModel().ToDiscovererRegistration(true);
-            var m1 = r1.Patch(r2);
+            var m1 = r1.Patch(r2, _serializer);
             var r3 = r2.ToServiceModel().ToDiscovererRegistration(false);
-            var m2 = r2.Patch(r3);
+            var m2 = r2.Patch(r3, _serializer);
 
             Assert.True((bool)m1.Tags[nameof(EntityRegistration.IsDisabled)]);
             Assert.NotNull((DateTime?)m1.Tags[nameof(EntityRegistration.NotSeenSince)]);
@@ -140,13 +142,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     .ToList().EncodeAsDictionary())
                 .With(x => x.DiscoveryUrls, fix.CreateMany<string>()
                     .ToList().EncodeAsDictionary())
-                .Without(x => x.Certificate)
-                .Without(x => x.Thumbprint)
                 .Without(x => x.IsDisabled)
                 .Without(x => x.NotSeenSince)
                 .Create();
             r._desired = r;
             return r;
         }
+
+        private readonly IJsonSerializer _serializer = new NewtonSoftJsonSerializer();
     }
 }

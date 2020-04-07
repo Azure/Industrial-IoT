@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Crypto.Storage {
-    using Microsoft.Azure.IIoT.Crypto.Models;
     using Microsoft.Azure.IIoT.Crypto.Storage.Models;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Crypto.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
 
     /// <summary>
@@ -14,18 +14,31 @@ namespace Microsoft.Azure.IIoT.Crypto.Storage {
     /// </summary>
     public class KeyHandleSerializer : IKeyHandleSerializer {
 
+        /// <summary>
+        /// Create serializer
+        /// </summary>
+        /// <param name="serializer"></param>
+        public KeyHandleSerializer(IJsonSerializer serializer) {
+            _serializer = serializer;
+        }
+
         /// <inheritdoc/>
-        public JToken SerializeHandle(KeyHandle handle) {
+        public byte[] SerializeHandle(KeyHandle handle) {
             if (handle is KeyId id) {
-                return JToken.FromObject(id);
+                return _serializer.SerializeToBytes(id).ToArray();
             }
             throw new ArgumentException("Bad handle type");
         }
 
         /// <inheritdoc/>
-        public KeyHandle DeserializeHandle(JToken token) {
-            return token.ToObject<KeyId>();
+        public KeyHandle DeserializeHandle(byte[] token) {
+            if (token == null) {
+                return null;
+            }
+            return _serializer.Deserialize<KeyId>(token);
         }
+
+        private readonly IJsonSerializer _serializer;
     }
 }
 

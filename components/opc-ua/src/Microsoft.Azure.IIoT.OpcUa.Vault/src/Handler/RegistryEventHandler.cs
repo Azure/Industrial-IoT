@@ -51,8 +51,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Handler {
 
         /// <inheritdoc/>
         public Task OnApplicationDeletedAsync(RegistryOperationContextModel context,
-            ApplicationInfoModel application) {
-            return RemoveAllRequestsForEntityAsync(application.ApplicationId, context);
+            string applicationId, ApplicationInfoModel application) {
+            return RemoveAllRequestsForEntityAsync(applicationId, context);
         }
 
         /// <inheritdoc/>
@@ -93,8 +93,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Handler {
 
         /// <inheritdoc/>
         public Task OnEndpointDeletedAsync(RegistryOperationContextModel context,
-            EndpointInfoModel endpoint) {
-            return RemoveAllRequestsForEntityAsync(endpoint.Registration.Id, context);
+            string endpointId, EndpointInfoModel endpoint) {
+            return RemoveAllRequestsForEntityAsync(endpointId, context);
         }
 
         /// <summary>

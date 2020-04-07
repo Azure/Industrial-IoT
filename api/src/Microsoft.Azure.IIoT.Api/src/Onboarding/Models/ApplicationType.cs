@@ -4,33 +4,36 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Application type
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
+    [DataContract]
     public enum ApplicationType {
 
         /// <summary>
         /// Server
         /// </summary>
+        [EnumMember]
         Server,
 
         /// <summary>
         /// Client
         /// </summary>
+        [EnumMember]
         Client,
 
         /// <summary>
         /// Client and server
         /// </summary>
+        [EnumMember]
         ClientAndServer,
 
         /// <summary>
         /// Discovery server
         /// </summary>
+        [EnumMember]
         DiscoveryServer
     }
 }

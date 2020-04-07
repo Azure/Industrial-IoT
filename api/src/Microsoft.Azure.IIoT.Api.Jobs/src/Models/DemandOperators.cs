@@ -4,28 +4,30 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Demand operator
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
+    [DataContract]
     public enum DemandOperators {
 
         /// <summary>
         /// Equals
         /// </summary>
+        [EnumMember]
         Equals,
 
         /// <summary>
         /// Match
         /// </summary>
+        [EnumMember]
         Match,
 
         /// <summary>
         /// Exists
         /// </summary>
+        [EnumMember]
         Exists
     }
 }

@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
-    using Newtonsoft.Json.Linq;
 
     /// <summary>
     /// processing status
@@ -20,7 +20,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
         /// <summary>
         /// Last known state
         /// </summary>
-        public JToken LastKnownState { get; set; }
+        public VariantValue LastKnownState { get; set; }
 
         /// <summary>
         /// Processing mode

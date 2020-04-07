@@ -3,7 +3,7 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery {
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
     using Microsoft.Azure.IIoT.Diagnostics;
 
     /// <summary>
@@ -14,7 +14,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery {
         /// <summary>
         /// ID
         /// </summary>
-        public string ServiceId => "JOBS_SERVICE";
+        public string ServiceId => "SYNC_SERVICE";
 
         /// <summary>
         /// Process id
@@ -24,11 +24,11 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery {
         /// <summary>
         /// Name of service
         /// </summary>
-        public string Name => "Jobs-Service";
+        public string Name => "Registry-Sync-Service";
 
         /// <summary>
         /// Description of service
         /// </summary>
-        public string Description => "Azure Industrial IoT Jobs Service";
+        public string Description => "Azure Industrial IoT Registry Sync Service";
     }
 }

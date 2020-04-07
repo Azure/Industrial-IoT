@@ -4,18 +4,19 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Request list of published items
     /// </summary>
+    [DataContract]
     public class PublishedItemListRequestApiModel {
 
         /// <summary>
         /// Continuation token or null to start
         /// </summary>
-        [JsonProperty(PropertyName = "continuationToken",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "continuationToken", Order = 0,
+            EmitDefaultValue = false)]
         public string ContinuationToken { get; set; }
     }
 }

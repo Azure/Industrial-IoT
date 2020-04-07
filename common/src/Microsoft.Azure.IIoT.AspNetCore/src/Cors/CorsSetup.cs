@@ -82,7 +82,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Cors {
         /// <returns></returns>
         private CorsWhitelistModel ReadWhiteList() {
             try {
-                var model = JsonConvertEx.DeserializeObject<CorsWhitelistModel>(
+                var model = JsonConvert.DeserializeObject<CorsWhitelistModel>(
                     _config.CorsWhitelist);
                 if (model == null) {
                     _log.Error("Invalid CORS whitelist {whitelist}. Ignored",

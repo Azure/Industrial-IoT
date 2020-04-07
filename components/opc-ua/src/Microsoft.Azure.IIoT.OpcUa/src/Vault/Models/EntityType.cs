@@ -4,13 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Vault.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
     /// <summary>
     /// Entity type
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum EntityType {
 
         /// <summary>

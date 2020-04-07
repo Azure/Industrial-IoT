@@ -3,34 +3,35 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Finish request results
     /// </summary>
+    [DataContract]
     public sealed class FinishNewKeyPairRequestResponseApiModel {
 
         /// <summary>
         /// Request
         /// </summary>
-        [JsonProperty(PropertyName = "request",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "request", Order = 0,
+            EmitDefaultValue = false)]
         public CertificateRequestRecordApiModel Request { get; set; }
 
         /// <summary>
         /// Signed certificate
         /// </summary>
-        [JsonProperty(PropertyName = "certificate",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "certificate", Order = 1,
+            EmitDefaultValue = false)]
         public X509CertificateApiModel Certificate { get; set; }
 
         /// <summary>
         /// Private key
         /// </summary>
-        [JsonProperty(PropertyName = "privateKey",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "privateKey", Order = 2,
+            EmitDefaultValue = false)]
         public PrivateKeyApiModel PrivateKey { get; set; }
     }
 }

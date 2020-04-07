@@ -4,17 +4,20 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Crypto.Default {
-    using Autofac.Extras.Moq;
     using Microsoft.Azure.IIoT.Crypto.Models;
     using Microsoft.Azure.IIoT.Crypto.Storage;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Storage;
     using Microsoft.Azure.IIoT.Storage.Default;
+    using Autofac.Extras.Moq;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Security.Cryptography.X509Certificates;
     using System.Threading.Tasks;
     using Xunit;
+    using Autofac;
 
     /// <summary>
     /// Crl factory tests
@@ -30,8 +33,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
         [InlineData(SignatureType.RS384)]
         public static async Task RSASignedCrlCreateWith1Test(SignatureType signature) {
 
-            using (var mock = AutoMock.GetLoose()) {
-                Setup(mock);
+            using (var mock = Setup()) {
 
                 IKeyStore keys = mock.Create<KeyDatabase>();
                 ICrlFactory factory = mock.Create<CrlFactory>();
@@ -76,8 +78,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
         [InlineData(SignatureType.RS384)]
         public static async Task RSASignedCrlCreateWith2Test(SignatureType signature) {
 
-            using (var mock = AutoMock.GetLoose()) {
-                Setup(mock);
+            using (var mock = Setup()) {
 
                 IKeyStore keys = mock.Create<KeyDatabase>();
                 ICrlFactory factory = mock.Create<CrlFactory>();
@@ -123,8 +124,7 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
         [InlineData(SignatureType.ES512)]
         public static async Task ECCSignedCrlCreateWith2Test(SignatureType signature) {
 
-            using (var mock = AutoMock.GetLoose()) {
-                Setup(mock);
+            using (var mock = Setup()) {
 
                 IKeyStore keys = mock.Create<KeyDatabase>();
                 ICrlFactory factory = mock.Create<CrlFactory>();
@@ -167,13 +167,18 @@ namespace Microsoft.Azure.IIoT.Crypto.Default {
         /// Setup mock
         /// </summary>
         /// <param name="mock"></param>
-        private static void Setup(AutoMock mock) {
-            mock.Provide<IDatabaseServer, MemoryDatabase>();
-            mock.Provide<IItemContainerFactory, ItemContainerFactory>();
-            mock.Provide<IKeyStore, KeyDatabase>();
-            mock.Provide<IDigestSigner, KeyDatabase>();
-            mock.Provide<IKeyHandleSerializer, KeyHandleSerializer>();
-            mock.Provide<ICrlFactory, CrlFactory>();
+        private static AutoMock Setup() {
+            var mock = AutoMock.GetLoose(builder => {
+                builder.RegisterType<NewtonSoftJsonConverters>().As<IJsonSerializerConverterProvider>();
+                builder.RegisterType<NewtonSoftJsonSerializer>().As<IJsonSerializer>();
+                builder.RegisterType<MemoryDatabase>().SingleInstance().As<IDatabaseServer>();
+                builder.RegisterType<ItemContainerFactory>().As<IItemContainerFactory>();
+                builder.RegisterType<KeyDatabase>().As<IKeyStore>().As<IDigestSigner>();
+                builder.RegisterType<KeyHandleSerializer>().As<IKeyHandleSerializer>();
+                builder.RegisterType<CertificateIssuer>().As<ICertificateIssuer>();
+                builder.RegisterType<CrlFactory>().As<ICrlFactory>();
+            });
+            return mock;
         }
     }
 }

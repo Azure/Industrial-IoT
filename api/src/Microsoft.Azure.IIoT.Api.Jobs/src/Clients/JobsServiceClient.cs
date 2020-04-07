@@ -6,6 +6,8 @@
 namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
     using Microsoft.Azure.IIoT.Api.Jobs.Models;
     using Microsoft.Azure.IIoT.Http;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
     using System.Threading;
     using System.Threading.Tasks;
@@ -20,8 +22,10 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="config"></param>
-        public JobsServiceClient(IHttpClient httpClient, IJobsServiceConfig config) :
-            this(httpClient, config.JobServiceUrl, config.JobServiceResourceId) {
+        /// <param name="serializer"></param>
+        public JobsServiceClient(IHttpClient httpClient, IJobsServiceConfig config,
+            ISerializer serializer) :
+            this(httpClient, config?.JobServiceUrl, config?.JobServiceResourceId, serializer) {
         }
 
         /// <summary>
@@ -30,7 +34,10 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
         /// <param name="httpClient"></param>
         /// <param name="serviceUri"></param>
         /// <param name="resourceId"></param>
-        public JobsServiceClient(IHttpClient httpClient, string serviceUri, string resourceId) {
+        /// <param name="serializer"></param>
+        public JobsServiceClient(IHttpClient httpClient, string serviceUri, string resourceId,
+            ISerializer serializer = null) {
+            _serializer = serializer ?? new NewtonSoftJsonSerializer();
             _serviceUri = serviceUri ?? throw new ArgumentNullException(nameof(serviceUri),
                     "Please configure the Url of the endpoint micro service.");
             _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
@@ -62,9 +69,10 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
             if (pageSize != null) {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
-            return response.GetContent<JobInfoListApiModel>();
+            return _serializer.DeserializeResponse<JobInfoListApiModel>(response);
         }
 
         /// <inheritdoc/>
@@ -75,10 +83,10 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
             if (pageSize != null) {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
-            request.SetContent(query);
+            _serializer.SerializeToRequest(request, query);
             var response = await _httpClient.PostAsync(request, ct).ConfigureAwait(false);
             response.Validate();
-            return response.GetContent<JobInfoListApiModel>();
+            return _serializer.DeserializeResponse<JobInfoListApiModel>(response);
         }
 
         /// <inheritdoc/>
@@ -88,9 +96,10 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/jobs/{jobId}",
                 _resourceId);
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
-            return response.GetContent<JobInfoApiModel>();
+            return _serializer.DeserializeResponse<JobInfoApiModel>(response);
         }
 
         /// <inheritdoc/>
@@ -100,6 +109,7 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/jobs/{jobId}/cancel",
                 _resourceId);
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
         }
@@ -111,6 +121,7 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/jobs/{jobId}/restart",
                 _resourceId);
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
         }
@@ -137,9 +148,10 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
             if (pageSize != null) {
                 request.AddHeader(HttpHeader.MaxItemCount, pageSize.ToString());
             }
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
-            return response.GetContent<WorkerInfoListApiModel>();
+            return _serializer.DeserializeResponse<WorkerInfoListApiModel>(response);
         }
 
         /// <inheritdoc/>
@@ -149,9 +161,10 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
             }
             var request = _httpClient.NewRequest($"{_serviceUri}/v2/workers/{workerId}",
                 _resourceId);
+            _serializer.SetAcceptHeaders(request);
             var response = await _httpClient.GetAsync(request, ct).ConfigureAwait(false);
             response.Validate();
-            return response.GetContent<WorkerInfoApiModel>();
+            return _serializer.DeserializeResponse<WorkerInfoApiModel>(response);
         }
 
         /// <inheritdoc/>
@@ -166,7 +179,8 @@ namespace Microsoft.Azure.IIoT.Api.Jobs.Clients {
         }
 
         private readonly string _serviceUri;
-        private readonly IHttpClient _httpClient;
         private readonly string _resourceId;
+        private readonly IHttpClient _httpClient;
+        private readonly ISerializer _serializer;
     }
 }

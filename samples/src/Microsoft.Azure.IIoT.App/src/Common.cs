@@ -6,6 +6,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.Azure.IIoT.App.Data;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Microsoft.Azure.IIoT.App.Common {
@@ -30,5 +31,6 @@ namespace Microsoft.Azure.IIoT.App.Common {
         public string None { get; set; } = "(None)";
         public string Spinner { get; set; }
         public string CredentialKey { get; } = "credential";
+        public Dictionary<string, string> ApplicationUri { get; set; } = new Dictionary<string, string>();
     }
 }

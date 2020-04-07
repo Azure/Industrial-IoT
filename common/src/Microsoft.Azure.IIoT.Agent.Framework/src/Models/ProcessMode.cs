@@ -4,13 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
     /// <summary>
     /// Processing mode for processing engine
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum ProcessMode {
 
         /// <summary>

@@ -4,28 +4,33 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
-    using System.ComponentModel;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Supervisor registration query
     /// </summary>
+    [DataContract]
     public class SupervisorQueryApiModel {
 
         /// <summary>
         /// Site for the supervisors
         /// </summary>
-        [JsonProperty(PropertyName = "siteId",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "siteId", Order = 0,
+            EmitDefaultValue = false)]
         public string SiteId { get; set; }
+
+        /// <summary>
+        /// Managing provided endpoint twin
+        /// </summary>
+        [DataMember(Name = "endpointId", Order = 1,
+            EmitDefaultValue = false)]
+        public string EndpointId { get; set; }
 
         /// <summary>
         /// Included connected or disconnected
         /// </summary>
-        [JsonProperty(PropertyName = "connected",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "connected", Order = 2,
+            EmitDefaultValue = false)]
         public bool? Connected { get; set; }
     }
 }

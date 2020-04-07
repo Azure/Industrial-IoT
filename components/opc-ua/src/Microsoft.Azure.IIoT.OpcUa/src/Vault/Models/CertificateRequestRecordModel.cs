@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Vault.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Certificate request record model
@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Vault.Models {
         /// <summary>
         /// Error diagnostics
         /// </summary>
-        public JToken ErrorInfo { get; set; }
+        public VariantValue ErrorInfo { get; set; }
 
         /// <summary>
         /// Request time

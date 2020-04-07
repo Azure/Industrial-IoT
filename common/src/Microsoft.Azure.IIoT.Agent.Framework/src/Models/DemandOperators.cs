@@ -4,13 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
     /// <summary>
     /// Demand operator
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum DemandOperators {
 
         /// <summary>

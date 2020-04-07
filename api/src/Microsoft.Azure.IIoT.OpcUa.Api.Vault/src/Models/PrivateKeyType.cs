@@ -4,28 +4,30 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Key type
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
+    [DataContract]
     public enum PrivateKeyType {
 
         /// <summary>
         /// RSA key
         /// </summary>
+        [EnumMember]
         RSA,
 
         /// <summary>
         /// ECC key
         /// </summary>
+        [EnumMember]
         ECC,
 
         /// <summary>
         /// Symmetric AES key
         /// </summary>
+        [EnumMember]
         AES,
     }
 }

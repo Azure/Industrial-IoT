@@ -6,89 +6,90 @@
 namespace Microsoft.Azure.IIoT.Hub.Models {
     using System;
     using System.Collections.Generic;
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Configuration
     /// </summary>
+    [DataContract]
     public class ConfigurationModel {
 
         /// <summary>
         /// Configuration Identifier
         /// </summary>
-        [JsonProperty(PropertyName = "id",
-            Required = Required.Always)]
+        [DataMember(Name = "id",
+            IsRequired = true)]
         public string Id { get; set; }
 
         /// <summary>
         /// The etag
         /// </summary>
-        [JsonProperty(PropertyName = "etag")]
+        [DataMember(Name = "etag")]
         public string Etag { get; set; }
 
         /// <summary>
         /// Gets Schema version for the configuration
         /// </summary>
-        [JsonProperty(PropertyName = "schemaVersion",
-            Required = Required.Always)]
+        [DataMember(Name = "schemaVersion",
+            IsRequired = true)]
         public string SchemaVersion { get; set; }
 
         /// <summary>
         /// Gets or sets labels for the configuration
         /// </summary>
-        [JsonProperty(PropertyName = "labels",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "labels",
+            EmitDefaultValue = false)]
         public IDictionary<string, string> Labels { get; set; }
 
         /// <summary>
         /// Gets or sets Content for the configuration
         /// </summary>
-        [JsonProperty(PropertyName = "content",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "content",
+            EmitDefaultValue = false)]
         public ConfigurationContentModel Content { get; set; }
 
         /// <summary>
         /// Gets the content type for configuration
         /// </summary>
-        [JsonProperty(PropertyName = "contentType")]
+        [DataMember(Name = "contentType")]
         public string ContentType { get; set; }
 
         /// <summary>
         /// Gets or sets Target Condition for the configuration
         /// </summary>
-        [JsonProperty(PropertyName = "targetCondition")]
+        [DataMember(Name = "targetCondition")]
         public string TargetCondition { get; set; }
 
         /// <summary>
         /// Gets creation time for the configuration
         /// </summary>
-        [JsonProperty(PropertyName = "createdTimeUtc")]
+        [DataMember(Name = "createdTimeUtc")]
         public DateTime CreatedTimeUtc { get; set; }
 
         /// <summary>
         /// Gets last update time for the configuration
         /// </summary>
-        [JsonProperty(PropertyName = "lastUpdatedTimeUtc")]
+        [DataMember(Name = "lastUpdatedTimeUtc")]
         public DateTime LastUpdatedTimeUtc { get; set; }
 
         /// <summary>
         /// Gets or sets Priority for the configuration
         /// </summary>
-        [JsonProperty(PropertyName = "priority")]
+        [DataMember(Name = "priority")]
         public int Priority { get; set; }
 
         /// <summary>
         /// System Configuration Metrics
         /// </summary>
-        [JsonProperty(PropertyName = "systemMetrics",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "systemMetrics",
+            EmitDefaultValue = false)]
         public ConfigurationMetricsModel SystemMetrics { get; set; }
 
         /// <summary>
         /// Custom Configuration Metrics
         /// </summary>
-        [JsonProperty(PropertyName = "metrics",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "metrics",
+            EmitDefaultValue = false)]
         public ConfigurationMetricsModel Metrics { get; set; }
     }
 }

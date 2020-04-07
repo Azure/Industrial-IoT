@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Opc.Ua.PubSub {
-    using System;
     using Opc.Ua.Encoders;
+    using System;
 
     /// <summary>
     /// Data set message

@@ -210,7 +210,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Parser {
         /// <param name="records"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        private IEnumerable<JToken> Project(IEnumerable<JToken> records,
+        private IEnumerable<VariantValue> Project(IEnumerable<VariantValue> records,
             FilterParser.ParseContext context) {
             if (context == null) {
                 throw new ArgumentNullException(nameof(context));
@@ -231,14 +231,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Parser {
             FilterParser.ScalarFunctionContext context) {
 
             if (context.STARTS_WITH() != null) {
-                return s => JToken.FromObject(
-                    ((string)(JToken)s).StartsWith(ParseStringValue(context.STRING_LITERAL()),
+                return s => VariantValue.FromObject(
+                    ((string)(VariantValue)s).StartsWith(ParseStringValue(context.STRING_LITERAL()),
                         StringComparison.Ordinal));
             }
 
             if (context.ENDS_WITH() != null) {
-                return s => JToken.FromObject(
-                    ((string)(JToken)s).EndsWith(ParseStringValue(context.STRING_LITERAL()),
+                return s => VariantValue.FromObject(
+                    ((string)(VariantValue)s).EndsWith(ParseStringValue(context.STRING_LITERAL()),
                         StringComparison.Ordinal));
             }
             throw new ArgumentException("Bad function");
@@ -253,29 +253,29 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Parser {
             FilterParser.ScalarTypeFunctionContext context) {
 
             if (context.IS_DEFINED() != null) {
-                return s => JToken.FromObject(s != null);
+                return s => VariantValue.FromObject(s != null);
             }
             if (context.IS_NULL() != null) {
-                return s => JToken.FromObject(s != null &&
-                    (((JToken)s).Type == JTokenType.Null));
+                return s => VariantValue.FromObject(s != null &&
+                    (((VariantValue)s).IsNull()));
             }
             if (context.IS_BOOL() != null) {
-                return s => JToken.FromObject(s != null &&
-                    (((JToken)s).Type == JTokenType.Boolean));
+                return s => VariantValue.FromObject(s != null &&
+                    (((VariantValue)s).IsBoolean));
             }
             if (context.IS_NUMBER() != null) {
-                return s => JToken.FromObject(s != null &&
-                    (((JToken)s).Type == JTokenType.Float || ((JToken)s).Type == JTokenType.Integer));
+                return s => VariantValue.FromObject(s != null &&
+                    (((VariantValue)s).IsFloat || ((VariantValue)s).IsInteger));
             }
             if (context.IS_STRING() != null) {
-                return s => JToken.FromObject(s != null &&
-                    (((JToken)s).Type == JTokenType.String));
+                return s => VariantValue.FromObject(s != null &&
+                    (((VariantValue)s).IsString));
             }
             if (context.IS_OBJECT() != null) {
-                return s => JToken.FromObject(s != null &&
-                    (((JToken)s).Type == JTokenType.Object));
+                return s => VariantValue.FromObject(s != null &&
+                    (((VariantValue)s).IsObject));
             }
-            return s => JToken.FromObject(true);
+            return s => VariantValue.FromObject(true);
         }
 
 
@@ -296,7 +296,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Parser {
             var lhs = Expression.Invoke(expr,
                 ParseParameterBinding(parameter, scalarFunctionContext.columnName()));
             var rhs = Expression.Constant(context.literal_value() != null ?
-                ParseLiteralValue(context.literal_value()) : (JsonToken)JToken.FromObject(true));
+                ParseLiteralValue(context.literal_value()) : (JsonToken)VariantValue.FromObject(true));
 
             return CreateBinaryExpression(context.COMPARISON_OPERATOR()?.GetText() ?? "=",
                 lhs, rhs);
@@ -366,7 +366,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Parser {
             if (target == null) {
                 return null;
             }
-            var root = JToken.FromObject(target);
+            var root = VariantValue.FromObject(target);
             var selected = root.SelectToken(path, false);
 
             return selected;
@@ -471,7 +471,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Parser {
         /// <returns></returns>
         private JsonToken ParseObjectLiteralValue(
             FilterParser.Object_literalContext context) {
-            var result = new Dictionary<string, JToken>();
+            var result = new Dictionary<string, VariantValue>();
             foreach (var kvpContext in context.keyValuePair()) {
                 var key = ParseIdentifier(kvpContext.IDENTIFIER());
                 var value = kvpContext.scalar_literal() != null
@@ -480,7 +480,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Parser {
 
                 result.Add(key, value);
             }
-            return JToken.FromObject(result);
+            return VariantValue.FromObject(result);
         }
 
         /// <summary>
@@ -490,14 +490,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Parser {
         /// <returns></returns>
         private JsonToken ParseScalarLiteralValue(FilterParser.Scalar_literalContext context) {
             if (context.BOOLEAN() != null) {
-                return JToken.FromObject(bool.Parse(context.BOOLEAN().GetText()));
+                return VariantValue.FromObject(bool.Parse(context.BOOLEAN().GetText()));
             }
             if (context.NUMERIC_LITERAL() != null) {
-                return JToken.FromObject(double.Parse(context.NUMERIC_LITERAL().GetText(),
+                return VariantValue.FromObject(double.Parse(context.NUMERIC_LITERAL().GetText(),
                     CultureInfo.InvariantCulture));
             }
             if (context.STRING_LITERAL() != null) {
-                return JToken.FromObject(ParseStringValue(context.STRING_LITERAL()));
+                return VariantValue.FromObject(ParseStringValue(context.STRING_LITERAL()));
             }
             return null;
         }
@@ -519,39 +519,39 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Parser {
             /// <summary>
             /// Create token
             /// </summary>
-            /// <param name="jtoken"></param>
-            public JsonToken(JToken jtoken) {
-                _jtoken = jtoken;
+            /// <param name="VariantValue"></param>
+            public JsonToken(VariantValue VariantValue) {
+                _VariantValue = VariantValue;
             }
 
             /// <summary>
-            /// Implicit conversion to <see cref="JToken"/>
+            /// Implicit conversion to <see cref="VariantValue"/>
             /// </summary>
             /// <param name="t"></param>
-            public static implicit operator JToken(JsonToken t) => t._jtoken;
+            public static implicit operator VariantValue(JsonToken t) => t._VariantValue;
 
             /// <summary>
-            /// Implicit conversion from <see cref="JToken"/>
+            /// Implicit conversion from <see cref="VariantValue"/>
             /// </summary>
             /// <param name="t"></param>
-            public static implicit operator JsonToken(JToken t) => new JsonToken(t);
+            public static implicit operator JsonToken(VariantValue t) => new JsonToken(t);
 
             /// <inheritdoc/>
             public override int GetHashCode() {
-                return JToken.EqualityComparer.GetHashCode(_jtoken);
+                return VariantValue.EqualityComparer.GetHashCode(_VariantValue);
             }
 
             /// <inheritdoc/>
             public override string ToString() {
-                return _jtoken.ToString();
+                return _VariantValue.ToString();
             }
 
             /// <inheritdoc/>
             public static bool operator ==(JsonToken helper1, JsonToken helper2) {
-                if (helper1?._jtoken == null || helper2?._jtoken == null) {
-                    return helper1?._jtoken == helper2?._jtoken;
+                if (helper1?._VariantValue == null || helper2?._VariantValue == null) {
+                    return helper1?._VariantValue == helper2?._VariantValue;
                 }
-                return JToken.DeepEquals(helper1._jtoken, helper2._jtoken);
+                return VariantValue.DeepEquals(helper1._VariantValue, helper2._VariantValue);
             }
 
             /// <inheritdoc/>
@@ -561,13 +561,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Parser {
             /// <inheritdoc/>
             public override bool Equals(object obj) {
                 var helper = obj as JsonToken;
-                if (helper?._jtoken == null || _jtoken == null) {
-                    return helper?._jtoken == _jtoken;
+                if (helper?._VariantValue == null || _VariantValue == null) {
+                    return helper?._VariantValue == _VariantValue;
                 }
-                return helper != null && JToken.DeepEquals(_jtoken, helper._jtoken);
+                return helper != null && VariantValue.DeepEquals(_VariantValue, helper._VariantValue);
             }
 
-            private readonly JToken _jtoken;
+            private readonly VariantValue _VariantValue;
         }
 
         /// <summary>

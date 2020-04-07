@@ -4,10 +4,11 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Client {
-    using Serilog;
-    using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Http;
     using Microsoft.Azure.IIoT.Utils;
+    using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
@@ -24,10 +25,11 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
         /// </summary>
         /// <param name="httpClient"></param>
         /// <param name="config"></param>
+        /// <param name="serializer"></param>
         /// <param name="logger"></param>
         public IoTHubMessagingHttpClient(IHttpClient httpClient,
-            IIoTHubConfig config, ILogger logger) :
-            base(httpClient, config, logger) {
+            IIoTHubConfig config, IJsonSerializer serializer, ILogger logger) :
+            base(httpClient, config, serializer, logger) {
         }
 
         /// <inheritdoc/>
@@ -53,7 +55,7 @@ namespace Microsoft.Azure.IIoT.Hub.Client {
                 }
                 request.AddHeader("iothub-operation", "d2c");
                 request.AddHeader("iothub-to", to);
-                request.SetContent(message.Payload);
+                _serializer.SerializeToRequest(request, message.Payload);
                 var response = await _httpClient.PostAsync(request);
                 response.Validate();
             });

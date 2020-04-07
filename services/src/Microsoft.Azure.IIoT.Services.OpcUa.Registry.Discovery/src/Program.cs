@@ -3,18 +3,23 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery {
-    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery.Runtime;
+namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync {
+    using Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync.Runtime;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Handlers;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Services;
-    using Microsoft.Azure.IIoT.OpcUa.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Registry;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Client;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.IIoT.Tasks.Default;
+    using Microsoft.Azure.IIoT.Crypto.Default;
+    using Microsoft.Azure.IIoT.Auth.IoTHub;
+    using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
     using Microsoft.Azure.IIoT.Module.Default;
     using Microsoft.Azure.IIoT.Messaging.Default;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Services;
@@ -28,12 +33,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery {
     using System.Threading.Tasks;
 
     /// <summary>
-    /// Jobs agent handles jobs out of process for other services.
+    /// Sync service handles jobs out of process for other services.
     /// </summary>
     public class Program {
 
         /// <summary>
-        /// Main entry point for jobs agent
+        /// Main entry point for Sync service
         /// </summary>
         /// <param name="args"></param>
         public static void Main(string[] args) {
@@ -67,17 +72,17 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery {
                 using (var container = ConfigureContainer(config).Build()) {
                     var logger = container.Resolve<ILogger>();
                     try {
-                        logger.Information("Jobs agent started.");
+                        logger.Information("Registry sync service started.");
                         exit = await tcs.Task;
                     }
                     catch (InvalidConfigurationException e) {
                         logger.Error(e,
-                            "Error starting jobs agent  - exit!");
+                            "Error starting registry sync service  - exit!");
                         return;
                     }
                     catch (Exception ex) {
                         logger.Error(ex,
-                            "Error running jobs agent - restarting!");
+                            "Error running registry sync service - restarting!");
                     }
                 }
             }
@@ -100,6 +105,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery {
 
             // Add diagnostics based on configuration
             builder.AddDiagnostics(config);
+            builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Register http client module
             builder.RegisterModule<HttpClientModule>();
@@ -107,6 +113,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery {
             builder.RegisterType<NoOpCertValidator>()
                 .AsImplementedInterfaces();
 #endif
+
             // Iot hub services
             builder.RegisterType<IoTHubServiceHttpClient>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -132,13 +139,32 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery {
                 .AsImplementedInterfaces().SingleInstance();
 
             // Handle discovery request and pass to all edges
-
             builder.RegisterModule<RegistryServices>();
             builder.RegisterType<DiscoveryRequestHandler>()
                 .AsImplementedInterfaces().SingleInstance();
             builder.RegisterType<DiscoveryMultiplexer>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterType<DiscovererClient>()
+            builder.RegisterType<DiscovererModuleClient>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // Identity token updater
+            builder.RegisterType<PasswordGenerator>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<TwinIdentityTokenUpdater>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // and service endpoint sync
+            builder.RegisterType<JobOrchestratorEndpointSync>()
+                .AsImplementedInterfaces().SingleInstance();
+
+            // Activation sync
+            builder.RegisterType<TwinModuleActivationClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<TwinModuleCertificateClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<TwinModuleDiagnosticsClient>()
+                .AsImplementedInterfaces().SingleInstance();
+            builder.RegisterType<ActivationSyncHost>()
                 .AsImplementedInterfaces().SingleInstance();
 
             return builder;
