@@ -11,7 +11,8 @@ namespace Microsoft.Azure.IIoT.Module {
     public interface IHttpTunnelConfig {
 
         /// <summary>
-        /// Dynamicall configure use of tunnel or use of regular http
+        /// Dynamically configure use of tunnel or the use of
+        /// regular http client
         /// </summary>
         bool UseTunnel { get; set; }
     }

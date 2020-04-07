@@ -128,7 +128,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
 
                 // Create tunnel request
                 var tunnelRequest = new HttpTunnelRequestModel {
-                    ResourceId = null, // TODO
+                    ResourceId = null, // TODO - fill in somehow from outer handler
                     Uri = request.RequestUri.ToString(),
                     RequestHeaders = request.Headers?
                         .ToDictionary(h => h.Key, h => h.Value.ToList()),
