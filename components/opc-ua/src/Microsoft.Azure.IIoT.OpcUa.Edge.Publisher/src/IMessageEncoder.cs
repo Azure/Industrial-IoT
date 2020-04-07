@@ -19,6 +19,14 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher {
         /// <param name="message"></param>
         /// <returns></returns>
         Task<IEnumerable<NetworkMessageModel>> EncodeAsync(
-            DataSetMessageModel message);
+            IEnumerable<DataSetMessageModel> message);
+
+        /// <summary>
+        /// Encode a list of messages
+        /// </summary>
+        /// <param name="messages"></param>
+        /// <returns></returns>
+        Task<IEnumerable<NetworkMessageModel>> EncodeBatchAsync
+            (IEnumerable<DataSetMessageModel> messages);
     }
 }

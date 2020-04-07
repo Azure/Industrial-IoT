@@ -114,8 +114,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                                     SamplingInterval = node.OpcSamplingIntervalTimespan ??
                                         legacyCliModel.DefaultSamplingInterval ?? (TimeSpan?)null,
                                     HeartbeatInterval = node.HeartbeatInterval == null ? (TimeSpan?)null :
-                                        TimeSpan.FromSeconds(node.HeartbeatInterval.Value)
-                                    // TODO: skip first? 
+                                        TimeSpan.FromSeconds(node.HeartbeatInterval.Value),
+                                    // Force the queue size to 2 so that we avoid data 
+                                    // loss in case publishing interval and sampling interval are equal
+                                    QueueSize = 2
+                                        // TODO: skip first? 
                                     // SkipFirst = opcNode.SkipFirst,
 
                                 })
@@ -131,6 +134,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                             DiagnosticsInterval = _config.DiagnosticsInterval
                         },
                         WriterGroup = new WriterGroupModel {
+                            MessageType = MessageEncoding.Json,
                             WriterGroupId = _identity.DeviceId + "_"+ _identity.ModuleId,
                             DataSetWriters = new List<DataSetWriterModel> {
                                 new DataSetWriterModel {
