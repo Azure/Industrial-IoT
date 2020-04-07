@@ -1,0 +1,4 @@
+{
+    "name": "iot/industrial-iot-user-manager-service",
+    "exposes": [ 9048 ]
+}

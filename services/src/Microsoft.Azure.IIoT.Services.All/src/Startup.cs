@@ -111,6 +111,8 @@ namespace Microsoft.Azure.IIoT.Services.All {
             app.AddStartupBranch<OpcUa.Twin.Startup>("/twin");
             app.AddStartupBranch<OpcUa.Publisher.Startup>("/publisher");
             app.AddStartupBranch<OpcUa.Events.Startup>("/events");
+            app.AddStartupBranch<Common.Identity.Startup>("/auth");
+            app.AddStartupBranch<Common.Users.Startup>("/users");
             app.AddStartupBranch<Common.Jobs.Startup>("/jobs");
             app.AddStartupBranch<Common.Jobs.Edge.Startup>("/edge/jobs");
 
@@ -164,6 +166,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
                 var processes = new List<Task> {
                     Task.Run(() => OpcUa.Registry.Sync.Program.Main(args), _cts.Token),
                     Task.Run(() => Processor.Events.Program.Main(args), _cts.Token),
+                    Task.Run(() => Processor.Tunnel.Program.Main(args), _cts.Token)
                 };
 
                 if (!_config.IsMinimumDeployment) {

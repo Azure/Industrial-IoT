@@ -1,8 +1,8 @@
 {
-  "profiles": {
-    "Microsoft.Azure.IIoT.Api.Cli": {
-      "commandName": "Project",
-      "commandLineArgs": "console --useMsgPack"
+    "profiles": {
+        "Microsoft.Azure.IIoT.Api.Cli": {
+            "commandName": "Project",
+            "commandLineArgs": "console --useMsgPack"
+        }
     }
-  }
 }
