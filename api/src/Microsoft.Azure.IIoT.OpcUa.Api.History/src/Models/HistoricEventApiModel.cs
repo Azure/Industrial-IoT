@@ -4,20 +4,21 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
 
     /// <summary>
     /// Historic event
     /// </summary>
+    [DataContract]
     public class HistoricEventApiModel {
 
         /// <summary>
         /// The selected fields of the event
         /// </summary>
-        [JsonProperty(PropertyName = "eventFields",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public List<JToken> EventFields { get; set; }
+        [DataMember(Name = "eventFields", Order = 0,
+            EmitDefaultValue = false)]
+        public List<VariantValue> EventFields { get; set; }
     }
 }

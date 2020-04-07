@@ -4,26 +4,28 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
 
     /// <summary>
     /// Certificate list
     /// </summary>
+    [DataContract]
     public sealed class X509CertificateListApiModel {
 
         /// <summary>
         /// Certificates
         /// </summary>
-        [JsonProperty(PropertyName = "certificates",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "certificates", Order = 0,
+            EmitDefaultValue = false)]
         public List<X509CertificateApiModel> Certificates { get; set; }
 
         /// <summary>
         /// Next link
         /// </summary>
-        [JsonProperty(PropertyName = "nextPageLink",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "nextPageLink", Order = 1,
+            EmitDefaultValue = false)]
         public string NextPageLink { get; set; }
     }
 }

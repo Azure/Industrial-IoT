@@ -7,7 +7,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
     using Microsoft.Azure.IIoT.OpcUa.Protocol.Services;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Twin.Models;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using Opc.Ua;
     using System;
     using System.Linq;
@@ -20,13 +21,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
         /// <summary>
         /// Create node services tests
         /// </summary>
-        /// <param name="services"></param>
-        /// <param name="endpoint"></param>
-        /// <param name="readExpected"></param>
         public WriteArrayValueTests(Func<INodeServices<T>> services, T endpoint,
-            Func<T, string, Task<JToken>> readExpected) {
+            Func<T, string, Task<VariantValue>> readExpected) {
             _services = services;
             _endpoint = endpoint;
+            _serializer = new NewtonSoftJsonSerializer();
             _readExpected = readExpected;
         }
 
@@ -35,7 +34,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10300";
 
-            var expected = JToken.Parse(
+            var expected = _serializer.Parse(
                 "[true,true,true,false,false,false,true,true,true,false,true," +
                 "false,false,false,true,false,false,false,false,true,false,true," +
                 "true,true,true,false]");
@@ -58,7 +57,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10301";
 
-            var expected = JToken.Parse(
+            var expected = _serializer.Parse(
                 "[-94,94,62,22,-50,36,105,103,-60,56,-102,-14,-59,-83,119,-101," +
                 "-39,85,-9,-14,-7,-100,64,122,-107,-61,13,-10,-19,81,-52,57," +
                 "-32,-90,27,-128,92,44,-32,13,-93,-10,46,9,-38,55,116,-11,-43," +
@@ -82,7 +81,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10302";
 
-            var expected = JToken.Parse(
+            var expected = _serializer.Parse(
                 "\"jgYexIAKF3N6c2tgEh6R9j+tdOlOAm43n15OFyGtfjI2VhgVYpis1fYvfL" +
                 "qdeiRVY94AJSUZ\"");
 
@@ -106,7 +105,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10303";
 
-            var expected = JToken.FromObject(_generator.GetRandomArray<short>());
+            var expected = _serializer.FromObject(_generator.GetRandomArray<short>());
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -126,7 +125,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10304";
 
-            var expected = JToken.FromObject(_generator.GetRandomArray<ushort>());
+            var expected = _serializer.FromObject(_generator.GetRandomArray<ushort>());
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -146,7 +145,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10305";
 
-            var expected = JToken.FromObject(_generator.GetRandomArray<int>());
+            var expected = _serializer.FromObject(_generator.GetRandomArray<int>());
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -166,7 +165,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10306";
 
-            var expected = JToken.FromObject(_generator.GetRandomArray<uint>());
+            var expected = _serializer.FromObject(_generator.GetRandomArray<uint>());
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -186,7 +185,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10307";
 
-            var expected = JToken.FromObject(_generator.GetRandomArray<long>());
+            var expected = _serializer.FromObject(_generator.GetRandomArray<long>());
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -206,7 +205,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10308";
 
-            var expected = JToken.FromObject(_generator.GetRandomArray<ulong>());
+            var expected = _serializer.FromObject(_generator.GetRandomArray<ulong>());
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -226,7 +225,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10309";
 
-            var expected = JToken.FromObject(new float[] {
+            var expected = _serializer.FromObject(new float[] {
                 float.NaN,
                 0.0f,
                 1.0f,
@@ -254,7 +253,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10310";
 
-            var expected = JToken.FromObject(new double[] {
+            var expected = _serializer.FromObject(new double[] {
                 -5.0,
                 1.0,
                 0.0,
@@ -285,7 +284,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10311";
 
-            var expected = JToken.FromObject(new string[] {
+            var expected = _serializer.FromObject(new string[] {
                 "test",
                 "test2",
                 "test3",
@@ -312,7 +311,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10311";
 
-            var expected = JToken.FromObject(_generator.GetRandomArray<string>());
+            var expected = _serializer.FromObject(_generator.GetRandomArray<string>());
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -332,7 +331,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10312";
 
-            var expected = JToken.FromObject(_generator.GetRandomArray<DateTime>());
+            var expected = _serializer.FromObject(_generator.GetRandomArray<DateTime>());
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -352,7 +351,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10313";
 
-            var expected = JToken.FromObject(_generator.GetRandomArray<Guid>());
+            var expected = _serializer.FromObject(_generator.GetRandomArray<Guid>());
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -372,7 +371,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10314";
 
-            var expected = JToken.Parse(
+            var expected = _serializer.Parse(
                 "[\"y5rM6KSrJ9+U0zDRyN8nPrLz4zyKydoagl0A2Sz0XTeJ0GevE2/tFCMCp" +
                 "Fj9IA7zLA==\",\"OLyUL7UBwLFmRqtOs6B1+Ef3eHgqQgbPGIglgRxhTw2t" +
                 "uLugo1obZe5hCadp1E4E4wTZFnuzSPa2xRYs3D+UBfeeoQ==\",\"5NVV7dw" +
@@ -504,7 +503,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10315";
 
-            var expected = JToken.FromObject(_generator.GetRandomArray<XmlElement>());
+            var expected = _serializer.FromObject(_generator.GetRandomArray<XmlElement>());
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -524,7 +523,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10316";
 
-            var expected = JToken.Parse(
+            var expected = _serializer.Parse(
                 "[\"s=%eb%85%b9%ec%83%89%ec%9a%a9\"," +
                 "\"http://test.org/UA/Data//Instance#g=bc3623b6-cb5f-e6be-1c13-378f9126c663\"," +
                 "\"http://samples.org/UA/memorybuffer#i=1556000973\"," +
@@ -578,7 +577,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10317";
 
-            var expected = JToken.Parse(
+            var expected = _serializer.Parse(
                 "[\"http://samples.org/UA/memorybuffer/Instance#i=2144658193\"," +
                 "\"http://samples.org/UA/memorybuffer#b=c9PGBcMJ%2fXaDHbdQAdVi15q4Vd" +
                     "F0s64Z2BzAQUguTWwH3T4OSRPSoA%2fZs0gCG%2fs8gfzkzVk8yr8krC2nSLstV" +
@@ -603,7 +602,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10318";
 
-            var expected = JToken.FromObject(new string[] {
+            var expected = _serializer.FromObject(new string[] {
                 "http://test.org/UA/Data/#afsdff",
                 "http://test.org/UA/Data/#tt",
                 "http://test.org/UA/Data/#sdf",
@@ -636,7 +635,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10319";
 
-            var expected = JToken.Parse("[" +
+            var expected = _serializer.Parse("[" +
                 "{\"Text\":\"복숭아_ 파인애플&quot 황색 말 검정: 황색 고양이 자주색! 파인애플 녹색( 암소& 개 딸기 양 망고 들쭉 뱀 용> 고양이 빨간 파란 빨간@ 들쭉\",\"Locale\":\"ko\"}," +
                 "{\"Text\":\"Бело Корова. Известка\",\"Locale\":\"ru\"}," +
                 "{\"Text\":\"석회* 파인애플) 말= 바나나^ 양/\",\"Locale\":\"ko\"}," +
@@ -680,7 +679,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10320";
 
-            var expected = JToken.Parse("[2555904,9306112]");
+            var expected = _serializer.Parse("[2555904,9306112]");
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -702,10 +701,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
 
             var encoder = new VariantEncoderFactory();
             var values = _generator.GetRandomArray<string>();
-            var expected = new JArray(values
+            var expected = _serializer.FromObject(values
                 .Select(delegate (object v) {
                     var body = encoder.Default.Encode(new Variant(v), out var t);
-                    return JToken.FromObject(new {
+                    return _serializer.FromObject(new {
                         Type = t.ToString(),
                         Body = body
                     });
@@ -720,7 +719,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResultAsync(node, new JArray(values), result);
+            await AssertResultAsync(node, _serializer.FromObject(values), result);
         }
 
 
@@ -729,7 +728,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10322";
 
-            var expected = JToken.Parse(
+            var expected = _serializer.Parse(
                 "[213809063,256148911,1403441746,1765077059,1459915248,178083" +
                 "9730,1170915216,676529496,206863250,700571842,1421759593,311" +
                 "197401,2102772218,857824445,1673233467,1438792918,682491618," +
@@ -765,7 +764,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             var browser = _services();
             var node = "http://test.org/UA/Data/#i=10323";
 
-            var expected = JToken.Parse(@"
+            var expected = _serializer.Parse(@"
 [
     {
         ""TypeId"": ""http://test.org/UA/Data/#i=11437"",
@@ -819,15 +818,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""StructureValue"": { ""TypeId"": null },
             ""Number"": {
                 ""Type"": ""Double"",
-                ""Body"": 0.0
+                ""Body"": 1.0
             },
             ""Integer"": {
                 ""Type"": ""Int64"",
-                ""Body"": 0
+                ""Body"": 1
             },
             ""UInteger"": {
                 ""Type"": ""UInt64"",
-                ""Body"": 0
+                ""Body"": 1
             }
         }
     },
@@ -843,7 +842,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""Int32Value"": 1002303007,
             ""UInt32Value"": 2322690949,
             ""Int64Value"": -8682057831558849682,
-            ""UInt64Value"": 10042278942021613161,
+            ""UInt64Value"": 1004227894202161316,
             ""FloatValue"": 4.1843192E-05,
             ""DoubleValue"": 32635254472704.0,
             ""StringValue"": ""Голубика> Дракон@"",
@@ -881,15 +880,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""StructureValue"": { ""TypeId"": null },
             ""Number"": {
                 ""Type"": ""Double"",
-                ""Body"": 0.0
+                ""Body"": 1.0
             },
             ""Integer"": {
                 ""Type"": ""Int64"",
-                ""Body"": 0
+                ""Body"": 1
             },
             ""UInteger"": {
                 ""Type"": ""UInt64"",
-                ""Body"": 0
+                ""Body"": 1
             }
         }
     },
@@ -940,19 +939,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 ""Type"": ""Int64"",
                 ""Body"": 3678050018011977630
             },
-            ""EnumerationValue"": 0,
+            ""EnumerationValue"": 1,
             ""StructureValue"": { ""TypeId"": null },
             ""Number"": {
                 ""Type"": ""Double"",
-                ""Body"": 0.0
+                ""Body"": 1.0
             },
             ""Integer"": {
                 ""Type"": ""Int64"",
-                ""Body"": 0
+                ""Body"": 1
             },
             ""UInteger"": {
                 ""Type"": ""UInt64"",
-                ""Body"": 0
+                ""Body"": 1
             }
         }
     },
@@ -968,7 +967,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""Int32Value"": 1970614820,
             ""UInt32Value"": 4087763535,
             ""Int64Value"": 3156392098576755738,
-            ""UInt64Value"": 11790719998462990154,
+            ""UInt64Value"": 1179071999846299015,
             ""FloatValue"": -1.2796896E-06,
             ""DoubleValue"": -2.4084619380135754E-35,
             ""StringValue"": ""ヘビ~ 猫* 緑) マンゴ< レモン ブタ\"" 石灰 石灰{ 黒! ブタ 猿 馬 ブタ@ 牛 ヘビ' 犬 犬\"" 牛$"",
@@ -1003,11 +1002,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 ""Type"": ""SByte"",
                 ""Body"": -114
             },
-            ""EnumerationValue"": 0,
+            ""EnumerationValue"": 1,
             ""StructureValue"": { ""TypeId"": null },
             ""Number"": {
                 ""Type"": ""Double"",
-                ""Body"": 0.0
+                ""Body"": 1.0
             },
             ""Integer"": {
                 ""Type"": ""Int64"",
@@ -1015,7 +1014,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             },
             ""UInteger"": {
                 ""Type"": ""UInt64"",
-                ""Body"": 0
+                ""Body"": 1
             }
         }
     },
@@ -1031,7 +1030,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""Int32Value"": 150448275,
             ""UInt32Value"": 2074081332,
             ""Int64Value"": -1011618571483371166,
-            ""UInt64Value"": 8946747598058890327,
+            ""UInt64Value"": 3946747598058890327,
             ""FloatValue"": 7.858336E+35,
             ""DoubleValue"": 10017916.0,
             ""StringValue"": ""яблоко Ананас~ Овцы Корова Пурпурово_ Банан Крыса Собака Кот Бело( Корова'"",
@@ -1068,15 +1067,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 ""Type"": ""ExpandedNodeId"",
                 ""Body"": ""http://opcfoundation.org/UA/Boiler//Instance#b=4Ncr5uADYkU88S45mg%3d%3d""
             },
-            ""EnumerationValue"": 0,
+            ""EnumerationValue"": 1,
             ""StructureValue"": { ""TypeId"": null },
             ""Number"": {
                 ""Type"": ""Double"",
-                ""Body"": 0.0
+                ""Body"": 1.0
             },
             ""Integer"": {
                 ""Type"": ""Int64"",
-                ""Body"": 0
+                ""Body"": 1
             },
             ""UInteger"": {
                 ""Type"": ""UInt64"",
@@ -1096,7 +1095,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""Int32Value"": [ 1147924132, 937096171, 293419963, 1355723363, 1682226035, 921241048, 946417831, 483648971, 1150550410 ],
             ""UInt32Value"": [ 405022290, 3763626854, 2219565007, 635093313, 1150728258 ],
             ""Int64Value"": [ -1689618757610414770, -1598013270992443575, -6068487195887049228, 3886489167998855712 ],
-            ""UInt64Value"": [ 14348387007481775183, 579235881671951863, 10801679293459156539, 13309432137704145439 ],
+            ""UInt64Value"": [ 1434838700748177518, 579235881671951863, 1080167929345915653, 1330943213770414543 ],
             ""FloatValue"": [ 4.311362E-33, 6.620173E-35, -8.877828E-29, -1.2760576E+29, -1.646687E-22, 1.802464E-21 ],
             ""DoubleValue"": [ -6011373486080.0, 108132739055616.0, 8.3547184787473483E-36, 5.2422583022226784E+27, 1.0392232580248937E-32, 1.0094077198242765E+33, -8.35414627813762E-39 ],
             ""StringValue"": [ ""녹색 들쭉 들쭉 돼지 녹색% 녹색 암소 원숭이 딸기+ 들쭉 암소~ 망고 망고 딸기 녹색 녹색 돼지 들쭉) 석회 개} 검정 쥐~ 쥐 코끼리= 들쭉"", ""Обезьяна Красно Зеленыйцвет Крыса"", ""Красно, Желтыйцвет Манго= Ананас Бело&"", ""Голубика Желтыйцвет"", ""蓝莓 大象~ 绵羊 柠檬 母牛 母牛 红色"", ""狗\"" 马 紫色` 葡萄@ 柠檬 芒果 猪 菠萝 龙^ 黑色* 马 绿色 绵羊 大象 红色) 蓝莓 蛇# 狗 香蕉 草莓 黑色@ 红色 鼠~ 蓝色 香蕉 猫 红色% 黑色"", ""Чернота- Собака Пурпурово# Голубика Чернота Голубо: Дракон яблоко Бело Зеленыйцвет"" ],
@@ -1205,7 +1204,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             ""Int32Value"": 535350820,
             ""UInt32Value"": 3693060540,
             ""Int64Value"": -2577172637598593213,
-            ""UInt64Value"": 11187487780701632783,
+            ""UInt64Value"": 1118748778070163278,
             ""FloatValue"": 1.931257E+17,
             ""DoubleValue"": -0.00033564501791261137,
             ""StringValue"": ""ラット} 馬` いちご 青い 白い 象 レモン. パイナップル"",
@@ -1238,7 +1237,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 ""Type"": ""ExpandedNodeId"",
                 ""Body"": ""http://samples.org/UA/memorybuffer#i=1429871234""
             },
-            ""EnumerationValue"": 0,
+            ""EnumerationValue"": 1,
             ""StructureValue"": { ""TypeId"": null },
             ""Number"": {
                 ""Type"": ""Double"",
@@ -1250,7 +1249,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             },
             ""UInteger"": {
                 ""Type"": ""UInt64"",
-                ""Body"": 0
+                ""Body"": 1
             }
         }
     }
@@ -1277,11 +1276,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
 
             var encoder = new VariantEncoderFactory();
             var values = _generator.GetRandomArray<sbyte>();
-            var expected = new JArray(values
-                .Select(v => JToken.FromObject(new {
+            var expected = _serializer.FromObject(values
+                .Select(v => new {
                     Type = "SByte",
                     Body = v
-                })));
+                }));
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -1292,7 +1291,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResultAsync(node, JArray.FromObject(values), result);
+            await AssertResultAsync(node, _serializer.FromObject(values), result);
         }
 
 
@@ -1303,7 +1302,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
 
             var encoder = new VariantEncoderFactory();
             var values = _generator.GetRandomArray<sbyte>();
-            var expected = JArray.FromObject(values);
+            var expected = _serializer.FromObject(values);
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -1325,11 +1324,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
 
             var encoder = new VariantEncoderFactory();
             var values = _generator.GetRandomArray<int>();
-            var expected = new JArray(values
-                .Select(v => JToken.FromObject(new {
+            var expected = _serializer.FromObject(values
+                .Select(v => new {
                     Type = "Int32",
                     Body = v
-                })));
+                }));
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -1340,7 +1339,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResultAsync(node, new JArray(values), result);
+            await AssertResultAsync(node, _serializer.FromObject(values), result);
         }
 
 
@@ -1351,7 +1350,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
 
             var encoder = new VariantEncoderFactory();
             var values = _generator.GetRandomArray<int>();
-            var expected = new JArray(values);
+            var expected = _serializer.FromObject(values);
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -1373,11 +1372,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
 
             var encoder = new VariantEncoderFactory();
             var values = _generator.GetRandomArray<ushort>();
-            var expected = new JArray(values
-                .Select(v => JToken.FromObject(new {
+            var expected = _serializer.FromObject(values
+                .Select(v => new {
                     Type = "UInt16",
                     Body = v
-                })));
+                }));
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -1388,7 +1387,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
                 });
 
             // Assert
-            await AssertResultAsync(node, new JArray(values), result);
+            await AssertResultAsync(node, _serializer.FromObject(values), result);
         }
 
 
@@ -1399,7 +1398,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
 
             var encoder = new VariantEncoderFactory();
             var values = _generator.GetRandomArray<ushort>();
-            var expected = JToken.FromObject(values);
+            var expected = _serializer.FromObject(values);
 
             // Act
             var result = await browser.NodeValueWriteAsync(_endpoint,
@@ -1413,19 +1412,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Testing.Tests {
             await AssertResultAsync(node, expected, result);
         }
 
-        private async Task AssertResultAsync(string node, JToken expected,
+        private async Task AssertResultAsync(string node, VariantValue expected,
             ValueWriteResultModel result) {
             var value = await _readExpected(_endpoint, node);
             Assert.NotNull(value);
             Assert.Null(result.ErrorInfo);
-            var asString = value.ToString(Newtonsoft.Json.Formatting.None);
-            System.Diagnostics.Trace.WriteLine(asString);
-            Assert.Equal(expected.ToString(Newtonsoft.Json.Formatting.None), asString);
+            Assert.True(expected.Equals(value), $"{expected} != {value}");
+            Assert.Equal(expected, value);
         }
 
         private readonly T _endpoint;
-        private readonly Func<T, string, Task<JToken>> _readExpected;
+        private readonly Func<T, string, Task<VariantValue>> _readExpected;
         private readonly Func<INodeServices<T>> _services;
+        private readonly IJsonSerializer _serializer;
         private readonly Opc.Ua.Test.TestDataGenerator _generator =
             new Opc.Ua.Test.TestDataGenerator();
     }

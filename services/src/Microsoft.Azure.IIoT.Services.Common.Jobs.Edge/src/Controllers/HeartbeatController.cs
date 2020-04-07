@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Controllers {
     using Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Filters;
-    using Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Models;
     using Microsoft.Azure.IIoT.Api.Jobs.Models;
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.AspNetCore.Mvc;
@@ -17,7 +16,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Controllers {
     /// </summary>
     [ApiVersion("2")][Route("v{version:apiVersion}/heartbeat")]
     [ExceptionsFilter]
-    [Produces(ContentMimeType.Json)]
     [ApiController]
     public class HeartbeatController : ControllerBase {
 

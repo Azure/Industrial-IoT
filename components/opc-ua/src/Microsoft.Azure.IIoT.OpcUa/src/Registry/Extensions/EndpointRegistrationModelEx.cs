@@ -5,10 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using System.Security.Cryptography.X509Certificates;
     using System.Collections.Generic;
     using System.Linq;
-    using System;
 
     /// <summary>
     /// Service model extensions for discovery service
@@ -78,47 +76,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 SupervisorId = model.SupervisorId,
                 DiscovererId = model.DiscovererId
             };
-        }
-
-        /// <summary>
-        /// Get security assessment
-        /// </summary>
-        /// <param name="model"></param>
-        public static SecurityAssessment GetSecurityAssessment(
-            this EndpointRegistrationModel model) {
-            if (model.Endpoint.SecurityMode == SecurityMode.None) {
-                return SecurityAssessment.Low;
-            }
-
-            if (model.Endpoint.Certificate == null) {
-                return SecurityAssessment.Low;
-            }
-
-            try {
-                using (var cert = new X509Certificate2(model.Endpoint.Certificate)) {
-                    var securityProfile = model.Endpoint.SecurityPolicy.Remove(0,
-                        model.Endpoint.SecurityPolicy.IndexOf('#') + 1);
-
-                    // TODO
-
-                    var expiryDate = cert.NotAfter;
-                    var issuer = cert.Issuer.Extract("CN=", ",");
-
-                    if ((securityProfile == "None") ||
-                        (securityProfile == "sha1") ||
-                        (cert.PublicKey.Key.KeySize == 1024)) {
-                        return SecurityAssessment.Low;
-                    }
-                    if ((cert.IssuerName.Name == cert.SubjectName.Name) &&
-                        (securityProfile != "None")) {
-                        return SecurityAssessment.High;
-                    }
-                    return SecurityAssessment.Medium;
-                }
-            }
-            catch {
-                return SecurityAssessment.Low;
-            }
         }
     }
 }

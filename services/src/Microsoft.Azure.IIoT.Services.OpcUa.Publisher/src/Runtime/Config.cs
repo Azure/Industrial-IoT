@@ -23,6 +23,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
     using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth.Clients;
+    using Microsoft.Azure.IIoT.Deploy;
+    using Microsoft.Azure.IIoT.Deploy.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
     using System;
@@ -33,7 +35,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
     public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig,
         ICorsConfig, IClientConfig, IOpenApiConfig, ISignalRServiceConfig,
         ICosmosDbConfig, IJobDatabaseConfig, IRegistryConfig, ITwinConfig,
-        IForwardedHeadersConfig {
+        IForwardedHeadersConfig, IContainerRegistryConfig {
 
         /// <summary>
         /// Whether to use role based access
@@ -109,9 +111,18 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
         public string DatabaseName => "iiot_opc";
 
         /// <inheritdoc/>
-        public string SignalRHubName => _sr.SignalRHubName;
-        /// <inheritdoc/>
         public string SignalRConnString => _sr.SignalRConnString;
+
+        /// <inheritdoc/>
+        public string DockerServer => _cr.DockerServer;
+        /// <inheritdoc/>
+        public string DockerUser => _cr.DockerUser;
+        /// <inheritdoc/>
+        public string DockerPassword => _cr.DockerPassword;
+        /// <inheritdoc/>
+        public string ImagesNamespace => _cr.ImagesNamespace;
+        /// <inheritdoc/>
+        public string ImagesTag => _cr.ImagesTag;
 
         /// <inheritdoc/>
         public bool AspNetCoreForwardedHeadersEnabled =>
@@ -136,8 +147,10 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
             _cosmos = new CosmosDbConfig(configuration);
             _sr = new SignalRServiceConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
+            _cr = new ContainerRegistryConfig(configuration);
         }
 
+        private readonly ContainerRegistryConfig _cr;
         private readonly OpenApiConfig _openApi;
         private readonly AuthConfig _auth;
         private readonly HostConfig _host;

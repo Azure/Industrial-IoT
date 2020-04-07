@@ -4,36 +4,37 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
 
     /// <summary>
     /// Discovery event
     /// </summary>
+    [DataContract]
     public class DiscoveryEventApiModel {
 
         /// <summary>
         /// Timestamp of the discovery sweep.
         /// </summary>
-        [JsonProperty(PropertyName = "timeStamp")]
+        [DataMember(Name = "timeStamp", Order = 0)]
         public DateTime TimeStamp { get; set; }
 
         /// <summary>
         /// Index in the batch with same timestamp.
         /// </summary>
-        [JsonProperty(PropertyName = "index")]
+        [DataMember(Name = "index", Order = 1)]
         public int Index { get; set; }
 
         /// <summary>
         /// Discovered endpoint in form of endpoint registration
         /// </summary>
-        [JsonProperty(PropertyName = "registration")]
+        [DataMember(Name = "registration", Order = 2)]
         public EndpointRegistrationApiModel Registration { get; set; }
 
         /// <summary>
         /// Application to which this endpoint belongs
         /// </summary>
-        [JsonProperty(PropertyName = "application")]
+        [DataMember(Name = "application", Order = 3)]
         public ApplicationInfoApiModel Application { get; set; }
     }
 }

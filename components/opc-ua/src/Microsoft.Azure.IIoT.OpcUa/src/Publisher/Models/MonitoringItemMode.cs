@@ -5,13 +5,9 @@
 
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
     /// <summary>
     /// Monitoring modes
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum MonitoringMode {
 
         /// <summary>

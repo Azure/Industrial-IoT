@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Azure.IIoT.Agent.Framework;
-    using Microsoft.Azure.IIoT.Agent.Framework.Jobs;
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs.Runtime;
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
     using Microsoft.Azure.IIoT.Auth.Clients;
@@ -31,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
     public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig,
         ICorsConfig, IClientConfig, IOpenApiConfig, IJobOrchestratorConfig,
         ICosmosDbConfig, IJobDatabaseConfig, IWorkerDatabaseConfig,
-        IJobOrchestratorEndpoint, IForwardedHeadersConfig {
+        IForwardedHeadersConfig {
 
         /// <inheritdoc/>
         public string DbConnectionString => _cosmos.DbConnectionString;
@@ -75,8 +74,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
 
         /// <inheritdoc/>
         public TimeSpan JobStaleTime => _jobs.JobStaleTime;
-        /// <inheritdoc/>
-        public string JobOrchestratorUrl => _edge.JobOrchestratorUrl;
 
         /// <inheritdoc/>
         public string CorsWhitelist => _cors.CorsWhitelist;
@@ -122,7 +119,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
             _cors = new CorsConfig(configuration);
             _cosmos = new CosmosDbConfig(configuration);
             _jobs = new JobOrchestratorConfig(configuration);
-            _edge = new JobOrchestratorApiConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
         }
 
@@ -132,7 +128,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
         private readonly CorsConfig _cors;
         private readonly CosmosDbConfig _cosmos;
         private readonly JobOrchestratorConfig _jobs;
-        private readonly JobOrchestratorApiConfig _edge;
         private readonly IoTHubConfig _hub;
         private readonly ForwardedHeadersConfig _fh;
     }

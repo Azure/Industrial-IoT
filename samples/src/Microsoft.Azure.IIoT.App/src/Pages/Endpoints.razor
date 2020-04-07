@@ -13,6 +13,7 @@
 
 @inject NavigationManager NavigationManager
 @inject IRegistryServiceApi RegistryService
+@inject RegistryServiceEvents RegistryServiceEvents
 @inject Registry RegistryHelper
 @inject UICommon CommonHelper
 
@@ -118,7 +119,7 @@
     private PagedResult<EndpointInfo> _pagedendpointList =
         new PagedResult<EndpointInfo>();
     private string _tableView { get; set; } = "visible";
-
+    private IAsyncDisposable _endpointEvents { get; set; }
 
     /// <summary>
     /// Notify page change
@@ -162,6 +163,25 @@
                 _tableView = "hidden";
             }
             StateHasChanged();
+
+            _endpointEvents = await RegistryServiceEvents.SubscribeEndpointEventsAsync(
+                ev => InvokeAsync(() => EndpointEvent(ev)));
+        }
+    }
+
+    private Task EndpointEvent(EndpointEventApiModel ev)
+    {
+        _endpointList.Results.Update(ev);
+        _pagedendpointList = _endpointList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _endpointList.Error);
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    public async void Dispose()
+    {
+        if (_endpointEvents != null)
+        {
+            await _endpointEvents.DisposeAsync();
         }
     }
 
@@ -195,10 +215,5 @@
                 Status = e.Message;
             }
         }
-
-        _endpointList = await RegistryHelper.GetEndpointListAsync(DiscovererId, ApplicationId, SupervisorId);
-        _pagedendpointList = _endpointList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _endpointList.Error);
-        await Task.CompletedTask;
-        this.StateHasChanged();
     }
 }

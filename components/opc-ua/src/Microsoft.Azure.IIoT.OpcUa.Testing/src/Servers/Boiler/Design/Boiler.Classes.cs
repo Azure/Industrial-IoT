@@ -99,7 +99,7 @@ namespace Boiler {
             }
 
             set {
-                if (!object.ReferenceEquals(m_measurement, value)) {
+                if (!ReferenceEquals(m_measurement, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -116,7 +116,7 @@ namespace Boiler {
             }
 
             set {
-                if (!object.ReferenceEquals(m_setPoint, value)) {
+                if (!ReferenceEquals(m_setPoint, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -133,7 +133,7 @@ namespace Boiler {
             }
 
             set {
-                if (!object.ReferenceEquals(m_controlOut, value)) {
+                if (!ReferenceEquals(m_controlOut, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1244,7 +1244,7 @@ namespace Boiler {
             }
 
             set {
-                if (!object.ReferenceEquals(m_updateRate, value)) {
+                if (!ReferenceEquals(m_updateRate, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1261,7 +1261,7 @@ namespace Boiler {
             }
 
             set {
-                if (!object.ReferenceEquals(m_startMethod, value)) {
+                if (!ReferenceEquals(m_startMethod, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1278,7 +1278,7 @@ namespace Boiler {
             }
 
             set {
-                if (!object.ReferenceEquals(m_suspendMethod, value)) {
+                if (!ReferenceEquals(m_suspendMethod, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1295,7 +1295,7 @@ namespace Boiler {
             }
 
             set {
-                if (!object.ReferenceEquals(m_resumeMethod, value)) {
+                if (!ReferenceEquals(m_resumeMethod, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1312,7 +1312,7 @@ namespace Boiler {
             }
 
             set {
-                if (!object.ReferenceEquals(m_haltMethod, value)) {
+                if (!ReferenceEquals(m_haltMethod, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -1329,7 +1329,7 @@ namespace Boiler {
             }
 
             set {
-                if (!object.ReferenceEquals(m_resetMethod, value)) {
+                if (!ReferenceEquals(m_resetMethod, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2081,7 +2081,7 @@ namespace Boiler {
             }
 
             set {
-                if (!object.ReferenceEquals(m_inputPipe, value)) {
+                if (!ReferenceEquals(m_inputPipe, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2098,7 +2098,7 @@ namespace Boiler {
             }
 
             set {
-                if (!object.ReferenceEquals(m_drum, value)) {
+                if (!ReferenceEquals(m_drum, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2115,7 +2115,7 @@ namespace Boiler {
             }
 
             set {
-                if (!object.ReferenceEquals(m_outputPipe, value)) {
+                if (!ReferenceEquals(m_outputPipe, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2132,7 +2132,7 @@ namespace Boiler {
             }
 
             set {
-                if (!object.ReferenceEquals(m_flowController, value)) {
+                if (!ReferenceEquals(m_flowController, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2149,7 +2149,7 @@ namespace Boiler {
             }
 
             set {
-                if (!object.ReferenceEquals(m_levelController, value)) {
+                if (!ReferenceEquals(m_levelController, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2166,7 +2166,7 @@ namespace Boiler {
             }
 
             set {
-                if (!object.ReferenceEquals(m_customController, value)) {
+                if (!ReferenceEquals(m_customController, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -2183,7 +2183,7 @@ namespace Boiler {
             }
 
             set {
-                if (!object.ReferenceEquals(m_simulation, value)) {
+                if (!ReferenceEquals(m_simulation, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 

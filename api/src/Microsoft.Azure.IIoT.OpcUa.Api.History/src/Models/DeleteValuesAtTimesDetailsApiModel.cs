@@ -4,19 +4,20 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Deletes data at times
     /// </summary>
+    [DataContract]
     public class DeleteValuesAtTimesDetailsApiModel {
 
         /// <summary>
         /// The timestamps to delete
         /// </summary>
-        [JsonProperty(PropertyName = "reqTimes")]
+        [DataMember(Name = "reqTimes", Order = 0)]
         [Required]
         public DateTime[] ReqTimes { get; set; }
     }

@@ -5,51 +5,55 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Vault.Storage.Models {
     using Microsoft.Azure.IIoT.OpcUa.Vault.Models;
-    using Newtonsoft.Json;
-    using System;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Trust relationship document
     /// </summary>
-    [Serializable]
+    [DataContract]
     public sealed class TrustDocument {
 
         /// <summary>
         /// The id of the relationship.
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
+        [DataMember(Name = "id")]
         public string Id { get; set; }
 
         /// <summary>
         /// Etag
         /// </summary>
-        [JsonProperty(PropertyName = "_etag")]
+        [DataMember(Name = "_etag")]
         public string ETag { get; set; }
 
         /// <summary>
         /// The trusted entity, e.g. group (= issuer),
         /// single application, endpoint.
         /// </summary>
+        [DataMember]
         public string TrustedId { get; set; }
 
         /// <summary>
         /// The type of the trusted entity
         /// </summary>
+        [DataMember]
         public EntityType TrustedType { get; set; }
 
         /// <summary>
         /// The trusting entity, e.g. client
         /// </summary>
+        [DataMember]
         public string TrustingId { get; set; }
 
         /// <summary>
         /// The type of the trusting entity
         /// </summary>
+        [DataMember]
         public EntityType TrustingType { get; set; }
 
         /// <summary>
         /// Document type
         /// </summary>
+        [DataMember]
         public string ClassType { get; set; } = ClassTypeName;
 
         /// <inheritdoc/>

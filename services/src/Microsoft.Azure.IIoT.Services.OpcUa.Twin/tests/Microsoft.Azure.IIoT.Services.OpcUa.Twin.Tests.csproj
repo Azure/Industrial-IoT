@@ -22,10 +22,12 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\api\src\Microsoft.Azure.IIoT.Api\src\Microsoft.Azure.IIoT.Api.csproj" />
-    <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Edge.Twin\src\Microsoft.Azure.IIoT.OpcUa.Edge.Twin.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\src\Microsoft.Azure.IIoT.Services.OpcUa.Twin.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Edge.Twin\src\Microsoft.Azure.IIoT.OpcUa.Edge.Twin.csproj" />
     <ProjectReference Include="..\..\..\..\components\opc-ua\src\Microsoft.Azure.IIoT.OpcUa.Testing\src\Microsoft.Azure.IIoT.OpcUa.Testing.csproj" />
   </ItemGroup>
 </Project>

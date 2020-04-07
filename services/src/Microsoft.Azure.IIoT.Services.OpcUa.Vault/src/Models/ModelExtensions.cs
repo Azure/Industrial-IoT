@@ -4,8 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Models {
-    using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
     using Microsoft.Azure.IIoT.OpcUa.Vault.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
     using System.Linq;
 
     /// <summary>
@@ -347,6 +349,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Models {
                 NotBeforeUtc = model.NotBeforeUtc,
                 SerialNumber = model.SerialNumber,
                 Subject = model.Subject,
+                SelfSigned = model.SelfSigned,
                 Thumbprint = model.Thumbprint
             };
         }
@@ -361,6 +364,9 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Models {
                 return null;
             }
             return new X509CertificateChainApiModel {
+                Status = model.Status?
+                    .Select(s => (IIoT.OpcUa.Api.Core.Models.X509ChainStatus)s)
+                    .ToList(),
                 Chain = model.Chain?
                     .Select(c => c.ToApiModel())
                     .ToList()

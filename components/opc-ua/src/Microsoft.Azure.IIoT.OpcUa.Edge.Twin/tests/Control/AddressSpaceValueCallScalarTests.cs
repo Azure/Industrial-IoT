@@ -22,7 +22,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Control.Services {
                     new VariantEncoderFactory(), _server.Logger),
                 new EndpointModel {
                     Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
-                    Certificate = _server.Certificate?.RawData
+                    Certificate = _server.Certificate?.RawData?.ToThumbprint()
                 });
         }
 

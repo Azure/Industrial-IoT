@@ -5,42 +5,43 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     using Gremlin.Net.CosmosDb.Structure;
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
 
     /// <summary>
     /// Base address space vertex
     /// </summary>
+    [DataContract]
     public abstract class AddressSpaceVertexModel : IVertex {
 
         /// <summary>
         /// Returns the vertex identifier
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
+        [DataMember(Name = "id")]
         public string Id { get; set; }
 
         /// <summary>
         /// Node Identifier in address space
         /// </summary>
-        [JsonProperty(PropertyName = "nodeId")]
+        [DataMember(Name = "nodeId")]
         public string NodeId { get; set; }
 
         /// <summary>
         /// Partition key
         /// </summary>
-        [JsonProperty(PropertyName = "__pk")]
+        [DataMember(Name = "__pk")]
         public string PartitionKey => NodeId;
 
         /// <summary>
         /// Source Id
         /// </summary>
-        [JsonProperty(PropertyName = "_source")]
+        [DataMember(Name = "_source")]
         public string SourceId { get; set; }
 
         /// <summary>
         /// Source revision
         /// </summary>
-        [JsonProperty(PropertyName = "_rev")]
+        [DataMember(Name = "_rev")]
         public long Revision { get; set; }
 
         /// <summary>

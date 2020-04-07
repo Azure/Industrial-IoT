@@ -4,33 +4,34 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
 
     /// <summary>
     /// Modification information
     /// </summary>
+    [DataContract]
     public class ModificationInfoApiModel {
 
         /// <summary>
         /// Modification time
         /// </summary>
-        [JsonProperty(PropertyName = "modificationTime",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "modificationTime", Order = 0,
+            EmitDefaultValue = false)]
         public DateTime? ModificationTime { get; set; }
 
         /// <summary>
         /// Operation
         /// </summary>
-        [JsonProperty(PropertyName = "updateType",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "updateType", Order = 1,
+            EmitDefaultValue = false)]
         public HistoryUpdateOperation? UpdateType { get; set; }
 
         /// <summary>
         /// User who made the change
         /// </summary>
-        [JsonProperty(PropertyName = "userName",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "userName", Order = 2,
+            EmitDefaultValue = false)]
         public string UserName { get; set; }
     }
 }

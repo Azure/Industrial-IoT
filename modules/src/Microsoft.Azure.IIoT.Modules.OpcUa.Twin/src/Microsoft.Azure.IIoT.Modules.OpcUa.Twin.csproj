@@ -18,6 +18,9 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.3" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\api\src\Microsoft.Azure.IIoT.Api\src\Microsoft.Azure.IIoT.Api.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\..\..\common\src\Microsoft.Azure.IIoT.Diagnostics.Debug\src\Microsoft.Azure.IIoT.Diagnostics.Debug.csproj" />
   </ItemGroup>
   <ItemGroup>

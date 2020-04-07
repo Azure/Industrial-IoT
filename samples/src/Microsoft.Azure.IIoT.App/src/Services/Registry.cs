@@ -79,10 +79,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.PageSize = _commonHelper.PageLength;
                 pageResult.RowCount = pageResult.Results.Count;
             }
+            catch (UnauthorizedAccessException) {
+                pageResult.Error = "Unauthorized access: Bad User Access Denied.";
+            }
             catch (Exception e) {
-                _logger.Warning("Can not get endpoint list");
-                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                _logger.Warning(errorMessage);
+                _logger.Warning(e, "Can not get endpoint list");
                 pageResult.Error = e.Message;
             }
             return pageResult;
@@ -146,10 +147,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     pageResult.Error = "No Discoveres Found";
                 }
             }
+            catch (UnauthorizedAccessException) {
+                pageResult.Error = "Unauthorized access: Bad User Access Denied.";
+            }
             catch (Exception e) {
-                _logger.Warning("Can not get discoverers as list");
-                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                _logger.Warning(errorMessage);
+                _logger.Warning(e, "Can not get discoverers as list");
                 pageResult.Error = e.Message;
             }
             return pageResult;
@@ -200,10 +202,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.PageSize = _commonHelper.PageLength;
                 pageResult.RowCount = pageResult.Results.Count;
             }
+            catch (UnauthorizedAccessException) {
+                pageResult.Error = "Unauthorized access: Bad User Access Denied.";
+            }
             catch (Exception e) {
-                _logger.Warning("Can not get applications list");
-                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                _logger.Warning(errorMessage);
+                _logger.Warning(e, "Can not get applications list");
                 pageResult.Error = e.Message;
             }
             return pageResult;
@@ -220,10 +223,13 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 await _registryService.SetDiscoveryModeAsync(discoverer.DiscovererModel.Id, discoveryMode, discoverer.Patch);
                 discoverer.Patch = new DiscoveryConfigApiModel();
             }
+            catch (UnauthorizedAccessException) {
+                return "Unauthorized access: Bad User Access Denied.";
+            }
             catch (Exception exception) {
+                _logger.Error(exception, "Failed to set discovery mode.");
                 var errorMessageTrace = string.Concat(exception.Message,
                     exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
-                _logger.Error(errorMessageTrace);
                 return errorMessageTrace;
             }
             return null;
@@ -242,10 +248,13 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 });
                 discoverer.Patch = new DiscoveryConfigApiModel();
             }
+            catch (UnauthorizedAccessException) {
+                return "Unauthorized access: Bad User Access Denied.";
+            }
             catch (Exception exception) {
+                _logger.Error(exception, "Failed to update discoverer");
                 var errorMessageTrace = string.Concat(exception.Message,
                     exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
-                _logger.Error(errorMessageTrace);
                 return errorMessageTrace;
             }
             return null;
@@ -295,10 +304,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.PageSize = _commonHelper.PageLength;
                 pageResult.RowCount = pageResult.Results.Count;
             }
+            catch (UnauthorizedAccessException) {
+                pageResult.Error = "Unauthorized access: Bad User Access Denied.";
+            }
             catch (Exception e) {
-                _logger.Warning("Can not get gateways list");
-                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                _logger.Warning(errorMessage);
+                _logger.Warning(e, "Can not get gateways list");
                 pageResult.Error = e.Message;
             }
             return pageResult;
@@ -348,10 +358,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.PageSize = _commonHelper.PageLengthSmall;
                 pageResult.RowCount = pageResult.Results.Count;
             }
+            catch (UnauthorizedAccessException) {
+                pageResult.Error = "Unauthorized access: Bad User Access Denied.";
+            }
             catch (Exception e) {
-                _logger.Warning("Can not get publisher list");
-                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                _logger.Warning(errorMessage);
+                _logger.Warning(e, "Can not get publisher list");
                 pageResult.Error = e.Message;
             }
             return pageResult;
@@ -367,9 +378,12 @@ namespace Microsoft.Azure.IIoT.App.Services {
             try {
                 await _registryService.UnregisterApplicationAsync(applicationId);
             }
+            catch (UnauthorizedAccessException) {
+                return "Unauthorized access: Bad User Access Denied.";
+            }
             catch (Exception exception) {
+                _logger.Error(exception, "Failed to unregister application");
                 var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
-                _logger.Error(errorMessageTrace);
                 return errorMessageTrace;
             }
             return null;
@@ -420,10 +434,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.PageSize = _commonHelper.PageLength;
                 pageResult.RowCount = pageResult.Results.Count;
             }
+            catch (UnauthorizedAccessException) {
+                pageResult.Error = "Unauthorized access: Bad User Access Denied.";
+            }
             catch (Exception e) {
-                _logger.Warning("Can not get supervisor list");
-                var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                _logger.Warning(errorMessage);
+                _logger.Warning(e, "Can not get supervisor list");
                 pageResult.Error = e.Message;
             }
             return pageResult;
@@ -441,8 +456,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 supervisorStatus = await _registryService.GetSupervisorStatusAsync(supervisorId);
             }
             catch (Exception exception) {
-                var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
-                _logger.Error(errorMessageTrace);
+                _logger.Error(exception, "Failed to get status");
             }
 
             return supervisorStatus;
@@ -461,8 +475,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 return string.Empty;
             }
             catch (Exception exception) {
-                var errorMessageTrace = string.Concat(exception.Message, exception.InnerException?.Message ?? "--", exception?.StackTrace ?? "--");
-                _logger.Error(errorMessageTrace);
+                _logger.Error(exception, "Failed to reset supervisor");
                 return exception.Message;
             }
         }

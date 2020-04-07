@@ -4,28 +4,30 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Activation state of the endpoint twin
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
+    [DataContract]
     public enum EndpointActivationState {
 
         /// <summary>
         /// Endpoint twin is deactivated (default)
         /// </summary>
+        [EnumMember]
         Deactivated,
 
         /// <summary>
         /// Endpoint twin is activated but not connected
         /// </summary>
+        [EnumMember]
         Activated,
 
         /// <summary>
         /// Endoint twin is activated and connected to hub
         /// </summary>
+        [EnumMember]
         ActivatedAndConnected
     }
 }

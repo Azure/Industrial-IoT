@@ -4,88 +4,104 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Publisher.Models {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.Serializers;
+    using System.Runtime.Serialization;
     using System;
 
     /// <summary>
     /// Publisher monitored item sample model
     /// </summary>
-    [JsonObject(Id = "MonitoredItemMessageApiModel")]
+    [DataContract]
     public class MonitoredItemMessageApiModel {
 
         /// <summary>
         /// Publisher Id
         /// </summary>
-        [JsonProperty(PropertyName = "publisherId",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "publisherId", Order = 0,
+            EmitDefaultValue = false)]
         public string PublisherId { get; set; }
 
         /// <summary>
         /// DataSetWriterId
         /// </summary>
-        [JsonProperty(PropertyName = "dataSetWriterId",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "dataSetWriterId", Order = 1,
+            EmitDefaultValue = false)]
         public string DataSetWriterId { get; set; }
 
         /// <summary>
         /// Endpoint
         /// </summary>
-        [JsonProperty(PropertyName = "endpointId",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "endpointId", Order = 2,
+            EmitDefaultValue = false)]
         public string EndpointId { get; set; }
 
         /// <summary>
         /// Node id
         /// </summary>
-        [JsonProperty(PropertyName = "nodeId")]
+        [DataMember(Name = "nodeId", Order = 3)]
         public string NodeId { get; set; }
 
         /// <summary>
         /// Node's display name
         /// </summary>
-        [JsonProperty(PropertyName = "displayName")]
+        [DataMember(Name = "displayName", Order = 4,
+            EmitDefaultValue = false)]
         public string DisplayName { get; set; }
 
         /// <summary>
         /// Value
         /// </summary>
-        [JsonProperty(PropertyName = "value",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public dynamic Value { get; set; }
+        [DataMember(Name = "value", Order = 5,
+            EmitDefaultValue = false)]
+        public VariantValue Value { get; set; }
 
         /// <summary>
         /// Type id
         /// </summary>
-        [JsonProperty(PropertyName = "typeId",
-            NullValueHandling = NullValueHandling.Ignore)]
-        public string TypeId { get; set; }
+        [DataMember(Name = "dataType", Order = 6,
+            EmitDefaultValue = false)]
+        public string DataType { get; set; }
 
         /// <summary>
         /// Status of the value (Quality)
         /// </summary>
-        [JsonProperty(PropertyName = "status",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "status", Order = 7,
+            EmitDefaultValue = false)]
         public string Status { get; set; }
 
         /// <summary>
         /// Sent time stamp
         /// </summary>
-        [JsonProperty(PropertyName = "timestamp",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "timestamp", Order = 8,
+            EmitDefaultValue = false)]
         public DateTime? Timestamp { get; set; }
 
         /// <summary>
         /// Source time stamp
         /// </summary>
-        [JsonProperty(PropertyName = "sourceTimestamp",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "sourceTimestamp", Order = 10,
+            EmitDefaultValue = false)]
         public DateTime? SourceTimestamp { get; set; }
+
+        /// <summary>
+        /// Source pico
+        /// </summary>
+        [DataMember(Name = "sourcePicoseconds", Order = 11,
+            EmitDefaultValue = false)]
+        public ushort? SourcePicoseconds { get; set; }
 
         /// <summary>
         /// Server time stamp
         /// </summary>
-        [JsonProperty(PropertyName = "serverTimestamp",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "serverTimestamp", Order = 12,
+            EmitDefaultValue = false)]
         public DateTime? ServerTimestamp { get; set; }
+
+        /// <summary>
+        /// Server pico
+        /// </summary>
+        [DataMember(Name = "serverPicoseconds", Order = 13,
+            EmitDefaultValue = false)]
+        public ushort? ServerPicoseconds { get; set; }
     }
 }

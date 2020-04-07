@@ -20,17 +20,14 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.Runtime {
     public class Config : DiagnosticsConfig, IEventProcessorConfig,
         IEventHubConsumerConfig, ICdmClientConfig, IEventProcessorHostConfig {
 
-        private const string kEventHubConsumerGroupTelemetryCdmKey =
-            "EventHubConsumerGroupTelemetryCdm";
-
         /// <inheritdoc/>
         public string EventHubConnString => _eh.EventHubConnString;
         /// <inheritdoc/>
         public string EventHubPath => _eh.EventHubPath;
-        /// <summary> Event hub consumer group telemetry cdm</summary>
-        public string ConsumerGroup => GetStringOrDefault(kEventHubConsumerGroupTelemetryCdmKey,
-            () => GetStringOrDefault(PcsVariable.PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_CDM,
-                () => "telemetrycdm"));
+        /// <inheritdoc/>
+        public string ConsumerGroup => GetStringOrDefault(
+            PcsVariable.PCS_EVENTHUB_CONSUMERGROUP_TELEMETRY_CDM,
+                () => "telemetrycdm");
         /// <inheritdoc/>
         public bool UseWebsockets => _eh.UseWebsockets;
         /// <inheritdoc/>

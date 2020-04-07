@@ -7,8 +7,8 @@ namespace Microsoft.Azure.IIoT.Module.Default {
     using Microsoft.Azure.IIoT.Module.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
-    using Newtonsoft.Json;
     using System;
     using System.Threading.Tasks;
     using System.IO;
@@ -24,9 +24,12 @@ namespace Microsoft.Azure.IIoT.Module.Default {
         /// Create client wrapping a json method client
         /// </summary>
         /// <param name="client"></param>
+        /// <param name="serializer"></param>
         /// <param name="logger"></param>
-        public ChunkMethodClient(IJsonMethodClient client, ILogger logger) {
+        public ChunkMethodClient(IJsonMethodClient client, IJsonSerializer serializer,
+            ILogger logger) {
             _client = client ?? throw new ArgumentNullException(nameof(client));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             //
             // assume base64 encoding is 33% reduction compared to raw bytes
@@ -60,7 +63,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                     var length = Math.Min(buffer.Length - offset, _maxSize);
                     var chunk = buffer.AsSpan(offset, length).ToArray();
                     var result = await _client.CallMethodAsync(deviceId, moduleId,
-                        MethodNames.Call, JsonConvertEx.SerializeObject(offset == 0 ?
+                        MethodNames.Call, _serializer.SerializeToString(offset == 0 ?
                             new MethodChunkModel {
                                 Timeout = timeout,
                                 MethodName = method,
@@ -73,7 +76,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                                 Payload = chunk
                             }),
                         timeout, ct);
-                    var response = JsonConvertEx.DeserializeObject<MethodChunkModel>(result);
+                    var response = _serializer.Deserialize<MethodChunkModel>(result);
                     if (response.Payload != null) {
                         received.Write(response.Payload);
                     }
@@ -85,10 +88,10 @@ namespace Microsoft.Azure.IIoT.Module.Default {
                 // Receive all responses
                 while (!string.IsNullOrEmpty(handle)) {
                     var result = await _client.CallMethodAsync(deviceId, moduleId,
-                        MethodNames.Call, JsonConvertEx.SerializeObject(new MethodChunkModel {
+                        MethodNames.Call, _serializer.SerializeToString(new MethodChunkModel {
                             Handle = handle,
                         }), timeout, ct);
-                    var response = JsonConvertEx.DeserializeObject<MethodChunkModel>(result);
+                    var response = _serializer.Deserialize<MethodChunkModel>(result);
                     if (response.Payload != null) {
                         received.Write(response.Payload);
                     }
@@ -127,6 +130,7 @@ namespace Microsoft.Azure.IIoT.Module.Default {
         }
 
         private readonly IJsonMethodClient _client;
+        private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
         private readonly int _maxSize;
     }

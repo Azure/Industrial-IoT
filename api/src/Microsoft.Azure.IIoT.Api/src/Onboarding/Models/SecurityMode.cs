@@ -4,33 +4,36 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Security mode of endpoint
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
+    [DataContract]
     public enum SecurityMode {
 
         /// <summary>
         /// Best
         /// </summary>
+        [EnumMember]
         Best,
 
         /// <summary>
         /// Sign
         /// </summary>
+        [EnumMember]
         Sign,
 
         /// <summary>
         /// Sign and Encrypt
         /// </summary>
+        [EnumMember]
         SignAndEncrypt,
 
         /// <summary>
         /// No security
         /// </summary>
+        [EnumMember]
         None
     }
 }

@@ -7,7 +7,6 @@
 @using Microsoft.Azure.IIoT.App.Components.ErrorMessage
 @using Microsoft.Azure.IIoT.App.Data
 @using Microsoft.AspNetCore.Components
-@using Microsoft.Azure.IIoT.Http.SignalR
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry
 @using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models
 @using Microsoft.Azure.IIoT.App.Common
@@ -15,7 +14,6 @@
 @inject NavigationManager NavigationManager
 @inject Registry RegistryHelper
 @inject RegistryServiceEvents RegistryServiceEvents
-@inject SignalRClient SignalRClientHelper
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject UICommon CommonHelper
 
@@ -266,7 +264,8 @@
             }
             StateHasChanged();
 
-            _discovererEvent = await RegistryServiceEvents.SubscribeDiscovererEventsAsync(null, DiscovererEvent);
+            _discovererEvent = await RegistryServiceEvents.SubscribeDiscovererEventsAsync(
+                ev => InvokeAsync(() => DiscovererEvent(ev)));
         }
     }
 
@@ -280,10 +279,10 @@
     private async Task SetScanAsync(DiscovererInfo discoverer)
     {
         _discovery = await RegistryServiceEvents.SubscribeDiscoveryProgressByDiscovererIdAsync(
-                discoverer.DiscovererModel.Id, null, async data =>
-                {
-                    await InvokeAsync(() => ScanProgress(data));
-                });
+            discoverer.DiscovererModel.Id, async data =>
+            {
+                await InvokeAsync(() => ScanProgress(data));
+            });
 
         try
         {
@@ -420,6 +419,8 @@
     /// <param name="ev"></param>
     private Task DiscovererEvent(DiscovererEventApiModel ev)
     {
+        _discovererList.Results.Update(ev);
+        _pagedDiscovererList = _discovererList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _discovererList.Error);
         StateHasChanged();
         return Task.CompletedTask;
     }

@@ -6,7 +6,6 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.Filters;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
     using Microsoft.Azure.IIoT.OpcUa.Twin;
     using Microsoft.AspNetCore.Authorization;
@@ -20,7 +19,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Controllers {
     /// </summary>
     [ApiVersion("2")][Route("v{version:apiVersion}/call")]
     [ExceptionsFilter]
-    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanControl)]
     [ApiController]
     public class CallController : ControllerBase {

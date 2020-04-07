@@ -3,7 +3,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
    </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Autofac.Extras.Moq" Version="4.3.0" />
+    <PackageReference Include="Autofac.Extras.Moq" Version="5.0.1" />
     <PackageReference Include="AutoFixture" Version="4.11.0" />
     <PackageReference Include="AutoFixture.AutoMoq" Version="4.11.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
@@ -19,7 +19,7 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.History\src\Microsoft.Azure.IIoT.OpcUa.History.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Twin\src\Microsoft.Azure.IIoT.OpcUa.Twin.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa.Testing\src\Microsoft.Azure.IIoT.OpcUa.Testing.csproj" />
     <ProjectReference Include="..\src\Microsoft.Azure.IIoT.OpcUa.Edge.Twin.csproj" />
   </ItemGroup>

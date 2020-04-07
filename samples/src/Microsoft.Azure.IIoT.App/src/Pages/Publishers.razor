@@ -119,12 +119,15 @@
             }
             StateHasChanged();
 
-            _publisherEvent = await RegistryServiceEvents.SubscribePublisherEventsAsync(null, PublisherEvent);
+            _publisherEvent = await RegistryServiceEvents.SubscribePublisherEventsAsync(
+                ev => InvokeAsync(() => PublisherEvent(ev)));
         }
     }
 
     private Task PublisherEvent(PublisherEventApiModel ev)
     {
+        _publisherList.Results.Update(ev);
+        _pagedPublisherList = _publisherList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _publisherList.Error);
         StateHasChanged();
         return Task.CompletedTask;
     }

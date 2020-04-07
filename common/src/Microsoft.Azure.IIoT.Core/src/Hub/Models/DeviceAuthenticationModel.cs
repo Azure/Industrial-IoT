@@ -4,25 +4,26 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Authentication information
     /// </summary>
+    [DataContract]
     public class DeviceAuthenticationModel {
 
         /// <summary>
         /// Primary sas key
         /// </summary>
-        [JsonProperty(PropertyName = "primaryKey",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "primaryKey",
+            EmitDefaultValue = false)]
         public string PrimaryKey { get; set; }
 
         /// <summary>
         /// Secondary sas key
         /// </summary>
-        [JsonProperty(PropertyName = "secondaryKey",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "secondaryKey",
+            EmitDefaultValue = false)]
         public string SecondaryKey { get; set; }
     }
 }

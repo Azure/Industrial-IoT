@@ -25,7 +25,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault.Controllers {
     [ExceptionsFilter]
     [ApiVersion("2")]
     [Route("v{version:apiVersion}/requests")]
-    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanRead)]
     [ApiController]
     public sealed class RequestsController : ControllerBase {

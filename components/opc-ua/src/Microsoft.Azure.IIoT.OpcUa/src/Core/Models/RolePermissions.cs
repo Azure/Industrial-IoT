@@ -5,14 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
     using System;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
 
     /// <summary>
     /// Individual permissions assigned to a role
     /// </summary>
     [Flags]
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum RolePermissions {
 
         /// <summary>

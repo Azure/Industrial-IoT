@@ -7,7 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Collections.Generic;
 
@@ -20,9 +20,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// Create device twin
         /// </summary>
         /// <param name="registration"></param>
+        /// <param name="serializer"></param>
         /// <returns></returns>
-        public static DeviceTwinModel ToDeviceTwin(this DiscovererRegistration registration) {
-            return Patch(null, registration);
+        public static DeviceTwinModel ToDeviceTwin(
+            this DiscovererRegistration registration, IJsonSerializer serializer) {
+            return Patch(null, registration, serializer);
         }
 
         /// <summary>
@@ -30,14 +32,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// </summary>
         /// <param name="existing"></param>
         /// <param name="update"></param>
+        /// <param name="serializer"></param>
         public static DeviceTwinModel Patch(this DiscovererRegistration existing,
-            DiscovererRegistration update) {
+            DiscovererRegistration update, IJsonSerializer serializer) {
 
             var twin = new DeviceTwinModel {
                 Etag = existing?.Etag,
-                Tags = new Dictionary<string, JToken>(),
+                Tags = new Dictionary<string, VariantValue>(),
                 Properties = new TwinPropertiesModel {
-                    Desired = new Dictionary<string, JToken>()
+                    Desired = new Dictionary<string, VariantValue>()
                 }
             };
 
@@ -60,7 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (!(policiesUpdate ?? true)) {
                 twin.Tags.Add(nameof(DiscovererRegistration.SecurityPoliciesFilter),
                     update?.SecurityPoliciesFilter == null ?
-                    null : JToken.FromObject(update.SecurityPoliciesFilter));
+                    null : serializer.FromObject(update.SecurityPoliciesFilter));
             }
 
             var trustListUpdate = update?.TrustListsFilter.DecodeAsList().SequenceEqualsSafe(
@@ -68,13 +71,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (!(trustListUpdate ?? true)) {
                 twin.Tags.Add(nameof(DiscovererRegistration.TrustListsFilter),
                     update?.TrustListsFilter == null ?
-                    null : JToken.FromObject(update.TrustListsFilter));
+                    null : serializer.FromObject(update.TrustListsFilter));
             }
 
             if (update?.SecurityModeFilter != existing?.SecurityModeFilter) {
                 twin.Tags.Add(nameof(DiscovererRegistration.SecurityModeFilter),
                     update?.SecurityModeFilter == null ?
-                    null : JToken.FromObject(update?.SecurityModeFilter));
+                    null : serializer.FromObject(update.SecurityModeFilter.ToString()));
             }
 
             // Settings
@@ -84,7 +87,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (!(urlUpdate ?? true)) {
                 twin.Properties.Desired.Add(nameof(DiscovererRegistration.DiscoveryUrls),
                     update?.DiscoveryUrls == null ?
-                    null : JToken.FromObject(update.DiscoveryUrls));
+                    null : serializer.FromObject(update.DiscoveryUrls));
             }
 
             var localesUpdate = update?.Locales?.DecodeAsList()?.SequenceEqualsSafe(
@@ -92,12 +95,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (!(localesUpdate ?? true)) {
                 twin.Properties.Desired.Add(nameof(DiscovererRegistration.Locales),
                     update?.Locales == null ?
-                    null : JToken.FromObject(update.Locales));
+                    null : serializer.FromObject(update.Locales));
             }
 
             if (update?.Discovery != existing?.Discovery) {
                 twin.Properties.Desired.Add(nameof(DiscovererRegistration.Discovery),
-                    JToken.FromObject(update?.Discovery));
+                    serializer.FromObject(update?.Discovery.ToString()));
             }
 
             if (update?.AddressRangesToScan != existing?.AddressRangesToScan) {
@@ -113,7 +116,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             if (update?.LogLevel != existing?.LogLevel) {
                 twin.Properties.Desired.Add(nameof(DiscovererRegistration.LogLevel),
                     update?.LogLevel == null ?
-                    null : JToken.FromObject(update.LogLevel));
+                    null : serializer.FromObject(update.LogLevel.ToString()));
             }
 
             if (update?.MaxNetworkProbes != existing?.MaxNetworkProbes) {
@@ -163,12 +166,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         /// <param name="properties"></param>
         /// <returns></returns>
         public static DiscovererRegistration ToDiscovererRegistration(this DeviceTwinModel twin,
-            Dictionary<string, JToken> properties) {
+            Dictionary<string, VariantValue> properties) {
             if (twin == null) {
                 return null;
             }
 
-            var tags = twin.Tags ?? new Dictionary<string, JToken>();
+            var tags = twin.Tags ?? new Dictionary<string, VariantValue>();
             var connected = twin.IsConnected();
 
             var registration = new DiscovererRegistration {
@@ -257,7 +260,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 return null;
             }
             if (twin.Tags == null) {
-                twin.Tags = new Dictionary<string, JToken>();
+                twin.Tags = new Dictionary<string, VariantValue>();
             }
 
             var consolidated =

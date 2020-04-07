@@ -63,8 +63,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
             }
             return new ApplicationRegistrationModel {
                 Application = model.Application.Clone(),
-                Endpoints = model.Endpoints?.Select(e => e.Clone()).ToList(),
-                SecurityAssessment = model.SecurityAssessment
+                Endpoints = model.Endpoints?.Select(e => e.Clone()).ToList()
             };
         }
 
@@ -126,20 +125,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                     }
                 }
             }
-        }
-
-        /// <summary>
-        /// Update security assessment
-        /// </summary>
-        /// <param name="model"></param>
-        public static ApplicationRegistrationModel SetSecurityAssessment(
-            this ApplicationRegistrationModel model) {
-            if (model.Endpoints == null || !model.Endpoints.Any()) {
-                return model;
-            }
-            model.SecurityAssessment = (SecurityAssessment)
-                model.Endpoints.Average(e => (int)e.GetSecurityAssessment());
-            return model;
         }
     }
 }

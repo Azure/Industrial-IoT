@@ -4,26 +4,28 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Models {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
 
     /// <summary>
     /// History update results
     /// </summary>
+    [DataContract]
     public class HistoryUpdateResponseApiModel {
 
         /// <summary>
         /// List of results from the update operation
         /// </summary>
-        [JsonProperty(PropertyName = "results",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "results", Order = 0,
+            EmitDefaultValue = false)]
         public List<ServiceResultApiModel> Results { get; set; }
 
         /// <summary>
         /// Service result in case of service call error
         /// </summary>
-        [JsonProperty(PropertyName = "errorInfo",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "errorInfo", Order = 1,
+            EmitDefaultValue = false)]
         public ServiceResultApiModel ErrorInfo { get; set; }
     }
 }

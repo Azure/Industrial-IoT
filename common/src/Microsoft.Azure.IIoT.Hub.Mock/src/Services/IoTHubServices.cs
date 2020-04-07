@@ -11,7 +11,9 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Models;
     using Microsoft.Azure.IIoT.Utils;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Azure.IIoT.Serializers;
+    using Microsoft.Azure.IIoT.Serializers.NewtonSoft;
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
@@ -24,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
     /// Mock device registry
     /// </summary>
     public class IoTHubServices : IIoTHubTwinServices,
-        IIoTHubTelemetryServices, IIoTHub, IEventProcessorHost, IHostProcess {
+        IIoTHubTelemetryServices, IIoTHub, IEventProcessingHost, IHostProcess {
 
         /// <inheritdoc/>
         public string HostName { get; } = "mock.azure-devices.net";
@@ -46,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// </summary>
         /// <param name="config"></param>
         public IoTHubServices(IIoTHubConfig config = null) :
-            this(config, null) {
+            this(config, null, null) {
         }
 
         /// <summary>
@@ -54,8 +56,10 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         /// </summary>
         /// <param name="config"></param>
         /// <param name="devices"></param>
+        /// <param name="serializer"></param>
         private IoTHubServices(IIoTHubConfig config,
-            IEnumerable<(DeviceTwinModel, DeviceModel)> devices) {
+            IEnumerable<(DeviceTwinModel, DeviceModel)> devices,
+            IJsonSerializer serializer) {
             if (config?.IoTHubConnString != null) {
                 HostName = ConnectionString.Parse(config.IoTHubConnString).HostName;
             }
@@ -63,16 +67,19 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 _devices.AddRange(devices
                     .Select(d => new IoTHubDeviceModel(this, d.Item2, d.Item1)));
             }
-            _query = new SqlQuery(this);
+            _serializer = serializer ?? new NewtonSoftJsonSerializer();
+            _query = new SqlQuery(this, _serializer);
         }
 
         /// <summary>
         /// Create iot hub services with devices
         /// </summary>
+        /// <param name="serializer"></param>
         /// <param name="devices"></param>
         public static IoTHubServices Create(
-            IEnumerable<(DeviceTwinModel, DeviceModel)> devices) {
-            return new IoTHubServices(null, devices);
+            IEnumerable<(DeviceTwinModel, DeviceModel)> devices,
+            IJsonSerializer serializer = null) {
+            return new IoTHubServices(null, devices, serializer);
         }
 
         /// <inheritdoc/>
@@ -101,11 +108,12 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
 
         /// <inheritdoc/>
         public Task SendAsync(string deviceId, string moduleId, EventModel message) {
+            var payload = _serializer.SerializeToBytes(message.Payload).ToArray();
             var ev = new EventMessage {
                 DeviceId = deviceId,
                 ModuleId = moduleId,
                 EnqueuedTimeUtc = DateTime.UtcNow,
-                Message = new Message(Encoding.UTF8.GetBytes(message.Payload.ToString()))
+                Message = new Message(payload)
             };
             foreach (var item in message.Properties) {
                 ev.Message.Properties.Add(item.Key, item.Value);
@@ -159,8 +167,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                     throw new TimeoutException("Timed out waiting for device to connect");
                 }
                 var result = model.Connection.Call(new MethodRequest(parameters.Name,
-                    Encoding.UTF8.GetBytes(parameters.JsonPayload), parameters.ResponseTimeout,
-                    parameters.ConnectionTimeout));
+                    Encoding.UTF8.GetBytes(parameters.JsonPayload),
+                    parameters.ResponseTimeout, parameters.ConnectionTimeout));
                 return Task.FromResult(new MethodResultModel {
                     JsonPayload = result.ResultAsJson,
                     Status = result.Status
@@ -170,7 +178,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
 
         /// <inheritdoc/>
         public Task UpdatePropertiesAsync(string deviceId, string moduleId,
-            Dictionary<string, JToken> properties, string etag, CancellationToken ct) {
+            Dictionary<string, VariantValue> properties, string etag, CancellationToken ct) {
             lock (_lock) {
                 var model = GetModel(deviceId, moduleId, etag);
                 if (model == null) {
@@ -223,7 +231,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
         public Task<QueryResultModel> QueryAsync(string query, string continuation,
             int? pageSize, CancellationToken ct) {
             lock (_lock) {
-                var result = _query.Query(query).Select(r => r.DeepClone()).ToList();
+                var result = _query.Query(query).Select(r => r.Copy()).ToList();
                 if (pageSize == null) {
                     pageSize = int.MaxValue;
                 }
@@ -233,7 +241,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
 
                 return Task.FromResult(new QueryResultModel {
                     ContinuationToken = count >= result.Count ? null : count.ToString(),
-                    Result = JArray.FromObject(result.Skip(index).Take(count).ToList())
+                    Result = _serializer.FromObject(result.Skip(index).Take(count)).Values.ToList()
                 });
             }
         }
@@ -327,8 +335,8 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                         ConnectionTimeout = methodRequest.ConnectionTimeout,
                         ResponseTimeout = methodRequest.ResponseTimeout
                     }, CancellationToken.None).Result;
-                return new MethodResponse(Encoding.UTF8.GetBytes(response.JsonPayload),
-                    response.Status);
+                return new MethodResponse(Encoding.UTF8.GetBytes(
+                    response.JsonPayload), response.Status);
             }
 
             /// <inheritdoc/>
@@ -345,13 +353,13 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                         twin.Properties = new TwinPropertiesModel();
                     }
                     if (twin.Properties.Reported == null) {
-                        twin.Properties.Reported = new Dictionary<string, JToken>();
+                        twin.Properties.Reported = new Dictionary<string, VariantValue>();
                     }
                     if (twin.Properties.Desired == null) {
-                        twin.Properties.Desired = new Dictionary<string, JToken>();
+                        twin.Properties.Desired = new Dictionary<string, VariantValue>();
                     }
                     // Double clone but that is ok.
-                    return twin.ToTwin();
+                    return twin.ToTwin(false);
                 }
             }
 
@@ -386,7 +394,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                         Twin.Properties = new TwinPropertiesModel();
                     }
                     Twin.Properties.Reported = Merge(Twin.Properties.Reported,
-                        reportedProperties.ToModel());
+                        _outer._serializer.DeserializeTwinProperties(reportedProperties));
                     Twin.LastActivityTime = DateTime.UtcNow;
                     Twin.Etag = Device.Etag = Guid.NewGuid().ToString();
                 }
@@ -396,7 +404,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             /// Update desired properties
             /// </summary>
             /// <param name="properties"></param>
-            public void UpdateDesiredProperties(Dictionary<string, JToken> properties) {
+            public void UpdateDesiredProperties(Dictionary<string, VariantValue> properties) {
                 lock (_lock) {
                     if (Twin.Properties == null) {
                         Twin.Properties = new TwinPropertiesModel();
@@ -409,7 +417,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
                 if (Connection != null) {
                     var desired = new TwinCollection();
                     foreach (var item in Twin.Properties.Desired) {
-                        desired[item.Key] = item.Value;
+                        desired[item.Key] = item.Value?.ConvertTo<object>();
                     }
                     Connection.SetDesiredProperties(desired);
                 }
@@ -450,9 +458,9 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             /// </summary>
             /// <param name="target"></param>
             /// <param name="source"></param>
-            private Dictionary<string, JToken> Merge(
-                Dictionary<string, JToken> target,
-                Dictionary<string, JToken> source) {
+            private Dictionary<string, VariantValue> Merge(
+                Dictionary<string, VariantValue> target,
+                Dictionary<string, VariantValue> source) {
 
                 if (source == null) {
                     return target;
@@ -464,14 +472,14 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
 
                 foreach (var item in source) {
                     if (target.ContainsKey(item.Key)) {
-                        if (item.Value == null || item.Value.Type == JTokenType.Null) {
+                        if (VariantValueEx.IsNull(item.Value) || VariantValueEx.IsNull(item.Value)) {
                             target.Remove(item.Key);
                         }
                         else {
                             target[item.Key] = item.Value;
                         }
                     }
-                    else if (item.Value != null && item.Value.Type != JTokenType.Null) {
+                    else if (!VariantValueEx.IsNull(item.Value)) {
                         target.Add(item.Key, item.Value);
                     }
                 }
@@ -516,5 +524,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock {
             new BlockingCollection<FileNotification>();
         private readonly List<IoTHubDeviceModel> _devices =
             new List<IoTHubDeviceModel>();
+        private readonly IJsonSerializer _serializer;
     }
 }

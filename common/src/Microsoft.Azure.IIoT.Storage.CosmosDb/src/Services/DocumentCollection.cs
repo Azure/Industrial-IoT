@@ -8,6 +8,7 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Http.Exceptions;
     using Microsoft.Azure.IIoT.Http;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.Documents;
     using Microsoft.Azure.Documents.Client;
     using Microsoft.Azure.Documents.Linq;
@@ -18,17 +19,14 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
-    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
-    using Gremlin.Net.CosmosDb;
-    using Gremlin.Net.CosmosDb.Structure;
-    using Gremlin.Net.Process.Traversal;
+    using Newtonsoft.Json;
     using CosmosContainer = Documents.DocumentCollection;
 
     /// <summary>
     /// Wraps a cosmos db container
     /// </summary>
-    internal sealed class DocumentCollection : IItemContainer, IGraph, IDocuments {
+    internal sealed class DocumentCollection : IItemContainer, IDocuments {
 
         /// <inheritdoc/>
         public string Name => Container.Id;
@@ -43,14 +41,14 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         /// </summary>
         /// <param name="db"></param>
         /// <param name="container"></param>
-        /// <param name="serializer"></param>
         /// <param name="logger"></param>
+        /// <param name="jsonConfig"></param>
         internal DocumentCollection(DocumentDatabase db, CosmosContainer container,
-            JsonSerializerSettings serializer, ILogger logger) {
+            ILogger logger, IJsonSerializerSettingsProvider jsonConfig = null) {
             Container = container ?? throw new ArgumentNullException(nameof(container));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _serializer = serializer;
             _db = db ?? throw new ArgumentNullException(nameof(db));
+            _jsonConfig = jsonConfig;
             _partitioned = container.PartitionKey.Paths.Any();
         }
 
@@ -75,34 +73,7 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         }
 
         /// <inheritdoc/>
-        public IGraphQueryClient OpenGremlinClient() {
-            var endpointHost = _db.Client.ServiceEndpoint.Host;
-            var instanceEnd = endpointHost.IndexOf('.');
-            if (instanceEnd == -1) {
-                // Support local emulation
-                if (!endpointHost.EqualsIgnoreCase("localhost")) {
-                    throw new ArgumentException("Endpoint host invalid.");
-                }
-            }
-            else {
-                // Use the instance name but the gremlin endpoint for the server.
-                endpointHost = endpointHost.Substring(0, instanceEnd) +
-                    ".gremlin.cosmosdb.azure.com";
-            }
-            var port = _db.Client.ServiceEndpoint.Port;
-            var client = new GraphClient(endpointHost + ":" + port,
-                _db.DatabaseId, Container.Id,
-                new NetworkCredential(string.Empty, _db.Client.AuthKey).Password);
-            return new GremlinTraversalClient(client);
-        }
-
-        /// <inheritdoc/>
         public IDocuments AsDocuments() {
-            return this;
-        }
-
-        /// <inheritdoc/>
-        public IGraph AsGraph() {
             return this;
         }
 
@@ -110,30 +81,6 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         public ISqlClient OpenSqlClient() {
             return new DocumentQuery(
                 _db.Client, _db.DatabaseId, Container.Id, _partitioned, _logger);
-        }
-
-        /// <inheritdoc/>
-        Task<IGraphLoader> IGraph.CreateBulkLoader() {
-            // var executor = new GraphBulkExecutor(CloneClient(), Container);
-            // await executor.InitializeAsync();
-            // return new BulkImporter(executor, _serializer, _logger);
-            return Task.FromException<IGraphLoader>(new NotSupportedException());
-        }
-
-        /// <inheritdoc/>
-        Task<IDocumentLoader> IDocuments.CreateBulkLoader() {
-           // var executor = new BulkExecutor(CloneClient(), Container);
-           // await executor.InitializeAsync();
-           // return new BulkImporter(executor, _serializer, _logger);
-            return Task.FromException<IDocumentLoader>(new NotSupportedException());
-        }
-
-        /// <inheritdoc/>
-        public Task<IDocumentPatcher> CreateBulkPatcher() {
-            var uri = UriFactory.CreateStoredProcedureUri(_db.DatabaseId, Container.Id,
-                DocumentDatabase.BulkUpdateSprocName);
-            return Task.FromResult<IDocumentPatcher>(
-                new BulkUpdate(_db.Client, uri, _logger));
         }
 
         /// <inheritdoc/>
@@ -167,7 +114,8 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
                 try {
                     return new DocumentInfo<T>(await this._db.Client.UpsertDocumentAsync(
                         UriFactory.CreateDocumentCollectionUri(_db.DatabaseId, Container.Id),
-                        DocumentCollection.GetItem(id, newItem, options),
+                        DocumentCollection.GetItem(id, newItem, options,
+                            _jsonConfig?.Settings),
                         options.ToRequestOptions(_partitioned, etag),
                         false, ct));
                 }
@@ -184,13 +132,14 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
             if (existing == null) {
                 throw new ArgumentNullException(nameof(existing));
             }
-            options = options ?? new OperationOptions();
+            options ??= new OperationOptions();
             options.PartitionKey = existing.PartitionKey;
             return await Retry.WithExponentialBackoff(_logger, ct, async () => {
                 try {
                     return new DocumentInfo<T>(await this._db.Client.ReplaceDocumentAsync(
                         UriFactory.CreateDocumentUri(_db.DatabaseId, Container.Id, existing.Id),
-                        DocumentCollection.GetItem(existing.Id, newItem, options),
+                        DocumentCollection.GetItem(existing.Id, newItem, options,
+                            _jsonConfig?.Settings),
                         options.ToRequestOptions(_partitioned, existing.Etag), ct));
                 }
                 catch (Exception ex) {
@@ -207,7 +156,8 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
                 try {
                     return new DocumentInfo<T>(await this._db.Client.CreateDocumentAsync(
                         UriFactory.CreateDocumentCollectionUri(_db.DatabaseId, Container.Id),
-                        DocumentCollection.GetItem(id, newItem, options),
+                        DocumentCollection.GetItem(id, newItem, options,
+                            _jsonConfig?.Settings),
                         options.ToRequestOptions(_partitioned), false, ct));
                 }
                 catch (Exception ex) {
@@ -223,7 +173,7 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
             if (item == null) {
                 throw new ArgumentNullException(nameof(item));
             }
-            options = options ?? new OperationOptions();
+            options ??= new OperationOptions();
             options.PartitionKey = item.PartitionKey;
             return DeleteAsync(item.Id, ct, options, item.Etag);
         }
@@ -274,9 +224,12 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
         /// <param name="id"></param>
         /// <param name="value"></param>
         /// <param name="options"></param>
+        /// <param name="settings"></param>
         /// <returns></returns>
-        private static dynamic GetItem<T>(string id, T value, OperationOptions options) {
-            var token = JObject.FromObject(value);
+        private static dynamic GetItem<T>(string id, T value, OperationOptions options,
+            JsonSerializerSettings settings) {
+            var token = JObject.FromObject(value, settings == null ?
+                JsonSerializer.CreateDefault() : JsonSerializer.Create(settings));
             if (options?.PartitionKey != null) {
                 token.AddOrUpdate(PartitionKeyProperty, options.PartitionKey);
             }
@@ -300,89 +253,12 @@ namespace Microsoft.Azure.IIoT.Storage.CosmosDb.Services {
             return client;
         }
 
-        /// <summary>
-        /// Gremlin traversal client
-        /// </summary>
-        internal sealed class GremlinTraversalClient : IGremlinTraversal {
-
-            /// <summary>
-            /// Create wrapper
-            /// </summary>
-            /// <param name="client"></param>
-            internal GremlinTraversalClient(GraphClient client) {
-                _client = client;
-            }
-
-            /// <inheritdoc/>
-            public void Dispose() {
-                _client.Dispose();
-            }
-
-            /// <inheritdoc/>
-            public ITraversal V(params (string, string)[] ids) {
-                return _client.CreateTraversalSource().V(ids
-                    .Select(id => (PartitionKeyIdPair)id).ToArray());
-            }
-
-            /// <inheritdoc/>
-            public ITraversal E(params string[] ids) {
-                return _client.CreateTraversalSource().E(ids);
-            }
-
-            /// <inheritdoc/>
-            public IResultFeed<T> Submit<T>(string gremlin,
-                int? pageSize = null, string partitionKey = null) {
-                return new GremlinQueryResult<T>(_client.QueryAsync<T>(gremlin));
-            }
-
-            /// <inheritdoc/>
-            public IResultFeed<T> Submit<T>(ITraversal gremlin,
-                int? pageSize = null, OperationOptions options = null) {
-                return new GremlinQueryResult<T>(_client.QueryAsync<T>(gremlin));
-            }
-
-            /// <summary>
-            /// Wraps the async query as an async result
-            /// </summary>
-            /// <typeparam name="T"></typeparam>
-            private class GremlinQueryResult<T> : IResultFeed<T> {
-
-                /// <inheritdoc/>
-                public string ContinuationToken => throw new NotSupportedException();
-
-                /// <inheritdoc/>
-                public GremlinQueryResult(Task<GraphResult<T>> query) {
-                    _query = query;
-                }
-                /// <inheritdoc/>
-                public void Dispose() {
-                    _query?.Dispose();
-                }
-
-                /// <inheritdoc/>
-                public bool HasMore() {
-                    return _query != null;
-                }
-
-                /// <inheritdoc/>
-                public async Task<IEnumerable<T>> ReadAsync(
-                    CancellationToken ct) {
-                    var result = await _query;
-                    _query = null;
-                    return result;
-                }
-
-                private Task<GraphResult<T>> _query;
-            }
-            private readonly GraphClient _client;
-        }
-
         internal const string IdProperty = "id";
         internal const string PartitionKeyProperty = "__pk";
 
         private readonly DocumentDatabase _db;
+        private readonly IJsonSerializerSettingsProvider _jsonConfig;
         private readonly ILogger _logger;
-        private readonly JsonSerializerSettings _serializer;
         private readonly bool _partitioned;
     }
 }

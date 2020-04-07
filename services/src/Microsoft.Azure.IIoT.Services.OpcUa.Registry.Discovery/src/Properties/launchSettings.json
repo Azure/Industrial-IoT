@@ -1,0 +1,7 @@
+{
+  "profiles": {
+    "Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync": {
+      "commandName": "Project"
+    }
+  }
+}

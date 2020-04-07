@@ -7,8 +7,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
     using Microsoft.Azure.IIoT.Deploy;
     using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.Hub.Models;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -24,9 +23,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
         /// </summary>
         /// <param name="service"></param>
         /// <param name="config"></param>
+        /// <param name="serializer"></param>
         /// <param name="logger"></param>
         public IoTHubPublisherDeployment(IIoTHubConfigurationServices service,
-            IContainerRegistryConfig config, ILogger logger) {
+            IContainerRegistryConfig config, IJsonSerializer serializer, ILogger logger) {
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _service = service ?? throw new ArgumentNullException(nameof(service));
             _config = config ?? throw new ArgumentNullException(nameof(service));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -71,14 +72,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
             }
 
             // Configure create options per os specified
-            var createOptions = @"
-            {
-                ""Hostname"": ""opcpublisher"",
-                ""Cmd"": [
-                    ""--aa""
-                ]
-            }";
-            createOptions = JObject.Parse(createOptions).ToString(Formatting.None).Replace("\"", "\\\"");
+            var createOptions = _serializer.SerializeToString(new {
+                Hostname = "opcpublisher",
+                Cmd = new[] {
+                    "--aa"
+                }
+            }).Replace("\"", "\\\"");
 
             var server = string.IsNullOrEmpty(_config.DockerServer) ?
                 "mcr.microsoft.com" : _config.DockerServer;
@@ -94,7 +93,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
             {
                 ""$edgeAgent"": {
                     " + registryCredentials + @"
-                    ""properties.desired.modules.publisher"": {
+                    ""properties.desired.modules.opcpublisher"": {
                         ""settings"": {
                             ""image"": """ + image + @""",
                             ""createOptions"": """ + createOptions + @"""
@@ -109,10 +108,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Deploy {
                     ""properties.desired.routes.upstream"": ""FROM /messages/* INTO $upstream""
                 }
             }";
-            return JsonConvertEx.DeserializeObject<IDictionary<string, IDictionary<string, object>>>(content);
+            return _serializer.Deserialize<IDictionary<string, IDictionary<string, object>>>(content);
         }
 
         private const string kDefaultSchemaVersion = "1.0";
+        private readonly IJsonSerializer _serializer;
         private readonly IIoTHubConfigurationServices _service;
         private readonly IContainerRegistryConfig _config;
         private readonly ILogger _logger;

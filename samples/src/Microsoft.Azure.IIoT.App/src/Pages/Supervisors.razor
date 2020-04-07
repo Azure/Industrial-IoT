@@ -125,7 +125,7 @@
             StateHasChanged();
 
             _supervisorEvent = await RegistryServiceEvents.SubscribeSupervisorEventsAsync(
-                null, async data =>
+                async data =>
                 {
                     await InvokeAsync(() => SupervisorEvent(data));
                 });
@@ -164,10 +164,12 @@
     /// action on Supervisor Event
     /// </summary>
     /// <param name="ev"></param>
-    private async void SupervisorEvent(SupervisorEventApiModel ev)
+    private Task SupervisorEvent(SupervisorEventApiModel ev)
     {
-        await UpdateSupervisorAsync();
+        _supervisorList.Results.Update(ev);
+        _pagedsupervisorList = _supervisorList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _supervisorList.Error);
         StateHasChanged();
+        return Task.CompletedTask;
     }
 
     /// <summary>

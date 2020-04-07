@@ -5,18 +5,17 @@
 
 namespace Microsoft.Azure.IIoT.App.Services {
     using Microsoft.Azure.IIoT.App.Data;
+    using Microsoft.Azure.IIoT.App.Models;
+    using Microsoft.Azure.IIoT.App.Common;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin;
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Serilog;
-    using Microsoft.Azure.IIoT.App.Models;
-    using Newtonsoft.Json.Linq;
-    using Newtonsoft.Json;
-    using Microsoft.AspNetCore.Http;
-    using Microsoft.Azure.IIoT.App.Common;
 
     /// <summary>
     /// Browser code behind
@@ -35,9 +34,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// </summary>
         /// <param name="twinService"></param>
         /// <param name="logger"></param>
+        /// <param name="serializer"></param>
         /// <param name="commonHelper"></param>
-        public Browser(ITwinServiceApi twinService, ILogger logger, UICommon commonHelper) {
+        public Browser(ITwinServiceApi twinService, IJsonSerializer serializer, ILogger logger, UICommon commonHelper) {
             _twinService = twinService ?? throw new ArgumentNullException(nameof(twinService));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _commonHelper = commonHelper ?? throw new ArgumentNullException(nameof(commonHelper));
         }
@@ -54,11 +55,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="credential"></param>
         /// <returns>ListNode</returns>
         public async Task<PagedResult<ListNode>> GetTreeAsync(string endpointId, string id,
-            List<string> parentId, string discovererId, BrowseDirection direction, int index, 
+            List<string> parentId, string discovererId, BrowseDirection direction, int index,
             CredentialModel credential = null) {
 
             var pageResult = new PagedResult<ListNode>();
-            var header = Elevate(new RequestHeaderApiModel(), credential);  
+            var header = Elevate(new RequestHeaderApiModel(), credential);
             var previousPage = new PagedResult<ListNode>();
             var model = new BrowseRequestApiModel {
                             TargetNodesOnly = true,
@@ -107,7 +108,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                             AccessLevel = nodeReference.Target.AccessLevel ?? 0,
                             ParentName = _displayName,
                             DataType = nodeReference.Target.DataType,
-                            Value = nodeReference.Target.Value?.ToString(),
+                            Value = nodeReference.Target.Value?.ToJson()?.TrimQuotes(),
                             Publishing = false,
                             PublishedItem = null
                         });
@@ -118,18 +119,14 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.PageSize = _commonHelper.PageLength;
                 pageResult.RowCount = pageResult.Results.Count;
             }
+            catch (UnauthorizedAccessException) {
+                pageResult.Error = "Unauthorized access: Bad User Access Denied.";
+            }
             catch (Exception e) {
                 // skip this node
-                _logger.Error($"Can not browse node '{id}'");
+                _logger.Error(e, "Can not browse node '{id}'", id);
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                _logger.Error(errorMessage);
-                string error = JToken.Parse(e.Message).ToString(Formatting.Indented);
-                if (error.Contains(StatusCodes.Status401Unauthorized.ToString())) {
-                    pageResult.Error = "Unauthorized access: Bad User Access Denied.";
-                }
-                else {
-                    pageResult.Error = error;
-                }
+                pageResult.Error = errorMessage;
             }
             return pageResult;
         }
@@ -143,11 +140,11 @@ namespace Microsoft.Azure.IIoT.App.Services {
         /// <param name="credential"></param>
         /// <param name="previousPage"></param>
         /// <returns>ListNode</returns>
-        public async Task<PagedResult<ListNode>> GetTreeNextAsync(string endpointId, List<string> parentId, string discovererId, 
+        public async Task<PagedResult<ListNode>> GetTreeNextAsync(string endpointId, List<string> parentId, string discovererId,
             CredentialModel credential = null, PagedResult<ListNode> previousPage = null) {
 
             var pageResult = new PagedResult<ListNode>();
-            var header = Elevate(new RequestHeaderApiModel(), credential);     
+            var header = Elevate(new RequestHeaderApiModel(), credential);
             var modelNext = new BrowseNextRequestApiModel {
                 ContinuationToken = previousPage.ContinuationToken,
                 TargetNodesOnly = true,
@@ -177,7 +174,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
                             AccessLevel = nodeReference.Target.AccessLevel ?? 0,
                             ParentName = _displayName,
                             DataType = nodeReference.Target.DataType,
-                            Value = nodeReference.Target.Value?.ToString(),
+                            Value = nodeReference.Target.Value?.ToJson()?.TrimQuotes(),
                             Publishing = false,
                             PublishedItem = null
                         });
@@ -189,18 +186,13 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 pageResult.PageSize = _commonHelper.PageLength;
                 pageResult.RowCount = pageResult.Results.Count;
             }
+            catch (UnauthorizedAccessException) {
+                pageResult.Error = "Unauthorized access: Bad User Access Denied.";
+            }
             catch (Exception e) {
                 // skip this node
-                _logger.Error($"Can not browse node");
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                _logger.Error(errorMessage);
-                string error = JToken.Parse(e.Message).ToString(Formatting.Indented);
-                if (error.Contains(StatusCodes.Status401Unauthorized.ToString())) {
-                    pageResult.Error = "Unauthorized access: Bad User Access Denied.";
-                }
-                else {
-                    pageResult.Error = error;
-                }
+                pageResult.Error = errorMessage;
             }
             return pageResult;
         }
@@ -223,23 +215,18 @@ namespace Microsoft.Azure.IIoT.App.Services {
                 var value = await _twinService.NodeValueReadAsync(endpointId, model);
 
                 if (value.ErrorInfo == null) {
-                    return value.Value?.ToString();
+                    return value.Value?.ToJson()?.TrimQuotes();
                 }
                 else {
                     return value.ErrorInfo.ToString();
-                }   
+                }
+            }
+            catch (UnauthorizedAccessException) {
+                return "Unauthorized access: Bad User Access Denied.";
             }
             catch (Exception e) {
-                _logger.Error($"Can not read value of node '{nodeId}'");
+                _logger.Error(e, "Can not read value of node '{nodeId}'", nodeId);
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                _logger.Error(errorMessage);
-                string error = JToken.Parse(e.Message).ToString(Formatting.Indented);
-                if (error.Contains(StatusCodes.Status401Unauthorized.ToString())) {
-                    errorMessage = "Unauthorized access: Bad User Access Denied.";
-                }
-                else {
-                    errorMessage = error;
-                }
                 return errorMessage;
             }
         }
@@ -275,17 +262,12 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     }
                 }
             }
+            catch (UnauthorizedAccessException) {
+                return "Unauthorized access: Bad User Access Denied.";
+            }
             catch (Exception e) {
-                _logger.Error($"Can not write value of node '{nodeId}'");
+                _logger.Error(e, "Can not write value of node '{nodeId}'", nodeId);
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                _logger.Error(errorMessage);
-                string error = JToken.Parse(e.Message).ToString(Formatting.Indented);
-                if (error.Contains(StatusCodes.Status401Unauthorized.ToString())) {
-                    errorMessage = "Unauthorized access: Bad User Access Denied.";
-                }
-                else {
-                    errorMessage = error;
-                }
                 return errorMessage;
             }
         }
@@ -319,17 +301,12 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     }
                 }
             }
+            catch (UnauthorizedAccessException) {
+                return "Unauthorized access: Bad User Access Denied.";
+            }
             catch (Exception e) {
-                _logger.Error($"Can not get method parameter from node '{nodeId}'");
+                _logger.Error(e, "Can not get method parameter from node '{nodeId}'", nodeId);
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                _logger.Error(errorMessage);
-                string error = JToken.Parse(e.Message).ToString(Formatting.Indented);
-                if (error.Contains(StatusCodes.Status401Unauthorized.ToString())) {
-                    errorMessage = "Unauthorized access: Bad User Access Denied.";
-                }
-                else {
-                    errorMessage = error;
-                }
                 return errorMessage;
             }
         }
@@ -377,17 +354,12 @@ namespace Microsoft.Azure.IIoT.App.Services {
                     }
                 }
             }
+            catch (UnauthorizedAccessException) {
+                return "Unauthorized access: Bad User Access Denied.";
+            }
             catch (Exception e) {
-                _logger.Error($"Can not get method parameter from node '{nodeId}'");
+                _logger.Error(e, "Can not get method parameter from node '{nodeId}'", nodeId);
                 var errorMessage = string.Concat(e.Message, e.InnerException?.Message ?? "--", e?.StackTrace ?? "--");
-                _logger.Error(errorMessage);
-                string error = JToken.Parse(e.Message).ToString(Formatting.Indented);
-                if (error.Contains(StatusCodes.Status401Unauthorized.ToString())) {
-                    errorMessage = "Unauthorized access: Bad User Access Denied.";
-                }
-                else {
-                    errorMessage = error;
-                }
                 return errorMessage;
             }
         }
@@ -401,18 +373,20 @@ namespace Microsoft.Azure.IIoT.App.Services {
         private RequestHeaderApiModel Elevate(RequestHeaderApiModel header, CredentialModel credential) {
             if (credential != null) {
                 if (!string.IsNullOrEmpty(credential.Username) && !string.IsNullOrEmpty(credential.Password)) {
-                    header.Elevation = new CredentialApiModel();
-                    header.Elevation.Type = CredentialType.UserName;
-                    header.Elevation.Value = JToken.FromObject(new {
-                        user = credential.Username,
-                        password = credential.Password
-                    });
+                    header.Elevation = new CredentialApiModel {
+                        Type = CredentialType.UserName,
+                        Value = _serializer.FromObject(new {
+                            user = credential.Username,
+                            password = credential.Password
+                        })
+                    };
                 }
             }
             return header;
         }
 
         private readonly ITwinServiceApi _twinService;
+        private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
         private readonly UICommon _commonHelper;
         private const int _MAX_REFERENCES = 10;

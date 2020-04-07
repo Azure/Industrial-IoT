@@ -5,14 +5,13 @@
 
 namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Services {
     using Microsoft.Azure.IIoT.Diagnostics;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Utils;
     using Microsoft.Azure.ServiceBus;
-    using Newtonsoft.Json;
     using Serilog;
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -25,12 +24,14 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Services {
         /// Create service bus event bus
         /// </summary>
         /// <param name="factory"></param>
+        /// <param name="serializer"></param>
         /// <param name="logger"></param>
         /// <param name="process"></param>
-        public ServiceBusEventBus(IServiceBusClientFactory factory,
+        public ServiceBusEventBus(IServiceBusClientFactory factory, IJsonSerializer serializer,
             ILogger logger, IProcessIdentity process = null) {
 
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _factory = factory ?? throw new ArgumentNullException(nameof(factory));
 
             // TODO: If scaled out we need subscription ids for every instance!
@@ -44,16 +45,22 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Services {
 
         /// <inheritdoc/>
         public async Task PublishAsync<T>(T message) {
+            var body = _serializer.SerializeToBytes(message).ToArray();
+            try {
+                var client = await _factory.CreateOrGetTopicClientAsync();
 
-            var jsonMessage = JsonConvert.SerializeObject(message);
-            var body = Encoding.UTF8.GetBytes(jsonMessage);
+                await client.SendAsync(new Message {
+                    MessageId = Guid.NewGuid().ToString(),
+                    Body = body,
+                    Label = typeof(T).GetMoniker(),
+                });
 
-            var client = await _factory.CreateOrGetTopicClientAsync();
-            await client.SendAsync(new Message {
-                MessageId = Guid.NewGuid().ToString(),
-                Body = body,
-                Label = ToEventName(typeof(T)),
-            });
+                _logger.Debug("----->  {@message} sent...", message);
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Failed to publish message {@message}", message);
+                throw;
+            }
         }
 
         /// <inheritdoc/>
@@ -89,7 +96,7 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Services {
 
         /// <inheritdoc/>
         public async Task<string> RegisterAsync<T>(IEventHandler<T> handler) {
-            var eventName = ToEventName(typeof(T));
+            var eventName = typeof(T).GetMoniker();
             await _lock.WaitAsync();
             try {
                 if (!_handlers.TryGetValue(eventName, out var handlers)) {
@@ -99,10 +106,14 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Services {
                             Name = eventName
                         });
                     }
-                    catch (ServiceBusException) {
-                        _logger.Warning("The messaging entity {eventName} already exists.",
-                            eventName);
-                        // TODO: throw?
+                    catch (ServiceBusException ex) {
+                        if (ex.Message.Contains("already exists")) {
+                            _logger.Debug("The messaging entity {eventName} already exists.",
+                                eventName);
+                        }
+                        else {
+                            throw ex;
+                        }
                     }
                     handlers = new Dictionary<string, Subscription>();
                     _handlers.Add(eventName, handlers);
@@ -155,24 +166,6 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Services {
         }
 
         /// <summary>
-        /// Convert type name to event name - the namespace of the type should
-        /// include versioning information.
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        private string ToEventName(Type type) {
-            var name = type.FullName
-                .Replace("Microsoft.Azure.IIoT.", "")
-                .Replace(".", "-")
-                .ToLowerInvariant()
-                .Replace("model", "");
-            if (name.Length >= 50) {
-                name = name.Substring(0, 50);
-            }
-            return name;
-        }
-
-        /// <summary>
         /// Process exceptions
         /// </summary>
         /// <param name="eventArg"></param>
@@ -192,7 +185,6 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Services {
         /// <param name="token"></param>
         /// <returns></returns>
         private async Task ProcessEventAsync(Message message, CancellationToken token) {
-            var messageData = Encoding.UTF8.GetString(message.Body);
             IEnumerable<Subscription> subscriptions = null;
             await _lock.WaitAsync();
             try {
@@ -206,8 +198,9 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Services {
             }
             foreach (var handler in subscriptions) {
                 // Do for now every time to pass brand new objects
-                var evt = JsonConvert.DeserializeObject(messageData, handler.Type);
+                var evt = _serializer.Deserialize(message.Body, handler.Type);
                 await handler.HandleAsync(evt);
+                _logger.Debug("<-----  {@message} received and handled! ", evt);
             }
             // Complete the message so that it is not received again.
             await _subscriptionClient.CompleteAsync(message.SystemProperties.LockToken);
@@ -233,6 +226,7 @@ namespace Microsoft.Azure.IIoT.Messaging.ServiceBus.Services {
             new Dictionary<string, Dictionary<string, Subscription>>();
         private readonly SemaphoreSlim _lock = new SemaphoreSlim(1, 1);
         private readonly ILogger _logger;
+        private readonly IJsonSerializer _serializer;
         private readonly IServiceBusClientFactory _factory;
         private readonly ISubscriptionClient _subscriptionClient;
     }

@@ -4,9 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Microsoft.Azure.IIoT.Cdm;
     using Microsoft.Azure.IIoT.Http;
-    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Serilog;
     using System;
     using System.Collections.Generic;
@@ -16,7 +16,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
 
     /// <inheritdoc/>
     public class AdlsCsvStorage : IAdlsStorage {
-        
+
         /// <summary>
         /// CDM Azure Data lake storage handler
         /// </summary>
@@ -76,7 +76,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
             return sb.ToString();
         }
 
-        private void AddAddValueToCsvStringBuilder(object value, 
+        private void AddAddValueToCsvStringBuilder(object value,
             string separator, StringBuilder sb) {
 
             if (value != null) {
@@ -133,16 +133,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Storage {
                 if (content != string.Empty) {
                     request = _httpClient.NewRequest(
                         $"{partitionUrl}?action=append&position={contentPosition}", kResource);
-                    byte[] contentBuffer = Encoding.UTF8.GetBytes(content);
-                    request.SetContent(contentBuffer, ContentMimeType.Binary);
+                    var contentBuffer = Encoding.UTF8.GetBytes(content);
+                    request.SetByteArrayContent(contentBuffer,
+                        ContentMimeType.Binary);
                     response = await _httpClient.PatchAsync(request);
                     if (response.IsError()) {
                         return false;
                     }
                     contentPosition += contentBuffer.Length;
-                    request = _httpClient.NewRequest
-                        ($"{partitionUrl}?action=flush&position={contentPosition}",
-                        kResource);
+                    request = _httpClient.NewRequest(
+                        $"{partitionUrl}?action=flush&position={contentPosition}", kResource);
                     response = await _httpClient.PatchAsync(request);
                     if (response.IsError()) {
                         return false;

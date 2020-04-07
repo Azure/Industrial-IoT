@@ -4,13 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
     /// <summary>
     /// Level of diagnostics requested in responses
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum DiagnosticsLevel {
 
         /// <summary>

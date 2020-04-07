@@ -18,17 +18,15 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Runtime {
     public class Config : DiagnosticsConfig, IEventProcessorConfig,
         IEventHubConsumerConfig, IEventProcessorHostConfig {
 
-        private const string kEventHubConsumerGroupTelemetryKey =
-            "EventHubConsumerGroupTelemetry";
-
         /// <inheritdoc/>
         public string EventHubConnString => _eh.EventHubConnString;
         /// <inheritdoc/>
         public string EventHubPath => _eh.EventHubPath;
-        /// <summary> Event hub telemetry consumer group </summary>
-        public string ConsumerGroup => GetStringOrDefault(kEventHubConsumerGroupTelemetryKey,
-            () => GetStringOrDefault(PcsVariable.PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY,
-                () => "telemetry"));
+        /// <inheritdoc/>
+        public string ConsumerGroup => GetStringOrDefault(
+            PcsVariable.PCS_IOTHUB_EVENTHUB_CONSUMER_GROUP_TELEMETRY,
+                () => "telemetry");
+
         /// <inheritdoc/>
         public bool UseWebsockets => _eh.UseWebsockets;
         /// <inheritdoc/>

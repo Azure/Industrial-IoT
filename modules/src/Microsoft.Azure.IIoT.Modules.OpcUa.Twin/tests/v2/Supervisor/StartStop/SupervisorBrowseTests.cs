@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.StartStop {
                 new EndpointRegistrationModel {
                     Endpoint = new EndpointModel {
                         Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
-                        Certificate = _server.Certificate?.RawData
+                        Certificate = _server.Certificate?.RawData?.ToThumbprint()
                     },
                     Id = "testid",
                     SupervisorId = SupervisorModelEx.CreateSupervisorId(deviceId, moduleId)
@@ -38,7 +38,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.StartStop {
         }
 
         private readonly TestServerFixture _server;
+#if DEBUG
+        private readonly bool _runAll = true;
+#else
         private readonly bool _runAll = Environment.GetEnvironmentVariable("TEST_ALL") != null;
+#endif
 
         [SkippableFact]
         public async Task NodeBrowseInRootTest1Async() {
@@ -166,6 +170,26 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.StartStop {
             using (var harness = new TwinModuleFixture()) {
                 await harness.RunTestAsync(async (device, module, services) => {
                     await GetTests(device, module, services).NodeBrowseStaticScalarVariablesTestAsync();
+                });
+            }
+        }
+
+        [SkippableFact]
+        public async Task NodeBrowseStaticScalarVariablesTestWithFilter1Async() {
+            // Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(async (device, module, services) => {
+                    await GetTests(device, module, services).NodeBrowseStaticScalarVariablesTestWithFilter1Async();
+                });
+            }
+        }
+
+        [SkippableFact]
+        public async Task NodeBrowseStaticScalarVariablesTestWithFilter2Async() {
+            Skip.IfNot(_runAll);
+            using (var harness = new TwinModuleFixture()) {
+                await harness.RunTestAsync(async (device, module, services) => {
+                    await GetTests(device, module, services).NodeBrowseStaticScalarVariablesTestWithFilter2Async();
                 });
             }
         }

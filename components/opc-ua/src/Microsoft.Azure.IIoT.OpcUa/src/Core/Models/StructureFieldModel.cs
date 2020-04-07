@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// <summary>
         /// Value rank of the type
         /// </summary>
-        public int? ValueRank { get; set; }
+        public NodeValueRank? ValueRank { get; set; }
 
         /// <summary>
         /// Array dimensions

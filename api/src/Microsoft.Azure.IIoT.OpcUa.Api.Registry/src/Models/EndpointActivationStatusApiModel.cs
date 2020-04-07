@@ -4,26 +4,27 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Endpoint Activation status model
     /// </summary>
+    [DataContract]
     public class EndpointActivationStatusApiModel {
 
         /// <summary>
         /// Identifier of the endoint
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
+        [DataMember(Name = "id", Order = 0)]
         [Required]
         public string Id { get; set; }
 
         /// <summary>
         /// Activation state
         /// </summary>
-        [JsonProperty(PropertyName = "activationState",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "activationState", Order = 1,
+            EmitDefaultValue = false)]
         public EndpointActivationState? ActivationState { get; set; }
     }
 }

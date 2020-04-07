@@ -91,7 +91,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
                 return null;
             }
             return new PublisherModel {
-                Certificate = model.Certificate,
+                LogLevel = model.LogLevel,
                 Connected = model.Connected,
                 Id = model.Id,
                 OutOfSync = model.OutOfSync,

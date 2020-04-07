@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
 
     /// <summary>
@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.History.Models {
         /// <summary>
         /// The value of data value.
         /// </summary>
-        public JToken Value { get; set; }
+        public VariantValue Value { get; set; }
 
         /// <summary>
         /// The status code associated with the value.

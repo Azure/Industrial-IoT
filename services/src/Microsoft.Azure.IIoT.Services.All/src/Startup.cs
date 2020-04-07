@@ -19,6 +19,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
     using System.Threading.Tasks;
     using System.Threading;
     using System.Linq;
+    using System.Collections.Generic;
 
     /// <summary>
     /// Mono app startup
@@ -103,17 +104,20 @@ namespace Microsoft.Azure.IIoT.Services.All {
             // Configure branches for business
             app.UseWelcomePage("/");
 
+            // Minimal API surface
             app.AddStartupBranch<OpcUa.Registry.Startup>("/registry");
             app.AddStartupBranch<OpcUa.Registry.Onboarding.Startup>("/onboarding");
             app.AddStartupBranch<OpcUa.Vault.Startup>("/vault");
             app.AddStartupBranch<OpcUa.Twin.Startup>("/twin");
-            app.AddStartupBranch<OpcUa.Twin.Gateway.Startup>("/ua");
-            app.AddStartupBranch<OpcUa.Twin.History.Startup>("/history");
             app.AddStartupBranch<OpcUa.Publisher.Startup>("/publisher");
+            app.AddStartupBranch<OpcUa.Events.Startup>("/events");
             app.AddStartupBranch<Common.Jobs.Startup>("/jobs");
             app.AddStartupBranch<Common.Jobs.Edge.Startup>("/edge/jobs");
-            app.AddStartupBranch<Common.Configuration.Startup>("/configuration");
-            app.AddStartupBranch<Common.Hub.Edgemanager.Startup>("/edge/manage");
+
+            if (!Config.IsMinimumDeployment) {
+                app.AddStartupBranch<OpcUa.Twin.Gateway.Startup>("/ua");
+                app.AddStartupBranch<OpcUa.Twin.History.Startup>("/history");
+            }
 
             app.UseHealthChecks("/healthz");
 
@@ -134,6 +138,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
             // Add diagnostics based on configuration
             builder.AddDiagnostics(Config);
             builder.RegisterInstance(Config.Configuration);
+            builder.RegisterInstance(Config);
 
             builder.RegisterType<ProcessorHost>()
                 .AsImplementedInterfaces().SingleInstance();
@@ -145,23 +150,29 @@ namespace Microsoft.Azure.IIoT.Services.All {
         private sealed class ProcessorHost : IHostProcess, IDisposable, IHealthCheck {
 
             /// <inheritdoc/>
+            public ProcessorHost(Config config) {
+                _config = config;
+            }
+
+            /// <inheritdoc/>
             public void Start() {
                 _cts = new CancellationTokenSource();
 
-                var args = new string[0]; // TODO Arguments from original configuration?
+                var args = new string[0];
 
-                _runner = Task.WhenAll(new[] {
-                    Task.Run(() => Processor.Telemetry.Program.Main(args), _cts.Token),
+                // Minimal processes
+                var processes = new List<Task> {
+                    Task.Run(() => OpcUa.Registry.Sync.Program.Main(args), _cts.Token),
                     Task.Run(() => Processor.Events.Program.Main(args), _cts.Token),
-                    Task.Run(() => Processor.Telemetry.Cdm.Program.Main(args), _cts.Token),
-                    Task.Run(() => Processor.Telemetry.Ux.Program.Main(args), _cts.Token),
-                    Task.Run(() => Common.Identity.Program.Main(args), _cts.Token),
-                    Task.Run(() => Common.Hub.Fileupload.Program.Main(args), _cts.Token),
-                    Task.Run(() => OpcUa.Registry.Discovery.Program.Main(args), _cts.Token),
-                    Task.Run(() => OpcUa.Registry.Events.Program.Main(args), _cts.Token),
-                    Task.Run(() => OpcUa.Registry.Security.Program.Main(args), _cts.Token),
-                    Task.Run(() => OpcUa.Twin.Import.Program.Main(args), _cts.Token),
-                });
+                };
+
+                if (!_config.IsMinimumDeployment) {
+                    processes.Add(Task.Run(() => Processor.Telemetry.Program.Main(args),
+                        _cts.Token));
+                    processes.Add(Task.Run(() => Processor.Telemetry.Cdm.Program.Main(args),
+                        _cts.Token));
+                }
+                _runner = Task.WhenAll(processes.ToArray());
             }
 
             /// <inheritdoc/>
@@ -200,6 +211,7 @@ namespace Microsoft.Azure.IIoT.Services.All {
 
             private Task _runner;
             private CancellationTokenSource _cts;
+            private readonly Config _config;
         }
     }
 }

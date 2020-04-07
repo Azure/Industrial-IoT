@@ -6,20 +6,21 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     using Gremlin.Net.CosmosDb.Structure;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// View node vertex
     /// </summary>
     [Label(AddressSpaceElementNames.View)]
+    [DataContract]
     public class ViewNodeVertexModel : BaseNodeVertexModel {
 
         /// <summary>
         /// Whether a view contains loops. Null if
         /// not a view.
         /// </summary>
-        [JsonProperty(PropertyName = "containsNoLoops",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "containsNoLoops",
+            EmitDefaultValue = false)]
         public bool? ContainsNoLoops { get; set; }
 
         /// <summary>
@@ -27,8 +28,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
         /// to subscribe to.
         /// (default: no events supported)
         /// </summary>
-        [JsonProperty(PropertyName = "eventNotifier",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "eventNotifier",
+            EmitDefaultValue = false)]
         public NodeEventNotifier? EventNotifier { get; set; }
     }
 }

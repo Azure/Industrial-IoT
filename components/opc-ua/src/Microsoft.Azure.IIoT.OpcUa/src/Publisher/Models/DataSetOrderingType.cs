@@ -4,13 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
     /// <summary>
     /// Ordering model
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum DataSetOrderingType {
 
         /// <summary>

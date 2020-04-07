@@ -4,7 +4,6 @@
 */
 {
     "Version": 3,
-
     "ListAllProjects": false,
     "MultiProjectConfigurations": {
         "Local development": {
@@ -16,6 +15,65 @@
                 "Microsoft.Azure.IIoT.Modules.Discovery.Cli": {},
                 "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli": {},
                 "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli": {}
+            }
+        },
+        "Local development (no publisher)": {
+            "Projects": {
+                "Microsoft.Azure.IIoT.App": {},
+                "Microsoft.Azure.IIoT.Cli": {},
+                "Microsoft.Azure.IIoT.Test.Scenarios": {},
+                "Microsoft.Azure.IIoT.Services.All": {},
+                "Microsoft.Azure.IIoT.Modules.Discovery.Cli": {},
+                "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli": {}
+            }
+        },
+        "Individual Services": {
+            "Projects": {
+                "Microsoft.Azure.IIoT.App": {},
+                "Microsoft.Azure.IIoT.Cli": {},
+                "Microsoft.Azure.IIoT.Test.Scenarios": {},
+                "Microsoft.Azure.IIoT.Modules.Discovery.Cli": {},
+                "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli": {},
+                "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli": {},
+                "Microsoft.Azure.IIoT.Services.Common.Auth": {},
+                "Microsoft.Azure.IIoT.Services.Common.Jobs": {},
+                "Microsoft.Azure.IIoT.Services.Common.Jobs.Edge": {},
+                "Microsoft.Azure.IIoT.Services.Common.Users": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Events": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Publisher": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Registry": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Twin": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Twin.History": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Vault": {},
+                "Microsoft.Azure.IIoT.Services.Processor.Events": {},
+                "Microsoft.Azure.IIoT.Services.Processor.Telemetry": {},
+                "Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm": {},
+                "Microsoft.Azure.IIoT.Services.Processor.Tunnel": {}
+            }
+        },
+        "Individual Services (Light)": {
+            "Projects": {
+                "Microsoft.Azure.IIoT.App": {},
+                "Microsoft.Azure.IIoT.Cli": {},
+                "Microsoft.Azure.IIoT.Test.Scenarios": {},
+                "Microsoft.Azure.IIoT.Modules.Discovery.Cli": {},
+                "Microsoft.Azure.IIoT.Modules.OpcUa.Twin.Cli": {},
+                "Microsoft.Azure.IIoT.Modules.OpcUa.Publisher.Cli": {},
+                "Microsoft.Azure.IIoT.Services.Common.Auth": {},
+                "Microsoft.Azure.IIoT.Services.Common.Jobs": {},
+                "Microsoft.Azure.IIoT.Services.Common.Jobs.Edge": {},
+                "Microsoft.Azure.IIoT.Services.Common.Users": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Events": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Publisher": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Registry": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Twin": {},
+                "Microsoft.Azure.IIoT.Services.OpcUa.Vault": {},
+                "Microsoft.Azure.IIoT.Services.Processor.Events": {}
             }
         },
         "No services": {

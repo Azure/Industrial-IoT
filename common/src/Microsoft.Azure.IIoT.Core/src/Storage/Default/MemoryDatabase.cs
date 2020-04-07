@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.Storage.Default {
     using Microsoft.Azure.IIoT.Exceptions;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
     using System.Collections.Concurrent;
@@ -23,8 +23,11 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
         /// Create database
         /// </summary>
         /// <param name="logger"></param>
+        /// <param name="serializer"></param>
         /// <param name="queryEngine"></param>
-        public MemoryDatabase(ILogger logger, IQueryEngine queryEngine = null) {
+        public MemoryDatabase(ILogger logger, IJsonSerializer serializer,
+            IQueryEngine queryEngine = null) {
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _queryEngine = queryEngine;
         }
@@ -75,8 +78,8 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
         /// <summary>
         /// In memory container
         /// </summary>
-        private class ItemContainer : IItemContainer, IDocuments, IGraph,
-            ISqlClient, IGraphQueryClient {
+        private class ItemContainer : IItemContainer, IDocuments,
+            ISqlClient {
 
             /// <inheritdoc/>
             public string Name { get; }
@@ -94,7 +97,8 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
             /// <inheritdoc/>
             public Task<IDocumentInfo<T>> AddAsync<T>(T newItem,
                 CancellationToken ct, string id, OperationOptions options) {
-                var newDoc = new Document<T>(id, newItem, options?.PartitionKey);
+                var item = _outer._serializer.FromObject(newItem);
+                var newDoc = new Document<T>(id, item, options?.PartitionKey);
                 lock (_data) {
                     if (_data.TryGetValue(newDoc.Id, out var existing)) {
                         return Task.FromException<IDocumentInfo<T>>(
@@ -166,7 +170,8 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
                 if (existing == null) {
                     throw new ArgumentNullException(nameof(existing));
                 }
-                var newDoc = new Document<T>(existing.Id, value, existing.PartitionKey);
+                var item = _outer._serializer.FromObject(value);
+                var newDoc = new Document<T>(existing.Id, item, existing.PartitionKey);
                 lock (_data) {
                     if (_data.TryGetValue(newDoc.Id, out var doc)) {
                         if (!string.IsNullOrEmpty(existing.Etag) && doc.Etag != existing.Etag) {
@@ -187,7 +192,8 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
             /// <inheritdoc/>
             public Task<IDocumentInfo<T>> UpsertAsync<T>(T newItem, CancellationToken ct,
                 string id, OperationOptions options, string etag) {
-                var newDoc = new Document<T>(id, newItem, options?.PartitionKey);
+                var item = _outer._serializer.FromObject(newItem);
+                var newDoc = new Document<T>(id, item, options?.PartitionKey);
                 lock (_data) {
                     if (_data.TryGetValue(newDoc.Id, out var doc)) {
                         if (!string.IsNullOrEmpty(etag) && doc.Etag != etag) {
@@ -209,9 +215,10 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
             /// <param name="newDoc"></param>
             private void AddDocument<T>(Document<T> newDoc) {
                 const int kMaxDocSize = 2 * 1024 * 1024;  // 2 meg like in cosmos
-                var size = newDoc.Size;
-                if (newDoc.Size > kMaxDocSize) {
-                    throw new ResourceTooLargeException(newDoc.ToString(), size, kMaxDocSize);
+                var bytes = _outer._serializer.SerializeToBytes(newDoc.Value);
+                if (bytes.Length > kMaxDocSize) {
+                    throw new ResourceTooLargeException(newDoc.ToString(),
+                        bytes.Length, kMaxDocSize);
                 }
                 _data.Add(newDoc.Id, newDoc);
 #if LOG_VERBOSE
@@ -225,28 +232,8 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
             }
 
             /// <inheritdoc/>
-            public IGraph AsGraph() {
-                return this;
-            }
-
-            /// <inheritdoc/>
             public ISqlClient OpenSqlClient() {
                 return this;
-            }
-
-            /// <inheritdoc/>
-            public IGraphQueryClient OpenGremlinClient() {
-                return this;
-            }
-
-            /// <inheritdoc/>
-            public Task<IDocumentLoader> CreateBulkLoader() {
-                throw new NotSupportedException();
-            }
-
-            /// <inheritdoc/>
-            Task<IGraphLoader> IGraph.CreateBulkLoader() {
-                throw new NotImplementedException();
             }
 
             /// <inheritdoc/>
@@ -257,7 +244,7 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
                     throw new NotSupportedException("Query not supported");
                 }
                 var results = documents
-                    .Select(d => d.Value.ToObject<T>());
+                    .Select(d => d.Value.ConvertTo<T>());
                 var feed = (pageSize == null) ?
                     results.YieldReturn() : results.Batch(pageSize.Value);
                 return new MemoryFeed<T>(this, new Queue<IEnumerable<T>>(feed));
@@ -304,7 +291,7 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
                     throw new NotSupportedException("Query not supported");
                 }
                 var results = documents
-                    .Select(d => new Document<T>(d.Id, d.Value.ToObject<T>(), d.PartitionKey));
+                    .Select(d => new Document<T>(d.Id, d.Value, d.PartitionKey));
                 var feed = (pageSize == null) ?
                     results.YieldReturn() : results.Batch(pageSize.Value);
                 return new MemoryFeed<IDocumentInfo<T>>(this,
@@ -318,13 +305,7 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
             /// <summary>
             /// Wraps a document value
             /// </summary>
-            private abstract class MemoryDocument : IDocumentInfo<JObject> {
-
-                /// <summary>
-                /// Returns the size of the document
-                /// </summary>
-                public int Size => System.Text.Encoding.UTF8.GetByteCount(
-                    Value.ToString(Newtonsoft.Json.Formatting.None));
+            private abstract class MemoryDocument : IDocumentInfo<VariantValue> {
 
                 /// <summary>
                 /// Create memory document
@@ -332,7 +313,7 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
                 /// <param name="value"></param>
                 /// <param name="id"></param>
                 /// <param name="partitionKey"></param>
-                protected MemoryDocument(JObject value, string id, string partitionKey) {
+                protected MemoryDocument(VariantValue value, string id, string partitionKey) {
                     Value = value;
                     Id = id ?? Value.GetValueOrDefault("id", Guid.NewGuid().ToString());
                     PartitionKey = partitionKey ?? Value.GetValueOrDefault("__pk",
@@ -349,24 +330,24 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
                 public string Etag { get; } = Guid.NewGuid().ToString();
 
                 /// <inheritdoc/>
-                public JObject Value { get; }
+                public VariantValue Value { get; }
 
                 /// <inheritdoc/>
                 public override bool Equals(object obj) {
                     if (obj is MemoryDocument wrapper) {
-                        return JToken.DeepEquals(Value, wrapper.Value);
+                        return VariantValue.DeepEquals(Value, wrapper.Value);
                     }
                     return false;
                 }
 
                 /// <inheritdoc/>
                 public override int GetHashCode() {
-                    return EqualityComparer<JObject>.Default.GetHashCode(Value);
+                    return EqualityComparer<VariantValue>.Default.GetHashCode(Value);
                 }
 
                 /// <inheritdoc/>
                 public override string ToString() {
-                    return Value.ToString(Newtonsoft.Json.Formatting.Indented);
+                    return Value.ToString();
                 }
 
                 /// <inheritdoc/>
@@ -390,12 +371,12 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
                 /// <param name="id"></param>
                 /// <param name="value"></param>
                 /// <param name="partitionKey"></param>
-                public Document(string id, T value, string partitionKey) :
-                    base(JObject.FromObject(value), id, partitionKey) {
+                public Document(string id, VariantValue value, string partitionKey) :
+                    base(value, id, partitionKey) {
                 }
 
                 /// <inheritdoc/>
-                T IDocumentInfo<T>.Value => Value.ToObject<T>();
+                T IDocumentInfo<T>.Value => Value.ConvertTo<T>();
             }
 
             /// <summary>
@@ -488,6 +469,7 @@ namespace Microsoft.Azure.IIoT.Storage.Default {
 
         private readonly ConcurrentDictionary<string, ItemContainerDatabase> _databases =
             new ConcurrentDictionary<string, ItemContainerDatabase>();
+        private readonly IJsonSerializer _serializer;
         private readonly IQueryEngine _queryEngine;
         private readonly ILogger _logger;
     }

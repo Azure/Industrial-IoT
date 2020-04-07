@@ -30,10 +30,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -77,7 +81,10 @@
         "description": "Browse the set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. The root node id to browse from can be provided as part of the query parameters. If it is not provided, the RootFolder node is browsed. Note that this is the same as the POST method with the model containing the node id and the targetNodesOnly flag set to true.",
         "operationId": "GetSetOfUniqueNodes",
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -123,10 +130,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -170,7 +181,10 @@
         "description": "Browse the next set of unique hierarchically referenced target nodes on the endpoint. The endpoint must be activated and connected and the module client and server must trust each other. Note that this is the same as the POST method with the model containing the continuation token and the targetNodesOnly flag set to true.",
         "operationId": "GetNextSetOfUniqueNodes",
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -220,10 +234,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -272,10 +290,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -324,10 +346,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -376,10 +402,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -423,7 +453,10 @@
         "description": "Get a variable node's value using its node id. The endpoint must be activated and connected and the module client and server must trust each other.",
         "operationId": "GetValue",
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -470,10 +503,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -522,10 +559,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -574,10 +615,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -692,7 +737,8 @@
           "$ref": "#/definitions/CredentialType"
         },
         "value": {
-          "description": "Value to pass to server"
+          "description": "Value to pass to server",
+          "type": "string"
         }
       }
     },
@@ -753,7 +799,7 @@
       "type": "object",
       "properties": {
         "nodeId": {
-          "description": "Node to browse.\r\n(default: RootFolder).",
+          "description": "Node to browse.\r\n(defaults to root folder).",
           "type": "string"
         },
         "direction": {
@@ -768,7 +814,6 @@
         },
         "noSubtypes": {
           "description": "Whether to include subtypes of the reference type.\r\n(default is false)",
-          "default": false,
           "type": "boolean"
         },
         "maxReferencesToReturn": {
@@ -778,12 +823,10 @@
         },
         "targetNodesOnly": {
           "description": "Whether to collapse all references into a set of\r\nunique target nodes and not show reference\r\ninformation.\r\n(default is false)",
-          "default": false,
           "type": "boolean"
         },
         "readVariableValues": {
           "description": "Whether to read variable values on target nodes.\r\n(default is false)",
-          "default": false,
           "type": "boolean"
         },
         "nodeClassFilter": {
@@ -809,6 +852,25 @@
         },
         "header": {
           "$ref": "#/definitions/RequestHeaderApiModel"
+        }
+      }
+    },
+    "ServiceResultApiModel": {
+      "description": "Service result",
+      "type": "object",
+      "properties": {
+        "statusCode": {
+          "format": "int64",
+          "description": "Error code - if null operation succeeded.",
+          "type": "integer"
+        },
+        "errorMessage": {
+          "description": "Error message in case of error or null.",
+          "type": "string"
+        },
+        "diagnostics": {
+          "description": "Additional diagnostics information",
+          "type": "string"
         }
       }
     },
@@ -943,6 +1005,33 @@
           "description": "Browse name",
           "type": "string"
         },
+        "value": {
+          "description": "Value of variable or default value of the\r\nsubtyped variable in case node is a variable\r\ntype, otherwise null.",
+          "type": "string"
+        },
+        "sourcePicoseconds": {
+          "format": "int32",
+          "description": "Pico seconds part of when value was read at source.",
+          "type": "integer"
+        },
+        "sourceTimestamp": {
+          "format": "date-time",
+          "description": "Timestamp of when value was read at source.",
+          "type": "string"
+        },
+        "serverPicoseconds": {
+          "format": "int32",
+          "description": "Pico seconds part of when value was read at server.",
+          "type": "integer"
+        },
+        "serverTimestamp": {
+          "format": "date-time",
+          "description": "Timestamp of when value was read at server.",
+          "type": "string"
+        },
+        "errorInfo": {
+          "$ref": "#/definitions/ServiceResultApiModel"
+        },
         "accessRestrictions": {
           "$ref": "#/definitions/NodeAccessRestrictions"
         },
@@ -976,7 +1065,8 @@
           "type": "boolean"
         },
         "dataTypeDefinition": {
-          "description": "Data type definition in case node is a\r\ndata type node and definition is available,\r\notherwise null."
+          "description": "Data type definition in case node is a\r\ndata type node and definition is available,\r\notherwise null.",
+          "type": "string"
         },
         "accessLevel": {
           "$ref": "#/definitions/NodeAccessLevel"
@@ -1007,9 +1097,6 @@
           "format": "double",
           "description": "Minimum sampling interval for the variable\r\nvalue, otherwise null if not a variable node.\r\n(default: null)",
           "type": "number"
-        },
-        "value": {
-          "description": "Value of variable or default value of the\r\nsubtyped variable in case node is a variable\r\ntype, otherwise null."
         },
         "inverseName": {
           "description": "Inverse name of the reference if the node is\r\na reference type, otherwise null.",
@@ -1062,24 +1149,6 @@
         }
       }
     },
-    "ServiceResultApiModel": {
-      "description": "Service result",
-      "type": "object",
-      "properties": {
-        "statusCode": {
-          "format": "int64",
-          "description": "Error code - if null operation succeeded.",
-          "type": "integer"
-        },
-        "errorMessage": {
-          "description": "Error message in case of error or null.",
-          "type": "string"
-        },
-        "diagnostics": {
-          "description": "Additional diagnostics information"
-        }
-      }
-    },
     "BrowseResponseApiModel": {
       "description": "browse response model",
       "type": "object",
@@ -1116,17 +1185,14 @@
         },
         "abort": {
           "description": "Whether to abort browse and release.\r\n(default: false)",
-          "default": false,
           "type": "boolean"
         },
         "targetNodesOnly": {
           "description": "Whether to collapse all references into a set of\r\nunique target nodes and not show reference\r\ninformation.\r\n(default is false)",
-          "default": false,
           "type": "boolean"
         },
         "readVariableValues": {
           "description": "Whether to read variable values on target nodes.\r\n(default is false)",
-          "default": false,
           "type": "boolean"
         },
         "header": {
@@ -1162,7 +1228,7 @@
       "type": "object",
       "properties": {
         "nodeId": {
-          "description": "Node to browse from.\r\n(default: RootFolder).",
+          "description": "Node to browse from.\r\n(defaults to root folder).",
           "type": "string"
         },
         "browsePaths": {
@@ -1177,7 +1243,6 @@
         },
         "readVariableValues": {
           "description": "Whether to read variable values on target nodes.\r\n(default is false)",
-          "default": false,
           "type": "boolean"
         },
         "header": {
@@ -1258,7 +1323,8 @@
           "$ref": "#/definitions/NodeApiModel"
         },
         "defaultValue": {
-          "description": "Default value"
+          "description": "Default value",
+          "type": "string"
         },
         "valueRank": {
           "$ref": "#/definitions/NodeValueRank"
@@ -1305,7 +1371,8 @@
       "type": "object",
       "properties": {
         "value": {
-          "description": "Initial value or value to use"
+          "description": "Initial value or value to use",
+          "type": "string"
         },
         "dataType": {
           "description": "Data type Id of the value (from meta data)",
@@ -1340,7 +1407,7 @@
           }
         },
         "objectBrowsePath": {
-          "description": "An optional component path from the node identified by\r\nObjectId to the actual object or objectType node.\r\nIf ObjectId is null, the root node (i=84) is used.",
+          "description": "An optional component path from the node identified by\r\nObjectId to the actual object or objectType node.\r\nIf ObjectId == null, the root node (i=84) is used.",
           "type": "array",
           "items": {
             "type": "string"
@@ -1396,7 +1463,8 @@
       "type": "object",
       "properties": {
         "value": {
-          "description": "Value read"
+          "description": "Value read",
+          "type": "string"
         },
         "dataType": {
           "description": "Built in data type of the value read.",
@@ -1503,7 +1571,8 @@
       "type": "object",
       "properties": {
         "value": {
-          "description": "Attribute value"
+          "description": "Attribute value",
+          "type": "string"
         },
         "errorInfo": {
           "$ref": "#/definitions/ServiceResultApiModel"
@@ -1542,7 +1611,8 @@
           }
         },
         "value": {
-          "description": "Value to write. The system tries to convert\r\nthe value according to the data type value,\r\ne.g. convert comma seperated value strings\r\ninto arrays.  (Mandatory)"
+          "description": "Value to write. The system tries to convert\r\nthe value according to the data type value,\r\ne.g. convert comma seperated value strings\r\ninto arrays.  (Mandatory)",
+          "type": "string"
         },
         "dataType": {
           "description": "A built in datatype for the value. This can\r\nbe a data type from browse, or a built in\r\ntype.\r\n(default: best effort)",
@@ -1583,7 +1653,8 @@
           "$ref": "#/definitions/NodeAttribute"
         },
         "value": {
-          "description": "Value to write (mandatory)"
+          "description": "Value to write (mandatory)",
+          "type": "string"
         }
       }
     },

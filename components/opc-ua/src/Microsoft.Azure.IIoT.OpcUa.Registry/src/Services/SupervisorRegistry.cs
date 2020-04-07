@@ -5,8 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
+    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
     using System.Linq;
@@ -23,10 +26,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// Create registry services
         /// </summary>
         /// <param name="iothub"></param>
+        /// <param name="serializer"></param>
+        /// <param name="broker"></param>
         /// <param name="logger"></param>
-        public SupervisorRegistry(IIoTHubTwinServices iothub, ILogger logger) {
+        public SupervisorRegistry(IIoTHubTwinServices iothub, IJsonSerializer serializer,
+            IRegistryEventBroker<ISupervisorRegistryListener> broker, ILogger logger) {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
+            _broker = broker ?? throw new ArgumentNullException(nameof(broker));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         }
 
         /// <inheritdoc/>
@@ -87,8 +95,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     }
 
                     // Patch
-                    await _iothub.PatchAsync(registration.Patch(
-                        patched.ToSupervisorRegistration()), false, ct);
+                    twin = await _iothub.PatchAsync(registration.Patch(
+                        patched.ToSupervisorRegistration(), _serializer), false, ct);
+
+                    // Send update to through broker
+                    registration = twin.ToEntityRegistration(true) as SupervisorRegistration;
+                    await _broker.NotifyAllAsync(l => l.OnSupervisorUpdatedAsync(null,
+                        registration.ToServiceModel()));
                     return;
                 }
                 catch (ResourceOutOfDateException ex) {
@@ -125,7 +138,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                 // If site id provided, include it in search
                 query += $"AND (properties.reported.{TwinProperty.SiteId} = " +
                     $"'{model.SiteId}' OR properties.desired.{TwinProperty.SiteId} = " +
-                    $"'{model.SiteId}')";
+                    $"'{model.SiteId}' OR deviceId = '{model.SiteId}') ";
+            }
+
+            if (EndpointInfoModelEx.IsEndpointId(model?.EndpointId)) {
+                // If endpoint id provided include in search
+                query += $"AND IS_DEFINED(properties.desired.{model.EndpointId}) ";
             }
 
             if (model?.Connected != null) {
@@ -151,6 +169,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         private readonly IIoTHubTwinServices _iothub;
+        private readonly IRegistryEventBroker<ISupervisorRegistryListener> _broker;
         private readonly ILogger _logger;
+        private readonly IJsonSerializer _serializer;
     }
 }

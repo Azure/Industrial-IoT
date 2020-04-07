@@ -4,17 +4,18 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Trust group registration response model
     /// </summary>
+    [DataContract]
     public sealed class TrustGroupRegistrationResponseApiModel {
 
         /// <summary>
         /// The id of the trust group
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
+        [DataMember(Name = "id", Order = 0)]
         public string Id { get; set; }
     }
 }

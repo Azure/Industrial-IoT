@@ -5,20 +5,21 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Graph.Models {
     using Gremlin.Net.CosmosDb.Structure;
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Object type vertex
     /// </summary>
     [Label(AddressSpaceElementNames.ObjectType)]
+    [DataContract]
     public class ObjectTypeNodeVertexModel : BaseNodeVertexModel {
 
         /// <summary>
         /// Whether type is abstract, if type can
         /// be abstract.  Null if not type node.
         /// </summary>
-        [JsonProperty(PropertyName = "isAbstract",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "isAbstract",
+            EmitDefaultValue = false)]
         public bool? IsAbstract { get; set; }
     }
 }

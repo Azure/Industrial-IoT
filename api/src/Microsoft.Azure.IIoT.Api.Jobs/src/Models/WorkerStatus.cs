@@ -4,33 +4,36 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Api.Jobs.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Worker state
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
+    [DataContract]
     public enum WorkerStatus {
 
         /// <summary>
         /// Stopped
         /// </summary>
+        [EnumMember]
         Stopped,
 
         /// <summary>
         /// Stopping
         /// </summary>
+        [EnumMember]
         Stopping,
 
         /// <summary>
         /// Waiting
         /// </summary>
+        [EnumMember]
         WaitingForJob,
 
         /// <summary>
         /// Processing
         /// </summary>
+        [EnumMember]
         ProcessingJob
     }
 }

@@ -5,9 +5,9 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
     using Microsoft.Azure.IIoT.Hub.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using Antlr4.Runtime;
     using Antlr4.Runtime.Tree;
-    using Newtonsoft.Json.Linq;
     using System;
     using System.Collections.Generic;
     using System.Globalization;
@@ -22,8 +22,9 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <summary>
         /// Create Registry
         /// </summary>
-        public SqlQuery(IIoTHub hub) {
+        public SqlQuery(IIoTHub hub, IJsonSerializer serializer) {
             _hub = hub;
+            _serializer = serializer;
         }
 
         /// <summary>
@@ -31,7 +32,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// </summary>
         /// <param name="sqlSelectString"></param>
         /// <returns></returns>
-        public IEnumerable<JToken> Query(string sqlSelectString) {
+        public IEnumerable<VariantValue> Query(string sqlSelectString) {
 
             // Parse
             var lexer = new SqlSelectLexer(new AntlrInputStream(sqlSelectString));
@@ -46,12 +47,12 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
             if (context.collection()?.DEVICES_MODULES() != null) {
                 return Project(Select(
                     _hub.Modules.Select(m => m.Twin), context)
-                        .Select(JToken.FromObject), context);
+                        .Select(o => _serializer.FromObject(o)), context);
             }
             if (context.collection()?.DEVICES() != null) {
                 return Project(Select(
                     _hub.Devices.Select(d => d.Twin), context)
-                        .Select(JToken.FromObject), context);
+                        .Select(o => _serializer.FromObject(o)), context);
             }
             throw new FormatException("Bad format");
         }
@@ -91,7 +92,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <param name="records"></param>
         /// <param name="context"></param>
         /// <returns></returns>
-        private IEnumerable<JToken> Project(IEnumerable<JToken> records,
+        private IEnumerable<VariantValue> Project(IEnumerable<VariantValue> records,
             SqlSelectParser.ParseContext context) {
             if (context == null) {
                 throw new ArgumentNullException(nameof(context));
@@ -108,18 +109,18 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        private Expression<Func<JsonToken, JsonToken>> ParseScalarLambda(
+        private Expression<Func<VariantValue, VariantValue>> ParseScalarLambda(
             SqlSelectParser.ScalarFunctionContext context) {
 
             if (context.STARTS_WITH() != null) {
-                return s => JToken.FromObject(
-                    ((string)(JToken)s).StartsWith(ParseStringValue(context.STRING_LITERAL()),
+                return s => _serializer.FromObject(
+                    ((string)s).StartsWith(ParseStringValue(context.STRING_LITERAL()),
                         StringComparison.Ordinal));
             }
 
             if (context.ENDS_WITH() != null) {
-                return s => JToken.FromObject(
-                    ((string)(JToken)s).EndsWith(ParseStringValue(context.STRING_LITERAL()),
+                return s => _serializer.FromObject(
+                    ((string)s).EndsWith(ParseStringValue(context.STRING_LITERAL()),
                         StringComparison.Ordinal));
             }
             throw new ArgumentException("Bad function");
@@ -130,33 +131,28 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        private Expression<Func<JsonToken, JsonToken>> ParseScalarLambda(
+        private Expression<Func<VariantValue, VariantValue>> ParseScalarLambda(
             SqlSelectParser.ScalarTypeFunctionContext context) {
 
             if (context.IS_DEFINED() != null) {
-                return s => JToken.FromObject(s != null);
+                return s => _serializer.FromObject(s != null);
             }
             if (context.IS_NULL() != null) {
-                return s => JToken.FromObject(s != null &&
-                    (((JToken)s).Type == JTokenType.Null));
+                return s => _serializer.FromObject(s != null && s.IsNull());
             }
             if (context.IS_BOOL() != null) {
-                return s => JToken.FromObject(s != null &&
-                    (((JToken)s).Type == JTokenType.Boolean));
+                return s => _serializer.FromObject(s != null && s.IsBoolean);
             }
             if (context.IS_NUMBER() != null) {
-                return s => JToken.FromObject(s != null &&
-                    (((JToken)s).Type == JTokenType.Float || ((JToken)s).Type == JTokenType.Integer));
+                return s => _serializer.FromObject(s != null && s.IsDecimal);
             }
             if (context.IS_STRING() != null) {
-                return s => JToken.FromObject(s != null &&
-                    (((JToken)s).Type == JTokenType.String));
+                return s => _serializer.FromObject(s != null && s.IsString);
             }
             if (context.IS_OBJECT() != null) {
-                return s => JToken.FromObject(s != null &&
-                    (((JToken)s).Type == JTokenType.Object));
+                return s => _serializer.FromObject(s != null && s.IsObject);
             }
-            return s => JToken.FromObject(true);
+            return s => _serializer.FromObject(true);
         }
 
         /// <summary>
@@ -209,7 +205,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
             var lhs = Expression.Invoke(expr,
                 ParseParameterBinding(parameter, scalarFunctionContext.columnName()));
             var rhs = Expression.Constant(context.literal_value() != null ?
-                ParseLiteralValue(context.literal_value()) : (JsonToken)JToken.FromObject(true));
+                ParseLiteralValue(context.literal_value()) : _serializer.FromObject(true));
 
             return CreateBinaryExpression(context.COMPARISON_OPERATOR()?.GetText() ?? "=",
                 lhs, rhs);
@@ -245,28 +241,28 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// </summary>
         /// <param name="identifier"></param>
         /// <returns></returns>
-        private Expression<Func<DeviceTwinModel, string, JsonToken>> CreateBindingLambda(
+        private Expression<Func<DeviceTwinModel, string, VariantValue>> CreateBindingLambda(
             string identifier) {
             switch (identifier.ToLowerInvariant()) {
                 case "tags":
-                    return (t, s) => SelectTargetToken(t.Tags, s);
+                    return (t, s) => GetByPath(t.Tags, s);
                 case "deviceid":
-                    return (t, s) => JToken.FromObject(t.Id);
+                    return (t, s) => _serializer.FromObject(t.Id);
                 case "moduleid":
-                    return (t, s) => JToken.FromObject(t.ModuleId);
+                    return (t, s) => _serializer.FromObject(t.ModuleId);
                 case "reported":
-                    return (t, s) => SelectTargetToken(t.Properties.Reported, s);
+                    return (t, s) => GetByPath(t.Properties.Reported, s);
                 case "desired":
-                    return (t, s) => SelectTargetToken(t.Properties.Desired, s);
+                    return (t, s) => GetByPath(t.Properties.Desired, s);
                 case "properties":
-                    return (t, s) => SelectTargetToken(t.Properties, s);
+                    return (t, s) => GetByPath(t.Properties, s);
                 case "capabilities":
-                    return (t, s) => SelectTargetToken(t.Capabilities, s);
+                    return (t, s) => GetByPath(t.Capabilities, s);
                 case "configurations":
                     // TODO
                     return (t, s) => null;
                 case "connectionstate":
-                    return (t, s) => SelectTargetToken(t.ConnectionState, s);
+                    return (t, s) => GetByPath(t.ConnectionState, s);
                 default:
                     return (t, s) => null;
             }
@@ -279,13 +275,12 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// <param name="target"></param>
         /// <param name="path"></param>
         /// <returns></returns>
-        private static JsonToken SelectTargetToken<T>(T target, string path) where T : class {
+        private VariantValue GetByPath<T>(T target, string path) where T : class {
             if (target == null) {
                 return null;
             }
-            var root = JToken.FromObject(target);
-            var selected = root.SelectToken(path, false);
-
+            var root = _serializer.FromObject(target);
+            var selected = root.GetByPath(path);
             return selected;
         }
 
@@ -375,7 +370,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        private JsonToken ParseLiteralValue(SqlSelectParser.Literal_valueContext context) {
+        private VariantValue ParseLiteralValue(SqlSelectParser.Literal_valueContext context) {
             return context.object_literal() != null ?
                 ParseObjectLiteralValue(context.object_literal()) :
                 ParseScalarLiteralValue(context.scalar_literal());
@@ -386,9 +381,9 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        private JsonToken ParseObjectLiteralValue(
+        private VariantValue ParseObjectLiteralValue(
             SqlSelectParser.Object_literalContext context) {
-            var result = new Dictionary<string, JToken>();
+            var result = new Dictionary<string, VariantValue>();
             foreach (var kvpContext in context.keyValuePair()) {
                 var key = ParseIdentifier(kvpContext.IDENTIFIER());
                 var value = kvpContext.scalar_literal() != null
@@ -397,7 +392,7 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
 
                 result.Add(key, value);
             }
-            return JToken.FromObject(result);
+            return _serializer.FromObject(result);
         }
 
         /// <summary>
@@ -405,16 +400,16 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         /// </summary>
         /// <param name="context"></param>
         /// <returns></returns>
-        private JsonToken ParseScalarLiteralValue(SqlSelectParser.Scalar_literalContext context) {
+        private VariantValue ParseScalarLiteralValue(SqlSelectParser.Scalar_literalContext context) {
             if (context.BOOLEAN() != null) {
-                return JToken.FromObject(bool.Parse(context.BOOLEAN().GetText()));
+                return _serializer.FromObject(bool.Parse(context.BOOLEAN().GetText()));
             }
             if (context.NUMERIC_LITERAL() != null) {
-                return JToken.FromObject(double.Parse(context.NUMERIC_LITERAL().GetText(),
+                return _serializer.FromObject(double.Parse(context.NUMERIC_LITERAL().GetText(),
                     CultureInfo.InvariantCulture));
             }
             if (context.STRING_LITERAL() != null) {
-                return JToken.FromObject(ParseStringValue(context.STRING_LITERAL()));
+                return _serializer.FromObject(ParseStringValue(context.STRING_LITERAL()));
             }
             return null;
         }
@@ -429,65 +424,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         }
 
         /// <summary>
-        /// Token helper
-        /// </summary>
-        public class JsonToken {
-
-            /// <summary>
-            /// Create token
-            /// </summary>
-            /// <param name="jtoken"></param>
-            public JsonToken(JToken jtoken) {
-                _jtoken = jtoken;
-            }
-
-            /// <summary>
-            /// Implicit conversion to <see cref="JToken"/>
-            /// </summary>
-            /// <param name="t"></param>
-            public static implicit operator JToken(JsonToken t) => t._jtoken;
-
-            /// <summary>
-            /// Implicit conversion from <see cref="JToken"/>
-            /// </summary>
-            /// <param name="t"></param>
-            public static implicit operator JsonToken(JToken t) => new JsonToken(t);
-
-            /// <inheritdoc/>
-            public override int GetHashCode() {
-                return JToken.EqualityComparer.GetHashCode(_jtoken);
-            }
-
-            /// <inheritdoc/>
-            public override string ToString() {
-                return _jtoken.ToString();
-            }
-
-            /// <inheritdoc/>
-            public static bool operator ==(JsonToken helper1, JsonToken helper2) {
-                if (helper1?._jtoken == null || helper2?._jtoken == null) {
-                    return helper1?._jtoken == helper2?._jtoken;
-                }
-                return JToken.DeepEquals(helper1._jtoken, helper2._jtoken);
-            }
-
-            /// <inheritdoc/>
-            public static bool operator !=(JsonToken helper1, JsonToken helper2) =>
-                !(helper1 == helper2);
-
-            /// <inheritdoc/>
-            public override bool Equals(object obj) {
-                var helper = obj as JsonToken;
-                if (helper?._jtoken == null || _jtoken == null) {
-                    return helper?._jtoken == _jtoken;
-                }
-                return helper != null && JToken.DeepEquals(_jtoken, helper._jtoken);
-            }
-
-            private readonly JToken _jtoken;
-        }
-
-        /// <summary>
         /// Error callback
         /// </summary>
         private class RaiseException<T> : IAntlrErrorListener<T> {
@@ -499,5 +435,6 @@ namespace Microsoft.Azure.IIoT.Hub.Mock.SqlParser {
         }
 
         private readonly IIoTHub _hub;
+        private readonly IJsonSerializer _serializer;
     }
 }

@@ -26,7 +26,10 @@
         "summary": "Get Issuer CA Certificate chain.",
         "operationId": "GetIssuerCertificateChain",
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -65,7 +68,10 @@
         "summary": "Get Issuer CA CRL chain.",
         "operationId": "GetIssuerCrlChain",
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -165,10 +171,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -207,7 +217,10 @@
         "description": "Can be called in any state. After a successful fetch in 'Completed' state, the request is moved into 'Accepted' state. Requires Writer role.",
         "operationId": "FinishSigningRequest",
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -247,10 +260,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -289,7 +306,10 @@
         "description": "Can be called in any state. Fetches private key in 'Completed' state. After a successful fetch in 'Completed' state, the request is moved into 'Accepted' state. Requires Writer role.",
         "operationId": "FinishNewKeyPairRequest",
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -447,7 +467,10 @@
         "summary": "Get a specific certificate request.",
         "operationId": "GetRequest",
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -487,10 +510,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -535,7 +562,10 @@
         "description": "Get all certificate requests in paged form or continue a current listing or query. The returned model can contain a link to the next page if more results are available.",
         "operationId": "ListRequests",
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -581,7 +611,10 @@
         "description": "A trust group has a root certificate which issues certificates to entities. Entities can be part of a trust group and thus trust the root certificate and all entities that the root has issued certificates for.",
         "operationId": "ListGroups",
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -628,10 +661,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -670,7 +707,10 @@
         "description": "A trust group has a root certificate which issues certificates to entities. Entities can be part of a trust group and thus trust the root certificate and all entities that the root has issued certificates for.",
         "operationId": "GetGroup",
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -708,7 +748,8 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -783,10 +824,14 @@
           "application/json-patch+json",
           "application/json",
           "text/json",
-          "application/*+json"
+          "application/*+json",
+          "application/x-msgpack"
         ],
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -893,7 +938,10 @@
         "description": "Returns all certificates the entity should trust based on the applied trust configuration.",
         "operationId": "ListTrustedCertificates",
         "produces": [
-          "application/json"
+          "text/plain",
+          "application/json",
+          "text/json",
+          "application/x-msgpack"
         ],
         "parameters": [
           {
@@ -1003,9 +1051,50 @@
           "description": "Not after validity",
           "type": "string"
         },
+        "selfSigned": {
+          "description": "Self signed",
+          "type": "boolean"
+        },
         "certificate": {
-          "description": "Raw data"
+          "format": "byte",
+          "description": "Raw data",
+          "type": "string"
         }
+      }
+    },
+    "X509ChainStatus": {
+      "description": "Status of x509 chain",
+      "enum": [
+        "NoError",
+        "NotTimeValid",
+        "Revoked",
+        "NotSignatureValid",
+        "NotValidForUsage",
+        "UntrustedRoot",
+        "RevocationStatusUnknown",
+        "Cyclic",
+        "InvalidExtension",
+        "InvalidPolicyConstraints",
+        "InvalidBasicConstraints",
+        "InvalidNameConstraints",
+        "HasNotSupportedNameConstraint",
+        "HasNotDefinedNameConstraint",
+        "HasNotPermittedNameConstraint",
+        "HasExcludedNameConstraint",
+        "PartialChain",
+        "CtlNotTimeValid",
+        "CtlNotSignatureValid",
+        "CtlNotValidForUsage",
+        "HasWeakSignature",
+        "OfflineRevocation",
+        "NoIssuanceChainPolicy",
+        "ExplicitDistrust",
+        "HasNotSupportedCriticalExtension"
+      ],
+      "type": "string",
+      "x-ms-enum": {
+        "name": "X509ChainStatus",
+        "modelAsString": false
       }
     },
     "X509CertificateChainApiModel": {
@@ -1017,6 +1106,44 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/X509CertificateApiModel"
+          }
+        },
+        "status": {
+          "description": "Chain validation status if validated",
+          "enum": [
+            "NoError",
+            "NotTimeValid",
+            "Revoked",
+            "NotSignatureValid",
+            "NotValidForUsage",
+            "UntrustedRoot",
+            "RevocationStatusUnknown",
+            "Cyclic",
+            "InvalidExtension",
+            "InvalidPolicyConstraints",
+            "InvalidBasicConstraints",
+            "InvalidNameConstraints",
+            "HasNotSupportedNameConstraint",
+            "HasNotDefinedNameConstraint",
+            "HasNotPermittedNameConstraint",
+            "HasExcludedNameConstraint",
+            "PartialChain",
+            "CtlNotTimeValid",
+            "CtlNotSignatureValid",
+            "CtlNotValidForUsage",
+            "HasWeakSignature",
+            "OfflineRevocation",
+            "NoIssuanceChainPolicy",
+            "ExplicitDistrust",
+            "HasNotSupportedCriticalExtension"
+          ],
+          "type": "string",
+          "items": {
+            "$ref": "#/definitions/X509ChainStatus"
+          },
+          "x-ms-enum": {
+            "name": "X509ChainStatus",
+            "modelAsString": false
           }
         }
       }
@@ -1030,7 +1157,8 @@
           "type": "string"
         },
         "crl": {
-          "description": "The certificate revocation list."
+          "description": "The certificate revocation list.",
+          "type": "string"
         }
       }
     },
@@ -1050,10 +1178,9 @@
     "NotFoundResult": {
       "type": "object",
       "properties": {
-        "statusCode": {
+        "StatusCode": {
           "format": "int32",
-          "type": "integer",
-          "readOnly": true
+          "type": "integer"
         }
       }
     },
@@ -1070,7 +1197,8 @@
           "type": "string"
         },
         "certificateRequest": {
-          "description": "Request"
+          "description": "Request",
+          "type": "string"
         }
       }
     },
@@ -1150,7 +1278,8 @@
           "$ref": "#/definitions/CertificateRequestType"
         },
         "errorInfo": {
-          "description": "Error diagnostics"
+          "description": "Error diagnostics",
+          "type": "string"
         },
         "submitted": {
           "$ref": "#/definitions/VaultOperationContextApiModel"
@@ -1593,7 +1722,7 @@
     },
     {
       "name": "Distribution",
-      "description": "Certificate CRL Distribution Point and Authority\r\nInformation Access\r\nservices."
+      "description": "Certificate CRL Distribution Point and Authority Information Access services."
     },
     {
       "name": "Requests",

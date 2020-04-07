@@ -6,21 +6,19 @@
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Controllers {
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Auth;
     using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Filters;
-    using Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.Models;
     using Microsoft.Azure.IIoT.OpcUa.History;
+    using Microsoft.Azure.IIoT.OpcUa.Api.History.Models;
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
     using System;
     using System.Threading.Tasks;
     using System.ComponentModel.DataAnnotations;
-    using Microsoft.Azure.IIoT.OpcUa.Api.History.Models;
 
     /// <summary>
     /// History insert services
     /// </summary>
     [ApiVersion("2")][Route("v{version:apiVersion}/insert")]
     [ExceptionsFilter]
-    [Produces(ContentMimeType.Json)]
     [Authorize(Policy = Policies.CanUpdate)]
     [ApiController]
     public class InsertController : ControllerBase {

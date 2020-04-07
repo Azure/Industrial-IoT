@@ -12,33 +12,27 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.3" />
     <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="3.1.3" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.3" />
-    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="5.0.1" />
+    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="6.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager\src\Microsoft.Azure.IIoT.Services.Common.Hub.Edgemanager.csproj" />
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.Common.Identity\src\Microsoft.Azure.IIoT.Services.Common.Identity.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.Common.Jobs.Edge\src\Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.Common.Jobs\src\Microsoft.Azure.IIoT.Services.Common.Jobs.csproj" />
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.Common.Configuration\src\Microsoft.Azure.IIoT.Services.Common.Configuration.csproj" />
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.Common.Hub.Fileupload\src\Microsoft.Azure.IIoT.Services.Common.Hub.Fileupload.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery\src\Microsoft.Azure.IIoT.Services.OpcUa.Registry.Sync.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.Processor.Events\src\Microsoft.Azure.IIoT.Services.Processor.Events.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm\src\Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.csproj" />
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux\src\Microsoft.Azure.IIoT.Services.Processor.Telemetry.Ux.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.Processor.Telemetry\src\Microsoft.Azure.IIoT.Services.Processor.Telemetry.csproj" />
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Registry.Security\src\Microsoft.Azure.IIoT.Services.OpcUa.Registry.Security.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Registry\src\Microsoft.Azure.IIoT.Services.OpcUa.Registry.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding\src\Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.csproj" />
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery\src\Microsoft.Azure.IIoT.Services.OpcUa.Registry.Discovery.csproj" />
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Registry.Events\src\Microsoft.Azure.IIoT.Services.OpcUa.Registry.Events.csproj" />
+    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Events\src\Microsoft.Azure.IIoT.Services.OpcUa.Events.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Publisher\src\Microsoft.Azure.IIoT.Services.OpcUa.Publisher.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway\src\Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Twin.History\src\Microsoft.Azure.IIoT.Services.OpcUa.Twin.History.csproj" />
-    <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Twin.Import\src\Microsoft.Azure.IIoT.Services.OpcUa.Twin.Import.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Twin\src\Microsoft.Azure.IIoT.Services.OpcUa.Twin.csproj" />
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.Services.OpcUa.Vault\src\Microsoft.Azure.IIoT.Services.OpcUa.Vault.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Remove="container.json" />
+    <None Remove="tempkey.rsa" />
     <None Include="container.json" />
   </ItemGroup>
 </Project>

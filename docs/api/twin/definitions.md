@@ -21,7 +21,7 @@ Attribute value read
 |Name|Description|Schema|
 |---|---|---|
 |**errorInfo**  <br>*optional*||[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
-|**value**  <br>*optional*|Attribute value|object|
+|**value**  <br>*optional*|Attribute value|string|
 
 
 <a name="attributewriterequestapimodel"></a>
@@ -33,7 +33,7 @@ Attribute and value to write to it
 |---|---|---|
 |**attribute**  <br>*required*||[NodeAttribute](definitions.md#nodeattribute)|
 |**nodeId**  <br>*required*|Node to write to (mandatory)|string|
-|**value**  <br>*required*|Value to write (mandatory)|object|
+|**value**  <br>*required*|Value to write (mandatory)|string|
 
 
 <a name="attributewriteresponseapimodel"></a>
@@ -46,8 +46,10 @@ Attribute write result
 |**errorInfo**  <br>*optional*|[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
 
 
-<a name="browsedirectionnullable"></a>
-### BrowseDirectionNullable
+<a name="browsedirection"></a>
+### BrowseDirection
+Direction to browse
+
 *Type* : enum (Forward, Backward, Both)
 
 
@@ -58,11 +60,11 @@ Request node browsing continuation
 
 |Name|Description|Schema|
 |---|---|---|
-|**abort**  <br>*optional*|Whether to abort browse and release.<br>(default: false)  <br>**Default** : `false`|boolean|
+|**abort**  <br>*optional*|Whether to abort browse and release.<br>(default: false)|boolean|
 |**continuationToken**  <br>*required*|Continuation token from previews browse request.<br>(mandatory)|string|
 |**header**  <br>*optional*||[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**readVariableValues**  <br>*optional*|Whether to read variable values on target nodes.<br>(default is false)  <br>**Default** : `false`|boolean|
-|**targetNodesOnly**  <br>*optional*|Whether to collapse all references into a set of<br>unique target nodes and not show reference<br>information.<br>(default is false)  <br>**Default** : `false`|boolean|
+|**readVariableValues**  <br>*optional*|Whether to read variable values on target nodes.<br>(default is false)|boolean|
+|**targetNodesOnly**  <br>*optional*|Whether to collapse all references into a set of<br>unique target nodes and not show reference<br>information.<br>(default is false)|boolean|
 
 
 <a name="browsenextresponseapimodel"></a>
@@ -86,8 +88,8 @@ Browse nodes by path
 |---|---|---|
 |**browsePaths**  <br>*required*|The paths to browse from node.<br>(mandatory)|< < string > array > array|
 |**header**  <br>*optional*||[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**nodeId**  <br>*optional*|Node to browse from.<br>(default: RootFolder).|string|
-|**readVariableValues**  <br>*optional*|Whether to read variable values on target nodes.<br>(default is false)  <br>**Default** : `false`|boolean|
+|**nodeId**  <br>*optional*|Node to browse from.<br>(defaults to root folder).|string|
+|**readVariableValues**  <br>*optional*|Whether to read variable values on target nodes.<br>(default is false)|boolean|
 
 
 <a name="browsepathresponseapimodel"></a>
@@ -108,14 +110,15 @@ Browse request model
 
 |Name|Description|Schema|
 |---|---|---|
-|**direction**  <br>*optional*||[BrowseDirectionNullable](definitions.md#browsedirectionnullable)|
+|**direction**  <br>*optional*||[BrowseDirection](definitions.md#browsedirection)|
 |**header**  <br>*optional*||[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
-|**maxReferencesToReturn**  <br>*optional*|Max number of references to return. There might<br>be less returned as this is up to the client<br>restrictions.  Set to 0 to return no references<br>or target nodes.<br>(default is decided by client e.g. 60)|integer (int32)|
-|**noSubtypes**  <br>*optional*|Whether to include subtypes of the reference type.<br>(default is false)  <br>**Default** : `false`|boolean|
-|**nodeId**  <br>*optional*|Node to browse.<br>(default: RootFolder).|string|
-|**readVariableValues**  <br>*optional*|Whether to read variable values on target nodes.<br>(default is false)  <br>**Default** : `false`|boolean|
+|**maxReferencesToReturn**  <br>*optional*|Max number of references to return. There might<br>be less returned as this is up to the client<br>restrictions.  Set to 0 to return no references<br>or target nodes.<br>(default is decided by client e.g. 60)|integer (int64)|
+|**noSubtypes**  <br>*optional*|Whether to include subtypes of the reference type.<br>(default is false)|boolean|
+|**nodeClassFilter**  <br>*optional*|Filter returned target nodes by only returning<br>nodes that have classes defined in this array.<br>(default: null - all targets are returned)|enum (Object, Variable, Method, ObjectType, VariableType, ReferenceType, DataType, View)|
+|**nodeId**  <br>*optional*|Node to browse.<br>(defaults to root folder).|string|
+|**readVariableValues**  <br>*optional*|Whether to read variable values on target nodes.<br>(default is false)|boolean|
 |**referenceTypeId**  <br>*optional*|Reference types to browse.<br>(default: hierarchical).|string|
-|**targetNodesOnly**  <br>*optional*|Whether to collapse all references into a set of<br>unique target nodes and not show reference<br>information.<br>(default is false)  <br>**Default** : `false`|boolean|
+|**targetNodesOnly**  <br>*optional*|Whether to collapse all references into a set of<br>unique target nodes and not show reference<br>information.<br>(default is false)|boolean|
 |**view**  <br>*optional*||[BrowseViewApiModel](definitions.md#browseviewapimodel)|
 
 
@@ -140,7 +143,7 @@ Browse view model
 |Name|Description|Schema|
 |---|---|---|
 |**timestamp**  <br>*optional*|Browses at or before this timestamp.|string (date-time)|
-|**version**  <br>*optional*|Browses specific version of the view.|integer (int32)|
+|**version**  <br>*optional*|Browses specific version of the view.|integer (int64)|
 |**viewId**  <br>*required*|Node of the view to browse|string|
 
 
@@ -151,12 +154,14 @@ Credential model
 
 |Name|Description|Schema|
 |---|---|---|
-|**type**  <br>*optional*||[CredentialTypeNullable](definitions.md#credentialtypenullable)|
-|**value**  <br>*optional*|Value to pass to server|object|
+|**type**  <br>*optional*||[CredentialType](definitions.md#credentialtype)|
+|**value**  <br>*optional*|Value to pass to server|string|
 
 
-<a name="credentialtypenullable"></a>
-### CredentialTypeNullable
+<a name="credentialtype"></a>
+### CredentialType
+Type of credentials to use for authentication
+
 *Type* : enum (None, UserName, X509Certificate, JwtToken)
 
 
@@ -168,12 +173,14 @@ Diagnostics configuration
 |Name|Description|Schema|
 |---|---|---|
 |**auditId**  <br>*optional*|Client audit log entry.<br>(default: client generated)|string|
-|**level**  <br>*optional*||[DiagnosticsLevelNullable](definitions.md#diagnosticslevelnullable)|
+|**level**  <br>*optional*||[DiagnosticsLevel](definitions.md#diagnosticslevel)|
 |**timeStamp**  <br>*optional*|Timestamp of request.<br>(default: client generated)|string (date-time)|
 
 
-<a name="diagnosticslevelnullable"></a>
-### DiagnosticsLevelNullable
+<a name="diagnosticslevel"></a>
+### DiagnosticsLevel
+Level of diagnostics requested in responses
+
 *Type* : enum (None, Status, Operations, Diagnostics, Verbose)
 
 
@@ -185,7 +192,7 @@ method arg model
 |Name|Description|Schema|
 |---|---|---|
 |**dataType**  <br>*optional*|Data type Id of the value (from meta data)|string|
-|**value**  <br>*optional*|Initial value or value to use|object|
+|**value**  <br>*optional*|Initial value or value to use|string|
 
 
 <a name="methodcallrequestapimodel"></a>
@@ -199,7 +206,7 @@ Call request model
 |**header**  <br>*optional*||[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
 |**methodBrowsePath**  <br>*optional*|An optional component path from the node identified by<br>MethodId or from a resolved objectId to the actual<br>method node.|< string > array|
 |**methodId**  <br>*optional*|Method id of method to call.|string|
-|**objectBrowsePath**  <br>*optional*|An optional component path from the node identified by<br>ObjectId to the actual object or objectType node.<br>If ObjectId is null, the root node (i=84) is used.|< string > array|
+|**objectBrowsePath**  <br>*optional*|An optional component path from the node identified by<br>ObjectId to the actual object or objectType node.<br>If ObjectId == null, the root node (i=84) is used.|< string > array|
 |**objectId**  <br>*optional*|Context of the method, i.e. an object or object type<br>node.|string|
 
 
@@ -221,12 +228,12 @@ Method argument metadata model
 
 |Name|Description|Schema|
 |---|---|---|
-|**arrayDimensions**  <br>*optional*|Optional, array dimension|< integer (int32) > array|
-|**defaultValue**  <br>*optional*|Default value|object|
+|**arrayDimensions**  <br>*optional*|Optional, array dimension|< integer (int64) > array|
+|**defaultValue**  <br>*optional*|Default value|string|
 |**description**  <br>*optional*|Optional description|string|
 |**name**  <br>*optional*|Argument name|string|
 |**type**  <br>*optional*||[NodeApiModel](definitions.md#nodeapimodel)|
-|**valueRank**  <br>*optional*||[NodeValueRankNullable](definitions.md#nodevalueranknullable)|
+|**valueRank**  <br>*optional*||[NodeValueRank](definitions.md#nodevaluerank)|
 
 
 <a name="methodmetadatarequestapimodel"></a>
@@ -254,13 +261,17 @@ Method metadata query model
 |**outputArguments**  <br>*optional*|output argument meta data|< [MethodMetadataArgumentApiModel](definitions.md#methodmetadataargumentapimodel) > array|
 
 
-<a name="nodeaccesslevelnullable"></a>
-### NodeAccessLevelNullable
+<a name="nodeaccesslevel"></a>
+### NodeAccessLevel
+Flags that can be set for the AccessLevel attribute.
+
 *Type* : enum (CurrentRead, CurrentWrite, HistoryRead, HistoryWrite, SemanticChange, StatusWrite, TimestampWrite, NonatomicRead, NonatomicWrite, WriteFullArrayOnly)
 
 
-<a name="nodeaccessrestrictionsnullable"></a>
-### NodeAccessRestrictionsNullable
+<a name="nodeaccessrestrictions"></a>
+### NodeAccessRestrictions
+Flags for use with the AccessRestrictions attribute.
+
 *Type* : enum (SigningRequired, EncryptionRequired, SessionRequired)
 
 
@@ -271,34 +282,39 @@ Node model
 
 |Name|Description|Schema|
 |---|---|---|
-|**accessLevel**  <br>*optional*||[NodeAccessLevelNullable](definitions.md#nodeaccesslevelnullable)|
-|**accessRestrictions**  <br>*optional*||[NodeAccessRestrictionsNullable](definitions.md#nodeaccessrestrictionsnullable)|
-|**arrayDimensions**  <br>*optional*|Array dimensions of variable or variable type.<br>(default: empty array)|< integer (int32) > array|
+|**accessLevel**  <br>*optional*||[NodeAccessLevel](definitions.md#nodeaccesslevel)|
+|**accessRestrictions**  <br>*optional*||[NodeAccessRestrictions](definitions.md#nodeaccessrestrictions)|
+|**arrayDimensions**  <br>*optional*|Array dimensions of variable or variable type.<br>(default: empty array)|< integer (int64) > array|
 |**browseName**  <br>*optional*|Browse name|string|
 |**children**  <br>*optional*|Whether node has children which are defined as<br>any forward hierarchical references.<br>(default: unknown)|boolean|
 |**containsNoLoops**  <br>*optional*|Whether a view contains loops. Null if<br>not a view.|boolean|
 |**dataType**  <br>*optional*|If variable the datatype of the variable.<br>(default: null)|string|
-|**dataTypeDefinition**  <br>*optional*|Data type definition in case node is a<br>data type node and definition is available,<br>otherwise null.|object|
+|**dataTypeDefinition**  <br>*optional*|Data type definition in case node is a<br>data type node and definition is available,<br>otherwise null.|string|
 |**description**  <br>*optional*|Description if any|string|
 |**displayName**  <br>*optional*|Display name|string|
-|**eventNotifier**  <br>*optional*||[NodeEventNotifierNullable](definitions.md#nodeeventnotifiernullable)|
+|**errorInfo**  <br>*optional*||[ServiceResultApiModel](definitions.md#serviceresultapimodel)|
+|**eventNotifier**  <br>*optional*||[NodeEventNotifier](definitions.md#nodeeventnotifier)|
 |**executable**  <br>*optional*|If method node class, whether method can<br>be called.|boolean|
 |**historizing**  <br>*optional*|Whether the value of a variable is historizing.<br>(default: false)|boolean|
 |**inverseName**  <br>*optional*|Inverse name of the reference if the node is<br>a reference type, otherwise null.|string|
 |**isAbstract**  <br>*optional*|Whether type is abstract, if type can<br>be abstract.  Null if not type node.<br>(default: false)|boolean|
 |**minimumSamplingInterval**  <br>*optional*|Minimum sampling interval for the variable<br>value, otherwise null if not a variable node.<br>(default: null)|number (double)|
-|**nodeClass**  <br>*optional*||[NodeClassNullable](definitions.md#nodeclassnullable)|
+|**nodeClass**  <br>*optional*||[NodeClass](definitions.md#nodeclass)|
 |**nodeId**  <br>*required*|Id of node.<br>(Mandatory).|string|
 |**rolePermissions**  <br>*optional*|Role permissions|< [RolePermissionApiModel](definitions.md#rolepermissionapimodel) > array|
+|**serverPicoseconds**  <br>*optional*|Pico seconds part of when value was read at server.|integer (int32)|
+|**serverTimestamp**  <br>*optional*|Timestamp of when value was read at server.|string (date-time)|
+|**sourcePicoseconds**  <br>*optional*|Pico seconds part of when value was read at source.|integer (int32)|
+|**sourceTimestamp**  <br>*optional*|Timestamp of when value was read at source.|string (date-time)|
 |**symmetric**  <br>*optional*|Whether the reference is symmetric in case<br>the node is a reference type, otherwise<br>null.|boolean|
 |**typeDefinitionId**  <br>*optional*|Optional type definition of the node|string|
-|**userAccessLevel**  <br>*optional*||[NodeAccessLevelNullable](definitions.md#nodeaccesslevelnullable)|
+|**userAccessLevel**  <br>*optional*||[NodeAccessLevel](definitions.md#nodeaccesslevel)|
 |**userExecutable**  <br>*optional*|If method node class, whether method can<br>be called by current user.<br>(default: false if not executable)|boolean|
 |**userRolePermissions**  <br>*optional*|User Role permissions|< [RolePermissionApiModel](definitions.md#rolepermissionapimodel) > array|
-|**userWriteMask**  <br>*optional*|User write mask for the node<br>(default: 0)|integer (int32)|
-|**value**  <br>*optional*|Value of variable or default value of the<br>subtyped variable in case node is a variable<br>type, otherwise null.|object|
-|**valueRank**  <br>*optional*||[NodeValueRankNullable](definitions.md#nodevalueranknullable)|
-|**writeMask**  <br>*optional*|Default write mask for the node<br>(default: 0)|integer (int32)|
+|**userWriteMask**  <br>*optional*|User write mask for the node<br>(default: 0)|integer (int64)|
+|**value**  <br>*optional*|Value of variable or default value of the<br>subtyped variable in case node is a variable<br>type, otherwise null.|string|
+|**valueRank**  <br>*optional*||[NodeValueRank](definitions.md#nodevaluerank)|
+|**writeMask**  <br>*optional*|Default write mask for the node<br>(default: 0)|integer (int64)|
 
 
 <a name="nodeattribute"></a>
@@ -308,13 +324,17 @@ Node attribute identifiers
 *Type* : enum (NodeClass, BrowseName, DisplayName, Description, WriteMask, UserWriteMask, IsAbstract, Symmetric, InverseName, ContainsNoLoops, EventNotifier, Value, DataType, ValueRank, ArrayDimensions, AccessLevel, UserAccessLevel, MinimumSamplingInterval, Historizing, Executable, UserExecutable, DataTypeDefinition, RolePermissions, UserRolePermissions, AccessRestrictions)
 
 
-<a name="nodeclassnullable"></a>
-### NodeClassNullable
+<a name="nodeclass"></a>
+### NodeClass
+Node class
+
 *Type* : enum (Object, Variable, Method, ObjectType, VariableType, ReferenceType, DataType, View)
 
 
-<a name="nodeeventnotifiernullable"></a>
-### NodeEventNotifierNullable
+<a name="nodeeventnotifier"></a>
+### NodeEventNotifier
+Flags that can be set for the EventNotifier attribute.
+
 *Type* : enum (SubscribeToEvents, HistoryRead, HistoryWrite)
 
 
@@ -337,13 +357,15 @@ reference model
 
 |Name|Description|Schema|
 |---|---|---|
-|**direction**  <br>*optional*||[BrowseDirectionNullable](definitions.md#browsedirectionnullable)|
+|**direction**  <br>*optional*||[BrowseDirection](definitions.md#browsedirection)|
 |**referenceTypeId**  <br>*optional*|Reference Type id|string|
 |**target**  <br>*required*||[NodeApiModel](definitions.md#nodeapimodel)|
 
 
-<a name="nodevalueranknullable"></a>
-### NodeValueRankNullable
+<a name="nodevaluerank"></a>
+### NodeValueRank
+Constants defined for the ValueRank attribute.
+
 *Type* : enum (OneOrMoreDimensions, OneDimension, TwoDimensions, ScalarOrOneDimension, Any, Scalar)
 
 
@@ -387,12 +409,14 @@ Role permission model
 
 |Name|Description|Schema|
 |---|---|---|
-|**permissions**  <br>*optional*||[RolePermissionsNullable](definitions.md#rolepermissionsnullable)|
+|**permissions**  <br>*optional*||[RolePermissions](definitions.md#rolepermissions)|
 |**roleId**  <br>*required*|Identifier of the role object.|string|
 
 
-<a name="rolepermissionsnullable"></a>
-### RolePermissionsNullable
+<a name="rolepermissions"></a>
+### RolePermissions
+Individual permissions assigned to a role
+
 *Type* : enum (Browse, ReadRolePermissions, WriteAttribute, WriteRolePermissions, WriteHistorizing, Read, Write, ReadHistory, InsertHistory, ModifyHistory, DeleteHistory, ReceiveEvents, Call, AddReference, RemoveReference, DeleteNode, AddNode)
 
 
@@ -403,9 +427,9 @@ Service result
 
 |Name|Description|Schema|
 |---|---|---|
-|**diagnostics**  <br>*optional*|Additional diagnostics information|object|
+|**diagnostics**  <br>*optional*|Additional diagnostics information|string|
 |**errorMessage**  <br>*optional*|Error message in case of error or null.|string|
-|**statusCode**  <br>*optional*|Error code - if null operation succeeded.|integer (int32)|
+|**statusCode**  <br>*optional*|Error code - if null operation succeeded.|integer (int64)|
 
 
 <a name="valuereadrequestapimodel"></a>
@@ -434,7 +458,7 @@ Value read response model
 |**serverTimestamp**  <br>*optional*|Timestamp of when value was read at server.|string (date-time)|
 |**sourcePicoseconds**  <br>*optional*|Pico seconds part of when value was read at source.|integer (int32)|
 |**sourceTimestamp**  <br>*optional*|Timestamp of when value was read at source.|string (date-time)|
-|**value**  <br>*optional*|Value read|object|
+|**value**  <br>*optional*|Value read|string|
 
 
 <a name="valuewriterequestapimodel"></a>
@@ -449,7 +473,7 @@ Value write request model
 |**header**  <br>*optional*||[RequestHeaderApiModel](definitions.md#requestheaderapimodel)|
 |**indexRange**  <br>*optional*|Index range to write|string|
 |**nodeId**  <br>*optional*|Node id to to write value to.|string|
-|**value**  <br>*required*|Value to write. The system tries to convert<br>the value according to the data type value,<br>e.g. convert comma seperated value strings<br>into arrays.  (Mandatory)|object|
+|**value**  <br>*required*|Value to write. The system tries to convert<br>the value according to the data type value,<br>e.g. convert comma seperated value strings<br>into arrays.  (Mandatory)|string|
 
 
 <a name="valuewriteresponseapimodel"></a>

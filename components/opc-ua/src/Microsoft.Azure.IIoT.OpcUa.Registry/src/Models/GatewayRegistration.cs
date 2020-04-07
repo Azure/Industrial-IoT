@@ -5,23 +5,18 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.Hub;
-    using System;
     using System.Collections.Generic;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Edge gateway registration
     /// </summary>
-    [Serializable]
+    [DataContract]
     public sealed class GatewayRegistration : EntityRegistration {
 
         /// <inheritdoc/>
+        [DataMember]
         public override string DeviceType => IdentityType.Gateway;
-
-        /// <inheritdoc/>
-        public override string Thumbprint => null;
-
-        /// <inheritdoc/>
-        public override Dictionary<string, string> Certificate => null;
 
         /// <summary>
         /// Create registration - for testing purposes

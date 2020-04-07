@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System.Collections.Generic;
 
     /// <summary>
@@ -51,7 +51,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
             if (model.Index != other.Index) {
                 return false;
             }
-            if (!JToken.DeepEquals(model.Value, other.Value)) {
+            if (!VariantValue.DeepEquals(model.Value, other.Value)) {
                 return false;
             }
             if (!model.BrowsePath.SequenceEqualsSafe(other.BrowsePath)) {

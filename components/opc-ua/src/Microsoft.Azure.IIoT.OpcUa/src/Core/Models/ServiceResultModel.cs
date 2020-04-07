@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
 
     /// <summary>
     /// Service result
@@ -24,6 +24,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         /// <summary>
         /// Additional diagnostics information
         /// </summary>
-        public JToken Diagnostics { get; set; }
+        public VariantValue Diagnostics { get; set; }
     }
 }

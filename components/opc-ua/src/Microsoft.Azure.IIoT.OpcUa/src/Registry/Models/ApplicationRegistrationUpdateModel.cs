@@ -33,11 +33,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
         public Dictionary<string, string> LocalizedNames { get; set; }
 
         /// <summary>
-        /// Application cert
-        /// </summary>
-        public byte[] Certificate { get; set; }
-
-        /// <summary>
         /// Application capabilities
         /// </summary>
         public HashSet<string> Capabilities { get; set; }

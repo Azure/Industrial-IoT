@@ -4,6 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Module.Framework.Services {
+    using Microsoft.Azure.IIoT.Serializers;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
@@ -17,13 +18,13 @@ namespace Microsoft.Azure.IIoT.Module.Framework.Services {
         /// </summary>
         /// <param name="desired"></param>
         /// <returns></returns>
-        Task<IDictionary<string, object>> ProcessSettingsAsync(
-            IDictionary<string, object> desired);
+        Task<IDictionary<string, VariantValue>> ProcessSettingsAsync(
+            IDictionary<string, VariantValue> desired);
 
         /// <summary>
         /// Get all settings to report.
         /// </summary>
         /// <returns></returns>
-        Task<IDictionary<string, object>> GetSettingsStateAsync();
+        Task<IDictionary<string, VariantValue>> GetSettingsStateAsync();
     }
 }

@@ -5,6 +5,8 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
+    using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
     using Serilog;
@@ -23,9 +25,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// Create registry services
         /// </summary>
         /// <param name="iothub"></param>
+        /// <param name="broker"></param>
         /// <param name="logger"></param>
-        public GatewayRegistry(IIoTHubTwinServices iothub, ILogger logger) {
+        public GatewayRegistry(IIoTHubTwinServices iothub,
+            IRegistryEventBroker<IGatewayRegistryListener> broker, ILogger logger) {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
+            _broker = broker ?? throw new ArgumentNullException(nameof(broker));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -105,8 +110,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                             null : request.SiteId;
                     }
                     // Patch
-                    await _iothub.PatchAsync(registration.Patch(
+                    twin = await _iothub.PatchAsync(registration.Patch(
                         patched.ToGatewayRegistration()), false, ct);
+
+                    // Send update to through broker
+                    registration = twin.ToEntityRegistration(true) as GatewayRegistration;
+                    await _broker.NotifyAllAsync(l => l.OnGatewayUpdatedAsync(null,
+                        registration.ToServiceModel()));
                     return;
                 }
                 catch (ResourceOutOfDateException ex) {
@@ -141,7 +151,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
 
             if (model?.SiteId != null) {
                 // If site id provided, include it in search
-                query += $"AND tags.{TwinProperty.SiteId} = '{model.SiteId}' ";
+                query += $"AND (tags.{TwinProperty.SiteId} = '{model.SiteId}' OR deviceId = " +
+                    $"'{model.SiteId})') ";
             }
             if (model?.Connected != null) {
                 // If flag provided, include it in search
@@ -166,6 +177,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         private readonly IIoTHubTwinServices _iothub;
+        private readonly IRegistryEventBroker<IGatewayRegistryListener> _broker;
         private readonly ILogger _logger;
     }
 }

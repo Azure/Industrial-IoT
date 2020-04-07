@@ -26,7 +26,7 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
 
         private EndpointModel Endpoint => new EndpointModel {
             Url = $"opc.tcp://{Dns.GetHostName()}:{_server.Port}/UA/SampleServer",
-            Certificate = _server.Certificate?.RawData
+            Certificate = _server.Certificate?.RawData?.ToThumbprint()
         };
 
         private WriteScalarValueTests<string> GetTests(EndpointRegistrationModel endpoint, IContainer services) {
@@ -36,7 +36,11 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
         }
 
         private readonly TestServerFixture _server;
+#if DEBUG
+        private readonly bool _runAll = true;
+#else
         private readonly bool _runAll = Environment.GetEnvironmentVariable("TEST_ALL") != null;
+#endif
 
         [SkippableFact]
         public async Task NodeWriteStaticScalarBooleanValueVariableTestAsync() {

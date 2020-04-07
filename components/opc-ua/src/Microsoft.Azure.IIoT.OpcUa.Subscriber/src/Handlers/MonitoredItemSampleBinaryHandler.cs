@@ -4,9 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
-    using Microsoft.Azure.IIoT.Hub;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber;
     using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Protocol;
+    using Microsoft.Azure.IIoT.Hub;
     using Opc.Ua;
     using Opc.Ua.Extensions;
     using Opc.Ua.PubSub;
@@ -28,9 +29,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         /// <summary>
         /// Create handler
         /// </summary>
+        /// <param name="encoder"></param>
         /// <param name="handlers"></param>
         /// <param name="logger"></param>
-        public MonitoredItemSampleBinaryHandler(IEnumerable<ISubscriberMessageProcessor> handlers, ILogger logger) {
+        public MonitoredItemSampleBinaryHandler(IVariantEncoderFactory encoder,
+            IEnumerable<ISubscriberMessageProcessor> handlers, ILogger logger) {
+            _encoder = encoder ?? throw new ArgumentNullException(nameof(encoder));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _handlers = handlers?.ToList() ?? throw new ArgumentNullException(nameof(handlers));
         }
@@ -39,11 +43,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         public async Task HandleAsync(string deviceId, string moduleId,
             byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
             MonitoredItemMessage message;
+            var context = new ServiceMessageContext();
             try {
-                var context = new ServiceMessageContext();
                 using (var stream = new MemoryStream(payload)) {
                     using (var decoder = new BinaryDecoder(stream, context)) {
-                        var result = decoder.ReadEncodeable(null, 
+                        var result = decoder.ReadEncodeable(null,
                             typeof(MonitoredItemMessage)) as MonitoredItemMessage;
                         message = result;
                     }
@@ -54,6 +58,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                 return;
             }
             try {
+                var type = BuiltInType.Null;
+                var codec = _encoder.Create(context);
                 var dataset = new DataSetMessageModel {
                     PublisherId = (message.ExtensionFields != null &&
                         message.ExtensionFields.TryGetValue("PublisherId", out var publisherId))
@@ -68,14 +74,21 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
                     MetaDataVersion = "1.0",
                     Timestamp = message.Timestamp,
                     Payload = new Dictionary<string, DataValueModel>() {
-                        [message.NodeId.AsString(null)] = new DataValueModel() {
-                            Value = message?.Value?.WrappedValue.Value,
+                        [message.NodeId.AsString(context)] = new DataValueModel {
+                            Value = message?.Value == null
+                                ? null : codec.Encode(message.Value.WrappedValue, out type),
+                            DataType = type == BuiltInType.Null
+                                ? null : type.ToString(),
                             Status = (message?.Value?.StatusCode.Code == StatusCodes.Good)
                                 ? null : StatusCode.LookupSymbolicId(message.Value.StatusCode.Code),
                             SourceTimestamp = (message?.Value?.SourceTimestamp == DateTime.MinValue)
-                                ? null : (DateTime?)message?.Value?.SourceTimestamp,
+                                ? null : message?.Value?.SourceTimestamp,
+                            SourcePicoseconds = (message?.Value?.SourcePicoseconds == 0)
+                                ? null : message?.Value?.SourcePicoseconds,
                             ServerTimestamp = (message?.Value?.ServerTimestamp == DateTime.MinValue)
-                                ? null : (DateTime?)message?.Value?.ServerTimestamp
+                                ? null : message?.Value?.ServerTimestamp,
+                            ServerPicoseconds = (message?.Value?.ServerPicoseconds == 0)
+                                ? null : message?.Value?.ServerPicoseconds,
                         }
                     }
                 };
@@ -92,6 +105,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
             return Task.CompletedTask;
         }
 
+        private readonly IVariantEncoderFactory _encoder;
         private readonly ILogger _logger;
         private readonly List<ISubscriberMessageProcessor> _handlers;
     }

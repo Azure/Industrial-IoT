@@ -670,7 +670,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Protocol.Services {
         private void OnValidate(CertificateValidator sender, CertificateValidationEventArgs e) {
             if (!e.Accept && e.Error.StatusCode == StatusCodes.BadCertificateUntrusted &&
                 e.Certificate.RawData != null && _connection.Endpoint.Certificate != null) {
-                e.Accept = e.Certificate.RawData.SequenceEqual(_connection.Endpoint.Certificate);
+                e.Accept = e.Certificate.Thumbprint == _connection.Endpoint.Certificate;
             }
         }
 

@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.History {
     using Microsoft.Azure.IIoT.OpcUa.History.Models;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -20,8 +20,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.History {
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<HistoryReadResultModel<JToken>> HistoryReadAsync(T endpoint,
-            HistoryReadRequestModel<JToken> request);
+        Task<HistoryReadResultModel<VariantValue>> HistoryReadAsync(T endpoint,
+            HistoryReadRequestModel<VariantValue> request);
 
         /// <summary>
         /// Read node history continuation
@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.History {
         /// <param name="endpoint"></param>
         /// <param name="request"></param>
         /// <returns></returns>
-        Task<HistoryReadNextResultModel<JToken>> HistoryReadNextAsync(T endpoint,
+        Task<HistoryReadNextResultModel<VariantValue>> HistoryReadNextAsync(T endpoint,
             HistoryReadNextRequestModel request);
 
         /// <summary>
@@ -39,6 +39,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.History {
         /// <param name="request"></param>
         /// <returns></returns>
         Task<HistoryUpdateResultModel> HistoryUpdateAsync(T endpoint,
-            HistoryUpdateRequestModel<JToken> request);
+            HistoryUpdateRequestModel<VariantValue> request);
     }
 }

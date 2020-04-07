@@ -6,7 +6,7 @@
 namespace Microsoft.Azure.IIoT.Hub.Models {
     using Microsoft.Azure.Devices;
     using Microsoft.Azure.Devices.Shared;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using System.Collections.Generic;
 
     /// <summary>
@@ -48,7 +48,7 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// <param name="twin"></param>
         /// <param name="isPatch"></param>
         /// <returns></returns>
-        public static Twin ToTwin(this DeviceTwinModel twin, bool isPatch = false) {
+        public static Twin ToTwin(this DeviceTwinModel twin, bool isPatch) {
             if (twin == null) {
                 return null;
             }
@@ -73,7 +73,7 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         /// </summary>
         /// <param name="props"></param>
         /// <returns></returns>
-        public static Twin ToTwin(this Dictionary<string, JToken> props) {
+        public static Twin ToTwin(this Dictionary<string, VariantValue> props) {
             return new Twin {
                 Properties = new TwinProperties {
                     Desired = props?.ToTwinCollection()
@@ -82,11 +82,26 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
         }
 
         /// <summary>
-        /// Convert twin to module
+        /// Convert to twin collection
+        /// </summary>
+        /// <param name="props"></param>
+        /// <returns></returns>
+        private static TwinCollection ToTwinCollection(
+            this Dictionary<string, VariantValue> props) {
+            var collection = new TwinCollection();
+            foreach (var item in props) {
+                collection[item.Key] = item.Value;
+            }
+            return collection;
+        }
+
+        /// <summary>
+        /// Convert twin to device twin model
         /// </summary>
         /// <param name="twin"></param>
+        /// <param name="serializer"></param>
         /// <returns></returns>
-        public static DeviceTwinModel ToModel(this Twin twin) {
+        public static DeviceTwinModel DeserializeTwin(this IJsonSerializer serializer, Twin twin) {
             if (twin == null) {
                 return null;
             }
@@ -99,44 +114,31 @@ namespace Microsoft.Azure.IIoT.Hub.Models {
                 Status = twin.Status?.ToString(),
                 StatusReason = twin.StatusReason,
                 StatusUpdatedTime = twin.StatusUpdatedTime,
-                Tags = twin.Tags?.ToModel(),
+                Tags = serializer.DeserializeTwinProperties(twin.Tags),
                 Properties = new TwinPropertiesModel {
                     Desired =
-                        twin.Properties?.Desired?.ToModel(),
+                        serializer.DeserializeTwinProperties(twin.Properties?.Desired),
                     Reported =
-                        twin.Properties?.Reported?.ToModel()
+                        serializer.DeserializeTwinProperties(twin.Properties?.Reported)
                 },
                 Capabilities = twin.Capabilities?.ToModel()
             };
         }
 
         /// <summary>
-        /// Convert to twin collection
+        /// Convert to twin properties model
         /// </summary>
         /// <param name="props"></param>
+        /// <param name="serializer"></param>
         /// <returns></returns>
-        public static TwinCollection ToTwinCollection(
-            this Dictionary<string, JToken> props) {
-            var collection = new TwinCollection();
-            foreach (var item in props) {
-                collection[item.Key] = item.Value;
-            }
-            return collection;
-        }
-
-        /// <summary>
-        /// Convert to twin collection
-        /// </summary>
-        /// <param name="props"></param>
-        /// <returns></returns>
-        public static Dictionary<string, JToken> ToModel(
-            this TwinCollection props) {
+        public static Dictionary<string, VariantValue> DeserializeTwinProperties(
+            this IJsonSerializer serializer, TwinCollection props) {
             if (props == null) {
                 return null;
             }
-            var model = new Dictionary<string, JToken>();
+            var model = new Dictionary<string, VariantValue>();
             foreach (KeyValuePair<string, dynamic> item in props) {
-                model.AddOrUpdate(item.Key, (JToken)JToken.FromObject(item.Value));
+                model.AddOrUpdate(item.Key, (VariantValue)serializer.FromObject(item.Value));
             }
             return model;
         }

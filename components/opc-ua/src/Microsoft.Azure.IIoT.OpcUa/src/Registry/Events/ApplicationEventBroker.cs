@@ -16,7 +16,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Default {
     /// all event versions to event bus
     /// </summary>
     public sealed class ApplicationEventBroker :
-        IApplicationEventBroker, IApplicationRegistryEvents {
+        IRegistryEventBroker<IApplicationRegistryListener>,
+        IRegistryEvents<IApplicationRegistryListener> {
 
         /// <summary>
         /// Create broker

@@ -6,7 +6,10 @@
     Deploys the Industrial IoT services dependencies and optionally micro services and UI to Azure.
 
  .PARAMETER type
-    The type of deployment (local, services, app, all)
+    The type of deployment (minimum, local, services, app, all)
+
+ .PARAMETER version
+    Set to "preview" or another mcr image tag to deploy - if not set deploys last released images ("latest").
 
  .PARAMETER version
     Set to "preview" or another mcr image tag to deploy - if not set deploys last released images ("latest").
@@ -49,7 +52,7 @@
 #>
 
 param(
-    [ValidateSet("local", "services", "app", "all")] [string] $type = "all",
+    [ValidateSet("minimum", "local", "services", "app", "all")] [string] $type = "all",
     [string] $version,
     [string] $applicationName,
     [string] $resourceGroupName,
@@ -628,10 +631,13 @@ Function New-Deployment() {
     $templateParameters.Add("branchName", $script:branchName)
     $templateParameters.Add("repoUrl", $script:repo)
 
-    if ($script:type -eq "local") {
+    if (($script:type -eq "local") -or ($script:type -eq "minimum")) {
         if ([string]::IsNullOrEmpty($script:applicationName) `
                 -or ($script:applicationName -notmatch "^[a-z0-9-]*$")) {
             $script:applicationName = $script:resourceGroupName
+        }
+        if ($script:type -eq "minimum") {
+            $templateParameters.Add("deploymentLevel", "Minimum")
         }
     }
     else {

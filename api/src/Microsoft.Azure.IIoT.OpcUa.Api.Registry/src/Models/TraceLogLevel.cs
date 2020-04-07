@@ -4,33 +4,36 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Log level
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
+    [DataContract]
     public enum TraceLogLevel {
 
         /// <summary>
         /// Error only
         /// </summary>
+        [EnumMember]
         Error = 0,
 
         /// <summary>
         /// Default
         /// </summary>
+        [EnumMember]
         Information = 1,
 
         /// <summary>
         /// Debug log
         /// </summary>
+        [EnumMember]
         Debug = 2,
 
         /// <summary>
         /// Verbose
         /// </summary>
+        [EnumMember]
         Verbose = 3
     }
 }

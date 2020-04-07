@@ -5,10 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
     using Microsoft.Azure.IIoT.OpcUa.Registry.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Registry;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.Azure.IIoT.Hub;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
     using System.Linq;
@@ -26,9 +27,12 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         /// </summary>
         /// <param name="iothub"></param>
         /// <param name="logger"></param>
-        public ApplicationTwins(IIoTHubTwinServices iothub, ILogger logger) {
+        /// <param name="serializer"></param>
+        public ApplicationTwins(IIoTHubTwinServices iothub, IJsonSerializer serializer,
+            ILogger logger) {
             _iothub = iothub ?? throw new ArgumentNullException(nameof(iothub));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         }
 
         /// <inheritdoc/>
@@ -101,7 +105,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
             }
             if (model?.Capability != null) {
                 // If Capabilities provided, filter results
-                var tag = JTokenEx.SanitizePropertyName(model.Capability)
+                var tag = VariantValueEx.SanitizePropertyName(model.Capability)
                     .ToUpperInvariant();
                 query += $"AND tags.{tag} = true ";
             }
@@ -195,7 +199,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                     var (patch, disabled) = updater(application, registration.IsDisabled);
                     if (patch ?? false) {
                         var update = application.ToApplicationRegistration(disabled);
-                        var twin = await _iothub.PatchAsync(registration.Patch(update));
+                        var twin = await _iothub.PatchAsync(registration.Patch(update, _serializer));
                         registration = twin.ToApplicationRegistration();
                     }
                     return registration.ToServiceModel();
@@ -212,7 +216,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         public async Task<ApplicationInfoModel> AddAsync(
             ApplicationInfoModel application, bool? disabled, CancellationToken ct) {
             var registration = application.ToApplicationRegistration(disabled);
-            var twin = await _iothub.CreateAsync(registration.ToDeviceTwin(), false, ct);
+            var twin = await _iothub.CreateAsync(registration.ToDeviceTwin(_serializer), false, ct);
             var result = twin.ToApplicationRegistration().ToServiceModel();
             return result;
         }
@@ -274,6 +278,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
         }
 
         private readonly IIoTHubTwinServices _iothub;
+        private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
     }
 }

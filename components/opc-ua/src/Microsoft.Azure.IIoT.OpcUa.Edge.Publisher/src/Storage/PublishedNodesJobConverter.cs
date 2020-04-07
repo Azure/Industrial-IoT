@@ -3,15 +3,16 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
-    using Microsoft.Azure.IIoT.Module;
+namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models {
+    using Microsoft.Azure.IIoT.OpcUa.Publisher.Models;
+    using Microsoft.Azure.IIoT.OpcUa.Publisher;
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
-    using Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Models;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-    using Newtonsoft.Json.Linq;
+    using Microsoft.Azure.IIoT.Module;
+    using Microsoft.Azure.IIoT.Crypto;
+    using Microsoft.Azure.IIoT.Serializers;
     using Serilog;
     using System;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
@@ -28,13 +29,16 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// Create converter
         /// </summary>
         /// <param name="logger"></param>
+        /// <param name="serializer"></param>
         /// <param name="config"></param>
         /// <param name="cryptoProvider"></param>
         /// <param name="identity"></param>
-        public PublishedNodesJobConverter(ILogger logger, IIdentity identity,
+        public PublishedNodesJobConverter(ILogger logger,
+            IJsonSerializer serializer, IIdentity identity,
             IEngineConfiguration config = null, ISecureElement cryptoProvider = null) {
             _config = config;
             _cryptoProvider = cryptoProvider;
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(logger));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _identity = identity ?? throw new ArgumentNullException(nameof(identity));
         }
@@ -45,20 +49,19 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <param name="publishedNodesFile"></param>
         /// <param name="legacyCliModel">The legacy command line arguments</param>
         /// <returns></returns>
-        public IEnumerable<WriterGroupJobModel> Read(TextReader publishedNodesFile, LegacyCliModel legacyCliModel) {
-            var jsonSerializer = JsonSerializer.CreateDefault();
+        public IEnumerable<WriterGroupJobModel> Read(TextReader publishedNodesFile,
+            LegacyCliModel legacyCliModel) {
             var sw = Stopwatch.StartNew();
-            using (var reader = new JsonTextReader(publishedNodesFile)) {
-                _logger.Debug("Reading published nodes file ({elapsed}", sw.Elapsed);
-                var items = jsonSerializer.Deserialize<List<PublishedNodesEntryModel>>(reader);
-                _logger.Information(
-                    "Read {count} items from published nodes file in {elapsed}",
-                    items.Count, sw.Elapsed);
-                sw.Restart();
-                var jobs = ToWriterGroupJobs(items, legacyCliModel);
-                _logger.Information("Converted items to jobs in {elapsed}", sw.Elapsed);
-                return jobs;
-            }
+            _logger.Debug("Reading published nodes file ({elapsed}", sw.Elapsed);
+            var items = _serializer.Deserialize<List<PublishedNodesEntryModel>>(
+                publishedNodesFile);
+            _logger.Information(
+                "Read {count} items from published nodes file in {elapsed}",
+                items.Count, sw.Elapsed);
+            sw.Restart();
+            var jobs = ToWriterGroupJobs(items, legacyCliModel);
+            _logger.Information("Converted items to jobs in {elapsed}", sw.Elapsed);
+            return jobs;
         }
 
         /// <summary>
@@ -75,18 +78,15 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
             return items
                 // Group by connection
                 .GroupBy(item => new ConnectionModel {
-                    Endpoint = new EndpointModel {
-                        Url = item.EndpointUrl.OriginalString,
-                        SecurityMode = item.UseSecurity == false ?
-                            SecurityMode.None : SecurityMode.Best,
-                        OperationTimeout = legacyCliModel.OperationTimeout
+                        OperationTimeout = legacyCliModel.OperationTimeout,
+                        Endpoint = new EndpointModel {
+                            Url = item.EndpointUrl.OriginalString,
+                            SecurityMode = item.UseSecurity == false ?
+                                SecurityMode.None : SecurityMode.Best
+                        },
+                        User = item.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ?
+                            null :ToUserNamePasswordCredentialAsync(item).Result
                     },
-                    User = item.OpcAuthenticationMode != OpcAuthenticationMode.UsernamePassword ? null :
-                        // if encrypted user is set and cryptoProvider is available, we use the encrypted credentials.
-                        (_cryptoProvider != null && !string.IsNullOrWhiteSpace(item.EncryptedAuthUsername)) ? ToUserNamePasswordCredentialAsync(item.EncryptedAuthUsername, item.EncryptedAuthPassword).Result :
-                        // if clear text credentials are set, we use them for authentication.
-                        !(string.IsNullOrWhiteSpace(item.OpcAuthenticationUsername)) ? new CredentialModel { Type = CredentialType.UserName, Value = JToken.FromObject(new { user = item.OpcAuthenticationUsername, password = item.OpcAuthenticationPassword }) } : null
-                },
                     // Select and batch nodes into published data set sources
                     item => GetNodeModels(item),
                     // Comparer for connection information
@@ -124,7 +124,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                     }))
                 .SelectMany(dataSetSourceBatches => dataSetSourceBatches
                     .Select(dataSetSource => new WriterGroupJobModel {
-                        
+
                         MessagingMode = legacyCliModel.MessagingMode,
                         Engine = _config == null ? null : new EngineConfigurationModel {
                             BatchSize = _config.BatchSize,
@@ -138,7 +138,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
                                     DataSet = new PublishedDataSetModel {
                                         DataSetSource = dataSetSource.Clone(),
                                     },
-                                    DataSetFieldContentMask = 
+                                    DataSetFieldContentMask =
                                         DataSetFieldContentMask.StatusCode |
                                         DataSetFieldContentMask.SourceTimestamp |
                                         (legacyCliModel.FullFeaturedMessage ? DataSetFieldContentMask.ServerTimestamp : 0) |
@@ -202,158 +202,180 @@ namespace Microsoft.Azure.IIoT.OpcUa.Publisher.Models {
         /// <param name="opcNodes"></param>
         /// <param name="legacyCliModel">The legacy command line arguments</param>
         /// <returns></returns>
-        private static TimeSpan? GetPublishingIntervalFromNodes(IEnumerable<OpcNodeModel> opcNodes, LegacyCliModel legacyCliModel) {
-            var interval = opcNodes.FirstOrDefault(x => x.OpcPublishingInterval != null)?.OpcPublishingIntervalTimespan;
+        private static TimeSpan? GetPublishingIntervalFromNodes(IEnumerable<OpcNodeModel> opcNodes,
+            LegacyCliModel legacyCliModel) {
+            var interval = opcNodes
+                .FirstOrDefault(x => x.OpcPublishingInterval != null)?.OpcPublishingIntervalTimespan;
             return interval ?? legacyCliModel.DefaultPublishingInterval;
         }
 
         /// <summary>
         /// Convert to credential model
         /// </summary>
-        /// <param name="encryptedUser"></param>
-        /// <param name="encryptedPassword"></param>
+        /// <param name="entry"></param>
         /// <returns></returns>
-        private async Task<CredentialModel> ToUserNamePasswordCredentialAsync(string encryptedUser,
-            string encryptedPassword) {
-            if (_cryptoProvider == null) {
-                return null;
+        private async Task<CredentialModel> ToUserNamePasswordCredentialAsync(
+            PublishedNodesEntryModel entry) {
+            var user = entry.OpcAuthenticationUsername;
+            var password = entry.OpcAuthenticationPassword;
+            if (string.IsNullOrEmpty(user)) {
+                if (_cryptoProvider == null || string.IsNullOrEmpty(entry.EncryptedAuthUsername)) {
+                    return null;
+                }
+
+                const string kInitializationVector = "alKGJdfsgidfasdO"; // See previous publisher
+                var userBytes = await _cryptoProvider.DecryptAsync(kInitializationVector,
+                    Convert.FromBase64String(entry.EncryptedAuthUsername));
+                user = Encoding.UTF8.GetString(userBytes);
+                if (entry.EncryptedAuthPassword != null) {
+                    var passwordBytes = await _cryptoProvider.DecryptAsync(kInitializationVector,
+                        Convert.FromBase64String(entry.EncryptedAuthPassword));
+                    password = Encoding.UTF8.GetString(passwordBytes);
+                }
             }
-            const string kInitializationVector = "alKGJdfsgidfasdO"; // See previous publisher
-            var user = await _cryptoProvider.DecryptAsync(kInitializationVector,
-                Convert.FromBase64String(encryptedUser));
-            var password = await _cryptoProvider.DecryptAsync(kInitializationVector,
-                Convert.FromBase64String(encryptedPassword));
             return new CredentialModel {
                 Type = CredentialType.UserName,
-                Value = JToken.FromObject(new {
-                    user = Encoding.UTF8.GetString(user),
-                    password = Encoding.UTF8.GetString(password)
-                })
+                Value = _serializer.FromObject(new { user, password })
             };
         }
 
         /// <summary>
         /// Describing an entry in the node list
         /// </summary>
+        [DataContract]
         public class OpcNodeModel {
 
             /// <summary> Node Identifier </summary>
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            [DataMember(EmitDefaultValue = false)]
             public string Id { get; set; }
 
             /// <summary> Also </summary>
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            [DataMember(EmitDefaultValue = false)]
             public string ExpandedNodeId { get; set; }
 
             /// <summary> Sampling interval </summary>
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            [DataMember(EmitDefaultValue = false)]
             public int? OpcSamplingInterval { get; set; }
 
             /// <summary>
             /// OpcSamplingInterval as TimeSpan.
             /// </summary>
-            [JsonIgnore]
+            [IgnoreDataMember]
             public TimeSpan? OpcSamplingIntervalTimespan {
-                get => OpcSamplingInterval.HasValue ? TimeSpan.FromMilliseconds(OpcSamplingInterval.Value) : (TimeSpan?)null;
-                set => OpcSamplingInterval = value != null ? (int)value.Value.TotalMilliseconds : (int?)null;
+                get => OpcSamplingInterval.HasValue ?
+                    TimeSpan.FromMilliseconds(OpcSamplingInterval.Value) : (TimeSpan?)null;
+                set => OpcSamplingInterval = value != null ?
+                    (int)value.Value.TotalMilliseconds : (int?)null;
             }
 
             /// <summary> Publishing interval </summary>
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            [DataMember(EmitDefaultValue = false)]
             public int? OpcPublishingInterval { get; set; }
 
             /// <summary>
             /// OpcPublishingInterval as TimeSpan.
             /// </summary>
-            [JsonIgnore]
+            [IgnoreDataMember]
             public TimeSpan? OpcPublishingIntervalTimespan {
-                get => OpcPublishingInterval.HasValue ? TimeSpan.FromMilliseconds(OpcPublishingInterval.Value) : (TimeSpan?)null;
-                set => OpcPublishingInterval = value != null ? (int)value.Value.TotalMilliseconds : (int?)null;
+                get => OpcPublishingInterval.HasValue ?
+                    TimeSpan.FromMilliseconds(OpcPublishingInterval.Value) : (TimeSpan?)null;
+                set => OpcPublishingInterval = value != null ?
+                    (int)value.Value.TotalMilliseconds : (int?)null;
             }
 
             /// <summary> Display name </summary>
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            [DataMember(EmitDefaultValue = false)]
             public string DisplayName { get; set; }
 
             /// <summary> Heartbeat </summary>
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            [DataMember(EmitDefaultValue = false)]
             public int? HeartbeatInterval { get; set; }
 
             /// <summary>
             /// Heartbeat interval as TimeSpan.
             /// </summary>
-            [JsonIgnore]
+            [IgnoreDataMember]
             public TimeSpan? HeartbeatIntervalTimespan {
-                get => HeartbeatInterval.HasValue ? TimeSpan.FromSeconds(HeartbeatInterval.Value) : (TimeSpan?)null;
-                set => HeartbeatInterval = value != null ? (int)value.Value.TotalSeconds : (int?)null;
+                get => HeartbeatInterval.HasValue ?
+                    TimeSpan.FromSeconds(HeartbeatInterval.Value) : (TimeSpan?)null;
+                set => HeartbeatInterval = value != null ?
+                    (int)value.Value.TotalSeconds : (int?)null;
             }
 
             /// <summary> Skip first value </summary>
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            [DataMember(EmitDefaultValue = false)]
             public bool? SkipFirst { get; set; }
         }
 
         /// <summary>
         /// Node id serialized as object
         /// </summary>
+        [DataContract]
         public class NodeIdModel {
             /// <summary> Identifier </summary>
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            [DataMember(EmitDefaultValue = false)]
             public string Identifier { get; set; }
         }
 
         /// <summary>
         /// Contains the nodes which should be
         /// </summary>
+        [DataContract]
         public class PublishedNodesEntryModel {
 
             /// <summary> The endpoint URL of the OPC UA server. </summary>
+            [DataMember(IsRequired = true)]
             public Uri EndpointUrl { get; set; }
 
             /// <summary> Secure transport should be used to </summary>
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            [DataMember(EmitDefaultValue = false)]
             public bool? UseSecurity { get; set; }
 
             /// <summary> The node to monitor in "ns=" syntax. </summary>
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            [DataMember(EmitDefaultValue = false)]
             public NodeIdModel NodeId { get; set; }
 
             /// <summary> authentication mode </summary>
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            [DataMember(EmitDefaultValue = false)]
             public OpcAuthenticationMode OpcAuthenticationMode { get; set; }
 
             /// <summary> encrypted username </summary>
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            [DataMember(EmitDefaultValue = false)]
             public string EncryptedAuthUsername { get; set; }
 
             /// <summary> encrypted password </summary>
+            [DataMember]
             public string EncryptedAuthPassword { get; set; }
 
             /// <summary> plain username </summary>
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            [DataMember(EmitDefaultValue = false)]
             public string OpcAuthenticationUsername { get; set; }
 
             /// <summary> plain password </summary>
+            [DataMember]
             public string OpcAuthenticationPassword { get; set; }
 
             /// <summary> Nodes defined in the collection. </summary>
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            [DataMember(EmitDefaultValue = false)]
             public List<OpcNodeModel> OpcNodes { get; set; }
         }
 
         /// <summary>
         /// Enum that defines the authentication method
         /// </summary>
-        [JsonConverter(typeof(StringEnumConverter))]
+        [DataContract]
         public enum OpcAuthenticationMode {
             /// <summary> Anonymous authentication </summary>
+            [EnumMember]
             Anonymous,
             /// <summary> Username/Password authentication </summary>
+            [EnumMember]
             UsernamePassword
         }
 
         private readonly IEngineConfiguration _config;
         private readonly ISecureElement _cryptoProvider;
+        private readonly IJsonSerializer _serializer;
         private readonly ILogger _logger;
         private readonly IIdentity _identity;
     }

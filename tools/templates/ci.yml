@@ -95,7 +95,7 @@ jobs:
       filePath: ./tools/scripts/set-version.ps1
   - task: DotNetCoreCLI@2
     displayName: Test
-    timeoutInMinutes: 20
+    timeoutInMinutes: 30
     inputs:
       command: test
       projects: '**/tests/*.csproj'

@@ -70,6 +70,8 @@
     [Parameter]
     public string Page { get; set; } = "1";
 
+    private IAsyncDisposable _applicationEvents { get; set; }
+    public const int PageLength = 10;
     public string Status { get; set; }
     public bool IsOpened { get; set; } = false;
     public ApplicationInfoApiModel ApplicationData { get; set; }
@@ -118,7 +120,7 @@
             StateHasChanged();
 
             _applicationEvent = await RegistryServiceEvents.SubscribeApplicationEventsAsync(
-                null, async data =>
+                async data =>
                 {
                     await InvokeAsync(() => ApplicationEvent(data));
                 });
@@ -163,21 +165,12 @@
     /// action on ApplicationEvent
     /// </summary>
     /// <param name="ev"></param>
-    private async void ApplicationEvent(ApplicationEventApiModel ev)
+    private Task ApplicationEvent(ApplicationEventApiModel ev)
     {
-        switch (ev.EventType)
-        {
-            case ApplicationEventType.Updated:
-            case ApplicationEventType.New:
-                await UpdateApplicationAsync();
-                StateHasChanged();
-                break;
-            case ApplicationEventType.Deleted:
-                await UpdateApplicationAsync();
-                break;
-            default:
-                break;
-        }
+        _applicationList.Results.Update(ev);
+        _pagedapplicationList = _applicationList.GetPaged(Int32.Parse(Page), CommonHelper.PageLength, _applicationList.Error);
+        StateHasChanged();
+        return Task.CompletedTask;
     }
 
     /// <summary>

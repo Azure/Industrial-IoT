@@ -4,15 +4,13 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Processors {
+    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
     using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Hub;
-    using Microsoft.Azure.IIoT.OpcUa.Core;
-    using Microsoft.Azure.IIoT.OpcUa.Subscriber.Models;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using System.Text;
-    using Newtonsoft.Json;
 
     /// <summary>
     /// Forwards samples to another event hub
@@ -24,7 +22,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Processors {
         /// Create forwarder
         /// </summary>
         /// <param name="queue"></param>
-        public MonitoredItemSampleForwarder(IEventQueueService queue) {
+        /// <param name="serializer"></param>
+        public MonitoredItemSampleForwarder(IEventQueueService queue,
+            IJsonSerializer serializer) {
+            _serializer = serializer ??
+                throw new ArgumentNullException(nameof(serializer));
             if (queue == null) {
                 throw new ArgumentNullException(nameof(queue));
             }
@@ -32,24 +34,24 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Processors {
         }
 
         /// <inheritdoc/>
-        public Task HandleSampleAsync(MonitoredItemSampleModel sample) {
+        public Task HandleSampleAsync(MonitoredItemMessageModel sample) {
             // Set timestamp as source timestamp
             var properties = new Dictionary<string, string>() {
-                [CommonProperties.EventSchemaType] = 
-                    MessageSchemaTypes.MonitoredItemMessageModelJson
+                [CommonProperties.EventSchemaType] =
+                    Core.MessageSchemaTypes.MonitoredItemMessageModelJson
             };
-            return _client.SendAsync(Encoding.UTF8.GetBytes(
-                JsonConvertEx.SerializeObject(sample)),properties);
+            return _client.SendAsync(
+                _serializer.SerializeToBytes(sample).ToArray(), properties);
         }
 
         /// <inheritdoc/>
         public Task HandleMessageAsync(DataSetMessageModel message) {
             var properties = new Dictionary<string, string>() {
-                [CommonProperties.EventSchemaType] = 
-                    MessageSchemaTypes.NetworkMessageModelJson
+                [CommonProperties.EventSchemaType] =
+                    Core.MessageSchemaTypes.NetworkMessageModelJson
             };
-            return _client.SendAsync(Encoding.UTF8.GetBytes(
-                JsonConvertEx.SerializeObject(message)), properties);
+            return _client.SendAsync(
+                _serializer.SerializeToBytes(message).ToArray(), properties);
         }
 
         /// <inheritdoc/>
@@ -58,5 +60,6 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Processors {
         }
 
         private readonly IEventQueueClient _client;
+        private readonly IJsonSerializer _serializer;
     }
 }

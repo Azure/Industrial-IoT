@@ -9,6 +9,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
     using Microsoft.Azure.IIoT.Module.Framework;
     using Microsoft.Azure.IIoT.Module.Framework.Services;
     using Microsoft.Azure.IIoT.Module.Framework.Client;
+    using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Extensions.Configuration;
     using Autofac;
     using System;
@@ -120,6 +121,7 @@ namespace Microsoft.Azure.IIoT.Modules.Diagnostic {
             builder.AddConsoleLogger();
             // Register module framework
             builder.RegisterModule<ModuleFramework>();
+            builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Register test publisher
             builder.RegisterType<TestTelemetry>()

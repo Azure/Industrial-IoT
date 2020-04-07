@@ -227,7 +227,7 @@ namespace MemoryBuffer {
             get => m_startAddress;
 
             set {
-                if (!object.ReferenceEquals(m_startAddress, value)) {
+                if (!ReferenceEquals(m_startAddress, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 
@@ -242,7 +242,7 @@ namespace MemoryBuffer {
             get => m_sizeInBytes;
 
             set {
-                if (!object.ReferenceEquals(m_sizeInBytes, value)) {
+                if (!ReferenceEquals(m_sizeInBytes, value)) {
                     ChangeMasks |= NodeStateChangeMasks.Children;
                 }
 

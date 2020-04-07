@@ -4,7 +4,7 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.Serializers;
     using System;
     using System.Linq;
 
@@ -21,7 +21,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
             if (model == null) {
                 return "null";
             }
-            return model.JobConfiguration.ToString(Formatting.None).ToSha1Hash();
+            return model.JobConfiguration.ToString().ToSha1Hash();
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Microsoft.Azure.IIoT.Agent.Framework.Models {
                 Id = model.Id,
                 Name = model.Name,
                 Demands = model.Demands?.Select(d => d.Clone()).ToList(),
-                JobConfiguration = model.JobConfiguration?.DeepClone(),
+                JobConfiguration = model.JobConfiguration?.Copy(),
                 JobConfigurationType = model.JobConfigurationType,
                 LifetimeData = model.LifetimeData?.Clone(),
                 RedundancyConfig = model.RedundancyConfig?.Clone(),

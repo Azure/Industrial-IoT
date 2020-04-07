@@ -4,13 +4,9 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Converters;
-
     /// <summary>
     /// Filter operator type
     /// </summary>
-    [JsonConverter(typeof(StringEnumConverter))]
     public enum FilterOperatorType {
 
         /// <summary>
@@ -19,7 +15,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Core.Models {
         Equals,
 
         /// <summary>
-        /// Element is null
+        /// Element == null
         /// </summary>
         IsNull,
 

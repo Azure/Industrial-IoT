@@ -4,26 +4,27 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Registry.Models {
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System.ComponentModel.DataAnnotations;
 
     /// <summary>
     /// Gateway info model
     /// </summary>
+    [DataContract]
     public class GatewayInfoApiModel {
 
         /// <summary>
         /// Gateway identity
         /// </summary>
-        [JsonProperty(PropertyName = "gateway")]
+        [DataMember(Name = "gateway", Order = 0)]
         [Required]
         public GatewayApiModel Gateway { get; set; }
 
         /// <summary>
         /// Gateway modules
         /// </summary>
-        [JsonProperty(PropertyName = "modules",
-            NullValueHandling = NullValueHandling.Ignore)]
+        [DataMember(Name = "modules", Order = 1,
+            EmitDefaultValue = false)]
         public GatewayModulesApiModel Modules { get; set; }
     }
 }

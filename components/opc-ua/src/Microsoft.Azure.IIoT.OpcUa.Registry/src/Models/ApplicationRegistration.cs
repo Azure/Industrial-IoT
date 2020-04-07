@@ -6,166 +6,227 @@
 namespace Microsoft.Azure.IIoT.OpcUa.Registry.Models {
     using Microsoft.Azure.IIoT.OpcUa.Core.Models;
     using Microsoft.Azure.IIoT.Hub;
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
     using System;
     using System.Collections.Generic;
 
     /// <summary>
     /// Aapplication registration persisted and comparable
     /// </summary>
-    [Serializable]
+    [DataContract]
     public sealed class ApplicationRegistration : EntityRegistration {
 
         /// <inheritdoc/>
+        [DataMember]
         public override string DeviceType => IdentityType.Application;
 
         /// <summary>
         /// Identity that owns the twin.
         /// </summary>
+        [DataMember]
         public string DiscovererId { get; set; }
 
         /// <summary>
         /// Connected
         /// </summary>
+        [DataMember]
         public override bool Connected => false;
 
         /// <summary>
         /// Device id is application id
         /// </summary>
+        [DataMember]
         public override string DeviceId => base.DeviceId ?? Id;
 
         /// <summary>
         /// Site or gateway id
         /// </summary>
+        [DataMember]
         public override string SiteOrGatewayId => this.GetSiteOrGatewayId();
 
         /// <summary>
         /// Type
         /// </summary>
+        [DataMember]
         public override string Type => DeviceType;
 
         /// <summary>
         /// Device id is application id
         /// </summary>
+        [DataMember]
         public string ApplicationId => DeviceId;
 
         /// <summary>
         /// Application uri
         /// </summary>
+        [DataMember]
         public string ApplicationUri { get; set; }
 
         /// <summary>
         /// Lower case application url
         /// </summary>
+        [DataMember]
         public string ApplicationUriLC => ApplicationUri?.ToLowerInvariant();
 
         /// <summary>
         /// Application name
         /// </summary>
+        [DataMember]
         public string ApplicationName { get; set; }
 
         /// <summary>
         /// Application name locale
         /// </summary>
+        [DataMember]
         public string Locale { get; set; }
 
         /// <summary>
         /// Application name locale
         /// </summary>
+        [DataMember]
         public Dictionary<string, string> LocalizedNames { get; set; }
 
         /// <summary>
         /// Discovery profile uri
         /// </summary>
+        [DataMember]
         public string DiscoveryProfileUri { get; set; }
 
         /// <summary>
         /// Gateway server uri
         /// </summary>
+        [DataMember]
         public string GatewayServerUri { get; set; }
 
         /// <summary>
         /// Product uri
         /// </summary>
+        [DataMember]
         public string ProductUri { get; set; }
 
         /// <summary>
         /// Application type
         /// </summary>
+        [DataMember]
         public ApplicationType? ApplicationType { get; set; }
 
         /// <summary>
         /// Returns discovery urls of the application
         /// </summary>
+        [DataMember]
         public Dictionary<string, string> DiscoveryUrls { get; set; }
 
         /// <summary>
         /// Host address of server application
         /// </summary>
+        [DataMember]
         public Dictionary<string, string> HostAddresses { get; set; }
 
         /// <summary>
         /// Capabilities
         /// </summary>
+        [DataMember]
         public Dictionary<string, bool> Capabilities { get; set; }
 
         /// <summary>
         /// Create time
         /// </summary>
+        [DataMember]
         public DateTime? CreateTime { get; set; }
 
         /// <summary>
         /// Authority
         /// </summary>
+        [DataMember]
         public string CreateAuthorityId { get; set; }
 
         /// <summary>
         /// Update time
         /// </summary>
+        [DataMember]
         public DateTime? UpdateTime { get; set; }
 
         /// <summary>
         /// Authority
         /// </summary>
+        [DataMember]
         public string UpdateAuthorityId { get; set; }
 
         /// <summary>
         /// Numeric id
         /// </summary>
+        [DataMember]
         public uint? RecordId { get; set; }
 
         /// <summary>
         /// Application registration id
         /// </summary>
-        [JsonProperty(PropertyName = "id")]
+        [DataMember(Name = "id")]
         public string Id => ApplicationInfoModelEx.CreateApplicationId(
              SiteOrGatewayId, ApplicationUri, ApplicationType);
 
 
         /// <inheritdoc/>
         public override bool Equals(object obj) {
-            var registration = obj as ApplicationRegistration;
-            return base.Equals(registration) &&
-                DiscovererId == registration.DiscovererId &&
-                ApplicationId == registration.ApplicationId &&
-                ApplicationType == registration.ApplicationType &&
-                ApplicationUriLC == registration.ApplicationUriLC &&
-                DiscoveryProfileUri == registration.DiscoveryProfileUri &&
-                UpdateTime == registration.UpdateTime &&
-                UpdateAuthorityId == registration.UpdateAuthorityId &&
-                CreateAuthorityId == registration.CreateAuthorityId &&
-                CreateTime == registration.CreateTime &&
-                GatewayServerUri == registration.GatewayServerUri &&
-                ProductUri == registration.ProductUri &&
-                HostAddresses.DecodeAsList().SequenceEqualsSafe(
-                    registration.HostAddresses.DecodeAsList()) &&
-                ApplicationName == registration.ApplicationName &&
-                LocalizedNames.DictionaryEqualsSafe(
-                    registration.LocalizedNames) &&
-                Capabilities.DecodeAsSet().SetEqualsSafe(
-                    registration.Capabilities.DecodeAsSet()) &&
-                DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
-                    registration.DiscoveryUrls.DecodeAsList());
+            if (!(obj is ApplicationRegistration registration)) {
+                return false;
+            }
+            if (!base.Equals(registration)) {
+                return false;
+            }
+            if (DiscovererId != registration.DiscovererId) {
+                return false;
+            }
+            if (ApplicationId != registration.ApplicationId) {
+                return false;
+            }
+            if (ApplicationType != registration.ApplicationType) {
+                return false;
+            }
+            if (ApplicationUriLC != registration.ApplicationUriLC) {
+                return false;
+            }
+            if (DiscoveryProfileUri != registration.DiscoveryProfileUri) {
+                return false;
+            }
+            if (UpdateTime != registration.UpdateTime) {
+                return false;
+            }
+            if (UpdateAuthorityId != registration.UpdateAuthorityId) {
+                return false;
+            }
+            if (CreateAuthorityId != registration.CreateAuthorityId) {
+                return false;
+            }
+            if (CreateTime != registration.CreateTime) {
+                return false;
+            }
+            if (GatewayServerUri != registration.GatewayServerUri) {
+                return false;
+            }
+            if (ProductUri != registration.ProductUri) {
+                return false;
+            }
+            if (!HostAddresses.DecodeAsList().SequenceEqualsSafe(
+               registration.HostAddresses.DecodeAsList())) {
+                return false;
+            }
+            if (ApplicationName != registration.ApplicationName) {
+                return false;
+            }
+            if (!LocalizedNames.DictionaryEqualsSafe(
+                registration.LocalizedNames)) {
+                return false;
+            }
+            if (!Capabilities.DecodeAsSet().SetEqualsSafe(
+                registration.Capabilities.DecodeAsSet())) {
+                return false;
+            }
+            if (!DiscoveryUrls.DecodeAsList().SequenceEqualsSafe(
+                registration.DiscoveryUrls.DecodeAsList())) {
+                return false;
+            }
+            return true;
         }
 
         /// <inheritdoc/>

@@ -30,7 +30,7 @@ namespace Microsoft.Azure.IIoT.Module {
             TimeSpan? timeout = null, CancellationToken ct = default) {
             var response = await client.CallMethodAsync(deviceId, moduleId, method,
                 json == null ? null : Encoding.UTF8.GetBytes(json),
-                ContentMimeType.UaJson, timeout, ct);
+                ContentMimeType.Json, timeout, ct);
             return response.Length == 0 ? null : Encoding.UTF8.GetString(response);
         }
     }

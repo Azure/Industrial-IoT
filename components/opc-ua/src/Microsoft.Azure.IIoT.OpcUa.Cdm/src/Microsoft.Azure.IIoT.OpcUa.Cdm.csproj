@@ -10,6 +10,8 @@
     <PackageReference Include="Microsoft.CommonDataModel.ObjectModel" Version="1.0.1" />
     <PackageReference Include="Microsoft.CommonDataModel.ObjectModel.Adapter.Adls" Version="1.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="3.1.3" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\Microsoft.Azure.IIoT.OpcUa\src\Microsoft.Azure.IIoT.OpcUa.csproj" />
   </ItemGroup>
 </Project>

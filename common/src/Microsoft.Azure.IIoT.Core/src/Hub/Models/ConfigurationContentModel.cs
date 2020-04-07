@@ -5,23 +5,24 @@
 
 namespace Microsoft.Azure.IIoT.Hub.Models {
     using System.Collections.Generic;
-    using Newtonsoft.Json;
+    using System.Runtime.Serialization;
 
     /// <summary>
     /// Configuration
     /// </summary>
+    [DataContract]
     public class ConfigurationContentModel {
 
         /// <summary>
         /// Gets or sets modules configurations
         /// </summary>
-        [JsonProperty(PropertyName = "modulesContent")]
+        [DataMember(Name = "modulesContent")]
         public IDictionary<string, IDictionary<string, object>> ModulesContent { get; set; }
 
         /// <summary>
         /// Gets or sets device configuration
         /// </summary>
-        [JsonProperty(PropertyName = "deviceContent")]
+        [DataMember(Name = "deviceContent")]
         public IDictionary<string, object> DeviceContent { get; set; }
     }
 }

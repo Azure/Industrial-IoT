@@ -4,29 +4,29 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.OpcUa.Api.Twin.Models {
-    using Newtonsoft.Json;
+    using Microsoft.Azure.IIoT.OpcUa.Api.Core.Models;
+    using System.Runtime.Serialization;
     using System.Collections.Generic;
     using System.ComponentModel.DataAnnotations;
-    using System.ComponentModel;
 
     /// <summary>
     /// Request node attribute read
     /// </summary>
+    [DataContract]
     public class ReadRequestApiModel {
 
         /// <summary>
         /// Attributes to read
         /// </summary>
-        [JsonProperty(PropertyName = "attributes")]
+        [DataMember(Name = "attributes", Order = 0)]
         [Required]
         public List<AttributeReadRequestApiModel> Attributes { get; set; }
 
         /// <summary>
         /// Optional request header
         /// </summary>
-        [JsonProperty(PropertyName = "header",
-            NullValueHandling = NullValueHandling.Ignore)]
-        [DefaultValue(null)]
+        [DataMember(Name = "header", Order = 1,
+            EmitDefaultValue = false)]
         public RequestHeaderApiModel Header { get; set; }
     }
 }
