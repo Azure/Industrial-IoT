@@ -248,6 +248,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             Patch.DiscoveryUrls.Add(url);
             RequestedDiscoveryUrls = Patch.DiscoveryUrls;
+            DiscovererModel.RequestedConfig.DiscoveryUrls = Patch.DiscoveryUrls;
         }
 
         /// <summary>
@@ -260,6 +261,7 @@ namespace Microsoft.Azure.IIoT.App.Services {
             }
             Patch.DiscoveryUrls.Remove(url);
             RequestedDiscoveryUrls = Patch.DiscoveryUrls;
+            DiscovererModel.RequestedConfig.DiscoveryUrls = Patch.DiscoveryUrls;
         }
 
         /// <summary>

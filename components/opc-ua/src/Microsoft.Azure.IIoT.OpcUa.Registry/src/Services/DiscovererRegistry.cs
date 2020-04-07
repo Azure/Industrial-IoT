@@ -152,6 +152,11 @@ namespace Microsoft.Azure.IIoT.OpcUa.Registry.Services {
                                 request.DiscoveryConfig.ActivationFilter.TrustLists == null ?
                                     null : request.DiscoveryConfig.ActivationFilter;
                         }
+                        if (request.DiscoveryConfig.DiscoveryUrls != null) {
+                            patched.RequestedConfig.DiscoveryUrls =
+                                request.DiscoveryConfig.DiscoveryUrls.Count == 0 ?
+                                    null : request.DiscoveryConfig.DiscoveryUrls;
+                        }
                     }
                     // Patch
                     twin = await _iothub.PatchAsync(registration.Patch(
