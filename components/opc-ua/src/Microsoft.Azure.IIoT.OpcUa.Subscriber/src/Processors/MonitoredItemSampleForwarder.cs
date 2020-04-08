@@ -40,8 +40,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Processors {
                 [CommonProperties.EventSchemaType] =
                     Core.MessageSchemaTypes.MonitoredItemMessageModelJson
             };
-            return _client.SendAsync(
-                _serializer.SerializeToBytes(sample).ToArray(), properties);
+            return _client.SendAsync(_serializer.SerializeToBytes(sample).ToArray(),
+                properties, sample.DataSetWriterId);
         }
 
         /// <inheritdoc/>
@@ -50,8 +50,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Processors {
                 [CommonProperties.EventSchemaType] =
                     Core.MessageSchemaTypes.NetworkMessageModelJson
             };
-            return _client.SendAsync(
-                _serializer.SerializeToBytes(message).ToArray(), properties);
+            return _client.SendAsync(_serializer.SerializeToBytes(message).ToArray(),
+                properties, message.DataSetWriterId);
         }
 
         /// <inheritdoc/>

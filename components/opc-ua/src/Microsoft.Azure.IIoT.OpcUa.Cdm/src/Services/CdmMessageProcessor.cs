@@ -560,8 +560,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
         /// </summary>
         /// <param name="sender"></param>
         private async void CacheTimer_ElapesedAsync(object sender) {
+            await _lock.WaitAsync();
             try {
-                await _lock.WaitAsync();
                 _cacheUploadTriggered = true;
                 await PerformWriteCacheAsync();
             }
@@ -574,8 +574,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Cdm.Services {
 
         /// <inheritdoc/>
         private async Task ProcessCdmSampleAsync<T>(T payload) {
+            await _lock.WaitAsync();
             try {
-                await _lock.WaitAsync();
                 if (payload is MonitoredItemMessageModel sample) {
 
                     var key = GetNormalizedEntityName(sample);
