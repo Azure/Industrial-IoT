@@ -28,8 +28,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin {
     using Microsoft.Azure.IIoT.Hub.Models;
     using System.Threading;
     using System.Linq;
-    using Microsoft.AspNetCore.TestHost;
-    using Microsoft.Extensions.DependencyInjection;
 
     /// <summary>
     /// Startup class for tests

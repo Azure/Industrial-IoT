@@ -5,16 +5,17 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Events.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Correlation;
-    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.Core.Messaging.EventHub;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Http.Default;
     using Microsoft.Azure.IIoT.Http.Ssl;
     using Microsoft.Azure.IIoT.Hub.Processor.Services;
     using Microsoft.Azure.IIoT.Hub.Processor.EventHub;
+    using Microsoft.Azure.IIoT.Messaging;
     using Microsoft.Azure.IIoT.Messaging.Default;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Clients;
     using Microsoft.Azure.IIoT.Messaging.ServiceBus.Services;
@@ -35,7 +36,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
     using Autofac.Extensions.DependencyInjection;
     using Prometheus;
     using System;
-    using Microsoft.Azure.IIoT.Messaging;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
 
     /// <summary>
     /// Webservice startup
@@ -93,25 +94,16 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
 
             services.AddLogging(o => o.AddConsole().AddDebug());
 
-            if (Config.AspNetCoreForwardedHeadersEnabled) {
-                // Configure processing of forwarded headers
-                services.ConfigureForwardedHeaders(Config);
-            }
-
-            // Setup (not enabling yet) CORS
+            services.AddHeaderForwarding();
             services.AddCors();
             services.AddHealthChecks();
             services.AddDistributedMemoryCache();
-
-            // Add authentication
-            services.AddJwtBearerAuthentication(Config,
-                Environment.IsDevelopment());
-
-            // Add authorization
-            services.AddAuthorization(options => {
-                options.AddPolicies(Config.AuthRequired,
-                    Config.UseRoles && !Environment.IsDevelopment());
-            });
+            services.AddHttpsRedirect();
+            services.AddJwtBearerAuthentication();
+            services.AddAuthorizationPolicies(
+                Policies.RoleMapping,
+                Policies.CanRead,
+                Policies.CanWrite);
 
             // Add controllers as services so they'll be resolved.
             services.AddControllers().AddSerializers();
@@ -134,26 +126,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
         public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime) {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
 
-            if (!string.IsNullOrEmpty(Config.ServicePathBase)) {
-                app.UsePathBase(Config.ServicePathBase);
-            }
-
-            if (Config.AspNetCoreForwardedHeadersEnabled) {
-                // Enable processing of forwarded headers
-                app.UseForwardedHeaders();
-            }
+            app.UsePathBase();
+            app.UseHeaderForwarding();
 
             app.UseRouting();
             app.EnableCors();
 
-            if (Config.AuthRequired) {
-                app.UseAuthentication();
-            }
-            app.UseAuthorization();
-            if (Config.HttpsRedirectPort > 0) {
-                app.UseHsts();
-                app.UseHttpsRedirection();
-            }
+            app.UseJwtBearerAuthentication();
+            app.UseAuthorizationPolicies();
+            app.UseHttpsRedirect();
 
             app.UseCorrelation();
             app.UseSwagger();
@@ -175,13 +156,17 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
         /// <param name="builder"></param>
         public virtual void ConfigureContainer(ContainerBuilder builder) {
 
+            // Register service info and configuration interfaces
+            builder.RegisterInstance(ServiceInfo)
+                .AsImplementedInterfaces();
             builder.RegisterInstance(Config)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterInstance(Config.Configuration)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
-            // Register logger
+            // Add diagnostics and auth providers
             builder.AddDiagnostics(Config);
+            builder.RegisterModule<DefaultServiceAuthProviders>();
             builder.RegisterModule<MessagePackModule>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 

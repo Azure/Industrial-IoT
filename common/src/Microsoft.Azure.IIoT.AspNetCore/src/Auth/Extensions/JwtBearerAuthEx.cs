@@ -5,15 +5,22 @@
 
 namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     using Microsoft.Azure.IIoT.Auth.Server;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
+    using Microsoft.Azure.IIoT.Auth;
     using Microsoft.AspNetCore.Authentication.JwtBearer;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.DependencyInjection.Extensions;
+    using Microsoft.Extensions.Hosting;
     using Microsoft.IdentityModel.Tokens;
     using System;
     using System.IdentityModel.Tokens.Jwt;
     using System.Security.Claims;
     using System.Threading.Tasks;
+    using System.Linq;
+
 
     /// <summary>
     /// Configure JWT bearer authentication
@@ -21,34 +28,42 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
     public static class JwtBearerAuthEx {
 
         /// <summary>
+        /// Use jwt bearer auth
+        /// </summary>
+        /// <param name="app"></param>
+        /// <returns></returns>
+        public static IApplicationBuilder UseJwtBearerAuthentication(this IApplicationBuilder app) {
+            var auth = app.ApplicationServices.GetService<IServerAuthConfig>();
+            if (auth != null && auth.JwtBearerSchemes.Any() && !auth.AllowAnonymousAccess) {
+                app.UseAuthentication();
+            }
+            return app;
+        }
+
+        /// <summary>
         /// Helper to add jwt bearer authentication
         /// </summary>
         /// <param name="services"></param>
-        /// <param name="config"></param>
-        /// <param name="inDevelopment"></param>
-        public static void AddJwtBearerAuthentication(this IServiceCollection services,
-            IAuthConfig config, bool inDevelopment) {
+        public static IServiceCollection AddJwtBearerAuthentication(this IServiceCollection services) {
 
-            if (config.HttpsRedirectPort > 0) {
-                services.AddHsts(options => {
-                    options.Preload = true;
-                    options.IncludeSubDomains = true;
-                    options.MaxAge = TimeSpan.FromDays(60);
-                });
-                services.AddHttpsRedirection(options => {
-                    options.RedirectStatusCode = StatusCodes.Status307TemporaryRedirect;
-                    options.HttpsPort = config.HttpsRedirectPort;
-                });
+            services.TryAddTransient<IServerAuthConfig, ServiceAuthAggregateConfig>();
+            var provider = services.BuildServiceProvider();
+            var environment = provider.GetRequiredService<IWebHostEnvironment>();
+            var auth = provider.GetService<IServerAuthConfig>();
+
+            // Add jwt bearer auth
+            var builder = services.AddAuthentication();
+            if (auth == null || !auth.JwtBearerSchemes.Any()) {
+                // No schemes configured
+                return services;
             }
 
             // Allow access to context from within token providers and other client auth
             services.AddHttpContextAccessor();
 
-            // Add jwt bearer auth
-            services
-                .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options => {
-                    options.Authority = config.GetAuthorityUrl() + "/v2.0";
+            foreach (var config in auth.JwtBearerSchemes) {
+                builder = builder.AddJwtBearer(config.GetSchemeName(), options => {
+                    options.Authority = config.GetAuthorityUrl();
                     options.SaveToken = true; // Save token to allow request on behalf
 
                     options.TokenValidationParameters = new TokenValidationParameters {
@@ -60,12 +75,9 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                     };
                     options.Events = new JwtBearerEvents {
                         OnAuthenticationFailed = ctx => {
-                            if (config.AuthRequired) {
-                                ctx.NoResult();
-                                return WriteErrorAsync(ctx.Response, inDevelopment ?
-                                    ctx.Exception : null);
-                            }
-                            return Task.CompletedTask;
+                            ctx.NoResult();
+                            return WriteErrorAsync(ctx.Response, environment.IsDevelopment() ?
+                                ctx.Exception : null);
                         },
                         OnTokenValidated = ctx => {
                             if (ctx.SecurityToken is JwtSecurityToken accessToken) {
@@ -78,22 +90,28 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                         }
                     };
                 });
+            }
+            return services;
         }
 
         /// <summary>
-        /// Validate the issuer. The issuer is considered as valid if it
-        /// has the same http scheme and authority as the trusted issuer uri
-        /// from the configuration file or default uri, plus it has to have
-        /// a tenant Id, and optionally v2.0 but nothing more..
+        /// Validate the issuer. The issuer is considered as valid if it is the same
+        /// uri or it has the same http scheme and authority as the trusted issuer uri
+        /// from the configuration file or default uri, plus if it is not fully the
+        /// same it has to have a tenant Id, and optionally v2.0 but nothing more...
         /// </summary>
         /// <param name="issuer">Issuer to validate (will be tenanted)</param>
         /// <param name="config">Authentication configuration</param>
         /// <returns>The <c>issuer</c> if it's valid</returns>
-        private static string ValidateIssuer(string issuer, IAuthConfig config) {
+        private static string ValidateIssuer(string issuer, IOAuthServerConfig config) {
             var uri = new Uri(issuer);
-            var authorityUri = new Uri(config?.TrustedIssuer ?? kDefaultIssuerUri);
-            if (uri.Scheme != authorityUri.Scheme ||
-                uri.Authority != authorityUri.Authority) {
+            var trustedIssuer = new Uri(string.IsNullOrEmpty(config?.TrustedIssuer) ?
+                kDefaultIssuerUri : config.TrustedIssuer);
+            if (uri == trustedIssuer) {
+                return issuer; // Configured issuer correct.
+            }
+            if (uri.Scheme != trustedIssuer.Scheme ||
+                uri.Authority != trustedIssuer.Authority) {
                 throw new SecurityTokenInvalidIssuerException(
                     "Issuer has wrong authority.");
             }
@@ -103,7 +121,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
                 throw new SecurityTokenInvalidIssuerException(
                     "Issuer is not tenanted.");
             }
-            if (parts.Length >= 1 && !Guid.TryParse(parts[0], out var tenantId)) {
+            if (parts.Length >= 1 && !Guid.TryParse(parts[0], out _)) {
                 throw new SecurityTokenInvalidIssuerException(
                     "No valid tenant Id for the issuer.");
             }

@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.History.StartSto
     using System.Threading.Tasks;
     using Xunit;
     using Autofac;
-    using System;
 
     [Collection(ReadHistoryCollection.Name)]
     public class SupervisorReadValuesTests {

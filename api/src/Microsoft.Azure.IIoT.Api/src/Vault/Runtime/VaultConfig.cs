@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Vault.Runtime {
         public string OpcUaVaultServiceResourceId => GetStringOrDefault(
             kOpcUaVaultServiceIdKey,
             () => GetStringOrDefault("OPC_VAULT_APP_ID",
-                () => GetStringOrDefault(PcsVariable.PCS_AUTH_AUDIENCE,
+                () => GetStringOrDefault(PcsVariable.PCS_AAD_AUDIENCE,
                     () => null)));
 
         /// <inheritdoc/>

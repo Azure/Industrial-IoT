@@ -17,19 +17,16 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Runtime {
     using Microsoft.Azure.IIoT.Storage.CosmosDb;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
     using Microsoft.Azure.IIoT.Storage;
-    using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
-    using System;
 
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
-    public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig, ICorsConfig,
-        IClientConfig, IOpenApiConfig, IServiceBusConfig,
-        ICosmosDbConfig, IItemContainerConfig, IForwardedHeadersConfig {
+    public class Config : DiagnosticsConfig, IIoTHubConfig, ICorsConfig,
+        IOpenApiConfig, IServiceBusConfig, ICosmosDbConfig, IItemContainerConfig,
+        IForwardedHeadersConfig {
 
         /// <summary>
         /// Whether to use role based access
@@ -52,25 +49,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Runtime {
         public string ServicePathBase => GetStringOrDefault(
             PcsVariable.PCS_ONBOARDING_SERVICE_PATH_BASE,
             () => _host.ServicePathBase);
-
-        /// <inheritdoc/>
-        public string AppId => _auth.AppId;
-        /// <inheritdoc/>
-        public string AppSecret => _auth.AppSecret;
-        /// <inheritdoc/>
-        public string TenantId => _auth.TenantId;
-        /// <inheritdoc/>
-        public string InstanceUrl => _auth.InstanceUrl;
-        /// <inheritdoc/>
-        public string Audience => _auth.Audience;
-        /// <inheritdoc/>
-        public string Domain => _auth.Domain;
-        /// <inheritdoc/>
-        public bool AuthRequired => false; // TODO
-        /// <inheritdoc/>
-        public string TrustedIssuer => _auth.TrustedIssuer;
-        /// <inheritdoc/>
-        public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
 
         /// <inheritdoc/>
         public bool UIEnabled => _openApi.UIEnabled;
@@ -112,8 +90,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Runtime {
             base(configuration) {
 
             _openApi = new OpenApiConfig(configuration);
-            _auth = new AuthConfig(configuration);
-            _host = new HostConfig(configuration);
+            _host = new WebHostConfig(configuration);
             _hub = new IoTHubConfig(configuration);
             _cors = new CorsConfig(configuration);
             _sb = new ServiceBusConfig(configuration);
@@ -122,8 +99,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Registry.Onboarding.Runtime {
         }
 
         private readonly OpenApiConfig _openApi;
-        private readonly HostConfig _host;
-        private readonly AuthConfig _auth;
+        private readonly WebHostConfig _host;
         private readonly CorsConfig _cors;
         private readonly ServiceBusConfig _sb;
         private readonly CosmosDbConfig _cosmos;

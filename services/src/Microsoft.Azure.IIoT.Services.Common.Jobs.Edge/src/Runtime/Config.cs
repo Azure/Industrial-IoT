@@ -13,9 +13,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
     using Microsoft.Azure.IIoT.Agent.Framework;
     using Microsoft.Azure.IIoT.Agent.Framework.Jobs.Runtime;
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
-    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.Hub.Client;
     using Microsoft.Azure.IIoT.Hub.Client.Runtime;
@@ -27,8 +25,8 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
-    public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig,
-        ICorsConfig, IClientConfig, IOpenApiConfig, IJobOrchestratorConfig,
+    public class Config : DiagnosticsConfig, IIoTHubConfig,
+        ICorsConfig, IOpenApiConfig, IJobOrchestratorConfig,
         ICosmosDbConfig, IJobDatabaseConfig, IWorkerDatabaseConfig,
         IForwardedHeadersConfig {
 
@@ -51,26 +49,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
         /// <inheritdoc/>
         public string ServicePathBase => GetStringOrDefault(
             PcsVariable.PCS_JOB_ORCHESTRATOR_SERVICE_PATH_BASE,
-            () => _host.ServicePathBase);
-
-        /// <inheritdoc/>
-        public string AppId => _auth.AppId;
-        /// <inheritdoc/>
-        public string AppSecret => _auth.AppSecret;
-        /// <inheritdoc/>
-        public string TenantId => _auth.TenantId;
-        /// <inheritdoc/>
-        public string InstanceUrl => _auth.InstanceUrl;
-        /// <inheritdoc/>
-        public string Audience => _auth.Audience;
-        /// <inheritdoc/>
-        public string Domain => _auth.Domain;
-        /// <inheritdoc/>
-        public bool AuthRequired => _auth.AuthRequired;
-        /// <inheritdoc/>
-        public string TrustedIssuer => _auth.TrustedIssuer;
-        /// <inheritdoc/>
-        public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
+                () => _host.ServicePathBase);
 
         /// <inheritdoc/>
         public TimeSpan JobStaleTime => _jobs.JobStaleTime;
@@ -113,8 +92,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
             base(configuration) {
 
             _openApi = new OpenApiConfig(configuration);
-            _auth = new AuthConfig(configuration);
-            _host = new HostConfig(configuration);
+            _host = new WebHostConfig(configuration);
             _hub = new IoTHubConfig(configuration);
             _cors = new CorsConfig(configuration);
             _cosmos = new CosmosDbConfig(configuration);
@@ -123,8 +101,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Jobs.Edge.Runtime {
         }
 
         private readonly OpenApiConfig _openApi;
-        private readonly AuthConfig _auth;
-        private readonly HostConfig _host;
+        private readonly WebHostConfig _host;
         private readonly CorsConfig _cors;
         private readonly CosmosDbConfig _cosmos;
         private readonly JobOrchestratorConfig _jobs;

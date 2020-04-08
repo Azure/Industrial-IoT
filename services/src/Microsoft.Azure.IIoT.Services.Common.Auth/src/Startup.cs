@@ -3,11 +3,13 @@
 //  Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------
 
-namespace Microsoft.Azure.IIoT.Services.Common.Identity {
-    using Microsoft.Azure.IIoT.Services.Common.Identity.Runtime;
+namespace Microsoft.Azure.IIoT.Services.Common.Auth {
+    using Microsoft.Azure.IIoT.Services.Common.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth.IdentityServer4.Storage;
     using Microsoft.Azure.IIoT.Auth.IdentityServer4.Models;
     using Microsoft.Azure.IIoT.Auth.IdentityServer4.Services;
+    using Microsoft.Azure.IIoT.Auth.Clients;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Services;
     using Microsoft.Azure.IIoT.Storage.Default;
     using Microsoft.Azure.IIoT.Http.Default;
@@ -113,17 +115,22 @@ namespace Microsoft.Azure.IIoT.Services.Common.Identity {
             builder.AddDeveloperSigningCredential();
 
             var authentication = services.AddAuthentication();
-            if (!string.IsNullOrEmpty(Config.AppId) &&
-                !string.IsNullOrEmpty(Config.AppSecret)) {
+
+            // Attach aad
+            var aadConfig = new AadServicePrincipalClientConfig(Config.Configuration);
+            if (!string.IsNullOrEmpty(aadConfig.AppId) &&
+                !string.IsNullOrEmpty(aadConfig.AppSecret)) {
                 authentication = authentication.AddAzureAD(options => {
-                    options.Instance = Config.InstanceUrl;
-                    options.Domain = Config.Domain;
-                    options.TenantId = Config.TenantId;
-                    options.ClientId = Config.AppId;
-                    options.ClientSecret = Config.AppSecret;
+                    options.Instance = aadConfig.InstanceUrl;
+                    options.Domain = aadConfig.GetDomain();
+                    options.TenantId = aadConfig.TenantId;
+                    options.ClientId = aadConfig.AppId;
+                    options.ClientSecret = aadConfig.AppSecret;
                     options.CallbackPath = "/signin-oidc";
                 });
             }
+
+            // Attach more in the future ...
         }
 
         /// <summary>
@@ -172,12 +179,15 @@ namespace Microsoft.Azure.IIoT.Services.Common.Identity {
 
             // Register service info and configuration interfaces
             builder.RegisterInstance(ServiceInfo)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterInstance(Config)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
+            builder.RegisterInstance(Config.Configuration)
+                .AsImplementedInterfaces();
 
-            // Add diagnostics based on configuration
+            // Add diagnostics and auth providers
             builder.AddDiagnostics(Config);
+            builder.RegisterModule<DefaultServiceAuthProviders>();
 
             // Register http client module
             builder.RegisterModule<HttpClientModule>();

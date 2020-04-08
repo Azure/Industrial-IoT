@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <summary>
         /// Create auth provider
         /// </summary>
-        public VsAuthenticationProvider(IClientConfig config = null) :
+        public VsAuthenticationProvider(IOAuthClientConfig config = null) :
             base(config) {
         }
 

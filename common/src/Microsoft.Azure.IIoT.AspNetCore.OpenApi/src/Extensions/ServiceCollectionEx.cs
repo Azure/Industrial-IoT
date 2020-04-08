@@ -80,7 +80,7 @@ namespace Microsoft.OpenApi.Models {
                 // If auth enabled, need to have bearer token to access any api
                 if (config.WithAuth) {
                     if (string.IsNullOrEmpty(config.OpenApiAppId) ||
-                        !(config is IClientConfig resource)) {
+                        !(config is IOAuthClientConfig resource)) {
                         options.AddSecurityDefinition("bearer", new OpenApiSecurityScheme {
                             Description =
                                 "Authorization token in the form of 'bearer <token>'",

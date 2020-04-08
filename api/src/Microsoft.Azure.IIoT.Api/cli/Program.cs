@@ -56,7 +56,7 @@ namespace Microsoft.Azure.IIoT.Api.Cli {
             // Register configuration interfaces and logger
             builder.RegisterInstance(config)
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterInstance(new ApiClientConfig(configuration))
+            builder.RegisterInstance(new AadApiClientConfig(configuration))
                 .AsImplementedInterfaces().SingleInstance();
 
             // Register logger

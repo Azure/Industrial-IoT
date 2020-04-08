@@ -4,8 +4,8 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.Services.All.Runtime {
-    using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Auth.Runtime;
+    using Microsoft.Azure.IIoT.Hosting;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
@@ -15,7 +15,7 @@ namespace Microsoft.Azure.IIoT.Services.All.Runtime {
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
-    public class Config : DiagnosticsConfig, IHostConfig,
+    public class Config : DiagnosticsConfig, IWebHostConfig,
         IForwardedHeadersConfig {
 
         /// <inheritdoc/>
@@ -42,11 +42,11 @@ namespace Microsoft.Azure.IIoT.Services.All.Runtime {
         public Config(IConfiguration configuration) :
             base(configuration) {
 
-            _host = new HostConfig(configuration);
+            _host = new WebHostConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
         }
 
-        private readonly HostConfig _host;
+        private readonly WebHostConfig _host;
         private readonly ForwardedHeadersConfig _fh;
     }
 }

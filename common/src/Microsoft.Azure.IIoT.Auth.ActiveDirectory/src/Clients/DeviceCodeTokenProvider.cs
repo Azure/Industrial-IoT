@@ -23,7 +23,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// </summary>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public DeviceCodeTokenProvider(IClientConfig config, ILogger logger) :
+        public DeviceCodeTokenProvider(IOAuthClientConfig config, ILogger logger) :
             this(new ConsolePrompt(), config, null, logger) {
         }
 
@@ -33,7 +33,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <param name="store"></param>
         /// <param name="config"></param>
         /// <param name="logger"></param>
-        public DeviceCodeTokenProvider(IClientConfig config, ITokenCacheProvider store,
+        public DeviceCodeTokenProvider(IOAuthClientConfig config, ITokenCacheProvider store,
             ILogger logger) :
             this(new ConsolePrompt(), config, store, logger) {
         }
@@ -46,7 +46,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <param name="config"></param>
         /// <param name="logger"></param>
         public DeviceCodeTokenProvider(IDeviceCodePrompt prompt,
-            IClientConfig config, ITokenCacheProvider store, ILogger logger) {
+            IOAuthClientConfig config, ITokenCacheProvider store, ILogger logger) {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _prompt = prompt ?? throw new ArgumentNullException(nameof(prompt));
@@ -141,7 +141,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// <summary>Logger for derived class</summary>
         protected readonly ILogger _logger;
         /// <summary>Configuration for derived class</summary>
-        protected readonly IClientConfig _config;
+        protected readonly IOAuthClientConfig _config;
         /// <summary>Callback for derived class</summary>
         protected readonly IDeviceCodePrompt _prompt;
 

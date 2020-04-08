@@ -7,11 +7,6 @@
     <Description>Azure Industrial IoT common abstractions and primitives</Description>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Remove="Hosting\**" />
-    <EmbeddedResource Remove="Hosting\**" />
-    <None Remove="Hosting\**" />
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 </Project>

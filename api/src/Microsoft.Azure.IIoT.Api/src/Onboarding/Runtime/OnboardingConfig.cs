@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Onboarding.Runtime {
         public string OpcUaOnboardingServiceResourceId => GetStringOrDefault(
             kOnboardingServiceIdKey,
             () => GetStringOrDefault("OPC_ONBOARDING_APP_ID",
-                () => GetStringOrDefault(PcsVariable.PCS_AUTH_AUDIENCE,
+                () => GetStringOrDefault(PcsVariable.PCS_AAD_AUDIENCE,
                     () => null)));
 
         /// <inheritdoc/>

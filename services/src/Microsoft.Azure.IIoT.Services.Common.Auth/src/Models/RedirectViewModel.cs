@@ -3,7 +3,7 @@
 
 
 
-namespace Microsoft.Azure.IIoT.Services.Common.Identity {
+namespace Microsoft.Azure.IIoT.Services.Common.Auth {
     public class RedirectViewModel {
         public string RedirectUrl { get; set; }
     }

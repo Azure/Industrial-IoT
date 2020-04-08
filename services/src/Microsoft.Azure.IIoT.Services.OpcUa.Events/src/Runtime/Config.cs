@@ -18,9 +18,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
     using Microsoft.Azure.IIoT.Messaging.EventHub.Runtime;
     using Microsoft.Azure.IIoT.Hub.Processor;
     using Microsoft.Azure.IIoT.Hub.Processor.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
     using System;
@@ -28,8 +26,8 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
-    public class Config : DiagnosticsConfig, IAuthConfig, IServiceBusConfig,
-        ICorsConfig, IClientConfig, IOpenApiConfig, ISignalRServiceConfig,
+    public class Config : DiagnosticsConfig, IServiceBusConfig,
+        ICorsConfig, IOpenApiConfig, ISignalRServiceConfig,
         IEventProcessorConfig, IEventHubConsumerConfig, IForwardedHeadersConfig,
         IEventProcessorHostConfig {
 
@@ -44,25 +42,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
         public string ServicePathBase => GetStringOrDefault(
             PcsVariable.PCS_EVENTS_SERVICE_PATH_BASE,
             () => _host.ServicePathBase);
-
-        /// <inheritdoc/>
-        public string AppId => _auth.AppId;
-        /// <inheritdoc/>
-        public string AppSecret => _auth.AppSecret;
-        /// <inheritdoc/>
-        public string TenantId => _auth.TenantId;
-        /// <inheritdoc/>
-        public string InstanceUrl => _auth.InstanceUrl;
-        /// <inheritdoc/>
-        public bool AuthRequired => false; //  _auth.AuthRequired;
-        /// <inheritdoc/>
-        public string Audience => _auth.Audience;
-        /// <inheritdoc/>
-        public string Domain => _auth.Domain;
-        /// <inheritdoc/>
-        public string TrustedIssuer => _auth.TrustedIssuer;
-        /// <inheritdoc/>
-        public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
 
         /// <inheritdoc/>
         public bool UIEnabled => _openApi.UIEnabled;
@@ -127,8 +106,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
             base(configuration) {
 
             _openApi = new OpenApiConfig(configuration);
-            _host = new HostConfig(configuration);
-            _auth = new AuthConfig(configuration);
+            _host = new WebHostConfig(configuration);
             _cors = new CorsConfig(configuration);
             _sb = new ServiceBusConfig(configuration);
             _sr = new SignalRServiceConfig(configuration);
@@ -138,8 +116,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events.Runtime {
         }
 
         private readonly OpenApiConfig _openApi;
-        private readonly AuthConfig _auth;
-        private readonly HostConfig _host;
+        private readonly WebHostConfig _host;
         private readonly CorsConfig _cors;
         private readonly ServiceBusConfig _sb;
         private readonly SignalRServiceConfig _sr;

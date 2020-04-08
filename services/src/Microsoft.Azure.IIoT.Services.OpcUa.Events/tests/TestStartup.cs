@@ -39,7 +39,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Events {
             // Register events api configuration interface
             builder.RegisterType<EventsConfig>()
                 .AsImplementedInterfaces().SingleInstance();
-            builder.RegisterInstance(new ApiClientConfig(null))
+            builder.RegisterInstance(new AadApiClientConfig(null))
                 .AsImplementedInterfaces().SingleInstance();
 
             // ... as well as signalR client (needed for api)

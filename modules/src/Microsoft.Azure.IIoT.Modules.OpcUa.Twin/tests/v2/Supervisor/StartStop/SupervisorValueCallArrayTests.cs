@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Supervisor.StartStop {
     using System.Threading.Tasks;
     using Xunit;
     using Autofac;
-    using System;
 
     [Collection(WriteCollection.Name)]
     public class SupervisorValueCallArrayTests {

@@ -4,10 +4,10 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App.Runtime {
-    using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Api.Runtime;
+    using Microsoft.Azure.IIoT.Hosting;
     using Microsoft.Azure.IIoT.Messaging.SignalR;
     using Microsoft.Azure.IIoT.Messaging.SignalR.Runtime;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
@@ -17,19 +17,17 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
     /// <summary>
     /// Configuration aggregation
     /// </summary>
-    public class Config : ApiConfig, IClientConfig, ISignalRServiceConfig,
-        IHostConfig, IForwardedHeadersConfig {
+    public class Config : ApiConfig, IOAuthClientConfig, ISignalRServiceConfig,
+        IWebHostConfig, IForwardedHeadersConfig {
 
         /// <inheritdoc/>
-        public string AppId => _auth.AppId;
+        public string AppId => _client.AppId;
         /// <inheritdoc/>
-        public string AppSecret => _auth.AppSecret;
+        public string AppSecret => _client.AppSecret;
         /// <inheritdoc/>
-        public string TenantId => _auth.TenantId;
+        public string TenantId => _client.TenantId;
         /// <inheritdoc/>
-        public string InstanceUrl => _auth.InstanceUrl;
-        /// <inheritdoc/>
-        public string Domain => _auth.Domain;
+        public string InstanceUrl => _client.InstanceUrl;
 
         /// <inheritdoc/>
         public string SignalRConnString => _sr.SignalRConnString;
@@ -39,7 +37,7 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
         /// <inheritdoc/>
         public string ServicePathBase => GetStringOrDefault(
             PcsVariable.PCS_FRONTEND_APP_SERVICE_PATH_BASE,
-            () => _host.ServicePathBase);
+                () => _host.ServicePathBase);
 
         /// <inheritdoc/>
         public bool AspNetCoreForwardedHeadersEnabled =>
@@ -55,15 +53,15 @@ namespace Microsoft.Azure.IIoT.App.Runtime {
         public Config(IConfiguration configuration) :
             base(configuration) {
 
-            _auth = new ApiClientConfig(configuration);
-            _host = new HostConfig(configuration);
+            _client = new AadApiClientConfig(configuration);
+            _host = new WebHostConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
             _sr = new SignalRServiceConfig(configuration);
         }
 
-        private readonly ApiClientConfig _auth;
+        private readonly AadApiClientConfig _client;
         private readonly SignalRServiceConfig _sr;
-        private readonly HostConfig _host;
+        private readonly WebHostConfig _host;
         private readonly ForwardedHeadersConfig _fh;
     }
 }

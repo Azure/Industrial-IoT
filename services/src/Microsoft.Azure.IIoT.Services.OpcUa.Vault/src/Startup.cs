@@ -5,11 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Runtime;
+    using Microsoft.Azure.IIoT.Services.OpcUa.Vault.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Cors;
     using Microsoft.Azure.IIoT.AspNetCore.Correlation;
-    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.OpcUa.Registry.Events.v2;
     using Microsoft.Azure.IIoT.OpcUa.Vault.Handler;
     using Microsoft.Azure.IIoT.OpcUa.Vault.Events;
@@ -18,6 +18,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry.Clients;
     using Microsoft.Azure.IIoT.OpcUa.Api.Registry;
     using Microsoft.Azure.IIoT.Auth.Clients.Default;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Crypto.KeyVault.Clients;
     using Microsoft.Azure.IIoT.Crypto.Storage;
     using Microsoft.Azure.IIoT.Crypto.Default;
@@ -99,28 +100,19 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
 
             services.AddLogging(o => o.AddConsole().AddDebug());
 
-            if (Config.AspNetCoreForwardedHeadersEnabled) {
-                // Configure processing of forwarded headers
-                services.ConfigureForwardedHeaders(Config);
-            }
-
-            // Setup (not enabling yet) CORS
+            services.AddHeaderForwarding();
             services.AddCors();
             services.AddHealthChecks();
             services.AddDistributedMemoryCache();
-
-            // Protect token cache using keyvault and storage
             services.AddAzureDataProtection(Config.Configuration);
-
-            // Add authentication
-            services.AddJwtBearerAuthentication(Config,
-                Environment.IsDevelopment());
-
-            // Add authorization
-            services.AddAuthorization(options => {
-                options.AddPolicies(Config.AuthRequired,
-                    Config.UseRoles && !Environment.IsDevelopment());
-            });
+            services.AddHttpsRedirect();
+            services.AddJwtBearerAuthentication();
+            services.AddAuthorizationPolicies(
+                Policies.RoleMapping,
+                Policies.CanRead,
+                Policies.CanWrite,
+                Policies.CanSign,
+                Policies.CanManage);
 
             // Add controllers as services so they'll be resolved.
             services.AddControllers().AddSerializers();
@@ -138,26 +130,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
             var log = applicationContainer.Resolve<ILogger>();
 
-            if (!string.IsNullOrEmpty(Config.ServicePathBase)) {
-                app.UsePathBase(Config.ServicePathBase);
-            }
-
-            if (Config.AspNetCoreForwardedHeadersEnabled) {
-                // Enable processing of forwarded headers
-                app.UseForwardedHeaders();
-            }
+            app.UsePathBase();
+            app.UseHeaderForwarding();
 
             app.UseRouting();
             app.EnableCors();
 
-            if (Config.AuthRequired) {
-                app.UseAuthentication();
-            }
-            app.UseAuthorization();
-            if (Config.HttpsRedirectPort > 0) {
-                app.UseHsts();
-                app.UseHttpsRedirection();
-            }
+            app.UseJwtBearerAuthentication();
+            app.UseAuthorizationPolicies();
+            app.UseHttpsRedirect();
 
             app.UseCorrelation();
             app.UseSwagger();
@@ -184,12 +165,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Vault {
 
             // Register service info and configuration interfaces
             builder.RegisterInstance(ServiceInfo)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterInstance(Config)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
+            builder.RegisterInstance(Config.Configuration)
+                .AsImplementedInterfaces();
 
-            // Add diagnostics based on configuration
+            // Add diagnostics and auth providers
             builder.AddDiagnostics(Config);
+            builder.RegisterModule<DefaultServiceAuthProviders>();
             builder.RegisterModule<MessagePackModule>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 

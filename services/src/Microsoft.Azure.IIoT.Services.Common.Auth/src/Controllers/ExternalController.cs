@@ -1,4 +1,4 @@
-namespace Microsoft.Azure.IIoT.Services.Common.Identity {
+namespace Microsoft.Azure.IIoT.Services.Common.Auth {
     using Microsoft.Azure.IIoT.Auth.IdentityServer4.Models;
     using Microsoft.AspNetCore.Authentication;
     using Microsoft.AspNetCore.Authorization;

@@ -24,7 +24,7 @@ namespace Microsoft.Azure.IIoT.Api {
 
         public static IEnumerable<object[]> GetDataContractTypes() {
             return      GetAllApiModelTypes<BrowseDirection>()
-                .Concat(GetAllApiModelTypes<IdentityServiceClient>())
+                .Concat(GetAllApiModelTypes<UsersServiceClient>())
                 .Concat(GetAllApiModelTypes<VaultServiceClient>())
                 .Concat(GetAllApiModelTypes<TwinServiceClient>())
                 .Concat(GetAllApiModelTypes<RegistryServiceClient>())

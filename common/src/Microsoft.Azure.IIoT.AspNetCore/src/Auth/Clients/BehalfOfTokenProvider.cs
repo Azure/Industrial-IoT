@@ -34,7 +34,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         /// <param name="logger"></param>
         /// <param name="handler"></param>
         public BehalfOfTokenProvider(IHttpContextAccessor ctx, ITokenCacheProvider store,
-            IClientConfig config, ILogger logger, IAuthenticationErrorHandler handler = null) {
+            IOAuthClientConfig config, ILogger logger, IAuthenticationErrorHandler handler = null) {
             _store = store ?? throw new ArgumentNullException(nameof(store));
             _ctx = ctx ?? throw new ArgumentNullException(nameof(ctx));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -163,7 +163,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth.Clients {
         private readonly IHttpContextAccessor _ctx;
         private readonly ITokenCacheProvider _store;
         private readonly ILogger _logger;
-        private readonly IClientConfig _config;
+        private readonly IOAuthClientConfig _config;
         private readonly IAuthenticationErrorHandler _handler;
     }
 }

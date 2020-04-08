@@ -5,4 +5,4 @@
 
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Microsoft.Azure.IIoT.Services.Common.Identity.Tests")]
+[assembly: InternalsVisibleTo("Microsoft.Azure.IIoT.Services.Common.Auth.Tests")]

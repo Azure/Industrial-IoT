@@ -4,12 +4,12 @@
 // ------------------------------------------------------------
 
 namespace Microsoft.Azure.IIoT.App {
+    using Microsoft.Azure.IIoT.App.Services.SecureData;
     using Microsoft.Azure.IIoT.App.Services;
     using Microsoft.Azure.IIoT.App.Runtime;
     using Microsoft.Azure.IIoT.App.Common;
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
-    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Http.Auth;
@@ -41,9 +41,7 @@ namespace Microsoft.Azure.IIoT.App {
     using System.Security.Authentication;
     using System.Threading.Tasks;
     using System.Security.Claims;
-
     using Blazored.SessionStorage;
-    using Microsoft.Azure.IIoT.App.Services.SecureData;
 
     /// <summary>
     /// Webapp startup
@@ -93,14 +91,8 @@ namespace Microsoft.Azure.IIoT.App {
         public void Configure(IApplicationBuilder app, IHostApplicationLifetime appLifetime) {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
 
-            if (!string.IsNullOrEmpty(Config.ServicePathBase)) {
-                app.UsePathBase(Config.ServicePathBase);
-            }
-
-            if (Config.AspNetCoreForwardedHeadersEnabled) {
-                // Enable processing of forwarded headers
-                app.UseForwardedHeaders();
-            }
+            app.UsePathBase();
+            app.UseHeaderForwarding();
 
             var isDevelopment = Environment.IsDevelopment();
             isDevelopment = true; // TODO Remove when all issues fixed
@@ -109,10 +101,9 @@ namespace Microsoft.Azure.IIoT.App {
             }
             else {
                 app.UseExceptionHandler("/Error");
-                app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            app.UseHttpsRedirect();
             app.UseStaticFiles();
             app.UseRouting();
             app.UseRewriter(
@@ -148,11 +139,7 @@ namespace Microsoft.Azure.IIoT.App {
         public void ConfigureServices(IServiceCollection services) {
 
             services.AddLogging(o => o.AddConsole().AddDebug());
-
-            if (Config.AspNetCoreForwardedHeadersEnabled) {
-                // Configure processing of forwarded headers
-                services.ConfigureForwardedHeaders(Config);
-            }
+            services.AddHeaderForwarding();
 
             // Protect anything using keyvault and storage persisted keys
             services.AddAzureDataProtection(Config.Configuration);
@@ -173,7 +160,7 @@ namespace Microsoft.Azure.IIoT.App {
                 .AddAuthentication(AzureADDefaults.AuthenticationScheme)
                 .AddAzureAD(options => {
                     options.Instance = Config.InstanceUrl;
-                    options.Domain = Config.Domain;
+                    options.Domain = Config.GetDomain();
                     options.TenantId = Config.TenantId;
                     options.ClientId = Config.AppId;
                     options.ClientSecret = Config.AppSecret;
@@ -221,7 +208,9 @@ namespace Microsoft.Azure.IIoT.App {
 
             // Register configuration interfaces and logger
             builder.RegisterInstance(Config)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
+            builder.RegisterInstance(Config.Configuration)
+                .AsImplementedInterfaces();
 
             // Register logger
             builder.AddDiagnostics(Config);

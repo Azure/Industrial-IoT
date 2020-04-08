@@ -36,7 +36,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         /// Create auth provider
         /// </summary>
         /// <param name="config"></param>
-        public AppAuthenticationProvider(IClientConfig config) {
+        public AppAuthenticationProvider(IOAuthClientConfig config) {
             _config = config;
             _provider = CreateProvider();
         }
@@ -97,7 +97,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
         }
 
         /// <summary>Configuration for derived class</summary>
-        protected readonly IClientConfig _config;
+        protected readonly IOAuthClientConfig _config;
         /// <summary>Token provider for derived class</summary>
         protected readonly AzureServiceTokenProvider _provider;
     }

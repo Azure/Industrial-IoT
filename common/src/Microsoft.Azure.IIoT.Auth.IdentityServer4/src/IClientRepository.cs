@@ -5,7 +5,6 @@
 
 namespace Microsoft.Azure.IIoT.Auth.IdentityServer4 {
     using global::IdentityServer4.Models;
-    using System;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -52,5 +51,4 @@ namespace Microsoft.Azure.IIoT.Auth.IdentityServer4 {
         Task UpdateAsync(Client client, string etag = null,
             CancellationToken ct = default);
     }
-
 }

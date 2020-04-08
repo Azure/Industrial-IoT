@@ -20,20 +20,17 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
     using Microsoft.Azure.IIoT.Storage.CosmosDb;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
     using Microsoft.Azure.IIoT.Agent.Framework.Storage.Database;
-    using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Auth.Runtime;
-    using Microsoft.Azure.IIoT.Auth.Clients;
     using Microsoft.Azure.IIoT.Deploy;
     using Microsoft.Azure.IIoT.Deploy.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
     using Microsoft.Extensions.Configuration;
-    using System;
 
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
-    public class Config : DiagnosticsConfig, IAuthConfig, IIoTHubConfig,
-        ICorsConfig, IClientConfig, IOpenApiConfig, ISignalRServiceConfig,
+    public class Config : DiagnosticsConfig, IIoTHubConfig,
+        ICorsConfig, IOpenApiConfig, ISignalRServiceConfig,
         ICosmosDbConfig, IJobDatabaseConfig, IRegistryConfig, ITwinConfig,
         IForwardedHeadersConfig, IContainerRegistryConfig {
 
@@ -59,24 +56,6 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
             PcsVariable.PCS_PUBLISHER_SERVICE_PATH_BASE,
             () => _host.ServicePathBase);
 
-        /// <inheritdoc/>
-        public string AppId => _auth.AppId;
-        /// <inheritdoc/>
-        public string AppSecret => _auth.AppSecret;
-        /// <inheritdoc/>
-        public string TenantId => _auth.TenantId;
-        /// <inheritdoc/>
-        public string InstanceUrl => _auth.InstanceUrl;
-        /// <inheritdoc/>
-        public string Audience => _auth.Audience;
-        /// <inheritdoc/>
-        public string Domain => _auth.Domain;
-        /// <inheritdoc/>
-        public bool AuthRequired => _auth.AuthRequired;
-        /// <inheritdoc/>
-        public string TrustedIssuer => _auth.TrustedIssuer;
-        /// <inheritdoc/>
-        public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
 
         /// <inheritdoc/>
         public bool UIEnabled => _openApi.UIEnabled;
@@ -139,8 +118,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
             base(configuration) {
 
             _openApi = new OpenApiConfig(configuration);
-            _auth = new AuthConfig(configuration);
-            _host = new HostConfig(configuration);
+            _host = new WebHostConfig(configuration);
             _hub = new IoTHubConfig(configuration);
             _cors = new CorsConfig(configuration);
             _api = new ApiConfig(configuration);
@@ -152,8 +130,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Publisher.Runtime {
 
         private readonly ContainerRegistryConfig _cr;
         private readonly OpenApiConfig _openApi;
-        private readonly AuthConfig _auth;
-        private readonly HostConfig _host;
+        private readonly WebHostConfig _host;
         private readonly CorsConfig _cors;
         private readonly ApiConfig _api;
         private readonly CosmosDbConfig _cosmos;

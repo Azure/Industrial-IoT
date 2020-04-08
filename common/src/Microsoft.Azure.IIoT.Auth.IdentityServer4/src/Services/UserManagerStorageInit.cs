@@ -5,11 +5,11 @@
 
 namespace Microsoft.Azure.IIoT.Auth.IdentityServer4.Services {
     using Microsoft.Azure.IIoT.Auth.IdentityServer4.Models;
+    using Microsoft.Azure.IIoT.Exceptions;
     using Microsoft.AspNetCore.Identity;
     using Serilog;
     using System;
     using System.Threading.Tasks;
-    using Microsoft.Azure.IIoT.Exceptions;
 
     /// <summary>
     /// Configures the root user in the user database

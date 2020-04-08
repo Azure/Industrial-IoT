@@ -10,6 +10,9 @@ namespace Microsoft.Azure.IIoT {
     /// </summary>
     public static class PcsVariable {
 
+        /// <summary> Service name </summary>
+        public const string PCS_SERVICE_NAME =
+            "PCS_SERVICE_NAME";
         /// <summary> Root user id </summary>
         public const string PCS_ROOT_USERID =
             "PCS_ROOT_USERID";
@@ -94,36 +97,48 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Key (in KeyVault) to be used for encription of keys </summary>
         public const string PCS_KEYVAULT_KEY_DATAPROTECTION =
             "PCS_KEYVAULT_KEY_DATAPROTECTION";
-        /// <summary> Auth tenant </summary>
-        public const string PCS_AUTH_TENANT =
+        /// <summary> Aad Auth tenant </summary>
+        public const string PCS_AAD_TENANT =
             "PCS_AUTH_TENANT";
-        /// <summary> Instance </summary>
-        public const string PCS_AUTH_INSTANCE =
+        /// <summary> Aad Instance </summary>
+        public const string PCS_AAD_INSTANCE =
             "PCS_AUTH_INSTANCE";
-        /// <summary> Trusted Issuer </summary>
-        public const string PCS_AUTH_ISSUER =
+        /// <summary> Aad Trusted Issuer </summary>
+        public const string PCS_AAD_ISSUER =
             "PCS_AUTH_ISSUER";
-        /// <summary> Audience </summary>
-        public const string PCS_AUTH_AUDIENCE =
+        /// <summary> Aad Audience or null if disabled </summary>
+        public const string PCS_AAD_AUDIENCE =
             "PCS_AUTH_AUDIENCE";
-        /// <summary> Client application id </summary>
-        public const string PCS_AUTH_CLIENT_APPID =
-            "PCS_AUTH_CLIENT_APPID";
-        /// <summary> Client application secret </summary>
-        public const string PCS_AUTH_CLIENT_SECRET =
-            "PCS_AUTH_CLIENT_SECRET";
         /// <summary> Service application id </summary>
-        public const string PCS_AUTH_SERVICE_APPID =
+        public const string PCS_AAD_SERVICE_APPID =
             "PCS_AUTH_SERVICE_APPID";
         /// <summary> Service secret </summary>
-        public const string PCS_AUTH_SERVICE_SECRET =
+        public const string PCS_AAD_SERVICE_SECRET =
             "PCS_AUTH_SERVICE_SECRET";
+        /// <summary> Built in Auth server disabled </summary>
+        public const string PCS_AUTH_SERVICE_DISABLED =
+            "PCS_AUTH_SERVICE_DISABLED";
+        /// <summary> Built in Auth server trusted issuer </summary>
+        public const string PCS_AUTH_SERVICE_ISSUER =
+            "PCS_AUTH_SERVICE_ISSUER";
+        /// <summary> Built in Auth server service application id </summary>
+        public const string PCS_AUTH_SERVICE_SERVICE_APPID =
+            "PCS_AUTH_SERVICE_SERVICE_APPID";
+        /// <summary> Built in Auth server service secret </summary>
+        public const string PCS_AUTH_SERVICE_SERVICE_SECRET =
+            "PCS_AUTH_SERVICE_SERVICE_SECRET";
+        /// <summary> Client application id </summary>
+        public const string PCS_AAD_CLIENT_APPID =
+            "PCS_AUTH_CLIENT_APPID";
+        /// <summary> Client application secret </summary>
+        public const string PCS_AAD_CLIENT_SECRET =
+            "PCS_AUTH_CLIENT_SECRET";
         /// <summary> Whether to use role based access </summary>
         public const string PCS_AUTH_ROLES =
             "PCS_AUTH_ROLES";
-        /// <summary> Whether authentication is required </summary>
-        public const string PCS_AUTH_REQUIRED =
-            "PCS_AUTH_REQUIRED";
+        /// <summary> Auth required </summary>
+        public const string PCS_AUTH_RQUIRED =
+            "PCS_AUTH_RQUIRED";
         /// <summary> Docker server </summary>
         public const string PCS_DOCKER_SERVER =
             "PCS_DOCKER_SERVER";
@@ -142,6 +157,12 @@ namespace Microsoft.Azure.IIoT {
         /// <summary> Service url </summary>
         public const string PCS_SERVICE_URL =
             "PCS_SERVICE_URL";
+        /// <summary> Auth service endpoint url </summary>
+        public const string PCS_AUTH_SERVICE_URL =
+            "PCS_AUTH_SERVICE_URL";
+        /// <summary> User servíce endpoint url </summary>
+        public const string PCS_USERS_SERVICE_URL =
+            "PCS_USERS_SERVICE_URL";
         /// <summary> OPC twin service endpoint url </summary>
         public const string PCS_TWIN_SERVICE_URL =
             "PCS_TWIN_SERVICE_URL";

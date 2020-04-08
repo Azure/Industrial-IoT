@@ -108,7 +108,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <param name="keyName"></param>
         /// <returns></returns>
         private static async Task<KeyVaultClient> TryKeyVaultClientAsync(string vaultUri,
-            IClientConfig client, string keyName) {
+            IOAuthClientConfig client, string keyName) {
             KeyVaultClient keyVault;
 
             // Try reading with app and secret if available.
@@ -179,7 +179,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
         /// <summary>
         /// Data protection default configuration
         /// </summary>
-        internal sealed class DataProtectionConfig : ConfigBase, IClientConfig,
+        internal sealed class DataProtectionConfig : ConfigBase, IOAuthClientConfig,
             IKeyVaultConfig, IStorageConfig {
 
             private const string kTenantIdDefault = "common";
@@ -193,14 +193,12 @@ namespace Microsoft.Azure.IIoT.AspNetCore.Auth {
             public string AppSecret => GetStringOrDefault(PcsVariable.PCS_KEYVAULT_SECRET,
                 () => Environment.GetEnvironmentVariable(PcsVariable.PCS_KEYVAULT_SECRET))?.Trim();
             /// <summary>Optional tenant</summary>
-            public string TenantId => GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT,
-                () => Environment.GetEnvironmentVariable(PcsVariable.PCS_AUTH_TENANT) ??
+            public string TenantId => GetStringOrDefault(PcsVariable.PCS_AAD_TENANT,
+                () => Environment.GetEnvironmentVariable(PcsVariable.PCS_AAD_TENANT) ??
                     kTenantIdDefault).Trim();
 
             /// <summary>Aad instance url</summary>
             public string InstanceUrl => null;
-            /// <summary>Aad domain</summary>
-            public string Domain => null;
 
             /// <inheritdoc/>
             public string BlobStorageConnString => _stg.BlobStorageConnString;

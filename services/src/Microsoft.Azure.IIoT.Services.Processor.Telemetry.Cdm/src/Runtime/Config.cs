@@ -52,8 +52,6 @@ namespace Microsoft.Azure.IIoT.Services.Processor.Telemetry.Cdm.Runtime {
         /// <inheritdoc/>
         public string TenantId => _cdm.TenantId;
         /// <inheritdoc/>
-        public string Domain => _cdm.Domain;
-        /// <inheritdoc/>
         public string AppId => _cdm.AppId;
         /// <inheritdoc/>
         public string AppSecret => _cdm.AppSecret;

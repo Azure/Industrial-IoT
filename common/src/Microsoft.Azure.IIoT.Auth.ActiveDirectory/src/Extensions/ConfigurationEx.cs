@@ -47,7 +47,7 @@ namespace Microsoft.Extensions.Configuration {
         /// <summary>
         /// Keyvault auth principal configuration
         /// </summary>
-        internal sealed class KeyVaultClientConfig : ConfigBase, IClientConfig {
+        internal sealed class KeyVaultClientConfig : ConfigBase, IOAuthClientConfig {
 
             /// <summary>Application id</summary>
             public string AppId => GetStringOrDefault(PcsVariable.PCS_KEYVAULT_APPID,
@@ -56,13 +56,11 @@ namespace Microsoft.Extensions.Configuration {
             public string AppSecret => GetStringOrDefault(PcsVariable.PCS_KEYVAULT_SECRET,
                 () => Environment.GetEnvironmentVariable(PcsVariable.PCS_KEYVAULT_SECRET))?.Trim();
             /// <summary>Optional tenant</summary>
-            public string TenantId => GetStringOrDefault(PcsVariable.PCS_AUTH_TENANT,
-                () => Environment.GetEnvironmentVariable(PcsVariable.PCS_AUTH_TENANT) ?? "common").Trim();
+            public string TenantId => GetStringOrDefault(PcsVariable.PCS_AAD_TENANT,
+                () => Environment.GetEnvironmentVariable(PcsVariable.PCS_AAD_TENANT) ?? "common").Trim();
 
             /// <summary>Aad instance url</summary>
             public string InstanceUrl => null;
-            /// <summary>Aad domain</summary>
-            public string Domain => null;
 
             /// <summary>
             /// Configuration constructor

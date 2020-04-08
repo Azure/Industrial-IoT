@@ -28,7 +28,7 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime {
             () => !WithAuth || !string.IsNullOrEmpty(OpenApiAppId))); // Disable with auth but no appid
         /// <summary>Auth enabled</summary>
         public bool WithAuth => GetBoolOrDefault(kAuth_RequiredKey,
-            () => GetBoolOrDefault(PcsVariable.PCS_AUTH_REQUIRED,
+            () => GetBoolOrDefault(PcsVariable.PCS_AUTH_RQUIRED,
             () => !string.IsNullOrEmpty(OpenApiAppId))); // Disable if no appid
         /// <summary>Generate swagger.json</summary>
         public bool UseV2 => GetBoolOrDefault(kOpenApi_UseV2Key,
@@ -38,12 +38,12 @@ namespace Microsoft.Azure.IIoT.AspNetCore.OpenApi.Runtime {
         /// <summary>Application id</summary>
         public string OpenApiAppId => GetStringOrDefault(kOpenApi_AppIdKey,
             () => GetStringOrDefault(PcsVariable.PCS_OPENAPI_APPID,
-            () => GetStringOrDefault(PcsVariable.PCS_AUTH_CLIENT_APPID,
+            () => GetStringOrDefault(PcsVariable.PCS_AAD_CLIENT_APPID,
             () => GetStringOrDefault("PCS_WEBUI_AUTH_AAD_APPID"))))?.Trim();
         /// <summary>App secret</summary>
         public string OpenApiAppSecret => GetStringOrDefault(kOpenApi_AppSecretKey,
             () => GetStringOrDefault(PcsVariable.PCS_OPENAPI_APP_SECRET,
-            () => GetStringOrDefault(PcsVariable.PCS_AUTH_CLIENT_SECRET,
+            () => GetStringOrDefault(PcsVariable.PCS_AAD_CLIENT_SECRET,
             () => GetStringOrDefault("PCS_APPLICATION_SECRET"))))?.Trim();
 
         /// <inheritdoc/>

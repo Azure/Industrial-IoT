@@ -11,7 +11,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users.Runtime {
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
     using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders.Runtime;
     using Microsoft.Azure.IIoT.Diagnostics;
-    using Microsoft.Azure.IIoT.Auth.Server;
     using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Auth.IdentityServer4;
     using Microsoft.Azure.IIoT.Auth.IdentityServer4.Runtime;
@@ -19,14 +18,13 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users.Runtime {
     using Microsoft.Azure.IIoT.Storage.CosmosDb;
     using Microsoft.Azure.IIoT.Storage.CosmosDb.Runtime;
     using Microsoft.Extensions.Configuration;
-    using System;
 
     /// <summary>
     /// Common web service configuration aggregation
     /// </summary>
-    public class Config : DiagnosticsConfig, IAuthConfig,
-        ICorsConfig, IOpenApiConfig, IRootUserConfig,
-        IItemContainerConfig, ICosmosDbConfig, IForwardedHeadersConfig {
+    public class Config : DiagnosticsConfig, ICorsConfig, IOpenApiConfig,
+        IRootUserConfig, IItemContainerConfig, ICosmosDbConfig,
+        IForwardedHeadersConfig {
 
         /// <inheritdoc/>
         public string CorsWhitelist => _cors.CorsWhitelist;
@@ -39,25 +37,6 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users.Runtime {
         public string ServicePathBase => GetStringOrDefault(
             PcsVariable.PCS_USERS_SERVICE_PATH_BASE,
             () => _host.ServicePathBase);
-
-        /// <inheritdoc/>
-        public string AppId => _auth.AppId;
-        /// <inheritdoc/>
-        public string AppSecret => _auth.AppSecret;
-        /// <inheritdoc/>
-        public string TenantId => _auth.TenantId;
-        /// <inheritdoc/>
-        public string InstanceUrl => _auth.InstanceUrl;
-        /// <inheritdoc/>
-        public string Audience => _auth.Audience;
-        /// <inheritdoc/>
-        public string Domain => _auth.Domain;
-        /// <inheritdoc/>
-        public bool AuthRequired => _auth.AuthRequired;
-        /// <inheritdoc/>
-        public string TrustedIssuer => _auth.TrustedIssuer;
-        /// <inheritdoc/>
-        public TimeSpan AllowedClockSkew => _auth.AllowedClockSkew;
 
         /// <inheritdoc/>
         public string UserName => _user.UserName;
@@ -106,8 +85,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users.Runtime {
             base(configuration) {
 
             _openApi = new OpenApiConfig(configuration);
-            _host = new HostConfig(configuration);
-            _auth = new AuthConfig(configuration);
+            _host = new WebHostConfig(configuration);
             _cors = new CorsConfig(configuration);
             _cosmos = new CosmosDbConfig(configuration);
             _fh = new ForwardedHeadersConfig(configuration);
@@ -115,8 +93,7 @@ namespace Microsoft.Azure.IIoT.Services.Common.Users.Runtime {
         }
 
         private readonly OpenApiConfig _openApi;
-        private readonly HostConfig _host;
-        private readonly AuthConfig _auth;
+        private readonly WebHostConfig _host;
         private readonly CorsConfig _cors;
         private readonly CosmosDbConfig _cosmos;
         private readonly ForwardedHeadersConfig _fh;

@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.Events.Runtime {
         public string OpcUaEventsServiceResourceId => GetStringOrDefault(
             kEventsServiceIdKey,
             () => GetStringOrDefault("EVENTS_APP_ID",
-                () => GetStringOrDefault(PcsVariable.PCS_AUTH_AUDIENCE,
+                () => GetStringOrDefault(PcsVariable.PCS_AAD_AUDIENCE,
                     () => null)));
 
         /// <summary> Use message pack </summary>

@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See LICENSE in the project root for license information.
 
 
-namespace Microsoft.Azure.IIoT.Services.Common.Identity {
+namespace Microsoft.Azure.IIoT.Services.Common.Auth {
     using Microsoft.Azure.IIoT.Auth.IdentityServer4.Models;
     using global::IdentityModel;
     using IdentityServer4.Events;

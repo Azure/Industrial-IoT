@@ -15,13 +15,13 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
     public class CliAuthenticationProvider : ITokenProvider {
 
         /// <inheritdoc/>
-        public CliAuthenticationProvider(IClientConfig config, ILogger logger) {
+        public CliAuthenticationProvider(IOAuthClientConfig config, ILogger logger) {
             _vs = new VsAuthenticationProvider(config);
             _dc = new DeviceCodeTokenProvider(config, logger);
         }
 
         /// <inheritdoc/>
-        public CliAuthenticationProvider(IClientConfig config,
+        public CliAuthenticationProvider(IOAuthClientConfig config,
             ITokenCacheProvider store, ILogger logger) {
             _vs = new VsAuthenticationProvider(config);
             _dc = new DeviceCodeTokenProvider(config, store, logger);
@@ -29,7 +29,7 @@ namespace Microsoft.Azure.IIoT.Auth.Clients.Default {
 
         /// <inheritdoc/>
         public CliAuthenticationProvider(IDeviceCodePrompt prompt,
-            IClientConfig config, ITokenCacheProvider store, ILogger logger) {
+            IOAuthClientConfig config, ITokenCacheProvider store, ILogger logger) {
             _vs = new VsAuthenticationProvider(config);
             _dc = new DeviceCodeTokenProvider(prompt, config, store, logger);
         }

@@ -27,7 +27,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Api.History.Runtime {
         public string OpcUaHistoryServiceResourceId => GetStringOrDefault(
             kOpcUaHistoryServiceIdKey,
             () => GetStringOrDefault("OPC_HISTORY_APP_ID",
-                () => GetStringOrDefault(PcsVariable.PCS_AUTH_AUDIENCE,
+                () => GetStringOrDefault(PcsVariable.PCS_AAD_AUDIENCE,
                     () => null)));
 
         /// <inheritdoc/>

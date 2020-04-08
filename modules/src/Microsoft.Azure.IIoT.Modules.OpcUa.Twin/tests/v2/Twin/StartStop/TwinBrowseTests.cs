@@ -14,7 +14,6 @@ namespace Microsoft.Azure.IIoT.Modules.OpcUa.Twin.v2.Twin.StartStop {
     using System.Threading.Tasks;
     using Xunit;
     using Autofac;
-    using System;
 
     [Collection(ReadCollection.Name)]
     public class TwinBrowseTests {

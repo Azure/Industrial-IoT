@@ -13,7 +13,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
     using Microsoft.Azure.IIoT.OpcUa.Api.Twin.Clients;
     using Microsoft.Azure.IIoT.AspNetCore.Auth;
     using Microsoft.Azure.IIoT.AspNetCore.Auth.Clients;
-    using Microsoft.Azure.IIoT.AspNetCore.ForwardedHeaders;
+    using Microsoft.Azure.IIoT.Auth.Runtime;
     using Microsoft.Azure.IIoT.Serializers;
     using Microsoft.Azure.IIoT.Http.Auth;
     using Microsoft.Azure.IIoT.Http.Default;
@@ -88,18 +88,12 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
 
             services.AddLogging(o => o.AddConsole().AddDebug());
 
-            if (Config.AspNetCoreForwardedHeadersEnabled) {
-                // Configure processing of forwarded headers
-                services.ConfigureForwardedHeaders(Config);
-            }
-
-            // Setup (not enabling yet) CORS
+            services.AddHeaderForwarding();
             services.AddCors();
             services.AddHealthChecks();
             services.AddDistributedMemoryCache();
-
-            // Add authentication
-            services.AddJwtBearerAuthentication(Config, Environment.IsDevelopment());
+            services.AddHttpsRedirect();
+            services.AddJwtBearerAuthentication();
 
             // TODO: Remove http client factory and use
             // services.AddHttpClient();
@@ -118,26 +112,16 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
             var applicationContainer = app.ApplicationServices.GetAutofacRoot();
             var log = applicationContainer.Resolve<ILogger>();
 
-            if (!string.IsNullOrEmpty(Config.ServicePathBase)) {
-                app.UsePathBase(Config.ServicePathBase);
-            }
-
-            if (Config.AspNetCoreForwardedHeadersEnabled) {
-                // Enable processing of forwarded headers
-                app.UseForwardedHeaders();
-            }
+            app.UsePathBase();
+            app.UseHeaderForwarding();
 
             app.UseRouting();
             app.EnableCors();
 
-            if (Config.AuthRequired) {
-                app.UseAuthentication();
-            }
-            app.UseAuthorization();
-            if (Config.HttpsRedirectPort > 0) {
-                app.UseHsts();
-                app.UseHttpsRedirection();
-            }
+            app.UseJwtBearerAuthentication();
+            app.UseAuthorizationPolicies();
+            app.UseHttpsRedirect();
+
             app.UseMetricServer();
             app.UseEndpoints(endpoints => {
                 endpoints.MapControllers();
@@ -162,12 +146,15 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
 
             // Register service info and configuration interfaces
             builder.RegisterInstance(ServiceInfo)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
             builder.RegisterInstance(Config)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
+            builder.RegisterInstance(Config.Configuration)
+                .AsImplementedInterfaces();
 
-            // Add diagnostics based on configuration
+            // Add diagnostics and auth providers
             builder.AddDiagnostics(Config);
+            builder.RegisterModule<DefaultServiceAuthProviders>();
             builder.RegisterModule<NewtonSoftJsonModule>();
 
             // Register http client module
@@ -178,7 +165,7 @@ namespace Microsoft.Azure.IIoT.Services.OpcUa.Twin.Gateway {
                 .AsImplementedInterfaces().SingleInstance();
 
             builder.RegisterType<JwtTokenValidator>()
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces();
 
             // Iot hub services
             builder.RegisterType<IoTHubServiceHttpClient>()
