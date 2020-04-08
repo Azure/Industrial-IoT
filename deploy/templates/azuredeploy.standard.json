@@ -65,14 +65,14 @@
         },
         "eventHubRetentionInDays": {
             "type": "int",
-            "defaultValue": 1,
+            "defaultValue": 2,
             "metadata": {
                 "description": "The event hub message retention in days."
             }
         },
         "eventHubPartitionCount": {
             "type": "int",
-            "defaultValue": 2,
+            "defaultValue": 4,
             "metadata": {
                 "description": "The event hub partition count."
             }

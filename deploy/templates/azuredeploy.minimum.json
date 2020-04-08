@@ -134,6 +134,13 @@
                 "description": "The Azure IoT Hub SKU to use."
             }
         },
+        "iotHubCapacity": {
+            "type": "int",
+            "defaultValue": 1,
+            "metadata": {
+                "description": "The Azure IoT Hub SKU capacity to use."
+            }
+        },
         "iotHubTier": {
             "type": "string",
             "defaultValue": "Standard",
@@ -150,6 +157,13 @@
             "defaultValue": 4,
             "metadata": {
                 "description": "The Azure IoT Hub default endpoint partition count."
+            }
+        },
+        "iotHubRetentionInDays": {
+            "type": "int",
+            "defaultValue": 2,
+            "metadata": {
+                "description": "The Azure IoT Hub default message retention in days."
             }
         },
         "keyVaultName": {
@@ -286,14 +300,14 @@
             "sku": {
                 "name": "[parameters('iotHubSku')]",
                 "tier": "[parameters('iotHubTier')]",
-                "capacity": 1
+                "capacity": "[parameters('iotHubCapacity')]"
             },
             "properties": {
                 "location": "[resourceGroup().location]",
                 "ipFilterRules": [],
                 "eventHubEndpoints": {
                     "events": {
-                        "retentionTimeInDays": 2,
+                        "retentionTimeInDays": "[parameters('iotHubRetentionInDays')]",
                         "partitionCount": "[parameters('iotHubPartitionCount')]"
                     }
                 },
@@ -435,8 +449,7 @@
                 "enableAutomaticFailover": false,
                 "enableMultipleWriteLocations": false,
                 "isVirtualNetworkFilterEnabled": false,
-                "virtualNetworkRules": [
-                ],
+                "virtualNetworkRules": [],
                 "locations": [
                     {
                         "locationName": "[resourceGroup().location]"
