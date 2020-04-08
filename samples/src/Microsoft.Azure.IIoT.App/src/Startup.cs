@@ -221,7 +221,7 @@ namespace Microsoft.Azure.IIoT.App {
 
             // Register configuration interfaces and logger
             builder.RegisterInstance(Config)
-                .AsImplementedInterfaces().SingleInstance();
+                .AsImplementedInterfaces().AsSelf().SingleInstance();
 
             // Register logger
             builder.AddDiagnostics(Config);
