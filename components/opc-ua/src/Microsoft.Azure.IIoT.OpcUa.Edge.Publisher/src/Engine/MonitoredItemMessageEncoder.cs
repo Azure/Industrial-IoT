@@ -152,6 +152,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 }
                 if (!processing || messageCompleted) {
                     var encoder = new BinaryEncoder(messages.First().ServiceMessageContext);
+                    encoder.WriteBoolean(null, true); // is Batch
                     encoder.WriteEncodeableArray(null, chunk);
                     chunk.Clear();
                     messageSize = 4;
@@ -216,7 +217,8 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             }
             foreach (var networkMessage in notifications) {
                 var encoder = new BinaryEncoder(messages.First().ServiceMessageContext);
-                networkMessage.Encode(encoder);
+                encoder.WriteBoolean(null, false); // is Batch
+                encoder.WriteEncodeable(null, networkMessage);
                 var encoded = new NetworkMessageModel {
                     Body = encoder.CloseAndReturnBuffer(),
                     Timestamp = DateTime.UtcNow,

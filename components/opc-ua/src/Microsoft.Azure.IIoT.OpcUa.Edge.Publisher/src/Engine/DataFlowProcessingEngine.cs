@@ -81,10 +81,10 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                 IsRunning = true;
 
                 _encodingBlock = new TransformManyBlock<DataSetMessageModel[], NetworkMessageModel>(
-                    async input => 
-                        (_dataSetMessageBufferSize == 1) ? 
-                            await _messageEncoder.EncodeAsync(input) :
-                            await _messageEncoder.EncodeBatchAsync(input),
+                    async input =>
+                        (_dataSetMessageBufferSize == 1)
+                            ? await _messageEncoder.EncodeAsync(input)
+                            : await _messageEncoder.EncodeBatchAsync(input),
                     new ExecutionDataflowBlockOptions {
                         CancellationToken = cancellationToken
                     });

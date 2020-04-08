@@ -41,51 +41,56 @@ namespace Microsoft.Azure.IIoT.OpcUa.Subscriber.Handlers {
         /// <inheritdoc/>
         public async Task HandleAsync(string deviceId, string moduleId,
             byte[] payload, IDictionary<string, string> properties, Func<Task> checkpoint) {
-            using (var stream = new MemoryStream(payload)) {
+
+            try {
                 var context = new ServiceMessageContext();
-                try {
-                    using (var decoder = new BinaryDecoder(stream, context)) {
-                        var networkMessage = decoder.ReadEncodeable(null, typeof(NetworkMessage)) as NetworkMessage;
-                        foreach (var dataSetMessage in networkMessage.Messages) {
-                            var dataset = new DataSetMessageModel {
-                                PublisherId = networkMessage.PublisherId,
-                                MessageId = networkMessage.MessageId,
-                                DataSetClassId = networkMessage.DataSetClassId,
-                                DataSetWriterId = dataSetMessage.DataSetWriterId,
-                                SequenceNumber = dataSetMessage.SequenceNumber,
-                                Status = StatusCode.LookupSymbolicId(dataSetMessage.Status.Code),
-                                MetaDataVersion = $"{dataSetMessage.MetaDataVersion.MajorVersion}"+
-                                    $".{dataSetMessage.MetaDataVersion.MinorVersion}",
-                                Timestamp = dataSetMessage.Timestamp,
-                                Payload = new Dictionary<string, DataValueModel>()
+                var decoder = new BinaryDecoder(new MemoryStream(payload), context);
+                var messages = decoder.ReadBoolean(null) // is Batch?
+                    ? decoder.ReadEncodeableArray(null, typeof(NetworkMessage))
+                        as NetworkMessage[]
+                     : (decoder.ReadEncodeable(null, typeof(NetworkMessage))
+                        as NetworkMessage).YieldReturn();
+
+                foreach (var message in messages) {
+                    foreach (var dataSetMessage in message.Messages) {
+                        var dataset = new DataSetMessageModel {
+                            PublisherId = message.PublisherId,
+                            MessageId = message.MessageId,
+                            DataSetClassId = message.DataSetClassId,
+                            DataSetWriterId = dataSetMessage.DataSetWriterId,
+                            SequenceNumber = dataSetMessage.SequenceNumber,
+                            Status = StatusCode.LookupSymbolicId(dataSetMessage.Status.Code),
+                            MetaDataVersion = $"{dataSetMessage.MetaDataVersion.MajorVersion}" +
+                                $".{dataSetMessage.MetaDataVersion.MinorVersion}",
+                            Timestamp = dataSetMessage.Timestamp,
+                            Payload = new Dictionary<string, DataValueModel>()
+                        };
+                        foreach (var datapoint in dataSetMessage.Payload) {
+                            var codec = _encoder.Create(context);
+                            var type = BuiltInType.Null;
+                            dataset.Payload[datapoint.Key] = new DataValueModel {
+                                Value = datapoint.Value == null
+                                    ? null : codec.Encode(datapoint.Value.WrappedValue, out type),
+                                DataType = type == BuiltInType.Null
+                                    ? null : type.ToString(),
+                                Status = (datapoint.Value?.StatusCode.Code == StatusCodes.Good)
+                                    ? null : StatusCode.LookupSymbolicId(datapoint.Value.StatusCode.Code),
+                                SourceTimestamp = (datapoint.Value?.SourceTimestamp == DateTime.MinValue)
+                                    ? null : datapoint.Value?.SourceTimestamp,
+                                SourcePicoseconds = (datapoint.Value?.SourcePicoseconds == 0)
+                                    ? null : datapoint.Value?.SourcePicoseconds,
+                                ServerTimestamp = (datapoint.Value?.ServerTimestamp == DateTime.MinValue)
+                                    ? null : datapoint.Value?.ServerTimestamp,
+                                ServerPicoseconds = (datapoint.Value?.ServerPicoseconds == 0)
+                                    ? null : datapoint.Value?.ServerPicoseconds
                             };
-                            foreach (var datapoint in dataSetMessage.Payload) {
-                                var codec = _encoder.Create(context);
-                                var type = BuiltInType.Null;
-                                dataset.Payload[datapoint.Key] = new DataValueModel {
-                                    Value = datapoint.Value == null
-                                        ? null : codec.Encode(datapoint.Value.WrappedValue, out type),
-                                    DataType = type == BuiltInType.Null
-                                        ? null : type.ToString(),
-                                    Status = (datapoint.Value?.StatusCode.Code == StatusCodes.Good)
-                                        ? null : StatusCode.LookupSymbolicId(datapoint.Value.StatusCode.Code),
-                                    SourceTimestamp = (datapoint.Value?.SourceTimestamp == DateTime.MinValue)
-                                        ? null : datapoint.Value?.SourceTimestamp,
-                                    SourcePicoseconds = (datapoint.Value?.SourcePicoseconds == 0)
-                                        ? null : datapoint.Value?.SourcePicoseconds,
-                                    ServerTimestamp = (datapoint.Value?.ServerTimestamp == DateTime.MinValue)
-                                        ? null : datapoint.Value?.ServerTimestamp,
-                                    ServerPicoseconds = (datapoint.Value?.ServerPicoseconds == 0)
-                                        ? null : datapoint.Value?.ServerPicoseconds
-                                };
-                            }
-                            await Task.WhenAll(_handlers.Select(h => h.HandleMessageAsync(dataset)));
                         }
+                        await Task.WhenAll(_handlers.Select(h => h.HandleMessageAsync(dataset)));
                     }
                 }
-                catch (Exception ex) {
-                    _logger.Error(ex, "Subscriber binary network message handling failed - skip");
-                }
+            }
+            catch (Exception ex) {
+                _logger.Error(ex, "Subscriber binary network message handling failed - skip");
             }
         }
 
