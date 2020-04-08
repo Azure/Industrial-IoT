@@ -456,6 +456,14 @@ To install the chart first ensure that you have added `azure-iiot` repository:
 $ helm repo add azure-iiot https://azureiiot.blob.core.windows.net/helm
 ```
 
+After that make sure to create the namespace were you will deploy the chart:
+
+```bash
+# creating azure-iiot-ns namespace
+$ kubectl create namespace azure-iiot-ns
+namespace/azure-iiot-ns created
+```
+
 Then, to install the chart with the release name `azure-iiot` you would run the following command **changing
 all values in `<>`** with the ones obtained by running commands in [Prerequisites](#prerequisites) section:
 
@@ -465,7 +473,7 @@ that AAD App Registrations are created and details are provided to the chart. An
 having those for non-production deployments as well, particularly if you have enabled Ingress.
 
 ```bash
-$ helm install azure-iiot azure-iiot/azure-industrial-iot -n azure-iiot-ns \
+$ helm install azure-iiot azure-iiot/azure-industrial-iot --namespace azure-iiot-ns \
   --set azure.tenantId=<TenantId> \
   --set azure.iotHub.eventHub.endpoint=<IoTHubEventHubEndpoint> \
   --set azure.iotHub.eventHub.consumerGroup.events=<IoTHubEventHubEventsConsumerGroup> \
@@ -487,7 +495,7 @@ Alternatively, a YAML file that specifies the values for the parameters can be p
 the chart. For example:
 
 ```bash
-$ helm install azure-iiot azure-iiot/azure-industrial-iot -n azure-iiot-ns -f values.yaml
+$ helm install azure-iiot azure-iiot/azure-industrial-iot --namespace azure-iiot-ns -f values.yaml
 ```
 
 For reference sample of this `values.yam` file please check [Minimal Configuration](#minimal-configuration)
