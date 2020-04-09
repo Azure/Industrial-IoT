@@ -227,7 +227,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
         }
 
         /// <summary>
-        /// Produce Monitored Item Messages from the data set message model for the especified encoding
+        /// Produce Monitored Item Messages from the data set message model for the specified encoding
         /// </summary>
         /// <param name="messages"></param>
         /// <param name="encoding"></param>
@@ -236,7 +236,7 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
             foreach (var message in messages) {
                 if (message.WriterGroup?.MessageType.GetValueOrDefault(MessageEncoding.Json) == encoding) {
                     foreach (var notification in message.Notifications) {
-                        yield return new MonitoredItemMessage {
+                         var result = new MonitoredItemMessage {
                             MessageContentMask = (message.Writer?.MessageSettings?
                                 .DataSetMessageContentMask).ToMonitoredItemMessageMask(
                                     message.Writer?.DataSetFieldContentMask),
@@ -248,6 +248,13 @@ namespace Microsoft.Azure.IIoT.OpcUa.Edge.Publisher.Engine {
                             Value = notification.Value,
                             DisplayName = notification.DisplayName
                         };
+                        // force published timestamp into to source timestamp for the legacy heartbeat compatibility
+                        if (notification.IsHeartbeat &&
+                            ((result.MessageContentMask & (uint)MonitoredItemMessageContentMask.Timestamp) == 0) &&
+                            ((result.MessageContentMask & (uint)MonitoredItemMessageContentMask.SourceTimestamp) != 0)) {
+                            result.Value.SourceTimestamp = result.Timestamp;
+                        }
+                        yield return result;
                     }
                 }
             }
