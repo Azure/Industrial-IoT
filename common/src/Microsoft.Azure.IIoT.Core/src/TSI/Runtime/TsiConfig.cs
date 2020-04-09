@@ -13,9 +13,11 @@ namespace Microsoft.Azure.IIoT.Core.TSI.Runtime {
     /// </summary>
     public class TsiConfig : ConfigBase, ITsiConfig {
 
+        private const string kTsi_DataAccessFQDN = "Tsi:DataAccessFQDN";
+
         /// <summary>DataAccessFQDN</summary>
-        public string DataAccessFQDN => GetStringOrDefault(PcsVariable.PCS_TSI_URL,
-            () => Environment.GetEnvironmentVariable(PcsVariable.PCS_TSI_URL))?.Trim();
+        public string DataAccessFQDN => GetStringOrDefault(kTsi_DataAccessFQDN,
+            () => GetStringOrDefault(PcsVariable.PCS_TSI_URL))?.Trim();
 
         /// <summary>
         /// Configuration constructor
